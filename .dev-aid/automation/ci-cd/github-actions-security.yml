@@ -1,0 +1,198 @@
+name: Dev-AID Security Scan
+
+# Trigger on pull requests and pushes to main/master
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+  # Allow manual triggers
+  workflow_dispatch:
+  # Weekly scheduled scan
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+
+jobs:
+  security-scan:
+    name: Comprehensive Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # For SARIF upload
+      pull-requests: write    # For PR comments
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for Gitleaks
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: |
+          # Opengrep
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+          # Gitleaks
+          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_amd64.tar.gz
+          tar xzf gitleaks_8.18.4_linux_amd64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+          rm gitleaks_8.18.4_linux_amd64.tar.gz
+
+          # Trivy
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install -y trivy
+
+          # Hadolint
+          wget -q https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O hadolint
+          sudo mv hadolint /usr/local/bin/
+          sudo chmod +x /usr/local/bin/hadolint
+
+          # Checkov
+          pip install checkov
+
+      - name: Run Gitleaks (Secret Scanning)
+        id: gitleaks
+        continue-on-error: true
+        run: |
+          gitleaks detect --verbose --report-path gitleaks-report.json --exit-code 1 || echo "GITLEAKS_FAILED=true" >> $GITHUB_ENV
+
+      - name: Run Opengrep (SAST)
+        id: opengrep
+        continue-on-error: true
+        run: |
+          opengrep scan --config=auto --sarif --output opengrep.sarif .
+          opengrep scan --config=auto --json --output opengrep.json .
+
+      - name: Run Trivy (Dependency & Container Scanning)
+        id: trivy
+        continue-on-error: true
+        run: |
+          # Scan filesystem for vulnerabilities
+          trivy fs --scanners vuln --severity HIGH,CRITICAL --format sarif --output trivy-fs.sarif .
+          trivy fs --scanners vuln --severity HIGH,CRITICAL --format json --output trivy-fs.json .
+
+          # Scan Docker images if Dockerfile exists
+          if [ -f "Dockerfile" ]; then
+            docker build -t temp-image:latest .
+            trivy image --severity HIGH,CRITICAL --format sarif --output trivy-image.sarif temp-image:latest
+            trivy image --severity HIGH,CRITICAL --format json --output trivy-image.json temp-image:latest
+          fi
+
+      - name: Run Hadolint (Dockerfile Linting)
+        id: hadolint
+        continue-on-error: true
+        if: hashFiles('Dockerfile') != ''
+        run: |
+          hadolint Dockerfile --format json > hadolint-report.json || true
+
+      - name: Run Checkov (IaC Scanning)
+        id: checkov
+        continue-on-error: true
+        run: |
+          checkov -d . --quiet --compact --output json > checkov-report.json || true
+          checkov -d . --quiet --output sarif --output-file checkov.sarif || true
+
+      - name: Upload SARIF results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: |
+            opengrep.sarif
+            trivy-fs.sarif
+            checkov.sarif
+
+      - name: Generate Security Summary
+        if: always()
+        run: |
+          echo "# 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Gitleaks
+          if [ -f "gitleaks-report.json" ]; then
+            LEAKS=$(jq 'length' gitleaks-report.json)
+            if [ "$LEAKS" -gt 0 ]; then
+              echo "## ❌ Gitleaks: $LEAKS secret(s) found" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "## ✅ Gitleaks: No secrets found" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          # Opengrep
+          if [ -f "opengrep.json" ]; then
+            FINDINGS=$(jq '.results | length' opengrep.json)
+            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Trivy
+          if [ -f "trivy-fs.json" ]; then
+            VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy-fs.json)
+            echo "## 🛡️ Trivy: $VULNS vulnerability(ies)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Hadolint
+          if [ -f "hadolint-report.json" ]; then
+            ISSUES=$(jq 'length' hadolint-report.json)
+            echo "## 🐳 Hadolint: $ISSUES Dockerfile issue(s)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Checkov
+          if [ -f "checkov-report.json" ]; then
+            FAILED=$(jq '.summary.failed' checkov-report.json)
+            echo "## ☸️ Checkov: $FAILED IaC check(s) failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload security reports as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            *-report.json
+            *.sarif
+          retention-days: 30
+
+      - name: Check for critical issues
+        if: always()
+        run: |
+          CRITICAL_ISSUES=0
+
+          # Check Gitleaks
+          if [ "$GITLEAKS_FAILED" = "true" ]; then
+            echo "❌ Secrets found!"
+            CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+          fi
+
+          # Check Opengrep for ERROR severity
+          if [ -f "opengrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "❌ $CRITICAL critical code vulnerabilities!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+          fi
+
+          # Check Trivy for CRITICAL CVEs
+          if [ -f "trivy-fs.json" ]; then
+            CRITICAL_CVE=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            if [ "$CRITICAL_CVE" -gt 0 ]; then
+              echo "❌ $CRITICAL_CVE critical CVEs!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+          fi
+
+          if [ $CRITICAL_ISSUES -gt 0 ]; then
+            echo ""
+            echo "🚨 $CRITICAL_ISSUES critical security issue(s) found!"
+            echo "Review the security reports and fix before merging."
+            exit 1
+          else
+            echo "✅ No critical security issues found!"
+          fi

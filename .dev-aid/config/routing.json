@@ -1,0 +1,54 @@
+{
+  "default_mode": "solo",
+  "modes": {
+    "solo": {
+      "description": "Single model handles everything",
+      "primary_model": "claude-sonnet"
+    },
+    "challenger": {
+      "description": "Primary generates, challenger reviews",
+      "enabled": true,
+      "primary_model": "claude-sonnet",
+      "challenger_model": "gemini-flash",
+      "auto_refine_on": ["HIGH", "CRITICAL"],
+      "review_triggers": [
+        "auth",
+        "authentication",
+        "password",
+        "crypto",
+        "encryption",
+        "token",
+        "session",
+        "oauth",
+        "jwt",
+        "security",
+        "credential",
+        "api_key"
+      ]
+    },
+    "ensemble": {
+      "description": "Route by task type",
+      "enabled": true,
+      "routing_strategy": "semantic",
+      "task_routes": {
+        "massive_context": "gemini-flash",
+        "code_generation": "claude-sonnet",
+        "security_audit": "claude-sonnet",
+        "documentation": "gpt-4o",
+        "debugging": "claude-sonnet",
+        "complex_reasoning": "claude-opus"
+      }
+    }
+  },
+  "fallback_chain": [
+    "claude-sonnet",
+    "gpt-4o",
+    "gemini-flash"
+  ],
+  "cost_limit_per_day": 100.0,
+  "logging": {
+    "enabled": true,
+    "log_file": ".dev-aid/logs/routing.log",
+    "log_level": "info"
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://modelcontextprotocol.io/schema/mcp.json",
+  "mcpServers": {
+    "code-search": {
+      "description": "Local semantic code search powered by claude-context-local",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "${HOME}/.local/share/claude-context-local",
+        "python",
+        "mcp_server/server.py"
+      ],
+      "enabled": true,
+      "features": {
+        "semantic_search": true,
+        "ast_parsing": true,
+        "local_only": true,
+        "zero_cost": true
+      }
+    }
+  },
+  "settings": {
+    "auto_index_on_startup": false,
+    "index_on_file_save": false,
+    "excluded_dirs": [
+      "node_modules",
+      ".venv",
+      "__pycache__",
+      "build",
+      "dist",
+      ".git"
+    ]
+  }
+}

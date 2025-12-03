@@ -1,0 +1,81 @@
+{
+  "description": "Elite Claude Development Setup - Production-Ready Minimalist",
+  "version": "1.0.0",
+  "created": "2025-11-25",
+  "architecture": "Balanced (~1,000 token standing context)",
+
+  "enableAllProjectMcpServers": false,
+
+  "permissions": {
+    "allow": [
+      "Edit:*",
+      "Write:*",
+      "MultiEdit:*",
+      "NotebookEdit:*",
+      "Bash:*",
+      "Read:*",
+      "Grep:*",
+      "Glob:*"
+    ],
+    "defaultMode": "acceptEdits"
+  },
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start-load-context.sh",
+            "description": "Load memory bank foundation (~300 tokens)"
+          }
+        ]
+      }
+    ],
+
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/skill-activation-conservative.sh",
+            "description": "Conservative auto-load: file pattern matching, max 2-3 skills"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use-tracker.sh",
+            "description": "Track file modifications"
+          }
+        ]
+      }
+    ],
+
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-quality-gates.sh",
+            "description": "Quality gates + memory bank sync"
+          }
+        ]
+      }
+    ]
+  },
+
+  "comments": {
+    "standing_context_budget": "~900-1,500 tokens (0.45-0.75% of 200k)",
+    "auto_load_strategy": "Conservative: file pattern matching, max 2-3 skills",
+    "architecture_pattern": "Balanced: orchestration + agents + commands",
+    "duplicate_policy": "Zero duplicates - one tool per purpose",
+    "token_efficiency": "99.25%+ tokens available for actual work"
+  }
+}

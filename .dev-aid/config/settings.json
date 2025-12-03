@@ -1,0 +1,36 @@
+{
+  "dev_aid_version": "2.0.0",
+  "project_name": "my-project",
+
+  "standing_context_budget": "balanced",
+  "standing_context_tokens": 1000,
+
+  "auto_activation": "conservative",
+  "auto_load_max_skills": 3,
+
+  "orchestration_mode": "solo",
+
+  "enabled_providers": ["claude"],
+
+  "default_model": "claude-sonnet-4.5",
+
+  "memory_bank": {
+    "auto_load": ["activeContext.md"],
+    "on_demand": [
+      "patterns.md",
+      "decisions.md",
+      "security.md",
+      "performance.md",
+      "testing.md",
+      "chaos.md"
+    ]
+  },
+
+  "hooks": {
+    "enabled": true,
+    "session_start": true,
+    "user_prompt_submit": true,
+    "post_tool_use": false,
+    "stop": true
+  }
+}

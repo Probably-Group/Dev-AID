@@ -1,0 +1,139 @@
+description = "Show current routing configuration, recent activity, and cost breakdown"
+
+prompt = """
+# 📊 Router Status & Monitoring
+
+Display the current Dev-AID router configuration, recent routing decisions, and cost analytics.
+
+## Configuration Files
+
+**Routing Configuration:**
+!{cat .dev-aid/config/routing.json 2>/dev/null || echo "No routing.json found"}
+
+**Model Registry:**
+!{cat .dev-aid/config/models.json 2>/dev/null || echo "No models.json found"}
+
+## Recent Activity
+
+**Last 10 Routing Decisions:**
+!{tail -n 10 .dev-aid/logs/routing.log 2>/dev/null || echo "No routing log found"}
+
+**Cost Tracking:**
+!{cat .dev-aid/logs/costs.json 2>/dev/null || echo "No cost data available"}
+
+## Git Context
+
+**Current Branch:**
+!{git branch --show-current 2>/dev/null || echo "Not in a git repository"}
+
+**Recent Changes:**
+!{git log --oneline -n 5 2>/dev/null || echo "No git history"}
+
+## Output Format Required
+
+Generate a comprehensive status report in this format:
+
+```markdown
+# 🚀 Dev-AID Router Status
+
+## ⚙️ Current Configuration
+
+**Default Mode:** <solo|challenger|ensemble>
+**Status:** <enabled|disabled>
+**Config File:** `.dev-aid/config/routing.json`
+
+### Challenger Mode
+- **Enabled:** <yes|no>
+- **Primary Model:** <model_name>
+- **Challenger Model:** <model_name>
+- **Auto-refine:** <severity_levels>
+- **Review Triggers:** <keyword_list>
+
+### Ensemble Mode
+- **Enabled:** <yes|no>
+- **Routing Strategy:** <semantic|rule-based>
+- **Task Routes:**
+  - Massive Context → <model>
+  - Code Generation → <model>
+  - Security Audit → <model>
+  - Documentation → <model>
+  - Debugging → <model>
+  - Complex Reasoning → <model>
+
+### Fallback Chain
+1. <primary_model>
+2. <secondary_model>
+3. <tertiary_model>
+
+---
+
+## 💰 Cost Analytics
+
+### Today (<date>)
+- **Total:** $<amount>
+- **Requests:** <count>
+- **Average:** $<avg_per_request>
+
+### By Model
+| Model | Calls | Cost | Avg/Call |
+|-------|-------|------|----------|
+| <model> | <n> | $<cost> | $<avg> |
+
+### Budget Status
+- **Daily Limit:** $<limit>
+- **Used Today:** $<used>
+- **Remaining:** $<remaining>
+- **Status:** <under|over> budget
+
+---
+
+## 📝 Recent Activity
+
+### Last 10 Routing Decisions
+
+| Time | Mode | Model | Request | Cost |
+|------|------|-------|---------|------|
+| <time> | <mode> | <model> | <request> | $<cost> |
+
+---
+
+## 🔧 Quick Actions
+
+To change configuration:
+```bash
+# Enable challenger mode
+/aid-router-enable challenger
+
+# Switch to ensemble mode
+/aid-router-enable ensemble
+
+# Edit configuration
+vim .dev-aid/config/routing.json
+```
+
+To view logs:
+```bash
+# Full routing log
+tail -f .dev-aid/logs/routing.log
+
+# Cost breakdown
+cat .dev-aid/logs/costs.json
+
+# Filter by model
+grep "gemini-flash" .dev-aid/logs/routing.log
+```
+
+---
+
+## 📈 Insights
+
+<Provide 2-3 insights based on the data, such as:>
+- Most used model today
+- Cost trends
+- Recommendations for optimization
+```
+
+**Additional Request:** {{args}}
+
+If the user provided specific arguments (e.g., "--costs", "--history", "--config"), focus your report on that specific aspect.
+"""

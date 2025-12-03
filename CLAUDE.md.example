@@ -1,0 +1,10 @@
+# This file is created automatically during installation
+
+The installer (.dev-aid/scripts/install.sh) will create symlinks like:
+- CLAUDE.md (if Claude is enabled)
+- GEMINI.md (if Gemini is enabled)  
+- OPENAI.md (if OpenAI is enabled)
+
+These symlinks point to .dev-aid/providers/{provider}/{PROVIDER}.md
+
+You don't need to create these manually.

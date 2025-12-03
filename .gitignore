@@ -1,0 +1,28 @@
+# Dev-AID API Keys (NEVER commit these!)
+.dev-aid/config/.env
+.dev-aid/config/.env.*
+.dev-aid/config/backups/
+
+# Logs
+.dev-aid/logs/*.log
+.dev-aid/logs/*.log.*
+
+# Temporary files
+.dev-aid/temp/*
+!.dev-aid/temp/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Provider symlinks (created during installation)
+CLAUDE.md
+GEMINI.md
+OPENAI.md
+OPENROUTER.md

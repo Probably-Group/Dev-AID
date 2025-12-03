@@ -1,0 +1,89 @@
+#!/bin/bash
+# User Prompt Submit Hook - Conservative Auto-Load
+# File pattern matching, max 2-3 skills
+# High confidence only
+
+SKILL_RULES="$CLAUDE_PROJECT_DIR/.claude/skill-rules.json"
+
+# Get current files from context (if available in CLAUDE_CONTEXT env var)
+CURRENT_FILES="${CLAUDE_CONTEXT_FILES:-}"
+
+# Simple pattern matching based on file extensions and names
+suggestions=""
+auto_load_count=0
+max_auto_load=3
+
+# Testing context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE '\.(test|spec)\.(ts|js|tsx|jsx|py)$|__tests__|tests/'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: tdd-master (test file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# Security context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE 'auth|login|security|crypto|password|\.env'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: devsecops-expert (security file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: owasp-guardian (security context)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# Database context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE 'migration|schema|model|entity|repository'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: database-design (database file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# API context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE 'route|controller|endpoint|api/'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: api-expert (API file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# Frontend context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE '\.(tsx|jsx)$|component|pages/'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: frontend-dev-guidelines (React file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# CI/CD context (high confidence)
+if echo "$CURRENT_FILES" | grep -qE '\.github/workflows/|\.gitlab-ci\.yml|Jenkinsfile|pipeline'; then
+  if [ $auto_load_count -lt $max_auto_load ]; then
+    suggestions+="✅ Auto-loading: cicd-expert (CI/CD file detected)\n"
+    auto_load_count=$((auto_load_count + 1))
+  fi
+fi
+
+# Output suggestions
+if [ -n "$suggestions" ]; then
+  echo ""
+  echo "🎯 Skills Auto-Loaded (Conservative Strategy):"
+  echo -e "$suggestions"
+  echo ""
+  echo "💡 Available commands:"
+  echo "  - @agent-name for deep analysis"
+  echo "  - /command-name for workflows"
+  echo ""
+fi
+
+# Medium confidence suggestions (don't auto-load)
+if echo "$CLAUDE_USER_PROMPT" | grep -qiE 'performance|slow|optimize|bottleneck'; then
+  echo "💡 Suggestion: Consider loading performance-expert skill"
+fi
+
+if echo "$CLAUDE_USER_PROMPT" | grep -qiE 'refactor|clean code|SOLID|design pattern'; then
+  echo "💡 Suggestion: Consider clean-code and design-patterns skills"
+fi
+
+exit 0

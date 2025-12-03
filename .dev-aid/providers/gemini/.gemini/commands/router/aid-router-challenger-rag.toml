@@ -1,0 +1,105 @@
+description = "Challenger mode with local semantic code search (100% local, $0 cost)"
+
+prompt = """
+# 🔍 Challenger Mode with Local RAG
+
+You are executing a two-AI review workflow with LOCAL semantic code search.
+
+## User's Request
+{{args}}
+
+## Step 1: Local Semantic Search (via MCP)
+
+Search the codebase for relevant context using claude-context-local (100% local, zero cost).
+
+Search query: "{{args}}"
+
+## Step 2: Your Task - Critical Security Review
+
+You are the **Challenger** in this workflow. The primary AI (Claude) will generate an implementation. Your job is to provide critical security review.
+
+### Analyze For
+
+**OWASP Top 10 Vulnerabilities:**
+1. Injection flaws (SQL, XSS, Command injection)
+2. Broken authentication
+3. Sensitive data exposure
+4. XML external entities (XXE)
+5. Broken access control
+6. Security misconfiguration
+7. Cross-site scripting (XSS)
+8. Insecure deserialization
+9. Using components with known vulnerabilities
+10. Insufficient logging & monitoring
+
+**Logic Errors:**
+- Race conditions
+- Off-by-one errors
+- Null pointer exceptions
+- Edge cases not handled
+
+**Performance Issues:**
+- N+1 queries
+- Inefficient algorithms
+- Memory leaks
+
+**Code Consistency:**
+- Does it match existing patterns found in semantic search?
+- Does it follow the codebase conventions?
+- Are similar implementations handled consistently?
+
+### Context from Dev-AID
+
+**Memory Bank (Security Guidelines):**
+!{cat .dev-aid/memory-bank/security.md 2>/dev/null || echo "No security guidelines found"}
+
+**Recent Changes:**
+!{git diff --name-only HEAD~3..HEAD 2>/dev/null || echo "No recent changes"}
+
+**Active Configuration:**
+!{cat .dev-aid/config/routing.json 2>/dev/null || echo "No routing config"}
+
+## Output Format Required
+
+Provide your critique in this EXACT format:
+
+```
+CHALLENGER REVIEW
+═════════════════
+
+ISSUES FOUND: <number>
+SEVERITY: <LOW|MEDIUM|HIGH|CRITICAL>
+
+DETAILED CRITIQUE:
+1. [Issue description]
+   Location: [file:line or code snippet]
+   Risk: [security/performance/logic/consistency]
+   Impact: [what could go wrong]
+
+2. [Next issue...]
+
+RECOMMENDATIONS:
+- [Specific fix for issue 1]
+- [Specific fix for issue 2]
+...
+
+POSITIVE ASPECTS:
+- [What was done well]
+- [Patterns that match existing code]
+
+CONSISTENCY CHECK:
+- Does it match patterns from semantic search results? [yes/no/partially]
+- Follows codebase conventions? [yes/no/partially]
+```
+
+**Important:**
+- Be thorough but constructive
+- If implementation is solid, acknowledge it
+- If critical issues exist, be explicit about risks
+- Reference patterns found in semantic search when relevant
+- If code deviates from existing patterns, note whether deviation is justified
+
+---
+
+**Powered by:** claude-context-local • 100% Local • Zero Cost • Privacy-First
+"""

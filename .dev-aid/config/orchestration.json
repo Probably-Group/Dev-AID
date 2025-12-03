@@ -1,0 +1,165 @@
+{
+  "mode": "solo",
+  "description": "AI Model Orchestration Configuration",
+
+  "none": {
+    "description": "Manual mode - user explicitly chooses AI model for each task",
+    "enabled": false,
+    "note": "No automatic routing. User has full control over model selection."
+  },
+
+  "solo": {
+    "description": "Single default model handles all tasks",
+    "model": "claude-sonnet-4.5",
+    "enabled": true
+  },
+
+  "ensemble": {
+    "description": "Multiple models collaborate based on task capabilities",
+    "enabled": false,
+    "routing_strategy": "capability_based",
+
+    "capabilities": {
+      "massive_context": {
+        "description": "Large repository analysis, bulk file reading",
+        "model": "gemini-2.0-flash",
+        "triggers": {
+          "file_count_gt": 50,
+          "total_lines_gt": 10000,
+          "context_tokens_gt": 100000,
+          "keywords": ["analyze entire", "read all files", "repository-wide"]
+        },
+        "fallback": "claude-sonnet-4.5"
+      },
+
+      "code_generation": {
+        "description": "Precise code generation and refactoring",
+        "model": "claude-sonnet-4.5",
+        "triggers": {
+          "task_type": ["code", "refactor", "implement", "fix"],
+          "tools_needed": ["Read", "Edit", "Write"],
+          "file_extensions": [".ts", ".js", ".py", ".go", ".rs"]
+        },
+        "fallback": "gpt-4o"
+      },
+
+      "documentation": {
+        "description": "Writing docs, READMEs, comments",
+        "model": "gpt-4o",
+        "triggers": {
+          "task_type": ["docs", "readme", "comments", "explain"],
+          "file_extensions": [".md", ".mdx", ".txt"],
+          "keywords": ["document", "write readme", "add comments"]
+        },
+        "fallback": "claude-sonnet-4.5"
+      },
+
+      "security_analysis": {
+        "description": "Security audits, vulnerability detection",
+        "model": "claude-sonnet-4.5",
+        "triggers": {
+          "task_type": ["security", "audit", "vulnerabilities"],
+          "keywords": ["security", "vulnerability", "owasp", "audit"]
+        },
+        "fallback": "gpt-4o"
+      },
+
+      "quick_tasks": {
+        "description": "Simple, fast responses",
+        "model": "claude-haiku-4",
+        "triggers": {
+          "response_time_requirement": "< 2s",
+          "task_complexity": "low",
+          "keywords": ["quick", "simple", "fast"]
+        },
+        "fallback": "gpt-3.5-turbo"
+      }
+    },
+
+    "chaining": {
+      "enabled": true,
+      "workflows": {
+        "analyze_then_implement": {
+          "description": "Gemini analyzes → Claude implements",
+          "steps": [
+            {
+              "model": "gemini-2.0-flash",
+              "task": "analyze",
+              "output_to": "context"
+            },
+            {
+              "model": "claude-sonnet-4.5",
+              "task": "implement",
+              "input_from": "context"
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "challenger": {
+    "description": "Primary model generates, challenger reviews",
+    "enabled": false,
+
+    "primary_model": "claude-sonnet-4.5",
+    "challenger_model": "gemini-2.0-pro",
+
+    "challenge_triggers": {
+      "security_sensitive": {
+        "enabled": true,
+        "patterns": ["auth", "password", "token", "secret", "crypto"]
+      },
+      "performance_critical": {
+        "enabled": true,
+        "patterns": ["query", "loop", "cache", "optimization"]
+      },
+      "major_refactoring": {
+        "enabled": true,
+        "file_changes_gt": 100
+      },
+      "new_architecture": {
+        "enabled": true,
+        "keywords": ["architecture", "design", "structure", "framework"]
+      }
+    },
+
+    "workflow": {
+      "type": "sequential",
+      "steps": [
+        {
+          "role": "primary",
+          "model": "claude-sonnet-4.5",
+          "task": "generate_solution"
+        },
+        {
+          "role": "challenger",
+          "model": "gemini-2.0-pro",
+          "task": "review_and_critique",
+          "focus": [
+            "Security vulnerabilities",
+            "Performance issues",
+            "Edge cases",
+            "Alternative approaches",
+            "Potential bugs"
+          ]
+        },
+        {
+          "role": "primary",
+          "model": "claude-sonnet-4.5",
+          "task": "revise_if_needed",
+          "optional": true
+        }
+      ],
+      "user_sees": "both_perspectives"
+    }
+  },
+
+  "fallback_strategy": {
+    "on_error": "use_fallback_model",
+    "on_rate_limit": "queue_and_retry",
+    "on_timeout": "use_faster_model",
+    "max_retries": 3,
+    "retry_delay_seconds": 5
+  }
+}

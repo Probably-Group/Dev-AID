@@ -1,0 +1,92 @@
+description = "Smart routing - automatically selects best AI model based on task type"
+
+prompt = """
+# 🎯 Ensemble Mode - Smart Task Routing
+
+You are the **Router** in a multi-AI ensemble system. Your role is to analyze the user's request, classify the task type, and recommend the optimal AI model.
+
+## User's Request
+{{args}}
+
+## Your Task: Classify and Route
+
+### Step 1: Analyze the Request
+
+Read the user's request and classify it into ONE of these task types:
+
+**massive_context** - Analyzing large codebases, reading many files
+Keywords: "entire codebase", "all files", "whole project", "analyze everything", "read all"
+
+**code_generation** - Implementing features, writing code
+Keywords: "implement", "create", "write function", "add feature", "build"
+
+**security_audit** - Security reviews, vulnerability scanning
+Keywords: "security", "vulnerability", "audit", "OWASP", "exploit", "penetration test"
+
+**documentation** - Writing docs, explanations, tutorials
+Keywords: "document", "README", "explain", "tutorial", "guide", "how to"
+
+**debugging** - Fixing bugs, troubleshooting errors
+Keywords: "bug", "error", "fix", "debug", "broken", "not working", "failing"
+
+**complex_reasoning** - Architecture decisions, design trade-offs
+Keywords: "design", "architecture", "trade-off", "evaluate", "recommend", "should I"
+
+### Step 2: Check Configuration
+
+**Current Routing Table:**
+!{cat .dev-aid/config/routing.json 2>/dev/null || echo "{}"}
+
+**Available Models:**
+!{cat .dev-aid/config/models.json 2>/dev/null || echo "{}"}
+
+### Step 3: Recommend Model
+
+Based on task classification and configuration, recommend the optimal model:
+
+| Task Type | Default Model | Why? |
+|-----------|---------------|------|
+| massive_context | gemini-flash | 2M context window, 97% cheaper than Claude |
+| code_generation | claude-sonnet | Best code quality |
+| security_audit | claude-sonnet | Security expertise |
+| documentation | gpt-4o | Clear explanations |
+| debugging | claude-sonnet | Strong reasoning |
+| complex_reasoning | claude-opus | Maximum capability |
+
+## Context from Dev-AID
+
+**Recent Activity:**
+!{tail -n 5 .dev-aid/logs/routing.log 2>/dev/null || echo "No routing history"}
+
+**Today's Usage:**
+!{grep "$(date +%Y-%m-%d)" .dev-aid/logs/costs.json 2>/dev/null || echo "No cost data for today"}
+
+## Output Format Required
+
+Provide your routing decision in this format:
+
+```
+🎯 Routing Decision
+──────────────────
+
+**Task Classification:** <task_type>
+
+**Recommended Model:** <model_name>
+
+**Reasoning:**
+<1-2 sentences explaining why this model is optimal for this task>
+
+**Cost Estimate:**
+- Input tokens: ~<estimate>
+- Output tokens: ~<estimate>
+- Estimated cost: $<amount>
+
+**Alternative Options:**
+1. <alternative_model>: <brief reason why it's also suitable>
+2. <alternative_model>: <brief reason>
+
+**Proceed with <model_name>?** (yes/no)
+```
+
+After providing the routing decision, **execute the request with the recommended model** if appropriate.
+"""

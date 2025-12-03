@@ -1,3 +1,5 @@
+![DevAID Logo](./img/dev-aid-logo-small.png)
+
 # 🚀 Dev-AID (Development AI Driver)
 
 **Expert Skills, Multi-AI Routing, Local Semantic Search, and Persistent Context for AI-Assisted Development**
@@ -14,10 +16,10 @@
 
 ```
 ┌─────────────────────────────────────────────┐
-│  You Use (pick one):                         │
-│  • claude code                               │
-│  • cursor .                                  │
-│  • gemini-cli                                │
+│  You Use (pick one):                        │
+│  • claude code                              │
+│  • cursor .                                 │
+│  • gemini-cli                               │
 │  • Any AI tool that reads config files      │
 └─────────────────┬───────────────────────────┘
                   │ reads configuration

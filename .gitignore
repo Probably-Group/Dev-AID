@@ -26,3 +26,14 @@ CLAUDE.md
 GEMINI.md
 OPENAI.md
 OPENROUTER.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv

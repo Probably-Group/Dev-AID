@@ -55,23 +55,72 @@ class ConfigLoader:
         # Fallback: current directory
         return current
 
+    def _validate_safe_path(self, filepath: Path, base_dir: Path) -> Path:
+        """
+        Validate that filepath is safe and within base_dir
+
+        Args:
+            filepath: Path to validate
+            base_dir: Base directory that filepath must be within
+
+        Returns:
+            Resolved safe path
+
+        Raises:
+            ValueError: If path is unsafe or traverses outside base_dir
+        """
+        try:
+            # Resolve both paths
+            resolved_file = filepath.resolve(strict=False)
+            resolved_base = base_dir.resolve(strict=False)
+
+            # Check containment
+            if not str(resolved_file).startswith(str(resolved_base)):
+                raise ValueError(
+                    f"Path traversal detected: {filepath} is outside {base_dir}"
+                )
+
+            # Check for null bytes
+            if "\0" in str(resolved_file):
+                raise ValueError("Path contains null bytes")
+
+            return resolved_file
+
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid path: {e}")
+
     def _load_json(self, filename: str) -> Dict[str, Any]:
         """Load and parse JSON configuration file"""
+        # Validate filename doesn't contain traversal
+        if ".." in filename or filename.startswith("/"):
+            raise ValueError(f"Invalid filename: {filename}")
+
         filepath = self.config_dir / filename
 
-        if not filepath.exists():
+        # Validate path is within config_dir
+        safe_path = self._validate_safe_path(filepath, self.config_dir)
+
+        if not safe_path.exists():
             raise FileNotFoundError(
-                f"Configuration file not found: {filepath}\n"
+                f"Configuration file not found: {filename}\n"
                 f"Make sure Dev-AID is properly initialized."
             )
 
         try:
-            with open(filepath, 'r') as f:
-                return json.load(f)
+            with open(safe_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # Parse JSON
+            data = json.loads(content)
+
+            if not isinstance(data, dict):
+                raise ValueError(f"Configuration must be a JSON object, got {type(data)}")
+
+            return data
+
         except json.JSONDecodeError as e:
             raise ValueError(
-                f"Invalid JSON in {filename}: {e}\n"
-                f"Please check your configuration file."
+                f"Invalid JSON in {filename}. Please check your configuration file."
             )
 
     def get_orchestration_mode(self) -> str:

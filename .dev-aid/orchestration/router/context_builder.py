@@ -16,7 +16,7 @@ import asyncio
 
 
 @dataclass
-class Dev-AIDContext:
+class DevAIDContext:
     """Represents Dev-AID context for AI request"""
     memory_bank: Dict[str, str]  # filename -> content
     project_info: Dict[str, Any]
@@ -41,7 +41,7 @@ class ContextBuilder:
         self.memory_bank_path = config_loader.get_memory_bank_path()
         self.mcp_pool = mcp_pool
 
-    def build_context(self, include_memory: bool = True) -> Dev-AIDContext:
+    def build_context(self, include_memory: bool = True) -> DevAIDContext:
         """
         Build complete Dev-AID context
 
@@ -49,7 +49,7 @@ class ContextBuilder:
             include_memory: Whether to include memory bank files
 
         Returns:
-            Dev-AIDContext object
+            DevAIDContext object
         """
         memory_bank = {}
         if include_memory:
@@ -58,7 +58,7 @@ class ContextBuilder:
         project_info = self._get_project_info()
         git_context = self._get_git_context()
 
-        return Dev-AIDContext(
+        return DevAIDContext(
             memory_bank=memory_bank,
             project_info=project_info,
             git_context=git_context,
@@ -97,33 +97,69 @@ class ContextBuilder:
             "enabled_providers": self.config.get_enabled_providers()
         }
 
+    def _validate_safe_path(self, path: Path) -> Path:
+        """
+        Validate path is safe and within expected boundaries
+
+        Args:
+            path: Path to validate
+
+        Returns:
+            Resolved safe path
+
+        Raises:
+            ValueError: If path is unsafe or contains traversal
+        """
+        try:
+            resolved = path.resolve(strict=False)
+
+            # Ensure it's an absolute path
+            if not resolved.is_absolute():
+                raise ValueError("Path must be absolute after resolution")
+
+            # Basic sanity checks
+            path_str = str(resolved)
+            if "\0" in path_str:
+                raise ValueError("Path contains null bytes")
+
+            return resolved
+
+        except (OSError, RuntimeError) as e:
+            raise ValueError(f"Invalid path: {e}")
+
     def _get_git_context(self) -> Optional[Dict[str, str]]:
         """Get git context if available"""
         import subprocess
 
         try:
+            # Validate root path before using in subprocess
+            safe_root = self._validate_safe_path(self.root)
+
             # Get current branch
             branch = subprocess.check_output(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                cwd=self.root,
+                cwd=safe_root,
                 stderr=subprocess.DEVNULL,
-                text=True
+                text=True,
+                timeout=5  # Add timeout for security
             ).strip()
 
             # Get last commit
             last_commit = subprocess.check_output(
                 ["git", "log", "-1", "--oneline"],
-                cwd=self.root,
+                cwd=safe_root,
                 stderr=subprocess.DEVNULL,
-                text=True
+                text=True,
+                timeout=5
             ).strip()
 
             # Get status (short)
             status = subprocess.check_output(
                 ["git", "status", "--short"],
-                cwd=self.root,
+                cwd=safe_root,
                 stderr=subprocess.DEVNULL,
-                text=True
+                text=True,
+                timeout=5
             ).strip()
 
             return {
@@ -132,8 +168,8 @@ class ContextBuilder:
                 "status": status if status else "(clean)"
             }
 
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            # Git not available or not a git repo
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+            # Git not available, timeout, or invalid path
             return None
 
     async def gather_mcp_context(
@@ -303,12 +339,12 @@ class ContextBuilder:
         search_terms = " ".join(word for word in words if word not in stop_words)
         return search_terms[:100]  # Limit length
 
-    def format_context_for_ai(self, context: Dev-AIDContext) -> str:
+    def format_context_for_ai(self, context: DevAIDContext) -> str:
         """
         Format context as string for AI system prompt
 
         Args:
-            context: Dev-AIDContext object
+            context: DevAIDContext object
 
         Returns:
             Formatted context string
@@ -381,12 +417,12 @@ class ContextBuilder:
         return "No active context available."
 
 
-def build_system_prompt(context: Dev-AIDContext, context_builder: ContextBuilder) -> str:
+def build_system_prompt(context: DevAIDContext, context_builder: ContextBuilder) -> str:
     """
     Build system prompt with Dev-AID context
 
     Args:
-        context: Dev-AIDContext object
+        context: DevAIDContext object
         context_builder: ContextBuilder instance
 
     Returns:

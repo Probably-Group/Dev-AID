@@ -10,10 +10,31 @@ openai>=1.0.0               # OpenAI API
 python-dotenv>=1.0.0        # Load .env files for API keys
 requests>=2.31.0            # HTTP requests (fallback)
 pydantic>=2.0.0             # Data validation and settings
+email-validator>=2.0.0      # Email validation for Pydantic
 
 # CLI and formatting
 rich>=13.0.0                # Pretty terminal output
 typer>=0.9.0                # CLI framework
 
-# Optional but recommended
+# HTTP client
 httpx>=0.25.0               # Modern HTTP client (used by Anthropic SDK)
+
+# Testing dependencies
+pytest>=7.4.0               # Testing framework
+pytest-asyncio>=0.21.0      # Async test support
+pytest-cov>=4.1.0           # Coverage reporting
+pytest-mock>=3.12.0         # Mocking support
+hypothesis>=6.0.0           # Property-based testing
+
+# Security & Quality
+bandit>=1.7.0               # Security vulnerability scanner
+safety>=2.3.0               # Dependency vulnerability scanner
+pip-audit>=2.6.0            # Audit pip packages for vulnerabilities
+mypy>=1.7.0                 # Static type checker
+types-requests>=2.31.0      # Type stubs for requests
+
+# Development tools
+pre-commit>=3.5.0           # Git hooks framework
+black>=23.0.0               # Code formatter
+isort>=5.12.0               # Import sorter
+flake8>=6.1.0               # Linting

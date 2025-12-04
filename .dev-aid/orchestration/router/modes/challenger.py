@@ -95,6 +95,11 @@ class ChallengerMode:
 
         # Build context
         context = self.context_builder.build_context()
+
+        # Add MCP context if provided
+        if 'mcp_context' in kwargs and kwargs['mcp_context']:
+            context.mcp_context = kwargs['mcp_context']
+
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages
@@ -263,6 +268,11 @@ class ChallengerMode:
 
         # Build context
         context = self.context_builder.build_context()
+
+        # Add MCP context if provided
+        if 'mcp_context' in kwargs and kwargs['mcp_context']:
+            context.mcp_context = kwargs['mcp_context']
+
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages

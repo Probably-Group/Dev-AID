@@ -19,11 +19,15 @@ from .mcp_registry import MCPRegistry
 def cmd_execute(args):
     """Execute a request with routing"""
     try:
+        # Determine use_mcp: default True unless --no-mcp specified
+        use_mcp = not args.no_mcp if hasattr(args, 'no_mcp') else True
+
         output = execute_request(
             request=args.request,
             mode=args.mode,
             context_size=args.context_size,
             verbose=args.verbose,
+            use_mcp=use_mcp,
             dev_aid_root=Path(args.root) if args.root else None
         )
         print(output)
@@ -331,6 +335,11 @@ Examples:
         "--verbose",
         action="store_true",
         help="Show detailed output"
+    )
+    execute_parser.add_argument(
+        "--no-mcp",
+        action="store_true",
+        help="Disable MCP context gathering (default: MCP enabled)"
     )
     execute_parser.set_defaults(func=cmd_execute)
 

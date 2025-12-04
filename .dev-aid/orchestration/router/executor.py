@@ -4,11 +4,13 @@ Main Executor for Dev-AID Router
 Orchestrates the complete routing workflow:
 1. Load configuration
 2. Determine orchestration mode
-3. Execute with appropriate mode
-4. Track costs and log decisions
-5. Format output
+3. Gather MCP context (optional)
+4. Execute with appropriate mode
+5. Track costs and log decisions
+6. Format output
 """
 
+import asyncio
 from pathlib import Path
 from typing import Dict, Any, Optional
 from .config_loader import load_config, ConfigLoader
@@ -17,23 +19,41 @@ from .cost_tracker import CostTracker
 from .modes.solo import SoloMode
 from .modes.ensemble import EnsembleMode
 from .modes.challenger import ChallengerMode
+from .mcp_registry import MCPRegistry
+from .mcp_client import MCPClientPool, MCPServerConfig
 
 
 class RouterExecutor:
     """Main executor for routing and executing AI requests"""
 
-    def __init__(self, dev_aid_root: Optional[Path] = None):
+    def __init__(self, dev_aid_root: Optional[Path] = None, use_mcp: bool = True):
         """
         Initialize router executor
 
         Args:
             dev_aid_root: Root directory of Dev-AID (auto-detected if None)
+            use_mcp: Whether to enable MCP context gathering (default: True)
         """
         # Load configuration
         self.config = load_config(dev_aid_root)
 
+        # Initialize MCP components
+        self.mcp_enabled = use_mcp
+        self.mcp_pool = None
+        self.mcp_registry = None
+
+        if use_mcp:
+            try:
+                self.mcp_registry = MCPRegistry()
+                self.mcp_registry.discover_all()
+                self.mcp_pool = MCPClientPool()
+                # Pool will be populated when needed
+            except Exception as e:
+                print(f"Warning: MCP initialization failed: {e}")
+                self.mcp_enabled = False
+
         # Initialize components
-        self.context_builder = ContextBuilder(self.config)
+        self.context_builder = ContextBuilder(self.config, mcp_pool=self.mcp_pool)
         self.cost_tracker = CostTracker(self.config.root / ".dev-aid" / "logs")
 
         # Initialize modes
@@ -78,6 +98,23 @@ class RouterExecutor:
                 "budget_status": self.cost_tracker.get_budget_status(daily_limit)
             }
 
+        # Gather MCP context if enabled
+        if self.mcp_enabled and self.mcp_pool:
+            try:
+                # Initialize MCP servers if not already done
+                asyncio.run(self._initialize_mcp_servers())
+
+                # Gather MCP context (async operation)
+                mcp_context = asyncio.run(
+                    self.context_builder.gather_mcp_context(request)
+                )
+
+                # Store MCP context for this request
+                kwargs['mcp_context'] = mcp_context
+            except Exception as e:
+                print(f"Warning: MCP context gathering failed: {e}")
+                # Continue without MCP context
+
         # Execute with appropriate mode
         mode_handler = self.modes[mode]
 
@@ -96,6 +133,28 @@ class RouterExecutor:
                 "mode": mode,
                 "error": str(e)
             }
+
+    async def _initialize_mcp_servers(self):
+        """Initialize MCP server connections"""
+        if not self.mcp_registry or not self.mcp_pool:
+            return
+
+        # Get enabled servers
+        enabled_servers = self.mcp_registry.get_enabled_servers()
+
+        # Connect to each enabled server
+        for server_name, server_info in enabled_servers.items():
+            if server_name not in self.mcp_pool.clients:
+                config = MCPServerConfig(
+                    name=server_info.name,
+                    command=server_info.command,
+                    args=server_info.args,
+                    env=server_info.env
+                )
+                try:
+                    await self.mcp_pool.add_server(config)
+                except Exception as e:
+                    print(f"Warning: Failed to connect to MCP server {server_name}: {e}")
 
     def _log_decision(self, result: Dict[str, Any], mode: str, request: str):
         """Log routing decision and cost"""
@@ -258,6 +317,7 @@ def execute_request(
     mode: Optional[str] = None,
     context_size: int = 0,
     verbose: bool = False,
+    use_mcp: bool = True,
     dev_aid_root: Optional[Path] = None,
     **kwargs
 ) -> str:
@@ -269,13 +329,14 @@ def execute_request(
         mode: Orchestration mode (None = use config)
         context_size: Estimated context size
         verbose: Include detailed information
+        use_mcp: Whether to use MCP context gathering (default: True)
         dev_aid_root: Dev-AID root directory
         **kwargs: Additional API parameters
 
     Returns:
         Formatted response string
     """
-    executor = RouterExecutor(dev_aid_root)
+    executor = RouterExecutor(dev_aid_root, use_mcp=use_mcp)
     result = executor.execute(request, mode=mode, context_size=context_size, **kwargs)
     return executor.format_output(result, verbose=verbose)
 

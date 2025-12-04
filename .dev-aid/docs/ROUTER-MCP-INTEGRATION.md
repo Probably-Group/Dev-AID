@@ -126,6 +126,9 @@ Once MCPs are enabled, the router **automatically** gathers context based on you
 
 # Code analysis → Auto uses code-search MCP
 ./router-cli.sh execute "Refactor authentication module" --mode ensemble
+
+# Disable MCP for a specific request
+./router-cli.sh execute "What is OAuth2?" --no-mcp
 ```
 
 ### Smart MCP Selection
@@ -505,10 +508,11 @@ To minimize latency:
 - ✅ Smart MCP selection based on task type
 - ✅ Auto-context gathering
 
-### Phase 3 (In Progress)
-- 🔄 Executor integration
-- 🔄 Full end-to-end testing
-- 🔄 MCP-enhanced slash commands
+### Phase 3 (Completed)
+- ✅ Executor integration with async MCP initialization
+- ✅ Full end-to-end MCP context gathering workflow
+- ✅ All modes (solo, ensemble, challenger) use MCP context
+- ✅ CLI flag for disabling MCP (--no-mcp)
 
 ### Phase 4 (Planned)
 - ⏳ Manual MCP selection (--mcp flag)
@@ -538,4 +542,4 @@ Want to add support for a new MCP capability? See the capability detection in `r
 
 **Last Updated**: 2025-12-04
 **DevAID Version**: 1.0.0
-**MCP Integration Version**: 1.0.0 (Phase 1-2)
+**MCP Integration Version**: 1.0.0 (Phases 1-3 Complete - Fully Functional)

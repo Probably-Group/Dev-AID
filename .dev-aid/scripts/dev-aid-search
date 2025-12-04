@@ -1,7 +1,7 @@
 #!/bin/bash
 # DevAID Local Search - User-friendly wrapper
 # Wraps claude-context-local with DevAID branding
-# Usage: devaid-search <command> [options]
+# Usage: dev-aid-search <command> [options]
 
 # Colors
 GREEN='\033[0;32m'

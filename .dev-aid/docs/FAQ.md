@@ -1,6 +1,6 @@
 # Frequently Asked Questions (FAQ)
 
-Quick answers to common DevAID questions.
+Quick answers to common Dev-AID questions.
 
 ---
 
@@ -17,7 +17,7 @@ Quick answers to common DevAID questions.
 
 **Git behavior:**
 - ❌ NOT tracked by Git (stored outside repository)
-- ✅ Shared across ALL your projects that use DevAID
+- ✅ Shared across ALL your projects that use Dev-AID
 - ✅ Downloaded once, used everywhere
 
 **Repository size**: Only ~5MB of configuration is committed (without .venv)
@@ -78,7 +78,7 @@ Quick answers to common DevAID questions.
 
 ## 🔄 Updates
 
-### Q: How to update DevAID in existing repositories?
+### Q: How to update Dev-AID in existing repositories?
 
 **A: Use the automated update script:**
 
@@ -96,7 +96,7 @@ cd your-project
 
 **Update options:**
 - **Option 1**: Pull from official repository (recommended)
-- **Option 2**: Copy from local DevAID installation
+- **Option 2**: Copy from local Dev-AID installation
 - **Option 3**: Manual update (with guide)
 
 **What's preserved:**
@@ -141,9 +141,9 @@ curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION
 
 ## 🔒 Dependencies & Isolation
 
-### Q: Will DevAID install packages to my system Python?
+### Q: Will Dev-AID install packages to my system Python?
 
-**A: No! DevAID uses three-layer isolation - ZERO system pollution.**
+**A: No! Dev-AID uses three-layer isolation - ZERO system pollution.**
 
 **Architecture:**
 ```
@@ -162,11 +162,11 @@ curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION
 
 **Proof:**
 ```bash
-# Before DevAID
+# Before Dev-AID
 pip list | wc -l
 # Output: 23 packages
 
-# After DevAID setup
+# After Dev-AID setup
 pip list | wc -l
 # Output: 23 packages (unchanged!)
 ```
@@ -183,7 +183,7 @@ pip list | wc -l
 
 ### Q: Why not use Anaconda instead of venv?
 
-**A: venv is lighter and perfect for DevAID's needs.**
+**A: venv is lighter and perfect for Dev-AID's needs.**
 
 | Feature | Python venv | Anaconda |
 |---------|-------------|----------|
@@ -191,7 +191,7 @@ pip list | wc -l
 | **Installation** | Built into Python 3.3+ | Separate download |
 | **Speed** | Fast | Slower |
 | **Use Case** | Pure Python ✅ | Data science + system libs |
-| **DevAID fit** | ✅ Perfect | ❌ Overkill |
+| **Dev-AID fit** | ✅ Perfect | ❌ Overkill |
 
 **Why venv:**
 - ✅ Built-in, no extra installation
@@ -212,7 +212,7 @@ pip list | wc -l
 
 ## 🏗️ Architecture
 
-### Q: What parts of DevAID run in which environment?
+### Q: What parts of Dev-AID run in which environment?
 
 **A: Clear separation by component:**
 
@@ -250,7 +250,7 @@ git commit
 
 ## 🚀 Performance
 
-### Q: How big is DevAID? Will it slow down my repository?
+### Q: How big is Dev-AID? Will it slow down my repository?
 
 **A: Repository impact is minimal (5MB). Heavy files are in home directory.**
 
@@ -265,7 +265,7 @@ git commit
 | Home directory | RAG index | ~200MB | ❌ No (not in repo) |
 
 **Git operations:**
-- `git clone`: Downloads ~5MB for DevAID
+- `git clone`: Downloads ~5MB for Dev-AID
 - `git pull`: Updates only changed config files (~KB)
 - `git push`: Uploads only config changes (~KB)
 
@@ -319,7 +319,7 @@ OPENAI_API_KEY=your-key-here
 
 ## 🤝 Team Usage
 
-### Q: How do teams use DevAID across multiple projects?
+### Q: How do teams use Dev-AID across multiple projects?
 
 **A: Each developer has own setup, team shares config.**
 
@@ -358,7 +358,7 @@ nano .dev-aid/config/.env  # Add keys
 # Pull latest config from team
 git pull
 
-# Update DevAID if version changed
+# Update Dev-AID if version changed
 ./.dev-aid/scripts/update-dev-aid.sh
 ```
 
@@ -366,18 +366,18 @@ git pull
 
 ## 💰 Cost
 
-### Q: What's the total cost to use DevAID?
+### Q: What's the total cost to use Dev-AID?
 
-**A: $0 for DevAID itself. You only pay for AI API usage.**
+**A: $0 for Dev-AID itself. You only pay for AI API usage.**
 
-**DevAID costs:**
+**Dev-AID costs:**
 - ✅ Software: $0 (open source)
 - ✅ RAG (local): $0 forever
 - ✅ Storage: ~2.8GB disk space (one-time)
 
 **You pay for:**
 - AI API usage (Anthropic, Google, OpenAI)
-- Cost depends on your usage, not DevAID
+- Cost depends on your usage, not Dev-AID
 
 **Cost optimization:**
 - ✅ Ensemble mode routes to cheapest model
@@ -387,8 +387,8 @@ git pull
 
 **Example savings:**
 ```
-Without DevAID: $45/month (all Claude Sonnet)
-With DevAID:    $22/month (smart routing)
+Without Dev-AID: $45/month (all Claude Sonnet)
+With Dev-AID:    $22/month (smart routing)
 Savings:         $23/month (51%)
 
 With Local RAG:  $10/month (67% token reduction)

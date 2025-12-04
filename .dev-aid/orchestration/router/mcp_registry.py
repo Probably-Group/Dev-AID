@@ -4,7 +4,7 @@ MCP Registry - Discover and manage MCP servers
 Discovers MCP servers from:
 - Claude Code configuration
 - Gemini CLI configuration
-- Manual DevAID configuration
+- Manual Dev-AID configuration
 """
 
 import json
@@ -39,7 +39,7 @@ class MCPRegistry:
         Initialize MCP registry
 
         Args:
-            config_path: Path to DevAID MCP configuration file
+            config_path: Path to Dev-AID MCP configuration file
         """
         if config_path is None:
             config_path = os.path.expanduser("~/.dev-aid/orchestration/config/mcp-config.json")

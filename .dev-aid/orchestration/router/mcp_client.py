@@ -1,5 +1,5 @@
 """
-MCP Client for DevAID Router
+MCP Client for Dev-AID Router
 
 Implements Model Context Protocol client to connect to MCP servers
 and execute tools for enhanced context gathering.

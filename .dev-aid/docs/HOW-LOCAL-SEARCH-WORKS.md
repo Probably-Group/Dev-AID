@@ -1,4 +1,4 @@
-# How DevAID Local Search Works
+# How Dev-AID Local Search Works
 
 ## The Simple Answer
 
@@ -24,7 +24,7 @@ You → Claude/Gemini → Detects "code search" intent
 
 ## Tool Compatibility (MCP Protocol)
 
-DevAID Local Search uses the **Model Context Protocol (MCP)** - an open standard for connecting AI tools to external data sources.
+Dev-AID Local Search uses the **Model Context Protocol (MCP)** - an open standard for connecting AI tools to external data sources.
 
 ### ✅ Auto-Configured (Zero Setup)
 

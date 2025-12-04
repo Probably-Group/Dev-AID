@@ -1,8 +1,8 @@
-# DevAID Router - MCP Integration Guide
+# Dev-AID Router - MCP Integration Guide
 
 ## Overview
 
-DevAID Router now supports **Model Context Protocol (MCP) integration**, allowing the router to gather context from external tools before generating responses. This makes AI responses significantly more accurate and context-aware.
+Dev-AID Router now supports **Model Context Protocol (MCP) integration**, allowing the router to gather context from external tools before generating responses. This makes AI responses significantly more accurate and context-aware.
 
 ### What This Means
 
@@ -76,7 +76,7 @@ Enhanced Response
 
 ### Prerequisites
 
-- DevAID Router installed (`.dev-aid/orchestration/setup-venv.sh`)
+- Dev-AID Router installed (`.dev-aid/orchestration/setup-venv.sh`)
 - At least one MCP server installed (Claude Code or Gemini CLI)
 
 ### Quick Setup
@@ -229,7 +229,7 @@ Location: `~/.dev-aid/orchestration/config/mcp-config.json`
 
 | MCP Server | Capability | Status | Notes |
 |------------|------------|--------|-------|
-| code-search | search | ✅ Tested | DevAID Local Search |
+| code-search | search | ✅ Tested | Dev-AID Local Search |
 | postgres | database | ✅ Tested | PostgreSQL schema access |
 | github | github | ✅ Tested | Issue/PR search |
 
@@ -525,7 +525,7 @@ To minimize latency:
 
 ## Related Documentation
 
-- **[MCP-EXTENSIBILITY.md](./MCP-EXTENSIBILITY.md)** - Using DevAID with other MCP servers
+- **[MCP-EXTENSIBILITY.md](./MCP-EXTENSIBILITY.md)** - Using Dev-AID with other MCP servers
 - **[HOW-LOCAL-SEARCH-WORKS.md](./HOW-LOCAL-SEARCH-WORKS.md)** - How MCP protocol enables local search
 - **[ROUTER-INSTALL.md](../orchestration/ROUTER-INSTALL.md)** - Router installation guide
 - **Official MCP Docs**: https://modelcontextprotocol.io/
@@ -541,5 +541,5 @@ Want to add support for a new MCP capability? See the capability detection in `r
 ---
 
 **Last Updated**: 2025-12-04
-**DevAID Version**: 1.0.0
+**Dev-AID Version**: 1.0.0
 **MCP Integration Version**: 1.0.0 (Phases 1-3 Complete - Fully Functional)

@@ -1,6 +1,6 @@
-![DevAID Logo](./img/dev-aid-logo-small.png)
+![Dev-AID Logo](./img/dev-aid-logo-small.png)
 
-# 🚀 DevAID (Development AI Driver)
+# 🚀 Dev-AID (Development AI Driver)
 
 **Expert Skills, Multi-AI Routing, Local Semantic Search, and Persistent Context for AI-Assisted Development**
 
@@ -8,9 +8,9 @@
 
 ---
 
-## 🎯 What is DevAID?
+## 🎯 What is Dev-AID?
 
-**DevAID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, DevAID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 65 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
+**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 65 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
 
 ### Why Native Integration Matters
 
@@ -23,12 +23,12 @@ Still You: Switch back to VS Code
 😫 Repeat 50× per day
 ```
 
-**The DevAID Way:**
+**The Dev-AID Way:**
 ```
 You: Working in Claude Code (or Cursor, or Gemini CLI)
-DevAID: *Already there, enhancing your AI with expert skills*
+Dev-AID: *Already there, enhancing your AI with expert skills*
 You: /aid-router-challenger "Implement OAuth"
-DevAID: *Claude generates, Gemini reviews, all in one place*
+Dev-AID: *Claude generates, Gemini reviews, all in one place*
 ✨ Never left your editor
 ```
 
@@ -43,7 +43,7 @@ DevAID: *Claude generates, Gemini reviews, all in one place*
 │  ✨ Any AI tool with config support         │
 └─────────────────┬───────────────────────────┘
                   │
-                  │ DevAID Configuration
+                  │ Dev-AID Configuration
                   │ (loaded automatically)
                   ↓
 ┌─────────────────────────────────────────────┐
@@ -75,13 +75,13 @@ Real-World Examples:
 
 ---
 
-## 🌟 Why DevAID's Native Integration is a Game-Changer
+## 🌟 Why Dev-AID's Native Integration is a Game-Changer
 
-Most AI tools force you to learn a new CLI, switch contexts constantly, and manually manage multiple tools. DevAID takes a radically different approach: **enhance what you already use** instead of replacing it.
+Most AI tools force you to learn a new CLI, switch contexts constantly, and manually manage multiple tools. Dev-AID takes a radically different approach: **enhance what you already use** instead of replacing it.
 
 ### 🎯 Benefits You'll Feel Immediately
 
-| Traditional Standalone AI Tools | DevAID Native Integration |
+| Traditional Standalone AI Tools | Dev-AID Native Integration |
 |--------------------------------|----------------------------|
 | 😫 Learn new CLI syntax | ✨ Use tools you already know |
 | 😫 Switch between editor and AI tool | ✨ AI enhanced right where you code |
@@ -115,13 +115,13 @@ Most AI tools force you to learn a new CLI, switch contexts constantly, and manu
 
 > **"The best tool is the one that disappears into your workflow."**
 
-DevAID doesn't demand your attention or force you to adapt. It quietly enhances your existing AI tools with enterprise capabilities, then gets out of your way. You use Claude Code or Gemini CLI just like before—except now they're 10× more powerful.
+Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances your existing AI tools with enterprise capabilities, then gets out of your way. You use Claude Code or Gemini CLI just like before—except now they're 10× more powerful.
 
 ---
 
 ## ✨ Key Features
 
-### 🔍 **DevAID Local Search** (NEW!)
+### 🔍 **Dev-AID Local Search** (NEW!)
 - **100% local** - Code never leaves your machine
 - **$0 forever** - No API costs for embeddings
 - **EmbeddingGemma model** - Google's state-of-the-art embeddings
@@ -165,19 +165,19 @@ DevAID doesn't demand your attention or force you to adapt. It quietly enhances 
 
 ## 🚀 Quick Start
 
-### Option 1: New Project with DevAID
+### Option 1: New Project with Dev-AID
 
 ```bash
-# Clone DevAID repository
+# Clone Dev-AID repository
 git clone <repo> my-project
 cd my-project
 
-# Copy DevAID configuration
+# Copy Dev-AID configuration
 cp -r devaid-standalone/.dev-aid .
 
 # Initialize (with optional Local Search)
 ./.dev-aid/scripts/init-repo.sh
-# Answer "Y" to install DevAID Local Search
+# Answer "Y" to install Dev-AID Local Search
 
 # Done! Start using
 claude
@@ -188,7 +188,7 @@ gemini
 ### Option 2: Add to Existing Project
 
 ```bash
-# Copy DevAID to your project
+# Copy Dev-AID to your project
 cd ~/my-existing-project
 cp -r /path/to/devaid-standalone/.dev-aid .
 
@@ -198,13 +198,13 @@ cp -r /path/to/devaid-standalone/.dev-aid .
 # Done!
 ```
 
-### Option 3: Just Add Local Search to Existing DevAID
+### Option 3: Just Add Local Search to Existing Dev-AID
 
 ```bash
-# If you already have DevAID
+# If you already have Dev-AID
 cd your-project
 
-# Add DevAID Local Search
+# Add Dev-AID Local Search
 ./.dev-aid/scripts/setup-rag.sh
 
 # 5 minutes later: Local Search ready!
@@ -525,7 +525,7 @@ Claude: *automatically uses local RAG*
 │   └── security.md                    # Security context
 │
 ├── 📁 scripts/
-│   ├── init-repo.sh                   # Initialize DevAID
+│   ├── init-repo.sh                   # Initialize Dev-AID
 │   ├── setup-rag.sh                   # Setup local RAG
 │   ├── reindex-codebase.sh            # Reindex for RAG
 │   └── rag-status.sh                  # Check RAG status
@@ -539,14 +539,14 @@ Claude: *automatically uses local RAG*
 
 ## 💰 Cost Analysis
 
-### Without DevAID Router
+### Without Dev-AID Router
 
 ```
 # All requests go to Claude Sonnet
 100 requests/month × 150k tokens × $3/M = $45/month
 ```
 
-### With DevAID Router (Ensemble Mode)
+### With Dev-AID Router (Ensemble Mode)
 
 ```
 # Smart routing
@@ -649,7 +649,7 @@ Skills auto-activate based on file patterns:
 
 ### vs Standalone AI CLIs
 
-| Aspect | Standalone AI Tools | DevAID Enhancement Layer |
+| Aspect | Standalone AI Tools | Dev-AID Enhancement Layer |
 |--------|-------------------|---------------------------|
 | **Integration** | Separate CLI to learn | Works in your existing tools ✨ |
 | **Context switching** | Constant (editor ↔ CLI) | Zero - stay in your editor ✨ |
@@ -660,7 +660,7 @@ Skills auto-activate based on file patterns:
 
 ### vs Manual Configuration
 
-| Feature | Manual | DevAID |
+| Feature | Manual | Dev-AID |
 |---------|--------|---------|
 | Expert skills | Write yourself | 65 pre-built ✅ |
 | Security scans | Remember to run | Automated (git hooks) ✅ |
@@ -673,7 +673,7 @@ Skills auto-activate based on file patterns:
 
 ### vs Cloud RAG
 
-| Feature | Cloud RAG | DevAID Local Search |
+| Feature | Cloud RAG | Dev-AID Local Search |
 |---------|-----------|-------------------|
 | Cost | $0.13/M tokens | $0 forever |
 | Privacy | Code sent to API | 100% local |
@@ -689,8 +689,8 @@ Skills auto-activate based on file patterns:
 - **[STORAGE-LOCATIONS.md](.dev-aid/docs/STORAGE-LOCATIONS.md)** - Where files are stored (5MB vs 2.7GB breakdown)
 - **[DEPENDENCY-ISOLATION.md](.dev-aid/docs/DEPENDENCY-ISOLATION.md)** - Zero system pollution architecture
 - **[HOW-LOCAL-SEARCH-WORKS.md](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)** - How AI automatically uses local search via MCP
-- **[MCP-EXTENSIBILITY.md](.dev-aid/docs/MCP-EXTENSIBILITY.md)** - Using DevAID with other MCP servers (GitHub, Slack, databases)
-- **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update DevAID in existing repos
+- **[MCP-EXTENSIBILITY.md](.dev-aid/docs/MCP-EXTENSIBILITY.md)** - Using Dev-AID with other MCP servers (GitHub, Slack, databases)
+- **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update Dev-AID in existing repos
 - **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
 
 ### Setup Guides
@@ -781,14 +781,14 @@ cat .dev-aid/config/routing.json
 
 ## 🙏 Acknowledgments
 
-DevAID builds on excellent open-source projects and incorporates patterns from the AI development community:
+Dev-AID builds on excellent open-source projects and incorporates patterns from the AI development community:
 
 ### Inspiration & Structure
 - **[martins-ai-template](https://github.com/martinholovsky/martins-ai-template)** by [Martin Holovsky](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
 - **[claude-code-tresor](https://github.com/anthropics/claude-code-tresor)** - Security commands, DevSecOps patterns, and command organization (see [TRESOR-COMMANDS-ANALYSIS.md](.dev-aid/docs/TRESOR-COMMANDS-ANALYSIS.md))
 
 ### Core Technologies
-- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers DevAID Local Search with 100% local semantic code search using EmbeddingGemma
+- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers Dev-AID Local Search with 100% local semantic code search using EmbeddingGemma
 - **[EmbeddingGemma](https://huggingface.co/google/gemma-2b-it)** by Google - State-of-the-art embedding model for semantic search
 - **[FAISS](https://github.com/facebookresearch/faiss)** by Meta AI - High-performance vector search
 
@@ -806,7 +806,7 @@ DevAID builds on excellent open-source projects and incorporates patterns from t
 - **[Checkov](https://www.checkov.io/)** - IaC security
 
 **Special thanks** to:
-- Martin Holovsky for the foundational architecture patterns that made DevAID's multi-provider approach possible
+- Martin Holovsky for the foundational architecture patterns that made Dev-AID's multi-provider approach possible
 - The claude-context-local project for making truly local, cost-free semantic search possible
 - The claude-code-tresor project for security command patterns and DevSecOps best practices
 
@@ -820,7 +820,7 @@ DevAID builds on excellent open-source projects and incorporates patterns from t
 
 ---
 
-**DevAID: Enterprise-grade AI capabilities that integrate natively into the tools you already love. No context switching. No new CLIs. Just smarter development, right where you code.**
+**Dev-AID: Enterprise-grade AI capabilities that integrate natively into the tools you already love. No context switching. No new CLIs. Just smarter development, right where you code.**
 
 ---
 

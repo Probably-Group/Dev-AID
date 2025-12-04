@@ -47,8 +47,8 @@ DevAID: *Claude generates, Gemini reviews, all in one place*
                   │ (loaded automatically)
                   ↓
 ┌─────────────────────────────────────────────┐
-│  Your AI Gets Superpowers ⚡                │
-│  • 100% local semantic search (private)     │
+│  Your AI Gets Superpowers ⚡                 │
+│  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
 │  • 65 expert skills (context-aware)         │
 │  • Persistent memory (ADRs, patterns)       │
@@ -141,7 +141,7 @@ DevAID doesn't demand your attention or force you to adapt. It quietly enhances 
 - Auto-activate based on context (e.g., `*auth*` → devsecops-expert)
 - Manual activation via skill name
 - Custom skill generation with `/aid-build-skill`
-- Domains: DevSecOps, TDD, API design, databases, etc.
+- Domains: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
 
 ### 💾 **Persistent Memory Bank**
 - Context survives across sessions
@@ -180,9 +180,9 @@ cp -r devaid-standalone/.dev-aid .
 # Answer "Y" to install DevAID Local Search
 
 # Done! Start using
-claude code
+claude
 # or
-gemini-cli
+gemini
 ```
 
 ### Option 2: Add to Existing Project
@@ -279,7 +279,7 @@ AI: *uses local RAG, returns relevant code*
 ```
 
 **Routing logic:**
-- **Massive context** (100k+ tokens) → Gemini Flash (2M context, 97% cheaper)
+- **Massive context** (100k+ tokens) → Gemini Flash (1M context, 97% cheaper)
 - **Code generation** → Claude Sonnet (best coder)
 - **Security audit** → Claude Sonnet (security expert)
 - **Documentation** → GPT-4o (clear writing)

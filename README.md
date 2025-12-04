@@ -682,13 +682,22 @@ Skills auto-activate based on file patterns:
 
 ## 📖 Documentation
 
-### Quick References
+### Core Documentation
+- **[STORAGE-LOCATIONS.md](.dev-aid/docs/STORAGE-LOCATIONS.md)** - Where files are stored (5MB vs 2.7GB breakdown)
+- **[DEPENDENCY-ISOLATION.md](.dev-aid/docs/DEPENDENCY-ISOLATION.md)** - Zero system pollution architecture
+- **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update Dev-AID in existing repos
+- **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
+
+### Setup Guides
 - **RAG-SETUP.md** - Complete RAG setup guide
+- **ROUTER-INSTALL.md** - Router installation with venv setup
+- **VENV-INFO.md** - Virtual environment deep-dive
+
+### Technical Analysis
 - **CLAUDE-CONTEXT-LOCAL.md** - Local RAG analysis
 - **CROSS-PLATFORM-ROUTER.md** - Router implementation guide
 - **RAG-IMPLEMENTATION.md** - RAG options overview
 - **LIGHTRAG-AND-FORMATS.md** - Format support comparison
-- **LLAMAINDEX-ANALYSIS.md** - LlamaIndex analysis
 
 ### Provider Docs
 - **providers/claude/CLAUDE.md** - Claude Code setup

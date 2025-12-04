@@ -233,6 +233,8 @@ AI: *uses local RAG, returns relevant code*
 3. Claude generates using YOUR codebase style
 4. Gemini reviews for security issues
 
+> 💡 **How does the AI know to use local search?** See [How Local Search Works](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md) for the complete explanation of MCP integration and automatic tool selection.
+
 ### 🔀 **Router Commands** (Multi-AI Orchestration)
 
 #### `/aid-router-challenger`
@@ -686,6 +688,7 @@ Skills auto-activate based on file patterns:
 ### Core Documentation
 - **[STORAGE-LOCATIONS.md](.dev-aid/docs/STORAGE-LOCATIONS.md)** - Where files are stored (5MB vs 2.7GB breakdown)
 - **[DEPENDENCY-ISOLATION.md](.dev-aid/docs/DEPENDENCY-ISOLATION.md)** - Zero system pollution architecture
+- **[HOW-LOCAL-SEARCH-WORKS.md](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)** - How AI automatically uses local search via MCP
 - **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update DevAID in existing repos
 - **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
 

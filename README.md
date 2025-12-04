@@ -4,43 +4,118 @@
 
 **Expert Skills, Multi-AI Routing, Local Semantic Search, and Persistent Context for AI-Assisted Development**
 
-> Configuration framework that enhances Claude Code, Gemini CLI, and other AI tools with 65 expert skills, multi-AI routing, 100% local RAG, automated security scanning, and persistent memory.
+> The only AI development framework that works natively inside the tools you already use—no new CLIs to learn, no context switching, just enhanced capabilities where you code.
 
 ---
 
 ## 🎯 What is Dev-AID?
 
-**Dev-AID is NOT a standalone CLI tool.** It's a configuration and automation layer that enhances your existing AI development tools with powerful capabilities.
+**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 65 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
+
+### Why Native Integration Matters
+
+**The Old Way:**
+```
+You: Working in VS Code
+Also You: Switch to separate AI CLI
+And You: Copy/paste context manually
+Still You: Switch back to VS Code
+😫 Repeat 50× per day
+```
+
+**The Dev-AID Way:**
+```
+You: Working in Claude Code (or Cursor, or Gemini CLI)
+Dev-AID: *Already there, enhancing your AI with expert skills*
+You: /aid-router-challenger "Implement OAuth"
+Dev-AID: *Claude generates, Gemini reviews, all in one place*
+✨ Never left your editor
+```
 
 ### How It Works
 
 ```
 ┌─────────────────────────────────────────────┐
-│  You Use (pick one):                        │
-│  • claude code                              │
-│  • cursor .                                 │
-│  • gemini-cli                               │
-│  • Any AI tool that reads config files      │
+│  Your Familiar Environment                  │
+│  ✨ claude code        (no change needed)   │
+│  ✨ cursor .           (no change needed)   │
+│  ✨ gemini-cli         (no change needed)   │
+│  ✨ Any AI tool with config support         │
 └─────────────────┬───────────────────────────┘
-                  │ reads configuration
+                  │
+                  │ Dev-AID Configuration
+                  │ (loaded automatically)
                   ↓
 ┌─────────────────────────────────────────────┐
-│  Dev-AID (Configuration Layer)              │
-│  • Local semantic search (100% private)     │
-│  • Multi-AI routing (Claude ⇄ Gemini)       │
-│  • 65 expert skills (auto-activated)        │
-│  • Persistent memory bank                   │
-│  • Automated security scans                 │
-│  • Specialized slash commands               │
+│  Your AI Gets Superpowers ⚡                │
+│  • 100% local semantic search (private)     │
+│  • Multi-AI orchestration (best tool/task)  │
+│  • 65 expert skills (context-aware)         │
+│  • Persistent memory (ADRs, patterns)       │
+│  • Automated security (5 tools, git hooks)  │
+│  • Specialized workflows (slash commands)   │
 └─────────────────────────────────────────────┘
 
-Examples:
-• "Find authentication functions" → Local RAG finds them ($0, private)
-• /aid-router-challenger "Implement OAuth2" → Claude codes, Gemini reviews
-• Edit auth.ts → Auto-loads devsecops-expert skill
-• git commit → Runs security scans (Opengrep, Gitleaks, Trivy)
-• /aid-router-status → View routing stats and costs
+Real-World Examples:
+• "Find authentication functions"
+  → Local RAG searches instantly ($0, never leaves your machine)
+
+• /aid-router-challenger "Implement OAuth2"
+  → Claude generates code, Gemini reviews security, all in one command
+
+• Edit src/auth/password.ts
+  → devsecops-expert skill auto-activates with OWASP guidelines
+
+• git commit
+  → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
+
+• /aid-router-status
+  → View AI routing decisions and costs across all sessions
 ```
+
+---
+
+## 🌟 Why Dev-AID's Native Integration is a Game-Changer
+
+Most AI tools force you to learn a new CLI, switch contexts constantly, and manually manage multiple tools. Dev-AID takes a radically different approach: **enhance what you already use** instead of replacing it.
+
+### 🎯 Benefits You'll Feel Immediately
+
+| Traditional Standalone AI Tools | Dev-AID Native Integration |
+|--------------------------------|----------------------------|
+| 😫 Learn new CLI syntax | ✨ Use tools you already know |
+| 😫 Switch between editor and AI tool | ✨ AI enhanced right where you code |
+| 😫 Copy/paste context manually | ✨ Auto-loaded from memory bank |
+| 😫 One AI, take it or leave it | ✨ Multi-AI routing to best model |
+| 😫 Cloud RAG costs $$$ | ✨ 100% local RAG, $0 forever |
+| 😫 Manual security checks | ✨ Automated git hooks |
+| 😫 Reinvent the wheel for each tool | ✨ One config, works everywhere |
+
+### 💡 Real Developer Benefits
+
+**For Individual Developers:**
+- ✅ **Zero context switching** - Work in Claude Code/Cursor/Gemini, get all features
+- ✅ **Instant setup** - 5 minutes from clone to productive
+- ✅ **Your workflow, enhanced** - Not disrupted or replaced
+- ✅ **Learn once, use anywhere** - Same skills work across AI tools
+
+**For Teams:**
+- ✅ **Consistent standards** - Same expert skills across all devs
+- ✅ **Portable configuration** - One `.dev-aid/` folder, entire team benefits
+- ✅ **Tool flexibility** - Devs choose their AI tool, get same capabilities
+- ✅ **Zero vendor lock-in** - Works with Anthropic, Google, OpenAI, and future tools
+
+**For Security/Compliance:**
+- ✅ **100% local RAG** - Code never leaves your machine
+- ✅ **Isolated dependencies** - Virtual environments, zero system pollution
+- ✅ **Automated scanning** - 5 security tools in git hooks
+- ✅ **Audit trail** - All AI routing decisions logged with costs
+
+### 🚀 The Philosophy
+
+> **"The best tool is the one that disappears into your workflow."**
+
+Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances your existing AI tools with enterprise capabilities, then gets out of your way. You use Claude Code or Gemini CLI just like before—except now they're 10× more powerful.
 
 ---
 
@@ -74,14 +149,16 @@ Examples:
 - Security guidelines
 
 ### 🔒 **Automated Security**
-- Pre-commit hooks: Secrets scan, SAST, Critical CVEs (~10s)
-- Pre-push hooks: Full SAST, git history scan (~60s)
-- 5 Security tools: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
+- **Pre-commit hooks**: Secrets scan, SAST, Critical CVEs (~10s)
+- **Pre-push hooks**: Full SAST, git history scan (~60s)
+- **5 Security tools**: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
+- **Isolated dependencies**: Virtual environments, zero system pollution ([details](./.dev-aid/docs/DEPENDENCY-ISOLATION.md))
 
-### ⚙️ **Provider Agnostic**
-- Works with Claude Code, Cursor, Gemini CLI
-- Multi-provider routing support
-- Consistent experience across tools
+### ⚙️ **Works Everywhere You Do**
+- **Native integration** with Claude Code, Cursor, Gemini CLI
+- **Multi-provider routing** - Use the best AI for each task
+- **Consistent experience** - Same capabilities regardless of tool
+- **Future-proof** - Works with any AI tool that reads config files
 
 ---
 
@@ -567,17 +644,29 @@ Skills auto-activate based on file patterns:
 
 ## 🆚 Comparison
 
+### vs Standalone AI CLIs
+
+| Aspect | Standalone AI Tools | Dev-AID Enhancement Layer |
+|--------|-------------------|---------------------------|
+| **Integration** | Separate CLI to learn | Works in your existing tools ✨ |
+| **Context switching** | Constant (editor ↔ CLI) | Zero - stay in your editor ✨ |
+| **Setup complexity** | New tool + config | 5-minute one-time setup ✨ |
+| **Workflow disruption** | High (new habits) | None (enhances current flow) ✨ |
+| **Multi-AI support** | One tool = one AI | Route to best AI per task ✨ |
+| **Portability** | Tool-specific | Works across Claude/Gemini/Cursor ✨ |
+
 ### vs Manual Configuration
 
 | Feature | Manual | Dev-AID |
 |---------|--------|---------|
-| Expert skills | Write yourself | 65 pre-built |
-| Security scans | Remember to run | Automated (git hooks) |
-| Memory bank | Manual notes | Persistent, auto-loaded |
-| Multi-AI routing | Manual switching | Automatic routing |
-| Local RAG | Complex setup | One command |
-| Slash commands | Create each one | All included |
-| Time to setup | Days | 5 minutes |
+| Expert skills | Write yourself | 65 pre-built ✅ |
+| Security scans | Remember to run | Automated (git hooks) ✅ |
+| Memory bank | Manual notes | Persistent, auto-loaded ✅ |
+| Multi-AI routing | Manual switching | Automatic routing ✅ |
+| Local RAG | Complex setup | One command ✅ |
+| Slash commands | Create each one | All included ✅ |
+| Dependency isolation | Manual venv setup | Automated with setup script ✅ |
+| Time to setup | Days | 5 minutes ✅ |
 
 ### vs Cloud RAG
 
@@ -693,4 +782,8 @@ cat .dev-aid/config/routing.json
 
 ---
 
-**Dev-AID: Because your AI assistant should be as smart as your best senior developer.**
+**Dev-AID: Enterprise-grade AI capabilities that integrate natively into the tools you already love. No context switching. No new CLIs. Just smarter development, right where you code.**
+
+---
+
+*Built for developers who want AI superpowers without the workflow disruption.*

@@ -139,6 +139,103 @@ If you see a response, **you're all set!** 🎉
 
 ---
 
+## 🔒 Dependency Isolation Benefits
+
+### Why Dev-AID Uses Virtual Environments
+
+**Problem**: Installing Python packages system-wide causes:
+- ❌ Version conflicts between projects
+- ❌ "Works on my machine" syndrome
+- ❌ Difficult cleanup (uninstall affects all projects)
+- ❌ Potential system Python corruption
+
+**Dev-AID Solution**: Three-layer isolation strategy:
+- ✅ **Router venv** (.dev-aid/orchestration/.venv/) - Router dependencies
+- ✅ **RAG uv environment** (~/.local/share/claude-context-local/) - RAG dependencies
+- ✅ **System Python** (built-ins only) - No packages installed
+
+### What This Means for You
+
+**1. Zero System Pollution**
+```bash
+# Before Dev-AID
+pip list | wc -l
+# Output: 23 packages
+
+# After Dev-AID setup
+pip list | wc -l
+# Output: 23 packages (unchanged!)
+```
+
+**2. Project Isolation**
+```bash
+# Project A: Uses anthropic==0.40.0
+cd ~/project-a/.dev-aid/orchestration
+source .venv/bin/activate && pip list | grep anthropic
+# anthropic==0.40.0
+
+# Project B: Uses anthropic==0.35.0 (no conflict!)
+cd ~/project-b/.dev-aid/orchestration
+source .venv/bin/activate && pip list | grep anthropic
+# anthropic==0.35.0
+```
+
+**3. Easy Cleanup**
+```bash
+# Remove router entirely
+rm -rf .dev-aid/orchestration/.venv
+
+# System Python unaffected ✅
+```
+
+**4. Reproducible Environments**
+```bash
+# Same setup on every machine
+./setup-venv.sh
+# Always installs exact versions from requirements.txt
+```
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Your System                          │
+├─────────────────────────────────────────────────────────┤
+│                                                           │
+│  System Python (3.9+)                                    │
+│  ├─ No router packages installed ✅                      │
+│  └─ Only built-in modules used (json, sys, etc.)         │
+│                                                           │
+├───────────────────────────────────────────────────────── │
+│                                                           │
+│  Project A (.dev-aid/orchestration/.venv/)               │
+│  ├─ anthropic==0.40.0                                    │
+│  ├─ openai==1.58.1                                       │
+│  └─ Isolated from system ✅                              │
+│                                                           │
+│  Project B (.dev-aid/orchestration/.venv/)               │
+│  ├─ anthropic==0.35.0                                    │
+│  ├─ openai==1.50.0                                       │
+│  └─ Isolated from Project A ✅                           │
+│                                                           │
+│  claude-context-local (~/.local/share/...)               │
+│  ├─ torch, transformers, faiss                           │
+│  ├─ Managed by uv (automatic isolation)                  │
+│  └─ Isolated from everything ✅                          │
+│                                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Complete Isolation Documentation
+
+See [DEPENDENCY-ISOLATION.md](../../docs/DEPENDENCY-ISOLATION.md) for:
+- Complete architecture breakdown
+- venv vs Anaconda comparison
+- Troubleshooting dependency issues
+- Best practices for multi-project setups
+
+---
+
 ## 📖 Usage
 
 ### Command Line

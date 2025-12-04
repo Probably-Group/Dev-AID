@@ -689,6 +689,7 @@ Skills auto-activate based on file patterns:
 - **[STORAGE-LOCATIONS.md](.dev-aid/docs/STORAGE-LOCATIONS.md)** - Where files are stored (5MB vs 2.7GB breakdown)
 - **[DEPENDENCY-ISOLATION.md](.dev-aid/docs/DEPENDENCY-ISOLATION.md)** - Zero system pollution architecture
 - **[HOW-LOCAL-SEARCH-WORKS.md](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)** - How AI automatically uses local search via MCP
+- **[MCP-EXTENSIBILITY.md](.dev-aid/docs/MCP-EXTENSIBILITY.md)** - Using DevAID with other MCP servers (GitHub, Slack, databases)
 - **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update DevAID in existing repos
 - **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
 

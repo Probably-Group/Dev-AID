@@ -22,6 +22,40 @@ You → Claude/Gemini → Detects "code search" intent
 
 ---
 
+## Tool Compatibility (MCP Protocol)
+
+DevAID Local Search uses the **Model Context Protocol (MCP)** - an open standard for connecting AI tools to external data sources.
+
+### ✅ Auto-Configured (Zero Setup)
+
+These tools are automatically configured by `setup-rag.sh`:
+
+- **Claude Code / Claude Desktop** - Official Anthropic CLI
+- **Gemini CLI** - Google's AI development tool
+
+### ✅ Compatible (Manual Setup Required)
+
+These tools support MCP but require manual configuration:
+
+- **VS Code + GitHub Copilot** (Generally available as of VS Code 1.102+)
+- **Cursor** (via `.cursor/mcp.json`)
+- **Windsurf** (Native MCP support in Settings → Cascade → MCP Servers)
+- **Cline** (VS Code extension with full MCP support)
+- **Zed** (Preview version, called "Context Servers")
+- **JetBrains IDEs** (IntelliJ IDEA, PyCharm, WebStorm, etc.)
+- **Eclipse** (Generally available)
+- **Xcode** (Generally available)
+
+**Manual configuration**: Add the MCP server config to your tool's settings. See `.dev-aid/scripts/setup-rag.sh` for the configuration format.
+
+### ❌ Not Compatible
+
+- **GitHub Codex API** (standalone) - No MCP support
+- **GitHub Copilot** (without VS Code) - No MCP support
+- **Older AI coding tools** without MCP protocol support
+
+---
+
 ## The Technical Flow
 
 ### 1. Setup Phase (One-Time)

@@ -114,6 +114,43 @@ fi
 
 echo ""
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
+echo -e "${YELLOW}   Optional Feature: Multi-AI Router${NC}"
+echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
+echo ""
+echo "The router enables intelligent orchestration across AI providers:"
+echo "  ✓ Anthropic (Claude), Google (Gemini), OpenAI (GPT)"
+echo "  ✓ Automatic model selection based on task type"
+echo "  ✓ Cost optimization (97% savings on large context)"
+echo "  ✓ Two-model review workflow (Challenger mode)"
+echo "  ✓ Real-time cost tracking and budgets"
+echo ""
+echo "Requirements:"
+echo "  • Python 3.9+"
+echo "  • Virtual environment (recommended)"
+echo "  • At least one AI API key"
+echo ""
+read -p "Setup router with virtual environment? (Y/n) " -n 1 -r
+echo
+
+ROUTER_SETUP_REPLY=$REPLY
+
+if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
+    echo ""
+    echo -e "${GREEN}Setting up router with virtual environment...${NC}"
+    if [ -f ".dev-aid/orchestration/setup-venv.sh" ]; then
+        ./.dev-aid/orchestration/setup-venv.sh
+    else
+        echo -e "${RED}✗ setup-venv.sh not found${NC}"
+        echo "  Please ensure Dev-AID is properly installed"
+    fi
+else
+    echo -e "${BLUE}→ Skipped router setup${NC}"
+    echo "  You can set it up later with: ./.dev-aid/orchestration/setup-venv.sh"
+    echo "  Or manually: pip install -r .dev-aid/orchestration/requirements.txt"
+fi
+
+echo ""
+echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
 echo -e "${YELLOW}   Optional Feature: Local Semantic Search${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
 echo ""
@@ -155,6 +192,9 @@ echo -e "${BLUE}What's configured:${NC}"
 echo "  ✓ Directory structure"
 echo "  ✓ Routing configuration"
 echo "  ✓ Model registry"
+if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
+    echo "  ✓ Multi-AI router (Python venv)"
+fi
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo "  ✓ Local semantic search (claude-context-local)"
 fi
@@ -167,11 +207,23 @@ fi
 echo "  • /aid-router-ensemble         - Smart model routing"
 echo "  • /aid-router-status           - View routing stats"
 echo ""
+if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
+    echo -e "${BLUE}Router CLI commands:${NC}"
+    echo "  • .dev-aid/orchestration/router-cli.sh test"
+    echo "  • .dev-aid/orchestration/router-cli.sh execute \"Your request\""
+    echo "  • .dev-aid/orchestration/router-cli.sh status"
+    echo ""
+fi
 echo -e "${BLUE}Next steps:${NC}"
-echo "  1. Configure API keys (ANTHROPIC_API_KEY, GOOGLE_API_KEY)"
-echo "  2. Try a router command in Claude Code or Gemini CLI"
+echo "  1. Add API keys to .dev-aid/config/.env"
+echo "     ANTHROPIC_API_KEY=sk-ant-..."
+echo "     GOOGLE_API_KEY=..."
+echo "  2. Enable providers in .dev-aid/config/models.json"
+if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
+    echo "  3. Test router: .dev-aid/orchestration/router-cli.sh test"
+fi
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-    echo "  3. Check RAG status: ./.dev-aid/scripts/rag-status.sh"
+    echo "  4. Check RAG status: ./.dev-aid/scripts/rag-status.sh"
 fi
 echo ""
 echo -e "${GREEN}Happy coding with Dev-AID! 🚀${NC}"

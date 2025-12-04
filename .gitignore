@@ -3,9 +3,12 @@
 .dev-aid/config/.env.*
 .dev-aid/config/backups/
 
-# Logs
+# Logs and Runtime Files
 .dev-aid/logs/*.log
 .dev-aid/logs/*.log.*
+.dev-aid/logs/costs.json
+.dev-aid/logs/routing-history.json
+.dev-aid/logs/rag-*.log
 
 # Temporary files
 .dev-aid/temp/*
@@ -37,3 +40,4 @@ venv/
 env/
 ENV/
 .venv
+.dev-aid/orchestration/.venv/

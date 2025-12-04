@@ -4,12 +4,33 @@ Complete guide to installing and using the Dev-AID Router for multi-AI orchestra
 
 ## 🚀 Quick Start (5 Minutes)
 
-### Step 1: Install Python Dependencies
+### Step 1: Setup Virtual Environment (Recommended)
+
+**Why virtual environment?**
+- ✅ Isolates dependencies from system Python
+- ✅ Prevents version conflicts between projects
+- ✅ Keeps your system clean
+- ✅ Easy to remove (just delete `.venv/` folder)
 
 ```bash
 cd /path/to/your/project
 cd .dev-aid/orchestration
+
+# Automated setup (recommended)
+./setup-venv.sh
+```
+
+This will:
+1. Create isolated Python environment in `.venv/`
+2. Install all dependencies
+3. Test the installation
+4. Show usage instructions
+
+**Alternative: Manual installation (NOT recommended)**
+```bash
+# Only if you know what you're doing
 pip install -r requirements.txt
+# Warning: Installs to system Python - may cause conflicts!
 ```
 
 **Required packages**:
@@ -75,10 +96,12 @@ Edit `.dev-aid/config/models.json` - set `"enabled": true` for providers you hav
 
 ```bash
 cd ../orchestration
-python -m router.cli test
+
+# Using virtual environment (auto-activated)
+./router-cli.sh test
 ```
 
-Expected output:
+**Expected output**:
 ```
 ✅ Configuration loaded successfully
    Root: /path/to/project
@@ -102,11 +125,114 @@ Expected output:
 ### Step 5: Test Router
 
 ```bash
-# Test with a simple request
-python -m router.cli execute "What is 2+2?" --verbose
+# Test with a simple request (venv auto-activated)
+./router-cli.sh execute "What is 2+2?" --verbose
 ```
 
 If you see a response, **you're all set!** 🎉
+
+**Note**: The `router-cli.sh` wrapper automatically:
+- Activates the virtual environment
+- Runs the router
+- Deactivates the venv when done
+- Shows helpful error messages if dependencies missing
+
+---
+
+## 🔒 Dependency Isolation Benefits
+
+### Why Dev-AID Uses Virtual Environments
+
+**Problem**: Installing Python packages system-wide causes:
+- ❌ Version conflicts between projects
+- ❌ "Works on my machine" syndrome
+- ❌ Difficult cleanup (uninstall affects all projects)
+- ❌ Potential system Python corruption
+
+**Dev-AID Solution**: Three-layer isolation strategy:
+- ✅ **Router venv** (.dev-aid/orchestration/.venv/) - Router dependencies
+- ✅ **RAG uv environment** (~/.local/share/claude-context-local/) - RAG dependencies
+- ✅ **System Python** (built-ins only) - No packages installed
+
+### What This Means for You
+
+**1. Zero System Pollution**
+```bash
+# Before Dev-AID
+pip list | wc -l
+# Output: 23 packages
+
+# After Dev-AID setup
+pip list | wc -l
+# Output: 23 packages (unchanged!)
+```
+
+**2. Project Isolation**
+```bash
+# Project A: Uses anthropic==0.40.0
+cd ~/project-a/.dev-aid/orchestration
+source .venv/bin/activate && pip list | grep anthropic
+# anthropic==0.40.0
+
+# Project B: Uses anthropic==0.35.0 (no conflict!)
+cd ~/project-b/.dev-aid/orchestration
+source .venv/bin/activate && pip list | grep anthropic
+# anthropic==0.35.0
+```
+
+**3. Easy Cleanup**
+```bash
+# Remove router entirely
+rm -rf .dev-aid/orchestration/.venv
+
+# System Python unaffected ✅
+```
+
+**4. Reproducible Environments**
+```bash
+# Same setup on every machine
+./setup-venv.sh
+# Always installs exact versions from requirements.txt
+```
+
+### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                     Your System                          │
+├─────────────────────────────────────────────────────────┤
+│                                                           │
+│  System Python (3.9+)                                    │
+│  ├─ No router packages installed ✅                      │
+│  └─ Only built-in modules used (json, sys, etc.)         │
+│                                                           │
+├───────────────────────────────────────────────────────── │
+│                                                           │
+│  Project A (.dev-aid/orchestration/.venv/)               │
+│  ├─ anthropic==0.40.0                                    │
+│  ├─ openai==1.58.1                                       │
+│  └─ Isolated from system ✅                              │
+│                                                           │
+│  Project B (.dev-aid/orchestration/.venv/)               │
+│  ├─ anthropic==0.35.0                                    │
+│  ├─ openai==1.50.0                                       │
+│  └─ Isolated from Project A ✅                           │
+│                                                           │
+│  claude-context-local (~/.local/share/...)               │
+│  ├─ torch, transformers, faiss                           │
+│  ├─ Managed by uv (automatic isolation)                  │
+│  └─ Isolated from everything ✅                          │
+│                                                           │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Complete Isolation Documentation
+
+See [DEPENDENCY-ISOLATION.md](../../docs/DEPENDENCY-ISOLATION.md) for:
+- Complete architecture breakdown
+- venv vs Anaconda comparison
+- Troubleshooting dependency issues
+- Best practices for multi-project setups
 
 ---
 
@@ -118,23 +244,37 @@ If you see a response, **you're all set!** 🎉
 
 ```bash
 # Default mode (from config)
-python -m router.cli execute "Implement user authentication"
+./router-cli.sh execute "Implement user authentication"
 
 # Specific mode
-python -m router.cli execute "Analyze entire codebase" --mode ensemble
+./router-cli.sh execute "Analyze entire codebase" --mode ensemble
 
 # With verbose output (shows costs, tokens, latency)
-python -m router.cli execute "Fix the bug in auth.ts" --verbose --mode solo
+./router-cli.sh execute "Fix the bug in auth.ts" --verbose --mode solo
 ```
 
 #### Check Status
 
 ```bash
 # Show current status
-python -m router.cli status
+./router-cli.sh status
 
 # Include routing history
-python -m router.cli status --history
+./router-cli.sh status --history
+```
+
+#### Direct Python (if you activated venv manually)
+
+```bash
+# Activate venv first
+source .dev-aid/orchestration/.venv/bin/activate
+
+# Then use Python directly
+python -m router.cli execute "Your request"
+python -m router.cli status
+
+# Deactivate when done
+deactivate
 ```
 
 ### From Slash Commands
@@ -369,13 +509,24 @@ Model definitions and costs:
 ### Problem: Dependencies not installed
 
 ```
-Error: anthropic package not installed
+⚠️  Router dependencies not installed
+
+Recommended: Use virtual environment to avoid conflicts
+
+Run: /path/to/.dev-aid/orchestration/setup-venv.sh
 ```
 
-**Solution**:
+**Solution (recommended)**:
+```bash
+cd .dev-aid/orchestration
+./setup-venv.sh
+```
+
+**Solution (manual - not recommended)**:
 ```bash
 cd .dev-aid/orchestration
 pip install -r requirements.txt
+# Warning: Installs to system Python
 ```
 
 ### Problem: API key not found
@@ -519,12 +670,25 @@ python -m router.cli execute "Implement OAuth2" --mode challenger
 
 ## ✅ Verification Checklist
 
-- [ ] Python 3.9+ installed
-- [ ] Dependencies installed (`pip install -r requirements.txt`)
-- [ ] API keys added to `.env`
-- [ ] Providers enabled in `models.json`
-- [ ] Configuration test passes (`python -m router.cli test`)
-- [ ] Test request works (`python -m router.cli execute "test"`)
-- [ ] Status command shows data (`python -m router.cli status`)
+- [ ] Python 3.9+ installed (`python3 --version`)
+- [ ] Virtual environment created (`./setup-venv.sh`)
+- [ ] Dependencies installed (done by setup-venv.sh)
+- [ ] API keys added to `.dev-aid/config/.env`
+- [ ] Providers enabled in `.dev-aid/config/models.json`
+- [ ] Configuration test passes (`./router-cli.sh test`)
+- [ ] Test request works (`./router-cli.sh execute "test"`)
+- [ ] Status command shows data (`./router-cli.sh status`)
 
 If all checks pass, **you're ready to use the router!** 🎉
+
+### Verify Virtual Environment
+
+```bash
+# Check if venv exists
+ls -la .dev-aid/orchestration/.venv
+
+# Check installed packages (inside venv)
+source .dev-aid/orchestration/.venv/bin/activate
+pip list
+deactivate
+```

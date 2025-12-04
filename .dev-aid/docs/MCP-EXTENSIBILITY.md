@@ -1,10 +1,10 @@
-# MCP Extensibility - Using Multiple MCP Servers with DevAID
+# MCP Extensibility - Using Multiple MCP Servers with Dev-AID
 
 ## TL;DR
 
-✅ **Yes!** You can use DevAID alongside ANY other MCP servers
+✅ **Yes!** You can use Dev-AID alongside ANY other MCP servers
 ✅ **Automatic**: The AI sees all MCP servers and uses them intelligently
-✅ **No conflicts**: DevAID only adds one server (`code-search`)
+✅ **No conflicts**: Dev-AID only adds one server (`code-search`)
 ✅ **Works together**: Multiple MCP servers enhance each other
 
 ---
@@ -21,13 +21,13 @@ Think of MCP servers like **browser extensions for AI**:
 
 ---
 
-## DevAID's MCP Philosophy
+## Dev-AID's MCP Philosophy
 
-**DevAID is MCP-friendly, not MCP-exclusive.**
+**Dev-AID is MCP-friendly, not MCP-exclusive.**
 
 We provide ONE MCP server:
 - **Name**: `code-search`
-- **Purpose**: Local semantic code search (DevAID Local Search)
+- **Purpose**: Local semantic code search (Dev-AID Local Search)
 - **Scope**: Your codebase only
 
 **We don't:**
@@ -134,7 +134,7 @@ We provide ONE MCP server:
 ### Example Scenario
 
 You have installed:
-- DevAID Local Search (`code-search`)
+- Dev-AID Local Search (`code-search`)
 - GitHub MCP (`github`)
 - PostgreSQL MCP (`postgres`)
 - Slack MCP (`slack`)
@@ -146,7 +146,7 @@ You have installed:
 ```
 1. AI analyzes request → Needs 4 different tools
 
-2. Uses code-search MCP (DevAID):
+2. Uses code-search MCP (Dev-AID):
    → Searches your local codebase
    → Finds: src/auth/reset_password.py
 
@@ -178,7 +178,7 @@ You have installed:
 Claude Code uses `claude mcp add` which is **additive** (won't overwrite):
 
 ```bash
-# Add DevAID (if not already added)
+# Add Dev-AID (if not already added)
 ./.dev-aid/scripts/setup-rag.sh
 
 # Add GitHub MCP
@@ -234,17 +234,17 @@ Gemini CLI uses `~/.gemini/mcp.json` which must be edited manually:
 }
 ```
 
-**Important**: DevAID's `setup-rag.sh` detects existing config and provides manual instructions to avoid overwriting your servers.
+**Important**: Dev-AID's `setup-rag.sh` detects existing config and provides manual instructions to avoid overwriting your servers.
 
 ---
 
-## DevAID Router + Other MCP Servers
+## Dev-AID Router + Other MCP Servers
 
-**Can DevAID's router use other MCP servers?**
+**Can Dev-AID's router use other MCP servers?**
 
 Currently: **Indirectly, yes!**
 
-When you use DevAID router commands like `/aid-router-challenger`:
+When you use Dev-AID router commands like `/aid-router-challenger`:
 1. Router sends request to Claude/Gemini via API
 2. Claude/Gemini sees ALL your MCP servers
 3. They can use any available server
@@ -260,7 +260,7 @@ When you use DevAID router commands like `/aid-router-challenger`:
 → You get comprehensive review with GitHub context
 ```
 
-**Future possibility**: DevAID router could directly integrate with MCP servers for richer orchestration. This would require architectural changes.
+**Future possibility**: Dev-AID router could directly integrate with MCP servers for richer orchestration. This would require architectural changes.
 
 ---
 
@@ -296,7 +296,7 @@ When you use DevAID router commands like `/aid-router-challenger`:
 ### 1. Start Small
 
 Don't install 20 MCP servers at once. Start with:
-- DevAID Local Search (code search)
+- Dev-AID Local Search (code search)
 - GitHub MCP (if you use GitHub)
 - Maybe one database or communication tool
 
@@ -353,7 +353,7 @@ export SLACK_BOT_TOKEN="xoxb-YourTokenHere"
 Keep a list of installed MCP servers:
 
 ```bash
-# DevAID project root
+# Dev-AID project root
 echo "code-search" >> .dev-aid/mcp-servers.txt
 echo "github" >> .dev-aid/mcp-servers.txt
 echo "postgres" >> .dev-aid/mcp-servers.txt
@@ -414,17 +414,17 @@ Too many MCP servers can slow down AI startup.
 
 ## FAQ
 
-### Q: Will adding MCP servers break DevAID?
+### Q: Will adding MCP servers break Dev-AID?
 
-**A**: No! DevAID only cares about its own `code-search` server. Other servers are invisible to DevAID's router but visible to the AI.
+**A**: No! Dev-AID only cares about its own `code-search` server. Other servers are invisible to Dev-AID's router but visible to the AI.
 
-### Q: Can I use DevAID without any other MCP servers?
+### Q: Can I use Dev-AID without any other MCP servers?
 
-**A**: Yes! DevAID works perfectly standalone.
+**A**: Yes! Dev-AID works perfectly standalone.
 
 ### Q: Can I remove the code-search MCP server?
 
-**A**: Yes, but you'll lose DevAID Local Search functionality. The router will still work.
+**A**: Yes, but you'll lose Dev-AID Local Search functionality. The router will still work.
 
 ### Q: Do MCP servers slow down the AI?
 
@@ -442,10 +442,10 @@ Too many MCP servers can slow down AI startup.
 
 ## Summary
 
-**DevAID + Other MCP Servers = Supercharged AI Development**
+**Dev-AID + Other MCP Servers = Supercharged AI Development**
 
 - ✅ Use as many MCP servers as you want
-- ✅ DevAID respects existing configurations
+- ✅ Dev-AID respects existing configurations
 - ✅ AI automatically orchestrates all tools
 - ✅ No conflicts, no complexity
 - ✅ Each server enhances the others
@@ -457,6 +457,6 @@ Too many MCP servers can slow down AI startup.
 ## Further Reading
 
 - **Official MCP Documentation**: https://modelcontextprotocol.io/
-- **DevAID Local Search Details**: [HOW-LOCAL-SEARCH-WORKS.md](./HOW-LOCAL-SEARCH-WORKS.md)
+- **Dev-AID Local Search Details**: [HOW-LOCAL-SEARCH-WORKS.md](./HOW-LOCAL-SEARCH-WORKS.md)
 - **Community MCP Servers**: https://github.com/punkpeye/awesome-mcp-servers
 - **Building MCP Servers**: https://modelcontextprotocol.io/docs/concepts/architecture

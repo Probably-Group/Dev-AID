@@ -1,6 +1,6 @@
 #!/bin/bash
-# DevAID Local Search - User-friendly wrapper
-# Wraps claude-context-local with DevAID branding
+# Dev-AID Local Search - User-friendly wrapper
+# Wraps claude-context-local with Dev-AID branding
 # Usage: dev-aid-search <command> [options]
 
 # Colors
@@ -12,7 +12,7 @@ NC='\033[0m'
 
 # Check if claude-context-local is installed
 if ! command -v claude-context-local &> /dev/null; then
-    echo -e "${RED}✗ DevAID Local Search is not installed${NC}"
+    echo -e "${RED}✗ Dev-AID Local Search is not installed${NC}"
     echo ""
     echo -e "${YELLOW}To install, run:${NC}"
     echo "  ./.dev-aid/scripts/setup-rag.sh"
@@ -23,7 +23,7 @@ fi
 # If no arguments, show help
 if [ $# -eq 0 ]; then
     echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
-    echo -e "${BLUE}║      DevAID Local Search                   ║${NC}"
+    echo -e "${BLUE}║      Dev-AID Local Search                   ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════╝${NC}"
     echo ""
     echo -e "${GREEN}100% local semantic code search${NC}"
@@ -48,7 +48,7 @@ fi
 # Handle special commands
 case "$1" in
     status)
-        echo -e "${BLUE}DevAID Local Search Status${NC}"
+        echo -e "${BLUE}Dev-AID Local Search Status${NC}"
         echo ""
 
         # Check version
@@ -83,7 +83,7 @@ case "$1" in
         ;;
 
     index)
-        echo -e "${BLUE}→ Indexing with DevAID Local Search...${NC}"
+        echo -e "${BLUE}→ Indexing with Dev-AID Local Search...${NC}"
         echo ""
         claude-context-local "$@"
         echo ""
@@ -92,14 +92,14 @@ case "$1" in
         ;;
 
     search)
-        echo -e "${BLUE}→ Searching with DevAID Local Search...${NC}"
+        echo -e "${BLUE}→ Searching with Dev-AID Local Search...${NC}"
         echo ""
         claude-context-local "$@"
         exit 0
         ;;
 
     --version|-v)
-        echo -e "${BLUE}DevAID Local Search${NC}"
+        echo -e "${BLUE}Dev-AID Local Search${NC}"
         claude-context-local --version
         echo ""
         echo -e "${BLUE}Powered by:${NC} claude-context-local by FarhanAliRaza"

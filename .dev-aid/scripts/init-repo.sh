@@ -151,7 +151,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
-echo -e "${YELLOW}   Optional: DevAID Local Search${NC}"
+echo -e "${YELLOW}   Optional: Dev-AID Local Search${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
 echo ""
 echo -e "${BLUE}What is it?${NC}"
@@ -183,20 +183,20 @@ echo "  • 2-5 minutes initial setup"
 echo ""
 echo -e "${BLUE}Powered by:${NC} claude-context-local (by FarhanAliRaza)"
 echo ""
-read -p "Install DevAID Local Search? (Y/n) " -n 1 -r
+read -p "Install Dev-AID Local Search? (Y/n) " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo ""
-    echo -e "${GREEN}Installing DevAID Local Search...${NC}"
+    echo -e "${GREEN}Installing Dev-AID Local Search...${NC}"
     if [ -f ".dev-aid/scripts/setup-rag.sh" ]; then
         ./.dev-aid/scripts/setup-rag.sh
     else
         echo -e "${RED}✗ setup-rag.sh not found${NC}"
-        echo "  Please ensure DevAID is properly installed"
+        echo "  Please ensure Dev-AID is properly installed"
     fi
 else
-    echo -e "${BLUE}→ Skipped DevAID Local Search installation${NC}"
+    echo -e "${BLUE}→ Skipped Dev-AID Local Search installation${NC}"
     echo "  You can install it later with: ./.dev-aid/scripts/setup-rag.sh"
 fi
 
@@ -213,7 +213,7 @@ if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
     echo "  ✓ Multi-AI router (Python venv)"
 fi
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-    echo "  ✓ DevAID Local Search"
+    echo "  ✓ Dev-AID Local Search"
 fi
 echo ""
 echo -e "${BLUE}Available router commands:${NC}"

@@ -21,7 +21,7 @@ LlamaIndex's newest system for multi-agent orchestration:
 ```python
 from llama_index.core import Workflow
 
-class DevAIDRouter(Workflow):
+class Dev-AIDRouter(Workflow):
     @step
     async def classify_task(self, ctx: Context, request: str):
         # LLM classifies task type
@@ -320,10 +320,10 @@ You want:
 # Multiple users using Dev-AID router simultaneously
 # with isolated state and cost tracking per user
 
-router = DevAIDRouter(user_id="alice")
+router = Dev-AIDRouter(user_id="alice")
 router.run(request="Implement auth")
 
-router2 = DevAIDRouter(user_id="bob")
+router2 = Dev-AIDRouter(user_id="bob")
 router2.run(request="Optimize queries")
 ```
 
@@ -462,7 +462,7 @@ prompt = """
 # Create MCP server exposing LlamaIndex router
 @mcp.tool()
 def aid_router_challenger(request: str):
-    router = DevAIDRouter()
+    router = Dev-AIDRouter()
     return router.challenger_mode(request)
 
 # Then use from Claude Code or Gemini CLI

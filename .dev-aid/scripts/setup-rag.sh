@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup script for DevAID Local Search
+# Setup script for Dev-AID Local Search
 # Installs and configures 100% local semantic code search
 # Powered by claude-context-local by FarhanAliRaza
 
@@ -13,14 +13,14 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║      DevAID Local Search Setup             ║${NC}"
+echo -e "${BLUE}║      Dev-AID Local Search Setup             ║${NC}"
 echo -e "${BLUE}║   100% Local Semantic Code Search          ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Check if running in DevAID directory
+# Check if running in Dev-AID directory
 if [ ! -d ".dev-aid" ]; then
-    echo -e "${RED}✗ Error: Must run from DevAID repository root${NC}"
+    echo -e "${RED}✗ Error: Must run from Dev-AID repository root${NC}"
     echo "  Expected to find .dev-aid/ directory"
     exit 1
 fi
@@ -68,14 +68,14 @@ fi
 echo -e "${BLUE}→ GPU acceleration: ${GPU_TYPE}${NC}"
 
 echo ""
-echo -e "${GREEN}Installing DevAID Local Search...${NC}"
+echo -e "${GREEN}Installing Dev-AID Local Search...${NC}"
 echo -e "${BLUE}(powered by claude-context-local)${NC}"
 echo ""
 
 # Install claude-context-local (the underlying engine)
 echo -e "${BLUE}→ Running official install script...${NC}"
 if curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh | bash; then
-    echo -e "${GREEN}✓ DevAID Local Search installed successfully${NC}"
+    echo -e "${GREEN}✓ Dev-AID Local Search installed successfully${NC}"
 else
     echo -e "${RED}✗ Installation failed${NC}"
     exit 1
@@ -161,7 +161,7 @@ EOF
         echo '      ]'
         echo '    }'
         echo ""
-        echo -e "${BLUE}Note:${NC} DevAID respects your existing MCP servers. All servers will"
+        echo -e "${BLUE}Note:${NC} Dev-AID respects your existing MCP servers. All servers will"
         echo "      work together automatically - the AI decides which to use."
     fi
 else
@@ -170,7 +170,7 @@ else
 fi
 
 echo ""
-echo -e "${GREEN}Indexing DevAID codebase...${NC}"
+echo -e "${GREEN}Indexing Dev-AID codebase...${NC}"
 echo ""
 
 # Index the current directory
@@ -207,12 +207,12 @@ mkdir -p .dev-aid/scripts
 
 cat > .dev-aid/scripts/reindex-codebase.sh << 'EOF'
 #!/bin/bash
-# Reindex DevAID codebase with DevAID Local Search
+# Reindex Dev-AID codebase with Dev-AID Local Search
 # Usage: ./.dev-aid/scripts/reindex-codebase.sh
 
 set -e
 
-echo "🔄 Reindexing DevAID codebase..."
+echo "🔄 Reindexing Dev-AID codebase..."
 
 DEV_AID_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "$DEV_AID_ROOT"
@@ -261,13 +261,13 @@ fi
 # Create RAG status check script
 cat > .dev-aid/scripts/rag-status.sh << 'EOF'
 #!/bin/bash
-# Check DevAID Local Search status
+# Check Dev-AID Local Search status
 # Usage: ./.dev-aid/scripts/rag-status.sh
 
 set -e
 
 echo "╔════════════════════════════════════════════╗"
-echo "║      DevAID Local Search Status            ║"
+echo "║      Dev-AID Local Search Status            ║"
 echo "╚════════════════════════════════════════════╝"
 echo ""
 
@@ -352,11 +352,11 @@ echo -e "${GREEN}║         Setup Complete! 🎉                 ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${BLUE}What was installed:${NC}"
-echo "  ✓ DevAID Local Search (100% local semantic search)"
+echo "  ✓ Dev-AID Local Search (100% local semantic search)"
 echo "  ✓ EmbeddingGemma model (~1.2GB)"
 echo "  ✓ FAISS vector index with ${GPU_TYPE} acceleration"
 echo "  ✓ MCP integration ($AI_TOOL)"
-echo "  ✓ DevAID codebase indexed"
+echo "  ✓ Dev-AID codebase indexed"
 echo ""
 echo -e "${BLUE}Powered by:${NC}"
 echo "  • claude-context-local by FarhanAliRaza"

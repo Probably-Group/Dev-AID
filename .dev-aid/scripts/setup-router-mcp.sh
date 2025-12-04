@@ -1,5 +1,5 @@
 #!/bin/bash
-# Interactive MCP Setup for DevAID Router
+# Interactive MCP Setup for Dev-AID Router
 # Discovers and configures MCP servers for router context gathering
 
 set -e
@@ -15,7 +15,7 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 ROUTER_DIR="$SCRIPT_DIR/../orchestration"
 
 echo -e "${BLUE}═══════════════════════════════════════════${NC}"
-echo -e "${BLUE}   DevAID Router - MCP Setup${NC}"
+echo -e "${BLUE}   Dev-AID Router - MCP Setup${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════${NC}"
 echo ""
 echo "This setup will:"

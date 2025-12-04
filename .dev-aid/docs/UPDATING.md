@@ -1,12 +1,12 @@
-# Updating DevAID
+# Updating Dev-AID
 
-Complete guide to updating DevAID in existing repositories.
+Complete guide to updating Dev-AID in existing repositories.
 
 ---
 
 ## 🎯 Overview
 
-DevAID uses semantic versioning and provides safe update mechanisms that preserve your:
+Dev-AID uses semantic versioning and provides safe update mechanisms that preserve your:
 - ✅ API keys (.env files)
 - ✅ Memory bank (patterns, decisions, context)
 - ✅ Logs (routing history, costs)
@@ -32,7 +32,7 @@ cd your-project
 **What it does**:
 1. ✅ Checks current version
 2. ✅ Creates automatic backup
-3. ✅ Updates all DevAID components
+3. ✅ Updates all Dev-AID components
 4. ✅ Preserves your API keys and memory bank
 5. ✅ Updates dependencies
 6. ✅ Shows changelog
@@ -51,7 +51,7 @@ cd your-project
 
 # Choose option:
 # 1. Pull from official repo (recommended)
-# 2. Copy from local DevAID installation
+# 2. Copy from local Dev-AID installation
 # 3. Manual update (guide)
 ```
 
@@ -72,7 +72,7 @@ cd your-project
 # 1. Create backup
 cp -r .dev-aid .dev-aid-backup-$(date +%Y%m%d)
 
-# 2. Download/clone latest DevAID
+# 2. Download/clone latest Dev-AID
 cd /tmp
 git clone https://github.com/your-org/dev-aid.git
 
@@ -104,7 +104,7 @@ deactivate
 
 ### Method 3: Git Subtree (Advanced)
 
-For teams managing DevAID as a subtree:
+For teams managing Dev-AID as a subtree:
 
 ```bash
 # Initial setup (one-time)
@@ -162,7 +162,7 @@ git subtree pull --prefix=.dev-aid dev-aid-upstream main --squash
 
 ### Semantic Versioning
 
-DevAID follows [SemVer](https://semver.org/):
+Dev-AID follows [SemVer](https://semver.org/):
 
 ```
 MAJOR.MINOR.PATCH
@@ -194,7 +194,7 @@ cat .dev-aid/VERSION
 
 # 2. Commit your work (if in Git)
 git add .
-git commit -m "Save before DevAID update"
+git commit -m "Save before Dev-AID update"
 
 # 3. Verify API keys are NOT in Git
 git status --ignored | grep .env
@@ -324,7 +324,7 @@ nano .dev-aid/config/routing.json
 
 ### Update All Projects at Once
 
-If you have DevAID in multiple projects:
+If you have Dev-AID in multiple projects:
 
 ```bash
 # Create update script
@@ -344,7 +344,7 @@ for project in "${PROJECTS[@]}"; do
         ./.dev-aid/scripts/update-dev-aid.sh
         echo "✓ Updated $project"
     else
-        echo "⚠ No DevAID in $project"
+        echo "⚠ No Dev-AID in $project"
     fi
     echo ""
 done
@@ -447,7 +447,7 @@ cp -r .dev-aid-backup-*/memory-bank/* .dev-aid/memory-bank/
 
 ```yaml
 # .github/workflows/update-dev-aid.yml
-name: Check DevAID Updates
+name: Check Dev-AID Updates
 
 on:
   schedule:
@@ -465,7 +465,7 @@ jobs:
           LATEST=$(curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION)
 
           if [ "$CURRENT" != "$LATEST" ]; then
-            echo "::warning::DevAID update available: $CURRENT → $LATEST"
+            echo "::warning::Dev-AID update available: $CURRENT → $LATEST"
           fi
 ```
 
@@ -493,4 +493,4 @@ jobs:
 
 ---
 
-**Summary**: Update DevAID safely with `./.dev-aid/scripts/update-dev-aid.sh`. The script preserves your API keys, memory bank, and logs while updating code and dependencies. Always read the CHANGELOG and test after updating.
+**Summary**: Update Dev-AID safely with `./.dev-aid/scripts/update-dev-aid.sh`. The script preserves your API keys, memory bank, and logs while updating code and dependencies. Always read the CHANGELOG and test after updating.

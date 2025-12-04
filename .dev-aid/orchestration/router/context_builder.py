@@ -16,7 +16,7 @@ import asyncio
 
 
 @dataclass
-class DevAIDContext:
+class Dev-AIDContext:
     """Represents Dev-AID context for AI request"""
     memory_bank: Dict[str, str]  # filename -> content
     project_info: Dict[str, Any]
@@ -41,7 +41,7 @@ class ContextBuilder:
         self.memory_bank_path = config_loader.get_memory_bank_path()
         self.mcp_pool = mcp_pool
 
-    def build_context(self, include_memory: bool = True) -> DevAIDContext:
+    def build_context(self, include_memory: bool = True) -> Dev-AIDContext:
         """
         Build complete Dev-AID context
 
@@ -49,7 +49,7 @@ class ContextBuilder:
             include_memory: Whether to include memory bank files
 
         Returns:
-            DevAIDContext object
+            Dev-AIDContext object
         """
         memory_bank = {}
         if include_memory:
@@ -58,7 +58,7 @@ class ContextBuilder:
         project_info = self._get_project_info()
         git_context = self._get_git_context()
 
-        return DevAIDContext(
+        return Dev-AIDContext(
             memory_bank=memory_bank,
             project_info=project_info,
             git_context=git_context,
@@ -167,7 +167,7 @@ class ContextBuilder:
             for server_name in requested_servers:
                 try:
                     if server_name == "code-search":
-                        # DevAID Local Search
+                        # Dev-AID Local Search
                         result = await self._query_code_search(prompt)
                         if result:
                             mcp_context["code_search"] = result
@@ -235,7 +235,7 @@ class ContextBuilder:
         return selected
 
     async def _query_code_search(self, prompt: str) -> Optional[Dict[str, Any]]:
-        """Query DevAID Local Search MCP"""
+        """Query Dev-AID Local Search MCP"""
         try:
             # Extract search query from prompt
             search_terms = self._extract_search_terms(prompt)
@@ -303,12 +303,12 @@ class ContextBuilder:
         search_terms = " ".join(word for word in words if word not in stop_words)
         return search_terms[:100]  # Limit length
 
-    def format_context_for_ai(self, context: DevAIDContext) -> str:
+    def format_context_for_ai(self, context: Dev-AIDContext) -> str:
         """
         Format context as string for AI system prompt
 
         Args:
-            context: DevAIDContext object
+            context: Dev-AIDContext object
 
         Returns:
             Formatted context string
@@ -381,12 +381,12 @@ class ContextBuilder:
         return "No active context available."
 
 
-def build_system_prompt(context: DevAIDContext, context_builder: ContextBuilder) -> str:
+def build_system_prompt(context: Dev-AIDContext, context_builder: ContextBuilder) -> str:
     """
     Build system prompt with Dev-AID context
 
     Args:
-        context: DevAIDContext object
+        context: Dev-AIDContext object
         context_builder: ContextBuilder instance
 
     Returns:

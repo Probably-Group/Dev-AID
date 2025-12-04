@@ -7,10 +7,19 @@ Provides unified interface for:
 - OpenAI (GPT)
 """
 
+import logging
 import os
 from abc import ABC, abstractmethod
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+
+# Configure logger
+logger = logging.getLogger(__name__)
+
+
+class APIClientError(Exception):
+    """Safe API client error that doesn't leak details"""
+    pass
 
 
 @dataclass
@@ -175,7 +184,10 @@ class AnthropicClient(BaseAIClient):
             )
 
         except Exception as e:
-            raise RuntimeError(f"Anthropic API error: {str(e)}")
+            # Log full error internally
+            logger.error(f"Anthropic API error: {type(e).__name__}: {str(e)}", exc_info=True)
+            # Raise safe error to user
+            raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
 
 class GoogleClient(BaseAIClient):
@@ -268,7 +280,10 @@ class GoogleClient(BaseAIClient):
                 )
 
             except Exception as e:
-                raise RuntimeError(f"Google Gemini API error: {str(e)}")
+                # Log full error internally
+                logger.error(f"Google Gemini API error: {type(e).__name__}: {str(e)}", exc_info=True)
+                # Raise safe error to user
+                raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
         else:
             # Multi-turn conversation
@@ -294,7 +309,10 @@ class GoogleClient(BaseAIClient):
                 )
 
             except Exception as e:
-                raise RuntimeError(f"Google Gemini API error: {str(e)}")
+                # Log full error internally
+                logger.error(f"Google Gemini API error: {type(e).__name__}: {str(e)}", exc_info=True)
+                # Raise safe error to user
+                raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
 
 class OpenAIClient(BaseAIClient):
@@ -365,7 +383,10 @@ class OpenAIClient(BaseAIClient):
             )
 
         except Exception as e:
-            raise RuntimeError(f"OpenAI API error: {str(e)}")
+            # Log full error internally
+            logger.error(f"OpenAI API error: {type(e).__name__}: {str(e)}", exc_info=True)
+            # Raise safe error to user
+            raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
 
 def create_client(provider: str, api_key: str, model_config: Dict[str, Any]) -> BaseAIClient:

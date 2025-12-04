@@ -7,33 +7,68 @@ Provides command-line access to router functionality:
 - test: Test configuration
 """
 
+import logging
 import sys
 from pathlib import Path
 from typing import Optional
+
 import argparse
+from pydantic import ValidationError
+
 from .executor import RouterExecutor, execute_request
 from .config_loader import load_config
 from .mcp_registry import MCPRegistry
+from .validators import ExecuteRequest
+
+# Configure secure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stderr)]
+)
+logger = logging.getLogger(__name__)
+
+
+class SafeError(Exception):
+    """Error that is safe to display to users"""
+    pass
 
 
 def cmd_execute(args):
     """Execute a request with routing"""
     try:
-        # Determine use_mcp: default True unless --no-mcp specified
-        use_mcp = not args.no_mcp if hasattr(args, 'no_mcp') else True
+        # Validate inputs with Pydantic
+        try:
+            validated_request = ExecuteRequest(
+                request=args.request,
+                mode=args.mode,
+                context_size=args.context_size,
+                use_mcp=not args.no_mcp if hasattr(args, 'no_mcp') else True
+            )
+        except ValidationError as e:
+            # Safe error message - don't leak validation details
+            error_msg = "Invalid request parameters. Please check your input."
+            logger.error(f"Validation error: {e}")
+            raise SafeError(error_msg)
 
         output = execute_request(
-            request=args.request,
-            mode=args.mode,
-            context_size=args.context_size,
+            request=validated_request.request,
+            mode=validated_request.mode,
+            context_size=validated_request.context_size,
             verbose=args.verbose,
-            use_mcp=use_mcp,
+            use_mcp=validated_request.use_mcp,
             dev_aid_root=Path(args.root) if args.root else None
         )
         print(output)
         return 0
-    except Exception as e:
+    except SafeError as e:
+        # Safe to display
         print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+    except Exception as e:
+        # Log full error, show safe message
+        logger.error(f"Unexpected error: {e}", exc_info=True)
+        print("❌ An unexpected error occurred. Please check logs for details.", file=sys.stderr)
         return 1
 
 

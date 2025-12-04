@@ -63,6 +63,59 @@ class RouterExecutor:
             "challenger": ChallengerMode(self.config, self.context_builder)
         }
 
+    async def _execute_async(
+        self,
+        request: str,
+        mode: str,
+        context_size: int = 0,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Async execution helper
+
+        Args:
+            request: User request
+            mode: Orchestration mode
+            context_size: Estimated context size in tokens
+            **kwargs: Additional parameters
+
+        Returns:
+            Result dictionary
+        """
+        # Gather MCP context if enabled
+        if self.mcp_enabled and self.mcp_pool:
+            try:
+                # Initialize MCP servers if not already done
+                await self._initialize_mcp_servers()
+
+                # Gather MCP context (async operation)
+                mcp_context = await self.context_builder.gather_mcp_context(request)
+
+                # Store MCP context for this request
+                kwargs['mcp_context'] = mcp_context
+            except Exception as e:
+                print(f"Warning: MCP context gathering failed: {e}")
+                # Continue without MCP context
+
+        # Execute with appropriate mode
+        mode_handler = self.modes[mode]
+
+        try:
+            result = mode_handler.execute(request, context_size=context_size, **kwargs)
+
+            # Log decision if successful
+            if result.get("success"):
+                self._log_decision(result, mode, request)
+
+            return result
+
+        except Exception as e:
+            return {
+                "success": False,
+                "mode": mode,
+                "error": str(e)
+            }
+
     def execute(
         self,
         request: str,
@@ -98,41 +151,8 @@ class RouterExecutor:
                 "budget_status": self.cost_tracker.get_budget_status(daily_limit)
             }
 
-        # Gather MCP context if enabled
-        if self.mcp_enabled and self.mcp_pool:
-            try:
-                # Initialize MCP servers if not already done
-                asyncio.run(self._initialize_mcp_servers())
-
-                # Gather MCP context (async operation)
-                mcp_context = asyncio.run(
-                    self.context_builder.gather_mcp_context(request)
-                )
-
-                # Store MCP context for this request
-                kwargs['mcp_context'] = mcp_context
-            except Exception as e:
-                print(f"Warning: MCP context gathering failed: {e}")
-                # Continue without MCP context
-
-        # Execute with appropriate mode
-        mode_handler = self.modes[mode]
-
-        try:
-            result = mode_handler.execute(request, context_size=context_size, **kwargs)
-
-            # Log decision if successful
-            if result.get("success"):
-                self._log_decision(result, mode, request)
-
-            return result
-
-        except Exception as e:
-            return {
-                "success": False,
-                "mode": mode,
-                "error": str(e)
-            }
+        # Run async execution in single event loop
+        return asyncio.run(self._execute_async(request, mode, context_size, **kwargs))
 
     async def _initialize_mcp_servers(self):
         """Initialize MCP server connections"""

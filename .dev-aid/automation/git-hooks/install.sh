@@ -1,18 +1,28 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Git Hooks Installer
 # Installs pre-commit and pre-push hooks for automated security checks
 
-set -e
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GIT_HOOKS_DIR="$(git rev-parse --git-path hooks 2>/dev/null || echo ".git/hooks")"
+# Constants
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly GIT_HOOKS_DIR="$(git rev-parse --git-path hooks 2>/dev/null || echo ".git/hooks")"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+    # No resources to clean up, but trap is good practice
+    exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
 
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
@@ -39,7 +49,7 @@ backup_hook() {
     local hook_name="$1"
     local hook_path="$GIT_HOOKS_DIR/$hook_name"
 
-    if [ -f "$hook_path" ] && [ ! -L "$hook_path" ]; then
+    if [[ -f "$hook_path" ]] && [[ ! -L "$hook_path" ]]; then
         log_warning "Backing up existing $hook_name hook..."
         mv "$hook_path" "$hook_path.backup-$(date +%Y%m%d-%H%M%S)"
     fi
@@ -51,7 +61,7 @@ install_hook() {
     local source_hook="$SCRIPT_DIR/$hook_name"
     local target_hook="$GIT_HOOKS_DIR/$hook_name"
 
-    if [ ! -f "$source_hook" ]; then
+    if [[ ! -f "$source_hook" ]]; then
         log_error "Source hook not found: $source_hook"
         return 1
     fi
@@ -73,7 +83,7 @@ echo ""
 
 # Verify
 log_info "Verifying installation..."
-if [ -x "$GIT_HOOKS_DIR/pre-commit" ] && [ -x "$GIT_HOOKS_DIR/pre-push" ]; then
+if [[ -x "$GIT_HOOKS_DIR/pre-commit" ]] && [[ -x "$GIT_HOOKS_DIR/pre-push" ]]; then
     log_success "✓ Git hooks installed successfully!"
 else
     log_error "✗ Hook installation failed"
@@ -104,7 +114,7 @@ check_tool "hadolint" "Hadolint (optional)"
 check_tool "checkov" "Checkov (optional)"
 echo ""
 
-if [ $TOOLS_MISSING -gt 0 ]; then
+if [[ $TOOLS_MISSING -gt 0 ]]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     log_warning "$TOOLS_MISSING tool(s) missing!"
     echo ""

@@ -1,20 +1,34 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup Python Virtual Environment for Dev-AID Router
 # Isolates dependencies from system Python
 
 set -euo pipefail
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
 
 # Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-VENV_DIR="$SCRIPT_DIR/.venv"
-REQUIREMENTS="$SCRIPT_DIR/requirements.txt"
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly VENV_DIR="$SCRIPT_DIR/.venv"
+readonly REQUIREMENTS="$SCRIPT_DIR/requirements.txt"
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+
+    # Deactivate venv if active
+    if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+        deactivate 2>/dev/null || true
+    fi
+
+    exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
 
 print_header() {
     echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -67,12 +81,34 @@ check_python() {
 create_venv() {
     print_header "Creating Virtual Environment"
 
-    if [ -d "$VENV_DIR" ]; then
+    if [[ -d "$VENV_DIR" ]]; then
         print_warning "Virtual environment already exists at $VENV_DIR"
         read -p "Remove and recreate? [y/N]: " -n 1 -r
         echo
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             print_info "Removing existing venv..."
+
+            # Validate path containment before rm -rf (CWE-22: Path Traversal)
+            local resolved_venv
+            resolved_venv="$(realpath -m "$VENV_DIR")"
+            local resolved_script_dir
+            resolved_script_dir="$(realpath "$SCRIPT_DIR")"
+
+            # Ensure VENV_DIR is within SCRIPT_DIR
+            if [[ "$resolved_venv" != "$resolved_script_dir"* ]]; then
+                print_error "Path traversal detected! VENV_DIR is outside SCRIPT_DIR"
+                echo "VENV_DIR: $resolved_venv"
+                echo "SCRIPT_DIR: $resolved_script_dir"
+                return 1
+            fi
+
+            # Ensure VENV_DIR ends with /.venv for extra safety
+            if [[ ! "$resolved_venv" =~ \/\.venv$ ]]; then
+                print_error "Safety check failed! VENV_DIR must end with /.venv"
+                echo "VENV_DIR: $resolved_venv"
+                return 1
+            fi
+
             rm -rf "$VENV_DIR"
         else
             print_info "Keeping existing venv"
@@ -102,8 +138,15 @@ install_dependencies() {
         return 1
     fi
 
-    # Activate venv
-    source "$VENV_DIR/bin/activate"
+    # Validate and activate venv
+    local activate_script="$VENV_DIR/bin/activate"
+    if [[ ! -f "$activate_script" ]]; then
+        print_error "Activate script not found at $activate_script"
+        return 1
+    fi
+
+    # shellcheck source=/dev/null
+    source "$activate_script"
 
     print_info "Upgrading pip..."
     pip install --upgrade pip > /dev/null 2>&1
@@ -129,8 +172,15 @@ install_dependencies() {
 test_installation() {
     print_header "Testing Installation"
 
-    # Activate venv
-    source "$VENV_DIR/bin/activate"
+    # Validate and activate venv
+    local activate_script="$VENV_DIR/bin/activate"
+    if [[ ! -f "$activate_script" ]]; then
+        print_error "Activate script not found at $activate_script"
+        return 1
+    fi
+
+    # shellcheck source=/dev/null
+    source "$activate_script"
 
     print_info "Testing imports..."
 

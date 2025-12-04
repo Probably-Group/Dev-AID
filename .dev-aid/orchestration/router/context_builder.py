@@ -6,11 +6,13 @@ Gathers relevant context from:
 - Active skills
 - Git context
 - Project structure
+- MCP servers (database, GitHub, code search, etc.)
 """
 
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import asyncio
 
 
 @dataclass
@@ -20,21 +22,24 @@ class DevAIDContext:
     project_info: Dict[str, Any]
     git_context: Optional[Dict[str, str]] = None
     active_skills: Optional[List[str]] = None
+    mcp_context: Optional[Dict[str, Any]] = field(default_factory=dict)  # MCP-gathered context
 
 
 class ContextBuilder:
     """Builds context from Dev-AID configuration and state"""
 
-    def __init__(self, config_loader):
+    def __init__(self, config_loader, mcp_pool=None):
         """
         Initialize context builder
 
         Args:
             config_loader: ConfigLoader instance
+            mcp_pool: Optional MCPClientPool for MCP context gathering
         """
         self.config = config_loader
         self.root = config_loader.root
         self.memory_bank_path = config_loader.get_memory_bank_path()
+        self.mcp_pool = mcp_pool
 
     def build_context(self, include_memory: bool = True) -> DevAIDContext:
         """
@@ -131,6 +136,173 @@ class ContextBuilder:
             # Git not available or not a git repo
             return None
 
+    async def gather_mcp_context(
+        self,
+        prompt: str,
+        task_type: Optional[str] = None,
+        requested_servers: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Gather context from MCP servers
+
+        Args:
+            prompt: User's prompt/query
+            task_type: Type of task (database, github, etc.) for smart MCP selection
+            requested_servers: Specific MCP servers to query
+
+        Returns:
+            Dict of MCP context
+        """
+        if not self.mcp_pool:
+            return {}
+
+        mcp_context = {}
+
+        try:
+            # Auto-select MCPs based on task type if not specified
+            if requested_servers is None:
+                requested_servers = self._auto_select_mcps(prompt, task_type)
+
+            # Gather context from each requested server
+            for server_name in requested_servers:
+                try:
+                    if server_name == "code-search":
+                        # DevAID Local Search
+                        result = await self._query_code_search(prompt)
+                        if result:
+                            mcp_context["code_search"] = result
+
+                    elif "postgres" in server_name or "database" in server_name:
+                        # Database schema
+                        result = await self._query_database_schema(server_name)
+                        if result:
+                            mcp_context["database_schema"] = result
+
+                    elif "github" in server_name:
+                        # GitHub issues/PRs
+                        result = await self._query_github_context(server_name, prompt)
+                        if result:
+                            mcp_context["github"] = result
+
+                except Exception as e:
+                    print(f"Warning: Failed to gather context from {server_name}: {e}")
+                    continue
+
+        except Exception as e:
+            print(f"Error gathering MCP context: {e}")
+
+        return mcp_context
+
+    def _auto_select_mcps(self, prompt: str, task_type: Optional[str]) -> List[str]:
+        """
+        Automatically select which MCP servers to query based on prompt/task type
+
+        Args:
+            prompt: User's prompt
+            task_type: Task type classification
+
+        Returns:
+            List of MCP server names to query
+        """
+        selected = []
+        prompt_lower = prompt.lower()
+
+        # Always include code-search if available
+        if self.mcp_pool and "code-search" in self.mcp_pool.clients:
+            selected.append("code-search")
+
+        # Database-related
+        if task_type == "database" or any(kw in prompt_lower for kw in ["database", "db", "sql", "query", "table", "schema", "migration"]):
+            for server_name in self.mcp_pool.clients.keys():
+                if "postgres" in server_name or "mysql" in server_name or "sqlite" in server_name:
+                    selected.append(server_name)
+                    break
+
+        # GitHub-related
+        if task_type == "github" or any(kw in prompt_lower for kw in ["github", "issue", "pr", "pull request", "bug", "feature request"]):
+            for server_name in self.mcp_pool.clients.keys():
+                if "github" in server_name:
+                    selected.append(server_name)
+                    break
+
+        # Filesystem operations
+        if any(kw in prompt_lower for kw in ["file", "directory", "folder", "path"]):
+            for server_name in self.mcp_pool.clients.keys():
+                if "filesystem" in server_name or "fs" in server_name:
+                    selected.append(server_name)
+                    break
+
+        return selected
+
+    async def _query_code_search(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """Query DevAID Local Search MCP"""
+        try:
+            # Extract search query from prompt
+            search_terms = self._extract_search_terms(prompt)
+
+            result = await self.mcp_pool.call_tool(
+                "code-search",
+                "search",
+                {"query": search_terms, "limit": 5}
+            )
+
+            return {
+                "search_results": result.get("content", []),
+                "query": search_terms
+            }
+
+        except Exception as e:
+            print(f"Code search failed: {e}")
+            return None
+
+    async def _query_database_schema(self, server_name: str) -> Optional[Dict[str, Any]]:
+        """Query database schema from postgres/mysql MCP"""
+        try:
+            # Try to get schema information
+            result = await self.mcp_pool.call_tool(
+                server_name,
+                "get_schema",
+                {}
+            )
+
+            return {
+                "schema": result,
+                "server": server_name
+            }
+
+        except Exception as e:
+            print(f"Database schema query failed: {e}")
+            return None
+
+    async def _query_github_context(self, server_name: str, prompt: str) -> Optional[Dict[str, Any]]:
+        """Query GitHub issues/PRs"""
+        try:
+            # Extract issue/PR numbers or search terms
+            search_query = self._extract_search_terms(prompt)
+
+            result = await self.mcp_pool.call_tool(
+                server_name,
+                "search_issues",
+                {"query": search_query, "limit": 3}
+            )
+
+            return {
+                "issues": result.get("issues", []),
+                "query": search_query
+            }
+
+        except Exception as e:
+            print(f"GitHub query failed: {e}")
+            return None
+
+    def _extract_search_terms(self, prompt: str) -> str:
+        """Extract meaningful search terms from prompt"""
+        # Simple extraction - remove common words
+        stop_words = {"the", "a", "an", "is", "are", "was", "were", "find", "show", "get", "how", "what", "where"}
+        words = prompt.lower().split()
+        search_terms = " ".join(word for word in words if word not in stop_words)
+        return search_terms[:100]  # Limit length
+
     def format_context_for_ai(self, context: DevAIDContext) -> str:
         """
         Format context as string for AI system prompt
@@ -160,6 +332,33 @@ class ContextBuilder:
             for filename, content in context.memory_bank.items():
                 sections.append(f"\n### {filename}")
                 sections.append(content)
+
+        # MCP Context
+        if context.mcp_context:
+            sections.append(f"\n## MCP Context (From External Tools)")
+
+            if "code_search" in context.mcp_context:
+                sections.append(f"\n### Code Search Results")
+                cs = context.mcp_context["code_search"]
+                sections.append(f"Query: {cs.get('query', '')}")
+                sections.append("Relevant code found in your codebase:")
+                for result in cs.get("search_results", [])[:5]:
+                    sections.append(f"  - {result}")
+
+            if "database_schema" in context.mcp_context:
+                sections.append(f"\n### Database Schema")
+                db = context.mcp_context["database_schema"]
+                sections.append(f"Server: {db.get('server', '')}")
+                sections.append("Schema information:")
+                sections.append(str(db.get("schema", ""))[:1000])  # Limit size
+
+            if "github" in context.mcp_context:
+                sections.append(f"\n### GitHub Issues/PRs")
+                gh = context.mcp_context["github"]
+                sections.append(f"Search: {gh.get('query', '')}")
+                sections.append("Related issues:")
+                for issue in gh.get("issues", [])[:3]:
+                    sections.append(f"  - {issue}")
 
         return "\n".join(sections)
 

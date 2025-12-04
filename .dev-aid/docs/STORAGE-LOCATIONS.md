@@ -1,8 +1,8 @@
-# Dev-AID Storage Locations
+# DevAID Storage Locations
 
 ## Overview
 
-Dev-AID stores files in three locations to optimize for portability, privacy, and Git workflow.
+DevAID stores files in three locations to optimize for portability, privacy, and Git workflow.
 
 ---
 
@@ -112,7 +112,7 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 
 **Why in home directory**:
 - EmbeddingGemma model is 1.2GB - too large for project repos
-- Shared across ALL projects that use Dev-AID
+- Shared across ALL projects that use DevAID
 - Managed by `uv` (automatic dependency isolation)
 - Installed once, used everywhere
 
@@ -200,7 +200,7 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 
 ### Per-Project (Repository)
 
-**Dev-AID Configuration** (~5MB per project):
+**DevAID Configuration** (~5MB per project):
 ```bash
 project-a/.dev-aid/  # Project A config
 project-b/.dev-aid/  # Project B config (can be different)
@@ -222,7 +222,7 @@ project-b/.dev-aid/orchestration/.venv/  # Isolated dependencies
 
 ## 📊 Total Disk Usage
 
-### Single Project with Dev-AID
+### Single Project with DevAID
 
 ```
 In repository:
@@ -242,7 +242,7 @@ Total second project:         ~76MB  (only .venv + index, model reused)
 
 ## 🧹 Cleanup
 
-### Remove Dev-AID from Single Project
+### Remove DevAID from Single Project
 
 ```bash
 # Remove from project (keeps shared components for other projects)
@@ -324,7 +324,7 @@ git status --ignored | grep -E "(\.env|\.venv|logs)"
 ```bash
 git clone <repo>
 cd project
-ls .dev-aid/  # ✅ Dev-AID config already there
+ls .dev-aid/  # ✅ DevAID config already there
 ```
 
 **Setup dependencies**:
@@ -345,7 +345,7 @@ ls .dev-aid/  # ✅ Dev-AID config already there
 
 **Document in README**:
 ```markdown
-## Setup Dev-AID
+## Setup DevAID
 
 1. Clone repo (includes .dev-aid/ config)
 2. Setup router: `./.dev-aid/orchestration/setup-venv.sh`
@@ -374,9 +374,9 @@ cache:
 ## 📚 Related Documentation
 
 - [DEPENDENCY-ISOLATION.md](./DEPENDENCY-ISOLATION.md) - Virtual environment architecture
-- [Updating Dev-AID](./UPDATING.md) - How to update to new versions
+- [Updating DevAID](./UPDATING.md) - How to update to new versions
 - [.gitignore](../../.gitignore) - Files excluded from Git
 
 ---
 
-**Summary**: Dev-AID stores 5MB of configuration in your repository (committed), ~70MB of virtual environment per project (ignored), and ~2.7GB of shared RAG components in your home directory (one-time). Your repository stays clean while getting enterprise-grade AI capabilities.
+**Summary**: DevAID stores 5MB of configuration in your repository (committed), ~70MB of virtual environment per project (ignored), and ~2.7GB of shared RAG components in your home directory (one-time). Your repository stays clean while getting enterprise-grade AI capabilities.

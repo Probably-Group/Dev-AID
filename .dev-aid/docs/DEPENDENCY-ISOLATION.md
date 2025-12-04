@@ -1,16 +1,16 @@
-# Dependency Isolation in Dev-AID
+# Dependency Isolation in DevAID
 
-**TL;DR**: Dev-AID uses three separate isolated environments. **Zero system-wide Python package installations required.** No dependency conflicts, ever.
+**TL;DR**: DevAID uses three separate isolated environments. **Zero system-wide Python package installations required.** No dependency conflicts, ever.
 
 ---
 
 ## 🎯 Architecture Overview
 
-Dev-AID implements a **multi-layer isolation strategy** to ensure your development environment remains clean and conflict-free:
+DevAID implements a **multi-layer isolation strategy** to ensure your development environment remains clean and conflict-free:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                    Dev-AID Repository                    │
+│                    DevAID Repository                    │
 ├─────────────────────────────────────────────────────────┤
 │                                                           │
 │  ┌────────────────┐  ┌────────────────┐  ┌────────────┐ │
@@ -138,7 +138,7 @@ python3 -m json.tool  # Pretty-print JSON (built-in module)
 ### Automated Setup (Recommended)
 
 ```bash
-# Initialize Dev-AID (offers to setup both environments)
+# Initialize DevAID (offers to setup both environments)
 ./.dev-aid/scripts/init-repo.sh
 
 # When prompted:
@@ -165,13 +165,13 @@ python3 -m json.tool  # Pretty-print JSON (built-in module)
 ### Test 1: System Python Remains Clean
 
 ```bash
-# Capture system packages before Dev-AID
+# Capture system packages before DevAID
 pip list > /tmp/before.txt
 
-# Setup Dev-AID (both router and RAG)
+# Setup DevAID (both router and RAG)
 ./.dev-aid/scripts/init-repo.sh
 
-# Capture system packages after Dev-AID
+# Capture system packages after DevAID
 pip list > /tmp/after.txt
 
 # Compare (should be identical)
@@ -185,7 +185,7 @@ diff /tmp/before.txt /tmp/after.txt
 # Check active Python when router runs
 ./.dev-aid/orchestration/router-cli.sh execute "test" --verbose | grep "Python:"
 
-# Expected: Python: /path/to/Dev-AID/.dev-aid/orchestration/.venv/bin/python3
+# Expected: Python: /path/to/DevAID/.dev-aid/orchestration/.venv/bin/python3
 ```
 
 ### Test 3: RAG Uses uv Environment
@@ -241,9 +241,9 @@ uv pip list --directory ~/.local/share/claude-context-local | grep torch
 | **Speed** | Fast | Slower |
 | **Use Case** | Pure Python projects ✅ | Data science + system libs |
 | **Complexity** | Simple | More features, more complex |
-| **Dev-AID needs** | ✅ Perfect fit | ❌ Overkill |
+| **DevAID needs** | ✅ Perfect fit | ❌ Overkill |
 
-**Verdict**: venv is lightweight, standard, and perfect for Dev-AID's pure-Python dependencies.
+**Verdict**: venv is lightweight, standard, and perfect for DevAID's pure-Python dependencies.
 
 ### Why uv for RAG?
 
@@ -411,7 +411,7 @@ pip install torch transformers  # Wrong approach
 
 ✅ **Good**:
 ```
-~/projects/Dev-AID/.dev-aid/orchestration/.venv/
+~/projects/DevAID/.dev-aid/orchestration/.venv/
 ~/projects/other-project/.venv/
 ```
 
@@ -429,14 +429,14 @@ pip install torch transformers  # Wrong approach
 
 | Question | Answer |
 |----------|--------|
-| Does Dev-AID pollute system Python? | ❌ **NO** |
+| Does DevAID pollute system Python? | ❌ **NO** |
 | Can router dependencies conflict with other projects? | ❌ **NO** |
 | Can RAG dependencies conflict with router? | ❌ **NO** |
 | Do I need to manually activate environments? | ❌ **NO** - Scripts handle it |
 | Do I need Anaconda or conda? | ❌ **NO** - venv is sufficient |
 | What needs system-wide installation? | Only Python itself + curl/git |
 | What if I delete .venv/? | ✅ Just run setup-venv.sh again |
-| Can I use Dev-AID in multiple projects? | ✅ Yes, each has own venv |
+| Can I use DevAID in multiple projects? | ✅ Yes, each has own venv |
 
 ---
 
@@ -445,7 +445,7 @@ pip install torch transformers  # Wrong approach
 - [Router Installation Guide](../.dev-aid/orchestration/ROUTER-INSTALL.md)
 - [Virtual Environment Setup](../.dev-aid/orchestration/VENV-INFO.md)
 - [RAG Setup Guide](../.dev-aid/scripts/setup-rag.sh)
-- [Dev-AID Architecture](./DEV-AID-IMPLEMENTATION-PLAN.md)
+- [DevAID Architecture](./DEV-AID-IMPLEMENTATION-PLAN.md)
 
 ---
 

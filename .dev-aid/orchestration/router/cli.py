@@ -13,16 +13,21 @@ from typing import Optional
 import argparse
 from .executor import RouterExecutor, execute_request
 from .config_loader import load_config
+from .mcp_registry import MCPRegistry
 
 
 def cmd_execute(args):
     """Execute a request with routing"""
     try:
+        # Determine use_mcp: default True unless --no-mcp specified
+        use_mcp = not args.no_mcp if hasattr(args, 'no_mcp') else True
+
         output = execute_request(
             request=args.request,
             mode=args.mode,
             context_size=args.context_size,
             verbose=args.verbose,
+            use_mcp=use_mcp,
             dev_aid_root=Path(args.root) if args.root else None
         )
         print(output)
@@ -159,6 +164,127 @@ def cmd_test(args):
         return 1
 
 
+def cmd_mcp_discover(args):
+    """Discover available MCP servers"""
+    try:
+        print("🔍 Discovering MCP servers...\n")
+
+        registry = MCPRegistry()
+        servers = registry.discover_all()
+
+        if not servers:
+            print("❌ No MCP servers found")
+            print("\nTo add MCP servers:")
+            print("  - Claude Code: Use 'claude mcp add <name> ...'")
+            print("  - Gemini CLI: Edit ~/.gemini/mcp.json")
+            return 1
+
+        print(f"Found {len(servers)} MCP server(s):\n")
+        print("=" * 90)
+        print(f"{'Status':<12} {'Name':<20} {'Source':<10} {'Capabilities':<40}")
+        print("=" * 90)
+
+        for name, server in servers.items():
+            status = "✓ Enabled" if server.enabled_for_router else "  Disabled"
+            capabilities = ", ".join(server.capabilities) if server.capabilities else "unknown"
+            print(f"{status:<12} {name:<20} {server.source:<10} {capabilities:<40}")
+
+        print("\nTo enable/disable servers for router use:")
+        print(f"  router-cli.sh mcp enable <name>")
+        print(f"  router-cli.sh mcp disable <name>")
+
+        return 0
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_mcp_enable(args):
+    """Enable MCP server for router"""
+    try:
+        registry = MCPRegistry()
+        registry.discover_all()
+
+        if args.name not in registry.servers:
+            print(f"❌ MCP server '{args.name}' not found")
+            print("\nRun 'mcp discover' to see available servers")
+            return 1
+
+        if registry.enable_server(args.name):
+            server = registry.servers[args.name]
+            caps = ", ".join(server.capabilities) if server.capabilities else "unknown capabilities"
+            print(f"✅ Enabled '{args.name}' for router use")
+            print(f"   Source: {server.source}")
+            print(f"   Capabilities: {caps}")
+            print(f"\nThe router will now use this MCP server to gather context.")
+            return 0
+        else:
+            print(f"❌ Failed to enable '{args.name}'")
+            return 1
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_mcp_disable(args):
+    """Disable MCP server for router"""
+    try:
+        registry = MCPRegistry()
+        registry.discover_all()
+
+        if args.name not in registry.servers:
+            print(f"❌ MCP server '{args.name}' not found")
+            return 1
+
+        if registry.disable_server(args.name):
+            print(f"✅ Disabled '{args.name}' for router use")
+            print(f"   The server is still installed, just not used by router")
+            return 0
+        else:
+            print(f"❌ Failed to disable '{args.name}'")
+            return 1
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_mcp_list(args):
+    """List MCP servers"""
+    try:
+        registry = MCPRegistry()
+        registry.discover_all()
+
+        print(registry.get_summary())
+        return 0
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
+def cmd_mcp_sync(args):
+    """Re-scan and sync MCP configuration"""
+    try:
+        print("🔄 Syncing MCP configuration...\n")
+
+        registry = MCPRegistry()
+        servers = registry.sync()
+
+        print(f"✅ Sync complete!")
+        print(f"   Discovered: {len(servers)} server(s)")
+        print(f"   Enabled: {len(registry.get_enabled_servers())} server(s)")
+        print("\nRun 'mcp list' to see details")
+
+        return 0
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
 def main():
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(
@@ -210,6 +336,11 @@ Examples:
         action="store_true",
         help="Show detailed output"
     )
+    execute_parser.add_argument(
+        "--no-mcp",
+        action="store_true",
+        help="Disable MCP context gathering (default: MCP enabled)"
+    )
     execute_parser.set_defaults(func=cmd_execute)
 
     # Status command
@@ -224,6 +355,32 @@ Examples:
     # Test command
     test_parser = subparsers.add_parser("test", help="Test configuration")
     test_parser.set_defaults(func=cmd_test)
+
+    # MCP commands
+    mcp_parser = subparsers.add_parser("mcp", help="Manage MCP server integration")
+    mcp_subparsers = mcp_parser.add_subparsers(dest="mcp_command", help="MCP sub-command")
+
+    # mcp discover
+    mcp_discover_parser = mcp_subparsers.add_parser("discover", help="Discover available MCP servers")
+    mcp_discover_parser.set_defaults(func=cmd_mcp_discover)
+
+    # mcp enable
+    mcp_enable_parser = mcp_subparsers.add_parser("enable", help="Enable MCP server for router")
+    mcp_enable_parser.add_argument("name", help="Name of MCP server to enable")
+    mcp_enable_parser.set_defaults(func=cmd_mcp_enable)
+
+    # mcp disable
+    mcp_disable_parser = mcp_subparsers.add_parser("disable", help="Disable MCP server for router")
+    mcp_disable_parser.add_argument("name", help="Name of MCP server to disable")
+    mcp_disable_parser.set_defaults(func=cmd_mcp_disable)
+
+    # mcp list
+    mcp_list_parser = mcp_subparsers.add_parser("list", help="List all MCP servers")
+    mcp_list_parser.set_defaults(func=cmd_mcp_list)
+
+    # mcp sync
+    mcp_sync_parser = mcp_subparsers.add_parser("sync", help="Re-scan and sync MCP configuration")
+    mcp_sync_parser.set_defaults(func=cmd_mcp_sync)
 
     args = parser.parse_args()
 

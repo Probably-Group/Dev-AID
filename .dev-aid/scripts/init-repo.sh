@@ -151,35 +151,52 @@ fi
 
 echo ""
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
-echo -e "${YELLOW}   Optional Feature: Local Semantic Search${NC}"
+echo -e "${YELLOW}   Optional: DevAID Local Search${NC}"
 echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
 echo ""
-echo "claude-context-local provides:"
-echo "  ✓ 100% local semantic code search"
-echo "  ✓ Zero API costs for RAG"
-echo "  ✓ Privacy-first (code never leaves machine)"
-echo "  ✓ Works offline"
-echo "  ✓ AST-based code understanding"
+echo -e "${BLUE}What is it?${NC}"
+echo "  Search your codebase with natural language - completely local!"
 echo ""
-echo "Requirements:"
+echo -e "${BLUE}Example:${NC}"
+echo "  You ask: \"Find all authentication functions\""
+echo "  AI searches YOUR code locally and finds them instantly"
+echo ""
+echo -e "${GREEN}Benefits:${NC}"
+echo "  ✓ $0 cost (runs on your machine, not cloud API)"
+echo "  ✓ 100% private (code never leaves your computer)"
+echo "  ✓ Works offline (no internet needed)"
+echo "  ✓ Instant results (semantic code search)"
+echo ""
+echo -e "${BLUE}Tool Support (MCP protocol):${NC}"
+echo "  ✓ Auto-configured: Claude Code, Gemini CLI"
+echo "  ✓ Compatible: VS Code Copilot, Cursor, Windsurf, Cline, Zed, JetBrains"
+echo ""
+echo -e "${BLUE}How it works:${NC}"
+echo "  1. Indexes your code once (~5 minutes)"
+echo "  2. AI automatically uses it when you ask code questions"
+echo "  3. Returns real code from YOUR project"
+echo ""
+echo -e "${YELLOW}Requirements:${NC}"
 echo "  • Python 3.12+"
-echo "  • 1.2GB model download"
-echo "  • 2-5 minutes setup time"
+echo "  • 1.2GB model download (EmbeddingGemma)"
+echo "  • 2-5 minutes initial setup"
 echo ""
-read -p "Install claude-context-local? (Y/n) " -n 1 -r
+echo -e "${BLUE}Powered by:${NC} claude-context-local (by FarhanAliRaza)"
+echo ""
+read -p "Install DevAID Local Search? (Y/n) " -n 1 -r
 echo
 
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo ""
-    echo -e "${GREEN}Installing claude-context-local...${NC}"
+    echo -e "${GREEN}Installing DevAID Local Search...${NC}"
     if [ -f ".dev-aid/scripts/setup-rag.sh" ]; then
         ./.dev-aid/scripts/setup-rag.sh
     else
         echo -e "${RED}✗ setup-rag.sh not found${NC}"
-        echo "  Please ensure Dev-AID is properly installed"
+        echo "  Please ensure DevAID is properly installed"
     fi
 else
-    echo -e "${BLUE}→ Skipped claude-context-local installation${NC}"
+    echo -e "${BLUE}→ Skipped DevAID Local Search installation${NC}"
     echo "  You can install it later with: ./.dev-aid/scripts/setup-rag.sh"
 fi
 
@@ -196,7 +213,7 @@ if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
     echo "  ✓ Multi-AI router (Python venv)"
 fi
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-    echo "  ✓ Local semantic search (claude-context-local)"
+    echo "  ✓ DevAID Local Search"
 fi
 echo ""
 echo -e "${BLUE}Available router commands:${NC}"

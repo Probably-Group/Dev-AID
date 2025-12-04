@@ -17,7 +17,8 @@
 ### Technical (Paths/Code)
 - ✅ **`dev-aid`** - Directory names, file paths (lowercase with hyphen)
 - ✅ **`.dev-aid/`** - Configuration directory
-- ✅ **`devaid-search`** - Command-line tool (lowercase, hyphen)
+- ✅ **`dev-aid-search`** - Standalone commands (lowercase with hyphen)
+- ✅ **`/aid-*`** - Slash commands (just "aid" prefix, e.g., `/aid-router-challenger`)
 
 ### Examples
 
@@ -30,18 +31,23 @@ Welcome to DevAID! DevAID brings enterprise-grade AI capabilities...
 cd .dev-aid/scripts
 ./setup-venv.sh
 
-# Command usage
-devaid-search index .
+# Standalone command usage
+dev-aid-search index .
+
+# Slash command usage
+/aid-router-challenger "Implement auth"
+/aid-audit
 ```
 
 **Incorrect Usage**:
 ```markdown
 # Avoid these
-Dev-AID (old branding with hyphen)
+Dev-AID (old branding with hyphen in marketing)
 DEV-AID (all caps)
 DevAid (mixed inconsistently)
 dev-aid (in marketing docs - use DevAID)
 DevAID/scripts/ (in paths - use .dev-aid/)
+devaid-search (missing hyphen - use dev-aid-search)
 ```
 
 ---
@@ -63,7 +69,7 @@ DevAID/scripts/ (in paths - use .dev-aid/)
 **Implementation**:
 - Documentation refers to "DevAID Local Search"
 - Attribution links to claude-context-local project
-- Wrapper command: `devaid-search` (user-friendly)
+- Wrapper command: `dev-aid-search` (user-friendly, follows naming convention)
 - Underlying tool: `claude-context-local` (technical)
 
 ---
@@ -118,14 +124,28 @@ Always use `.dev-aid/` (lowercase with hyphen):
 
 ### Command Names
 
-Lowercase with hyphen:
+**Standalone commands** (lowercase with hyphen):
 ```bash
-✅ devaid-search
-✅ router-cli.sh
-✅ setup-venv.sh
-❌ DevAIDSearch
-❌ devaidSearch
+✅ dev-aid-search           # Executable command
+✅ router-cli.sh            # Script file
+✅ setup-venv.sh            # Script file
+❌ DevAIDSearch             # Wrong: CamelCase
+❌ devaidSearch             # Wrong: camelCase
+❌ devaid-search            # Wrong: missing hyphen after dev
 ```
+
+**Slash commands** (just "aid" prefix):
+```bash
+✅ /aid-router-challenger   # Slash command
+✅ /aid-audit               # Slash command
+✅ /aid-build-skill         # Slash command
+❌ /devaid-router           # Wrong: don't use "devaid"
+❌ /dev-aid-router          # Wrong: too long for slash commands
+```
+
+**Why different?**
+- Standalone commands need full `dev-aid-*` for clarity when executed
+- Slash commands use short `aid-*` prefix (already namespaced by `/`)
 
 ---
 
@@ -158,9 +178,13 @@ DevAID integrates with Claude Code, Cursor, and Gemini CLI...
 The `.dev-aid/` directory contains...
 Edit `.dev-aid/config/routing.json`...
 
-# When referencing commands
-Run `devaid-search index .` to index your code.
+# When referencing standalone commands
+Run `dev-aid-search index .` to index your code.
 Use `./.dev-aid/scripts/setup-rag.sh` to install.
+
+# When referencing slash commands
+Use `/aid-router-challenger "task"` for two-AI review.
+Run `/aid-audit` to scan for security issues.
 ```
 
 ---
@@ -188,10 +212,10 @@ cd .dev-aid/scripts
 ./.dev-aid/scripts/setup-rag.sh
 
 # Index your codebase
-devaid-search index .
+dev-aid-search index .
 
 # Check status
-devaid-search status
+dev-aid-search status
 ```
 ````
 
@@ -264,7 +288,8 @@ This is the first production-ready release of DevAID...
 | **Marketing** | DevAID |
 | **Documentation headers** | DevAID |
 | **Directory paths** | `.dev-aid/` |
-| **Command names** | `devaid-search` |
+| **Standalone commands** | `dev-aid-search` |
+| **Slash commands** | `/aid-router-*` |
 | **RAG feature** | DevAID Local Search |
 | **Router feature** | DevAID Router |
 | **File references** | `.dev-aid/config/routing.json` |

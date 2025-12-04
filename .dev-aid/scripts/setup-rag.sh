@@ -125,6 +125,7 @@ elif [ "$AI_TOOL" = "gemini-cli" ]; then
     mkdir -p "$HOME/.gemini"
 
     if [ ! -f "$GEMINI_MCP_CONFIG" ]; then
+        # No existing config - create new one
         cat > "$GEMINI_MCP_CONFIG" << 'EOF'
 {
   "mcpServers": {
@@ -143,8 +144,25 @@ elif [ "$AI_TOOL" = "gemini-cli" ]; then
 EOF
         echo -e "${GREEN}✓ Created MCP config: ${GEMINI_MCP_CONFIG}${NC}"
     else
+        # Existing config found - preserve other MCP servers
         echo -e "${YELLOW}⚠ MCP config already exists: ${GEMINI_MCP_CONFIG}${NC}"
-        echo -e "${YELLOW}  Add code-search server manually if needed${NC}"
+        echo -e "${YELLOW}  To preserve your existing MCP servers, add code-search manually:${NC}"
+        echo ""
+        echo -e "${BLUE}Add this entry to 'mcpServers' in ${GEMINI_MCP_CONFIG}:${NC}"
+        echo ""
+        echo '    "code-search": {'
+        echo '      "command": "uv",'
+        echo '      "args": ['
+        echo '        "run",'
+        echo '        "--directory",'
+        echo '        "~/.local/share/claude-context-local",'
+        echo '        "python",'
+        echo '        "mcp_server/server.py"'
+        echo '      ]'
+        echo '    }'
+        echo ""
+        echo -e "${BLUE}Note:${NC} DevAID respects your existing MCP servers. All servers will"
+        echo "      work together automatically - the AI decides which to use."
     fi
 else
     echo -e "${YELLOW}⚠ No AI tool detected${NC}"

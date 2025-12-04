@@ -112,6 +112,18 @@
       "maxLoad": 2,
       "autoLoad": false,
       "reason": "Clean code/refactoring - SUGGEST clean code skills"
+    },
+
+    {
+      "id": "bash-scripting-context",
+      "confidence": "high",
+      "trigger": {
+        "files": ["*.sh", "*.bash", "Dockerfile", "*/scripts/*", ".bashrc", ".bash_profile"],
+        "patterns": ["bash", "shell script", "#!/bin/bash", "#!/usr/bin/env bash"]
+      },
+      "skills": ["bash-expert"],
+      "maxLoad": 1,
+      "reason": "Bash script detected - load bash-expert for secure scripting"
     }
   ],
 

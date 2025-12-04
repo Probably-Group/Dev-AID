@@ -1,0 +1,300 @@
+"""
+Main Executor for Dev-AID Router
+
+Orchestrates the complete routing workflow:
+1. Load configuration
+2. Determine orchestration mode
+3. Execute with appropriate mode
+4. Track costs and log decisions
+5. Format output
+"""
+
+from pathlib import Path
+from typing import Dict, Any, Optional
+from .config_loader import load_config, ConfigLoader
+from .context_builder import ContextBuilder
+from .cost_tracker import CostTracker
+from .modes.solo import SoloMode
+from .modes.ensemble import EnsembleMode
+from .modes.challenger import ChallengerMode
+
+
+class RouterExecutor:
+    """Main executor for routing and executing AI requests"""
+
+    def __init__(self, dev_aid_root: Optional[Path] = None):
+        """
+        Initialize router executor
+
+        Args:
+            dev_aid_root: Root directory of Dev-AID (auto-detected if None)
+        """
+        # Load configuration
+        self.config = load_config(dev_aid_root)
+
+        # Initialize components
+        self.context_builder = ContextBuilder(self.config)
+        self.cost_tracker = CostTracker(self.config.root / ".dev-aid" / "logs")
+
+        # Initialize modes
+        self.modes = {
+            "solo": SoloMode(self.config, self.context_builder),
+            "ensemble": EnsembleMode(self.config, self.context_builder),
+            "challenger": ChallengerMode(self.config, self.context_builder)
+        }
+
+    def execute(
+        self,
+        request: str,
+        mode: Optional[str] = None,
+        context_size: int = 0,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Execute a request with routing
+
+        Args:
+            request: User request
+            mode: Override orchestration mode (None = use config)
+            context_size: Estimated context size in tokens
+            **kwargs: Additional parameters for API calls
+
+        Returns:
+            Result dictionary
+        """
+        # Determine mode
+        if mode is None:
+            mode = self.config.get_orchestration_mode()
+
+        if mode not in self.modes:
+            raise ValueError(f"Unknown mode: {mode}. Available: {list(self.modes.keys())}")
+
+        # Check budget before executing
+        daily_limit = self.config.get_cost_limit()
+        if self.cost_tracker.is_over_budget(daily_limit):
+            return {
+                "success": False,
+                "error": f"Daily budget limit exceeded (${daily_limit:.2f})",
+                "budget_status": self.cost_tracker.get_budget_status(daily_limit)
+            }
+
+        # Execute with appropriate mode
+        mode_handler = self.modes[mode]
+
+        try:
+            result = mode_handler.execute(request, context_size=context_size, **kwargs)
+
+            # Log decision if successful
+            if result.get("success"):
+                self._log_decision(result, mode, request)
+
+            return result
+
+        except Exception as e:
+            return {
+                "success": False,
+                "mode": mode,
+                "error": str(e)
+            }
+
+    def _log_decision(self, result: Dict[str, Any], mode: str, request: str):
+        """Log routing decision and cost"""
+
+        # Extract data from result
+        tokens_used = result.get("tokens_used", {})
+        cost = result.get("cost", 0.0)
+        latency_ms = result.get("latency_ms", 0.0)
+
+        # Determine model and provider
+        if mode == "ensemble":
+            model = result.get("selected_model", "unknown")
+            task_type = result.get("task_type", "general")
+        elif mode == "challenger":
+            model = result.get("primary_model", "unknown")
+            task_type = "challenged" if result.get("challenged") else "general"
+        else:  # solo
+            model = result.get("model", "unknown")
+            task_type = "general"
+
+        provider = result.get("provider", "unknown")
+
+        # Log to cost tracker
+        self.cost_tracker.log_decision(
+            mode=mode,
+            task_type=task_type,
+            model=model,
+            provider=provider,
+            cost=cost,
+            tokens_input=tokens_used.get("input", 0),
+            tokens_output=tokens_used.get("output", 0),
+            latency_ms=latency_ms,
+            request=request
+        )
+
+    def get_status(self) -> Dict[str, Any]:
+        """Get current router status and statistics"""
+
+        # Get current configuration
+        mode = self.config.get_orchestration_mode()
+        mode_handler = self.modes[mode]
+        mode_info = mode_handler.get_info()
+
+        # Get cost statistics
+        daily_limit = self.config.get_cost_limit()
+        budget_status = self.cost_tracker.get_budget_status(daily_limit)
+
+        today_cost = self.cost_tracker.get_today_cost()
+        today_requests = self.cost_tracker.get_today_requests()
+
+        # Get per-model stats
+        model_stats = self.cost_tracker.get_model_stats_today()
+
+        # Get recent decisions
+        recent_decisions = self.cost_tracker.get_recent_decisions(limit=10)
+
+        return {
+            "current_mode": mode,
+            "mode_info": mode_info,
+            "budget": budget_status,
+            "today": {
+                "cost": today_cost,
+                "requests": today_requests,
+                "average_cost": today_cost / today_requests if today_requests > 0 else 0.0
+            },
+            "models": model_stats,
+            "recent_decisions": recent_decisions,
+            "enabled_providers": self.config.get_enabled_providers(),
+            "fallback_chain": self.config.get_fallback_chain()
+        }
+
+    def format_output(self, result: Dict[str, Any], verbose: bool = False) -> str:
+        """
+        Format result as human-readable string
+
+        Args:
+            result: Result dictionary from execute()
+            verbose: Include detailed information
+
+        Returns:
+            Formatted string
+        """
+        if not result.get("success"):
+            error = result.get("error", "Unknown error")
+            return f"❌ Error: {error}"
+
+        mode = result.get("mode", "unknown")
+        response = result.get("response", "")
+
+        # Build output
+        lines = []
+
+        # Header
+        lines.append(f"{'='*70}")
+        lines.append(f"🤖 Dev-AID Router Response ({mode.upper()} mode)")
+        lines.append(f"{'='*70}\n")
+
+        # Mode-specific information
+        if mode == "ensemble":
+            task_type = result.get("task_type", "unknown")
+            explanation = result.get("explanation", "")
+            selected_model = result.get("selected_model", "unknown")
+
+            lines.append(f"📊 Task Classification: {task_type}")
+            lines.append(f"🎯 Explanation: {explanation}")
+            lines.append(f"🤖 Selected Model: {selected_model}")
+
+            if result.get("used_fallback"):
+                lines.append(f"⚠️  Note: Used fallback model")
+
+            lines.append("")
+
+        elif mode == "challenger" and result.get("challenged"):
+            primary = result.get("primary_model", "unknown")
+            challenger = result.get("challenger_model", "unknown")
+            issues_found = result.get("issues_found", False)
+
+            lines.append(f"⚔️  Challenger Mode Workflow:")
+            lines.append(f"   Primary Model: {primary}")
+            lines.append(f"   Challenger Model: {challenger}")
+            lines.append(f"   Issues Found: {'Yes' if issues_found else 'No'}")
+
+            if result.get("refined"):
+                lines.append(f"   ✨ Solution Refined")
+
+            lines.append("")
+
+        # Main response
+        lines.append("📝 Response:")
+        lines.append("-" * 70)
+        lines.append(response)
+        lines.append("-" * 70)
+        lines.append("")
+
+        # Metrics
+        if verbose:
+            tokens = result.get("tokens_used", {})
+            cost = result.get("cost", 0.0)
+            latency = result.get("latency_ms", 0.0)
+
+            lines.append("📊 Metrics:")
+            lines.append(f"   Cost: ${cost:.4f}")
+            lines.append(f"   Tokens: {tokens.get('input', 0)} input → {tokens.get('output', 0)} output")
+            lines.append(f"   Latency: {latency:.0f}ms")
+            lines.append("")
+
+        # Challenger mode details
+        if verbose and mode == "challenger" and result.get("challenged"):
+            lines.append("\n" + "="*70)
+            lines.append("🔍 Challenger Review:")
+            lines.append("="*70)
+            lines.append(result.get("challenger_review", "No review available"))
+            lines.append("")
+
+        return "\n".join(lines)
+
+
+def execute_request(
+    request: str,
+    mode: Optional[str] = None,
+    context_size: int = 0,
+    verbose: bool = False,
+    dev_aid_root: Optional[Path] = None,
+    **kwargs
+) -> str:
+    """
+    Convenience function to execute a request and return formatted output
+
+    Args:
+        request: User request
+        mode: Orchestration mode (None = use config)
+        context_size: Estimated context size
+        verbose: Include detailed information
+        dev_aid_root: Dev-AID root directory
+        **kwargs: Additional API parameters
+
+    Returns:
+        Formatted response string
+    """
+    executor = RouterExecutor(dev_aid_root)
+    result = executor.execute(request, mode=mode, context_size=context_size, **kwargs)
+    return executor.format_output(result, verbose=verbose)
+
+
+# Example usage
+if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) < 2:
+        print("Usage: python -m router.executor '<request>' [mode]")
+        print("Example: python -m router.executor 'Implement user authentication' ensemble")
+        sys.exit(1)
+
+    request = sys.argv[1]
+    mode = sys.argv[2] if len(sys.argv) > 2 else None
+
+    try:
+        output = execute_request(request, mode=mode, verbose=True)
+        print(output)
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)

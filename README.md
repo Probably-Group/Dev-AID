@@ -781,7 +781,11 @@ cat .dev-aid/config/routing.json
 
 ## 🙏 Acknowledgments
 
-DevAID builds on excellent open-source projects:
+DevAID builds on excellent open-source projects and incorporates patterns from the AI development community:
+
+### Inspiration & Structure
+- **[martins-ai-template](https://github.com/martinholovsky/martins-ai-template)** by [Martin Holovsky](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
+- **[claude-code-tresor](https://github.com/anthropics/claude-code-tresor)** - Security commands, DevSecOps patterns, and command organization (see [TRESOR-COMMANDS-ANALYSIS.md](.dev-aid/docs/TRESOR-COMMANDS-ANALYSIS.md))
 
 ### Core Technologies
 - **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers DevAID Local Search with 100% local semantic code search using EmbeddingGemma
@@ -801,7 +805,10 @@ DevAID builds on excellent open-source projects:
 - **[Hadolint](https://hadolint.github.io/hadolint/)** - Dockerfile linting
 - **[Checkov](https://www.checkov.io/)** - IaC security
 
-**Special thanks** to the claude-context-local project for making truly local, cost-free semantic search possible. DevAID's Local Search feature is built on their excellent foundation.
+**Special thanks** to:
+- Martin Holovsky for the foundational architecture patterns that made DevAID's multi-provider approach possible
+- The claude-context-local project for making truly local, cost-free semantic search possible
+- The claude-code-tresor project for security command patterns and DevSecOps best practices
 
 ---
 

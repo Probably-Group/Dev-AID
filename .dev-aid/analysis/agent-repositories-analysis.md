@@ -324,8 +324,8 @@ Interactive guide for building custom Claude Skills through a 5-question flow...
 
 | Agent | Quality | Purpose | Overlap with Dev-AID? | Recommend? |
 |-------|---------|---------|----------------------|------------|
-| factory-guide | 8/10 | Orchestrator for specialists | YES - `/aid-build-skill` | ❌ NO - Redundant |
-| skills-guide | 8/10 | Interactive skill builder | YES - `/aid-build-skill` | ❌ NO - Redundant |
+| factory-guide | 8/10 | Orchestrator for specialists | YES - `/dev-aid-build-skill` | ❌ NO - Redundant |
+| skills-guide | 8/10 | Interactive skill builder | YES - `/dev-aid-build-skill` | ❌ NO - Redundant |
 | agents-guide | 8/10 | Interactive agent creator | MAYBE - Less developed | ✅ MAYBE - Could enhance agent creation |
 | prompts-guide | 7/10 | Mega-prompt generator | NO - Unique capability | ✅ YES - Useful addition |
 
@@ -549,8 +549,8 @@ You activate when users say:
 - **ux-design-expert** - Redundant with Dev-AID ui-ux-expert skill
 
 **From skill-factory**:
-- **factory-guide** - Redundant with `/aid-build-skill`
-- **skills-guide** - Redundant with `/aid-build-skill`
+- **factory-guide** - Redundant with `/dev-aid-build-skill`
+- **skills-guide** - Redundant with `/dev-aid-build-skill`
 
 **Verdict**: ❌ **DO NOT INTEGRATE** - Not useful or redundant
 

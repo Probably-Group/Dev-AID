@@ -45,7 +45,7 @@ Display comprehensive information about your current Dev-AID setup.
 
 Simply run:
 ```
-/aid-status
+/dev-aid-status
 ```
 
 ## Output
@@ -164,7 +164,7 @@ Based on the findings, provide actionable recommendations:
 
 ## When to Use This Command
 
-Run `/aid-status` when:
+Run `/dev-aid-status` when:
 
 1. **After Installation**
    - Verify setup completed correctly
@@ -201,7 +201,7 @@ vim .dev-aid/providers/gemini/GEMINI.md
 ### If Memory Bank is Incomplete
 ```bash
 # Run analysis to populate memory bank
-/aid-analyze
+/dev-aid-analyze
 ```
 
 ### If API Keys Missing

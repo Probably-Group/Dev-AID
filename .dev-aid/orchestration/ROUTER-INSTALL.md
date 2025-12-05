@@ -289,7 +289,7 @@ The router integrates with slash commands via bash wrappers:
 .dev-aid/orchestration/router.sh execute "Your request"
 ```
 
-**Integration with existing commands**: The `/aid-router-*` commands will automatically use the Python router once you've completed installation.
+**Integration with existing commands**: The `/dev-aid-router-*` commands will automatically use the Python router once you've completed installation.
 
 ---
 
@@ -654,7 +654,7 @@ python -m router.cli execute "Implement OAuth2" --mode challenger
 1. **Test Each Mode**: Try solo, ensemble, and challenger
 2. **Monitor Costs**: Run `python -m router.cli status` regularly
 3. **Adjust Configuration**: Fine-tune task routes in `routing.json`
-4. **Integrate with Slash Commands**: Use from `/aid-router-*` commands
+4. **Integrate with Slash Commands**: Use from `/dev-aid-router-*` commands
 5. **Review Logs**: Check `.dev-aid/logs/routing.log` to understand routing decisions
 
 ---

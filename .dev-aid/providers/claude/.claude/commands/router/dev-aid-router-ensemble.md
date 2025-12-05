@@ -27,24 +27,24 @@ Gemini 2.0 Flash   Claude Sonnet    GPT-4o      Claude Sonnet
 
 **Automatic Routing:**
 ```
-/aid-router-ensemble "Analyze the entire codebase for performance issues"
+/dev-aid-router-ensemble "Analyze the entire codebase for performance issues"
 → Routes to: Gemini 2.0 Flash (massive context capability)
 
-/aid-router-ensemble "Implement user authentication with OAuth2"
+/dev-aid-router-ensemble "Implement user authentication with OAuth2"
 → Routes to: Claude Sonnet (best for code generation + security)
 
-/aid-router-ensemble "Write comprehensive API documentation"
+/dev-aid-router-ensemble "Write comprehensive API documentation"
 → Routes to: GPT-4o (excellent at documentation)
 ```
 
 **Force Specific Model:**
 ```
-/aid-router-ensemble "Analyze code" --model gemini-flash
+/dev-aid-router-ensemble "Analyze code" --model gemini-flash
 ```
 
 **Show Routing Decision:**
 ```
-/aid-router-ensemble "Your request here" --explain
+/dev-aid-router-ensemble "Your request here" --explain
 → Shows why a particular model was chosen
 ```
 
@@ -456,7 +456,7 @@ Ensemble routing is configured in `.dev-aid/config/routing.json`:
 ## 🎯 Example Session
 
 ```
-User: /aid-router-ensemble "Read all 200 files and create an architecture diagram"
+User: /dev-aid-router-ensemble "Read all 200 files and create an architecture diagram"
 
 🎯 Routing Decision
 ──────────────────

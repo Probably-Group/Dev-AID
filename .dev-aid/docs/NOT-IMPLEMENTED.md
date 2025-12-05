@@ -101,7 +101,7 @@ This document catalogues features that are **documented but not yet implemented*
 - `router/mcp_client.py` - MCP protocol client
 - `router/mcp_registry.py` - MCP server discovery
 - Integration with `claude-context-local`
-- `/aid-router-challenger-rag` command functionality
+- `/dev-aid-router-challenger-rag` command functionality
 
 **Why not implemented**:
 - MCP protocol still evolving

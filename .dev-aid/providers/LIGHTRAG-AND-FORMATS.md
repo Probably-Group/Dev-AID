@@ -527,7 +527,7 @@ rag.query("What are all authentication requirements?", mode="hybrid")
 **If LightRAG proves valuable:**
 
 ```toml
-# .gemini/commands/router/aid-router-hybrid-rag.toml
+# .gemini/commands/router/dev-aid-router-hybrid-rag.toml
 description = "Hybrid RAG: Code (MCP) + Documents (LightRAG)"
 
 prompt = """
@@ -720,7 +720,7 @@ print(result)
 ### Integrate with Slash Commands
 
 ```toml
-# .gemini/commands/router/aid-router-docs-rag.toml
+# .gemini/commands/router/dev-aid-router-docs-rag.toml
 description = "Document search with LightRAG graph-enhanced retrieval"
 
 prompt = """

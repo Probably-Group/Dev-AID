@@ -8,7 +8,7 @@ Complete guide to all available slash commands in Dev-AID.
 
 ### Setup & Analysis
 
-#### `/aid-analyze`
+#### `/dev-aid-analyze`
 **Category:** Setup
 **Purpose:** Analyze codebase and generate adaptation plan
 **When to use:** After installation, when adding Dev-AID to existing project
@@ -18,10 +18,10 @@ Complete guide to all available slash commands in Dev-AID.
 
 **Example:**
 ```
-/aid-analyze
+/dev-aid-analyze
 ```
 
-#### `/aid-status`
+#### `/dev-aid-status`
 **Category:** Setup
 **Purpose:** Show current Dev-AID configuration and setup status
 **When to use:** After installation, troubleshooting, regular checkups
@@ -29,7 +29,7 @@ Complete guide to all available slash commands in Dev-AID.
 
 **Example:**
 ```
-/aid-status
+/dev-aid-status
 ```
 
 ---
@@ -164,7 +164,7 @@ Run the full test suite with coverage reporting.
 
 **Step 2: Run a command**
 ```bash
-/aid-analyze
+/dev-aid-analyze
 ```
 
 **Step 3: Review output**
@@ -224,8 +224,8 @@ vim dev-aid/.dev-aid/providers/claude/.claude/commands/security/audit.md
 
 **Week 1: Setup**
 ```bash
-/aid-analyze              # Understand codebase
-/aid-status               # Verify configuration
+/dev-aid-analyze              # Understand codebase
+/dev-aid-status               # Verify configuration
 # Review adaptation plan
 # Implement Phase 1 recommendations
 ```
@@ -300,7 +300,7 @@ cat .dev-aid/reports/vulnerabilities.md
 
 | Category | Commands Available | Purpose |
 |----------|-------------------|---------|
-| **Setup** | `/aid-analyze`, `/aid-status` | Initial setup, analysis, configuration visibility |
+| **Setup** | `/dev-aid-analyze`, `/dev-aid-status` | Initial setup, analysis, configuration visibility |
 | **Security** | `/audit`, `/vulnerability-scan`, `/compliance-check` | Security operations |
 | **Performance** | `/profile`, `/benchmark` | Performance analysis |
 | **Operations** | `/deploy-validate`, `/health-check`, `/incident-response` | DevOps workflows |
@@ -347,8 +347,8 @@ jobs:
 
 1. **Try the built-in commands:**
    ```bash
-   /aid-analyze    # Analyze codebase
-   /aid-status     # Check configuration
+   /dev-aid-analyze    # Analyze codebase
+   /dev-aid-status     # Check configuration
    ```
 
 2. **Add recommended commands from Tresor:**

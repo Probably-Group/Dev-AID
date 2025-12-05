@@ -278,7 +278,7 @@ for result in results:
 
 **Before (hardcoded paths):**
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 prompt = """
 Context: !{cat .dev-aid/memory-bank/security.md}
 """
@@ -286,7 +286,7 @@ Context: !{cat .dev-aid/memory-bank/security.md}
 
 **After (semantic search with claude-context-local):**
 ```toml
-# .gemini/commands/router/aid-router-challenger-local.toml
+# .gemini/commands/router/dev-aid-router-challenger-local.toml
 description = "Challenger mode with local semantic code search"
 
 prompt = """
@@ -597,7 +597,7 @@ claude-context-local index ./dev-aid
 
 **Week 2: Update router commands**
 ```toml
-# .gemini/commands/router/aid-router-challenger-local.toml
+# .gemini/commands/router/dev-aid-router-challenger-local.toml
 # Use @code-search for 100% local semantic search
 ```
 
@@ -665,7 +665,7 @@ dev-aid/.dev-aid/
 
 ### Example: Updated Challenger Command
 
-**`.gemini/commands/router/aid-router-challenger-local.toml`:**
+**`.gemini/commands/router/dev-aid-router-challenger-local.toml`:**
 ```toml
 description = "Challenger mode with 100% local semantic code search"
 

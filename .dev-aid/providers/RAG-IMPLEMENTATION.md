@@ -45,7 +45,7 @@ Context: !{cat .dev-aid/memory-bank/security.md}
 ### Desired Capability
 
 ```bash
-/aid-router-challenger "Implement OAuth2 authentication"
+/dev-aid-router-challenger "Implement OAuth2 authentication"
 
 # Behind the scenes:
 # 1. RAG searches: "OAuth2, authentication, security"
@@ -105,7 +105,7 @@ claude-context index ./dev-aid
 
 **Integration with Router:**
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 description = "Challenger mode with semantic context retrieval"
 
 prompt = """
@@ -166,7 +166,7 @@ scs search "authentication implementation"
 
 **Integration with Router:**
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 prompt = """
 User request: {{args}}
 
@@ -269,7 +269,7 @@ for doc, metadata in zip(results['documents'][0], results['metadatas'][0]):
 
 **Integration with Router:**
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 prompt = """
 User request: {{args}}
 
@@ -417,7 +417,7 @@ Only if you need:
 ### Updated Slash Command Architecture
 
 ```
-User: /aid-router-challenger "Implement OAuth2"
+User: /dev-aid-router-challenger "Implement OAuth2"
         ↓
    [MCP: @claude-context search "OAuth2 authentication security"]
         ↓
@@ -465,13 +465,13 @@ dev-aid/.dev-aid/
 
 **Before:**
 ```bash
-/aid-router-challenger "Implement password reset"
+/dev-aid-router-challenger "Implement password reset"
 # Claude has no context, generates generic implementation
 ```
 
 **After:**
 ```bash
-/aid-router-challenger "Implement password reset"
+/dev-aid-router-challenger "Implement password reset"
 # RAG finds:
 # - Existing auth patterns from src/auth/
 # - Security guidelines from memory bank
@@ -539,7 +539,7 @@ def route_with_rag(request: str):
 Keep current slash commands working:
 
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 # Keep this working exactly as before
 ```
 
@@ -548,7 +548,7 @@ Keep current slash commands working:
 Create new commands with RAG:
 
 ```toml
-# .gemini/commands/router/aid-router-challenger-rag.toml
+# .gemini/commands/router/dev-aid-router-challenger-rag.toml
 description = "Challenger mode with semantic context retrieval"
 
 prompt = """
@@ -568,10 +568,10 @@ Run both versions side-by-side:
 
 ```bash
 # Original (no RAG)
-/aid-router-challenger "Implement OAuth2"
+/dev-aid-router-challenger "Implement OAuth2"
 
 # RAG-enhanced
-/aid-router-challenger-rag "Implement OAuth2"
+/dev-aid-router-challenger-rag "Implement OAuth2"
 
 # Compare quality, cost, speed
 ```
@@ -651,7 +651,7 @@ Once validated:
 
 3. **Create test command** (10 min)
    ```bash
-   # .gemini/commands/router/aid-router-test-rag.toml
+   # .gemini/commands/router/dev-aid-router-test-rag.toml
    ```
 
 4. **Validate retrieval quality** (30 min)

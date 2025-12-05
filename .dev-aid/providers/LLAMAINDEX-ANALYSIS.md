@@ -151,7 +151,7 @@ async def challenger_mode(self, ctx: Context, request: str):
     return impl
 ```
 
-**vs our current approach:** User manually runs `/aid-router-challenger` then decides whether to refine
+**vs our current approach:** User manually runs `/dev-aid-router-challenger` then decides whether to refine
 
 ### ✅ 4. **Built-in Observability**
 
@@ -234,7 +234,7 @@ pip install llama-index  # ~200MB
 
 **Our approach:**
 ```bash
-/aid-router-challenger "Implement OAuth2"
+/dev-aid-router-challenger "Implement OAuth2"
 # Done. That's it.
 ```
 
@@ -251,7 +251,7 @@ This is **100 lines of Python** with LlamaIndex vs **3 files** with slash comman
 **Problem:** LlamaIndex runs as a Python process, not integrated into Claude Code or Gemini CLI.
 
 **This means:**
-- Can't use `/aid-router-*` commands natively
+- Can't use `/dev-aid-router-*` commands natively
 - Need to run separate Python script
 - Loses conversational context
 
@@ -368,7 +368,7 @@ semantic_router = RouterComponent(
 
 Your users want:
 ```bash
-/aid-router-challenger "Fix this security bug"
+/dev-aid-router-challenger "Fix this security bug"
 # Simple, discoverable, works immediately
 ```
 
@@ -424,7 +424,7 @@ Slash commands are:
 Use **slash commands for UI**, **LlamaIndex for complex logic**:
 
 ```toml
-# .gemini/commands/router/aid-router-challenger.toml
+# .gemini/commands/router/dev-aid-router-challenger.toml
 description = "Challenger mode with LlamaIndex backend"
 
 prompt = """
@@ -445,7 +445,7 @@ prompt = """
 
 ```bash
 # Use LlamaIndex ONLY for memory bank RAG
-/aid-router-with-context "Implement auth"
+/dev-aid-router-with-context "Implement auth"
 # ↓
 # Slash command calls: python retrieve_context.py "auth"
 # Then routes to Claude with retrieved context
@@ -495,7 +495,7 @@ def aid_router_challenger(request: str):
 **Phase 2: Add LlamaIndex RAG** (if you need smart context)
 ```bash
 # Keep slash commands, add LlamaIndex for memory bank search
-/aid-router-challenger "Implement auth"
+/dev-aid-router-challenger "Implement auth"
 # ↓ Behind the scenes:
 # 1. LlamaIndex finds relevant context from memory banks
 # 2. Slash command routes to Claude with context
@@ -551,7 +551,7 @@ Phase 4 (Production):    LlamaIndex + MCP server
 
 **With Slash Commands:**
 ```bash
-/aid-router-challenger "Implement OAuth2 authentication"
+/dev-aid-router-challenger "Implement OAuth2 authentication"
 # Works immediately
 # Claude generates, Gemini reviews
 # You see both outputs
@@ -577,7 +577,7 @@ python router.py "Implement OAuth2 authentication"
 **With Slash Commands:**
 ```bash
 # Need to manually specify files
-/aid-router-challenger "Review src/auth/*.py for vulnerabilities"
+/dev-aid-router-challenger "Review src/auth/*.py for vulnerabilities"
 ```
 
 **With LlamaIndex:**
@@ -597,7 +597,7 @@ router.query("Review all auth-related code for vulnerabilities")
 
 **With Slash Commands:**
 ```bash
-/aid-router-status --costs
+/dev-aid-router-status --costs
 # Shows manual logs (if you remembered to log)
 ```
 

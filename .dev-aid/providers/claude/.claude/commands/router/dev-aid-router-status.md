@@ -12,16 +12,16 @@ Display current routing configuration, recent activity, and cost analytics.
 
 ```bash
 # Show full status
-/aid-router-status
+/dev-aid-router-status
 
 # Show only costs
-/aid-router-status --costs
+/dev-aid-router-status --costs
 
 # Show recent routing decisions
-/aid-router-status --history
+/dev-aid-router-status --history
 
 # Show configuration only
-/aid-router-status --config
+/dev-aid-router-status --config
 ```
 
 ## 📋 Output Format
@@ -111,10 +111,10 @@ Time       | Mode       | Model         | Request                    | Cost
 To change configuration:
 ```bash
 # Enable challenger mode
-/aid-router-enable challenger
+/dev-aid-router-enable challenger
 
 # Disable all routing
-/aid-router-disable
+/dev-aid-router-disable
 
 # Reconfigure
 vim .dev-aid/config/routing.json
@@ -379,10 +379,10 @@ Time       | Mode       | Model         | Cost
 To change configuration:
 ```bash
 # Enable challenger mode
-/aid-router-enable challenger
+/dev-aid-router-enable challenger
 
 # Disable all routing
-/aid-router-disable
+/dev-aid-router-disable
 
 # Reconfigure manually
 vim .dev-aid/config/routing.json

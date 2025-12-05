@@ -218,7 +218,7 @@ fi
 if [ "$SECURITY_SAFE" = false ]; then
   echo ""
   echo "❌ DEPLOYMENT BLOCKED: Security issues found"
-  echo "Run /aid-vulnerability-scan for detailed analysis"
+  echo "Run /dev-aid-vulnerability-scan for detailed analysis"
   exit 1
 fi
 ```
@@ -408,13 +408,13 @@ else
 
 $([ "$TESTS_PASSED" = false ] && echo "- ❌ Tests are failing - fix before deploying")
 $([ "$CONFIG_SAFE" = false ] && echo "- ❌ Configuration issues - review and fix")
-$([ "$SECURITY_SAFE" = false ] && echo "- ❌ Security issues - run /aid-vulnerability-scan")
+$([ "$SECURITY_SAFE" = false ] && echo "- ❌ Security issues - run /dev-aid-vulnerability-scan")
 $([ "$BUILD_SUCCESSFUL" = false ] && echo "- ❌ Build is failing - fix build errors")
 
 ### Next Steps
 
 1. Fix all blocking issues above
-2. Re-run /aid-deploy-validate
+2. Re-run /dev-aid-deploy-validate
 3. Only deploy when risk score = 0
 
 EOF
@@ -432,9 +432,9 @@ cat >> "$REPORT_DIR/deployment-decision.md" <<EOF
 
 ## Related Commands
 
-- \`/aid-audit\` - Full security audit
-- \`/aid-vulnerability-scan\` - Deep CVE scanning
-- \`/aid-health-check\` - Post-deployment validation
+- \`/dev-aid-audit\` - Full security audit
+- \`/dev-aid-vulnerability-scan\` - Deep CVE scanning
+- \`/dev-aid-health-check\` - Post-deployment validation
 
 ---
 
@@ -484,19 +484,19 @@ fi
 
 ### Basic Validation
 ```bash
-/aid-deploy-validate
+/dev-aid-deploy-validate
 ```
 
 ### Before Production Deployment
 ```bash
 # 1. Run full validation
-/aid-deploy-validate
+/dev-aid-deploy-validate
 
 # 2. If validation passes, deploy
 git push origin main  # Triggers CI/CD
 
 # 3. Monitor deployment
-/aid-health-check
+/dev-aid-health-check
 ```
 
 ### Integration with CI/CD

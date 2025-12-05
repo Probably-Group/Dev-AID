@@ -4,10 +4,17 @@ Comprehensive test suite for the Dev-AID Router following TDD and security best 
 
 ## Test Coverage
 
+### Existing Tests
 - **test_validators.py** - Input validation with Pydantic models
 - **test_security.py** - Security tests (OWASP Top 10, injection, path traversal)
 - **test_config_loader.py** - Configuration loading and path safety
 - **test_api_clients.py** - API client functionality and error handling
+
+### Newly Added Tests (2025-12-05)
+- ✅ **test_context_builder.py** - Context building, memory bank loading, skill detection
+- ✅ **test_task_classifier.py** - Task type classification, keyword matching
+- ✅ **test_cost_tracker.py** - Cost tracking, budget monitoring, request logging
+- ✅ **run_tests.sh** - Automated test runner script
 
 ## Running Tests
 

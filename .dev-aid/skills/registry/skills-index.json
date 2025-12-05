@@ -1063,5 +1063,20 @@
       "requires": [],
       "exclude_with": []
     }
+  },
+  "senior-architect": {
+    "activation": {
+      "primary_keywords": ["code review", "architectural review", "security review", "performance review", "system design"],
+      "secondary_keywords": ["anti-pattern", "technical debt", "scalability", "maintainability", "security audit"],
+      "file_patterns": ["*/reviews/*", "REVIEW.md", "*/audit/*"],
+      "technologies": ["Architecture", "Security", "Performance"],
+      "confidence_weights": {
+        "architectural review": 0.4,
+        "code review": 0.3,
+        "security review": 0.3
+      },
+      "requires": ["appsec-expert"],
+      "exclude_with": []
+    }
   }
 }

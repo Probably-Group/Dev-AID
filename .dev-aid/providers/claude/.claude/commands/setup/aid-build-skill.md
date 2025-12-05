@@ -21,6 +21,11 @@ This command guides you through creating a professional, production-ready skill 
 - Threat model (for security-sensitive skills)
 - Complete frontmatter configuration
 
+**⚠️ CRITICAL CONSTRAINT:**
+- **Main SKILL.md MUST be under 500 lines** (Claude Code loading limit)
+- Extract verbose content to `references/` directory to keep main file concise
+- Core concepts and workflow in main file, detailed examples in references
+
 **Time:** ~5-10 minutes depending on complexity
 
 ---
@@ -92,19 +97,35 @@ Your choice [A/B/C]: ___
 
 Based on the answers, create the skill directory and files:
 
+**⚠️ IMPORTANT:** Keep main SKILL.md under 500 lines (Claude Code loading limit). Extract detailed examples, verbose patterns, and extensive code samples to reference files.
+
 ```bash
 # Create directory structure
 SKILL_DIR=".dev-aid/providers/claude/.claude/skills/expert/${SKILL_NAME}"
 mkdir -p "$SKILL_DIR/references"
 
-# Create main SKILL.md
+# Create main SKILL.md (MUST BE <500 LINES)
 cat > "$SKILL_DIR/SKILL.md" <<'EOF'
 # [Content based on template - see Phase 3]
+# Keep concise: core concepts, essential patterns, workflow
+# Extract verbose content to references/
 EOF
 
-# Create references
+# Create references for detailed content
 cat > "$SKILL_DIR/references/advanced-patterns.md" <<'EOF'
 # [Advanced patterns - see Phase 4]
+EOF
+
+cat > "$SKILL_DIR/references/anti-patterns.md" <<'EOF'
+# [Common mistakes and anti-patterns]
+EOF
+
+cat > "$SKILL_DIR/references/performance-optimization.md" <<'EOF'
+# [Performance patterns and optimization strategies]
+EOF
+
+cat > "$SKILL_DIR/references/testing-guide.md" <<'EOF'
+# [Comprehensive testing examples and strategies]
 EOF
 
 # If security-sensitive, create additional files
@@ -122,6 +143,12 @@ fi
 ---
 
 ### Phase 3: Generate Main SKILL.md
+
+**⚠️ 500-LINE LIMIT:** Main SKILL.md must stay under 500 lines for Claude Code to load it. Keep content concise:
+- Core principles and workflow (essential)
+- 2-3 key implementation patterns (condensed examples)
+- Brief security/performance summaries with references
+- Move verbose examples, detailed patterns, and extensive code to `references/`
 
 Use this template structure (adapt based on user's answers):
 
@@ -293,9 +320,14 @@ You design ${DOMAIN} solutions that are:
 
 ## 7. References
 
+**⚠️ NOTE:** Detailed content belongs in `references/` to keep main file under 500 lines.
+
 See `references/` directory for:
-- `advanced-patterns.md` - Advanced implementation patterns
-${SECURITY_SENSITIVE ? "- `security-examples.md` - Security-focused examples\n- `threat-model.md` - Comprehensive threat model" : ""}
+- `advanced-patterns.md` - Advanced implementation patterns and complex examples
+- `anti-patterns.md` - Common mistakes and how to avoid them
+- `performance-optimization.md` - Performance patterns and optimization strategies
+- `testing-guide.md` - Comprehensive testing examples and TDD workflow
+${SECURITY_SENSITIVE ? "- `security-examples.md` - Security-focused examples and CVE mitigations\n- `threat-model.md` - Comprehensive threat analysis" : ""}
 
 ---
 
@@ -501,13 +533,25 @@ jq '.rules += [{
 After generating all files:
 
 ```bash
+# Verify SKILL.md line count
+LINE_COUNT=$(wc -l < "${SKILL_DIR}/SKILL.md")
+if [ "$LINE_COUNT" -gt 500 ]; then
+  echo "⚠️  WARNING: SKILL.md has $LINE_COUNT lines (max: 500)"
+  echo "   Claude Code cannot load files over 500 lines!"
+  echo "   Extract verbose content to references/ directory"
+  exit 1
+fi
+
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ Skill Created Successfully!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📁 Files Created:"
-echo "  • ${SKILL_DIR}/SKILL.md"
+echo "  • ${SKILL_DIR}/SKILL.md ($LINE_COUNT lines)"
 echo "  • ${SKILL_DIR}/references/advanced-patterns.md"
+echo "  • ${SKILL_DIR}/references/anti-patterns.md"
+echo "  • ${SKILL_DIR}/references/performance-optimization.md"
+echo "  • ${SKILL_DIR}/references/testing-guide.md"
 if [[ "$SECURITY_SENSITIVE" == "Y" ]]; then
   echo "  • ${SKILL_DIR}/references/security-examples.md"
   echo "  • ${SKILL_DIR}/references/threat-model.md"
@@ -518,6 +562,7 @@ echo "  • Name: ${SKILL_NAME}"
 echo "  • Model: ${MODEL}"
 echo "  • Risk Level: ${RISK_LEVEL}"
 echo "  • Security Sensitive: ${SECURITY_SENSITIVE}"
+echo "  • Line Count: $LINE_COUNT / 500 ✅"
 echo ""
 echo "🔄 Next Steps:"
 echo "  1. Review and customize the generated skill"
@@ -571,7 +616,11 @@ echo ""
 - [ ] All questions answered by user
 - [ ] Skill directory created
 - [ ] SKILL.md generated with proper frontmatter
+- [ ] **⚠️ SKILL.md is under 500 lines** (Claude Code loading limit)
 - [ ] references/advanced-patterns.md created
+- [ ] references/anti-patterns.md created
+- [ ] references/performance-optimization.md created
+- [ ] references/testing-guide.md created
 - [ ] Security files created (if applicable)
 - [ ] Skill rules updated
 - [ ] Summary displayed to user

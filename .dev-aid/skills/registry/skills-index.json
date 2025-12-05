@@ -1003,5 +1003,65 @@
       "requires": ["devsecops-expert"],
       "exclude_with": []
     }
+  },
+  "plan-review-expert": {
+    "activation": {
+      "primary_keywords": ["plan review", "technical plan", "implementation plan", "development plan", "architecture plan"],
+      "secondary_keywords": ["review plan", "validate approach", "assess risks", "alternative approaches", "plan validation"],
+      "file_patterns": ["*/plans/*", "*/design/*", "*-plan.md", "*-proposal.md", "*/rfcs/*"],
+      "technologies": ["planning", "technical review", "risk assessment"],
+      "confidence_weights": {
+        "plan review": 0.35,
+        "technical plan": 0.30,
+        "implementation plan": 0.25
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "prompt-engineering-expert": {
+    "activation": {
+      "primary_keywords": ["prompt engineering", "mega-prompt", "system prompt", "AI prompt", "LLM prompt"],
+      "secondary_keywords": ["prompt design", "prompt template", "prompt optimization", "Claude prompt", "ChatGPT instructions"],
+      "file_patterns": ["*/prompts/*", "*-prompt.md", "*/ai/*", "*-instructions.md"],
+      "technologies": ["prompt engineering", "LLM", "Claude", "ChatGPT", "Gemini"],
+      "confidence_weights": {
+        "prompt engineering": 0.40,
+        "mega-prompt": 0.35,
+        "system prompt": 0.30
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "skill-creation-expert": {
+    "activation": {
+      "primary_keywords": ["create skill", "build skill", "skill development", "new skill", "skill template"],
+      "secondary_keywords": ["skill creation", "Dev-AID skill", "skill guide", "skill structure"],
+      "file_patterns": ["*/skills/*", "*SKILL.md", "*/skill-*/*"],
+      "technologies": ["Dev-AID", "skill development"],
+      "confidence_weights": {
+        "create skill": 0.40,
+        "skill template": 0.35,
+        "Dev-AID skill": 0.30
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "web-research-expert": {
+    "activation": {
+      "primary_keywords": ["web research", "research topic", "find solutions", "technology comparison", "research error"],
+      "secondary_keywords": ["GitHub issues", "Stack Overflow", "Reddit discussion", "debug error", "compare technologies"],
+      "file_patterns": ["*/research/*", "*-research.md"],
+      "technologies": ["research", "web search", "documentation"],
+      "confidence_weights": {
+        "web research": 0.35,
+        "research topic": 0.30,
+        "technology comparison": 0.25
+      },
+      "requires": [],
+      "exclude_with": []
+    }
   }
 }

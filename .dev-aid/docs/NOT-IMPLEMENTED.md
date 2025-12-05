@@ -52,36 +52,48 @@ This document catalogues features that are **documented but not yet implemented*
 
 ## 📦 External Dependencies (Cannot Implement Without Source Repos)
 
-### 1. Agent Integration (35 Planned Agents)
-**Status**: ✅ ANALYZED & READY FOR IMPLEMENTATION
+### 1. ~~Agent Integration~~ → Skills Migration (COMPLETED 2025-12-05)
+**Status**: ✅ COMPLETED & DEPRECATED
 
-**Source repositories located**:
-- `claude-code-tresor` (15 agents) - https://github.com/alirezarezvani/claude-code-tresor/
-- `claude-code-infrastructure-showcase` (4 agents) - https://github.com/diet103/claude-code-infrastructure-showcase
-- `my-claude-code-setup` (4 agents) - https://github.com/centminmod/my-claude-code-setup
-- `claude-code-skill-factory` (4 agents) - https://github.com/alirezarezvani/claude-code-skill-factory
+**What was done**:
+- Analyzed 10 agents from external repositories
+- **Deleted 6 redundant agents** (test-engineer, refactor-planner, docs-writer, documentation-architect, performance-tuner, code-architecture-reviewer)
+- **Converted 4 unique agents to skills** using Dev-AID template:
+  - `prompt-engineering-expert` (was prompts-guide) - 69 professional presets
+  - `plan-review-expert` (was plan-reviewer) - Pre-implementation review
+  - `web-research-expert` (was web-research-specialist) - Multi-platform research
+  - `skill-creation-expert` (was agents-guide) - Skill creation wizard
 
-**Analysis completed**: See `.dev-aid/analysis/` for comprehensive analysis (83KB, 4 documents):
-- `SUMMARY.md` - Executive summary and recommendations
-- `agent-repositories-analysis.md` - Deep-dive analysis (40KB)
-- `agent-integration-quick-start.md` - Practical quick reference
-- `refactor-planner-adaptation-example.md` - Step-by-step example
+**Why agents were deprecated**:
+- ❌ Weaker than skills (no anti-hallucination protocols)
+- ❌ Manual invocation only (no auto-injection)
+- ❌ Claude-only (not cross-provider)
+- ❌ Inconsistent quality
 
-**Key findings**:
-- **Don't integrate all 35** - Quality over quantity
-- **Integrate 10-12 high-quality agents** only
-- **Winner**: infrastructure-showcase (highest quality, lowest effort)
-- **Top priority**: refactor-planner, documentation-architect, web-research-specialist
+**New approach - Skills**:
+- ✅ Anti-hallucination protocol (Section 0, mandatory)
+- ✅ Auto-injection via skills-index.json
+- ✅ Cross-provider compatible
+- ✅ 500-line limit with references/ extraction
+- ✅ All 4 new skills registered in skills-index.json
 
-**Recommendation**: **Selective integration** - Start with 5 Tier 1 agents (Week 1), add 5 Tier 2 agents (Weeks 2-3), skip low-quality/redundant agents.
+**Location**: `.dev-aid/skills/expert/` (4 new skills)
+**Documentation**: `.dev-aid/documentation/TERMINOLOGY-NOTE.md`
 
-### 2. Additional 8 Commands
+**Source repositories** (credited in skill frontmatter):
+- https://github.com/diet103/claude-code-infrastructure-showcase
+- https://github.com/alirezarezvani/claude-code-tresor
+- https://github.com/alirezarezvani/claude-code-skill-factory
+
+### 2. Additional Commands
 **Status**: 🔴 BLOCKED - Source repositories don't exist
 
 **Missing commands** (from COMPONENTS-MANIFEST.md):
 - Workflow commands: prompt-create, prompt-run, todo-add, todo-check, handoff-create
 - Memory commands: update-memory-bank, cleanup-context
-- Development commands: build-skill, build-agent, validate-output
+- Development commands: ~~build-agent~~ (deprecated - use `/dev-aid-build-skill`), validate-output
+
+**Note**: `build-agent` is deprecated. Use `/dev-aid-build-skill` to create skills instead.
 
 **Options**:
 1. **Create from scratch** - Define and implement each command

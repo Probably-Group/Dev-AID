@@ -2,6 +2,10 @@
 # Setup script for Dev-AID Local Search
 # Installs and configures 100% local semantic code search
 # Powered by claude-context-local by FarhanAliRaza
+#
+# Environment Variables:
+#   RAG_REPO_URL - Custom repository URL (default: FarhanAliRaza/claude-context-local)
+#                  Set this to use your own fork for stability
 
 set -e  # Exit on error
 
@@ -79,8 +83,13 @@ echo -e "${BLUE}→ Downloading official install script...${NC}"
 INSTALL_SCRIPT=$(mktemp)
 trap "rm -f $INSTALL_SCRIPT" EXIT
 
-EXPECTED_CHECKSUM="f8bb95a4c3c13d71a336711baff8742503900cc67bb8de41394620ecec8d3c90"
-SCRIPT_URL="https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh"
+# Default to upstream, but allow custom fork via environment variable
+RAG_REPO_OWNER="${RAG_REPO_URL:-FarhanAliRaza/claude-context-local}"
+SCRIPT_URL="https://raw.githubusercontent.com/${RAG_REPO_OWNER}/main/scripts/install.sh"
+
+# Default checksum for upstream repository
+# If using a fork, set RAG_INSTALL_CHECKSUM environment variable
+EXPECTED_CHECKSUM="${RAG_INSTALL_CHECKSUM:-f8bb95a4c3c13d71a336711baff8742503900cc67bb8de41394620ecec8d3c90}"
 
 if ! curl -fsSL "$SCRIPT_URL" -o "$INSTALL_SCRIPT"; then
     echo -e "${RED}✗ Failed to download install script${NC}"
@@ -388,8 +397,13 @@ echo "  ✓ MCP integration ($AI_TOOL)"
 echo "  ✓ Dev-AID codebase indexed"
 echo ""
 echo -e "${BLUE}Powered by:${NC}"
-echo "  • claude-context-local by FarhanAliRaza"
-echo "  • github.com/FarhanAliRaza/claude-context-local"
+if [[ "$RAG_REPO_OWNER" == "FarhanAliRaza/claude-context-local" ]]; then
+    echo "  • claude-context-local by FarhanAliRaza"
+    echo "  • github.com/FarhanAliRaza/claude-context-local"
+else
+    echo "  • claude-context-local (custom fork)"
+    echo "  • github.com/${RAG_REPO_OWNER}"
+fi
 echo ""
 echo -e "${BLUE}Helper scripts created:${NC}"
 echo "  • .dev-aid/scripts/reindex-codebase.sh  - Reindex after changes"

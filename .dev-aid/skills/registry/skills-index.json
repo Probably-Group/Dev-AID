@@ -1,1067 +1,2531 @@
 {
   "accessibility-wcag": {
     "activation": {
-      "primary_keywords": ["accessibility", "WCAG", "a11y", "screen reader", "ARIA"],
-      "secondary_keywords": ["keyboard navigation", "alt text", "semantic HTML", "contrast ratio", "focus management"],
-      "file_patterns": ["*/components/*", "*.html", "*.vue", "*.jsx", "*.tsx"],
-      "technologies": ["WCAG 2.2", "ARIA", "VoiceOver", "NVDA", "JAWS"],
       "confidence_weights": {
+        "ARIA": 0.25,
         "WCAG": 0.35,
-        "accessibility": 0.3,
-        "ARIA": 0.25
+        "accessibility": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/components/*",
+        "*.html",
+        "*.vue",
+        "*.jsx",
+        "*.tsx"
+      ],
+      "primary_keywords": [
+        "accessibility",
+        "WCAG",
+        "a11y",
+        "screen reader",
+        "ARIA"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "keyboard navigation",
+        "alt text",
+        "semantic HTML",
+        "contrast ratio",
+        "focus management"
+      ],
+      "technologies": [
+        "WCAG 2.2",
+        "ARIA",
+        "VoiceOver",
+        "NVDA",
+        "JAWS"
+      ]
     }
   },
   "api-expert": {
     "activation": {
-      "primary_keywords": ["REST API", "RESTful", "OpenAPI", "Swagger", "API design", "HTTP API"],
-      "secondary_keywords": ["endpoint", "route", "HTTP method", "API versioning", "API documentation"],
-      "file_patterns": ["*/routes/*", "*/api/*", "*.routes.ts", "*/controllers/*", "openapi.yaml", "swagger.json"],
-      "technologies": ["FastAPI", "Express", "Django REST", "Flask-RESTX", "NestJS"],
       "confidence_weights": {
         "OpenAPI": 0.3,
         "REST API": 0.25,
         "Swagger": 0.2,
         "endpoint": 0.15
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": ["graphql-expert"]
+      "exclude_with": [
+        "graphql-expert"
+      ],
+      "file_patterns": [
+        "*/routes/*",
+        "*/api/*",
+        "*.routes.ts",
+        "*/controllers/*",
+        "openapi.yaml",
+        "swagger.json"
+      ],
+      "primary_keywords": [
+        "REST API",
+        "RESTful",
+        "OpenAPI",
+        "Swagger",
+        "API design",
+        "HTTP API"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "endpoint",
+        "route",
+        "HTTP method",
+        "API versioning",
+        "API documentation"
+      ],
+      "technologies": [
+        "FastAPI",
+        "Express",
+        "Django REST",
+        "Flask-RESTX",
+        "NestJS"
+      ]
     }
   },
   "applescript": {
     "activation": {
-      "primary_keywords": ["AppleScript", "osascript", "macOS automation", "Apple Events"],
-      "secondary_keywords": ["tell application", "System Events", "Finder", "do shell script"],
-      "file_patterns": ["*.applescript", "*.scpt", "*/mac-automation/*"],
-      "technologies": ["AppleScript", "JXA", "macOS"],
       "confidence_weights": {
         "AppleScript": 0.4,
-        "osascript": 0.3,
-        "macOS automation": 0.2
+        "macOS automation": 0.2,
+        "osascript": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.applescript",
+        "*.scpt",
+        "*/mac-automation/*"
+      ],
+      "primary_keywords": [
+        "AppleScript",
+        "osascript",
+        "macOS automation",
+        "Apple Events"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "tell application",
+        "System Events",
+        "Finder",
+        "do shell script"
+      ],
+      "technologies": [
+        "AppleScript",
+        "JXA",
+        "macOS"
+      ]
     }
   },
   "appsec-expert": {
     "activation": {
-      "primary_keywords": ["application security", "AppSec", "penetration testing", "security vulnerability"],
-      "secondary_keywords": ["OWASP Top 10", "threat modeling", "security testing", "vulnerability assessment"],
-      "file_patterns": ["*/security/*", "*/tests/security/*"],
-      "technologies": ["OWASP ZAP", "Burp Suite", "SAST", "DAST"],
       "confidence_weights": {
         "AppSec": 0.35,
         "OWASP Top 10": 0.3,
         "penetration testing": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/security/*",
+        "*/tests/security/*"
+      ],
+      "primary_keywords": [
+        "application security",
+        "AppSec",
+        "penetration testing",
+        "security vulnerability"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "OWASP Top 10",
+        "threat modeling",
+        "security testing",
+        "vulnerability assessment"
+      ],
+      "technologies": [
+        "OWASP ZAP",
+        "Burp Suite",
+        "SAST",
+        "DAST"
+      ]
     }
   },
   "argo-expert": {
     "activation": {
-      "primary_keywords": ["Argo CD", "Argo Workflows", "GitOps", "Argo Rollouts"],
-      "secondary_keywords": ["ArgoCD", "Kubernetes GitOps", "continuous deployment", "progressive delivery"],
-      "file_patterns": ["*/argocd/*", "*/argo/*", "*application.yaml", "*rollout.yaml"],
-      "technologies": ["Argo CD", "Argo Workflows", "Argo Rollouts", "Argo Events"],
       "confidence_weights": {
         "Argo CD": 0.35,
-        "GitOps": 0.3,
-        "Argo Workflows": 0.25
+        "Argo Workflows": 0.25,
+        "GitOps": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/argocd/*",
+        "*/argo/*",
+        "*application.yaml",
+        "*rollout.yaml"
+      ],
+      "primary_keywords": [
+        "Argo CD",
+        "Argo Workflows",
+        "GitOps",
+        "Argo Rollouts"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "ArgoCD",
+        "Kubernetes GitOps",
+        "continuous deployment",
+        "progressive delivery"
+      ],
+      "technologies": [
+        "Argo CD",
+        "Argo Workflows",
+        "Argo Rollouts",
+        "Argo Events"
+      ]
     }
   },
   "async-expert": {
     "activation": {
-      "primary_keywords": ["async", "await", "asynchronous", "concurrent", "asyncio"],
-      "secondary_keywords": ["Promise", "async/await", "event loop", "non-blocking", "coroutine"],
-      "file_patterns": ["*.py", "*.js", "*.ts", "*.go"],
-      "technologies": ["asyncio", "async/await", "Tokio", "Go routines"],
       "confidence_weights": {
         "async": 0.3,
         "asyncio": 0.25,
         "await": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.py",
+        "*.js",
+        "*.ts",
+        "*.go"
+      ],
+      "primary_keywords": [
+        "async",
+        "await",
+        "asynchronous",
+        "concurrent",
+        "asyncio"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Promise",
+        "async/await",
+        "event loop",
+        "non-blocking",
+        "coroutine"
+      ],
+      "technologies": [
+        "asyncio",
+        "async/await",
+        "Tokio",
+        "Go routines"
+      ]
     }
   },
   "async-programming": {
     "activation": {
-      "primary_keywords": ["asynchronous programming", "async patterns", "concurrency", "parallel processing"],
-      "secondary_keywords": ["thread pool", "task queue", "message passing", "reactive"],
-      "file_patterns": ["*.py", "*.js", "*.ts", "*.go", "*.rs"],
-      "technologies": ["asyncio", "async/await", "RxJS", "Akka"],
       "confidence_weights": {
+        "async patterns": 0.25,
         "asynchronous programming": 0.35,
-        "concurrency": 0.3,
-        "async patterns": 0.25
+        "concurrency": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.py",
+        "*.js",
+        "*.ts",
+        "*.go",
+        "*.rs"
+      ],
+      "primary_keywords": [
+        "asynchronous programming",
+        "async patterns",
+        "concurrency",
+        "parallel processing"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "thread pool",
+        "task queue",
+        "message passing",
+        "reactive"
+      ],
+      "technologies": [
+        "asyncio",
+        "async/await",
+        "RxJS",
+        "Akka"
+      ]
     }
   },
   "auto-update-systems": {
     "activation": {
-      "primary_keywords": ["auto-update", "software update", "update mechanism", "version check"],
-      "secondary_keywords": ["Electron updater", "Sparkle", "update channel", "delta update"],
-      "file_patterns": ["*/updater/*", "*/auto-update/*", "*update.js", "*update.ts"],
-      "technologies": ["electron-updater", "Sparkle", "Squirrel", "AppUpdater"],
       "confidence_weights": {
         "auto-update": 0.35,
         "electron-updater": 0.3,
         "software update": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/updater/*",
+        "*/auto-update/*",
+        "*update.js",
+        "*update.ts"
+      ],
+      "primary_keywords": [
+        "auto-update",
+        "software update",
+        "update mechanism",
+        "version check"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "Electron updater",
+        "Sparkle",
+        "update channel",
+        "delta update"
+      ],
+      "technologies": [
+        "electron-updater",
+        "Sparkle",
+        "Squirrel",
+        "AppUpdater"
+      ]
     }
   },
   "bash-expert": {
     "activation": {
-      "primary_keywords": ["bash script", "shell script", "bash automation", "shell programming"],
-      "secondary_keywords": ["#!/bin/bash", "set -e", "shellcheck", "trap", "bash function"],
-      "file_patterns": ["*.sh", "*/scripts/*", "*/bin/*"],
-      "technologies": ["Bash", "Shell", "Unix", "Linux"],
       "confidence_weights": {
         "bash script": 0.35,
         "shell script": 0.3,
         "shellcheck": 0.2
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*.sh",
+        "*/scripts/*",
+        "*/bin/*"
+      ],
+      "primary_keywords": [
+        "bash script",
+        "shell script",
+        "bash automation",
+        "shell programming"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "#!/bin/bash",
+        "set -e",
+        "shellcheck",
+        "trap",
+        "bash function"
+      ],
+      "technologies": [
+        "Bash",
+        "Shell",
+        "Unix",
+        "Linux"
+      ]
     }
   },
   "browser-automation": {
     "activation": {
-      "primary_keywords": ["Puppeteer", "Playwright", "Selenium", "browser automation", "web scraping"],
-      "secondary_keywords": ["headless browser", "page.goto", "screenshot", "element locator"],
-      "file_patterns": ["*/e2e/*", "*/tests/e2e/*", "*automation.js", "*automation.ts"],
-      "technologies": ["Puppeteer", "Playwright", "Selenium", "Cypress"],
       "confidence_weights": {
-        "Puppeteer": 0.3,
         "Playwright": 0.3,
+        "Puppeteer": 0.3,
         "browser automation": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/e2e/*",
+        "*/tests/e2e/*",
+        "*automation.js",
+        "*automation.ts"
+      ],
+      "primary_keywords": [
+        "Puppeteer",
+        "Playwright",
+        "Selenium",
+        "browser automation",
+        "web scraping"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "headless browser",
+        "page.goto",
+        "screenshot",
+        "element locator"
+      ],
+      "technologies": [
+        "Puppeteer",
+        "Playwright",
+        "Selenium",
+        "Cypress"
+      ]
     }
   },
   "celery-expert": {
     "activation": {
-      "primary_keywords": ["Celery", "task queue", "distributed tasks", "async tasks"],
-      "secondary_keywords": ["@task", "celery worker", "Redis broker", "RabbitMQ"],
-      "file_patterns": ["*/tasks.py", "*/celery.py", "*celeryconfig.py"],
-      "technologies": ["Celery", "Redis", "RabbitMQ", "Kombu"],
       "confidence_weights": {
         "Celery": 0.4,
-        "task queue": 0.25,
-        "celery worker": 0.2
+        "celery worker": 0.2,
+        "task queue": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/tasks.py",
+        "*/celery.py",
+        "*celeryconfig.py"
+      ],
+      "primary_keywords": [
+        "Celery",
+        "task queue",
+        "distributed tasks",
+        "async tasks"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "@task",
+        "celery worker",
+        "Redis broker",
+        "RabbitMQ"
+      ],
+      "technologies": [
+        "Celery",
+        "Redis",
+        "RabbitMQ",
+        "Kombu"
+      ]
     }
   },
   "ci-cd": {
     "activation": {
-      "primary_keywords": ["CI/CD", "continuous integration", "continuous deployment", "pipeline"],
-      "secondary_keywords": ["build automation", "automated testing", "deployment pipeline"],
-      "file_patterns": [".github/workflows/*", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/config.yml"],
-      "technologies": ["GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"],
       "confidence_weights": {
         "CI/CD": 0.35,
         "continuous integration": 0.3,
         "pipeline": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        ".github/workflows/*",
+        ".gitlab-ci.yml",
+        "Jenkinsfile",
+        ".circleci/config.yml"
+      ],
+      "primary_keywords": [
+        "CI/CD",
+        "continuous integration",
+        "continuous deployment",
+        "pipeline"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "build automation",
+        "automated testing",
+        "deployment pipeline"
+      ],
+      "technologies": [
+        "GitHub Actions",
+        "GitLab CI",
+        "Jenkins",
+        "CircleCI"
+      ]
     }
   },
   "cicd-expert": {
     "activation": {
-      "primary_keywords": ["CI/CD", "GitHub Actions", "GitLab CI", "Jenkins", "pipeline"],
-      "secondary_keywords": ["workflow", "job", "runner", "deploy", "build pipeline"],
-      "file_patterns": [".github/workflows/*", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/config.yml"],
-      "technologies": ["GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"],
       "confidence_weights": {
+        "CI/CD": 0.25,
         "GitHub Actions": 0.3,
-        "pipeline": 0.25,
-        "CI/CD": 0.25
+        "pipeline": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        ".github/workflows/*",
+        ".gitlab-ci.yml",
+        "Jenkinsfile",
+        ".circleci/config.yml"
+      ],
+      "primary_keywords": [
+        "CI/CD",
+        "GitHub Actions",
+        "GitLab CI",
+        "Jenkins",
+        "pipeline"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "workflow",
+        "job",
+        "runner",
+        "deploy",
+        "build pipeline"
+      ],
+      "technologies": [
+        "GitHub Actions",
+        "GitLab CI",
+        "Jenkins",
+        "CircleCI"
+      ]
     }
   },
   "cilium-expert": {
     "activation": {
-      "primary_keywords": ["Cilium", "eBPF", "Kubernetes networking", "service mesh"],
-      "secondary_keywords": ["Hubble", "network policy", "load balancing", "observability"],
-      "file_patterns": ["*/cilium/*", "*networkpolicy.yaml"],
-      "technologies": ["Cilium", "eBPF", "Hubble", "Kubernetes"],
       "confidence_weights": {
         "Cilium": 0.4,
-        "eBPF": 0.3,
-        "Kubernetes networking": 0.2
+        "Kubernetes networking": 0.2,
+        "eBPF": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/cilium/*",
+        "*networkpolicy.yaml"
+      ],
+      "primary_keywords": [
+        "Cilium",
+        "eBPF",
+        "Kubernetes networking",
+        "service mesh"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Hubble",
+        "network policy",
+        "load balancing",
+        "observability"
+      ],
+      "technologies": [
+        "Cilium",
+        "eBPF",
+        "Hubble",
+        "Kubernetes"
+      ]
     }
   },
   "cloud-api-integration": {
     "activation": {
-      "primary_keywords": ["cloud API", "AWS SDK", "Azure SDK", "Google Cloud SDK", "cloud integration"],
-      "secondary_keywords": ["boto3", "cloud provider", "API client", "cloud services"],
-      "file_patterns": ["*/cloud/*", "*/aws/*", "*/azure/*", "*/gcp/*"],
-      "technologies": ["AWS SDK", "Azure SDK", "Google Cloud SDK", "boto3"],
       "confidence_weights": {
         "AWS SDK": 0.3,
-        "cloud API": 0.25,
-        "boto3": 0.2
+        "boto3": 0.2,
+        "cloud API": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/cloud/*",
+        "*/aws/*",
+        "*/azure/*",
+        "*/gcp/*"
+      ],
+      "primary_keywords": [
+        "cloud API",
+        "AWS SDK",
+        "Azure SDK",
+        "Google Cloud SDK",
+        "cloud integration"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "boto3",
+        "cloud provider",
+        "API client",
+        "cloud services"
+      ],
+      "technologies": [
+        "AWS SDK",
+        "Azure SDK",
+        "Google Cloud SDK",
+        "boto3"
+      ]
     }
   },
   "cross-platform-builds": {
     "activation": {
-      "primary_keywords": ["cross-platform", "multi-platform build", "Electron", "Tauri", "cross-compilation"],
-      "secondary_keywords": ["electron-builder", "cargo build", "native modules", "platform-specific"],
-      "file_patterns": ["electron-builder.json", "tauri.conf.json", "*/build/*"],
-      "technologies": ["Electron", "Tauri", "electron-builder", "cargo"],
       "confidence_weights": {
-        "cross-platform": 0.35,
         "Electron": 0.3,
-        "Tauri": 0.25
+        "Tauri": 0.25,
+        "cross-platform": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "electron-builder.json",
+        "tauri.conf.json",
+        "*/build/*"
+      ],
+      "primary_keywords": [
+        "cross-platform",
+        "multi-platform build",
+        "Electron",
+        "Tauri",
+        "cross-compilation"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "electron-builder",
+        "cargo build",
+        "native modules",
+        "platform-specific"
+      ],
+      "technologies": [
+        "Electron",
+        "Tauri",
+        "electron-builder",
+        "cargo"
+      ]
     }
   },
   "database-design": {
     "activation": {
-      "primary_keywords": ["database design", "schema design", "normalization", "indexing", "data modeling"],
-      "secondary_keywords": ["primary key", "foreign key", "ER diagram", "denormalization", "query optimization"],
-      "file_patterns": ["*/migrations/*", "*/schema/*", "*.sql", "*/models/*"],
-      "technologies": ["PostgreSQL", "MySQL", "SQLite", "MongoDB"],
       "confidence_weights": {
         "database design": 0.35,
-        "schema design": 0.3,
-        "normalization": 0.25
+        "normalization": 0.25,
+        "schema design": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/migrations/*",
+        "*/schema/*",
+        "*.sql",
+        "*/models/*"
+      ],
+      "primary_keywords": [
+        "database design",
+        "schema design",
+        "normalization",
+        "indexing",
+        "data modeling"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "primary key",
+        "foreign key",
+        "ER diagram",
+        "denormalization",
+        "query optimization"
+      ],
+      "technologies": [
+        "PostgreSQL",
+        "MySQL",
+        "SQLite",
+        "MongoDB"
+      ]
     }
   },
   "dbus": {
     "activation": {
-      "primary_keywords": ["D-Bus", "DBus", "inter-process communication", "system bus", "session bus"],
-      "secondary_keywords": ["dbus-send", "qdbus", "bus communication", "DBus interface"],
-      "file_patterns": ["*/dbus/*", "*dbus.py", "*dbus.rs"],
-      "technologies": ["D-Bus", "systemd", "Linux"],
       "confidence_weights": {
         "D-Bus": 0.4,
         "DBus": 0.35,
         "inter-process communication": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/dbus/*",
+        "*dbus.py",
+        "*dbus.rs"
+      ],
+      "primary_keywords": [
+        "D-Bus",
+        "DBus",
+        "inter-process communication",
+        "system bus",
+        "session bus"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "dbus-send",
+        "qdbus",
+        "bus communication",
+        "DBus interface"
+      ],
+      "technologies": [
+        "D-Bus",
+        "systemd",
+        "Linux"
+      ]
     }
   },
   "design-systems": {
     "activation": {
-      "primary_keywords": ["design system", "component library", "design tokens", "style guide"],
-      "secondary_keywords": ["Storybook", "design patterns", "UI kit", "brand guidelines"],
-      "file_patterns": ["*/components/*", "*/design-system/*", "*.stories.tsx", "*.stories.js"],
-      "technologies": ["Storybook", "Figma", "design tokens"],
       "confidence_weights": {
-        "design system": 0.35,
         "Storybook": 0.3,
-        "component library": 0.25
+        "component library": 0.25,
+        "design system": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/components/*",
+        "*/design-system/*",
+        "*.stories.tsx",
+        "*.stories.js"
+      ],
+      "primary_keywords": [
+        "design system",
+        "component library",
+        "design tokens",
+        "style guide"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Storybook",
+        "design patterns",
+        "UI kit",
+        "brand guidelines"
+      ],
+      "technologies": [
+        "Storybook",
+        "Figma",
+        "design tokens"
+      ]
     }
   },
   "devsecops-expert": {
     "activation": {
-      "primary_keywords": ["security", "vulnerability", "authentication", "authorization", "encryption"],
-      "secondary_keywords": ["OWASP", "CVE", "XSS", "SQL injection", "CSRF", "security audit"],
-      "file_patterns": ["*/security/*", "*/auth/*", ".security/*"],
-      "technologies": ["OAuth2", "JWT", "bcrypt", "HTTPS", "TLS"],
       "confidence_weights": {
-        "security": 0.3,
+        "OWASP": 0.15,
         "authentication": 0.25,
-        "vulnerability": 0.2,
-        "OWASP": 0.15
+        "security": 0.3,
+        "vulnerability": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/security/*",
+        "*/auth/*",
+        ".security/*"
+      ],
+      "primary_keywords": [
+        "security",
+        "vulnerability",
+        "authentication",
+        "authorization",
+        "encryption"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "OWASP",
+        "CVE",
+        "XSS",
+        "SQL injection",
+        "CSRF",
+        "security audit"
+      ],
+      "technologies": [
+        "OAuth2",
+        "JWT",
+        "bcrypt",
+        "HTTPS",
+        "TLS"
+      ]
+    }
+  },
+  "docker-expert": {
+    "activation": {
+      "confidence_weights": {
+        "Dockerfile": 0.35,
+        "container": 0.2,
+        "docker-compose": 0.3
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "Dockerfile",
+        "docker-compose.yml",
+        "docker-compose.yaml",
+        ".dockerignore"
+      ],
+      "primary_keywords": [
+        "Docker",
+        "Dockerfile",
+        "container",
+        "docker-compose",
+        "containerization"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "FROM",
+        "RUN",
+        "COPY",
+        "ENTRYPOINT",
+        "docker build",
+        "docker run"
+      ],
+      "technologies": [
+        "Docker",
+        "docker-compose",
+        "containerd"
+      ]
     }
   },
   "encryption": {
     "activation": {
-      "primary_keywords": ["encryption", "cryptography", "AES", "RSA", "key management"],
-      "secondary_keywords": ["cipher", "decrypt", "public key", "private key", "hash"],
-      "file_patterns": ["*/crypto/*", "*/encryption/*", "*crypto.py", "*crypto.ts"],
-      "technologies": ["OpenSSL", "libsodium", "cryptography", "Web Crypto API"],
       "confidence_weights": {
-        "encryption": 0.35,
+        "AES": 0.25,
         "cryptography": 0.3,
-        "AES": 0.25
+        "encryption": 0.35
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/crypto/*",
+        "*/encryption/*",
+        "*crypto.py",
+        "*crypto.ts"
+      ],
+      "primary_keywords": [
+        "encryption",
+        "cryptography",
+        "AES",
+        "RSA",
+        "key management"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "cipher",
+        "decrypt",
+        "public key",
+        "private key",
+        "hash"
+      ],
+      "technologies": [
+        "OpenSSL",
+        "libsodium",
+        "cryptography",
+        "Web Crypto API"
+      ]
     }
   },
   "fastapi": {
     "activation": {
-      "primary_keywords": ["FastAPI", "Pydantic", "async def", "APIRouter"],
-      "secondary_keywords": ["@app.get", "@app.post", "Request", "Response"],
-      "file_patterns": ["*/main.py", "*/app.py", "*/routers/*"],
-      "technologies": ["FastAPI", "Pydantic", "Uvicorn"],
       "confidence_weights": {
         "FastAPI": 0.4,
         "Pydantic": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/main.py",
+        "*/app.py",
+        "*/routers/*"
+      ],
+      "primary_keywords": [
+        "FastAPI",
+        "Pydantic",
+        "async def",
+        "APIRouter"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "@app.get",
+        "@app.post",
+        "Request",
+        "Response"
+      ],
+      "technologies": [
+        "FastAPI",
+        "Pydantic",
+        "Uvicorn"
+      ]
     }
   },
   "fastapi-expert": {
     "activation": {
-      "primary_keywords": ["FastAPI", "Pydantic", "async def", "APIRouter", "uvicorn"],
-      "secondary_keywords": ["@app.get", "@app.post", "Request", "Response", "Depends"],
-      "file_patterns": ["*/main.py", "*/app.py", "*/routers/*", "*/models/*"],
-      "technologies": ["FastAPI", "Pydantic", "Uvicorn", "Starlette"],
       "confidence_weights": {
         "FastAPI": 0.4,
         "Pydantic": 0.25,
         "uvicorn": 0.2
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/main.py",
+        "*/app.py",
+        "*/routers/*",
+        "*/models/*"
+      ],
+      "primary_keywords": [
+        "FastAPI",
+        "Pydantic",
+        "async def",
+        "APIRouter",
+        "uvicorn"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "@app.get",
+        "@app.post",
+        "Request",
+        "Response",
+        "Depends"
+      ],
+      "technologies": [
+        "FastAPI",
+        "Pydantic",
+        "Uvicorn",
+        "Starlette"
+      ]
     }
   },
   "glsl": {
     "activation": {
-      "primary_keywords": ["GLSL", "shader", "vertex shader", "fragment shader", "WebGL shader"],
-      "secondary_keywords": ["uniform", "varying", "attribute", "gl_Position", "texture2D"],
-      "file_patterns": ["*.glsl", "*.vert", "*.frag", "*/shaders/*"],
-      "technologies": ["GLSL", "WebGL", "OpenGL"],
       "confidence_weights": {
         "GLSL": 0.4,
-        "shader": 0.3,
-        "WebGL shader": 0.25
+        "WebGL shader": 0.25,
+        "shader": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.glsl",
+        "*.vert",
+        "*.frag",
+        "*/shaders/*"
+      ],
+      "primary_keywords": [
+        "GLSL",
+        "shader",
+        "vertex shader",
+        "fragment shader",
+        "WebGL shader"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "uniform",
+        "varying",
+        "attribute",
+        "gl_Position",
+        "texture2D"
+      ],
+      "technologies": [
+        "GLSL",
+        "WebGL",
+        "OpenGL"
+      ]
     }
   },
   "graph-database-expert": {
     "activation": {
-      "primary_keywords": ["graph database", "Neo4j", "Cypher", "graph query", "node relationship"],
-      "secondary_keywords": ["MATCH", "CREATE", "property graph", "graph traversal"],
-      "file_patterns": ["*/graph/*", "*.cypher", "*neo4j*"],
-      "technologies": ["Neo4j", "Cypher", "ArangoDB", "JanusGraph"],
       "confidence_weights": {
-        "graph database": 0.35,
+        "Cypher": 0.25,
         "Neo4j": 0.3,
-        "Cypher": 0.25
+        "graph database": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/graph/*",
+        "*.cypher",
+        "*neo4j*"
+      ],
+      "primary_keywords": [
+        "graph database",
+        "Neo4j",
+        "Cypher",
+        "graph query",
+        "node relationship"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "MATCH",
+        "CREATE",
+        "property graph",
+        "graph traversal"
+      ],
+      "technologies": [
+        "Neo4j",
+        "Cypher",
+        "ArangoDB",
+        "JanusGraph"
+      ]
     }
   },
   "graphql-expert": {
     "activation": {
-      "primary_keywords": ["GraphQL", "GraphQL schema", "resolver", "mutation", "query type"],
-      "secondary_keywords": ["graphql-js", "Apollo", "type Query", "type Mutation", "subscription"],
-      "file_patterns": ["*.graphql", "*/schema/*", "*/resolvers/*", "schema.gql"],
-      "technologies": ["GraphQL", "Apollo Server", "graphql-js", "Relay"],
       "confidence_weights": {
         "GraphQL": 0.4,
-        "resolver": 0.25,
-        "mutation": 0.2
+        "mutation": 0.2,
+        "resolver": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": ["rest-api-design", "api-expert"]
+      "exclude_with": [
+        "rest-api-design",
+        "api-expert"
+      ],
+      "file_patterns": [
+        "*.graphql",
+        "*/schema/*",
+        "*/resolvers/*",
+        "schema.gql"
+      ],
+      "primary_keywords": [
+        "GraphQL",
+        "GraphQL schema",
+        "resolver",
+        "mutation",
+        "query type"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "graphql-js",
+        "Apollo",
+        "type Query",
+        "type Mutation",
+        "subscription"
+      ],
+      "technologies": [
+        "GraphQL",
+        "Apollo Server",
+        "graphql-js",
+        "Relay"
+      ]
     }
   },
   "gsap": {
     "activation": {
-      "primary_keywords": ["GSAP", "GreenSock", "animation", "timeline", "tween"],
-      "secondary_keywords": ["gsap.to", "gsap.from", "ScrollTrigger", "motion design"],
-      "file_patterns": ["*.js", "*.ts", "*/animations/*"],
-      "technologies": ["GSAP", "GreenSock", "ScrollTrigger"],
       "confidence_weights": {
         "GSAP": 0.4,
         "GreenSock": 0.35,
         "ScrollTrigger": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.js",
+        "*.ts",
+        "*/animations/*"
+      ],
+      "primary_keywords": [
+        "GSAP",
+        "GreenSock",
+        "animation",
+        "timeline",
+        "tween"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "gsap.to",
+        "gsap.from",
+        "ScrollTrigger",
+        "motion design"
+      ],
+      "technologies": [
+        "GSAP",
+        "GreenSock",
+        "ScrollTrigger"
+      ]
     }
   },
   "harbor-expert": {
     "activation": {
-      "primary_keywords": ["Harbor", "container registry", "artifact repository", "image scanning"],
-      "secondary_keywords": ["harbor registry", "vulnerability scanning", "replication", "RBAC"],
-      "file_patterns": ["*/harbor/*", "*harbor.yml"],
-      "technologies": ["Harbor", "Docker Registry", "Trivy"],
       "confidence_weights": {
         "Harbor": 0.4,
-        "container registry": 0.3,
-        "artifact repository": 0.2
+        "artifact repository": 0.2,
+        "container registry": 0.3
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/harbor/*",
+        "*harbor.yml"
+      ],
+      "primary_keywords": [
+        "Harbor",
+        "container registry",
+        "artifact repository",
+        "image scanning"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "harbor registry",
+        "vulnerability scanning",
+        "replication",
+        "RBAC"
+      ],
+      "technologies": [
+        "Harbor",
+        "Docker Registry",
+        "Trivy"
+      ]
     }
   },
   "javascript-expert": {
     "activation": {
-      "primary_keywords": ["JavaScript", "JS", "ECMAScript", "Node.js"],
-      "secondary_keywords": ["package.json", "npm", "ES6", "Promise", "async"],
-      "file_patterns": ["*.js", "*.mjs", "package.json"],
-      "technologies": ["JavaScript", "Node.js", "npm", "ES6"],
       "confidence_weights": {
+        "ES6": 0.2,
         "JavaScript": 0.35,
-        "Node.js": 0.3,
-        "ES6": 0.2
+        "Node.js": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.js",
+        "*.mjs",
+        "package.json"
+      ],
+      "primary_keywords": [
+        "JavaScript",
+        "JS",
+        "ECMAScript",
+        "Node.js"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "package.json",
+        "npm",
+        "ES6",
+        "Promise",
+        "async"
+      ],
+      "technologies": [
+        "JavaScript",
+        "Node.js",
+        "npm",
+        "ES6"
+      ]
     }
   },
   "json-rpc": {
     "activation": {
-      "primary_keywords": ["JSON-RPC", "RPC", "remote procedure call", "JSON-RPC 2.0"],
-      "secondary_keywords": ["jsonrpc", "method call", "RPC request", "RPC response"],
-      "file_patterns": ["*/rpc/*", "*jsonrpc*"],
-      "technologies": ["JSON-RPC", "JSON-RPC 2.0"],
       "confidence_weights": {
         "JSON-RPC": 0.4,
         "RPC": 0.3,
         "remote procedure call": 0.2
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/rpc/*",
+        "*jsonrpc*"
+      ],
+      "primary_keywords": [
+        "JSON-RPC",
+        "RPC",
+        "remote procedure call",
+        "JSON-RPC 2.0"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "jsonrpc",
+        "method call",
+        "RPC request",
+        "RPC response"
+      ],
+      "technologies": [
+        "JSON-RPC",
+        "JSON-RPC 2.0"
+      ]
     }
   },
   "kanidm-expert": {
     "activation": {
-      "primary_keywords": ["Kanidm", "identity management", "LDAP", "authentication server"],
-      "secondary_keywords": ["IAM", "user directory", "access control"],
-      "file_patterns": ["*/kanidm/*", "*kanidm.toml"],
-      "technologies": ["Kanidm", "Rust", "LDAP"],
       "confidence_weights": {
         "Kanidm": 0.4,
-        "identity management": 0.3,
-        "authentication server": 0.2
+        "authentication server": 0.2,
+        "identity management": 0.3
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/kanidm/*",
+        "*kanidm.toml"
+      ],
+      "primary_keywords": [
+        "Kanidm",
+        "identity management",
+        "LDAP",
+        "authentication server"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "IAM",
+        "user directory",
+        "access control"
+      ],
+      "technologies": [
+        "Kanidm",
+        "Rust",
+        "LDAP"
+      ]
     }
   },
   "linux-at-spi2": {
     "activation": {
-      "primary_keywords": ["AT-SPI", "AT-SPI2", "Linux accessibility", "assistive technology"],
-      "secondary_keywords": ["Orca", "screen reader", "accessibility tree", "ATK"],
-      "file_patterns": ["*/accessibility/*", "*a11y*"],
-      "technologies": ["AT-SPI2", "ATK", "Linux"],
       "confidence_weights": {
         "AT-SPI": 0.4,
         "AT-SPI2": 0.35,
         "Linux accessibility": 0.2
       },
-      "requires": ["accessibility-wcag"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/accessibility/*",
+        "*a11y*"
+      ],
+      "primary_keywords": [
+        "AT-SPI",
+        "AT-SPI2",
+        "Linux accessibility",
+        "assistive technology"
+      ],
+      "requires": [
+        "accessibility-wcag"
+      ],
+      "secondary_keywords": [
+        "Orca",
+        "screen reader",
+        "accessibility tree",
+        "ATK"
+      ],
+      "technologies": [
+        "AT-SPI2",
+        "ATK",
+        "Linux"
+      ]
     }
   },
   "llm-integration": {
     "activation": {
-      "primary_keywords": ["LLM", "large language model", "OpenAI", "Anthropic", "AI integration"],
-      "secondary_keywords": ["GPT", "Claude", "prompt", "completion", "embedding"],
-      "file_patterns": ["*/ai/*", "*/llm/*", "*openai*", "*anthropic*"],
-      "technologies": ["OpenAI", "Anthropic", "LangChain", "LlamaIndex"],
       "confidence_weights": {
+        "Claude": 0.25,
         "LLM": 0.35,
-        "OpenAI": 0.3,
-        "Claude": 0.25
+        "OpenAI": 0.3
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/ai/*",
+        "*/llm/*",
+        "*openai*",
+        "*anthropic*"
+      ],
+      "primary_keywords": [
+        "LLM",
+        "large language model",
+        "OpenAI",
+        "Anthropic",
+        "AI integration"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "GPT",
+        "Claude",
+        "prompt",
+        "completion",
+        "embedding"
+      ],
+      "technologies": [
+        "OpenAI",
+        "Anthropic",
+        "LangChain",
+        "LlamaIndex"
+      ]
     }
   },
   "macos-accessibility": {
     "activation": {
-      "primary_keywords": ["macOS accessibility", "Accessibility API", "VoiceOver", "accessibility inspector"],
-      "secondary_keywords": ["AXUIElement", "NSAccessibility", "assistive technology"],
-      "file_patterns": ["*/accessibility/*", "*macos*", "*.swift"],
-      "technologies": ["macOS", "Accessibility API", "Swift"],
       "confidence_weights": {
-        "macOS accessibility": 0.4,
+        "Accessibility API": 0.25,
         "VoiceOver": 0.3,
-        "Accessibility API": 0.25
+        "macOS accessibility": 0.4
       },
-      "requires": ["accessibility-wcag"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/accessibility/*",
+        "*macos*",
+        "*.swift"
+      ],
+      "primary_keywords": [
+        "macOS accessibility",
+        "Accessibility API",
+        "VoiceOver",
+        "accessibility inspector"
+      ],
+      "requires": [
+        "accessibility-wcag"
+      ],
+      "secondary_keywords": [
+        "AXUIElement",
+        "NSAccessibility",
+        "assistive technology"
+      ],
+      "technologies": [
+        "macOS",
+        "Accessibility API",
+        "Swift"
+      ]
     }
   },
   "mcp": {
     "activation": {
-      "primary_keywords": ["MCP", "Model Context Protocol", "Claude MCP", "context server"],
-      "secondary_keywords": ["MCP server", "context provider", "tool integration"],
-      "file_patterns": ["*/mcp/*", "*mcp-server*", "mcp.json"],
-      "technologies": ["MCP", "Claude", "Anthropic"],
       "confidence_weights": {
         "MCP": 0.4,
-        "Model Context Protocol": 0.35,
-        "MCP server": 0.2
+        "MCP server": 0.2,
+        "Model Context Protocol": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/mcp/*",
+        "*mcp-server*",
+        "mcp.json"
+      ],
+      "primary_keywords": [
+        "MCP",
+        "Model Context Protocol",
+        "Claude MCP",
+        "context server"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "MCP server",
+        "context provider",
+        "tool integration"
+      ],
+      "technologies": [
+        "MCP",
+        "Claude",
+        "Anthropic"
+      ]
     }
   },
   "model-quantization": {
     "activation": {
-      "primary_keywords": ["quantization", "model compression", "INT8", "FP16", "GGUF"],
-      "secondary_keywords": ["quantize model", "model optimization", "inference optimization"],
-      "file_patterns": ["*/models/*", "*quantize*", "*.gguf"],
-      "technologies": ["GGUF", "llama.cpp", "ONNX", "TensorRT"],
       "confidence_weights": {
-        "quantization": 0.35,
         "GGUF": 0.3,
-        "model compression": 0.25
+        "model compression": 0.25,
+        "quantization": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/models/*",
+        "*quantize*",
+        "*.gguf"
+      ],
+      "primary_keywords": [
+        "quantization",
+        "model compression",
+        "INT8",
+        "FP16",
+        "GGUF"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "quantize model",
+        "model optimization",
+        "inference optimization"
+      ],
+      "technologies": [
+        "GGUF",
+        "llama.cpp",
+        "ONNX",
+        "TensorRT"
+      ]
     }
   },
   "motion-design": {
     "activation": {
-      "primary_keywords": ["motion design", "animation", "motion graphics", "transitions"],
-      "secondary_keywords": ["easing", "keyframe", "animation timing", "motion curve"],
-      "file_patterns": ["*/animations/*", "*.motion.js", "*.motion.ts"],
-      "technologies": ["GSAP", "Framer Motion", "CSS animations"],
       "confidence_weights": {
-        "motion design": 0.35,
+        "GSAP": 0.25,
         "animation": 0.3,
-        "GSAP": 0.25
+        "motion design": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/animations/*",
+        "*.motion.js",
+        "*.motion.ts"
+      ],
+      "primary_keywords": [
+        "motion design",
+        "animation",
+        "motion graphics",
+        "transitions"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "easing",
+        "keyframe",
+        "animation timing",
+        "motion curve"
+      ],
+      "technologies": [
+        "GSAP",
+        "Framer Motion",
+        "CSS animations"
+      ]
     }
   },
   "os-keychain": {
     "activation": {
-      "primary_keywords": ["keychain", "credential storage", "secure storage", "password manager"],
-      "secondary_keywords": ["Keychain Access", "Windows Credential Manager", "Secret Service API"],
-      "file_patterns": ["*/keychain/*", "*credentials*", "*/secure-storage/*"],
-      "technologies": ["macOS Keychain", "Windows Credential Manager", "libsecret"],
       "confidence_weights": {
-        "keychain": 0.35,
         "credential storage": 0.3,
+        "keychain": 0.35,
         "secure storage": 0.25
       },
-      "requires": ["devsecops-expert", "encryption"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/keychain/*",
+        "*credentials*",
+        "*/secure-storage/*"
+      ],
+      "primary_keywords": [
+        "keychain",
+        "credential storage",
+        "secure storage",
+        "password manager"
+      ],
+      "requires": [
+        "devsecops-expert",
+        "encryption"
+      ],
+      "secondary_keywords": [
+        "Keychain Access",
+        "Windows Credential Manager",
+        "Secret Service API"
+      ],
+      "technologies": [
+        "macOS Keychain",
+        "Windows Credential Manager",
+        "libsecret"
+      ]
     }
   },
   "pinia": {
     "activation": {
-      "primary_keywords": ["Pinia", "Vue store", "state management", "Pinia store"],
-      "secondary_keywords": ["defineStore", "storeToRefs", "Vuex alternative"],
-      "file_patterns": ["*/stores/*", "*store.ts", "*store.js", "*.pinia.ts"],
-      "technologies": ["Pinia", "Vue 3", "Composition API"],
       "confidence_weights": {
         "Pinia": 0.4,
         "Vue store": 0.3,
         "defineStore": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/stores/*",
+        "*store.ts",
+        "*store.js",
+        "*.pinia.ts"
+      ],
+      "primary_keywords": [
+        "Pinia",
+        "Vue store",
+        "state management",
+        "Pinia store"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "defineStore",
+        "storeToRefs",
+        "Vuex alternative"
+      ],
+      "technologies": [
+        "Pinia",
+        "Vue 3",
+        "Composition API"
+      ]
+    }
+  },
+  "plan-review-expert": {
+    "activation": {
+      "confidence_weights": {
+        "implementation plan": 0.25,
+        "plan review": 0.35,
+        "technical plan": 0.3
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/plans/*",
+        "*/design/*",
+        "*-plan.md",
+        "*-proposal.md",
+        "*/rfcs/*"
+      ],
+      "primary_keywords": [
+        "plan review",
+        "technical plan",
+        "implementation plan",
+        "development plan",
+        "architecture plan"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "review plan",
+        "validate approach",
+        "assess risks",
+        "alternative approaches",
+        "plan validation"
+      ],
+      "technologies": [
+        "planning",
+        "technical review",
+        "risk assessment"
+      ]
     }
   },
   "prompt-engineering": {
     "activation": {
-      "primary_keywords": ["prompt engineering", "LLM prompts", "prompt design", "prompt optimization"],
-      "secondary_keywords": ["system prompt", "few-shot", "chain of thought", "prompt template"],
-      "file_patterns": ["*/prompts/*", "*prompt.txt", "*prompt.md"],
-      "technologies": ["OpenAI", "Anthropic", "LangChain"],
       "confidence_weights": {
-        "prompt engineering": 0.4,
         "prompt design": 0.3,
+        "prompt engineering": 0.4,
         "system prompt": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/prompts/*",
+        "*prompt.txt",
+        "*prompt.md"
+      ],
+      "primary_keywords": [
+        "prompt engineering",
+        "LLM prompts",
+        "prompt design",
+        "prompt optimization"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "system prompt",
+        "few-shot",
+        "chain of thought",
+        "prompt template"
+      ],
+      "technologies": [
+        "OpenAI",
+        "Anthropic",
+        "LangChain"
+      ]
+    }
+  },
+  "prompt-engineering-expert": {
+    "activation": {
+      "confidence_weights": {
+        "mega-prompt": 0.35,
+        "prompt engineering": 0.4,
+        "system prompt": 0.3
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/prompts/*",
+        "*-prompt.md",
+        "*/ai/*",
+        "*-instructions.md"
+      ],
+      "primary_keywords": [
+        "prompt engineering",
+        "mega-prompt",
+        "system prompt",
+        "AI prompt",
+        "LLM prompt"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "prompt design",
+        "prompt template",
+        "prompt optimization",
+        "Claude prompt",
+        "ChatGPT instructions"
+      ],
+      "technologies": [
+        "prompt engineering",
+        "LLM",
+        "Claude",
+        "ChatGPT",
+        "Gemini"
+      ]
     }
   },
   "python": {
     "activation": {
-      "primary_keywords": ["Python", "pip", "virtualenv", "pytest", "Python package"],
-      "secondary_keywords": ["requirements.txt", "setup.py", "pyproject.toml", "__init__.py", "import"],
-      "file_patterns": ["*.py", "requirements.txt", "pyproject.toml", "setup.py", "*/tests/test_*.py"],
-      "technologies": ["Python", "pip", "pytest", "virtualenv", "poetry"],
       "confidence_weights": {
         "Python": 0.3,
         "pytest": 0.25,
         "requirements.txt": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.py",
+        "requirements.txt",
+        "pyproject.toml",
+        "setup.py",
+        "*/tests/test_*.py"
+      ],
+      "primary_keywords": [
+        "Python",
+        "pip",
+        "virtualenv",
+        "pytest",
+        "Python package"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "requirements.txt",
+        "setup.py",
+        "pyproject.toml",
+        "__init__.py",
+        "import"
+      ],
+      "technologies": [
+        "Python",
+        "pip",
+        "pytest",
+        "virtualenv",
+        "poetry"
+      ]
     }
   },
   "rabbitmq-expert": {
     "activation": {
-      "primary_keywords": ["RabbitMQ", "message queue", "AMQP", "message broker"],
-      "secondary_keywords": ["exchange", "queue", "routing key", "RabbitMQ management"],
-      "file_patterns": ["*/rabbitmq/*", "*rabbitmq*"],
-      "technologies": ["RabbitMQ", "AMQP", "Pika", "amqplib"],
       "confidence_weights": {
-        "RabbitMQ": 0.4,
         "AMQP": 0.3,
+        "RabbitMQ": 0.4,
         "message queue": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/rabbitmq/*",
+        "*rabbitmq*"
+      ],
+      "primary_keywords": [
+        "RabbitMQ",
+        "message queue",
+        "AMQP",
+        "message broker"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "exchange",
+        "queue",
+        "routing key",
+        "RabbitMQ management"
+      ],
+      "technologies": [
+        "RabbitMQ",
+        "AMQP",
+        "Pika",
+        "amqplib"
+      ]
+    }
+  },
+  "refactoring-expert": {
+    "activation": {
+      "confidence_weights": {
+        "legacy": 0.3,
+        "refactor": 0.35,
+        "rewrite": 0.2,
+        "technical debt": 0.25
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*"
+      ],
+      "primary_keywords": [
+        "refactor",
+        "refactoring",
+        "rewrite",
+        "legacy",
+        "technical debt"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "clean up",
+        "modernize",
+        "code smell",
+        "improve code",
+        "restructure",
+        "strangler fig"
+      ],
+      "technologies": [
+        "Python",
+        "JavaScript",
+        "TypeScript",
+        "Go",
+        "Rust",
+        "Java"
+      ]
     }
   },
   "rest-api-design": {
     "activation": {
-      "primary_keywords": ["REST API design", "API architecture", "RESTful design", "API best practices"],
-      "secondary_keywords": ["HTTP verbs", "resource modeling", "HATEOAS", "API versioning"],
-      "file_patterns": ["*/api/*", "*/routes/*", "openapi.yaml"],
-      "technologies": ["REST", "HTTP", "OpenAPI"],
       "confidence_weights": {
+        "API architecture": 0.25,
         "REST API design": 0.35,
-        "RESTful design": 0.3,
-        "API architecture": 0.25
+        "RESTful design": 0.3
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": ["graphql-expert"]
+      "exclude_with": [
+        "graphql-expert"
+      ],
+      "file_patterns": [
+        "*/api/*",
+        "*/routes/*",
+        "openapi.yaml"
+      ],
+      "primary_keywords": [
+        "REST API design",
+        "API architecture",
+        "RESTful design",
+        "API best practices"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "HTTP verbs",
+        "resource modeling",
+        "HATEOAS",
+        "API versioning"
+      ],
+      "technologies": [
+        "REST",
+        "HTTP",
+        "OpenAPI"
+      ]
     }
   },
   "rust": {
     "activation": {
-      "primary_keywords": ["Rust", "cargo", "rustc", "trait", "impl"],
-      "secondary_keywords": ["Cargo.toml", "rustfmt", "clippy", "ownership", "borrow checker"],
-      "file_patterns": ["*.rs", "Cargo.toml", "Cargo.lock"],
-      "technologies": ["Rust", "cargo", "rustc"],
       "confidence_weights": {
-        "Rust": 0.35,
         "Cargo.toml": 0.3,
+        "Rust": 0.35,
         "trait": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.rs",
+        "Cargo.toml",
+        "Cargo.lock"
+      ],
+      "primary_keywords": [
+        "Rust",
+        "cargo",
+        "rustc",
+        "trait",
+        "impl"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Cargo.toml",
+        "rustfmt",
+        "clippy",
+        "ownership",
+        "borrow checker"
+      ],
+      "technologies": [
+        "Rust",
+        "cargo",
+        "rustc"
+      ]
     }
   },
   "sandboxing": {
     "activation": {
-      "primary_keywords": ["sandboxing", "sandbox", "process isolation", "security isolation"],
-      "secondary_keywords": ["seccomp", "AppArmor", "SELinux", "namespace"],
-      "file_patterns": ["*/sandbox/*", "*sandbox*"],
-      "technologies": ["seccomp", "AppArmor", "SELinux", "Docker"],
       "confidence_weights": {
-        "sandboxing": 0.35,
         "process isolation": 0.3,
+        "sandboxing": 0.35,
         "seccomp": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/sandbox/*",
+        "*sandbox*"
+      ],
+      "primary_keywords": [
+        "sandboxing",
+        "sandbox",
+        "process isolation",
+        "security isolation"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "seccomp",
+        "AppArmor",
+        "SELinux",
+        "namespace"
+      ],
+      "technologies": [
+        "seccomp",
+        "AppArmor",
+        "SELinux",
+        "Docker"
+      ]
     }
   },
   "security-auditing": {
     "activation": {
-      "primary_keywords": ["security audit", "vulnerability scan", "security assessment", "penetration test"],
-      "secondary_keywords": ["security review", "threat assessment", "security checklist"],
-      "file_patterns": ["*/security/*", "*audit*"],
-      "technologies": ["OWASP ZAP", "Nmap", "Metasploit", "Burp Suite"],
       "confidence_weights": {
-        "security audit": 0.35,
         "penetration test": 0.3,
+        "security audit": 0.35,
         "vulnerability scan": 0.25
       },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/security/*",
+        "*audit*"
+      ],
+      "primary_keywords": [
+        "security audit",
+        "vulnerability scan",
+        "security assessment",
+        "penetration test"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "security review",
+        "threat assessment",
+        "security checklist"
+      ],
+      "technologies": [
+        "OWASP ZAP",
+        "Nmap",
+        "Metasploit",
+        "Burp Suite"
+      ]
+    }
+  },
+  "skill-creation-expert": {
+    "activation": {
+      "confidence_weights": {
+        "Dev-AID skill": 0.3,
+        "create skill": 0.4,
+        "skill template": 0.35
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/skills/*",
+        "*SKILL.md",
+        "*/skill-*/*"
+      ],
+      "primary_keywords": [
+        "create skill",
+        "build skill",
+        "skill development",
+        "new skill",
+        "skill template"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "skill creation",
+        "Dev-AID skill",
+        "skill guide",
+        "skill structure"
+      ],
+      "technologies": [
+        "Dev-AID",
+        "skill development"
+      ]
     }
   },
   "speech-to-text": {
     "activation": {
-      "primary_keywords": ["speech to text", "STT", "speech recognition", "voice recognition"],
-      "secondary_keywords": ["transcription", "Whisper", "Web Speech API", "audio transcription"],
-      "file_patterns": ["*/stt/*", "*speech*", "*/transcription/*"],
-      "technologies": ["Whisper", "Web Speech API", "Google Speech-to-Text"],
       "confidence_weights": {
-        "speech to text": 0.35,
+        "STT": 0.25,
         "Whisper": 0.3,
-        "STT": 0.25
+        "speech to text": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/stt/*",
+        "*speech*",
+        "*/transcription/*"
+      ],
+      "primary_keywords": [
+        "speech to text",
+        "STT",
+        "speech recognition",
+        "voice recognition"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "transcription",
+        "Whisper",
+        "Web Speech API",
+        "audio transcription"
+      ],
+      "technologies": [
+        "Whisper",
+        "Web Speech API",
+        "Google Speech-to-Text"
+      ]
     }
   },
   "sqlcipher": {
     "activation": {
-      "primary_keywords": ["SQLCipher", "encrypted database", "SQLite encryption"],
-      "secondary_keywords": ["database encryption", "PRAGMA key", "AES-256"],
-      "file_patterns": ["*sqlcipher*", "*/encrypted-db/*"],
-      "technologies": ["SQLCipher", "SQLite", "OpenSSL"],
       "confidence_weights": {
         "SQLCipher": 0.4,
-        "encrypted database": 0.3,
-        "SQLite encryption": 0.25
+        "SQLite encryption": 0.25,
+        "encrypted database": 0.3
       },
-      "requires": ["devsecops-expert", "encryption"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*sqlcipher*",
+        "*/encrypted-db/*"
+      ],
+      "primary_keywords": [
+        "SQLCipher",
+        "encrypted database",
+        "SQLite encryption"
+      ],
+      "requires": [
+        "devsecops-expert",
+        "encryption"
+      ],
+      "secondary_keywords": [
+        "database encryption",
+        "PRAGMA key",
+        "AES-256"
+      ],
+      "technologies": [
+        "SQLCipher",
+        "SQLite",
+        "OpenSSL"
+      ]
     }
   },
   "sqlite": {
     "activation": {
-      "primary_keywords": ["SQLite", "SQLite database", "sqlite3"],
-      "secondary_keywords": ["database file", ".db", "embedded database"],
-      "file_patterns": ["*.db", "*.sqlite", "*.sqlite3", "*sqlite*"],
-      "technologies": ["SQLite", "sqlite3", "SQLite browser"],
       "confidence_weights": {
         "SQLite": 0.35,
-        "sqlite3": 0.3,
-        "embedded database": 0.2
+        "embedded database": 0.2,
+        "sqlite3": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.db",
+        "*.sqlite",
+        "*.sqlite3",
+        "*sqlite*"
+      ],
+      "primary_keywords": [
+        "SQLite",
+        "SQLite database",
+        "sqlite3"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "database file",
+        ".db",
+        "embedded database"
+      ],
+      "technologies": [
+        "SQLite",
+        "sqlite3",
+        "SQLite browser"
+      ]
     }
   },
   "surrealdb-expert": {
     "activation": {
-      "primary_keywords": ["SurrealDB", "Surreal", "multi-model database"],
-      "secondary_keywords": ["SurrealQL", "graph relations", "document store"],
-      "file_patterns": ["*surreal*", "*.surql"],
-      "technologies": ["SurrealDB", "SurrealQL"],
       "confidence_weights": {
-        "SurrealDB": 0.4,
         "Surreal": 0.35,
+        "SurrealDB": 0.4,
         "SurrealQL": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*surreal*",
+        "*.surql"
+      ],
+      "primary_keywords": [
+        "SurrealDB",
+        "Surreal",
+        "multi-model database"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "SurrealQL",
+        "graph relations",
+        "document store"
+      ],
+      "technologies": [
+        "SurrealDB",
+        "SurrealQL"
+      ]
     }
   },
   "tailwindcss": {
     "activation": {
-      "primary_keywords": ["Tailwind", "TailwindCSS", "utility-first CSS"],
-      "secondary_keywords": ["tailwind.config", "@apply", "JIT", "utility classes"],
-      "file_patterns": ["tailwind.config.js", "tailwind.config.ts", "*.html", "*.vue", "*.jsx", "*.tsx"],
-      "technologies": ["TailwindCSS", "PostCSS"],
       "confidence_weights": {
         "Tailwind": 0.35,
         "TailwindCSS": 0.35,
         "utility-first CSS": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "tailwind.config.js",
+        "tailwind.config.ts",
+        "*.html",
+        "*.vue",
+        "*.jsx",
+        "*.tsx"
+      ],
+      "primary_keywords": [
+        "Tailwind",
+        "TailwindCSS",
+        "utility-first CSS"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "tailwind.config",
+        "@apply",
+        "JIT",
+        "utility classes"
+      ],
+      "technologies": [
+        "TailwindCSS",
+        "PostCSS"
+      ]
     }
   },
   "talos-os-expert": {
     "activation": {
-      "primary_keywords": ["Talos", "Talos OS", "Talos Linux", "immutable OS"],
-      "secondary_keywords": ["talosctl", "Kubernetes OS", "secure boot"],
-      "file_patterns": ["*/talos/*", "*talosconfig*"],
-      "technologies": ["Talos OS", "Kubernetes", "talosctl"],
       "confidence_weights": {
         "Talos": 0.4,
         "Talos OS": 0.35,
         "talosctl": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/talos/*",
+        "*talosconfig*"
+      ],
+      "primary_keywords": [
+        "Talos",
+        "Talos OS",
+        "Talos Linux",
+        "immutable OS"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "talosctl",
+        "Kubernetes OS",
+        "secure boot"
+      ],
+      "technologies": [
+        "Talos OS",
+        "Kubernetes",
+        "talosctl"
+      ]
     }
   },
   "tauri": {
     "activation": {
-      "primary_keywords": ["Tauri", "Tauri app", "Rust desktop"],
-      "secondary_keywords": ["tauri.conf.json", "@tauri-apps", "invoke", "Tauri API"],
-      "file_patterns": ["tauri.conf.json", "src-tauri/*", "*.tauri.ts"],
-      "technologies": ["Tauri", "Rust", "WebView"],
       "confidence_weights": {
+        "Rust desktop": 0.2,
         "Tauri": 0.4,
-        "tauri.conf.json": 0.3,
-        "Rust desktop": 0.2
+        "tauri.conf.json": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "tauri.conf.json",
+        "src-tauri/*",
+        "*.tauri.ts"
+      ],
+      "primary_keywords": [
+        "Tauri",
+        "Tauri app",
+        "Rust desktop"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "tauri.conf.json",
+        "@tauri-apps",
+        "invoke",
+        "Tauri API"
+      ],
+      "technologies": [
+        "Tauri",
+        "Rust",
+        "WebView"
+      ]
     }
   },
   "text-to-speech": {
     "activation": {
-      "primary_keywords": ["text to speech", "TTS", "speech synthesis", "voice synthesis"],
-      "secondary_keywords": ["Web Speech API", "SSML", "speech output", "audio generation"],
-      "file_patterns": ["*/tts/*", "*speech*", "*/synthesis/*"],
-      "technologies": ["Web Speech API", "Google TTS", "Amazon Polly"],
       "confidence_weights": {
-        "text to speech": 0.35,
         "TTS": 0.3,
-        "speech synthesis": 0.25
+        "speech synthesis": 0.25,
+        "text to speech": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/tts/*",
+        "*speech*",
+        "*/synthesis/*"
+      ],
+      "primary_keywords": [
+        "text to speech",
+        "TTS",
+        "speech synthesis",
+        "voice synthesis"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Web Speech API",
+        "SSML",
+        "speech output",
+        "audio generation"
+      ],
+      "technologies": [
+        "Web Speech API",
+        "Google TTS",
+        "Amazon Polly"
+      ]
     }
   },
   "threejs-tresjs": {
     "activation": {
-      "primary_keywords": ["Three.js", "TresJS", "3D graphics", "WebGL"],
-      "secondary_keywords": ["THREE", "scene", "renderer", "camera", "mesh"],
-      "file_patterns": ["*.three.js", "*.three.ts", "*/3d/*"],
-      "technologies": ["Three.js", "TresJS", "WebGL"],
       "confidence_weights": {
+        "3D graphics": 0.25,
         "Three.js": 0.35,
-        "TresJS": 0.3,
-        "3D graphics": 0.25
+        "TresJS": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.three.js",
+        "*.three.ts",
+        "*/3d/*"
+      ],
+      "primary_keywords": [
+        "Three.js",
+        "TresJS",
+        "3D graphics",
+        "WebGL"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "THREE",
+        "scene",
+        "renderer",
+        "camera",
+        "mesh"
+      ],
+      "technologies": [
+        "Three.js",
+        "TresJS",
+        "WebGL"
+      ]
     }
   },
   "typescript": {
     "activation": {
-      "primary_keywords": ["TypeScript", "TS", "type definition"],
-      "secondary_keywords": ["tsconfig.json", "tsc", "type annotation"],
-      "file_patterns": ["*.ts", "*.tsx", "tsconfig.json"],
-      "technologies": ["TypeScript", "ts-node"],
       "confidence_weights": {
         "TypeScript": 0.35,
         "tsconfig.json": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.ts",
+        "*.tsx",
+        "tsconfig.json"
+      ],
+      "primary_keywords": [
+        "TypeScript",
+        "TS",
+        "type definition"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "tsconfig.json",
+        "tsc",
+        "type annotation"
+      ],
+      "technologies": [
+        "TypeScript",
+        "ts-node"
+      ]
     }
   },
   "typescript-expert": {
     "activation": {
-      "primary_keywords": ["TypeScript", "TS", "type definition", "interface", "generic"],
-      "secondary_keywords": ["tsconfig.json", "tsc", "type annotation", "enum", "namespace"],
-      "file_patterns": ["*.ts", "*.tsx", "tsconfig.json", "*/types/*"],
-      "technologies": ["TypeScript", "ts-node", "tsx"],
       "confidence_weights": {
         "TypeScript": 0.35,
-        "tsconfig.json": 0.25,
-        "interface": 0.2
+        "interface": 0.2,
+        "tsconfig.json": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.ts",
+        "*.tsx",
+        "tsconfig.json",
+        "*/types/*"
+      ],
+      "primary_keywords": [
+        "TypeScript",
+        "TS",
+        "type definition",
+        "interface",
+        "generic"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "tsconfig.json",
+        "tsc",
+        "type annotation",
+        "enum",
+        "namespace"
+      ],
+      "technologies": [
+        "TypeScript",
+        "ts-node",
+        "tsx"
+      ]
     }
   },
   "ui-ux-design": {
     "activation": {
-      "primary_keywords": ["UI design", "UX design", "user interface", "user experience"],
-      "secondary_keywords": ["wireframe", "prototype", "Figma", "user flow", "design system"],
-      "file_patterns": ["*/design/*", "*.fig", "*.sketch"],
-      "technologies": ["Figma", "Sketch", "Adobe XD"],
       "confidence_weights": {
+        "Figma": 0.25,
         "UI design": 0.3,
-        "UX design": 0.3,
-        "Figma": 0.25
+        "UX design": 0.3
       },
-      "requires": ["accessibility-wcag"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/design/*",
+        "*.fig",
+        "*.sketch"
+      ],
+      "primary_keywords": [
+        "UI design",
+        "UX design",
+        "user interface",
+        "user experience"
+      ],
+      "requires": [
+        "accessibility-wcag"
+      ],
+      "secondary_keywords": [
+        "wireframe",
+        "prototype",
+        "Figma",
+        "user flow",
+        "design system"
+      ],
+      "technologies": [
+        "Figma",
+        "Sketch",
+        "Adobe XD"
+      ]
     }
   },
   "ui-ux-expert": {
     "activation": {
-      "primary_keywords": ["UI/UX", "user interface", "user experience", "design patterns"],
-      "secondary_keywords": ["usability", "interaction design", "design thinking", "user research"],
-      "file_patterns": ["*/design/*", "*/components/*"],
-      "technologies": ["Figma", "Sketch", "user testing"],
       "confidence_weights": {
         "UI/UX": 0.35,
-        "user interface": 0.3,
-        "design patterns": 0.25
+        "design patterns": 0.25,
+        "user interface": 0.3
       },
-      "requires": ["accessibility-wcag"],
-      "exclude_with": []
+      "exclude_with": [],
+      "file_patterns": [
+        "*/design/*",
+        "*/components/*"
+      ],
+      "primary_keywords": [
+        "UI/UX",
+        "user interface",
+        "user experience",
+        "design patterns"
+      ],
+      "requires": [
+        "accessibility-wcag"
+      ],
+      "secondary_keywords": [
+        "usability",
+        "interaction design",
+        "design thinking",
+        "user research"
+      ],
+      "technologies": [
+        "Figma",
+        "Sketch",
+        "user testing"
+      ]
     }
   },
   "vue-nuxt": {
     "activation": {
-      "primary_keywords": ["Vue", "Nuxt", "Vue 3", "Nuxt 3"],
-      "secondary_keywords": ["nuxt.config", "composables", "useAsyncData", "Vue Router"],
-      "file_patterns": ["nuxt.config.ts", "nuxt.config.js", "*.vue", "*/pages/*", "*/composables/*"],
-      "technologies": ["Vue 3", "Nuxt 3", "Vite", "Pinia"],
       "confidence_weights": {
-        "Vue": 0.3,
         "Nuxt": 0.3,
+        "Vue": 0.3,
         "Vue 3": 0.25
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "nuxt.config.ts",
+        "nuxt.config.js",
+        "*.vue",
+        "*/pages/*",
+        "*/composables/*"
+      ],
+      "primary_keywords": [
+        "Vue",
+        "Nuxt",
+        "Vue 3",
+        "Nuxt 3"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "nuxt.config",
+        "composables",
+        "useAsyncData",
+        "Vue Router"
+      ],
+      "technologies": [
+        "Vue 3",
+        "Nuxt 3",
+        "Vite",
+        "Pinia"
+      ]
     }
   },
   "vue-nuxt-expert": {
     "activation": {
-      "primary_keywords": ["Vue", "Nuxt", "Vue 3", "Nuxt 3", "Composition API"],
-      "secondary_keywords": ["nuxt.config", "composables", "useAsyncData", "Vue Router", "Pinia"],
-      "file_patterns": ["nuxt.config.ts", "nuxt.config.js", "*.vue", "*/pages/*", "*/composables/*"],
-      "technologies": ["Vue 3", "Nuxt 3", "Vite", "Pinia"],
       "confidence_weights": {
-        "Vue": 0.3,
+        "Composition API": 0.25,
         "Nuxt": 0.3,
-        "Composition API": 0.25
+        "Vue": 0.3
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "nuxt.config.ts",
+        "nuxt.config.js",
+        "*.vue",
+        "*/pages/*",
+        "*/composables/*"
+      ],
+      "primary_keywords": [
+        "Vue",
+        "Nuxt",
+        "Vue 3",
+        "Nuxt 3",
+        "Composition API"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "nuxt.config",
+        "composables",
+        "useAsyncData",
+        "Vue Router",
+        "Pinia"
+      ],
+      "technologies": [
+        "Vue 3",
+        "Nuxt 3",
+        "Vite",
+        "Pinia"
+      ]
     }
   },
   "wake-word-detection": {
     "activation": {
-      "primary_keywords": ["wake word", "hotword detection", "voice activation", "keyword spotting"],
-      "secondary_keywords": ["Porcupine", "Snowboy", "voice trigger"],
-      "file_patterns": ["*/wake-word/*", "*hotword*", "*/voice-activation/*"],
-      "technologies": ["Porcupine", "Snowboy", "Picovoice"],
       "confidence_weights": {
-        "wake word": 0.35,
+        "Porcupine": 0.25,
         "hotword detection": 0.3,
-        "Porcupine": 0.25
+        "wake word": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/wake-word/*",
+        "*hotword*",
+        "*/voice-activation/*"
+      ],
+      "primary_keywords": [
+        "wake word",
+        "hotword detection",
+        "voice activation",
+        "keyword spotting"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "Porcupine",
+        "Snowboy",
+        "voice trigger"
+      ],
+      "technologies": [
+        "Porcupine",
+        "Snowboy",
+        "Picovoice"
+      ]
     }
   },
   "web-audio-api": {
     "activation": {
-      "primary_keywords": ["Web Audio API", "AudioContext", "audio processing", "sound synthesis"],
-      "secondary_keywords": ["GainNode", "oscillator", "audio buffer", "frequency analysis"],
-      "file_patterns": ["*/audio/*", "*audio.js", "*audio.ts"],
-      "technologies": ["Web Audio API", "AudioWorklet"],
       "confidence_weights": {
-        "Web Audio API": 0.4,
         "AudioContext": 0.3,
+        "Web Audio API": 0.4,
         "audio processing": 0.2
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/audio/*",
+        "*audio.js",
+        "*audio.ts"
+      ],
+      "primary_keywords": [
+        "Web Audio API",
+        "AudioContext",
+        "audio processing",
+        "sound synthesis"
+      ],
       "requires": [],
-      "exclude_with": []
-    }
-  },
-  "webgl": {
-    "activation": {
-      "primary_keywords": ["WebGL", "WebGL2", "3D rendering", "GPU programming"],
-      "secondary_keywords": ["gl.createShader", "fragment shader", "vertex shader", "texture"],
-      "file_patterns": ["*.webgl.js", "*.webgl.ts", "*/webgl/*"],
-      "technologies": ["WebGL", "WebGL2", "Three.js"],
-      "confidence_weights": {
-        "WebGL": 0.4,
-        "3D rendering": 0.3,
-        "GPU programming": 0.2
-      },
-      "requires": [],
-      "exclude_with": []
-    }
-  },
-  "websocket": {
-    "activation": {
-      "primary_keywords": ["WebSocket", "WebSockets", "real-time communication", "socket connection"],
-      "secondary_keywords": ["ws", "socket.io", "WebSocket server", "bidirectional"],
-      "file_patterns": ["*/websocket/*", "*socket*", "*/ws/*"],
-      "technologies": ["WebSocket", "socket.io", "ws"],
-      "confidence_weights": {
-        "WebSocket": 0.35,
-        "socket.io": 0.3,
-        "real-time communication": 0.25
-      },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
-    }
-  },
-  "windows-ui-automation": {
-    "activation": {
-      "primary_keywords": ["Windows UI Automation", "UIA", "Windows accessibility", "UI automation"],
-      "secondary_keywords": ["AutomationElement", "UI Automation API", "Windows Narrator"],
-      "file_patterns": ["*/windows/*", "*uia*", "*/automation/*"],
-      "technologies": ["Windows UI Automation", "UIA", ".NET"],
-      "confidence_weights": {
-        "Windows UI Automation": 0.4,
-        "UIA": 0.3,
-        "UI automation": 0.2
-      },
-      "requires": ["accessibility-wcag"],
-      "exclude_with": []
-    }
-  },
-  "docker-expert": {
-    "activation": {
-      "primary_keywords": ["Docker", "Dockerfile", "container", "docker-compose", "containerization"],
-      "secondary_keywords": ["FROM", "RUN", "COPY", "ENTRYPOINT", "docker build", "docker run"],
-      "file_patterns": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", ".dockerignore"],
-      "technologies": ["Docker", "docker-compose", "containerd"],
-      "confidence_weights": {
-        "Dockerfile": 0.35,
-        "docker-compose": 0.3,
-        "container": 0.2
-      },
-      "requires": ["devsecops-expert"],
-      "exclude_with": []
-    }
-  },
-  "plan-review-expert": {
-    "activation": {
-      "primary_keywords": ["plan review", "technical plan", "implementation plan", "development plan", "architecture plan"],
-      "secondary_keywords": ["review plan", "validate approach", "assess risks", "alternative approaches", "plan validation"],
-      "file_patterns": ["*/plans/*", "*/design/*", "*-plan.md", "*-proposal.md", "*/rfcs/*"],
-      "technologies": ["planning", "technical review", "risk assessment"],
-      "confidence_weights": {
-        "plan review": 0.35,
-        "technical plan": 0.30,
-        "implementation plan": 0.25
-      },
-      "requires": [],
-      "exclude_with": []
-    }
-  },
-  "prompt-engineering-expert": {
-    "activation": {
-      "primary_keywords": ["prompt engineering", "mega-prompt", "system prompt", "AI prompt", "LLM prompt"],
-      "secondary_keywords": ["prompt design", "prompt template", "prompt optimization", "Claude prompt", "ChatGPT instructions"],
-      "file_patterns": ["*/prompts/*", "*-prompt.md", "*/ai/*", "*-instructions.md"],
-      "technologies": ["prompt engineering", "LLM", "Claude", "ChatGPT", "Gemini"],
-      "confidence_weights": {
-        "prompt engineering": 0.40,
-        "mega-prompt": 0.35,
-        "system prompt": 0.30
-      },
-      "requires": [],
-      "exclude_with": []
-    }
-  },
-  "skill-creation-expert": {
-    "activation": {
-      "primary_keywords": ["create skill", "build skill", "skill development", "new skill", "skill template"],
-      "secondary_keywords": ["skill creation", "Dev-AID skill", "skill guide", "skill structure"],
-      "file_patterns": ["*/skills/*", "*SKILL.md", "*/skill-*/*"],
-      "technologies": ["Dev-AID", "skill development"],
-      "confidence_weights": {
-        "create skill": 0.40,
-        "skill template": 0.35,
-        "Dev-AID skill": 0.30
-      },
-      "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "GainNode",
+        "oscillator",
+        "audio buffer",
+        "frequency analysis"
+      ],
+      "technologies": [
+        "Web Audio API",
+        "AudioWorklet"
+      ]
     }
   },
   "web-research-expert": {
     "activation": {
-      "primary_keywords": ["web research", "research topic", "find solutions", "technology comparison", "research error"],
-      "secondary_keywords": ["GitHub issues", "Stack Overflow", "Reddit discussion", "debug error", "compare technologies"],
-      "file_patterns": ["*/research/*", "*-research.md"],
-      "technologies": ["research", "web search", "documentation"],
       "confidence_weights": {
-        "web research": 0.35,
-        "research topic": 0.30,
-        "technology comparison": 0.25
+        "research topic": 0.3,
+        "technology comparison": 0.25,
+        "web research": 0.35
       },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/research/*",
+        "*-research.md"
+      ],
+      "primary_keywords": [
+        "web research",
+        "research topic",
+        "find solutions",
+        "technology comparison",
+        "research error"
+      ],
       "requires": [],
-      "exclude_with": []
+      "secondary_keywords": [
+        "GitHub issues",
+        "Stack Overflow",
+        "Reddit discussion",
+        "debug error",
+        "compare technologies"
+      ],
+      "technologies": [
+        "research",
+        "web search",
+        "documentation"
+      ]
+    }
+  },
+  "webgl": {
+    "activation": {
+      "confidence_weights": {
+        "3D rendering": 0.3,
+        "GPU programming": 0.2,
+        "WebGL": 0.4
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*.webgl.js",
+        "*.webgl.ts",
+        "*/webgl/*"
+      ],
+      "primary_keywords": [
+        "WebGL",
+        "WebGL2",
+        "3D rendering",
+        "GPU programming"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "gl.createShader",
+        "fragment shader",
+        "vertex shader",
+        "texture"
+      ],
+      "technologies": [
+        "WebGL",
+        "WebGL2",
+        "Three.js"
+      ]
+    }
+  },
+  "websocket": {
+    "activation": {
+      "confidence_weights": {
+        "WebSocket": 0.35,
+        "real-time communication": 0.25,
+        "socket.io": 0.3
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/websocket/*",
+        "*socket*",
+        "*/ws/*"
+      ],
+      "primary_keywords": [
+        "WebSocket",
+        "WebSockets",
+        "real-time communication",
+        "socket connection"
+      ],
+      "requires": [
+        "devsecops-expert"
+      ],
+      "secondary_keywords": [
+        "ws",
+        "socket.io",
+        "WebSocket server",
+        "bidirectional"
+      ],
+      "technologies": [
+        "WebSocket",
+        "socket.io",
+        "ws"
+      ]
+    }
+  },
+  "windows-ui-automation": {
+    "activation": {
+      "confidence_weights": {
+        "UI automation": 0.2,
+        "UIA": 0.3,
+        "Windows UI Automation": 0.4
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/windows/*",
+        "*uia*",
+        "*/automation/*"
+      ],
+      "primary_keywords": [
+        "Windows UI Automation",
+        "UIA",
+        "Windows accessibility",
+        "UI automation"
+      ],
+      "requires": [
+        "accessibility-wcag"
+      ],
+      "secondary_keywords": [
+        "AutomationElement",
+        "UI Automation API",
+        "Windows Narrator"
+      ],
+      "technologies": [
+        "Windows UI Automation",
+        "UIA",
+        ".NET"
+      ]
     }
   }
 }

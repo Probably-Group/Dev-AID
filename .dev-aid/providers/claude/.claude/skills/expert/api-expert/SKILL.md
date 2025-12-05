@@ -89,72 +89,14 @@ You design APIs that are:
 
 ## 2. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+Follow Test-Driven Development for all API implementations:
 
-```python
-# tests/test_users_api.py
-import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
+1. **Write Failing Test First** - Test the expected behavior (201 for creation, 403 for unauthorized access)
+2. **Implement Minimum to Pass** - Write just enough code to make tests pass
+3. **Refactor** - Add edge cases (rate limiting, pagination, validation)
+4. **Verify** - Run full test suite, validate OpenAPI spec, security scan
 
-@pytest.fixture
-async def client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
-        yield ac
-
-@pytest.mark.asyncio
-async def test_create_user_returns_201(client):
-    response = await client.post("/v1/users", json={"email": "test@example.com", "name": "Test"}, headers={"Authorization": "Bearer token"})
-    assert response.status_code == 201
-    assert "location" in response.headers
-    assert "password" not in response.json()  # Never expose sensitive fields
-
-@pytest.mark.asyncio
-async def test_create_user_validates_email(client):
-    response = await client.post("/v1/users", json={"email": "invalid", "name": "Test"}, headers={"Authorization": "Bearer token"})
-    assert response.status_code == 422
-    assert "errors" in response.json()  # RFC 7807 format
-
-@pytest.mark.asyncio
-async def test_get_other_user_returns_403(client):
-    """BOLA protection - users can't access other users' data."""
-    response = await client.get("/v1/users/other-id", headers={"Authorization": "Bearer user-token"})
-    assert response.status_code == 403
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# app/routers/users.py
-from fastapi import APIRouter, Depends, HTTPException, Response
-
-router = APIRouter(prefix="/v1/users", tags=["users"])
-
-@router.post("", status_code=201, response_model=UserResponse)
-async def create_user(user_data: UserCreate, response: Response, current_user = Depends(get_current_user)):
-    user = await user_service.create(user_data)
-    response.headers["Location"] = f"/v1/users/{user.id}"
-    return user
-
-@router.get("/{user_id}", response_model=UserResponse)
-async def get_user(user_id: str, current_user = Depends(get_current_user)):
-    if current_user.id != user_id and not current_user.is_admin:
-        raise HTTPException(status_code=403, detail="Forbidden")  # BOLA protection
-    return await user_service.get(user_id)
-```
-
-### Step 3: Refactor and Add Edge Cases
-
-Add tests for rate limiting, pagination, error scenarios, then refactor.
-
-### Step 4: Run Full Verification
-
-```bash
-pytest tests/ -v --cov=app --cov-report=term-missing  # Run all API tests
-openapi-spec-validator openapi.yaml                    # Validate OpenAPI spec
-bandit -r app/                                         # Security scan
-```
+**📚 See [Testing Guide](references/testing-guide.md) for comprehensive TDD examples, test fixtures, and testing patterns**
 
 ---
 
@@ -237,273 +179,74 @@ You will implement consistent error responses:
 
 ## 4. Implementation Patterns
 
-### Pattern 1: REST Resource Design
+### REST Resource Design
+- Use nouns for resources (`/users`, `/orders`), never verbs
+- Proper HTTP methods: GET (read), POST (create), PUT (replace), PATCH (update), DELETE (remove)
+- Return appropriate status codes: 2xx (success), 4xx (client error), 5xx (server error)
 
-```http
-# ✅ GOOD: Proper REST resource hierarchy
-GET    /v1/users                      # List users
-POST   /v1/users                      # Create user
-GET    /v1/users/{id}                 # Get user
-PUT    /v1/users/{id}                 # Replace user (full update)
-PATCH  /v1/users/{id}                 # Update user (partial)
-DELETE /v1/users/{id}                 # Delete user
+### HTTP Status Code Quick Reference
+- **200** OK - Successful GET/PUT/PATCH with body
+- **201** Created - POST creating new resource (include Location header)
+- **204** No Content - Successful DELETE or update without response body
+- **400** Bad Request - Invalid input/malformed request
+- **401** Unauthorized - Missing or invalid authentication
+- **403** Forbidden - Authenticated but insufficient permissions
+- **404** Not Found - Resource doesn't exist
+- **422** Unprocessable Entity - Validation failed
+- **429** Too Many Requests - Rate limit exceeded
 
-GET    /v1/users/{id}/orders          # Get user's orders
-POST   /v1/users/{id}/orders          # Create order for user
+### Error Format (RFC 7807)
+Always return errors in RFC 7807 Problem Details format with `type`, `title`, `status`, `detail`, and `correlation_id`.
 
-# Query parameters for filtering/sorting/pagination
-GET /v1/users?role=admin&sort=-created_at&limit=20&offset=0
-
-# ❌ BAD: Verbs in URLs
-GET /v1/getUsers
-POST /v1/createUser
-GET /v1/users/{id}/getOrders
-```
-
----
-
-### Pattern 2: HTTP Status Codes
-
-```javascript
-// ✅ CORRECT: Use appropriate status codes
-
-// 2xx Success
-200 OK                  // GET, PUT, PATCH (with body)
-201 Created             // POST (new resource)
-204 No Content          // DELETE, PUT, PATCH (no body)
-
-// 4xx Client Errors
-400 Bad Request         // Invalid input
-401 Unauthorized        // Missing/invalid authentication
-403 Forbidden           // Authenticated but not authorized
-404 Not Found           // Resource doesn't exist
-409 Conflict            // Duplicate resource, version conflict
-422 Unprocessable Entity // Validation failed
-429 Too Many Requests   // Rate limit exceeded
-
-// 5xx Server Errors
-500 Internal Server Error // Unexpected server error
-503 Service Unavailable  // Temporary downtime
-
-// ❌ WRONG: Always returning 200
-res.status(200).json({ error: "User not found" }); // DON'T DO THIS!
-
-// ✅ RIGHT
-res.status(404).json({
-  type: "https://api.example.com/errors/not-found",
-  title: "Resource Not Found",
-  status: 404,
-  detail: "User with ID 12345 does not exist"
-});
-```
+### Authentication
+- Use RS256 JWT with short expiration (15min)
+- Validate all claims (issuer, audience, expiration)
+- Implement token revocation checking
+- Use scope-based authorization
+- Never expose tokens in URLs or logs
 
 ---
 
-### Pattern 3: RFC 7807 Error Responses
+## 5. Performance Optimization
 
-```javascript
-// ✅ STANDARDIZED ERROR FORMAT (RFC 7807)
-{
-  "type": "https://api.example.com/errors/validation-failed",
-  "title": "Validation Failed",
-  "status": 422,
-  "detail": "The request body contains invalid fields",
-  "instance": "/v1/users",
-  "correlation_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  "errors": [{ "field": "email", "code": "invalid_format", "message": "Email must be valid" }]
-}
+Critical performance patterns for scalable APIs:
 
-// Error handler middleware - never expose stack traces
-app.use((err, req, res, next) => {
-  if (err instanceof ApiError) {
-    return res.status(err.status).json({ ...err, instance: req.originalUrl });
-  }
-  res.status(500).json({ type: "internal-error", title: "Internal Server Error", status: 500, correlation_id: generateCorrelationId() });
-});
-```
+- **Response Caching** - Redis cache with proper headers (Cache-Control, ETag, X-Cache)
+- **Cursor-Based Pagination** - O(1) performance vs O(n) offset-based (use cursor after last ID)
+- **Response Compression** - GZip middleware for responses > 500 bytes
+- **Connection Pooling** - Reuse database and HTTP connections (configure min/max pool sizes)
+- **Rate Limiting** - Tiered limits per endpoint (strict for auth, moderate for search)
+- **Query Optimization** - Avoid N+1 queries, use database aggregation, index frequently queried fields
+- **Load Balancing** - Distribute traffic with health checks and keep-alive connections
 
----
-
-### Pattern 4: JWT Authentication Best Practices
-
-```javascript
-// ✅ SECURE JWT - Use RS256, short expiration, validate all claims
-const validateJWT = async (req, res, next) => {
-  const token = req.headers.authorization?.substring(7);
-  if (!token) return res.status(401).json({ type: "unauthorized", status: 401, detail: "Bearer token required" });
-
-  try {
-    const decoded = jwt.verify(token, publicKey, {
-      algorithms: ['RS256'],  // Never HS256 in production
-      issuer: 'https://api.example.com',
-      audience: 'https://api.example.com'
-    });
-    const isRevoked = await tokenCache.exists(decoded.jti);  // Check revocation
-    if (isRevoked) throw new Error('Token revoked');
-    req.user = decoded;
-    next();
-  } catch (error) {
-    return res.status(401).json({ type: "invalid-token", status: 401, detail: "Invalid or expired token" });
-  }
-};
-
-// Scope-based authorization
-const requireScope = (...scopes) => (req, res, next) => {
-  const hasScope = scopes.some(s => req.user.scope.includes(s));
-  if (!hasScope) return res.status(403).json({ type: "forbidden", status: 403, detail: `Required: ${scopes.join(', ')}` });
-  next();
-};
-
-app.get('/v1/users', validateJWT, requireScope('read:users'), getUsers);
-```
-
-**📚 For advanced patterns, see:**
-- [Advanced Patterns](references/advanced-patterns.md) - Rate limiting, pagination, OpenAPI documentation
-- [Security Examples](references/security-examples.md) - Detailed OWASP API Security Top 10 implementations
-
----
-
-## 5. Performance Patterns
-
-### Pattern 1: Response Caching
-
-```python
-# Bad: No caching
-@router.get("/v1/products/{id}")
-async def get_product(id: str):
-    return await db.products.find_one({"_id": id})
-
-# Good: Redis cache with headers
-@router.get("/v1/products/{id}")
-async def get_product(id: str, response: Response):
-    cached = await redis_cache.get(f"product:{id}")
-    if cached:
-        response.headers["X-Cache"] = "HIT"
-        return cached
-    product = await db.products.find_one({"_id": id})
-    await redis_cache.setex(f"product:{id}", 300, product)
-    response.headers["Cache-Control"] = "public, max-age=300"
-    return product
-```
-
-### Pattern 2: Cursor-Based Pagination
-
-```python
-# Bad: Offset pagination - O(n) skip
-@router.get("/v1/users")
-async def list_users(offset: int = 0, limit: int = 100):
-    return await db.users.find().skip(offset).limit(limit)
-
-# Good: Cursor-based - O(1) performance
-@router.get("/v1/users")
-async def list_users(cursor: str = None, limit: int = Query(default=20, le=100)):
-    query = {"_id": {"$gt": ObjectId(cursor)}} if cursor else {}
-    users = await db.users.find(query).sort("_id", 1).limit(limit + 1).to_list()
-    has_next = len(users) > limit
-    return {"data": users[:limit], "pagination": {"next_cursor": str(users[-1]["_id"]) if has_next else None}}
-```
-
-### Pattern 3: Response Compression
-
-```python
-# Bad: No compression
-app = FastAPI()
-
-# Good: GZip middleware for responses > 500 bytes
-from fastapi.middleware.gzip import GZipMiddleware
-app = FastAPI()
-app.add_middleware(GZipMiddleware, minimum_size=500)
-```
-
-### Pattern 4: Connection Pooling
-
-```python
-# Bad: New connection per request
-@router.get("/v1/data")
-async def get_data():
-    client = AsyncIOMotorClient("mongodb://localhost")  # Expensive!
-    return await client.db.collection.find_one()
-
-# Good: Shared pool via lifespan
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.state.db = AsyncIOMotorClient("mongodb://localhost", maxPoolSize=50, minPoolSize=10)
-    yield
-    app.state.db.close()
-
-app = FastAPI(lifespan=lifespan)
-
-@router.get("/v1/data")
-async def get_data(request: Request):
-    return await request.app.state.db.mydb.collection.find_one()
-```
-
-### Pattern 5: Rate Limiting
-
-```python
-# Bad: No rate limiting
-@router.post("/v1/auth/login")
-async def login(credentials: LoginRequest):
-    return await auth_service.login(credentials)
-
-# Good: Tiered limits with Redis
-from fastapi_limiter.depends import RateLimiter
-
-@router.post("/v1/auth/login", dependencies=[Depends(RateLimiter(times=5, minutes=15))])
-async def login(credentials: LoginRequest):
-    return await auth_service.login(credentials)
-
-@router.get("/v1/users", dependencies=[Depends(RateLimiter(times=100, minutes=1))])
-async def list_users():
-    return await user_service.list()
-```
+**📚 See [Performance Optimization](references/performance-optimization.md) for detailed implementation patterns**
 
 ---
 
 ## 6. Security Standards
 
-### OWASP API Security Top 10 2023 - Summary
+### OWASP API Security Top 10 2023
 
-| Threat | Description | Key Mitigation |
-|--------|-------------|----------------|
-| **API1: Broken Object Level Authorization (BOLA)** | Users can access objects belonging to others | Always verify user owns resource before returning data |
-| **API2: Broken Authentication** | Weak auth allows token/credential compromise | Use RS256 JWT, short expiration, token revocation, rate limiting |
-| **API3: Broken Object Property Level Authorization** | Exposing sensitive fields or mass assignment | Whitelist output/input fields, use DTOs, never expose passwords/keys |
-| **API4: Unrestricted Resource Consumption** | No limits leads to DoS | Implement rate limiting, pagination limits, request timeouts |
-| **API5: Broken Function Level Authorization** | Admin functions lack role checks | Verify roles/scopes for every privileged operation |
-| **API6: Unrestricted Access to Sensitive Business Flows** | Business flows can be abused | Add CAPTCHA, transaction limits, step-up auth, anomaly detection |
-| **API7: Server Side Request Forgery (SSRF)** | APIs make requests to attacker-controlled URLs | Whitelist allowed hosts, block private IPs, validate URLs |
-| **API8: Security Misconfiguration** | Improper security settings | Set security headers, use HTTPS, configure CORS, disable debug |
-| **API9: Improper Inventory Management** | Unknown/forgotten APIs | Use API gateway, maintain inventory, retire old versions |
-| **API10: Unsafe Consumption of APIs** | Trust third-party APIs without validation | Validate external responses, implement timeouts, use circuit breakers |
+| # | Threat | Key Mitigation |
+|---|--------|----------------|
+| 1 | **Broken Object Level Authorization (BOLA)** | Always verify user owns resource before returning data |
+| 2 | **Broken Authentication** | Use RS256 JWT, short expiration, token revocation, rate limiting |
+| 3 | **Broken Object Property Level Authorization** | Whitelist output/input fields, use DTOs, never expose passwords/keys |
+| 4 | **Unrestricted Resource Consumption** | Implement rate limiting, pagination limits, request timeouts |
+| 5 | **Broken Function Level Authorization** | Verify roles/scopes for every privileged operation |
+| 6 | **Unrestricted Access to Sensitive Business Flows** | Add CAPTCHA, transaction limits, step-up auth |
+| 7 | **Server Side Request Forgery (SSRF)** | Whitelist allowed hosts, block private IPs |
+| 8 | **Security Misconfiguration** | Set security headers, use HTTPS, configure CORS |
+| 9 | **Improper Inventory Management** | Use API gateway, maintain inventory, retire old versions |
+| 10 | **Unsafe Consumption of APIs** | Validate external responses, implement timeouts, circuit breakers |
 
-**Critical Security Rules:**
-
-```javascript
-// ✅ ALWAYS verify authorization
-app.get('/users/:id/data', validateJWT, async (req, res) => {
-  if (req.user.sub !== req.params.id && !req.user.isAdmin) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-  // Return data...
-});
-
-// ✅ ALWAYS filter sensitive fields
-const sanitizeUser = (user) => ({
-  id: user.id,
-  name: user.name,
-  email: user.email
-  // NEVER: password_hash, ssn, api_key, internal_notes
-});
-
-// ✅ ALWAYS validate input
-body('email').isEmail().normalizeEmail(),
-body('age').optional().isInt({ min: 0, max: 150 })
-
-// ✅ ALWAYS implement rate limiting
-const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
-app.use('/api/', apiLimiter);
-```
+**Security Checklist:**
+- ✅ Verify authorization on every resource access (prevent BOLA)
+- ✅ Filter sensitive fields from all responses (use DTOs)
+- ✅ Validate all inputs (email format, data types, ranges)
+- ✅ Implement rate limiting on all endpoints (especially auth)
+- ✅ Never expose stack traces or internal errors
+- ✅ Use HTTPS only, set security headers (helmet.js)
 
 **📚 See [Security Examples](references/security-examples.md) for detailed implementations of each OWASP threat**
 
@@ -511,15 +254,19 @@ app.use('/api/', apiLimiter);
 
 ## 7. Common Mistakes to Avoid
 
-| Anti-Pattern | Wrong | Right |
-|-------------|-------|-------|
-| Verbs in URLs | `POST /createUser` | `POST /users` |
-| Always 200 | `res.status(200).json({error: "Not found"})` | `res.status(404).json({...})` |
-| No rate limiting | `app.post('/login', login)` | Add `rateLimit()` middleware |
-| Exposing secrets | `res.json(user)` | `res.json(sanitizeUser(user))` |
-| No validation | `db.query(..., [req.body])` | Use `body('email').isEmail()` |
+**Top API Anti-Patterns:**
+- ❌ Using verbs in REST URLs (`/createUser` → use `POST /users`)
+- ❌ Always returning 200 status codes (use proper 4xx/5xx codes)
+- ❌ No rate limiting (implement on all endpoints, especially auth)
+- ❌ Exposing sensitive fields (filter passwords, tokens, internal IDs)
+- ❌ Missing input validation (validate email format, data types, ranges)
+- ❌ No API versioning (version from day one: `/v1/users`)
+- ❌ Broken pagination (enforce maximum page sizes)
+- ❌ Weak authentication (use cryptographically secure tokens)
+- ❌ Missing authorization checks (verify user owns resource)
+- ❌ N+1 query problems (use joins or batch loading)
 
-**📚 See [Anti-Patterns Guide](references/anti-patterns.md) for comprehensive examples**
+**📚 See [Anti-Patterns Guide](references/anti-patterns.md) for comprehensive examples with code**
 
 ---
 
@@ -593,6 +340,8 @@ APIs are the foundation of modern applications. Design them with security, scala
 
 ## 📚 Additional Resources
 
-- **[Advanced Patterns](references/advanced-patterns.md)** - Rate limiting, cursor-based pagination, OpenAPI documentation
+- **[Testing Guide](references/testing-guide.md)** - TDD workflow, test fixtures, integration testing, load testing
+- **[Performance Optimization](references/performance-optimization.md)** - Caching, pagination, connection pooling, query optimization
 - **[Security Examples](references/security-examples.md)** - Detailed OWASP API Security Top 10 implementations
+- **[Advanced Patterns](references/advanced-patterns.md)** - Rate limiting algorithms, cursor pagination, OpenAPI specs
 - **[Anti-Patterns Guide](references/anti-patterns.md)** - Common mistakes and how to avoid them

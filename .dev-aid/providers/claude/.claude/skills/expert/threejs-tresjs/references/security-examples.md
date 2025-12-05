@@ -1,5 +1,34 @@
 # Three.js/TresJS Security Examples
 
+## Security Standards
+
+### Known Vulnerabilities
+
+| CVE | Severity | Description | Mitigation |
+|-----|----------|-------------|------------|
+| CVE-2020-28496 | HIGH | ReDoS in color parsing | Update to 0.125.0+, validate colors |
+| CVE-2022-0177 | MEDIUM | XSS in docs | Update to 0.137.0+ |
+
+### OWASP Top 10 Coverage
+
+| OWASP Category | Risk | Mitigation |
+|----------------|------|------------|
+| A05 Injection | MEDIUM | Validate all color/text inputs |
+| A06 Vulnerable Components | HIGH | Keep Three.js updated |
+
+### Recommended Versions
+
+| Package | Version | Security Notes |
+|---------|---------|----------------|
+| three | ^0.160.0+ | Latest stable, fixes CVE-2020-28496 ReDoS |
+| @tresjs/core | ^4.0.0 | Vue 3 integration |
+| @tresjs/cientos | ^3.0.0 | Component library |
+| postprocessing | ^6.0.0 | Effects library |
+
+**Note**: Versions before 0.137.0 have XSS vulnerabilities, before 0.125.0 have ReDoS vulnerabilities.
+
+---
+
 ## ReDoS Prevention
 
 ### Safe Color Input
@@ -88,3 +117,48 @@ export function useGPUTimeout(maxFrameTime = 100) {
   }
 }
 ```
+
+---
+
+## GPU Resource Protection
+
+```typescript
+// composables/useResourceLimit.ts
+export function useResourceLimit() {
+  const MAX_TRIANGLES = 1_000_000
+  const MAX_DRAW_CALLS = 100
+
+  let triangleCount = 0
+
+  function checkGeometry(geometry: BufferGeometry): boolean {
+    const triangles = geometry.index
+      ? geometry.index.count / 3
+      : geometry.attributes.position.count / 3
+
+    if (triangleCount + triangles > MAX_TRIANGLES) {
+      console.error('Triangle limit exceeded')
+      return false
+    }
+
+    triangleCount += triangles
+    return true
+  }
+
+  return { checkGeometry }
+}
+```
+
+---
+
+## Security Checklist
+
+### Pre-Deployment Security Verification
+
+- [ ] Three.js version >= 0.137.0 (XSS fix)
+- [ ] All color inputs validated before parsing
+- [ ] No user input directly to `new Color()`
+- [ ] Resource limits enforced
+- [ ] All geometries/materials disposed on unmount
+- [ ] No unvalidated text rendering
+- [ ] WebGL context error handling implemented
+- [ ] GPU resource monitoring active

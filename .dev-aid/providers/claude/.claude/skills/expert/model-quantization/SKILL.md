@@ -8,6 +8,53 @@ description: "Expert skill for AI model quantization and optimization. Covers 4-
 
 > **File Organization**: Split structure. See `references/` for detailed implementations.
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any model quantization code**
+
+### Verification Requirements
+
+When using this skill to implement model quantization features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official llama.cpp documentation for quantization types
+   - ✅ Confirm quantization parameters are current
+   - ✅ Validate model formats against official specs
+   - ❌ Never guess quantization type names (Q4_K_M vs Q4_KM)
+   - ❌ Never invent memory calculation formulas
+   - ❌ Never assume quantization quality without benchmarking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing quantization implementations
+   - 🔍 Grep: Search for similar patterns in codebase
+   - 🔍 WebSearch: Verify llama.cpp quantization specs
+   - 🔍 WebFetch: Read official llama.cpp documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY quantization type, memory requirement, or quality metric
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in quantization can cause hours of wasted processing time and quality degradation
+
+4. **Common Quantization Hallucination Traps** (AVOID)
+   - ❌ Inventing quantization type names (use exact: Q4_0, Q4_K_M, Q5_K_M, Q6_K, Q8_0)
+   - ❌ Made-up memory formulas (verify actual model sizes)
+   - ❌ Assumed quality metrics without benchmarking
+   - ❌ Incorrect llama.cpp command syntax
+   - ❌ Non-existent quantization parameters
+
+### Self-Check Checklist
+
+Before EVERY response with quantization code:
+- [ ] All quantization types verified against llama.cpp documentation
+- [ ] Memory requirements verified against actual model sizes
+- [ ] Quality metrics verified with benchmarking approach
+- [ ] Can cite official llama.cpp documentation sources
+
+**⚠️ CRITICAL**: Quantization code with hallucinated parameters causes hours of wasted processing time and potential model quality degradation. Always verify.
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM - Model manipulation, potential quality degradation, resource management
@@ -66,19 +113,9 @@ When quantizing models, you will:
 ```python
 # tests/test_quantization.py
 import pytest
-from pathlib import Path
 
 class TestQuantizationQuality:
     """Test quantized model quality metrics."""
-
-    @pytest.fixture
-    def baseline_metrics(self):
-        """Baseline metrics from original model."""
-        return {
-            "perplexity": 5.2,
-            "accuracy": 0.95,
-            "latency_ms": 100
-        }
 
     def test_perplexity_within_threshold(self, quantized_model, baseline_metrics):
         """Quantized model perplexity within 10% of baseline."""
@@ -86,38 +123,17 @@ class TestQuantizationQuality:
         results = benchmark.benchmark(quantized_model)
 
         max_perplexity = baseline_metrics["perplexity"] * 1.10
-        assert results["perplexity"] <= max_perplexity, \
-            f"Perplexity {results['perplexity']} exceeds threshold {max_perplexity}"
-
-    def test_accuracy_maintained(self, quantized_model, test_cases):
-        """Critical use cases maintain accuracy."""
-        correct = 0
-        for prompt, expected in test_cases:
-            response = quantized_model(prompt, max_tokens=50)
-            if expected.lower() in response["choices"][0]["text"].lower():
-                correct += 1
-
-        accuracy = correct / len(test_cases)
-        assert accuracy >= 0.90, f"Accuracy {accuracy} below 90% threshold"
+        assert results["perplexity"] <= max_perplexity
 
     def test_memory_under_limit(self, quantized_model, max_memory_mb):
         """Model fits within memory constraint."""
         import psutil
         process = psutil.Process()
         memory_mb = process.memory_info().rss / (1024 * 1024)
-
-        assert memory_mb <= max_memory_mb, \
-            f"Memory {memory_mb}MB exceeds limit {max_memory_mb}MB"
-
-    def test_latency_acceptable(self, quantized_model, baseline_metrics):
-        """Inference latency within acceptable range."""
-        benchmark = QuantizationBenchmark(TEST_PROMPTS)
-        results = benchmark.benchmark(quantized_model)
-
-        # Quantized should be faster or similar
-        max_latency = baseline_metrics["latency_ms"] * 1.5
-        assert results["latency_ms"] <= max_latency
+        assert memory_mb <= max_memory_mb
 ```
+
+**See `references/testing-guide.md` for comprehensive test suite**
 
 ### Step 2: Implement Minimum to Pass
 
@@ -145,40 +161,34 @@ pytest tests/test_quantization.py -v
 
 # Run with coverage
 pytest tests/test_quantization.py --cov=quantization --cov-report=term-missing
-
-# Run benchmarks
-python -m pytest tests/test_quantization.py::TestQuantizationQuality -v --benchmark
 ```
 
 ---
 
-## 5. Technical Foundation
+## 5. Quantization Selection
 
-### 5.1 Quantization Levels
+### Quick Reference
 
-| Quantization | Bits | Memory | Quality | Use Case |
-|-------------|------|--------|---------|----------|
-| Q4_0 | 4 | 50% | Low | Minimum RAM |
-| Q4_K_S | 4 | 50% | Medium | Low RAM |
-| Q4_K_M | 4 | 52% | Good | Balanced |
-| Q5_K_S | 5 | 58% | Better | More RAM |
-| Q5_K_M | 5 | 60% | Better+ | Recommended |
-| Q6_K | 6 | 66% | High | Quality focus |
-| Q8_0 | 8 | 75% | Best | Max quality |
-| F16 | 16 | 100% | Original | Baseline |
+**For 7B Models**:
+- **8GB RAM**: Q4_K_M (4.1 GB model, 6 GB total)
+- **12GB RAM**: Q5_K_M (4.8 GB model, 7 GB total) ← **Recommended**
+- **16GB+ RAM**: Q8_0 (7.2 GB model, 10 GB total) for best quality
 
-### 3.2 Memory Requirements (7B Model)
+**For 13B Models**:
+- **16GB RAM**: Q4_K_M (7.4 GB model, 10 GB total)
+- **24GB RAM**: Q5_K_M (8.6 GB model, 12 GB total)
+- **32GB+ RAM**: Q8_0 (13 GB model, 18 GB total)
 
-| Quantization | Model Size | RAM Required |
-|-------------|------------|--------------|
-| Q4_K_M | 4.1 GB | 6 GB |
-| Q5_K_M | 4.8 GB | 7 GB |
-| Q8_0 | 7.2 GB | 10 GB |
-| F16 | 14.0 GB | 18 GB |
+**Quality Guidelines**:
+- **Q4_K_M**: Good balance, ~5% quality loss
+- **Q5_K_M**: Better quality, ~3% quality loss (recommended)
+- **Q8_0**: Best quality, <1% quality loss
+
+**See `references/quantization-techniques.md` for detailed tables and selection guidelines**
 
 ---
 
-## 4. Implementation Patterns
+## 6. Implementation Patterns
 
 ### Pattern 1: Secure Model Quantization Pipeline
 
@@ -188,150 +198,77 @@ import subprocess
 import hashlib
 import structlog
 
-logger = structlog.get_logger()
-
 class SecureQuantizer:
     """Secure model quantization with validation."""
 
     def __init__(self, models_dir: str, llama_cpp_dir: str):
         self.models_dir = Path(models_dir)
-        self.llama_cpp_dir = Path(llama_cpp_dir)
-        self.quantize_bin = self.llama_cpp_dir / "quantize"
-
+        self.quantize_bin = Path(llama_cpp_dir) / "quantize"
         if not self.quantize_bin.exists():
             raise FileNotFoundError("llama.cpp quantize binary not found")
 
-    def quantize(
-        self,
-        input_model: str,
-        output_name: str,
-        quantization: str = "Q4_K_M"
-    ) -> str:
+    def quantize(self, input_model: str, output_name: str, quantization: str = "Q4_K_M") -> str:
         """Quantize model with validation."""
         input_path = self.models_dir / input_model
         output_path = self.models_dir / output_name
 
-        # Validate input
+        # Validate
         if not input_path.exists():
             raise FileNotFoundError(f"Model not found: {input_path}")
-
-        # Validate quantization type
         valid_types = ["Q4_0", "Q4_K_S", "Q4_K_M", "Q5_K_S", "Q5_K_M", "Q6_K", "Q8_0"]
         if quantization not in valid_types:
             raise ValueError(f"Invalid quantization: {quantization}")
 
-        # Calculate input checksum
-        input_checksum = self._calculate_checksum(input_path)
-        logger.info("quantize.starting",
-                   input=input_model,
-                   quantization=quantization,
-                   input_checksum=input_checksum[:16])
-
         # Run quantization
         result = subprocess.run(
-            [
-                str(self.quantize_bin),
-                str(input_path),
-                str(output_path),
-                quantization
-            ],
-            capture_output=True,
-            text=True,
-            timeout=3600  # 1 hour timeout
+            [str(self.quantize_bin), str(input_path), str(output_path), quantization],
+            capture_output=True, text=True, timeout=3600
         )
 
         if result.returncode != 0:
-            logger.error("quantize.failed", stderr=result.stderr)
             raise QuantizationError(f"Quantization failed: {result.stderr}")
 
-        # Calculate output checksum
-        output_checksum = self._calculate_checksum(output_path)
-
         # Save checksum
-        self._save_checksum(output_path, output_checksum)
-
-        logger.info("quantize.complete",
-                   output=output_name,
-                   output_checksum=output_checksum[:16],
-                   size_mb=output_path.stat().st_size / (1024*1024))
+        checksum = self._calculate_checksum(output_path)
+        output_path.with_suffix(".sha256").write_text(f"{checksum}  {output_path.name}")
 
         return str(output_path)
 
     def _calculate_checksum(self, path: Path) -> str:
-        """Calculate SHA256 checksum."""
         sha256 = hashlib.sha256()
         with open(path, "rb") as f:
             for chunk in iter(lambda: f.read(8192), b""):
                 sha256.update(chunk)
         return sha256.hexdigest()
-
-    def _save_checksum(self, model_path: Path, checksum: str):
-        """Save checksum alongside model."""
-        checksum_path = model_path.with_suffix(".sha256")
-        checksum_path.write_text(f"{checksum}  {model_path.name}")
 ```
 
 ### Pattern 2: Quality Benchmarking
 
 ```python
-import numpy as np
-from typing import Dict
-
 class QuantizationBenchmark:
     """Benchmark quantization quality."""
 
     def __init__(self, test_prompts: list[str]):
         self.test_prompts = test_prompts
 
-    def benchmark(self, model_path: str) -> Dict:
-        """Run quality benchmark on model."""
+    def benchmark(self, model_path: str) -> dict:
         from llama_cpp import Llama
-
         llm = Llama(model_path=model_path, n_ctx=512, verbose=False)
 
-        results = {
+        return {
             "perplexity": self._measure_perplexity(llm),
             "latency_ms": self._measure_latency(llm),
             "memory_mb": self._measure_memory(llm)
         }
 
-        logger.info("benchmark.complete",
-                   model=Path(model_path).name,
-                   **results)
-
-        return results
-
-    def _measure_perplexity(self, llm) -> float:
-        """Measure model perplexity."""
-        # Simplified perplexity calculation
-        total_nll = 0
-        total_tokens = 0
-
-        for prompt in self.test_prompts:
-            tokens = llm.tokenize(prompt.encode())
-            logits = llm.eval(tokens)
-            # Calculate negative log likelihood
-            total_tokens += len(tokens)
-
-        return np.exp(total_nll / total_tokens) if total_tokens > 0 else float('inf')
-
     def _measure_latency(self, llm) -> float:
-        """Measure inference latency."""
-        import time
-
+        import time, numpy as np
         latencies = []
         for prompt in self.test_prompts[:5]:
             start = time.time()
             llm(prompt, max_tokens=50)
             latencies.append((time.time() - start) * 1000)
-
         return np.mean(latencies)
-
-    def _measure_memory(self, llm) -> float:
-        """Measure memory usage."""
-        import psutil
-        process = psutil.Process()
-        return process.memory_info().rss / (1024 * 1024)
 ```
 
 ### Pattern 3: Quantization Selection
@@ -340,113 +277,35 @@ class QuantizationBenchmark:
 class QuantizationSelector:
     """Select optimal quantization for hardware."""
 
-    def select(
-        self,
-        model_params_b: float,
-        available_ram_gb: float,
-        quality_priority: str = "balanced"
-    ) -> str:
+    def select(self, model_params_b: float, available_ram_gb: float,
+               quality_priority: str = "balanced") -> str:
         """Select quantization level based on constraints."""
 
-        # Memory per param by quantization
-        memory_per_param = {
-            "Q4_K_M": 0.5,
-            "Q5_K_M": 0.625,
-            "Q6_K": 0.75,
-            "Q8_0": 1.0
-        }
+        memory_per_param = {"Q4_K_M": 0.5, "Q5_K_M": 0.625, "Q6_K": 0.75, "Q8_0": 1.0}
+        quality_scores = {"Q4_K_M": 0.7, "Q5_K_M": 0.85, "Q6_K": 0.92, "Q8_0": 0.98}
 
-        # Quality scores (relative)
-        quality_scores = {
-            "Q4_K_M": 0.7,
-            "Q5_K_M": 0.85,
-            "Q6_K": 0.92,
-            "Q8_0": 0.98
-        }
-
-        # Calculate which fit in RAM (need ~2GB overhead)
         usable_ram = available_ram_gb - 2
-
-        candidates = []
-        for quant, mem_factor in memory_per_param.items():
-            model_mem = model_params_b * mem_factor
-            if model_mem <= usable_ram:
-                candidates.append(quant)
+        candidates = [q for q, mem in memory_per_param.items()
+                     if model_params_b * mem <= usable_ram]
 
         if not candidates:
             raise ValueError(f"No quantization fits in {available_ram_gb}GB RAM")
 
-        # Select based on priority
         if quality_priority == "quality":
             return max(candidates, key=lambda q: quality_scores[q])
         elif quality_priority == "speed":
             return min(candidates, key=lambda q: memory_per_param[q])
-        else:  # balanced
-            # Return highest quality that fits
+        else:
             return max(candidates, key=lambda q: quality_scores[q])
-
-# Usage
-selector = QuantizationSelector()
-quant = selector.select(
-    model_params_b=7.0,
-    available_ram_gb=8.0,
-    quality_priority="balanced"
-)
-# Returns "Q5_K_M"
 ```
 
-### Pattern 4: Model Conversion Pipeline
-
-```python
-class ModelConverter:
-    """Convert models to GGUF format."""
-
-    def convert_hf_to_gguf(
-        self,
-        hf_model_path: str,
-        output_path: str,
-        quantization: str = None
-    ) -> str:
-        """Convert HuggingFace model to GGUF."""
-
-        # Convert to GGUF
-        convert_script = self.llama_cpp_dir / "convert_hf_to_gguf.py"
-
-        result = subprocess.run(
-            [
-                "python",
-                str(convert_script),
-                hf_model_path,
-                "--outtype", "f16",
-                "--outfile", output_path
-            ],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
-            raise ConversionError(f"Conversion failed: {result.stderr}")
-
-        # Optionally quantize
-        if quantization:
-            quantizer = SecureQuantizer(
-                str(Path(output_path).parent),
-                str(self.llama_cpp_dir)
-            )
-            return quantizer.quantize(
-                Path(output_path).name,
-                Path(output_path).stem + f"_{quantization}.gguf",
-                quantization
-            )
-
-        return output_path
-```
+**See `references/advanced-patterns.md` for mixed quantization, calibration, and hardware-specific optimization**
 
 ---
 
-## 5. Security Standards
+## 7. Security Standards
 
-### 5.1 Model Integrity Verification
+### Model Integrity Verification
 
 ```python
 def verify_model_integrity(model_path: str) -> bool:
@@ -471,7 +330,7 @@ def verify_model_integrity(model_path: str) -> bool:
     return True
 ```
 
-### 5.2 Safe Model Loading
+### Safe Model Loading
 
 ```python
 def safe_load_quantized(model_path: str) -> Llama:
@@ -491,11 +350,13 @@ def safe_load_quantized(model_path: str) -> Llama:
     return Llama(model_path=str(path))
 ```
 
+**See `references/security-examples.md` for comprehensive security patterns and testing**
+
 ---
 
 ## 8. Common Mistakes
 
-### DON'T: Use Unverified Models
+### ❌ DON'T: Use Unverified Models
 
 ```python
 # BAD - No verification
@@ -507,7 +368,7 @@ if not verify_model_integrity(path):
 llm = Llama(model_path=path)
 ```
 
-### DON'T: Over-Quantize for Use Case
+### ❌ DON'T: Over-Quantize for Use Case
 
 ```python
 # BAD - Q4_0 for quality-critical task
@@ -518,33 +379,69 @@ quant = selector.select(7.0, 8.0, "quality")
 llm = Llama(model_path=f"model-{quant}.gguf")
 ```
 
+### ❌ DON'T: Ignore Memory Overhead
+
+```python
+# BAD - Assume model size = RAM needed
+if available_ram >= model_size:
+    load_model(model_path)  # Will crash!
+
+# GOOD - Account for overhead (need 50% extra)
+required_ram = model_size * 1.5
+if available_ram >= required_ram:
+    load_model(model_path)
+```
+
+**See `references/anti-patterns.md` for comprehensive list of anti-patterns**
+
 ---
 
-## 13. Pre-Deployment Checklist
+## 9. References
+
+Detailed documentation is split into specialized files:
+
+### Technical References
+- **`references/quantization-techniques.md`** - Quantization levels, memory requirements, quality-performance tradeoffs, selection guidelines
+- **`references/testing-guide.md`** - Complete TDD workflow, unit tests, integration tests, quality benchmarks, performance tests
+
+### Implementation References
+- **`references/advanced-patterns.md`** - Mixed quantization, calibration-based quantization, quality analysis, batch quantization, hardware-specific optimization
+- **`references/anti-patterns.md`** - Common mistakes, performance anti-patterns, security anti-patterns, testing anti-patterns
+
+### Security References
+- **`references/security-examples.md`** - Model integrity verification, safe path handling, secure quantization process, security testing
+
+---
+
+## 10. Pre-Deployment Checklist
 
 - [ ] Model checksums generated and saved
 - [ ] Checksums verified before loading
-- [ ] Quantization level matches hardware
-- [ ] Perplexity benchmark within acceptable range
+- [ ] Quantization level matches hardware constraints
+- [ ] Perplexity benchmark within acceptable range (<10% degradation)
 - [ ] Latency meets requirements
-- [ ] Memory usage verified
-- [ ] Critical use cases tested
-- [ ] Fallback model available
+- [ ] Memory usage verified (including overhead)
+- [ ] Critical use cases tested with quantized model
+- [ ] Fallback model available if quality issues arise
+- [ ] All tests passing (unit, integration, quality)
 
 ---
 
-## 14. Summary
+## 11. Summary
 
 Your goal is to create quantized models that are:
 - **Efficient**: Optimized for target hardware constraints
 - **Quality**: Minimal degradation for use case
 - **Verified**: Checksums validated before use
+- **Tested**: Comprehensive quality and performance testing
 
 You understand that quantization is a tradeoff between quality and resource usage. Always benchmark before deployment and verify model integrity.
 
 **Critical Reminders**:
 1. Generate and verify checksums for all models
-2. Select quantization based on hardware constraints
+2. Select quantization based on hardware constraints (see quick reference)
 3. Benchmark perplexity and latency before deployment
 4. Test critical use cases with quantized model
 5. Never load models without integrity verification
+6. Account for memory overhead (1.5x model size minimum)
+7. Use Q5_K_M as default for balanced quality/performance

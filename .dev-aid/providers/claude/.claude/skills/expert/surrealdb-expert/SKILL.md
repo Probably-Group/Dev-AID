@@ -5,6 +5,55 @@ description: "Expert SurrealDB developer specializing in multi-model database de
 
 # SurrealDB Expert
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any SurrealDB code**
+
+### Verification Requirements
+
+When using this skill to implement SurrealDB features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official SurrealDB documentation (https://surrealdb.com/docs)
+   - ✅ Confirm SurrealQL syntax is current for the version being used
+   - ✅ Validate security patterns against official security guides
+   - ❌ Never guess configuration options or permissions syntax
+   - ❌ Never invent SurrealQL functions or methods
+   - ❌ Never assume compatibility between versions without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for SurrealDB patterns
+   - 🔍 Grep: Search for similar implementations and schema definitions
+   - 🔍 WebSearch: Verify SurrealQL syntax in official docs
+   - 🔍 WebFetch: Read official SurrealDB documentation pages
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY SurrealDB feature/syntax/permission pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in SurrealDB can cause security vulnerabilities, data loss, or unauthorized access
+
+4. **Common SurrealDB Hallucination Traps** (AVOID)
+   - ❌ Invented PERMISSIONS clauses or conditions
+   - ❌ Made-up crypto functions or hash algorithms
+   - ❌ Non-existent graph traversal operators
+   - ❌ Incorrect DEFINE TABLE/FIELD/INDEX syntax
+   - ❌ Invalid SCOPE or authentication patterns
+   - ❌ Wrong ASSERT validation syntax
+
+### Self-Check Checklist
+
+Before EVERY response with SurrealDB code:
+- [ ] All PERMISSIONS verified against official docs
+- [ ] Graph traversal syntax verified against current version
+- [ ] Crypto functions verified (crypto::argon2, crypto::bcrypt)
+- [ ] DEFINE statements verified for correctness
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: SurrealDB code with hallucinated patterns causes security vulnerabilities and data integrity issues. Always verify.
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH (Database system with security implications)
@@ -68,14 +117,12 @@ async def db():
     await client.use("test", "test_db")
     await client.signin({"user": "root", "pass": "root"})
     yield client
-    # Cleanup
     await client.query("DELETE user;")
     await client.close()
 
 @pytest.mark.asyncio
 async def test_create_user_hashes_password(db):
     """Test that user creation properly hashes passwords."""
-    # This test should FAIL initially - no implementation yet
     result = await db.query(
         """
         CREATE user CONTENT {
@@ -88,66 +135,8 @@ async def test_create_user_hashes_password(db):
 
     user = result[0]["result"][0]
     assert user["email"] == "test@example.com"
-    # Password should be hashed, not plain text
     assert user["password"] != "secret123"
     assert user["password"].startswith("$argon2")
-
-@pytest.mark.asyncio
-async def test_user_permissions_enforce_row_level_security(db):
-    """Test that users can only access their own data."""
-    # Create schema with row-level security
-    await db.query("""
-        DEFINE TABLE user SCHEMAFULL
-            PERMISSIONS
-                FOR select, update, delete WHERE id = $auth.id
-                FOR create WHERE $auth.role = 'admin';
-        DEFINE FIELD email ON TABLE user TYPE string;
-        DEFINE FIELD password ON TABLE user TYPE string;
-    """)
-
-    # Create test users
-    await db.query("""
-        CREATE user:1 CONTENT { email: 'user1@test.com', password: 'hash1' };
-        CREATE user:2 CONTENT { email: 'user2@test.com', password: 'hash2' };
-    """)
-
-    # Verify row-level security works
-    # This requires proper auth context setup
-    assert True  # Placeholder - implement auth context test
-
-@pytest.mark.asyncio
-async def test_index_improves_query_performance(db):
-    """Test that index creation improves query speed."""
-    # Create table and data without index
-    await db.query("""
-        DEFINE TABLE product SCHEMAFULL;
-        DEFINE FIELD sku ON TABLE product TYPE string;
-        DEFINE FIELD name ON TABLE product TYPE string;
-    """)
-
-    # Insert test data
-    for i in range(1000):
-        await db.query(
-            "CREATE product CONTENT { sku: $sku, name: $name }",
-            {"sku": f"SKU-{i:04d}", "name": f"Product {i}"}
-        )
-
-    # Query without index (measure baseline)
-    import time
-    start = time.time()
-    await db.query("SELECT * FROM product WHERE sku = 'SKU-0500'")
-    time_without_index = time.time() - start
-
-    # Create index
-    await db.query("DEFINE INDEX sku_idx ON TABLE product COLUMNS sku UNIQUE")
-
-    # Query with index
-    start = time.time()
-    await db.query("SELECT * FROM product WHERE sku = 'SKU-0500'")
-    time_with_index = time.time() - start
-
-    # Index should improve performance
-    assert time_with_index <= time_without_index
 ```
 
 ### Step 2: Implement Minimum to Pass
@@ -191,65 +180,9 @@ class UserRepository:
             {"email": email, "password": password}
         )
         return result[0]["result"][0]
-
-    async def find_by_email(self, email: str) -> Optional[dict]:
-        """Find user by email using index."""
-        result = await self.db.query(
-            "SELECT * FROM user WHERE email = $email",
-            {"email": email}
-        )
-        users = result[0]["result"]
-        return users[0] if users else None
 ```
 
-### Step 3: Refactor if Needed
-
-```python
-# Refactored with connection pooling and better error handling
-from contextlib import asynccontextmanager
-from surrealdb import Surreal
-import asyncio
-
-class SurrealDBPool:
-    """Connection pool for SurrealDB."""
-
-    def __init__(self, url: str, ns: str, db: str, size: int = 10):
-        self.url = url
-        self.ns = ns
-        self.db = db
-        self.size = size
-        self._pool: asyncio.Queue = asyncio.Queue(maxsize=size)
-        self._initialized = False
-
-    async def initialize(self):
-        """Initialize connection pool."""
-        for _ in range(self.size):
-            conn = Surreal(self.url)
-            await conn.connect()
-            await conn.use(self.ns, self.db)
-            await self._pool.put(conn)
-        self._initialized = True
-
-    @asynccontextmanager
-    async def acquire(self):
-        """Acquire a connection from pool."""
-        if not self._initialized:
-            await self.initialize()
-
-        conn = await self._pool.get()
-        try:
-            yield conn
-        finally:
-            await self._pool.put(conn)
-
-    async def close(self):
-        """Close all connections in pool."""
-        while not self._pool.empty():
-            conn = await self._pool.get()
-            await conn.close()
-```
-
-### Step 4: Run Full Verification
+### Step 3: Run Full Verification
 
 ```bash
 # Run all SurrealDB tests
@@ -257,19 +190,56 @@ pytest tests/test_surrealdb/ -v --asyncio-mode=auto
 
 # Run with coverage
 pytest tests/test_surrealdb/ --cov=src/repositories --cov-report=term-missing
-
-# Run specific test file
-pytest tests/test_user_repository.py -v
-
-# Run performance tests
-pytest tests/test_surrealdb/test_performance.py -v --benchmark-only
 ```
 
 ---
 
-## 4. Performance Patterns
+## 4. Core Patterns
 
-### Pattern 1: Indexing Strategy
+### Pattern 1: Secure Table Definition with Row-Level Security
+
+```surreal
+-- ✅ SECURE: Explicit permissions with row-level security
+DEFINE TABLE user SCHEMAFULL
+    PERMISSIONS
+        FOR select, update, delete WHERE id = $auth.id
+        FOR create WHERE $auth.role = 'admin';
+
+DEFINE FIELD email ON TABLE user TYPE string ASSERT string::is::email($value);
+DEFINE FIELD password ON TABLE user TYPE string VALUE crypto::argon2::generate($value);
+DEFINE FIELD role ON TABLE user TYPE string DEFAULT 'user' ASSERT $value IN ['user', 'admin'];
+DEFINE FIELD created ON TABLE user TYPE datetime DEFAULT time::now();
+
+DEFINE INDEX unique_email ON TABLE user COLUMNS email UNIQUE;
+
+-- ❌ UNSAFE: No permissions defined (relies on default)
+DEFINE TABLE user SCHEMAFULL;
+DEFINE FIELD password ON TABLE user TYPE string; -- Not hashed!
+```
+
+---
+
+### Pattern 2: Parameterized Queries for Injection Prevention
+
+```surreal
+-- ✅ SAFE: Parameterized query
+LET $user_email = "user@example.com";
+SELECT * FROM user WHERE email = $user_email;
+
+-- With SDK (JavaScript)
+const email = req.body.email;
+const result = await db.query(
+    'SELECT * FROM user WHERE email = $email',
+    { email }
+);
+
+-- ❌ UNSAFE: String concatenation (NEVER DO THIS)
+const query = `SELECT * FROM user WHERE email = "${userInput}"`;
+```
+
+---
+
+### Pattern 3: Indexing for Performance
 
 ```surreal
 -- ✅ Good: Index on frequently queried fields
@@ -284,13 +254,11 @@ DEFINE INDEX search_idx ON TABLE article
 
 -- Query using search index
 SELECT * FROM article WHERE title @@ 'database' OR content @@ 'performance';
-
--- ❌ Bad: No indexes on queried fields
-SELECT * FROM user WHERE email = $email;  -- Full table scan!
-SELECT * FROM post WHERE created_at > $date;  -- Slow without index
 ```
 
-### Pattern 2: Query Optimization
+---
+
+### Pattern 4: Graph Traversal Optimization
 
 ```surreal
 -- ✅ Good: Single query with graph traversal (avoids N+1)
@@ -303,142 +271,13 @@ FROM user:john;
 -- ✅ Good: Use FETCH for eager loading
 SELECT * FROM user FETCH ->authored->post, ->follows->user;
 
--- ✅ Good: Pagination with cursor
-SELECT * FROM post
-    WHERE created_at < $cursor
-    ORDER BY created_at DESC
-    LIMIT 20;
-
--- ✅ Good: Select only needed fields
-SELECT id, email, name FROM user WHERE active = true;
+-- ✅ Good: Limit traversal depth
+SELECT ->follows->user[0:10].name FROM user:john;
 
 -- ❌ Bad: N+1 query pattern
 LET $users = SELECT * FROM user;
 FOR $user IN $users {
-    SELECT * FROM post WHERE author = $user.id;  -- N additional queries!
-};
-
--- ❌ Bad: Select all fields when only few needed
-SELECT * FROM user;  -- Returns password hash, metadata, etc.
-```
-
-### Pattern 3: Connection Pooling
-
-```python
-# ✅ Good: Connection pool with proper management
-import asyncio
-from contextlib import asynccontextmanager
-from surrealdb import Surreal
-
-class SurrealDBPool:
-    def __init__(self, url: str, ns: str, db: str, pool_size: int = 10):
-        self.url = url
-        self.ns = ns
-        self.db = db
-        self.pool_size = pool_size
-        self._pool: asyncio.Queue = asyncio.Queue(maxsize=pool_size)
-        self._semaphore = asyncio.Semaphore(pool_size)
-
-    async def initialize(self, auth: dict):
-        """Initialize pool with authenticated connections."""
-        for _ in range(self.pool_size):
-            conn = Surreal(self.url)
-            await conn.connect()
-            await conn.use(self.ns, self.db)
-            await conn.signin(auth)
-            await self._pool.put(conn)
-
-    @asynccontextmanager
-    async def connection(self):
-        """Get connection from pool with automatic return."""
-        async with self._semaphore:
-            conn = await self._pool.get()
-            try:
-                yield conn
-            except Exception as e:
-                # Reconnect on error
-                await conn.close()
-                conn = Surreal(self.url)
-                await conn.connect()
-                raise e
-            finally:
-                await self._pool.put(conn)
-
-    async def close_all(self):
-        """Gracefully close all connections."""
-        while not self._pool.empty():
-            conn = await self._pool.get()
-            await conn.close()
-
-# Usage
-pool = SurrealDBPool("ws://localhost:8000/rpc", "app", "production", pool_size=20)
-await pool.initialize({"user": "admin", "pass": "secure"})
-
-async with pool.connection() as db:
-    result = await db.query("SELECT * FROM user WHERE id = $id", {"id": user_id})
-
-# ❌ Bad: New connection per request
-async def bad_query(user_id: str):
-    db = Surreal("ws://localhost:8000/rpc")
-    await db.connect()  # Expensive!
-    await db.use("app", "production")
-    await db.signin({"user": "admin", "pass": "secure"})
-    result = await db.query("SELECT * FROM user WHERE id = $id", {"id": user_id})
-    await db.close()
-    return result
-```
-
-### Pattern 4: Graph Traversal Optimization
-
-```surreal
--- ✅ Good: Limit traversal depth
-SELECT ->follows->user[0:10].name FROM user:john;  -- Max 10 results
-
--- ✅ Good: Filter during traversal
-SELECT ->authored->post[WHERE published = true AND created_at > $date].*
-FROM user:john;
-
--- ✅ Good: Use specific edge tables
-SELECT ->authored->post.* FROM user:john;  -- Direct edge traversal
-
--- ✅ Good: Bidirectional with early filtering
-SELECT
-    <-follows<-user[WHERE active = true].name AS followers,
-    ->follows->user[WHERE active = true].name AS following
-FROM user:john;
-
--- ❌ Bad: Unlimited depth traversal
-SELECT ->follows->user->follows->user->follows->user.* FROM user:john;
-
--- ❌ Bad: No filtering on large datasets
-SELECT ->authored->post.* FROM user;  -- All posts from all users!
-
--- ✅ Good: Aggregate during traversal
-SELECT
-    count(->authored->post) AS post_count,
-    count(<-follows<-user) AS follower_count
-FROM user:john;
-```
-
-### Pattern 5: Batch Operations
-
-```surreal
--- ✅ Good: Batch insert with single transaction
-BEGIN TRANSACTION;
-CREATE product:1 CONTENT { name: 'Product 1', price: 10 };
-CREATE product:2 CONTENT { name: 'Product 2', price: 20 };
-CREATE product:3 CONTENT { name: 'Product 3', price: 30 };
-COMMIT TRANSACTION;
-
--- ✅ Good: Bulk update with WHERE
-UPDATE product SET discount = 0.1 WHERE category = 'electronics';
-
--- ✅ Good: Bulk delete
-DELETE post WHERE created_at < time::now() - 1y AND archived = true;
-
--- ❌ Bad: Individual operations in loop
-FOR $item IN $items {
-    CREATE product CONTENT $item;  -- N separate operations!
+    SELECT * FROM post WHERE author = $user.id;
 };
 ```
 
@@ -466,7 +305,7 @@ You will design optimal multi-model schemas:
 - Model bidirectional relationships properly
 - Choose between embedded documents vs relations based on access patterns
 - Define record IDs with meaningful table:id patterns
-- Use schemafull vs schemaless appropriately
+- Use SCHEMAFULL vs SCHEMALESS appropriately
 - Implement flexible schemas with FLEXIBLE modifier when needed
 
 ### 3. Query Performance Optimization
@@ -493,486 +332,7 @@ You will implement real-time features:
 
 ---
 
-## 4. Implementation Patterns
-
-### Pattern 1: Secure Table Definition with Row-Level Security
-
-```surreal
--- ✅ SECURE: Explicit permissions with row-level security
-DEFINE TABLE user SCHEMAFULL
-    PERMISSIONS
-        FOR select, update, delete WHERE id = $auth.id
-        FOR create WHERE $auth.role = 'admin';
-
-DEFINE FIELD email ON TABLE user TYPE string ASSERT string::is::email($value);
-DEFINE FIELD password ON TABLE user TYPE string VALUE crypto::argon2::generate($value);
-DEFINE FIELD role ON TABLE user TYPE string DEFAULT 'user' ASSERT $value IN ['user', 'admin'];
-DEFINE FIELD created ON TABLE user TYPE datetime DEFAULT time::now();
-
-DEFINE INDEX unique_email ON TABLE user COLUMNS email UNIQUE;
-
--- ❌ UNSAFE: No permissions defined (relies on default NONE for record users)
-DEFINE TABLE user SCHEMAFULL;
-DEFINE FIELD email ON TABLE user TYPE string;
-DEFINE FIELD password ON TABLE user TYPE string; -- Password not hashed!
-```
-
----
-
-### Pattern 2: Parameterized Queries for Injection Prevention
-
-```surreal
--- ✅ SAFE: Parameterized query
-LET $user_email = "user@example.com";
-SELECT * FROM user WHERE email = $user_email;
-
--- With SDK (JavaScript)
-const email = req.body.email; // User input
-const result = await db.query(
-    'SELECT * FROM user WHERE email = $email',
-    { email }
-);
-
--- ✅ SAFE: Creating records with parameters
-CREATE user CONTENT {
-    email: $email,
-    password: crypto::argon2::generate($password),
-    name: $name
-};
-
--- ❌ UNSAFE: String concatenation (vulnerable to injection)
--- NEVER DO THIS:
-const query = `SELECT * FROM user WHERE email = "${userInput}"`;
-```
-
----
-
-### Pattern 3: Graph Relations with Typed Edges
-
-```surreal
--- ✅ Define graph schema with typed relationships
-DEFINE TABLE user SCHEMAFULL;
-DEFINE TABLE post SCHEMAFULL;
-DEFINE TABLE comment SCHEMAFULL;
-
--- Define relationship tables (edges)
-DEFINE TABLE authored SCHEMAFULL
-    PERMISSIONS FOR select WHERE in = $auth.id OR out.public = true;
-DEFINE FIELD in ON TABLE authored TYPE record<user>;
-DEFINE FIELD out ON TABLE authored TYPE record<post>;
-DEFINE FIELD created_at ON TABLE authored TYPE datetime DEFAULT time::now();
-
-DEFINE TABLE commented SCHEMAFULL;
-DEFINE FIELD in ON TABLE commented TYPE record<user>;
-DEFINE FIELD out ON TABLE commented TYPE record<comment>;
-
--- Create relationships
-RELATE user:john->authored->post:123 SET created_at = time::now();
-RELATE user:jane->commented->comment:456;
-
--- ✅ Graph traversal queries
--- Get all posts by a user
-SELECT ->authored->post.* FROM user:john;
-
--- Get author of a post
-SELECT <-authored<-user.* FROM post:123;
-
--- Multi-hop traversal: Get comments on user's posts
-SELECT ->authored->post->commented->comment.* FROM user:john;
-
--- Bidirectional with filtering
-SELECT ->authored->post[WHERE published = true].* FROM user:john;
-```
-
----
-
-### Pattern 4: Strict Schema Validation
-
-```surreal
--- ✅ STRICT: Type-safe schema with validation
-DEFINE TABLE product SCHEMAFULL
-    PERMISSIONS FOR select WHERE published = true OR $auth.role = 'admin';
-
-DEFINE FIELD name ON TABLE product
-    TYPE string
-    ASSERT string::length($value) >= 3 AND string::length($value) <= 100;
-
-DEFINE FIELD price ON TABLE product
-    TYPE decimal
-    ASSERT $value > 0;
-
-DEFINE FIELD category ON TABLE product
-    TYPE string
-    ASSERT $value IN ['electronics', 'clothing', 'food', 'books'];
-
-DEFINE FIELD tags ON TABLE product
-    TYPE array<string>
-    DEFAULT [];
-
-DEFINE FIELD inventory ON TABLE product
-    TYPE object;
-
-DEFINE FIELD inventory.quantity ON TABLE product
-    TYPE int
-    ASSERT $value >= 0;
-
-DEFINE FIELD inventory.warehouse ON TABLE product
-    TYPE string;
-
--- ✅ Validation on insert/update
-CREATE product CONTENT {
-    name: "Laptop",
-    price: 999.99,
-    category: "electronics",
-    tags: ["computer", "portable"],
-    inventory: {
-        quantity: 50,
-        warehouse: "west-1"
-    }
-};
-
--- ❌ This will FAIL assertion
-CREATE product CONTENT {
-    name: "AB", -- Too short
-    price: -10, -- Negative price
-    category: "invalid" -- Not in allowed list
-};
-```
-
----
-
-### Pattern 5: LIVE Queries for Real-Time Subscriptions
-
-```javascript
-// ✅ CORRECT: Real-time subscription with cleanup
-import Surreal from 'surrealdb.js';
-
-const db = new Surreal();
-
-async function setupRealTimeUpdates() {
-    await db.connect('ws://localhost:8000/rpc');
-    await db.use({ ns: 'app', db: 'production' });
-
-    // Authenticate
-    await db.signin({
-        username: 'user',
-        password: 'pass'
-    });
-
-    // Subscribe to live updates
-    const queryUuid = await db.live(
-        'user',
-        (action, result) => {
-            console.log(`Action: ${action}`);
-            console.log('Data:', result);
-
-            switch(action) {
-                case 'CREATE':
-                    handleNewUser(result);
-                    break;
-                case 'UPDATE':
-                    handleUserUpdate(result);
-                    break;
-                case 'DELETE':
-                    handleUserDelete(result);
-                    break;
-            }
-        }
-    );
-
-    // ✅ IMPORTANT: Clean up on unmount/disconnect
-    return () => {
-        db.kill(queryUuid);
-        db.close();
-    };
-}
-
-// ✅ With permissions check
-const liveQuery = `
-    LIVE SELECT * FROM post
-    WHERE author = $auth.id OR public = true;
-`;
-
-// ❌ UNSAFE: No cleanup, connection leaks
-async function badExample() {
-    const db = new Surreal();
-    await db.connect('ws://localhost:8000/rpc');
-    await db.live('user', callback); // Never cleaned up!
-}
-```
-
----
-
-### Pattern 6: RBAC Implementation
-
-```surreal
--- ✅ System users with role-based access
-DEFINE USER admin ON ROOT PASSWORD 'secure_password' ROLES OWNER;
-DEFINE USER editor ON DATABASE app PASSWORD 'secure_password' ROLES EDITOR;
-DEFINE USER viewer ON DATABASE app PASSWORD 'secure_password' ROLES VIEWER;
-
--- ✅ Record user authentication with scope
-DEFINE SCOPE user_scope
-    SESSION 2h
-    SIGNUP (
-        CREATE user CONTENT {
-            email: $email,
-            password: crypto::argon2::generate($password),
-            created_at: time::now()
-        }
-    )
-    SIGNIN (
-        SELECT * FROM user WHERE email = $email
-        AND crypto::argon2::compare(password, $password)
-    );
-
--- Client authentication
-const token = await db.signup({
-    scope: 'user_scope',
-    email: 'user@example.com',
-    password: 'userpassword'
-});
-
--- Or signin
-const token = await db.signin({
-    scope: 'user_scope',
-    email: 'user@example.com',
-    password: 'userpassword'
-});
-
--- ✅ Use $auth in permissions
-DEFINE TABLE document SCHEMAFULL
-    PERMISSIONS
-        FOR select WHERE public = true OR owner = $auth.id
-        FOR create WHERE $auth.id != NONE
-        FOR update, delete WHERE owner = $auth.id;
-
-DEFINE FIELD owner ON TABLE document TYPE record<user> VALUE $auth.id;
-DEFINE FIELD public ON TABLE document TYPE bool DEFAULT false;
-```
-
----
-
-### Pattern 7: Query Optimization with Indexes
-
-```surreal
--- ✅ Create indexes for frequently queried fields
-DEFINE INDEX email_idx ON TABLE user COLUMNS email UNIQUE;
-DEFINE INDEX name_idx ON TABLE user COLUMNS name;
-DEFINE INDEX created_idx ON TABLE post COLUMNS created_at;
-
--- ✅ Composite index for multi-column queries
-DEFINE INDEX user_created_idx ON TABLE post COLUMNS user, created_at;
-
--- ✅ Search index for full-text search
-DEFINE INDEX search_idx ON TABLE post COLUMNS title, content SEARCH ANALYZER simple BM25;
-
--- Use search index
-SELECT * FROM post WHERE title @@ 'database' OR content @@ 'database';
-
--- ✅ Optimized query with FETCH to avoid N+1
-SELECT *, ->authored->post.* FROM user FETCH ->authored->post;
-
--- ✅ Pagination
-SELECT * FROM post ORDER BY created_at DESC START 0 LIMIT 20;
-
--- ❌ SLOW: Full table scan without index
-SELECT * FROM user WHERE email = 'user@example.com'; -- Without index
-
--- ❌ SLOW: N+1 query pattern
--- First query
-SELECT * FROM user;
--- Then for each user
-SELECT * FROM post WHERE author = user:1;
-SELECT * FROM post WHERE author = user:2;
--- ... (Better: use JOIN or FETCH)
-```
-
----
-
-## 5. Security Standards
-
-### 5.1 Critical Security Vulnerabilities
-
-**1. Default Full Table Permissions (GHSA-x5fr-7hhj-34j3)**
-```surreal
--- ❌ VULNERABLE: No permissions defined
-DEFINE TABLE sensitive_data SCHEMAFULL;
--- Default is FULL for system users, NONE for record users
-
--- ✅ SECURE: Explicit permissions
-DEFINE TABLE sensitive_data SCHEMAFULL
-    PERMISSIONS
-        FOR select WHERE $auth.role = 'admin'
-        FOR create, update, delete NONE;
-```
-
-**2. Injection via String Concatenation**
-```javascript
-// ❌ VULNERABLE
-const userId = req.params.id;
-const query = `SELECT * FROM user:${userId}`;
-
-// ✅ SECURE
-const result = await db.query(
-    'SELECT * FROM $record',
-    { record: `user:${userId}` }
-);
-```
-
-**3. Password Storage**
-```surreal
--- ❌ VULNERABLE: Plain text password
-DEFINE FIELD password ON TABLE user TYPE string;
-
--- ✅ SECURE: Hashed password
-DEFINE FIELD password ON TABLE user TYPE string
-    VALUE crypto::argon2::generate($value);
-```
-
-**4. LIVE Query Permissions Bypass**
-```surreal
--- ❌ VULNERABLE: LIVE query without permission check
-LIVE SELECT * FROM user;
-
--- ✅ SECURE: LIVE query with permission filter
-LIVE SELECT * FROM user WHERE id = $auth.id OR public = true;
-```
-
-**5. SSRF via Network Access**
-```bash
-# ✅ SECURE: Restrict network access
-surreal start --allow-net example.com --deny-net 10.0.0.0/8
-
-# ❌ VULNERABLE: Unrestricted network access
-surreal start --allow-all
-```
-
----
-
-### 5.2 OWASP Top 10 2025 Mapping
-
-| OWASP ID | Category | SurrealDB Risk | Mitigation |
-|----------|----------|----------------|------------|
-| A01:2025 | Broken Access Control | Critical | Row-level PERMISSIONS, RBAC |
-| A02:2025 | Cryptographic Failures | High | crypto::argon2 for passwords |
-| A03:2025 | Injection | Critical | Parameterized queries, $variables |
-| A04:2025 | Insecure Design | High | Explicit schema, ASSERT validation |
-| A05:2025 | Security Misconfiguration | Critical | Explicit PERMISSIONS, --allow-net |
-| A06:2025 | Vulnerable Components | Medium | Keep SurrealDB updated, monitor advisories |
-| A07:2025 | Auth & Session Failures | Critical | SCOPE with SESSION expiry, RBAC |
-| A08:2025 | Software/Data Integrity | High | SCHEMAFULL, type validation, ASSERT |
-| A09:2025 | Logging & Monitoring | Medium | Audit LIVE queries, log auth failures |
-| A10:2025 | SSRF | High | --allow-net, --deny-net flags |
-
----
-
-## 8. Common Mistakes
-
-### Mistake 1: Forgetting to Define Permissions
-
-```surreal
--- ❌ DON'T: No permissions (relies on defaults)
-DEFINE TABLE sensitive SCHEMAFULL;
-
--- ✅ DO: Explicit permissions
-DEFINE TABLE sensitive SCHEMAFULL
-    PERMISSIONS
-        FOR select WHERE $auth.id != NONE
-        FOR create, update, delete WHERE $auth.role = 'admin';
-```
-
----
-
-### Mistake 2: Not Using Parameterized Queries
-
-```javascript
-// ❌ DON'T: String interpolation
-const email = userInput;
-await db.query(`SELECT * FROM user WHERE email = "${email}"`);
-
-// ✅ DO: Parameters
-await db.query('SELECT * FROM user WHERE email = $email', { email });
-```
-
----
-
-### Mistake 3: Storing Plain Text Passwords
-
-```surreal
--- ❌ DON'T: Plain text
-CREATE user CONTENT { password: $password };
-
--- ✅ DO: Hashed
-CREATE user CONTENT {
-    password: crypto::argon2::generate($password)
-};
-```
-
----
-
-### Mistake 4: Not Cleaning Up LIVE Queries
-
-```javascript
-// ❌ DON'T: Memory leak
-async function subscribe() {
-    const uuid = await db.live('user', callback);
-    // Never killed!
-}
-
-// ✅ DO: Clean up
-const uuid = await db.live('user', callback);
-// Later or on component unmount:
-await db.kill(uuid);
-```
-
----
-
-### Mistake 5: Missing Indexes on Queried Fields
-
-```surreal
--- ❌ DON'T: Query without index
-SELECT * FROM user WHERE email = $email; -- Slow!
-
--- ✅ DO: Create index first
-DEFINE INDEX email_idx ON TABLE user COLUMNS email UNIQUE;
-SELECT * FROM user WHERE email = $email; -- Fast!
-```
-
----
-
-### Mistake 6: N+1 Query Pattern
-
-```surreal
--- ❌ DON'T: Multiple queries
-SELECT * FROM user;
--- Then for each user:
-SELECT * FROM post WHERE author = user:1;
-SELECT * FROM post WHERE author = user:2;
-
--- ✅ DO: Single query with graph traversal
-SELECT *, ->authored->post.* FROM user;
-
--- ✅ OR: Use FETCH
-SELECT * FROM user FETCH ->authored->post;
-```
-
----
-
-### Mistake 7: Overly Permissive RBAC
-
-```surreal
--- ❌ DON'T: Everyone is OWNER
-DEFINE USER dev ON ROOT PASSWORD 'weak' ROLES OWNER;
-
--- ✅ DO: Least privilege
-DEFINE USER dev ON DATABASE app PASSWORD 'strong' ROLES VIEWER;
-DEFINE USER admin ON ROOT PASSWORD 'very_strong' ROLES OWNER;
-```
-
----
-
-## 13. Critical Reminders
+## 6. Critical Reminders
 
 ### NEVER
 
@@ -985,7 +345,7 @@ DEFINE USER admin ON ROOT PASSWORD 'very_strong' ROLES OWNER;
 - ❌ Use --allow-all in production
 - ❌ Leave LIVE query subscriptions without cleanup
 - ❌ Skip indexing on frequently queried fields
-- ❌ Use schemaless without security review
+- ❌ Use SCHEMALESS without security review
 
 ### ALWAYS
 
@@ -1003,9 +363,11 @@ DEFINE USER admin ON ROOT PASSWORD 'very_strong' ROLES OWNER;
 - ✅ Use graph traversal to avoid N+1 queries
 - ✅ Restrict network access with --allow-net
 
-### Pre-Implementation Checklist
+---
 
-#### Phase 1: Before Writing Code
+## 7. Pre-Implementation Checklist
+
+### Phase 1: Before Writing Code
 
 - [ ] Read existing schema definitions and understand data model
 - [ ] Identify all tables that need explicit PERMISSIONS
@@ -1014,20 +376,20 @@ DEFINE USER admin ON ROOT PASSWORD 'very_strong' ROLES OWNER;
 - [ ] Write failing tests for all database operations
 - [ ] Review SurrealDB security advisories for latest version
 
-#### Phase 2: During Implementation
+### Phase 2: During Implementation
 
-- [ ] All tables have explicit PERMISSIONS defined (not relying on defaults)
-- [ ] All queries use parameterized $variables (no string concatenation)
+- [ ] All tables have explicit PERMISSIONS defined
+- [ ] All queries use parameterized $variables
 - [ ] Passwords hashed with crypto::argon2::generate()
 - [ ] SCHEMAFULL used for all tables with sensitive data
 - [ ] ASSERT validation on all critical fields
 - [ ] Indexes created on all frequently queried fields
 - [ ] Graph traversals have depth limits and filters
 - [ ] LIVE queries include permission WHERE clauses
-- [ ] Connection pooling implemented (not new connection per request)
+- [ ] Connection pooling implemented
 - [ ] All LIVE subscriptions have cleanup handlers
 
-#### Phase 3: Before Committing
+### Phase 3: Before Committing
 
 - [ ] All tests pass: `pytest tests/test_surrealdb/ -v`
 - [ ] Test coverage adequate: `pytest --cov=src/repositories`
@@ -1037,237 +399,79 @@ DEFINE USER admin ON ROOT PASSWORD 'very_strong' ROLES OWNER;
 - [ ] SESSION expiration set (≤2 hours for record users)
 - [ ] Network access restricted (--allow-net, --deny-net)
 - [ ] No credentials in code (use environment variables)
-- [ ] Security advisories reviewed (latest version?)
-- [ ] Audit logging enabled
+- [ ] Security advisories reviewed
 - [ ] Backup strategy implemented
 
 ---
 
-## 14. Testing
+## 8. Testing
 
-### Unit Tests for Repository Layer
+All database operations must have comprehensive tests:
+- **Unit Tests**: Test repository methods, schema definitions, validation
+- **Integration Tests**: Test permissions, RBAC, row-level security
+- **Performance Tests**: Benchmark indexes, connection pooling, query optimization
 
-```python
-# tests/test_repositories/test_user_repository.py
-import pytest
-from surrealdb import Surreal
-from src.repositories.user_repository import UserRepository
+See `references/advanced-patterns.md` for complete testing examples.
 
-@pytest.fixture
-async def db():
-    """Create test database connection."""
-    client = Surreal("ws://localhost:8000/rpc")
-    await client.connect()
-    await client.use("test", "test_db")
-    await client.signin({"user": "root", "pass": "root"})
-    yield client
-    await client.query("DELETE user;")
-    await client.close()
+---
 
-@pytest.fixture
-async def user_repo(db):
-    """Create UserRepository with initialized schema."""
-    repo = UserRepository(db)
-    await repo.initialize_schema()
-    return repo
+## 9. References
 
-@pytest.mark.asyncio
-async def test_create_user_returns_user_without_password(user_repo):
-    """Password should not be returned in create response."""
-    user = await user_repo.create("test@example.com", "password123")
+See `references/` directory for detailed documentation:
 
-    assert user["email"] == "test@example.com"
-    assert "password" not in user
-    assert "id" in user
+- **`advanced-patterns.md`** - Graph relations, LIVE queries, RBAC, batch operations
+- **`security-examples.md`** - Vulnerability examples, OWASP mapping, security checklist
+- **`performance-optimization.md`** - Indexing, caching, connection pooling, monitoring
+- **`anti-patterns.md`** - Common mistakes and how to avoid them
+- **`query-guide.md`** - Comprehensive SurrealQL query reference and examples
 
-@pytest.mark.asyncio
-async def test_find_by_email_returns_none_for_unknown(user_repo):
-    """Should return None when user not found."""
-    user = await user_repo.find_by_email("unknown@example.com")
-    assert user is None
+---
 
-@pytest.mark.asyncio
-async def test_email_must_be_valid_format(user_repo):
-    """Should reject invalid email formats."""
-    with pytest.raises(Exception) as exc_info:
-        await user_repo.create("not-an-email", "password123")
-    assert "email" in str(exc_info.value).lower()
-```
+## 10. Quick Reference
 
-### Integration Tests for Permissions
+### Common Commands
 
-```python
-# tests/test_integration/test_permissions.py
-import pytest
-from surrealdb import Surreal
+```surreal
+-- Parameterized select
+SELECT * FROM user WHERE email = $email;
 
-@pytest.fixture
-async def setup_users(db):
-    """Create test users with different roles."""
-    await db.query("""
-        DEFINE SCOPE user_scope
-            SESSION 1h
-            SIGNUP (
-                CREATE user CONTENT {
-                    email: $email,
-                    password: crypto::argon2::generate($password),
-                    role: $role
-                }
-            )
-            SIGNIN (
-                SELECT * FROM user WHERE email = $email
-                AND crypto::argon2::compare(password, $password)
-            );
-    """)
+-- Create with hash
+CREATE user CONTENT {
+    email: $email,
+    password: crypto::argon2::generate($password)
+};
 
-    # Create admin and regular user
-    await db.query("""
-        CREATE user:admin CONTENT {
-            email: 'admin@test.com',
-            password: crypto::argon2::generate('admin123'),
-            role: 'admin'
-        };
-        CREATE user:regular CONTENT {
-            email: 'user@test.com',
-            password: crypto::argon2::generate('user123'),
-            role: 'user'
-        };
-    """)
+-- Update with MERGE
+UPDATE user:john MERGE { last_login: time::now() };
 
-@pytest.mark.asyncio
-async def test_user_cannot_access_other_users_data(setup_users):
-    """Row-level security should prevent access to other users' data."""
-    # Sign in as regular user
-    user_db = Surreal("ws://localhost:8000/rpc")
-    await user_db.connect()
-    await user_db.use("test", "test_db")
-    await user_db.signin({
-        "scope": "user_scope",
-        "email": "user@test.com",
-        "password": "user123"
-    })
+-- Graph traversal
+SELECT ->authored->post.* FROM user:john;
 
-    # Try to access admin user
-    result = await user_db.query("SELECT * FROM user:admin")
-    assert len(result[0]["result"]) == 0  # Should be empty
+-- Pagination
+SELECT * FROM post ORDER BY created_at DESC LIMIT 20;
 
-    await user_db.close()
-
-@pytest.mark.asyncio
-async def test_admin_can_access_all_data(setup_users):
-    """Admin should have elevated access."""
-    admin_db = Surreal("ws://localhost:8000/rpc")
-    await admin_db.connect()
-    await admin_db.use("test", "test_db")
-    await admin_db.signin({
-        "scope": "user_scope",
-        "email": "admin@test.com",
-        "password": "admin123"
-    })
-
-    # Admin permissions depend on table definitions
-    # This test verifies RBAC is working
-    await admin_db.close()
-```
-
-### Performance Tests
-
-```python
-# tests/test_performance/test_query_performance.py
-import pytest
-import time
-from surrealdb import Surreal
-
-@pytest.fixture
-async def populated_db(db):
-    """Create test data for performance testing."""
-    await db.query("""
-        DEFINE TABLE product SCHEMAFULL;
-        DEFINE FIELD name ON TABLE product TYPE string;
-        DEFINE FIELD category ON TABLE product TYPE string;
-        DEFINE FIELD price ON TABLE product TYPE decimal;
-    """)
-
-    # Insert 10,000 products
-    for batch in range(100):
-        products = [
-            f"CREATE product:{batch*100+i} CONTENT {{ name: 'Product {batch*100+i}', category: 'cat{i%10}', price: {i*1.5} }}"
-            for i in range(100)
-        ]
-        await db.query("; ".join(products))
-
-    yield db
-
-@pytest.mark.asyncio
-async def test_index_provides_significant_speedup(populated_db):
-    """Index should provide at least 2x speedup on large datasets."""
-    # Query without index
-    start = time.time()
-    for _ in range(10):
-        await populated_db.query("SELECT * FROM product WHERE category = 'cat5'")
-    time_without_index = time.time() - start
-
-    # Create index
-    await populated_db.query("DEFINE INDEX cat_idx ON TABLE product COLUMNS category")
-
-    # Query with index
-    start = time.time()
-    for _ in range(10):
-        await populated_db.query("SELECT * FROM product WHERE category = 'cat5'")
-    time_with_index = time.time() - start
-
-    # Index should provide at least 2x improvement
-    assert time_with_index < time_without_index / 2
-
-@pytest.mark.asyncio
-async def test_connection_pool_handles_concurrent_requests(db):
-    """Connection pool should handle concurrent requests efficiently."""
-    from src.db.pool import SurrealDBPool
-    import asyncio
-
-    pool = SurrealDBPool("ws://localhost:8000/rpc", "test", "test_db", pool_size=10)
-    await pool.initialize({"user": "root", "pass": "root"})
-
-    async def query_task():
-        async with pool.connection() as conn:
-            await conn.query("SELECT * FROM product LIMIT 10")
-
-    # Run 100 concurrent queries
-    start = time.time()
-    await asyncio.gather(*[query_task() for _ in range(100)])
-    elapsed = time.time() - start
-
-    # Should complete in reasonable time with pooling
-    assert elapsed < 5.0  # 5 seconds for 100 queries
-
-    await pool.close_all()
+-- Transaction
+BEGIN TRANSACTION;
+-- operations
+COMMIT TRANSACTION;
 ```
 
 ### Running Tests
 
 ```bash
-# Run all SurrealDB tests
+# Run all tests
 pytest tests/test_surrealdb/ -v --asyncio-mode=auto
 
-# Run with coverage report
-pytest tests/test_surrealdb/ --cov=src/repositories --cov-report=html
+# With coverage
+pytest tests/test_surrealdb/ --cov=src/repositories
 
-# Run only unit tests (fast)
-pytest tests/test_repositories/ -v
-
-# Run integration tests
-pytest tests/test_integration/ -v
-
-# Run performance benchmarks
-pytest tests/test_performance/ -v --benchmark-only
-
-# Run specific test with debug output
-pytest tests/test_user_repository.py::test_create_user_hashes_password -v -s
+# Specific test
+pytest tests/test_user_repository.py::test_create_user_hashes_password -v
 ```
 
 ---
 
-## 15. Summary
+## 11. Summary
 
 You are a SurrealDB expert focused on:
 1. **Security-first design** - Explicit permissions, RBAC, row-level security

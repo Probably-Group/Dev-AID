@@ -9,6 +9,53 @@ version: 1.1.0
 
 > **File Organization**: This skill uses split structure. See `references/` for advanced patterns.
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Tailwind CSS code**
+
+### Verification Requirements
+
+When using this skill to implement Tailwind CSS styling, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Tailwind CSS documentation at tailwindcss.com
+   - ✅ Confirm utility classes exist in current version (v3.4+)
+   - ✅ Validate configuration options against official guides
+   - ❌ Never guess utility class names
+   - ❌ Never invent configuration options
+   - ❌ Never assume plugin APIs without checking docs
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing components for Tailwind patterns
+   - 🔍 Grep: Search codebase for similar styling implementations
+   - 🔍 WebSearch: Verify utility classes in official Tailwind docs
+   - 🔍 WebFetch: Read official Tailwind CSS documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY utility class, configuration, or plugin
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in Tailwind CSS can cause build failures and visual bugs
+
+4. **Common Tailwind CSS Hallucination Traps** (AVOID)
+   - ❌ Inventing utility class names that don't exist
+   - ❌ Making up configuration options not in Tailwind config
+   - ❌ Assuming plugin APIs without checking documentation
+   - ❌ Using deprecated classes from older Tailwind versions
+   - ❌ Confusing Tailwind utilities with other CSS frameworks
+
+### Self-Check Checklist
+
+Before EVERY response with Tailwind CSS code:
+- [ ] All utility classes verified against Tailwind v3.4+ docs
+- [ ] Configuration options verified in tailwind.config.js docs
+- [ ] Plugin usage verified against official plugin documentation
+- [ ] Can cite official Tailwind CSS documentation sources
+
+**⚠️ CRITICAL**: Tailwind CSS code with hallucinated classes causes build failures and visual inconsistencies. Always verify.
+
+---
+
 ## 1. Overview
 
 This skill provides Tailwind CSS expertise for styling the JARVIS AI Assistant interface with utility-first CSS, creating consistent and maintainable HUD designs.
@@ -165,139 +212,15 @@ npm run build && ls -lh .output/public/_nuxt/*.css
 
 ## 4. Performance Patterns
 
-### 4.1 Purge Optimization
+For detailed performance optimization strategies, see `references/performance-optimization.md`.
 
-```javascript
-// tailwind.config.js
-// Good: Specific content paths
-export default {
-  content: [
-    './components/**/*.{vue,js,ts}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './composables/**/*.ts'
-  ]
-}
-
-// Bad: Too broad, includes unused files
-export default {
-  content: ['./src/**/*']  // Includes tests, stories, etc.
-}
-```
-
-### 4.2 JIT Mode Efficiency
-
-```javascript
-// Good: Let JIT generate only used utilities
-export default {
-  mode: 'jit',  // Default in v3+
-  theme: {
-    extend: {
-      // Only extend what you need
-      colors: {
-        jarvis: {
-          primary: '#00ff41',
-          secondary: '#0891b2'
-        }
-      }
-    }
-  }
-}
-
-// Bad: Defining unused variants
-export default {
-  variants: {
-    extend: {
-      backgroundColor: ['active', 'group-hover', 'disabled']  // May not use all
-    }
-  }
-}
-```
-
-### 4.3 @apply Extraction Strategy
-
-```vue
-<!-- Good: Extract when pattern repeats 3+ times -->
-<style>
-@layer components {
-  .btn-jarvis {
-    @apply px-4 py-2 rounded font-medium transition-all duration-200
-           focus:outline-none focus:ring-2 focus:ring-offset-2;
-  }
-}
-</style>
-
-<!-- Bad: @apply for single-use styles -->
-<style>
-.my-unique-element {
-  @apply p-4 m-2 text-white;  /* Just use utilities in template */
-}
-</style>
-```
-
-### 4.4 Responsive Breakpoints Efficiency
-
-```vue
-<!-- Good: Mobile-first, minimal breakpoints -->
-<div class="p-2 md:p-4 lg:p-6">
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
-</div>
-
-<!-- Bad: Redundant breakpoint definitions -->
-<div class="p-2 sm:p-2 md:p-4 lg:p-4 xl:p-6">
-  <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-</div>
-```
-
-### 4.5 Dark Mode Efficiency
-
-```javascript
-// Good: Single dark mode strategy (JARVIS is always dark)
-export default {
-  darkMode: 'class',  // Use 'class' for explicit control
-  theme: {
-    extend: {
-      colors: {
-        jarvis: {
-          bg: {
-            dark: '#0a0a0f',  // Define dark colors directly
-            panel: '#111827'
-          }
-        }
-      }
-    }
-  }
-}
-
-// Bad: Light/dark variants when app is always dark
-<div class="bg-white dark:bg-gray-900">  // Unnecessary light styles
-```
-
-### 4.6 Animation Performance
-
-```javascript
-// Good: GPU-accelerated properties
-export default {
-  theme: {
-    extend: {
-      keyframes: {
-        glow: {
-          '0%, 100%': { opacity: '0.5' },  // opacity is GPU-accelerated
-          '50%': { opacity: '1' }
-        }
-      }
-    }
-  }
-}
-
-// Bad: Layout-triggering properties
-keyframes: {
-  resize: {
-    '0%': { width: '100px' },  // Triggers layout recalc
-    '100%': { width: '200px' }
-  }
-}
-```
+**Key principles**:
+- Optimize content paths to exclude non-production files
+- Use JIT mode (default in v3+) for on-demand class generation
+- Extract patterns with @apply only when they repeat 3+ times
+- Follow mobile-first approach with minimal breakpoints
+- Use GPU-accelerated properties for animations (transform, opacity)
+- Keep CSS bundle under 50KB (gzipped)
 
 ## 5. Technology Stack & Versions
 
@@ -366,83 +289,25 @@ export default {
 
 ## 6. Implementation Patterns
 
-### 6.1 HUD Panel Component
+For complete implementation examples, see `references/advanced-patterns.md`.
 
+**Common patterns**:
+- HUD Panel Components with holographic effects
+- Status Indicators with animated states
+- Button Variants (primary, secondary, danger)
+- Complex Dashboard Grid Layouts
+- Responsive Mobile-First Designs
+- Custom Animation Keyframes
+- Holographic Glow Plugin
+
+**Quick example**:
 ```vue
-<template>
-  <div class="
-    relative
-    bg-jarvis-bg-panel/80
-    border border-jarvis-primary/30
-    rounded-lg
-    p-4
-    backdrop-blur-sm
-    shadow-lg shadow-jarvis-primary/10
-  ">
-    <!-- Scanline overlay -->
-    <div class="
-      absolute inset-0
-      bg-gradient-to-b from-transparent via-jarvis-primary/5 to-transparent
-      animate-scan
-      pointer-events-none
-    " />
-
-    <!-- Content -->
-    <div class="relative z-10">
-      <h3 class="
-        font-display
-        text-jarvis-primary
-        text-lg
-        uppercase
-        tracking-wider
-        mb-2
-      ">
-        {{ title }}
-      </h3>
-      <slot />
-    </div>
-  </div>
-</template>
-```
-
-### 6.2 Status Indicator
-
-```vue
-<template>
-  <div class="flex items-center gap-2">
-    <span :class="[
-      'w-2 h-2 rounded-full',
-      {
-        'bg-jarvis-primary animate-pulse': status === 'active',
-        'bg-jarvis-warning': status === 'warning',
-        'bg-jarvis-danger animate-ping': status === 'error',
-        'bg-gray-500': status === 'inactive'
-      }
-    ]" />
-    <span class="text-sm text-gray-300">{{ label }}</span>
-  </div>
-</template>
-```
-
-### 6.3 Button Variants
-
-```vue
-<template>
-  <button :class="[
-    'px-4 py-2 rounded font-medium transition-all duration-200',
-    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-jarvis-bg-dark',
-    {
-      'bg-jarvis-primary text-black hover:bg-jarvis-primary/90 focus:ring-jarvis-primary':
-        variant === 'primary',
-      'bg-transparent border border-jarvis-secondary text-jarvis-secondary hover:bg-jarvis-secondary/10 focus:ring-jarvis-secondary':
-        variant === 'secondary',
-      'bg-jarvis-danger text-white hover:bg-jarvis-danger/90 focus:ring-jarvis-danger':
-        variant === 'danger'
-    }
-  ]">
-    <slot />
-  </button>
-</template>
+<div class="bg-jarvis-bg-panel/80 border border-jarvis-primary/30 backdrop-blur-sm rounded-lg p-4">
+  <h3 class="font-display text-jarvis-primary text-lg uppercase tracking-wider mb-2">
+    System Status
+  </h3>
+  <slot />
+</div>
 ```
 
 ## 7. Quality Standards
@@ -460,43 +325,41 @@ export default {
 <span class="sr-only">Status: Active</span>
 ```
 
+### 7.2 Design System Consistency
+
+- Use theme colors defined in `tailwind.config.js`
+- Follow spacing scale: 4, 8, 12, 16, 20, 24... (rem units)
+- Apply consistent border radius: rounded, rounded-lg, rounded-xl
+- Maintain typography hierarchy with font-display and font-mono
+
+### 7.3 Performance Standards
+
+- CSS bundle size under 50KB (gzipped)
+- All animations use GPU-accelerated properties
+- Content paths exclude test and build files
+- No unused utility variants generated
+
 ## 8. Common Mistakes & Anti-Patterns
 
-### 8.1 Anti-Patterns
+For comprehensive anti-patterns guide, see `references/anti-patterns.md`.
 
-#### Avoid: Excessive Custom CSS
+**Common mistakes to avoid**:
+- ❌ Writing custom CSS when utilities exist
+- ❌ Using inconsistent spacing values
+- ❌ Hardcoding colors instead of theme references
+- ❌ Overusing @apply for single-use styles
+- ❌ Redundant breakpoint definitions
+- ❌ Missing focus states on interactive elements
+- ❌ Layout-triggering animation properties
+- ❌ Overly broad content paths
 
+**Quick fix**:
 ```vue
-<!-- Bad - Custom CSS when utilities exist -->
-<style>
-.custom-panel {
-  padding: 1rem;
-  border-radius: 0.5rem;
-}
-</style>
+<!-- Bad -->
+<div class="text-[#00ff41] p-3 mt-5">
 
-<!-- Good - Use utilities -->
-<div class="p-4 rounded-lg">
-```
-
-#### Avoid: Inconsistent Spacing
-
-```vue
-<!-- Bad - Mixed spacing values -->
-<div class="p-3 mt-5 mb-2">
-
-<!-- Good - Consistent scale -->
-<div class="p-4 my-4">
-```
-
-#### Avoid: Hardcoded Colors
-
-```vue
-<!-- Bad - Hardcoded hex -->
-<div class="text-[#00ff41]">
-
-<!-- Good - Theme color -->
-<div class="text-jarvis-primary">
+<!-- Good -->
+<div class="text-jarvis-primary p-4 mt-4">
 ```
 
 ## 9. Pre-Implementation Checklist
@@ -538,5 +401,21 @@ Tailwind CSS provides utility-first styling for JARVIS:
 
 ---
 
-**References**:
-- `references/advanced-patterns.md` - Complex layout patterns
+## 11. References
+
+See `references/` directory for detailed guides:
+
+- **`advanced-patterns.md`** - Implementation patterns, complex layouts, custom animations, and plugins
+- **`performance-optimization.md`** - Build optimization, JIT mode, responsive strategies, and performance checklist
+- **`anti-patterns.md`** - Common mistakes, bad practices, and how to fix them
+
+**Official Documentation**:
+- [Tailwind CSS Docs](https://tailwindcss.com/docs)
+- [Tailwind Configuration](https://tailwindcss.com/docs/configuration)
+- [Tailwind Plugins](https://tailwindcss.com/docs/plugins)
+
+---
+
+**Version**: 1.1.0
+**Last Updated**: 2025-12-05
+**Skill Type**: Expert - Frontend Styling

@@ -10,10 +10,13 @@ model: sonnet
 ## File Organization
 
 This skill uses a split structure for HIGH-RISK requirements:
-- **SKILL.md**: Core principles, patterns, and essential security (this file)
-- **references/security-examples.md**: Complete security examples and OWASP implementations
+- **SKILL.md**: Core principles, patterns, and essential guidelines (this file)
+- **references/security-examples.md**: Complete security examples and CVE implementations
 - **references/advanced-patterns.md**: Advanced Bash patterns and optimization
 - **references/threat-model.md**: Attack scenarios and security analysis
+- **references/anti-patterns.md**: Common mistakes and anti-patterns to avoid
+- **references/testing-guide.md**: Comprehensive testing strategies and frameworks
+- **references/scripting-patterns.md**: Detailed implementation patterns and templates
 
 ## Validation Gates
 
@@ -22,7 +25,7 @@ This skill uses a split structure for HIGH-RISK requirements:
 | 0.1 Domain Expertise | PASSED | Security, error handling, portability |
 | 0.2 Vulnerability Research | PASSED | Common Bash vulnerabilities documented |
 | 0.5 Hallucination Check | PASSED | Examples tested on Bash 4.0+ |
-| 0.11 File Organization | Split | HIGH-RISK, ~400 lines + references |
+| 0.11 File Organization | Split | HIGH-RISK, condensed SKILL.md + 6 reference files |
 
 ---
 
@@ -118,9 +121,9 @@ You are an elite Bash scripting expert specializing in secure, maintainable, and
 
 ---
 
-## 2.1 Implementation Workflow (Secure Bash)
+## 2.1 Implementation Workflow
 
-### Step 1: Script Skeleton with Safety
+### Essential Script Structure
 
 ```bash
 #!/usr/bin/env bash
@@ -133,17 +136,9 @@ You are an elite Bash scripting expert specializing in secure, maintainable, and
 # Strict mode: exit on error, undefined variables, pipe failures
 set -euo pipefail
 
-# Optional: Enable debug mode
-# set -x
-
 # Script directory (portable way)
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
-
-# Global constants
-readonly VERSION="1.0.0"
-readonly EXIT_SUCCESS=0
-readonly EXIT_FAILURE=1
 
 # Cleanup function (always runs on exit)
 cleanup() {
@@ -154,118 +149,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 ```
 
-### Step 2: Input Validation
-
-```bash
-# Validate required argument count
-validate_args() {
-    if [[ $# -lt 1 ]]; then
-        echo "Error: Missing required argument" >&2
-        usage
-        exit "$EXIT_FAILURE"
-    fi
-}
-
-# Validate file exists and is readable
-validate_file() {
-    local file="$1"
-
-    if [[ ! -f "$file" ]]; then
-        echo "Error: File not found: $file" >&2
-        return 1
-    fi
-
-    if [[ ! -r "$file" ]]; then
-        echo "Error: File not readable: $file" >&2
-        return 1
-    fi
-
-    return 0
-}
-
-# Validate input format (e.g., email, URL, etc.)
-validate_email() {
-    local email="$1"
-    local regex='^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-
-    if [[ ! "$email" =~ $regex ]]; then
-        echo "Error: Invalid email format: $email" >&2
-        return 1
-    fi
-
-    return 0
-}
-```
-
-### Step 3: Safe Command Execution
-
-```bash
-# BAD: Command injection vulnerability
-# cmd="ls $user_input"
-# eval "$cmd"  # NEVER DO THIS!
-
-# GOOD: Use array for commands
-execute_safe_command() {
-    local -a cmd=(ls -la)
-    local user_dir="$1"
-
-    # Validate path before using
-    if [[ "$user_dir" =~ \.\. ]]; then
-        echo "Error: Path traversal detected" >&2
-        return 1
-    fi
-
-    cmd+=("$user_dir")
-
-    "${cmd[@]}"
-}
-
-# GOOD: Use process substitution safely
-process_files() {
-    local pattern="$1"
-
-    while IFS= read -r -d '' file; do
-        echo "Processing: $file"
-        # Process each file safely
-    done < <(find . -name "$pattern" -print0)
-}
-```
-
-### Step 4: Error Handling
-
-```bash
-# Function with proper error handling
-process_data() {
-    local input_file="$1"
-    local output_file="$2"
-
-    # Validate inputs
-    validate_file "$input_file" || return 1
-
-    # Check output directory is writable
-    local output_dir
-    output_dir="$(dirname "$output_file")"
-    if [[ ! -w "$output_dir" ]]; then
-        echo "Error: Output directory not writable: $output_dir" >&2
-        return 1
-    fi
-
-    # Perform operation with error checking
-    if ! grep -q "pattern" "$input_file"; then
-        echo "Warning: Pattern not found in $input_file" >&2
-        return 1
-    fi
-
-    # Safe output to file
-    grep "pattern" "$input_file" > "$output_file" || {
-        echo "Error: Failed to write output file" >&2
-        return 1
-    }
-
-    echo "Success: Processed $input_file -> $output_file"
-    return 0
-}
-```
+**📖 See `references/scripting-patterns.md` for complete implementation templates**
 
 ---
 
@@ -291,98 +175,39 @@ process_data() {
 6. ✅ Use arrays for commands with multiple arguments
 7. ✅ Set restrictive file permissions (600 for sensitive files)
 
-### 3.2 Input Validation Patterns
+### 3.2 Core Security Patterns
 
 ```bash
-# Validate and sanitize filename
-sanitize_filename() {
+# Input validation
+validate_filename() {
     local filename="$1"
-
-    # Remove path components
     filename="$(basename "$filename")"
-
-    # Remove dangerous characters
     filename="${filename//[^a-zA-Z0-9._-]/}"
-
-    # Ensure not empty after sanitization
-    if [[ -z "$filename" ]]; then
-        echo "Error: Invalid filename after sanitization" >&2
-        return 1
-    fi
-
+    [[ -n "$filename" ]] || return 1
     echo "$filename"
-    return 0
 }
 
-# Validate numeric input
-validate_number() {
-    local input="$1"
-    local min="${2:-0}"
-    local max="${3:-999999}"
+# Safe command execution with arrays
+cmd=(ls -la)
+cmd+=("$user_dir")  # Safely add user input
+"${cmd[@]}"
 
-    # Check if numeric
-    if [[ ! "$input" =~ ^[0-9]+$ ]]; then
-        echo "Error: Not a number: $input" >&2
-        return 1
-    fi
-
-    # Check range
-    if (( input < min || input > max )); then
-        echo "Error: Number out of range [$min-$max]: $input" >&2
-        return 1
-    fi
-
-    return 0
-}
-
-# Validate path is within allowed directory
+# Path validation
 validate_path_containment() {
     local file_path="$1"
     local base_dir="$2"
-
-    # Resolve to absolute paths
     local resolved_file
     resolved_file="$(realpath -m "$file_path")"
     local resolved_base
     resolved_base="$(realpath "$base_dir")"
-
-    # Check containment
-    if [[ "$resolved_file" != "$resolved_base"* ]]; then
-        echo "Error: Path traversal attempt detected" >&2
-        return 1
-    fi
-
+    [[ "$resolved_file" != "$resolved_base"* ]] && return 1
     return 0
 }
 ```
 
-### 3.3 Command Injection Prevention
+**📖 See `references/security-examples.md` for comprehensive security patterns and CVE examples**
 
-```bash
-# BAD: Vulnerable to injection
-user_input="file.txt; rm -rf /"
-cat $user_input  # DANGEROUS!
-
-# GOOD: Properly quoted
-user_input="file.txt; rm -rf /"
-cat "$user_input"  # Safe: tries to open file named "file.txt; rm -rf /"
-
-# BAD: Eval with user input
-eval "echo $user_input"  # NEVER!
-
-# GOOD: Direct execution with validation
-if [[ "$user_input" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-    echo "$user_input"
-fi
-
-# BAD: Command from string
-cmd="ls $user_dir"
-$cmd  # Vulnerable!
-
-# GOOD: Array-based command
-cmd=(ls "$user_dir")
-"${cmd[@]}"  # Safe
-```
+**📖 See `references/threat-model.md` for complete threat analysis**
 
 ---
 
@@ -394,49 +219,25 @@ cmd=(ls "$user_dir")
 # Always quote variable expansions
 file_name="my file.txt"
 cat "$file_name"  # Correct: treats as single argument
-cat $file_name    # Wrong: splits into two arguments
 
 # Quote command substitutions
 result="$(grep pattern file.txt)"  # Correct
-result=$(grep pattern file.txt)    # Risky (word splitting)
 
 # Use arrays for multiple arguments
 files=("file 1.txt" "file 2.txt")
 for file in "${files[@]}"; do  # Correct: preserves spaces
     echo "$file"
 done
-
-# Parameter expansion quoting
-echo "${var:-default}"     # Correct
-echo ${var:-default}       # Risky
 ```
 
-### 4.2 Error Handling Patterns
+### 4.2 Error Handling
 
 ```bash
 # Check command success
-if command_that_might_fail; then
-    echo "Success"
-else
-    echo "Error: Command failed with code $?" >&2
-    exit 1
-fi
-
-# Short-circuit error handling
-command_that_must_succeed || {
-    echo "Error: Critical operation failed" >&2
+command_that_might_fail || {
+    echo "Error: Command failed" >&2
     exit 1
 }
-
-# Capture and check exit code
-if output=$(risky_command 2>&1); then
-    echo "Output: $output"
-else
-    local exit_code=$?
-    echo "Error: Command failed with code $exit_code" >&2
-    echo "Output: $output" >&2
-    return "$exit_code"
-fi
 
 # Use trap for cleanup
 cleanup() {
@@ -446,245 +247,138 @@ cleanup() {
 trap cleanup EXIT INT TERM
 ```
 
-### 4.3 Performance Patterns
+### 4.3 Performance Guidelines
 
 ```bash
-# BAD: Multiple process spawns in loop
-for file in *.txt; do
-    cat "$file" | grep pattern  # Spawns cat + grep for each file
-done
-
-# GOOD: Use built-ins and single process
-for file in *.txt; do
-    grep pattern "$file"  # Single process, more efficient
-done
-
-# BAD: Unnecessary cat
-cat file.txt | grep pattern
-
 # GOOD: Direct file input
 grep pattern file.txt
 
-# BAD: External command for simple operation
-count=$(echo "$string" | wc -c)
+# AVOID: Unnecessary cat
+cat file.txt | grep pattern
 
-# GOOD: Built-in parameter expansion
+# GOOD: Use built-ins
 count=${#string}
 
-# BAD: Multiple passes over data
-lines=$(cat file.txt | wc -l)
-words=$(cat file.txt | wc -w)
-
-# GOOD: Single pass with read
-lines=0
-words=0
-while IFS= read -r line; do
-    ((lines++))
-    words=$((words + $(echo "$line" | wc -w)))
-done < file.txt
+# AVOID: External commands
+count=$(echo "$string" | wc -c)
 ```
+
+**📖 See `references/advanced-patterns.md` for optimization patterns and parallel processing**
+
+**📖 See `references/anti-patterns.md` for common mistakes to avoid**
 
 ---
 
-## 5. Common Patterns
+## 5. Common Patterns (Quick Reference)
 
 ### Pattern 1: Argument Parsing
 
 ```bash
-usage() {
-    cat <<EOF
-Usage: $SCRIPT_NAME [OPTIONS] <input>
-
-Options:
-    -h, --help       Show this help message
-    -v, --verbose    Enable verbose output
-    -o, --output     Output file
-    -f, --force      Force overwrite
-
-Examples:
-    $SCRIPT_NAME input.txt
-    $SCRIPT_NAME -v -o output.txt input.txt
-EOF
-}
-
 parse_args() {
-    local output_file=""
-    local verbose=false
-    local force=false
-
     while [[ $# -gt 0 ]]; do
         case "$1" in
             -h|--help)
-                usage
-                exit 0
-                ;;
+                usage; exit 0 ;;
             -v|--verbose)
-                verbose=true
-                shift
-                ;;
+                verbose=true; shift ;;
             -o|--output)
-                output_file="$2"
-                shift 2
-                ;;
-            -f|--force)
-                force=true
-                shift
-                ;;
+                output_file="$2"; shift 2 ;;
             -*)
-                echo "Error: Unknown option: $1" >&2
-                usage
-                exit 1
-                ;;
+                echo "Error: Unknown option: $1" >&2; exit 1 ;;
             *)
-                # Positional argument
-                input_file="$1"
-                shift
-                ;;
+                input_file="$1"; shift ;;
         esac
     done
-
-    # Validate required arguments
-    if [[ -z "$input_file" ]]; then
-        echo "Error: Missing required input file" >&2
-        usage
-        exit 1
-    fi
 }
 ```
 
 ### Pattern 2: Logging
 
 ```bash
-# Logging levels
 readonly LOG_ERROR=0
 readonly LOG_WARN=1
 readonly LOG_INFO=2
-readonly LOG_DEBUG=3
-
 LOG_LEVEL=$LOG_INFO
 
 log() {
-    local level="$1"
-    shift
+    local level="$1"; shift
     local message="$*"
-    local timestamp
-    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+    local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
 
     case "$level" in
-        $LOG_ERROR)
-            [[ $LOG_LEVEL -ge $LOG_ERROR ]] && echo "[$timestamp] ERROR: $message" >&2
-            ;;
-        $LOG_WARN)
-            [[ $LOG_LEVEL -ge $LOG_WARN ]] && echo "[$timestamp] WARN:  $message" >&2
-            ;;
-        $LOG_INFO)
-            [[ $LOG_LEVEL -ge $LOG_INFO ]] && echo "[$timestamp] INFO:  $message"
-            ;;
-        $LOG_DEBUG)
-            [[ $LOG_LEVEL -ge $LOG_DEBUG ]] && echo "[$timestamp] DEBUG: $message"
-            ;;
+        $LOG_ERROR) [[ $LOG_LEVEL -ge $LOG_ERROR ]] && echo "[$timestamp] ERROR: $message" >&2 ;;
+        $LOG_WARN)  [[ $LOG_LEVEL -ge $LOG_WARN ]] && echo "[$timestamp] WARN:  $message" >&2 ;;
+        $LOG_INFO)  [[ $LOG_LEVEL -ge $LOG_INFO ]] && echo "[$timestamp] INFO:  $message" ;;
     esac
 }
-
-# Usage
-log $LOG_INFO "Starting script"
-log $LOG_DEBUG "Processing file: $filename"
-log $LOG_ERROR "Failed to process file"
 ```
 
-### Pattern 3: Temporary File Handling
+### Pattern 3: Temporary Files
 
 ```bash
 # Create secure temporary file
-create_temp_file() {
-    local template="${1:-/tmp/script.XXXXXX}"
-    local temp_file
+temp_file=$(mktemp) || exit 1
+chmod 600 "$temp_file"
+trap 'rm -f "$temp_file"' EXIT
 
-    temp_file=$(mktemp "$template") || {
-        echo "Error: Failed to create temporary file" >&2
-        return 1
-    }
-
-    # Set restrictive permissions
-    chmod 600 "$temp_file"
-
-    echo "$temp_file"
-    return 0
-}
-
-# Usage with automatic cleanup
-main() {
-    local temp_file
-    temp_file=$(create_temp_file) || exit 1
-
-    # Ensure cleanup on exit
-    trap 'rm -f "$temp_file"' EXIT
-
-    # Use temp file
-    echo "data" > "$temp_file"
-    process_file "$temp_file"
-}
+# Use temp file
+echo "data" > "$temp_file"
+process_file "$temp_file"
+# Cleanup happens automatically
 ```
+
+**📖 See `references/scripting-patterns.md` for complete implementation examples**
 
 ---
 
 ## 6. Testing & Validation
 
-### 6.1 Script Validation
+### 6.1 Validation Tools
 
 ```bash
-# Use shellcheck for static analysis
+# Static analysis
 shellcheck script.sh
 
-# Use bash -n for syntax check
+# Syntax check
 bash -n script.sh
 
-# Enable debug mode for troubleshooting
+# Debug mode
 bash -x script.sh
 ```
 
-### 6.2 Test Patterns
+### 6.2 Basic Testing
 
 ```bash
-# Simple test function
-test_sanitize_filename() {
+test_function() {
     local result
-    result=$(sanitize_filename "file name.txt")
+    result=$(my_function "input")
 
-    if [[ "$result" == "filename.txt" ]]; then
-        echo "PASS: sanitize_filename"
+    if [[ "$result" == "expected" ]]; then
+        echo "PASS: test_function"
         return 0
     else
-        echo "FAIL: sanitize_filename (got: $result)" >&2
-        return 1
-    fi
-}
-
-# Run all tests
-run_tests() {
-    local failed=0
-
-    test_sanitize_filename || ((failed++))
-    test_validate_email || ((failed++))
-
-    if [[ $failed -eq 0 ]]; then
-        echo "All tests passed"
-        return 0
-    else
-        echo "$failed test(s) failed" >&2
+        echo "FAIL: test_function" >&2
         return 1
     fi
 }
 ```
+
+**📖 See `references/testing-guide.md` for comprehensive testing strategies, BATS framework, and CI/CD integration**
 
 ---
 
 ## 7. References
 
-See `references/` directory for:
-- `advanced-patterns.md` - Advanced Bash patterns and optimizations
-- `security-examples.md` - Security-focused examples and CVEs
-- `threat-model.md` - Comprehensive threat model and attack scenarios
+### Quick Access Guide
+
+| Reference File | Content |
+|----------------|---------|
+| **advanced-patterns.md** | Parallel processing, retry logic, signal handling, lock files, structured logging |
+| **security-examples.md** | CVE examples, command injection prevention, path traversal, race conditions, privilege escalation |
+| **threat-model.md** | Complete threat analysis, attack scenarios, security controls matrix |
+| **anti-patterns.md** | 15 common mistakes to avoid with better alternatives |
+| **testing-guide.md** | ShellCheck, BATS framework, unit testing, integration testing, CI/CD |
+| **scripting-patterns.md** | Complete script templates, argument parsing, config loading, logging framework |
 
 ---
 
@@ -709,7 +403,7 @@ ${#var}            # String length
 arr=()             # Initialize empty array
 arr=(a b c)        # Initialize with values
 ${arr[0]}          # Access element
-${arr[@]}          # All elements (word-split)
+${arr[@]}          # All elements
 ${#arr[@]}         # Array length
 arr+=("d")         # Append element
 
@@ -720,7 +414,6 @@ arr+=("d")         # Append element
 [[ -r file ]]      # Is readable
 [[ -w file ]]      # Is writable
 [[ -x file ]]      # Is executable
-[[ file1 -nt file2 ]] # file1 newer than file2
 
 # Safe iteration
 while IFS= read -r line; do
@@ -729,21 +422,26 @@ done < file.txt
 
 # Process substitution
 diff <(command1) <(command2)
-while read -r line; do
-    process "$line"
-done < <(command)
 ```
 
 ### Troubleshooting
 
-**Problem**: Script exits unexpectedly
-**Solution**: Check `set -e` and add `|| true` for commands that may fail safely
+| Problem | Solution |
+|---------|----------|
+| Script exits unexpectedly | Check `set -e` and add `\|\| true` for commands that may fail safely |
+| Word splitting issues | Quote all variable expansions: `"$var"` not `$var` |
+| Command not found | Use full paths or check $PATH, verify with `command -v` |
+| Works locally but fails in CI/CD | Check environment differences, use explicit paths |
 
-**Problem**: Word splitting issues
-**Solution**: Quote all variable expansions: `"$var"` not `$var`
+---
 
-**Problem**: Command not found
-**Solution**: Use full paths or check $PATH, verify command exists with `command -v`
+## 9. Skill Activation
 
-**Problem**: Script works locally but fails in CI/CD
-**Solution**: Check environment differences, use explicit paths, validate all assumptions
+This skill activates when:
+- Creating or modifying `.sh` files
+- Writing Bash scripts
+- Implementing shell automation
+- DevOps scripting tasks
+- System administration scripts
+
+When activated, follow all security standards and reference the appropriate documentation files for detailed patterns and examples.

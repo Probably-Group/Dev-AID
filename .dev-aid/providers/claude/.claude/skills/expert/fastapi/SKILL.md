@@ -12,6 +12,9 @@ risk_level: HIGH
 - **references/security-examples.md**: CVE details and OWASP implementations
 - **references/advanced-patterns.md**: Advanced FastAPI patterns
 - **references/threat-model.md**: Attack scenarios and STRIDE analysis
+- **references/performance-optimization.md**: Database pooling, caching, pagination, background tasks
+- **references/testing-guide.md**: TDD workflow, security tests, integration tests
+- **references/anti-patterns.md**: Common mistakes and how to avoid them
 
 ## Validation Gates
 
@@ -19,6 +22,55 @@ risk_level: HIGH
 - **Status**: PASSED (5+ CVEs documented)
 - **Research Date**: 2025-11-20
 - **CVEs**: CVE-2024-47874, CVE-2024-12868, CVE-2023-30798, Starlette DoS variants
+
+---
+
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any FastAPI code**
+
+### Verification Requirements
+
+When implementing FastAPI features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official FastAPI/Starlette documentation
+   - ✅ Confirm security patterns are current
+   - ✅ Validate middleware and dependency injection patterns
+   - ❌ Never guess configuration options
+   - ❌ Never invent middleware or dependency functions
+   - ❌ Never assume package compatibility without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for patterns
+   - 🔍 Grep: Search for similar implementations
+   - 🔍 WebSearch: Verify specs in official docs
+   - 🔍 WebFetch: Read official FastAPI documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY FastAPI feature/config/pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in FastAPI can cause security vulnerabilities, DoS, data breaches
+
+4. **Common FastAPI Hallucination Traps** (AVOID)
+   - ❌ Inventing Pydantic validator methods
+   - ❌ Making up FastAPI dependency injection patterns
+   - ❌ Creating non-existent middleware parameters
+   - ❌ Assuming JWT library methods without verification
+   - ❌ Guessing SQLAlchemy async patterns
+   - ❌ Inventing security header configurations
+
+### Self-Check Checklist
+
+Before EVERY response with FastAPI code:
+- [ ] All Pydantic models verified against official docs
+- [ ] Dependency injection patterns verified
+- [ ] Security configurations verified (CORS, headers, rate limiting)
+- [ ] Async patterns verified (database, HTTP clients)
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: FastAPI code with hallucinated patterns causes production outages, security breaches, and data corruption. Always verify.
 
 ---
 
@@ -83,7 +135,7 @@ dependencies = [
 
 ---
 
-## 4. Implementation Patterns
+## 4. Core Implementation Patterns
 
 ### Pattern 1: Secure Application Setup
 
@@ -242,8 +294,6 @@ async def upload_file(file: UploadFile = File(...)):
 
 ### Step 1: Write Failing Test First
 
-Always start with tests that define expected behavior:
-
 ```python
 import pytest
 from httpx import AsyncClient, ASGITransport
@@ -251,7 +301,6 @@ from app.main import app
 
 @pytest.mark.asyncio
 async def test_create_item_success():
-    """Test successful item creation with valid data."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/items",
@@ -259,32 +308,10 @@ async def test_create_item_success():
             headers={"Authorization": "Bearer valid_token"}
         )
         assert response.status_code == 201
-        data = response.json()
-        assert data["name"] == "Test Item"
-        assert "id" in data
-
-@pytest.mark.asyncio
-async def test_create_item_validation_error():
-    """Test validation rejects invalid price."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        response = await client.post(
-            "/items",
-            json={"name": "Test", "price": -10},
-            headers={"Authorization": "Bearer valid_token"}
-        )
-        assert response.status_code == 422
-
-@pytest.mark.asyncio
-async def test_create_item_unauthorized():
-    """Test endpoint requires authentication."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-        response = await client.post("/items", json={"name": "Test", "price": 10})
-        assert response.status_code == 401
+        assert "id" in response.json()
 ```
 
 ### Step 2: Implement Minimum to Pass
-
-Write only the code needed to make tests pass:
 
 ```python
 @app.post("/items", status_code=201)
@@ -298,208 +325,23 @@ async def create_item(
 
 ### Step 3: Refactor if Needed
 
-Improve code quality while keeping tests green. Extract common patterns, improve naming, optimize queries.
+Improve code quality while keeping tests green.
 
 ### Step 4: Run Full Verification
 
 ```bash
-# Run all tests with coverage
 pytest --cov=app --cov-report=term-missing
-
-# Type checking
 mypy app --strict
-
-# Security scan
 bandit -r app -ll
-
-# All must pass before committing
 ```
+
+See `references/testing-guide.md` for comprehensive testing patterns.
 
 ---
 
-## 6. Performance Patterns
+## 6. Security Standards
 
-### Pattern 1: Connection Pooling for Database
-
-```python
-# BAD - Creates new connection per request
-@app.get("/users/{user_id}")
-async def get_user(user_id: int):
-    conn = await asyncpg.connect(DATABASE_URL)
-    try:
-        return await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
-    finally:
-        await conn.close()
-
-# GOOD - Uses connection pool
-from contextlib import asynccontextmanager
-
-pool: asyncpg.Pool = None
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global pool
-    pool = await asyncpg.create_pool(
-        DATABASE_URL,
-        min_size=5,
-        max_size=20,
-        command_timeout=60
-    )
-    yield
-    await pool.close()
-
-app = FastAPI(lifespan=lifespan)
-
-@app.get("/users/{user_id}")
-async def get_user(user_id: int):
-    async with pool.acquire() as conn:
-        return await conn.fetchrow("SELECT * FROM users WHERE id = $1", user_id)
-```
-
-### Pattern 2: Concurrent Requests with asyncio.gather
-
-```python
-# BAD - Sequential external API calls
-@app.get("/dashboard")
-async def get_dashboard(user_id: int):
-    profile = await fetch_profile(user_id)      # 100ms
-    orders = await fetch_orders(user_id)        # 150ms
-    notifications = await fetch_notifications(user_id)  # 80ms
-    return {"profile": profile, "orders": orders, "notifications": notifications}
-    # Total: ~330ms
-
-# GOOD - Concurrent calls
-@app.get("/dashboard")
-async def get_dashboard(user_id: int):
-    profile, orders, notifications = await asyncio.gather(
-        fetch_profile(user_id),
-        fetch_orders(user_id),
-        fetch_notifications(user_id)
-    )
-    return {"profile": profile, "orders": orders, "notifications": notifications}
-    # Total: ~150ms (slowest call)
-```
-
-### Pattern 3: Response Caching
-
-```python
-# BAD - Recomputes expensive data every request
-@app.get("/stats")
-async def get_stats():
-    return await compute_expensive_stats()  # 500ms each time
-
-# GOOD - Cache with Redis
-from fastapi_cache import FastAPICache
-from fastapi_cache.backends.redis import RedisBackend
-from fastapi_cache.decorator import cache
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    redis = aioredis.from_url("redis://localhost")
-    FastAPICache.init(RedisBackend(redis), prefix="api-cache")
-    yield
-
-@app.get("/stats")
-@cache(expire=300)  # Cache for 5 minutes
-async def get_stats():
-    return await compute_expensive_stats()
-
-# GOOD - In-memory cache for simpler cases
-from functools import lru_cache
-from datetime import datetime, timedelta
-
-_cache = {}
-_cache_time = {}
-
-async def get_cached_config(key: str, ttl: int = 60):
-    now = datetime.utcnow()
-    if key in _cache and _cache_time[key] > now:
-        return _cache[key]
-
-    value = await fetch_config(key)
-    _cache[key] = value
-    _cache_time[key] = now + timedelta(seconds=ttl)
-    return value
-```
-
-### Pattern 4: Pagination for Large Datasets
-
-```python
-# BAD - Returns all records
-@app.get("/items")
-async def list_items():
-    return await db.fetch("SELECT * FROM items")  # Could be millions
-
-# GOOD - Cursor-based pagination
-from pydantic import BaseModel
-
-class PaginatedResponse(BaseModel):
-    items: list
-    next_cursor: str | None
-    has_more: bool
-
-@app.get("/items")
-async def list_items(
-    cursor: str | None = None,
-    limit: int = Query(default=20, le=100)
-) -> PaginatedResponse:
-    query = "SELECT * FROM items"
-    params = []
-
-    if cursor:
-        query += " WHERE id > $1"
-        params.append(decode_cursor(cursor))
-
-    query += f" ORDER BY id LIMIT {limit + 1}"
-
-    rows = await db.fetch(query, *params)
-    has_more = len(rows) > limit
-    items = rows[:limit]
-
-    return PaginatedResponse(
-        items=items,
-        next_cursor=encode_cursor(items[-1]["id"]) if items else None,
-        has_more=has_more
-    )
-```
-
-### Pattern 5: Background Tasks for Heavy Operations
-
-```python
-# BAD - Blocks response for slow operations
-@app.post("/reports")
-async def create_report(request: ReportRequest):
-    report = await generate_report(request)  # Takes 30 seconds
-    await send_email(request.email, report)
-    return {"status": "completed"}
-
-# GOOD - Return immediately, process in background
-from fastapi import BackgroundTasks
-
-@app.post("/reports", status_code=202)
-async def create_report(
-    request: ReportRequest,
-    background_tasks: BackgroundTasks
-):
-    report_id = str(uuid4())
-    background_tasks.add_task(process_report, report_id, request)
-    return {"report_id": report_id, "status": "processing"}
-
-async def process_report(report_id: str, request: ReportRequest):
-    report = await generate_report(request)
-    await save_report(report_id, report)
-    await send_email(request.email, report)
-
-@app.get("/reports/{report_id}")
-async def get_report_status(report_id: str):
-    return await get_report(report_id)
-```
-
----
-
-## 7. Security Standards
-
-### 7.1 Domain Vulnerability Landscape
+### 6.1 Domain Vulnerability Landscape
 
 | CVE ID | Severity | Description | Mitigation |
 |--------|----------|-------------|------------|
@@ -507,7 +349,7 @@ async def get_report_status(report_id: str):
 | CVE-2024-12868 | HIGH | Downstream DoS via fastapi dependency | Upgrade FastAPI 0.115.3+ |
 | CVE-2023-30798 | HIGH | Starlette <0.25 DoS | Upgrade FastAPI 0.92+ |
 
-### 7.2 OWASP Top 10 Mapping
+### 6.2 OWASP Top 10 Mapping
 
 | Category | Risk | Mitigations |
 |----------|------|-------------|
@@ -519,7 +361,9 @@ async def get_report_status(report_id: str):
 | A06 Vulnerable Components | CRITICAL | Keep Starlette/FastAPI updated |
 | A07 Auth Failures | HIGH | Rate limiting on auth, secure JWT |
 
-### 7.3 Error Handling
+See `references/security-examples.md` for detailed implementations.
+
+### 6.3 Error Handling
 
 ```python
 from fastapi import HTTPException
@@ -549,125 +393,54 @@ async def http_exception_handler(request, exc):
 
 ---
 
-## 6. Testing & Validation
+## 7. Performance Guidelines
 
-### Security Tests
+### Key Performance Patterns
 
-```python
-import pytest
-from fastapi.testclient import TestClient
+1. **Connection Pooling**: Always use database connection pools (asyncpg, SQLAlchemy async)
+2. **Concurrent Requests**: Use `asyncio.gather()` for independent async operations
+3. **Response Caching**: Cache expensive operations with Redis or in-memory
+4. **Pagination**: Never return entire collections, use cursor-based pagination
+5. **Background Tasks**: Offload heavy operations (>2s) to background tasks
 
-def test_rate_limiting():
-    client = TestClient(app)
-    # Exceed rate limit
-    for _ in range(10):
-        response = client.post("/login", json={"username": "test", "password": "test"})
-    assert response.status_code == 429
-
-def test_invalid_jwt_rejected():
-    client = TestClient(app)
-    response = client.get(
-        "/protected",
-        headers={"Authorization": "Bearer invalid.token.here"}
-    )
-    assert response.status_code == 401
-
-def test_sql_injection_prevented():
-    client = TestClient(app)
-    response = client.get("/users", params={"search": "'; DROP TABLE users; --"})
-    assert response.status_code in [200, 400]
-    # Should not cause 500 (SQL error)
-
-def test_file_upload_type_validation():
-    client = TestClient(app)
-    # Try uploading executable disguised as image
-    response = client.post(
-        "/upload",
-        files={"file": ("test.jpg", b"MZ\x90\x00", "image/jpeg")}  # EXE magic bytes
-    )
-    assert response.status_code == 400
-```
+See `references/performance-optimization.md` for detailed implementations and benchmarks.
 
 ---
 
-## 8. Common Mistakes & Anti-Patterns
+## 8. References
 
-### Anti-Pattern 1: Permissive CORS
+### Complete Reference Documentation
 
-```python
-# NEVER
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True)
-
-# ALWAYS
-app.add_middleware(CORSMiddleware, allow_origins=["https://app.example.com"])
-```
-
-### Anti-Pattern 2: No Rate Limiting
-
-```python
-# NEVER - allows brute force
-@app.post("/login")
-async def login(creds): ...
-
-# ALWAYS
-@app.post("/login")
-@limiter.limit("5/minute")
-async def login(request, creds): ...
-```
-
-### Anti-Pattern 3: Exposing Docs in Production
-
-```python
-# NEVER
-app = FastAPI()
-
-# ALWAYS
-app = FastAPI(
-    docs_url=None if os.environ.get("ENV") == "production" else "/docs",
-    redoc_url=None
-)
-```
-
-### Anti-Pattern 4: Weak JWT Configuration
-
-```python
-# NEVER
-jwt.encode(data, "secret", algorithm="HS256")  # Hardcoded weak secret
-
-# ALWAYS
-jwt.encode(data, os.environ["JWT_SECRET"], algorithm="RS256")  # Env var, strong algo
-```
-
-### Anti-Pattern 5: File Extension Validation Only
-
-```python
-# NEVER
-if file.filename.endswith('.jpg'): ...
-
-# ALWAYS
-mime = magic.from_buffer(content, mime=True)
-if mime not in ALLOWED_TYPES: ...
-```
+- **`references/advanced-patterns.md`**: Dependency injection, WebSocket, streaming responses, OpenAPI customization
+- **`references/security-examples.md`**: CVE mitigations, OWASP implementations, API key auth
+- **`references/threat-model.md`**: STRIDE analysis, attack scenarios, security controls
+- **`references/performance-optimization.md`**: Connection pooling, caching, pagination, background tasks
+- **`references/testing-guide.md`**: TDD workflow, security tests, integration tests, mocking
+- **`references/anti-patterns.md`**: Common mistakes and how to avoid them
 
 ---
 
-## 13. Pre-Deployment Checklist
+## 9. Pre-Deployment Checklist
 
 - [ ] FastAPI 0.115.3+ / Starlette 0.40.0+
 - [ ] Security headers middleware configured
 - [ ] CORS restrictive (no wildcard with credentials)
 - [ ] Rate limiting on all endpoints
-- [ ] Stricter limits on auth endpoints
+- [ ] Stricter limits on auth endpoints (5/min)
 - [ ] JWT with strong secret from environment
 - [ ] Pydantic validation on all inputs
 - [ ] File uploads check magic bytes
 - [ ] Docs disabled in production
 - [ ] Error handlers don't leak internals
 - [ ] HTTPS enforced
+- [ ] Database connection pooling enabled
+- [ ] Tests pass with >80% coverage
+- [ ] Type checking passes (mypy)
+- [ ] Security scan passes (bandit)
 
 ---
 
-## 14. Summary
+## 10. Summary
 
 Your goal is to create FastAPI applications that are:
 - **Secure**: Validated inputs, rate limits, security headers

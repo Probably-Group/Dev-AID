@@ -14,6 +14,53 @@ last_updated: 2025-01-15
 
 > **MANDATORY READING PROTOCOL**: Before implementing credential storage, read `references/advanced-patterns.md` for cross-platform patterns and `references/security-examples.md` for platform-specific implementations.
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any code using this skill**
+
+### Verification Requirements
+
+When using this skill to implement credential storage, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official keyring/platform documentation
+   - ✅ Confirm keychain APIs are current for target OS
+   - ✅ Validate security patterns against official guides
+   - ❌ Never guess keychain service names or formats
+   - ❌ Never invent keyring backend names
+   - ❌ Never assume cross-platform compatibility without testing
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for credential patterns
+   - 🔍 Grep: Search for keyring usage examples
+   - 🔍 WebSearch: Verify keyring library APIs
+   - 🔍 WebFetch: Read official platform documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY keychain API, backend, or pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in credential storage expose all dependent systems
+
+4. **Common Keychain Hallucination Traps** (AVOID)
+   - ❌ Inventing keyring backend names (e.g., "SystemKeyring", "OSKeyring")
+   - ❌ Making up keyring library methods (e.g., `keyring.list_passwords()`)
+   - ❌ Assuming all platforms support same features
+   - ❌ Invented service name formats or conventions
+   - ❌ Non-existent security features (e.g., automatic encryption levels)
+
+### Self-Check Checklist
+
+Before EVERY response with keychain code:
+- [ ] All keyring APIs verified against current library docs
+- [ ] Platform-specific features verified (macOS/Windows/Linux)
+- [ ] Backend detection logic verified against keyring documentation
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Keychain code with hallucinated APIs causes credential exposure and system compromise. Always verify.
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -70,13 +117,9 @@ class TestCredentialStoreOperations:
 
     def test_store_credential_success(self):
         """Test storing a credential in keychain."""
-        # Arrange
         store = SecureCredentialStore("test-service")
-
-        # Act
         store.store("api-key", "sk-test-12345")
 
-        # Assert
         assert store.exists("api-key") is True
         assert store.retrieve("api-key") == "sk-test-12345"
 
@@ -86,15 +129,6 @@ class TestCredentialStoreOperations:
 
         with pytest.raises(KeyError, match="Credential not found"):
             store.retrieve("nonexistent-key")
-
-    def test_delete_removes_credential(self):
-        """Test deletion completely removes credential."""
-        store = SecureCredentialStore("test-service")
-        store.store("temp-key", "temp-value")
-
-        store.delete("temp-key")
-
-        assert store.exists("temp-key") is False
 
     def test_credential_isolation_between_namespaces(self):
         """Test credentials are isolated by namespace."""
@@ -106,20 +140,9 @@ class TestCredentialStoreOperations:
 
         assert store1.retrieve("shared-key") == "value-a"
         assert store2.retrieve("shared-key") == "value-b"
-
-    def test_rejects_insecure_backend(self):
-        """Test rejection of insecure keyring backends."""
-        import keyring
-        from keyring.backends import null
-
-        original = keyring.get_keyring()
-        try:
-            keyring.set_keyring(null.Keyring())
-            with pytest.raises(RuntimeError, match="Insecure"):
-                SecureCredentialStore("test")
-        finally:
-            keyring.set_keyring(original)
 ```
+
+**For complete test suite**: See `references/testing-guide.md`
 
 ### Step 2: Implement Minimum to Pass
 
@@ -164,7 +187,11 @@ class SecureCredentialStore:
 
 ### Step 3: Refactor with Performance Patterns
 
-After tests pass, add caching and logging (see Performance Patterns section).
+After tests pass, add caching and logging. See `references/performance-optimization.md` for:
+- Credential caching with TTL
+- Batch operations
+- Lazy loading
+- Memory-safe handling
 
 ### Step 4: Run Full Verification
 
@@ -179,203 +206,9 @@ pytest tests/security/ -k "keychain or credential" -v
 grep -r "sk-\|password\|secret" logs/ && echo "FAIL: Credentials in logs"
 ```
 
-## 4. Performance Patterns
+## 4. Core Responsibilities
 
-### 4.1 Credential Caching
-
-```python
-# BAD: Repeated keychain access
-class SlowCredentialStore:
-    def get_api_key(self):
-        return keyring.get_password(self._service, "api-key")  # Slow IPC every call
-
-# GOOD: In-memory cache with TTL
-from functools import lru_cache
-from threading import Lock
-import time
-
-class CachedCredentialStore:
-    def __init__(self, namespace: str, cache_ttl: int = 300):
-        self._service = f"com.jarvis.{namespace}"
-        self._cache: dict[str, tuple[str, float]] = {}
-        self._lock = Lock()
-        self._ttl = cache_ttl
-
-    def retrieve(self, key: str) -> str:
-        with self._lock:
-            if key in self._cache:
-                value, timestamp = self._cache[key]
-                if time.time() - timestamp < self._ttl:
-                    return value
-
-            secret = keyring.get_password(self._service, key)
-            if secret is None:
-                raise KeyError(f"Credential not found: {key}")
-
-            self._cache[key] = (secret, time.time())
-            return secret
-
-    def invalidate(self, key: str = None):
-        with self._lock:
-            if key:
-                self._cache.pop(key, None)
-            else:
-                self._cache.clear()
-```
-
-### 4.2 Batch Operations
-
-```python
-# BAD: Individual keychain calls
-def load_all_credentials():
-    db_pass = keyring.get_password("jarvis", "db-password")
-    api_key = keyring.get_password("jarvis", "api-key")
-    secret = keyring.get_password("jarvis", "encryption-key")
-    return db_pass, api_key, secret  # 3 separate IPC calls
-
-# GOOD: Batch loading with single initialization
-class BatchCredentialLoader:
-    def __init__(self, namespace: str, keys: list[str]):
-        self._service = f"com.jarvis.{namespace}"
-        self._credentials = self._load_batch(keys)
-
-    def _load_batch(self, keys: list[str]) -> dict[str, str]:
-        """Load multiple credentials in optimized batch."""
-        result = {}
-        for key in keys:
-            value = keyring.get_password(self._service, key)
-            if value:
-                result[key] = value
-        return result
-
-    def get(self, key: str) -> str:
-        if key not in self._credentials:
-            raise KeyError(f"Credential not loaded: {key}")
-        return self._credentials[key]
-
-# Usage - single initialization at startup
-loader = BatchCredentialLoader("secrets", ["db-password", "api-key", "encryption-key"])
-```
-
-### 4.3 Lazy Loading
-
-```python
-# BAD: Load all credentials at import
-class EagerStore:
-    def __init__(self):
-        self.db_password = keyring.get_password("jarvis", "db")  # Loaded immediately
-        self.api_key = keyring.get_password("jarvis", "api")
-
-# GOOD: Load only when accessed
-class LazyCredentialStore:
-    def __init__(self, namespace: str):
-        self._service = f"com.jarvis.{namespace}"
-        self._cache: dict[str, str] = {}
-
-    def __getattr__(self, name: str) -> str:
-        if name.startswith('_'):
-            raise AttributeError(name)
-
-        if name not in self._cache:
-            value = keyring.get_password(self._service, name.replace('_', '-'))
-            if value is None:
-                raise KeyError(f"Credential not found: {name}")
-            self._cache[name] = value
-
-        return self._cache[name]
-
-# Usage - credentials loaded on first access
-store = LazyCredentialStore("api-keys")
-# No keychain calls yet
-key = store.openai_key  # First access triggers load
-```
-
-### 4.4 Connection Reuse
-
-```python
-# BAD: Create new backend each time
-def get_credential(key: str) -> str:
-    store = SecureCredentialStore("service")  # Backend verification each call
-    return store.retrieve(key)
-
-# GOOD: Singleton pattern for store instances
-class CredentialStoreFactory:
-    _instances: dict[str, 'SecureCredentialStore'] = {}
-    _lock = Lock()
-
-    @classmethod
-    def get_store(cls, namespace: str) -> 'SecureCredentialStore':
-        with cls._lock:
-            if namespace not in cls._instances:
-                cls._instances[namespace] = SecureCredentialStore(namespace)
-            return cls._instances[namespace]
-
-# Usage - reuses existing store instance
-store = CredentialStoreFactory.get_store("api-keys")
-```
-
-### 4.5 Memory-Safe Handling
-
-```python
-# BAD: Credentials persist in memory
-class UnsafeStore:
-    def get_credential(self, key: str) -> str:
-        secret = keyring.get_password(self._service, key)
-        self.last_retrieved = secret  # Persists in memory
-        return secret
-
-# GOOD: Secure memory handling with cleanup
-import ctypes
-import gc
-
-class SecureMemoryStore:
-    def retrieve_and_use(self, key: str, callback) -> None:
-        """Retrieve credential, use it, then clear from memory."""
-        secret = keyring.get_password(self._service, key)
-        if secret is None:
-            raise KeyError(f"Credential not found: {key}")
-
-        try:
-            callback(secret)
-        finally:
-            # Overwrite string in memory (best effort in Python)
-            if secret:
-                secret_bytes = secret.encode()
-                ctypes.memset(id(secret_bytes) + 32, 0, len(secret_bytes))
-            del secret
-            gc.collect()
-
-    def with_credential(self, key: str):
-        """Context manager for secure credential access."""
-        class CredentialContext:
-            def __init__(ctx_self, store, key):
-                ctx_self._store = store
-                ctx_self._key = key
-                ctx_self._value = None
-
-            def __enter__(ctx_self):
-                ctx_self._value = keyring.get_password(
-                    ctx_self._store._service, ctx_self._key
-                )
-                return ctx_self._value
-
-            def __exit__(ctx_self, *args):
-                if ctx_self._value:
-                    del ctx_self._value
-                gc.collect()
-
-        return CredentialContext(self, key)
-
-# Usage
-store = SecureMemoryStore("secrets")
-with store.with_credential("api-key") as api_key:
-    make_api_call(api_key)
-# Credential cleared after context exits
-```
-
-## 5. Core Responsibilities
-
-### 5.1 Primary Functions
+### 4.1 Primary Functions
 
 1. **Store secrets securely** using OS-native encryption
 2. **Retrieve secrets** with proper access control verification
@@ -383,9 +216,9 @@ with store.with_credential("api-key") as api_key:
 4. **Abstract platform differences** for cross-platform code
 5. **Integrate with encryption skill** for master key storage
 
-## 6. Technology Stack
+## 5. Technology Stack
 
-### 6.1 Recommended Libraries
+### 5.1 Recommended Libraries
 
 | Platform | Library | API | Notes |
 |----------|---------|-----|-------|
@@ -394,15 +227,15 @@ with store.with_credential("api-key") as api_key:
 | Windows | `Windows.Security.Credentials` | Credential Manager | WinRT API |
 | Linux | `libsecret` | Secret Service D-Bus | GNOME Keyring backend |
 
-### 6.2 Platform Requirements
+### 5.2 Platform Requirements
 
 - **macOS**: 10.15+ (Keychain Access improvements)
 - **Windows**: 10 1903+ (Credential Guard support)
 - **Linux**: libsecret 0.20+, GNOME Keyring 3.36+
 
-## 7. Implementation Patterns
+## 6. Implementation Patterns
 
-### 7.1 Cross-Platform Python Implementation
+### 6.1 Cross-Platform Python Implementation
 
 ```python
 import keyring
@@ -453,7 +286,7 @@ class SecureCredentialStore:
         return keyring.get_password(self._service, key) is not None
 ```
 
-### 7.2 Platform-Specific Implementations
+### 6.2 Platform-Specific Implementations
 
 For detailed platform-specific implementations with advanced features:
 
@@ -461,9 +294,9 @@ For detailed platform-specific implementations with advanced features:
 - **Windows Credential Manager** (DPAPI, Credential Guard): See `references/security-examples.md#windows-credential-manager`
 - **Linux Secret Service** (D-Bus, GNOME Keyring): See `references/security-examples.md#linux-secret-service`
 
-## 8. Security Standards
+## 7. Security Standards
 
-### 8.1 Known Vulnerabilities
+### 7.1 Known Vulnerabilities
 
 | CVE | Severity | Platform | Mitigation |
 |-----|----------|----------|------------|
@@ -473,7 +306,7 @@ For detailed platform-specific implementations with advanced features:
 | CVE-2024-44243 | High | macOS | Update to macOS 15.2+ |
 | CVE-2024-1086 | High (7.8) | Linux | Kernel 6.6.15+ |
 
-### 8.2 OWASP Mapping
+### 7.2 OWASP Mapping
 
 | OWASP 2025 | Implementation |
 |------------|----------------|
@@ -482,7 +315,7 @@ For detailed platform-specific implementations with advanced features:
 | A04: Insecure Design | Defense in depth, least privilege |
 | A07: Identification Failures | Credential isolation per service |
 
-### 8.3 Platform Security Features
+### 7.3 Platform Security Features
 
 **macOS**: Secure Enclave, per-item ACLs, code signing, Touch ID gating
 
@@ -492,63 +325,13 @@ For detailed platform-specific implementations with advanced features:
 
 For detailed threat analysis, see `references/threat-model.md`.
 
-## 9. Common Mistakes
-
-### 9.1 Critical Anti-Patterns
-
-**Environment Variables for Secrets**
-```python
-# NEVER: Visible in /proc, logs
-api_key = os.environ.get('API_KEY')
-
-# ALWAYS: OS keychain
-api_key = SecureCredentialStore("api").retrieve("api-key")
-```
-
-**Hardcoded Credentials**
-```python
-# NEVER: In source code
-DATABASE_PASSWORD = "production-password-123"
-
-# ALWAYS: Retrieved at runtime
-password = SecureCredentialStore("database").retrieve("password")
-```
-
-**Insecure File Storage**
-```python
-# NEVER: Plain files
-with open('~/.config/app/credentials.json') as f:
-    creds = json.load(f)
-
-# ALWAYS: Platform keychain
-token = SecureCredentialStore("app").retrieve("access-token")
-```
-
-**Logging Credentials**
-```python
-# NEVER: Log values
-logger.info(f"Retrieved API key: {api_key}")
-
-# ALWAYS: Log metadata only
-logger.info("credential.retrieved", extra={'service': service, 'key': key})
-```
-
-**Single Service Name**
-```python
-# NEVER: All credentials under one service
-store = SecureCredentialStore("jarvis")
-
-# ALWAYS: Namespace by credential type
-db_store = SecureCredentialStore("database")
-api_store = SecureCredentialStore("api-keys")
-```
-
-## 10. Pre-Implementation Checklist
+## 8. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
 - [ ] Read `references/advanced-patterns.md` for cross-platform patterns
 - [ ] Read `references/security-examples.md` for platform implementations
+- [ ] Read `references/anti-patterns.md` for common mistakes
 - [ ] Review threat model in `references/threat-model.md`
 - [ ] Identify required credential namespaces
 - [ ] Design test cases for credential operations
@@ -581,7 +364,7 @@ api_store = SecureCredentialStore("api-keys")
 - [ ] **Linux**: Secret Service daemon running, D-Bus accessible
 - [ ] OS security updates applied (check CVE list above)
 
-## 11. Summary
+## 9. Summary
 
 ### Key Objectives
 
@@ -599,11 +382,32 @@ api_store = SecureCredentialStore("api-keys")
 - Log credential operations but NEVER values
 - Keep OS updated to address keychain vulnerabilities
 
-### References
+### Quick Anti-Pattern Check
 
-- `references/advanced-patterns.md` - Cross-platform patterns, migration, testing
-- `references/security-examples.md` - Complete platform implementations
-- `references/threat-model.md` - Attack scenarios and mitigations
+❌ **NEVER**:
+- Store credentials in environment variables
+- Hardcode credentials in source code
+- Store credentials in plain files (even base64-encoded)
+- Log credential values
+- Use single service name for all credentials
+
+✅ **ALWAYS**:
+- Use OS keychain services
+- Verify secure backend at startup
+- Use unique namespaces per credential type
+- Cache credentials for performance
+- Log metadata only, never values
+
+## 10. References
+
+See `references/` directory for detailed guides:
+
+- **`advanced-patterns.md`** - Cross-platform patterns, migration strategies, advanced usage
+- **`security-examples.md`** - Complete platform-specific implementations (macOS, Windows, Linux)
+- **`threat-model.md`** - Comprehensive threat analysis and attack scenarios
+- **`performance-optimization.md`** - Caching, batching, lazy loading, memory-safe patterns
+- **`anti-patterns.md`** - Common mistakes and how to avoid them
+- **`testing-guide.md`** - Complete testing strategies with TDD examples
 
 ---
 

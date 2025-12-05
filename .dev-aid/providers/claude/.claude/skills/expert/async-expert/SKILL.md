@@ -125,407 +125,156 @@ You write asynchronous code that is:
 
 ### Step 1: Write Failing Async Test First
 
+Write comprehensive async tests covering success, failure, and timeout cases:
+
 ```python
-# tests/test_data_fetcher.py
 import pytest
-import asyncio
 from unittest.mock import AsyncMock, patch
 
 @pytest.mark.asyncio
 async def test_fetch_users_parallel_returns_results():
     """Test parallel fetch returns all successful results."""
     mock_fetch = AsyncMock(side_effect=lambda uid: {"id": uid, "name": f"User {uid}"})
-
     with patch("app.fetcher.fetch_user", mock_fetch):
         from app.fetcher import fetch_users_parallel
         successes, failures = await fetch_users_parallel([1, 2, 3])
-
-    assert len(successes) == 3
-    assert len(failures) == 0
-    assert mock_fetch.call_count == 3
-
-@pytest.mark.asyncio
-async def test_fetch_users_parallel_handles_partial_failures():
-    """Test parallel fetch separates successes from failures."""
-    async def mock_fetch(uid):
-        if uid == 2:
-            raise ConnectionError("Network error")
-        return {"id": uid}
-
-    with patch("app.fetcher.fetch_user", mock_fetch):
-        from app.fetcher import fetch_users_parallel
-        successes, failures = await fetch_users_parallel([1, 2, 3])
-
-    assert len(successes) == 2
-    assert len(failures) == 1
-    assert isinstance(failures[0], ConnectionError)
-
-@pytest.mark.asyncio
-async def test_fetch_with_timeout_returns_none_on_timeout():
-    """Test timeout returns None instead of raising."""
-    async def slow_fetch():
-        await asyncio.sleep(10)
-        return "data"
-
-    with patch("app.fetcher.fetch_data", slow_fetch):
-        from app.fetcher import fetch_with_timeout
-        result = await fetch_with_timeout("http://example.com", timeout=0.1)
-
-    assert result is None
+    assert len(successes) == 3 and len(failures) == 0
 ```
+
+**See Also**: [Testing Guide](./references/testing-guide.md) - Complete testing patterns, mocking, timeouts, and debugging
 
 ### Step 2: Implement Minimum Code to Pass
 
 ```python
-# app/fetcher.py
 import asyncio
 from typing import List, Optional
 
 async def fetch_users_parallel(user_ids: List[int]) -> tuple[list, list]:
-    tasks = [fetch_user(uid) for uid in user_ids]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    results = await asyncio.gather(*[fetch_user(uid) for uid in user_ids], return_exceptions=True)
     successes = [r for r in results if not isinstance(r, Exception)]
     failures = [r for r in results if isinstance(r, Exception)]
     return successes, failures
-
-async def fetch_with_timeout(url: str, timeout: float = 5.0) -> Optional[str]:
-    try:
-        async with asyncio.timeout(timeout):
-            return await fetch_data(url)
-    except asyncio.TimeoutError:
-        return None
 ```
 
 ### Step 3: Refactor with Performance Patterns
 
-Add concurrency limits, better error handling, or caching as needed.
+Add concurrency limits, error handling, caching, connection pooling as needed.
 
 ### Step 4: Run Full Verification
 
 ```bash
-# Run async tests
-pytest tests/ -v --asyncio-mode=auto
-
-# Check for blocking calls
-grep -r "time\.sleep\|requests\.\|urllib\." src/
-
-# Run with coverage
-pytest --cov=app --cov-report=term-missing
+pytest tests/ -v --asyncio-mode=auto                    # Run async tests
+grep -r "time\.sleep\|requests\.\|urllib\." src/       # Check for blocking calls
+pytest --cov=app --cov-report=term-missing             # Run with coverage
 ```
 
 ---
 
-## 5. Performance Patterns
+## 5. Performance Optimization
 
-### Pattern 1: Use asyncio.gather for Parallel Execution
+### Key Performance Patterns
 
+**Parallel Execution**: Use `asyncio.gather()` to run independent operations concurrently
 ```python
-# BAD: Sequential - 3 seconds total
-async def fetch_all_sequential():
-    user = await fetch_user()      # 1 sec
-    posts = await fetch_posts()    # 1 sec
-    comments = await fetch_comments()  # 1 sec
-    return user, posts, comments
-
-# GOOD: Parallel - 1 second total
-async def fetch_all_parallel():
-    return await asyncio.gather(
-        fetch_user(),
-        fetch_posts(),
-        fetch_comments()
-    )
+# Parallel - 1 second total (vs 3 seconds sequential)
+return await asyncio.gather(fetch_user(), fetch_posts(), fetch_comments())
 ```
 
-### Pattern 2: Semaphores for Concurrency Limits
-
+**Concurrency Limits**: Use semaphores to prevent overwhelming servers
 ```python
-# BAD: Unbounded concurrency overwhelms server
-async def process_all_bad(items):
-    return await asyncio.gather(*[process(item) for item in items])
-
-# GOOD: Limited concurrency with semaphore
-async def process_all_good(items, max_concurrent=100):
-    semaphore = asyncio.Semaphore(max_concurrent)
-    async def bounded(item):
-        async with semaphore:
-            return await process(item)
-    return await asyncio.gather(*[bounded(item) for item in items])
+semaphore = asyncio.Semaphore(100)
+async def bounded(item):
+    async with semaphore:
+        return await process(item)
 ```
 
-### Pattern 3: Task Groups for Structured Concurrency (Python 3.11+)
-
+**Avoid Blocking**: Use async libraries (aiohttp, asyncpg, aiofiles) and run CPU-intensive work in executor
 ```python
-# BAD: Manual task management
-async def fetch_all_manual():
-    tasks = [asyncio.create_task(fetch(url)) for url in urls]
+# Run blocking code in thread pool
+result = await loop.run_in_executor(None, heavy_cpu_computation, data)
+```
+
+**Resource Pooling**: Reuse connections, implement caching, use batch operations
+
+**See Also**: [Performance Optimization Guide](./references/performance-optimization.md) - Complete patterns, profiling, monitoring, and optimization strategies
+
+---
+
+## 6. Core Implementation Patterns
+
+### Pattern Overview
+
+**Parallel Execution with Error Handling**
+```python
+results = await asyncio.gather(*tasks, return_exceptions=True)
+successes = [r for r in results if not isinstance(r, Exception)]
+failures = [r for r in results if isinstance(r, Exception)]
+```
+
+**Timeout and Cancellation**
+```python
+async with asyncio.timeout(5.0):  # Python 3.11+
+    return await fetch_data(url)
+```
+
+**Retry with Exponential Backoff**
+```python
+for attempt in range(max_retries):
     try:
-        return await asyncio.gather(*tasks)
+        return await func()
     except Exception:
-        for task in tasks:
-            task.cancel()
-        raise
-
-# GOOD: TaskGroup handles cancellation automatically
-async def fetch_all_taskgroup():
-    results = []
-    async with asyncio.TaskGroup() as tg:
-        for url in urls:
-            task = tg.create_task(fetch(url))
-            results.append(task)
-    return [task.result() for task in results]
+        if attempt == max_retries - 1: raise
+        await asyncio.sleep(base_delay * (2 ** attempt))
 ```
 
-### Pattern 4: Event Loop Optimization
-
+**Resource Cleanup with Context Managers**
 ```python
-# BAD: Blocking call freezes event loop
-async def process_data_bad(data):
-    result = heavy_cpu_computation(data)  # Blocks!
-    return result
-
-# GOOD: Run blocking code in executor
-async def process_data_good(data):
-    loop = asyncio.get_event_loop()
-    result = await loop.run_in_executor(None, heavy_cpu_computation, data)
-    return result
-```
-
-### Pattern 5: Avoid Blocking Operations
-
-```python
-# BAD: Using blocking libraries
-import requests
-async def fetch_bad(url):
-    return requests.get(url).json()  # Blocks event loop!
-
-# GOOD: Use async libraries
-import aiohttp
-async def fetch_good(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return await response.json()
-
-# BAD: Blocking sleep
-import time
-async def delay_bad():
-    time.sleep(1)  # Blocks!
-
-# GOOD: Async sleep
-async def delay_good():
-    await asyncio.sleep(1)  # Yields to event loop
-```
-
----
-
-## 6. Implementation Patterns
-
-### Pattern 1: Parallel Execution with Error Handling
-
-**Problem**: Execute multiple async operations concurrently, handle partial failures
-
-**Python**:
-```python
-async def fetch_users_parallel(user_ids: List[int]) -> tuple[List[dict], List[Exception]]:
-    tasks = [fetch_user(uid) for uid in user_ids]
-    # gather with return_exceptions=True prevents one failure from canceling others
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    successes = [r for r in results if not isinstance(r, Exception)]
-    failures = [r for r in results if isinstance(r, Exception)]
-    return successes, failures
-```
-
-**JavaScript**:
-```javascript
-async function fetchUsersParallel(userIds) {
-  const results = await Promise.allSettled(userIds.map(id => fetchUser(id)));
-  const successes = results.filter(r => r.status === 'fulfilled').map(r => r.value);
-  const failures = results.filter(r => r.status === 'rejected').map(r => r.reason);
-  return { successes, failures };
-}
-```
-
----
-
-### Pattern 2: Timeout and Cancellation
-
-**Problem**: Prevent async operations from running indefinitely
-
-**Python**:
-```python
-async def fetch_with_timeout(url: str, timeout: float = 5.0) -> Optional[str]:
-    try:
-        async with asyncio.timeout(timeout):  # Python 3.11+
-            return await fetch_data(url)
-    except asyncio.TimeoutError:
-        return None
-
-async def cancellable_task():
-    try:
-        await long_running_operation()
-    except asyncio.CancelledError:
-        await cleanup()
-        raise  # Re-raise to signal cancellation
-```
-
-**JavaScript**:
-```javascript
-async function fetchWithTimeout(url, timeoutMs = 5000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    return await response.json();
-  } catch (error) {
-    if (error.name === 'AbortError') return null;
-    throw error;
-  }
-}
-```
-
----
-
-### Pattern 3: Retry with Exponential Backoff
-
-**Problem**: Retry failed async operations with increasing delays
-
-**Python**:
-```python
-async def retry_with_backoff(
-    func: Callable,
-    max_retries: int = 3,
-    base_delay: float = 1.0,
-    exponential_base: float = 2.0,
-    jitter: bool = True
-) -> Any:
-    for attempt in range(max_retries):
-        try:
-            return await func()
-        except Exception as e:
-            if attempt == max_retries - 1:
-                raise
-            delay = min(base_delay * (exponential_base ** attempt), 60.0)
-            if jitter:
-                delay *= (0.5 + random.random())
-            await asyncio.sleep(delay)
-```
-
-**JavaScript**:
-```javascript
-async function retryWithBackoff(fn, { maxRetries = 3, baseDelay = 1000 } = {}) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (attempt === maxRetries - 1) throw error;
-      const delay = Math.min(baseDelay * Math.pow(2, attempt), 60000);
-      await new Promise(r => setTimeout(r, delay));
-    }
-  }
-}
-```
-
----
-
-### Pattern 4: Async Context Manager / Resource Cleanup
-
-**Problem**: Ensure resources are properly cleaned up even on errors
-
-**Python**:
-```python
-from contextlib import asynccontextmanager
-
 @asynccontextmanager
-async def get_db_connection(dsn: str):
-    conn = DatabaseConnection(dsn)
+async def get_db_connection(dsn):
+    conn = await DatabaseConnection(dsn).connect()
     try:
-        await conn.connect()
         yield conn
     finally:
-        if conn.connected:
-            await conn.close()
-
-# Usage
-async with get_db_connection("postgresql://localhost/db") as db:
-    result = await db.execute("SELECT * FROM users")
+        await conn.close()
 ```
 
-**JavaScript**:
-```javascript
-async function withConnection(dsn, callback) {
-  const conn = new DatabaseConnection(dsn);
-  try {
-    await conn.connect();
-    return await callback(conn);
-  } finally {
-    if (conn.connected) {
-      await conn.close();
-    }
-  }
-}
-
-// Usage
-await withConnection('postgresql://localhost/db', async (db) => {
-  return await db.execute('SELECT * FROM users');
-});
-```
-
-**See Also**: [Advanced Async Patterns](./references/advanced-patterns.md) - Async iterators, circuit breakers, and structured concurrency
+**See Also**: [Advanced Async Patterns](./references/advanced-patterns.md) - Complete implementations for Python, JavaScript, async iterators, circuit breakers, queues, and structured concurrency
 
 ---
 
-## 7. Common Mistakes and Anti-Patterns
+## 7. Common Mistakes to Avoid
 
-### Top 3 Most Critical Mistakes
+### Top 3 Critical Mistakes
 
-#### Mistake 1: Forgetting await
-
+**1. Forgetting await** - Returns coroutine object instead of actual data
 ```python
-# ❌ BAD: Returns coroutine object, not data
-async def get_data():
-    result = fetch_data()  # Missing await!
-    return result
-
-# ✅ GOOD
-async def get_data():
-    return await fetch_data()
+result = fetch_data()  # ❌ Missing await! Returns coroutine, not data
+result = await fetch_data()  # ✅ Correct
 ```
 
-#### Mistake 2: Sequential When You Want Parallel
-
+**2. Sequential when you want parallel** - Wastes time running operations sequentially
 ```python
-# ❌ BAD: Sequential execution - 3 seconds total
-async def fetch_all():
-    user = await fetch_user()
-    posts = await fetch_posts()
-    comments = await fetch_comments()
+# ❌ Sequential: 3 seconds
+user = await fetch_user()
+posts = await fetch_posts()
 
-# ✅ GOOD: Parallel execution - 1 second total
-async def fetch_all():
-    return await asyncio.gather(
-        fetch_user(),
-        fetch_posts(),
-        fetch_comments()
-    )
+# ✅ Parallel: 1 second
+user, posts = await asyncio.gather(fetch_user(), fetch_posts())
 ```
 
-#### Mistake 3: Creating Too Many Concurrent Tasks
-
+**3. Unbounded concurrency** - Overwhelms servers with too many simultaneous connections
 ```python
-# ❌ BAD: Unbounded concurrency (10,000 simultaneous connections!)
-async def process_all(items):
-    return await asyncio.gather(*[process_item(item) for item in items])
+# ❌ Creates 10,000 connections at once
+await asyncio.gather(*[process(item) for item in items])
 
-# ✅ GOOD: Limit concurrency with semaphore
-async def process_all(items, max_concurrent=100):
-    semaphore = asyncio.Semaphore(max_concurrent)
-    async def bounded_process(item):
-        async with semaphore:
-            return await process_item(item)
-    return await asyncio.gather(*[bounded_process(item) for item in items])
+# ✅ Limit to 100 concurrent
+semaphore = asyncio.Semaphore(100)
+async def bounded(item):
+    async with semaphore:
+        return await process(item)
 ```
 
-**See Also**: [Complete Anti-Patterns Guide](./references/anti-patterns.md) - All 8 common mistakes with detailed examples
+**See Also**: [Complete Anti-Patterns Guide](./references/anti-patterns.md) - All common mistakes including cancellation, blocking operations, timeouts, and backpressure
 
 ---
 
@@ -580,6 +329,10 @@ Your async code is production-ready with comprehensive error handling, proper ti
 
 ## References
 
-- [Advanced Async Patterns](./references/advanced-patterns.md) - Async iterators, circuit breakers, structured concurrency
-- [Troubleshooting Guide](./references/troubleshooting.md) - Common issues and solutions
-- [Anti-Patterns Guide](./references/anti-patterns.md) - Complete list of mistakes to avoid
+Complete reference documentation for async programming:
+
+- **[Advanced Async Patterns](./references/advanced-patterns.md)** - Patterns 1-8: Parallel execution, timeouts, retry logic, context managers, queues, async iterators, circuit breakers, structured concurrency
+- **[Performance Optimization](./references/performance-optimization.md)** - Connection pooling, batching, caching, profiling, event loop monitoring, and optimization strategies
+- **[Testing Guide](./references/testing-guide.md)** - Comprehensive testing patterns with pytest-asyncio and Jest, mocking, timeouts, cancellation, and debugging
+- **[Anti-Patterns Guide](./references/anti-patterns.md)** - All 8 common mistakes: forgetting await, sequential vs parallel, unbounded concurrency, cancellation, blocking operations, backpressure, timeouts
+- **[Troubleshooting Guide](./references/troubleshooting.md)** - Common issues: blocking event loop, unhandled exceptions, race conditions, resource leaks, deadlocks

@@ -5,6 +5,54 @@ description: "Expert Celery distributed task queue engineer specializing in asyn
 
 # Celery Distributed Task Queue Expert
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Celery code**
+
+### Verification Requirements
+
+When using this skill to implement Celery features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Celery documentation (https://docs.celeryq.dev/)
+   - ✅ Confirm task patterns and configuration are current for Celery version
+   - ✅ Validate broker compatibility (Redis vs RabbitMQ)
+   - ❌ Never guess configuration options
+   - ❌ Never invent task decorator parameters
+   - ❌ Never assume broker features without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for Celery patterns
+   - 🔍 Grep: Search for similar task implementations
+   - 🔍 WebSearch: Verify current Celery API in official docs
+   - 🔍 WebFetch: Read official documentation for specific features
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY Celery configuration/pattern/API
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in task queues can cause data loss, task duplication, or system outages
+
+4. **Common Celery Hallucination Traps** (AVOID)
+   - ❌ Invented task decorator parameters (e.g., `@task(queue_priority=10)` - doesn't exist)
+   - ❌ Non-existent configuration options (e.g., `task_auto_scale=True`)
+   - ❌ Made-up workflow primitives (only chain, group, chord, map, starmap, chunks exist)
+   - ❌ Incorrect retry parameters (e.g., `retry_exponential=True` - use `retry_backoff=True`)
+   - ❌ Wrong serialization formats (only json, pickle, yaml, msgpack supported)
+
+### Self-Check Checklist
+
+Before EVERY response with Celery code:
+- [ ] All task decorator parameters verified against official docs
+- [ ] Configuration options verified against current Celery version
+- [ ] Broker features (Redis/RabbitMQ) verified for compatibility
+- [ ] Workflow patterns (chain/group/chord) verified for correct usage
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Celery code with hallucinated configurations causes production failures, task loss, and data corruption. Always verify.
+
+---
+
 ## 1. Overview
 
 You are an elite Celery engineer with deep expertise in:
@@ -119,7 +167,7 @@ def process_order(self, order_id: int):
 
 ### Step 3: Refactor Following Patterns
 
-Add proper error handling, time limits, and observability.
+Add proper error handling, time limits, and observability. See `references/task-patterns.md` for complete examples.
 
 ### Step 4: Run Full Verification
 
@@ -139,142 +187,7 @@ pytest tests/integration/ --broker=redis://localhost:6379/0
 
 ---
 
-## 3. Performance Patterns
-
-### Pattern 1: Task Chunking
-
-```python
-# Bad - Individual tasks for each item
-for item_id in item_ids:  # 10,000 items = 10,000 tasks
-    process_item.delay(item_id)
-
-# Good - Process in batches
-@app.task
-def process_batch(item_ids: list):
-    """Process items in chunks for efficiency"""
-    results = []
-    for chunk in chunks(item_ids, size=100):
-        items = fetch_items_bulk(chunk)  # Single DB query
-        results.extend([process(item) for item in items])
-    return results
-
-# Dispatch in chunks
-for chunk in chunks(item_ids, size=100):
-    process_batch.delay(chunk)  # 100 tasks instead of 10,000
-```
-
-### Pattern 2: Prefetch Tuning
-
-```python
-# Bad - Default prefetch for I/O-bound tasks
-app.conf.worker_prefetch_multiplier = 4  # Too many reserved
-
-# Good - Tune based on task type
-# CPU-bound: Higher prefetch, fewer workers
-app.conf.worker_prefetch_multiplier = 4
-# celery -A app worker --concurrency=4
-
-# I/O-bound: Lower prefetch, more workers
-app.conf.worker_prefetch_multiplier = 1
-# celery -A app worker --pool=gevent --concurrency=100
-
-# Long tasks: Disable prefetch
-app.conf.worker_prefetch_multiplier = 1
-app.conf.task_acks_late = True
-```
-
-### Pattern 3: Result Backend Optimization
-
-```python
-# Bad - Storing results for fire-and-forget tasks
-@app.task
-def send_email(to, subject, body):
-    mailer.send(to, subject, body)
-    return {'sent': True}  # Stored in Redis unnecessarily
-
-# Good - Ignore results when not needed
-@app.task(ignore_result=True)
-def send_email(to, subject, body):
-    mailer.send(to, subject, body)
-
-# Good - Set expiration for results you need
-app.conf.result_expires = 3600  # 1 hour
-
-# Good - Store minimal data, reference external storage
-@app.task
-def process_large_file(file_id):
-    data = process(read_file(file_id))
-    result_key = save_to_s3(data)  # Store large result externally
-    return {'result_key': result_key}  # Store only reference
-```
-
-### Pattern 4: Connection Pooling
-
-```python
-# Bad - Creating new connections per task
-@app.task
-def query_database(query):
-    conn = psycopg2.connect(...)  # New connection each time
-    result = conn.execute(query)
-    conn.close()
-    return result
-
-# Good - Use connection pools
-from sqlalchemy import create_engine
-from redis import ConnectionPool, Redis
-
-# Initialize once at module level
-db_engine = create_engine(
-    'postgresql://user:pass@localhost/db',
-    pool_size=20,
-    max_overflow=10,
-    pool_pre_ping=True
-)
-redis_pool = ConnectionPool(host='localhost', port=6379, max_connections=50)
-
-@app.task
-def query_database(query):
-    with db_engine.connect() as conn:  # Uses pool
-        return conn.execute(query).fetchall()
-
-@app.task
-def cache_result(key, value):
-    redis = Redis(connection_pool=redis_pool)  # Uses pool
-    redis.set(key, value)
-```
-
-### Pattern 5: Task Routing
-
-```python
-# Bad - All tasks in single queue
-@app.task
-def critical_payment(): pass
-
-@app.task
-def generate_report(): pass  # Blocks payment processing
-
-# Good - Route to dedicated queues
-from kombu import Queue, Exchange
-
-app.conf.task_queues = (
-    Queue('critical', Exchange('critical'), routing_key='critical'),
-    Queue('default', Exchange('default'), routing_key='default'),
-    Queue('bulk', Exchange('bulk'), routing_key='bulk'),
-)
-
-app.conf.task_routes = {
-    'tasks.critical_payment': {'queue': 'critical'},
-    'tasks.generate_report': {'queue': 'bulk'},
-}
-
-# Run dedicated workers per queue
-# celery -A app worker -Q critical --concurrency=4
-# celery -A app worker -Q bulk --concurrency=2
-```
-
----
-
-## 4. Core Responsibilities
+## 3. Core Responsibilities
 
 ### 1. Task Design & Workflow Orchestration
 - Define tasks with proper decorators (`@app.task`, `@shared_task`)
@@ -318,14 +231,12 @@ app.conf.task_routes = {
 
 ---
 
-## 5. Implementation Patterns
+## 4. Quick Start Examples
 
-### Pattern 1: Task Definition Best Practices
+### Basic Task Definition
 
 ```python
-# COMPLETE TASK DEFINITION
 from celery import Celery
-from celery.exceptions import SoftTimeLimitExceeded
 import logging
 
 app = Celery('tasks', broker='redis://localhost:6379/0')
@@ -333,228 +244,77 @@ logger = logging.getLogger(__name__)
 
 @app.task(
     bind=True,
-    name='tasks.process_order',
     max_retries=3,
-    default_retry_delay=60,
-    acks_late=True,
-    reject_on_worker_lost=True,
     time_limit=300,
     soft_time_limit=240,
-    rate_limit='100/m',
 )
-def process_order(self, order_id: int):
-    """Process order with proper error handling and retries"""
+def process_data(self, data_id: int):
+    """Process data with proper error handling"""
     try:
-        logger.info(f"Processing order {order_id}", extra={'task_id': self.request.id})
-
-        order = get_order(order_id)
-        if order.status == 'processed':
-            return {'order_id': order_id, 'status': 'already_processed'}
-
-        result = perform_order_processing(order)
-        return {'order_id': order_id, 'status': 'success', 'result': result}
-
-    except SoftTimeLimitExceeded:
-        cleanup_processing(order_id)
-        raise
+        logger.info(f"Processing {data_id}", extra={'task_id': self.request.id})
+        result = perform_processing(data_id)
+        return {'status': 'success', 'result': result}
     except TemporaryError as exc:
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
-    except PermanentError as exc:
-        send_failure_notification(order_id, str(exc))
-        raise
 ```
 
-### Pattern 2: Workflow Patterns (Chains, Groups, Chords)
+### Workflow Example
 
 ```python
 from celery import chain, group, chord
 
-# CHAIN: Sequential execution (A -> B -> C)
+# Sequential: fetch -> process -> notify
 workflow = chain(
     fetch_data.s('https://api.example.com/data'),
     process_item.s(),
     send_notification.s()
 )
 
-# GROUP: Parallel execution
-job = group(fetch_data.s(url) for url in urls)
-
-# CHORD: Map-Reduce (parallel + callback)
+# Parallel processing with aggregation
 workflow = chord(
     group(process_item.s(item) for item in items)
 )(aggregate_results.s())
 ```
 
-### Pattern 3: Production Configuration
+### Production Configuration
 
 ```python
-from kombu import Exchange, Queue
-
-app = Celery('myapp')
 app.conf.update(
     broker_url='redis://localhost:6379/0',
-    broker_connection_retry_on_startup=True,
-    broker_pool_limit=10,
-
     result_backend='redis://localhost:6379/1',
     result_expires=3600,
 
+    # Security
     task_serializer='json',
     result_serializer='json',
     accept_content=['json'],
 
+    # Reliability
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     task_time_limit=300,
     task_soft_time_limit=240,
 
+    # Performance
     worker_prefetch_multiplier=4,
     worker_max_tasks_per_child=1000,
 )
 ```
 
-### Pattern 4: Retry Strategies & Error Handling
+---
 
-```python
-from celery.exceptions import Reject
+## 5. References
 
-@app.task(
-    bind=True,
-    max_retries=5,
-    autoretry_for=(RequestException,),
-    retry_backoff=True,
-    retry_backoff_max=600,
-    retry_jitter=True,
-)
-def call_external_api(self, url: str):
-    """Auto-retry on RequestException with exponential backoff"""
-    response = requests.get(url, timeout=10)
-    response.raise_for_status()
-    return response.json()
-```
+See `references/` directory for detailed patterns and examples:
 
-### Pattern 5: Celery Beat Scheduling
-
-```python
-from celery.schedules import crontab
-from datetime import timedelta
-
-app.conf.beat_schedule = {
-    'cleanup-temp-files': {
-        'task': 'tasks.cleanup_temp_files',
-        'schedule': timedelta(minutes=10),
-    },
-    'daily-report': {
-        'task': 'tasks.generate_daily_report',
-        'schedule': crontab(hour=3, minute=0),
-    },
-}
-```
+- **[task-patterns.md](references/task-patterns.md)** - Complete task implementation patterns, workflow orchestration (chains, groups, chords), retry strategies, Celery Beat scheduling, and task locking
+- **[performance-optimization.md](references/performance-optimization.md)** - Task chunking, prefetch tuning, result backend optimization, connection pooling, and queue routing strategies
+- **[security-examples.md](references/security-examples.md)** - Secure serialization, broker authentication, TLS configuration, input validation, Flower security, and secrets management
+- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes and how to avoid them: pickle usage, non-idempotent tasks, missing time limits, result storage issues, and more
 
 ---
 
-## 6. Security Standards
-
-### 6.1 Secure Serialization
-
-```python
-# DANGEROUS: Pickle allows code execution
-app.conf.task_serializer = 'pickle'  # NEVER!
-
-# SECURE: Use JSON
-app.conf.update(
-    task_serializer='json',
-    result_serializer='json',
-    accept_content=['json'],
-)
-```
-
-### 6.2 Broker Authentication & TLS
-
-```python
-# Redis with TLS
-app.conf.broker_url = 'redis://:password@localhost:6379/0'
-app.conf.broker_use_ssl = {
-    'ssl_cert_reqs': 'required',
-    'ssl_ca_certs': '/path/to/ca.pem',
-}
-
-# RabbitMQ with TLS
-app.conf.broker_url = 'amqps://user:password@localhost:5671/vhost'
-```
-
-### 6.3 Input Validation
-
-```python
-from pydantic import BaseModel
-
-class OrderData(BaseModel):
-    order_id: int
-    amount: float
-
-@app.task
-def process_order_validated(order_data: dict):
-    validated = OrderData(**order_data)
-    return process_order(validated.dict())
-```
-
----
-
-## 7. Common Mistakes
-
-### Mistake 1: Using Pickle Serialization
-```python
-# DON'T
-app.conf.task_serializer = 'pickle'
-# DO
-app.conf.task_serializer = 'json'
-```
-
-### Mistake 2: Not Making Tasks Idempotent
-```python
-# DON'T: Retries increment multiple times
-@app.task
-def increment_counter(user_id):
-    user.counter += 1
-    user.save()
-
-# DO: Safe to retry
-@app.task
-def set_counter(user_id, value):
-    user.counter = value
-    user.save()
-```
-
-### Mistake 3: Missing Time Limits
-```python
-# DON'T
-@app.task
-def slow_task():
-    external_api_call()
-
-# DO
-@app.task(time_limit=30, soft_time_limit=25)
-def safe_task():
-    external_api_call()
-```
-
-### Mistake 4: Storing Large Results
-```python
-# DON'T
-@app.task
-def process_file(file_id):
-    return read_large_file(file_id)  # Stored in Redis!
-
-# DO
-@app.task
-def process_file(file_id):
-    result_id = save_to_storage(read_large_file(file_id))
-    return {'result_id': result_id}
-```
-
----
-
-## 8. Pre-Implementation Checklist
+## 6. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -587,7 +347,7 @@ def process_file(file_id):
 
 ---
 
-## 9. Critical Reminders
+## 7. Critical Reminders
 
 ### NEVER
 
@@ -612,7 +372,7 @@ def process_file(file_id):
 
 ---
 
-## 10. Summary
+## 8. Summary
 
 You are a Celery expert focused on:
 1. **TDD First** - Write tests before implementation

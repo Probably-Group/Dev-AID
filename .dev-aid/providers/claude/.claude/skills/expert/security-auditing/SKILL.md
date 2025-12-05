@@ -14,6 +14,54 @@ last_updated: 2025-01-15
 
 > **MANDATORY READING PROTOCOL**: Before implementing audit logging, read `references/advanced-patterns.md` for tamper-evident patterns and `references/threat-model.md` for log integrity attacks.
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any security auditing code**
+
+### Verification Requirements
+
+When using this skill to implement security auditing features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official security standards (OWASP, NIST, CIS)
+   - ✅ Confirm cryptographic algorithms are current and secure
+   - ✅ Validate compliance requirements against official regulations
+   - ❌ Never guess security configurations
+   - ❌ Never invent cryptographic methods
+   - ❌ Never assume compliance requirements without verification
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing security implementations
+   - 🔍 Grep: Search for similar audit logging patterns
+   - 🔍 WebSearch: Verify security standards and best practices
+   - 🔍 WebFetch: Read official compliance documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY security feature/config/pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in security auditing can cause: compliance violations, evidence loss, security breaches, legal liability
+
+4. **Common Security Auditing Hallucination Traps** (AVOID)
+   - ❌ Invented cryptographic signature schemes
+   - ❌ Made-up compliance requirements (e.g., fake GDPR articles)
+   - ❌ Non-existent SIEM integration formats
+   - ❌ Incorrect log retention policies
+   - ❌ Fabricated CVE numbers or severity ratings
+   - ❌ Imaginary tamper-evident log verification methods
+
+### Self-Check Checklist
+
+Before EVERY response with security auditing code:
+- [ ] All cryptographic operations verified against official standards
+- [ ] Compliance requirements verified against actual regulations
+- [ ] SIEM integration formats verified against vendor documentation
+- [ ] Can cite official security standards and documentation sources
+
+**⚠️ CRITICAL**: Security auditing code with hallucinated patterns causes compliance failures, legal liability, and evidence inadmissibility. Always verify.
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -272,108 +320,14 @@ pytest tests/security_auditing/ --cov=security_auditing --cov-report=term-missin
 
 ## 6. Performance Patterns
 
-### 6.1 Incremental Scanning
+**Key Principles**:
+- Use incremental scanning (only scan changed files)
+- Cache scan results and vulnerability data
+- Parallelize multi-project scans
+- Set resource limits to prevent exhaustion
 
-```python
-# BAD: Full scan every time
-def scan_all_dependencies():
-    return subprocess.run(['pip-audit', '--format=json'], capture_output=True)
-
-# GOOD: Incremental scan based on changes
-class IncrementalScanner:
-    def scan_if_changed(self, requirements_path: str) -> List[Vulnerability]:
-        current_hash = self._hash_file(requirements_path)
-        if current_hash == self._last_hash:
-            return self._load_cached_results()
-        results = self._full_scan(requirements_path)
-        self._save_cache(current_hash, results)
-        return results
-```
-
-### 6.2 Caching Scan Results
-
-```python
-# BAD: No caching - fetch every time
-def get_vulnerability_info(cve_id: str) -> dict:
-    return requests.get(f"https://nvd.nist.gov/vuln/detail/{cve_id}")
-
-# GOOD: Cache with TTL
-class VulnerabilityCache:
-    def get_vulnerability(self, cve_id: str) -> dict:
-        if cve_id in self._cache:
-            data, timestamp = self._cache[cve_id]
-            if datetime.now() - timestamp < self._ttl:
-                return data
-        data = self._fetch_from_api(cve_id)
-        self._cache[cve_id] = (data, datetime.now())
-        return data
-```
-
-### 6.3 Parallel Analysis
-
-```python
-# BAD: Sequential scanning
-def scan_multiple_projects(paths: List[str]) -> List[Report]:
-    return [scan_project(path) for path in paths]
-
-# GOOD: Parallel scanning with thread pool
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-def scan_multiple_projects_parallel(paths: List[str], max_workers: int = 4):
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(scan_project, p): p for p in paths}
-        return [f.result() for f in as_completed(futures)]
-```
-
-### 6.4 Targeted Audits
-
-```python
-# BAD: Scan everything always
-def full_security_audit(project_path: str):
-    scan_dependencies(project_path)
-    scan_secrets(project_path)
-    scan_code_vulnerabilities(project_path)
-
-# GOOD: Targeted scans based on changes
-def targeted_security_audit(project_path: str, changed_files: List[str]):
-    scans_needed = set()
-    for file in changed_files:
-        if file.endswith(('requirements.txt', 'package.json')):
-            scans_needed.add('dependencies')
-        elif file.endswith(('.env', '.yml', '.yaml')):
-            scans_needed.add('secrets')
-        elif file.endswith(('.py', '.js', '.ts')):
-            scans_needed.add('code')
-    # Only run needed scans
-    return {scan: globals()[f'scan_{scan}'](project_path) for scan in scans_needed}
-```
-
-### 6.5 Resource Limits
-
-```python
-# BAD: Unbounded resource usage
-def scan_large_codebase(path: str):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            analyze_file(os.path.join(root, file))
-
-# GOOD: Resource-bounded scanning
-class BoundedScanner:
-    def __init__(self, max_memory_mb: int = 512, max_files: int = 10000):
-        self._max_memory = max_memory_mb * 1024 * 1024
-        self._max_files = max_files
-
-    def scan_with_limits(self, path: str):
-        import resource
-        resource.setrlimit(resource.RLIMIT_AS, (self._max_memory, -1))
-        files_scanned = 0
-        for root, _, files in os.walk(path):
-            for file in files:
-                if files_scanned >= self._max_files:
-                    return
-                files_scanned += 1
-                analyze_file(os.path.join(root, file))
-```
+**📚 For detailed performance patterns**:
+- See `references/performance-patterns.md` for complete implementations
 
 ## 7. Security Standards
 
@@ -427,58 +381,23 @@ def test_no_pii_in_logs(audit_logger):
 
 ## 9. Common Mistakes
 
-### Critical Anti-Patterns
+**Critical Anti-Patterns to Avoid**:
+- ❌ Logging passwords, tokens, or PII
+- ❌ Unprotected logs without integrity verification
+- ❌ Missing correlation IDs for request tracing
+- ❌ World-readable log files (use `chmod 600`)
+- ❌ Synchronous SIEM forwarding (blocks on failure)
 
-```python
-# ❌ NEVER: Log passwords, tokens, PII
-logger.info(f"User {email} logged in with password {password}")
-# ✅ ALWAYS: Log identifiers only
-logger.info("user.login", user_id=user.id, method="password")
-
-# ❌ NEVER: Plain text logs anyone can modify
-with open('audit.log', 'a') as f:
-    f.write(json.dumps(event) + '\n')
-# ✅ ALWAYS: Signed, chained logs
-entry['signature'] = hmac.new(key, data, hashlib.sha256).hexdigest()
-
-# ❌ NEVER: Untraced requests
-logger.info("Processing request")
-# ✅ ALWAYS: Include correlation ID
-logger.info("request.processing", correlation_id=request.id)
-```
-
-```bash
-# ❌ chmod 644 /var/log/audit.log  # World-readable
-# ✅ chmod 600 /var/log/audit.log  # Restricted
-```
-
-**📚 For complete anti-patterns**: See `references/advanced-patterns.md#anti-patterns`
+**📚 For complete anti-patterns catalog**: See `references/anti-patterns.md`
 
 ## 10. Pre-Implementation Checklist
 
-### Phase 1: Before Writing Code
-- [ ] Read threat model for log integrity attacks
-- [ ] Identify compliance requirements (GDPR, HIPAA, PCI-DSS)
-- [ ] Design tamper-evident log format
-- [ ] Plan SIEM integration architecture
-- [ ] Write failing tests for security checks
+**Three Phases**:
+1. **Before Code**: Read threat model, identify compliance needs, design format, plan SIEM integration
+2. **During Implementation**: Structured logging, tamper-evident signing, no PII, correlation IDs, performance patterns
+3. **Before Committing**: Tests pass, log protection verified, SIEM tested, retention policies enforced
 
-### Phase 2: During Implementation
-- [ ] Structured JSON logging implemented
-- [ ] Tamper-evident signing enabled
-- [ ] No PII/secrets in logs
-- [ ] Correlation IDs in all entries
-- [ ] Performance patterns applied (caching, incremental scanning)
-- [ ] Resource limits configured
-
-### Phase 3: Before Committing
-- [ ] All security audit tests pass
-- [ ] Log protection verified (600 permissions)
-- [ ] SIEM forwarding tested
-- [ ] WORM storage configured for compliance
-- [ ] Retention policies enforced
-- [ ] Alert rules configured
-- [ ] Coverage meets minimum threshold
+**📚 For complete checklists**: See `references/audit-checklists.md` (includes GDPR, HIPAA, PCI-DSS, SOC2, ISO27001 compliance checklists)
 
 ## 11. Summary
 
@@ -491,9 +410,15 @@ logger.info("request.processing", correlation_id=request.id)
 
 ### References
 
-- `references/advanced-patterns.md` - Full implementations, WORM storage
-- `references/security-examples.md` - SIEM configs, compliance reports
-- `references/threat-model.md` - Log integrity attack scenarios
+**Core Documentation**:
+- `references/advanced-patterns.md` - Full implementations, WORM storage, chain verification
+- `references/security-examples.md` - SIEM configs, compliance reports, testing examples
+- `references/threat-model.md` - Log integrity attack scenarios, threat analysis
+
+**Specialized Guides**:
+- `references/performance-patterns.md` - Optimization strategies (caching, incremental scanning, parallelization)
+- `references/anti-patterns.md` - Common mistakes and how to avoid them
+- `references/audit-checklists.md` - Implementation checklists for GDPR, HIPAA, PCI-DSS, SOC2, ISO27001
 
 ---
 

@@ -1,488 +1,421 @@
-# Cross-Platform Builds Advanced Patterns
+# Advanced Cross-Platform Build Patterns
 
-## Build Matrix Configurations
+This document covers advanced techniques, complex build configurations, and expert-level patterns for cross-platform desktop application development.
 
-### Complete Tauri Build Matrix
+---
 
-```yaml
-name: Build Release
+## 1. Advanced Platform Detection
 
-on:
-  push:
-    tags:
-      - 'v*'
+### 1.1 Runtime Platform Detection
 
-jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Windows
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
-            bundle: msi
-            artifact_ext: '.msi'
+```rust
+use std::env;
 
-          # macOS Intel
-          - platform: macos-latest
-            target: x86_64-apple-darwin
-            bundle: dmg
-            artifact_ext: '.dmg'
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Platform {
+    Windows,
+    MacOS,
+    Linux,
+}
 
-          # macOS Apple Silicon
-          - platform: macos-latest
-            target: aarch64-apple-darwin
-            bundle: dmg
-            artifact_ext: '.dmg'
+impl Platform {
+    pub fn current() -> Self {
+        #[cfg(target_os = "windows")]
+        return Platform::Windows;
 
-          # Linux
-          - platform: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            bundle: deb
-            artifact_ext: '.deb'
+        #[cfg(target_os = "macos")]
+        return Platform::MacOS;
 
-          - platform: ubuntu-22.04
-            target: x86_64-unknown-linux-gnu
-            bundle: appimage
-            artifact_ext: '.AppImage'
+        #[cfg(target_os = "linux")]
+        return Platform::Linux;
+    }
 
-    runs-on: ${{ matrix.platform }}
-    env:
-      TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-      TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+    pub fn is_windows(&self) -> bool {
+        matches!(self, Platform::Windows)
+    }
 
-    steps:
-      - uses: actions/checkout@v4
+    pub fn is_macos(&self) -> bool {
+        matches!(self, Platform::MacOS)
+    }
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+    pub fn is_linux(&self) -> bool {
+        matches!(self, Platform::Linux)
+    }
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
+    pub fn name(&self) -> &'static str {
+        match self {
+            Platform::Windows => "Windows",
+            Platform::MacOS => "macOS",
+            Platform::Linux => "Linux",
+        }
+    }
+}
 
-      - name: Install Linux Dependencies
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.0-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
+// Usage
+fn main() {
+    let platform = Platform::current();
+    println!("Running on: {}", platform.name());
 
-      - name: Install Dependencies
-        run: npm ci
+    if platform.is_windows() {
+        // Windows-specific initialization
+    }
+}
+```
 
-      - name: Build
-        run: npm run tauri build -- --target ${{ matrix.target }} --bundles ${{ matrix.bundle }}
+### 1.2 Architecture Detection
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.target }}-${{ matrix.bundle }}
-          path: src-tauri/target/${{ matrix.target }}/release/bundle/**/*${{ matrix.artifact_ext }}
+```rust
+pub enum Architecture {
+    X86_64,
+    Aarch64,
+    Other(String),
+}
+
+impl Architecture {
+    pub fn current() -> Self {
+        match env::consts::ARCH {
+            "x86_64" => Architecture::X86_64,
+            "aarch64" => Architecture::Aarch64,
+            arch => Architecture::Other(arch.to_string()),
+        }
+    }
+
+    pub fn is_arm(&self) -> bool {
+        matches!(self, Architecture::Aarch64)
+    }
+}
 ```
 
 ---
 
-## Conditional Compilation
+## 2. Advanced Conditional Compilation
 
-### Platform-Specific Features
-
-```rust
-// Cargo.toml
-[target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.48", features = ["Win32_Foundation", "Win32_UI_Shell"] }
-
-[target.'cfg(target_os = "macos")'.dependencies]
-objc = "0.2"
-cocoa = "0.25"
-
-[target.'cfg(target_os = "linux")'.dependencies]
-dbus = "0.9"
-```
-
-### Platform-Specific Code
-
-```rust
-// System tray implementation
-#[cfg(target_os = "macos")]
-pub fn create_tray(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    use tauri::SystemTray;
-    // macOS uses template images
-    let tray = SystemTray::new()
-        .with_icon(tauri::Icon::Raw(include_bytes!("../icons/tray-Template.png").to_vec()));
-    Ok(())
-}
-
-#[cfg(target_os = "windows")]
-pub fn create_tray(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    use tauri::SystemTray;
-    // Windows uses ICO
-    let tray = SystemTray::new()
-        .with_icon(tauri::Icon::Raw(include_bytes!("../icons/tray.ico").to_vec()));
-    Ok(())
-}
-
-#[cfg(target_os = "linux")]
-pub fn create_tray(app: &tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
-    use tauri::SystemTray;
-    // Linux uses PNG
-    let tray = SystemTray::new()
-        .with_icon(tauri::Icon::Raw(include_bytes!("../icons/tray.png").to_vec()));
-    Ok(())
-}
-```
-
-### Feature Flags for Platforms
+### 2.1 Feature-Based Platform Code
 
 ```rust
 // Cargo.toml
 [features]
 default = []
-windows-console = []  # Show console on Windows
-macos-transparent = []  # Enable transparency on macOS
+windows-native = ["windows"]
+macos-native = ["cocoa", "objc"]
+linux-native = ["gtk", "gdk"]
 
-// main.rs
-fn main() {
-    #[cfg(all(target_os = "windows", not(feature = "windows-console")))]
-    {
-        // Hide console window
-        use windows::Win32::System::Console::FreeConsole;
-        unsafe { FreeConsole(); }
-    }
+// src/platform/mod.rs
+#[cfg(feature = "windows-native")]
+pub mod windows_impl;
 
-    #[cfg(all(target_os = "macos", feature = "macos-transparent"))]
-    {
-        // Enable transparent window
-    }
+#[cfg(feature = "macos-native")]
+pub mod macos_impl;
 
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running application");
+#[cfg(feature = "linux-native")]
+pub mod linux_impl;
+
+// Unified interface
+pub trait PlatformApi {
+    fn show_notification(&self, title: &str, body: &str);
+    fn set_app_icon(&self, icon_path: &str);
 }
+
+#[cfg(feature = "windows-native")]
+pub fn create_platform() -> Box<dyn PlatformApi> {
+    Box::new(windows_impl::WindowsPlatform::new())
+}
+
+#[cfg(feature = "macos-native")]
+pub fn create_platform() -> Box<dyn PlatformApi> {
+    Box::new(macos_impl::MacOSPlatform::new())
+}
+
+#[cfg(feature = "linux-native")]
+pub fn create_platform() -> Box<dyn PlatformApi> {
+    Box::new(linux_impl::LinuxPlatform::new())
+}
+```
+
+### 2.2 Multi-Target Compilation Flags
+
+```toml
+# .cargo/config.toml
+
+[target.x86_64-pc-windows-msvc]
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-C", "link-arg=/SUBSYSTEM:WINDOWS",
+]
+
+[target.x86_64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-mmacosx-version-min=10.15",
+]
+
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C", "link-arg=-mmacosx-version-min=11.0",
+]
+
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "link-arg=-Wl,--as-needed",
+    "-C", "link-arg=-Wl,--gc-sections",
+]
 ```
 
 ---
 
-## Build Optimization
+## 3. Advanced macOS Universal Binaries
 
-### Release Profile Configuration
+### 3.1 Automated Universal Binary Creation
 
-```toml
-# Cargo.toml
-[profile.release]
-lto = true           # Link-time optimization
-codegen-units = 1    # Better optimization, slower compile
-panic = "abort"      # Smaller binary
-strip = true         # Strip symbols
-opt-level = "z"      # Optimize for size
+```bash
+#!/bin/bash
+# scripts/build-universal-macos.sh
 
-# For better debugging in release
-[profile.release-with-debug]
-inherits = "release"
-debug = true
-strip = false
+set -e
+
+APP_NAME="MyApp"
+VERSION="1.0.0"
+
+echo "Building universal macOS binary..."
+
+# Build both architectures
+echo "Building x86_64..."
+cargo build --release --target x86_64-apple-darwin
+
+echo "Building aarch64..."
+cargo build --release --target aarch64-apple-darwin
+
+# Create universal binary directory
+mkdir -p target/universal-apple-darwin/release
+
+# Create universal binary
+echo "Creating universal binary..."
+lipo -create \
+  target/x86_64-apple-darwin/release/${APP_NAME} \
+  target/aarch64-apple-darwin/release/${APP_NAME} \
+  -output target/universal-apple-darwin/release/${APP_NAME}
+
+# Verify
+echo "Verifying universal binary..."
+lipo -info target/universal-apple-darwin/release/${APP_NAME}
+
+# Create app bundle
+echo "Creating app bundle..."
+mkdir -p "target/universal-apple-darwin/release/${APP_NAME}.app/Contents/MacOS"
+mkdir -p "target/universal-apple-darwin/release/${APP_NAME}.app/Contents/Resources"
+
+# Copy binary
+cp target/universal-apple-darwin/release/${APP_NAME} \
+   "target/universal-apple-darwin/release/${APP_NAME}.app/Contents/MacOS/"
+
+# Create Info.plist
+cat > "target/universal-apple-darwin/release/${APP_NAME}.app/Contents/Info.plist" << PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>${APP_NAME}</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.company.${APP_NAME}</string>
+    <key>CFBundleName</key>
+    <string>${APP_NAME}</string>
+    <key>CFBundleVersion</key>
+    <string>${VERSION}</string>
+    <key>CFBundleShortVersionString</key>
+    <string>${VERSION}</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+</dict>
+</plist>
+PLIST
+
+echo "✅ Universal binary created successfully!"
 ```
 
-### Bundle Size Optimization
+### 3.2 Universal Binary with Different Optimizations
+
+```bash
+#!/bin/bash
+# scripts/build-optimized-universal.sh
+
+# Build Intel with specific optimizations
+RUSTFLAGS="-C target-cpu=haswell" \
+  cargo build --release --target x86_64-apple-darwin
+
+# Build ARM with specific optimizations
+RUSTFLAGS="-C target-cpu=apple-m1" \
+  cargo build --release --target aarch64-apple-darwin
+
+# Create universal binary
+lipo -create \
+  target/x86_64-apple-darwin/release/myapp \
+  target/aarch64-apple-darwin/release/myapp \
+  -output target/universal/myapp
+```
+
+---
+
+## 4. Advanced Windows Installer Customization
+
+### 4.1 Custom WiX Configuration
+
+```xml
+<!-- custom-installer.wxs -->
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Product Id="*" 
+           Name="MyApp" 
+           Language="1033" 
+           Version="1.0.0" 
+           Manufacturer="Company Name" 
+           UpgradeCode="YOUR-GUID-HERE">
+    
+    <Package InstallerVersion="400" 
+             Compressed="yes" 
+             InstallScope="perMachine" />
+    
+    <!-- Major upgrade logic -->
+    <MajorUpgrade 
+      DowngradeErrorMessage="A newer version is already installed." 
+      Schedule="afterInstallExecute" />
+    
+    <MediaTemplate EmbedCab="yes" />
+    
+    <!-- Custom install location -->
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="MyApp">
+          <Component Id="MainExecutable" Guid="YOUR-GUID-HERE">
+            <File Id="MainExe" 
+                  Source="target/release/myapp.exe" 
+                  KeyPath="yes" />
+            
+            <!-- Desktop shortcut -->
+            <Shortcut Id="DesktopShortcut" 
+                      Directory="DesktopFolder" 
+                      Name="MyApp" 
+                      WorkingDirectory="INSTALLFOLDER" 
+                      Icon="AppIcon.exe" 
+                      IconIndex="0" />
+            
+            <!-- Start menu shortcut -->
+            <Shortcut Id="StartMenuShortcut" 
+                      Directory="ProgramMenuFolder" 
+                      Name="MyApp" 
+                      WorkingDirectory="INSTALLFOLDER" 
+                      Icon="AppIcon.exe" 
+                      IconIndex="0" />
+          </Component>
+        </Directory>
+      </Directory>
+      
+      <Directory Id="DesktopFolder" Name="Desktop" />
+      <Directory Id="ProgramMenuFolder" Name="Programs" />
+    </Directory>
+    
+    <!-- Features -->
+    <Feature Id="Complete" Level="1">
+      <ComponentRef Id="MainExecutable" />
+    </Feature>
+    
+    <!-- UI -->
+    <UIRef Id="WixUI_InstallDir" />
+    
+    <!-- Icon -->
+    <Icon Id="AppIcon.exe" SourceFile="icons/icon.ico" />
+  </Product>
+</Wix>
+```
+
+### 4.2 Auto-Update Configuration (Windows)
 
 ```json
 // tauri.conf.json
 {
   "tauri": {
-    "bundle": {
-      "resources": [
-        // Only include necessary resources
-        "assets/icons/*",
-        "assets/fonts/*.woff2"
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://releases.myapp.com/{{target}}/{{current_version}}"
       ],
-      "linux": {
-        "appimage": {
-          "bundleMediaFramework": false  // Reduces size significantly
-        }
-      }
+      "dialog": true,
+      "pubkey": "YOUR_PUBLIC_KEY_HERE"
     }
   }
 }
 ```
-
-### Dependency Optimization
-
-```toml
-# Cargo.toml - Use minimal features
-[dependencies]
-serde = { version = "1.0", default-features = false, features = ["derive"] }
-tokio = { version = "1", default-features = false, features = ["rt", "macros"] }
-
-# Check dependency sizes
-# cargo install cargo-bloat
-# cargo bloat --release --crates
-```
-
----
-
-## Platform-Specific Installers
-
-### Windows NSIS Configuration
-
-```json
-// tauri.conf.json
-{
-  "tauri": {
-    "bundle": {
-      "windows": {
-        "nsis": {
-          "license": "./LICENSE.txt",
-          "installerIcon": "./icons/icon.ico",
-          "headerImage": "./icons/nsis-header.bmp",
-          "sidebarImage": "./icons/nsis-sidebar.bmp",
-          "installMode": "currentUser",
-          "languages": ["English", "German", "French"],
-          "displayLanguageSelector": true
-        }
-      }
-    }
-  }
-}
-```
-
-### macOS DMG Configuration
-
-```json
-// tauri.conf.json
-{
-  "tauri": {
-    "bundle": {
-      "macOS": {
-        "dmg": {
-          "appPosition": { "x": 180, "y": 170 },
-          "applicationFolderPosition": { "x": 480, "y": 170 },
-          "windowSize": { "width": 660, "height": 400 }
-        }
-      }
-    }
-  }
-}
-```
-
-### Linux Package Metadata
-
-```json
-// tauri.conf.json
-{
-  "tauri": {
-    "bundle": {
-      "linux": {
-        "deb": {
-          "depends": [
-            "libgtk-3-0",
-            "libwebkit2gtk-4.0-37",
-            "libappindicator3-1"
-          ],
-          "section": "utils",
-          "priority": "optional"
-        }
-      },
-      "category": "Utility"
-    }
-  }
-}
-```
-
----
-
-## Universal Binaries
-
-### macOS Universal Binary
-
-```yaml
-jobs:
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: x86_64-apple-darwin,aarch64-apple-darwin
-
-      - name: Build Intel
-        run: npm run tauri build -- --target x86_64-apple-darwin
-
-      - name: Build ARM
-        run: npm run tauri build -- --target aarch64-apple-darwin
-
-      - name: Create Universal Binary
-        run: |
-          mkdir -p target/universal-apple-darwin/release/bundle/macos
-
-          # Combine binaries
-          lipo -create \
-            target/x86_64-apple-darwin/release/bundle/macos/MyApp.app/Contents/MacOS/MyApp \
-            target/aarch64-apple-darwin/release/bundle/macos/MyApp.app/Contents/MacOS/MyApp \
-            -output MyApp-universal
-
-          # Copy app bundle from one architecture
-          cp -r target/x86_64-apple-darwin/release/bundle/macos/MyApp.app \
-            target/universal-apple-darwin/release/bundle/macos/
-
-          # Replace binary with universal
-          cp MyApp-universal \
-            target/universal-apple-darwin/release/bundle/macos/MyApp.app/Contents/MacOS/MyApp
-
-      - name: Sign Universal App
-        env:
-          SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: |
-          codesign --force --options runtime --sign "$SIGNING_IDENTITY" \
-            --deep target/universal-apple-darwin/release/bundle/macos/MyApp.app
-```
-
----
-
-## Resource Handling
-
-### Platform-Specific Resources
 
 ```rust
-// Load platform-specific assets
-fn get_icon_path() -> &'static str {
-    #[cfg(target_os = "windows")]
-    { "icons/icon.ico" }
+// src-tauri/src/main.rs
+use tauri::updater::UpdaterBuilder;
 
-    #[cfg(target_os = "macos")]
-    { "icons/icon.icns" }
-
-    #[cfg(target_os = "linux")]
-    { "icons/icon.png" }
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            #[cfg(not(debug_assertions))]
+            {
+                let handle = app.handle();
+                tauri::async_runtime::spawn(async move {
+                    match UpdaterBuilder::new(&handle)
+                        .build()
+                        .unwrap()
+                        .check()
+                        .await
+                    {
+                        Ok(Some(update)) => {
+                            println!("Update available: {}", update.version);
+                            update.download_and_install().await.ok();
+                        }
+                        Ok(None) => println!("No updates available"),
+                        Err(e) => eprintln!("Update check failed: {}", e),
+                    }
+                });
+            }
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }
-
-// Platform-specific config locations
-fn get_config_dir() -> std::path::PathBuf {
-    use directories::ProjectDirs;
-
-    let dirs = ProjectDirs::from("com", "company", "app").unwrap();
-
-    #[cfg(target_os = "linux")]
-    {
-        // Follow XDG spec on Linux
-        dirs.config_dir().to_path_buf()
-    }
-
-    #[cfg(target_os = "macos")]
-    {
-        // Use Application Support on macOS
-        dirs.data_dir().to_path_buf()
-    }
-
-    #[cfg(target_os = "windows")]
-    {
-        // Use %APPDATA% on Windows
-        dirs.config_dir().to_path_buf()
-    }
-}
-```
-
-### Embedded Resources
-
-```rust
-// Embed files at compile time
-const LICENSE: &str = include_str!("../LICENSE");
-const DEFAULT_CONFIG: &[u8] = include_bytes!("../assets/default-config.json");
-
-// Platform-specific embedded resources
-#[cfg(target_os = "windows")]
-const ICON: &[u8] = include_bytes!("../icons/icon.ico");
-
-#[cfg(target_os = "macos")]
-const ICON: &[u8] = include_bytes!("../icons/icon.icns");
-
-#[cfg(target_os = "linux")]
-const ICON: &[u8] = include_bytes!("../icons/icon.png");
 ```
 
 ---
 
-## Testing Cross-Platform
+## 5. Advanced Linux Packaging
 
-### Cross-Platform Test Matrix
+### 5.1 Custom Debian Package
 
-```yaml
-name: Test
+```bash
+#!/bin/bash
+# scripts/build-debian.sh
 
-on: [push, pull_request]
+APP_NAME="myapp"
+VERSION="1.0.0"
+ARCH="amd64"
 
-jobs:
-  test:
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
-        rust: [stable]
+# Build binary
+cargo build --release --target x86_64-unknown-linux-gnu
 
-    runs-on: ${{ matrix.os }}
+# Create package structure
+mkdir -p debian-package/DEBIAN
+mkdir -p debian-package/usr/bin
+mkdir -p debian-package/usr/share/applications
+mkdir -p debian-package/usr/share/pixmaps
 
-    steps:
-      - uses: actions/checkout@v4
+# Copy binary
+cp target/x86_64-unknown-linux-gnu/release/${APP_NAME} \
+   debian-package/usr/bin/
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust }}
-
-      - name: Install Linux Dependencies
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev
-
-      - name: Run Tests
-        run: cargo test --all-features
-
-      - name: Run Platform-Specific Tests
-        run: cargo test --all-features -- --ignored
-        env:
-          RUN_PLATFORM_TESTS: true
-```
-
-### Platform-Specific Tests
-
-```rust
-#[cfg(test)]
-mod tests {
-    #[test]
-    #[cfg(target_os = "windows")]
-    fn test_windows_registry() {
-        // Windows-specific test
-    }
-
-    #[test]
-    #[cfg(target_os = "macos")]
-    fn test_macos_keychain() {
-        // macOS-specific test
-    }
-
-    #[test]
-    #[cfg(target_os = "linux")]
-    fn test_linux_xdg() {
-        // Linux-specific test
-    }
-
-    #[test]
-    #[ignore]  // Run only with RUN_PLATFORM_TESTS=true
-    fn test_platform_integration() {
-        if std::env::var("RUN_PLATFORM_TESTS").is_err() {
-            return;
-        }
-        // Integration test requiring platform setup
-    }
-}
-```
+# Create control file
+cat > debian-package/DEBIAN/control << EOF
+Package: ${APP_NAME}
+Version: ${VERSION}
+Section: utils
+Priority: optional
+Architecture: ${ARCH}
+Depends: libgtk-3-0, libwebkit2gtk-4.0-37
+Maintainer: Your Name <your.email@example.com>
+Description: My awesome application
+ A longer description of the application
+ that spans multiple lines.

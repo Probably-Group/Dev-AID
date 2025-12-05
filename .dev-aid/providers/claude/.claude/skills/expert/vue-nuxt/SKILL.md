@@ -7,7 +7,54 @@ version: 1.0.0
 
 # Vue 3 / Nuxt 3 Development Skill
 
-> **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
+> **File Organization**: This skill uses split structure. See `references/` for advanced patterns, security examples, performance optimization, testing guides, and anti-patterns.
+
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Vue/Nuxt code**
+
+### Verification Requirements
+
+When using this skill to implement Vue 3 or Nuxt 3 features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Vue 3 and Nuxt 3 documentation
+   - ✅ Confirm API methods exist in current versions
+   - ✅ Validate composable patterns against official guides
+   - ❌ Never guess configuration options
+   - ❌ Never invent API methods or composables
+   - ❌ Never assume package compatibility without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for patterns
+   - 🔍 Grep: Search for similar implementations
+   - 🔍 WebSearch: Verify specs in official docs
+   - 🔍 WebFetch: Read official Vue/Nuxt documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY Vue/Nuxt API, composable, or pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in Vue/Nuxt can cause runtime failures, security vulnerabilities, or hydration mismatches
+
+4. **Common Vue/Nuxt Hallucination Traps** (AVOID)
+   - ❌ Invented composables (e.g., `useVueX`, `useNuxtState` - verify actual names)
+   - ❌ Non-existent Nuxt config options (e.g., made-up `experimental` flags)
+   - ❌ Wrong reactivity APIs (mixing Vue 2/3 syntax, incorrect ref usage)
+   - ❌ Fake lifecycle hooks or incorrect hook names
+   - ❌ Made-up plugin patterns or module configurations
+
+### Self-Check Checklist
+
+Before EVERY response with Vue/Nuxt code:
+- [ ] All composables verified against official docs
+- [ ] Configuration options verified against current Nuxt version
+- [ ] Reactivity patterns verified (ref vs reactive vs shallowRef)
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Vue/Nuxt code with hallucinated patterns causes runtime errors, hydration mismatches, and security vulnerabilities. Always verify.
+
+---
 
 ## 1. Overview
 
@@ -27,7 +74,7 @@ This skill provides expertise for building the JARVIS AI Assistant user interfac
 
 1. **TDD First**: Write tests before implementation - red/green/refactor cycle
 2. **Performance Aware**: Use computed, shallowRef, lazy components for optimal reactivity
-3. **Composition API First**: Use Vue 3 Composition API with `<script setup>` for better TypeScript inference and code organization
+3. **Composition API First**: Use Vue 3 Composition API with `<script setup>` for better TypeScript inference
 4. **Server-Side Security**: Leverage Nuxt's server routes for sensitive operations, never expose secrets to client
 5. **Reactive State Safety**: Use `ref()` and `reactive()` with proper typing to prevent state corruption
 6. **Input Sanitization**: Always sanitize user inputs before rendering or processing
@@ -64,27 +111,25 @@ This skill provides expertise for building the JARVIS AI Assistant user interfac
 }
 ```
 
-## 4. Implementation Patterns
+## 4. Quick Implementation Reference
 
-### 4.1 Secure Component Structure
+### 4.1 Basic Component Pattern
 
 ```vue
 <script setup lang="ts">
-// ✅ Type-safe props with validation
+// Type-safe props
 interface Props {
   hudData: HUDDisplayData
-  userId: string
 }
 
 const props = defineProps<Props>()
 
-// ✅ Emit events with typed payloads
+// Typed emits
 const emit = defineEmits<{
   'update:status': [status: string]
-  'command:execute': [command: JARVISCommand]
 }>()
 
-// ✅ Secure ref initialization
+// Reactive state
 const displayState = ref<HUDState>({
   isActive: false,
   securityLevel: 'standard'
@@ -92,44 +137,19 @@ const displayState = ref<HUDState>({
 </script>
 
 <template>
-  <!-- ✅ Use v-text for user content to prevent XSS -->
+  <!-- Use v-text for user content to prevent XSS -->
   <div class="hud-panel">
     <span v-text="props.hudData.title" />
   </div>
 </template>
 ```
 
-### 4.2 Input Sanitization Pattern
-
-```typescript
-// composables/useSanitize.ts
-import DOMPurify from 'isomorphic-dompurify'
-
-export function useSanitize() {
-  const sanitizeHTML = (dirty: string): string => {
-    // ✅ Strict sanitization for any HTML content
-    return DOMPurify.sanitize(dirty, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'span'],
-      ALLOWED_ATTR: ['class']
-    })
-  }
-
-  const sanitizeText = (input: string): string => {
-    // ✅ Strip all HTML for plain text
-    return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] })
-  }
-
-  return { sanitizeHTML, sanitizeText }
-}
-```
-
-### 4.3 Secure API Route Pattern
+### 4.2 Secure API Route Pattern
 
 ```typescript
 // server/api/jarvis/command.post.ts
 import { z } from 'zod'
 
-// ✅ Define strict schema for command validation
 const commandSchema = z.object({
   action: z.enum(['status', 'control', 'query']),
   target: z.string().max(100).regex(/^[a-zA-Z0-9-_]+$/),
@@ -138,32 +158,25 @@ const commandSchema = z.object({
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
-
-  // ✅ Validate input against schema
   const result = commandSchema.safeParse(body)
+
   if (!result.success) {
     throw createError({
       statusCode: 400,
-      message: 'Invalid command format'  // ✅ Generic error message
+      message: 'Invalid command format'
     })
   }
-
-  // ✅ Process validated command
-  const command = result.data
-
-  // Never log sensitive data
-  console.log(`Processing command: ${command.action}`)
 
   return { success: true, commandId: generateSecureId() }
 })
 ```
 
-### 4.4 Secure Environment Configuration
+### 4.3 Environment Configuration
 
 ```typescript
 // nuxt.config.ts
 export default defineNuxtConfig({
-  // ✅ Security headers
+  // Security headers
   routeRules: {
     '/**': {
       headers: {
@@ -175,7 +188,7 @@ export default defineNuxtConfig({
     }
   },
 
-  // ✅ Runtime config - secrets stay server-side
+  // Runtime config - secrets stay server-side
   runtimeConfig: {
     apiSecret: process.env.API_SECRET,  // Server only
     public: {
@@ -183,228 +196,54 @@ export default defineNuxtConfig({
     }
   },
 
-  // ✅ Disable devtools in production
+  // Disable devtools in production
   devtools: { enabled: process.env.NODE_ENV === 'development' }
 })
 ```
 
-### 4.5 3D HUD Component Integration
+## 5. TDD Workflow (Summary)
 
-```vue
-<script setup lang="ts">
-// components/HUDDisplay.vue
-import { TresCanvas } from '@tresjs/core'
-
-const props = defineProps<{
-  metrics: SystemMetrics
-}>()
-
-// ✅ Validate metrics before rendering
-const validatedMetrics = computed(() => {
-  return {
-    cpu: Math.min(100, Math.max(0, props.metrics.cpu)),
-    memory: Math.min(100, Math.max(0, props.metrics.memory)),
-    status: sanitizeText(props.metrics.status)
-  }
-})
-</script>
-
-<template>
-  <TresCanvas>
-    <HUDMetricsDisplay :data="validatedMetrics" />
-  </TresCanvas>
-</template>
-```
-
-## 5. Implementation Workflow (TDD)
-
-### 5.1 Step 1: Write Failing Test First
-
-Always start by writing tests that define expected behavior:
-
+### Step 1: Write Failing Test
 ```typescript
-// tests/components/VoiceIndicator.test.ts
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import VoiceIndicator from '@/components/VoiceIndicator.vue'
-
 describe('VoiceIndicator', () => {
   it('displays idle state by default', () => {
     const wrapper = mount(VoiceIndicator)
     expect(wrapper.find('.indicator').classes()).toContain('idle')
-    expect(wrapper.text()).toContain('Ready')
-  })
-
-  it('shows listening state when active', async () => {
-    const wrapper = mount(VoiceIndicator, {
-      props: { isListening: true }
-    })
-    expect(wrapper.find('.indicator').classes()).toContain('listening')
-    expect(wrapper.find('.pulse-animation').exists()).toBe(true)
-  })
-
-  it('emits cancel event on escape key', async () => {
-    const wrapper = mount(VoiceIndicator, {
-      props: { isListening: true }
-    })
-    await wrapper.trigger('keydown.escape')
-    expect(wrapper.emitted('cancel')).toBeTruthy()
   })
 })
 ```
 
-### 5.2 Step 2: Implement Minimum to Pass
-
-Write only enough code to make the tests pass:
-
+### Step 2: Implement Minimum Code
 ```vue
-<script setup lang="ts">
-const props = defineProps<{ isListening?: boolean }>()
-const emit = defineEmits<{ 'cancel': [] }>()
-
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') emit('cancel')
-}
-</script>
-
 <template>
-  <div
-    class="indicator"
-    :class="isListening ? 'listening' : 'idle'"
-    @keydown="handleKeydown"
-    tabindex="0"
-  >
-    <span v-if="!isListening">Ready</span>
-    <div v-else class="pulse-animation" />
-  </div>
+  <div class="indicator idle">Ready</div>
 </template>
 ```
 
-### 5.3 Step 3: Refactor if Needed
+### Step 3: Refactor
+Improve code quality while keeping tests passing.
 
-After tests pass, improve code quality without changing behavior. Re-run tests after each refactor.
-
-### 5.4 Step 4: Run Full Verification
-
+### Step 4: Verify
 ```bash
-# Run all verification steps before committing
-npx vitest run                    # Unit tests
-npx eslint . --ext .vue,.ts       # Linting
-npx nuxi typecheck                # Type checking
-npm run build                     # Build verification
+npx vitest run
+npx eslint . --ext .vue,.ts
+npx nuxi typecheck
+npm run build
 ```
 
-## 6. Performance Patterns
+**See**: `references/testing-guide.md` for comprehensive testing patterns
 
-### 6.1 Computed Properties for Derived State
+## 6. Performance Essentials
 
-```typescript
-// ❌ BAD - Recalculates in template on every render
-<template>
-  <div>{{ items.filter(i => i.active).length }} active</div>
-</template>
+### Key Patterns
+- **Computed Properties**: Cache derived state
+- **shallowRef**: For large objects (3D data, large arrays)
+- **defineAsyncComponent**: Lazy load heavy components
+- **v-memo**: Skip re-renders for unchanged items
+- **Virtual Scrolling**: For long lists (>100 items)
+- **Debounced Watchers**: Reduce API calls
 
-// ✅ GOOD - Cached until dependencies change
-const activeCount = computed(() => items.value.filter(i => i.active).length)
-<template>
-  <div>{{ activeCount }} active</div>
-</template>
-```
-
-### 6.2 shallowRef for Large Objects
-
-```typescript
-// ❌ BAD - Deep reactivity on large 3D data
-const meshData = ref<MeshData>({ vertices: new Float32Array(100000), ... })
-
-// ✅ GOOD - Shallow reactivity, manual trigger
-const meshData = shallowRef<MeshData>({ vertices: new Float32Array(100000), ... })
-// Trigger update explicitly
-meshData.value = { ...newData }
-triggerRef(meshData)
-```
-
-### 6.3 defineAsyncComponent for Lazy Loading
-
-```typescript
-// ❌ BAD - All components loaded upfront
-import HeavyChart from '@/components/HeavyChart.vue'
-
-// ✅ GOOD - Load only when needed
-const HeavyChart = defineAsyncComponent(() =>
-  import('@/components/HeavyChart.vue')
-)
-
-// With loading state
-const HeavyChart = defineAsyncComponent({
-  loader: () => import('@/components/HeavyChart.vue'),
-  loadingComponent: LoadingSpinner,
-  delay: 200
-})
-```
-
-### 6.4 v-memo for List Optimization
-
-```vue
-<!-- ❌ BAD - Re-renders all items on any change -->
-<div v-for="item in items" :key="item.id">
-  <ExpensiveComponent :data="item" />
-</div>
-
-<!-- ✅ GOOD - Skip re-render if item unchanged -->
-<div v-for="item in items" :key="item.id" v-memo="[item.id, item.updated]">
-  <ExpensiveComponent :data="item" />
-</div>
-```
-
-### 6.5 Virtual Scrolling for Long Lists
-
-```vue
-<script setup lang="ts">
-import { useVirtualList } from '@vueuse/core'
-
-const { list, containerProps, wrapperProps } = useVirtualList(
-  items,
-  { itemHeight: 50 }
-)
-</script>
-
-<template>
-  <!-- ✅ Only renders visible items -->
-  <div v-bind="containerProps" class="h-[400px] overflow-auto">
-    <div v-bind="wrapperProps">
-      <div v-for="{ data, index } in list" :key="index">
-        {{ data.name }}
-      </div>
-    </div>
-  </div>
-</template>
-```
-
-### 6.6 Debounced Watchers
-
-```typescript
-// ❌ BAD - Fires on every keystroke
-watch(searchQuery, async (query) => {
-  results.value = await searchAPI(query)
-})
-
-// ✅ GOOD - Debounced to reduce API calls
-import { watchDebounced } from '@vueuse/core'
-
-watchDebounced(
-  searchQuery,
-  async (query) => {
-    results.value = await searchAPI(query)
-  },
-  { debounce: 300 }
-)
-
-// Alternative with manual debounce
-watch(searchQuery, useDebounceFn(async (query) => {
-  results.value = await searchAPI(query)
-}, 300))
-```
+**See**: `references/performance-optimization.md` for detailed patterns and examples
 
 ## 7. Security Standards
 
@@ -418,7 +257,7 @@ watch(searchQuery, useDebounceFn(async (query) => {
 
 **See**: `references/security-examples.md` for detailed mitigation code
 
-### 5.2 OWASP Top 10 Coverage
+### 7.2 OWASP Top 10 Coverage
 
 | OWASP Category | Risk | Mitigation Strategy |
 |----------------|------|---------------------|
@@ -427,7 +266,7 @@ watch(searchQuery, useDebounceFn(async (query) => {
 | A05 Security Misconfiguration | MEDIUM | CSP headers, secure nuxt.config |
 | A07 XSS | HIGH | v-text directive, DOMPurify sanitization |
 
-### 5.3 Input Validation Framework
+### 7.3 Critical Security Rules
 
 ```typescript
 // ❌ DANGEROUS - Direct v-html with user input
@@ -436,103 +275,7 @@ watch(searchQuery, useDebounceFn(async (query) => {
 // ✅ SECURE - Sanitized HTML or plain text
 <div v-html="sanitizeHTML(userMessage)" />
 <span v-text="userMessage" />
-```
 
-### 5.4 Authentication Middleware
-
-```typescript
-// middleware/auth.ts
-export default defineNuxtRouteMiddleware((to) => {
-  const { authenticated } = useAuthState()
-
-  if (!authenticated.value && to.meta.requiresAuth) {
-    return navigateTo('/login')
-  }
-})
-```
-
-## 6. Testing & Quality
-
-### 6.1 Security Testing
-
-```typescript
-// tests/security/xss.test.ts
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import HUDPanel from '@/components/HUDPanel.vue'
-
-describe('XSS Prevention', () => {
-  it('should sanitize malicious input', () => {
-    const wrapper = mount(HUDPanel, {
-      props: {
-        title: '<script>alert("xss")</script>Hello'
-      }
-    })
-
-    expect(wrapper.html()).not.toContain('<script>')
-    expect(wrapper.text()).toContain('Hello')
-  })
-})
-```
-
-### 6.2 Component Testing
-
-```typescript
-// tests/components/HUDDisplay.test.ts
-describe('HUDDisplay', () => {
-  it('validates metric bounds', () => {
-    const wrapper = mount(HUDDisplay, {
-      props: {
-        metrics: { cpu: 150, memory: -10, status: 'active' }
-      }
-    })
-
-    // Should clamp values to valid range
-    expect(wrapper.vm.validatedMetrics.cpu).toBe(100)
-    expect(wrapper.vm.validatedMetrics.memory).toBe(0)
-  })
-})
-```
-
-## 7. Common Patterns / Workflows
-
-### 7.1 JARVIS HUD Component Workflow
-
-1. **Define TypeScript interfaces** for all data structures
-2. **Create composable** for shared logic
-3. **Implement component** with Composition API
-4. **Add input validation** at component boundary
-5. **Write security tests** for XSS/injection
-6. **Integrate with 3D scene** via TresJS
-
-### 7.2 API Integration Workflow
-
-1. **Define Zod schema** for request/response
-2. **Create server route** with validation
-3. **Implement client composable** with error handling
-4. **Add loading/error states** to UI
-5. **Test error cases** and edge conditions
-
-## 8. Common Mistakes & Anti-Patterns
-
-### 8.1 Critical Security Anti-Patterns
-
-#### Never: Use v-html with Unsanitized Input
-
-```vue
-<!-- ❌ DANGEROUS - XSS vulnerability -->
-<div v-html="userProvidedContent" />
-
-<!-- ✅ SECURE - Sanitized content -->
-<div v-html="sanitizeHTML(userProvidedContent)" />
-
-<!-- ✅ BEST - Plain text when HTML not needed -->
-<span v-text="userProvidedContent" />
-```
-
-#### Never: Expose Secrets in Client Code
-
-```typescript
 // ❌ DANGEROUS - Secret in public config
 runtimeConfig: {
   public: {
@@ -543,69 +286,32 @@ runtimeConfig: {
 // ✅ SECURE - Secrets stay server-side
 runtimeConfig: {
   apiKey: process.env.API_KEY,  // Server only
-  public: {
-    apiBase: '/api'
-  }
+  public: { apiBase: '/api' }
 }
 ```
 
-#### Never: Trust Client-Side Validation Alone
+**See**: `references/security-examples.md` for comprehensive security patterns
 
-```typescript
-// ❌ DANGEROUS - Client-only validation
-const handleSubmit = () => {
-  if (isValidEmail(email.value)) {
-    $fetch('/api/subscribe', { body: { email: email.value } })
-  }
-}
+## 8. Common Patterns
 
-// ✅ SECURE - Server-side validation
-// server/api/subscribe.post.ts
-export default defineEventHandler(async (event) => {
-  const body = await readBody(event)
-  const result = emailSchema.safeParse(body)
-  if (!result.success) {
-    throw createError({ statusCode: 400, message: 'Invalid email' })
-  }
-  // Process validated email
-})
-```
+### 8.1 JARVIS HUD Component Workflow
 
-### 8.2 Performance Anti-Patterns
+1. **Define TypeScript interfaces** for all data structures
+2. **Create composable** for shared logic
+3. **Implement component** with Composition API
+4. **Add input validation** at component boundary
+5. **Write security tests** for XSS/injection
+6. **Integrate with 3D scene** via TresJS
 
-#### Avoid: Reactive Arrays in Computed
+### 8.2 API Integration Workflow
 
-```typescript
-// ❌ BAD - Creates new array on every access
-const filtered = computed(() => {
-  return items.value.filter(i => i.active).sort()
-})
+1. **Define Zod schema** for request/response
+2. **Create server route** with validation
+3. **Implement client composable** with error handling
+4. **Add loading/error states** to UI
+5. **Test error cases** and edge conditions
 
-// ✅ GOOD - Memoized with stable reference
-const filtered = computed(() => {
-  const result = items.value.filter(i => i.active)
-  result.sort((a, b) => a.name.localeCompare(b.name))
-  return result
-})
-```
-
-## 9. Quick Reference
-
-### Essential Commands
-
-```bash
-# Development
-npx nuxi dev --host  # Never expose to public network!
-
-# Security audit
-npm audit --audit-level=high
-npx nuxi typecheck
-
-# Production build
-npx nuxi build
-```
-
-### Key Composables
+## 9. Essential Composables Reference
 
 ```typescript
 // State management
@@ -617,12 +323,33 @@ const config = useRuntimeConfig()
 // Route navigation
 const router = useRouter()
 await navigateTo('/path')
+
+// Fetch data
+const { data, error } = await useFetch('/api/endpoint')
+
+// Async data with SSR
+const { data } = await useAsyncData('key', () => fetchData())
 ```
 
-## 13. Pre-Deployment Checklist
+**See**: `references/composition-patterns.md` for detailed implementation patterns
+
+## 10. Common Mistakes to Avoid
+
+### Critical Anti-Patterns
+- ❌ Never use v-html with unsanitized input (XSS)
+- ❌ Never expose secrets in runtimeConfig.public
+- ❌ Never trust client-side validation alone
+- ❌ Never mutate props directly
+- ❌ Never use browser APIs during SSR without checks
+- ❌ Avoid deep reactivity on large objects (use shallowRef)
+- ❌ Avoid watchers when computed would work
+- ❌ Never ignore hydration mismatch warnings
+
+**See**: `references/anti-patterns.md` for comprehensive examples and solutions
+
+## 11. Pre-Deployment Checklist
 
 ### Security Verification
-
 - [ ] Nuxt version >= 3.12.4 (CVE-2024-34344 fix)
 - [ ] Devtools version >= 1.3.9 (CVE-2024-23657 fix)
 - [ ] CSP headers configured in nuxt.config
@@ -633,13 +360,22 @@ await navigateTo('/path')
 - [ ] Devtools disabled in production
 
 ### Build Verification
-
 - [ ] `npm audit` shows no high/critical vulnerabilities
 - [ ] TypeScript compilation passes
 - [ ] All security tests pass
 - [ ] Production build completes without errors
 
-## 14. Summary
+## 12. References
+
+This skill uses a split file structure for better organization. See the `references/` directory:
+
+- **`composition-patterns.md`** - Vue 3 Composition API patterns, secure component structure, composables, and 3D HUD integration
+- **`performance-optimization.md`** - Computed properties, shallowRef, lazy loading, v-memo, virtual scrolling, debouncing, SSR optimization
+- **`testing-guide.md`** - TDD workflow, component testing, security testing, E2E testing with Playwright
+- **`anti-patterns.md`** - Common mistakes, security anti-patterns, performance pitfalls, and proper solutions
+- **`security-examples.md`** - CVE mitigations, XSS prevention, authentication, authorization, input validation, rate limiting
+
+## 13. Summary
 
 This Vue/Nuxt skill provides secure patterns for building the JARVIS AI Assistant HUD interface:
 
@@ -647,11 +383,12 @@ This Vue/Nuxt skill provides secure patterns for building the JARVIS AI Assistan
 2. **Type Safety**: TypeScript throughout with strict validation schemas
 3. **Performance**: Composition API, lazy loading, efficient reactivity
 4. **Maintainability**: Clear component structure, composables for reuse
+5. **TDD**: Write tests before implementation, verify with comprehensive test suite
 
 **Remember**: The JARVIS HUD handles sensitive system data. Every component must treat user input as potentially malicious and validate all data boundaries.
 
 ---
 
-**References**:
-- `references/advanced-patterns.md` - Complex component patterns
-- `references/security-examples.md` - Detailed security implementations
+**Version**: 1.0.0
+**Last Updated**: 2025-12-05
+**Risk Level**: MEDIUM

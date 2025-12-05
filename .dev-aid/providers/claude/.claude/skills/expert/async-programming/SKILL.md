@@ -9,6 +9,10 @@ risk_level: MEDIUM
 ## File Organization
 
 - **SKILL.md**: Core principles, patterns, essential security (this file)
+- **references/testing-guide.md**: TDD workflow and async testing patterns
+- **references/performance-optimization.md**: Performance patterns and optimization strategies
+- **references/concurrency-patterns.md**: Advanced concurrency implementation patterns
+- **references/anti-patterns.md**: Common mistakes and how to avoid them
 - **references/security-examples.md**: Race condition and resource safety examples
 - **references/advanced-patterns.md**: Advanced async patterns and optimization
 
@@ -24,7 +28,56 @@ risk_level: MEDIUM
 - **Issues**: CVE-2024-12254 (asyncio memory), Redis race condition (CVE-2023-28858/9)
 
 ### Gate 0.11: File Organization Decision
-- **Decision**: Split structure (MEDIUM-RISK, ~400 lines main + references)
+- **Decision**: Split structure (MEDIUM-RISK, ~300 lines main + references)
+
+---
+
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any async code using this skill**
+
+### Verification Requirements
+
+When using this skill to implement async features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official asyncio/Tokio documentation
+   - ✅ Confirm async patterns are current for Python/Rust version
+   - ✅ Validate best practices against official guides
+   - ❌ Never guess lock/synchronization behavior
+   - ❌ Never invent async APIs or methods
+   - ❌ Never assume thread safety without verification
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for async patterns
+   - 🔍 Grep: Search for similar async implementations
+   - 🔍 WebSearch: Verify async specs in official docs
+   - 🔍 WebFetch: Read official asyncio/Tokio documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY async pattern/API/behavior
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in async code cause race conditions, data corruption, deadlocks
+
+4. **Common Async Hallucination Traps** (AVOID)
+   - ❌ Inventing lock acquisition patterns
+   - ❌ Making up async context manager behavior
+   - ❌ Assuming operations are atomic without verification
+   - ❌ Guessing event loop behavior across versions
+   - ❌ Inventing timeout or cancellation semantics
+   - ❌ Assuming thread-safety of data structures
+
+### Self-Check Checklist
+
+Before EVERY response with async code:
+- [ ] All async/await patterns verified against official docs
+- [ ] Lock/synchronization behavior verified for Python/Rust version
+- [ ] Race condition prevention strategies verified
+- [ ] Resource cleanup patterns verified (context managers)
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Async code with hallucinated patterns causes race conditions, data corruption, resource leaks, and deadlocks. Always verify.
 
 ---
 
@@ -78,45 +131,19 @@ import asyncio
 @pytest.mark.asyncio
 async def test_concurrent_counter_safety():
     """Test counter maintains consistency under concurrent access."""
-    counter = SafeCounter()  # Not implemented yet - will fail
+    counter = SafeCounter()
 
     async def increment_many():
         for _ in range(100):
             await counter.increment()
 
-    # Run 10 concurrent incrementers
     await asyncio.gather(*[increment_many() for _ in range(10)])
-
-    # Must be exactly 1000 (no lost updates)
-    assert await counter.get() == 1000
-
-@pytest.mark.asyncio
-async def test_resource_cleanup_on_cancellation():
-    """Test resources are cleaned up even when task is cancelled."""
-    cleanup_called = False
-
-    async def task_with_resource():
-        nonlocal cleanup_called
-        async with managed_resource() as resource:  # Not implemented yet
-            await asyncio.sleep(10)  # Long operation
-        cleanup_called = True
-
-    task = asyncio.create_task(task_with_resource())
-    await asyncio.sleep(0.1)
-    task.cancel()
-
-    with pytest.raises(asyncio.CancelledError):
-        await task
-
-    assert cleanup_called  # Cleanup must happen
+    assert await counter.get() == 1000  # Must be exactly 1000
 ```
 
 ### Step 2: Implement Minimum to Pass
 
 ```python
-import asyncio
-from contextlib import asynccontextmanager
-
 class SafeCounter:
     def __init__(self):
         self._value = 0
@@ -130,14 +157,6 @@ class SafeCounter:
     async def get(self) -> int:
         async with self._lock:
             return self._value
-
-@asynccontextmanager
-async def managed_resource():
-    resource = await acquire_resource()
-    try:
-        yield resource
-    finally:
-        await release_resource(resource)  # Always runs
 ```
 
 ### Step 3: Refactor Following Patterns
@@ -147,45 +166,32 @@ Apply performance patterns, add timeouts, improve error handling.
 ### Step 4: Run Full Verification
 
 ```bash
-# Run async tests
 pytest tests/ -v --asyncio-mode=auto
-
-# Check for blocking calls
-python -m asyncio debug
-
-# Run with concurrency stress test
-pytest tests/ -v -n auto --asyncio-mode=auto
+pytest tests/ -v -n auto --asyncio-mode=auto  # Concurrency stress test
 ```
+
+**See**: `references/testing-guide.md` for comprehensive testing examples
 
 ---
 
-## 4. Performance Patterns
+## 4. Essential Patterns
 
-### Pattern 1: asyncio.gather for Concurrency
+### Pattern 1: Concurrent Execution
 
 ```python
-# BAD - Sequential execution
-async def fetch_all_sequential(urls: list[str]) -> list[str]:
-    results = []
-    for url in urls:
-        result = await fetch(url)  # Waits for each
-        results.append(result)
-    return results  # Total time: sum of all fetches
+# BAD - Sequential (slow)
+results = []
+for url in urls:
+    result = await fetch(url)
+    results.append(result)
 
-# GOOD - Concurrent execution
-async def fetch_all_concurrent(urls: list[str]) -> list[str]:
-    return await asyncio.gather(*[fetch(url) for url in urls])
-    # Total time: max of all fetches
+# GOOD - Concurrent (fast)
+results = await asyncio.gather(*[fetch(url) for url in urls])
 ```
 
-### Pattern 2: Semaphores for Rate Limiting
+### Pattern 2: Rate Limiting with Semaphores
 
 ```python
-# BAD - Unbounded concurrency (may overwhelm server)
-async def fetch_many(urls: list[str]):
-    return await asyncio.gather(*[fetch(url) for url in urls])
-
-# GOOD - Bounded concurrency with semaphore
 async def fetch_many_limited(urls: list[str], max_concurrent: int = 10):
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -196,70 +202,42 @@ async def fetch_many_limited(urls: list[str], max_concurrent: int = 10):
     return await asyncio.gather(*[fetch_with_limit(url) for url in urls])
 ```
 
-### Pattern 3: Task Groups (Python 3.11+)
+### Pattern 3: Resource Management
 
 ```python
-# BAD - Manual task tracking
-async def process_items_manual(items):
-    tasks = []
-    for item in items:
-        task = asyncio.create_task(process(item))
-        tasks.append(task)
-    return await asyncio.gather(*tasks)
+from contextlib import asynccontextmanager
 
-# GOOD - Task groups with automatic cleanup
-async def process_items_taskgroup(items):
-    async with asyncio.TaskGroup() as tg:
-        tasks = [tg.create_task(process(item)) for item in items]
-    return [task.result() for task in tasks]
-    # Automatic cancellation on any failure
-```
-
-### Pattern 4: Efficient Event Loop Usage
-
-```python
-# BAD - Creating new event loop each time
-def run_async_bad():
-    loop = asyncio.new_event_loop()
+@asynccontextmanager
+async def get_connection():
+    conn = await pool.acquire()
     try:
-        return loop.run_until_complete(main())
+        yield conn
     finally:
-        loop.close()
-
-# GOOD - Reuse running loop or use asyncio.run
-def run_async_good():
-    return asyncio.run(main())  # Handles loop lifecycle
-
-# GOOD - For library code, get existing loop
-async def library_function():
-    loop = asyncio.get_running_loop()
-    future = loop.create_future()
-    # Use the existing loop
+        await pool.release(conn)  # Always runs
 ```
 
-### Pattern 5: Avoiding Blocking Calls
+### Pattern 4: Graceful Shutdown
 
 ```python
-# BAD - Blocks event loop
-async def process_file_bad(path: str):
-    with open(path) as f:  # Blocking I/O
-        data = f.read()
-    result = hashlib.sha256(data).hexdigest()  # CPU-bound blocks loop
-    return result
+class GracefulApp:
+    def __init__(self):
+        self.shutdown_event = asyncio.Event()
+        self.tasks: set[asyncio.Task] = set()
 
-# GOOD - Non-blocking with aiofiles and executor
-import aiofiles
+    async def run(self):
+        loop = asyncio.get_event_loop()
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            loop.add_signal_handler(sig, self.shutdown_event.set)
 
-async def process_file_good(path: str):
-    async with aiofiles.open(path, 'rb') as f:
-        data = await f.read()
+        self.tasks.add(asyncio.create_task(self.worker()))
+        await self.shutdown_event.wait()
 
-    loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(
-        None, lambda: hashlib.sha256(data).hexdigest()
-    )
-    return result
+        for task in self.tasks:
+            task.cancel()
+        await asyncio.gather(*self.tasks, return_exceptions=True)
 ```
+
+**See**: `references/concurrency-patterns.md` for advanced patterns (RWLock, circuit breakers, etc.)
 
 ---
 
@@ -287,94 +265,9 @@ pytest-asyncio    # Testing
 
 ---
 
-## 6. Implementation Patterns
+## 6. Security Standards
 
-### Pattern 1: Protecting Shared State with Locks
-
-```python
-import asyncio
-
-class SafeCounter:
-    """Thread-safe counter for async contexts."""
-    def __init__(self):
-        self._value = 0
-        self._lock = asyncio.Lock()
-
-    async def increment(self) -> int:
-        async with self._lock:
-            self._value += 1
-            return self._value
-
-    async def get(self) -> int:
-        async with self._lock:
-            return self._value
-```
-
-### Pattern 2: Atomic Database Operations
-
-```python
-from sqlalchemy.ext.asyncio import AsyncSession
-
-async def transfer_safe(db: AsyncSession, from_id: int, to_id: int, amount: int):
-    """Atomic transfer using row locks."""
-    async with db.begin():
-        stmt = (
-            select(Account)
-            .where(Account.id.in_([from_id, to_id]))
-            .with_for_update()  # Lock rows
-        )
-        accounts = {a.id: a for a in (await db.execute(stmt)).scalars()}
-
-        if accounts[from_id].balance < amount:
-            raise ValueError("Insufficient funds")
-
-        accounts[from_id].balance -= amount
-        accounts[to_id].balance += amount
-```
-
-### Pattern 3: Resource Management with Context Managers
-
-```python
-from contextlib import asynccontextmanager
-
-@asynccontextmanager
-async def get_connection():
-    """Ensure connection cleanup even on cancellation."""
-    conn = await pool.acquire()
-    try:
-        yield conn
-    finally:
-        await pool.release(conn)
-```
-
-### Pattern 4: Graceful Shutdown
-
-```python
-import asyncio, signal
-
-class GracefulApp:
-    def __init__(self):
-        self.shutdown_event = asyncio.Event()
-        self.tasks: set[asyncio.Task] = set()
-
-    async def run(self):
-        loop = asyncio.get_event_loop()
-        for sig in (signal.SIGTERM, signal.SIGINT):
-            loop.add_signal_handler(sig, self.shutdown_event.set)
-
-        self.tasks.add(asyncio.create_task(self.worker()))
-        await self.shutdown_event.wait()
-
-        for task in self.tasks:
-            task.cancel()
-        await asyncio.gather(*self.tasks, return_exceptions=True)
-```
-
----
-
-## 7. Security Standards
-
-### 7.1 Common Async Vulnerabilities
+### 6.1 Common Async Vulnerabilities
 
 | Issue | Severity | Mitigation |
 |-------|----------|------------|
@@ -384,7 +277,7 @@ class GracefulApp:
 | CVE-2024-12254 | HIGH | Upgrade Python |
 | Deadlocks | MEDIUM | Lock ordering, timeouts |
 
-### 7.2 Race Condition Detection
+### 6.2 Race Condition Detection
 
 ```python
 # RACE CONDITION - read/await/write pattern
@@ -402,29 +295,25 @@ class SafeUserSession:
             self.data[key] = self.data.get(key, 0) + value
 ```
 
+**See**: `references/security-examples.md` for detailed security examples
+
 ---
 
-## 8. Common Mistakes & Anti-Patterns
+## 7. Quick Anti-Pattern Reference
 
 ### Anti-Pattern 1: Unprotected Shared State
-
 ```python
-# NEVER - race condition on cache
-async def get_or_fetch(self, key):
-    if key not in self.data:
-        self.data[key] = await fetch(key)
-    return self.data[key]
+# NEVER - race condition
+if key not in self.data:
+    self.data[key] = await fetch(key)
 
 # ALWAYS - lock protection
-async def get_or_fetch(self, key):
-    async with self._lock:
-        if key not in self.data:
-            self.data[key] = await fetch(key)
-        return self.data[key]
+async with self._lock:
+    if key not in self.data:
+        self.data[key] = await fetch(key)
 ```
 
 ### Anti-Pattern 2: Fire and Forget Tasks
-
 ```python
 # NEVER - task may be garbage collected
 asyncio.create_task(background_work())
@@ -436,15 +325,33 @@ task.add_done_callback(self.tasks.discard)
 ```
 
 ### Anti-Pattern 3: Blocking the Event Loop
-
 ```python
 # NEVER - blocks all async tasks
 time.sleep(5)
+with open('file.txt') as f:
+    data = f.read()
 
-# ALWAYS - use async
+# ALWAYS - use async alternatives
 await asyncio.sleep(5)
-result = await loop.run_in_executor(None, cpu_bound_func)
+async with aiofiles.open('file.txt') as f:
+    data = await f.read()
 ```
+
+**See**: `references/anti-patterns.md` for complete anti-pattern catalog
+
+---
+
+## 8. Performance Rules
+
+1. **Use `asyncio.gather`** for concurrent I/O operations
+2. **Apply semaphores** to limit concurrent connections
+3. **Use TaskGroup (Python 3.11+)** for automatic cleanup
+4. **Never block event loop** - use `run_in_executor` for CPU work
+5. **Reuse event loops** - don't create new ones
+6. **Use connection pools** - don't create connections per operation
+7. **Set timeouts** - prevent hanging operations
+
+**See**: `references/performance-optimization.md` for detailed optimization strategies
 
 ---
 
@@ -478,7 +385,23 @@ result = await loop.run_in_executor(None, cpu_bound_func)
 
 ---
 
-## 10. Summary
+## 10. References
+
+Detailed documentation in `references/` directory:
+
+### Core Documentation
+- **testing-guide.md**: TDD workflow, fixtures, async test patterns
+- **performance-optimization.md**: asyncio.gather, semaphores, connection pooling, caching
+- **concurrency-patterns.md**: Locks, RWLocks, atomic operations, graceful shutdown, circuit breakers
+- **anti-patterns.md**: Common mistakes and correct implementations
+
+### Security & Advanced
+- **security-examples.md**: Race conditions, TOCTOU prevention, resource safety
+- **advanced-patterns.md**: Complex async patterns, advanced optimizations
+
+---
+
+## 11. Summary
 
 Your goal is to create async code that is:
 - **Test-Driven**: Write async tests first with pytest-asyncio
@@ -487,16 +410,13 @@ Your goal is to create async code that is:
 - **Performant**: asyncio.gather, semaphores, avoid blocking
 - **Resilient**: Handle errors, support cancellation
 
-**Key Performance Rules**:
-1. Use `asyncio.gather` for concurrent I/O operations
-2. Apply semaphores to limit concurrent connections
-3. Use TaskGroup (Python 3.11+) for automatic cleanup
-4. Never block event loop - use `run_in_executor` for CPU work
-5. Reuse event loops, don't create new ones
-
-**Security Reminder**:
+**Critical Rules**:
 1. Every shared mutable state needs protection
 2. Database operations must be atomic (TOCTOU prevention)
 3. Always use async context managers for resources
 4. Track all tasks for graceful shutdown
 5. Test with concurrent load to find race conditions
+6. Never block the event loop - use async alternatives
+7. Set timeouts on all external operations
+
+**When uncertain**: Verify against official docs before implementing.

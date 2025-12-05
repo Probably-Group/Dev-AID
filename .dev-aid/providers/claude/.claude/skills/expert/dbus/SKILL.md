@@ -4,6 +4,55 @@ risk_level: MEDIUM
 description: "Expert in D-Bus IPC (Inter-Process Communication) on Linux systems. Specializes in secure service communication, method calls, signal handling, and system integration. HIGH-RISK skill due to system service access and privileged operations."
 ---
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any D-Bus code**
+
+### Verification Requirements
+
+When using this skill to implement D-Bus features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official D-Bus specification documentation
+   - ✅ Confirm bus types (session/system) and security policies
+   - ✅ Validate service names against current system
+   - ❌ Never guess interface names or method signatures
+   - ❌ Never invent D-Bus service names
+   - ❌ Never assume security policies without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing D-Bus code patterns in codebase
+   - 🔍 Grep: Search for similar D-Bus implementations
+   - 🔍 Bash: Use `dbus-send`, `gdbus`, `qdbus` to verify services
+   - 🔍 WebSearch: Verify D-Bus specs in official documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY D-Bus service/interface/method
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in D-Bus can cause privilege escalation, system compromise, or data loss
+
+4. **Common D-Bus Hallucination Traps** (AVOID)
+   - ❌ Inventing service names (e.g., org.freedesktop.CustomService)
+   - ❌ Guessing method signatures without introspection
+   - ❌ Assuming all services are on session bus
+   - ❌ Making up object paths that don't exist
+   - ❌ Inventing interface methods or properties
+   - ❌ Assuming PolicyKit access is safe
+
+### Self-Check Checklist
+
+Before EVERY response with D-Bus code:
+- [ ] All service names verified (use `busctl list` or `gdbus list`)
+- [ ] Interface methods verified (use introspection or documentation)
+- [ ] Bus type (session/system) verified for target service
+- [ ] Security implications considered (blocked services list)
+- [ ] Can cite official D-Bus documentation or introspection output
+
+**⚠️ CRITICAL**: D-Bus code with hallucinated services/methods causes security vulnerabilities and system instability. Always verify.
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System service access, privileged operations, IPC
@@ -173,527 +222,147 @@ pytest --cov=secure_dbus --cov-report=term-missing
 
 ---
 
-## 6. Performance Patterns
+## 6. Performance Best Practices
 
-### Pattern 1: Connection Reuse
+D-Bus operations can be performance-critical. Follow these key principles:
 
+1. **Connection Reuse**: Create D-Bus connections once and reuse them
+2. **Signal Filtering**: Filter signals at subscription time, not in handlers
+3. **Async Operations**: Use async calls for non-blocking operations
+4. **Message Batching**: Use `GetAll()` instead of individual property reads
+5. **Property Caching**: Cache frequently accessed properties with TTL
+
+**See**: `references/performance-optimization.md` for detailed patterns and benchmarks
+
+---
+
+## 7. Security-First D-Bus Client
+
+**Key Components**:
+
+1. **SecureDBusClient**: Core client with service blocklists and validation
+2. **SecureSignalMonitor**: Signal handling with allowlists
+3. **SecurePropertyAccess**: Property operations with access control
+4. **ServiceDiscovery**: Safe service introspection
+
+**Blocked Services** (CRITICAL - Never allow access):
+- `org.freedesktop.PolicyKit1` - Privilege escalation
+- `org.freedesktop.systemd1` - System service control
+- `org.freedesktop.login1` - Session/power management
+- `org.gnome.keyring`, `org.freedesktop.secrets` - Secret storage
+- `org.freedesktop.PackageKit` - Package installation
+
+**Implementation Example**:
 ```python
-# GOOD: Reuse connection
-class DBusConnectionPool:
-    _session_bus = None
+from secure_dbus import SecureDBusClient
 
-    @classmethod
-    def get_session_bus(cls):
-        if cls._session_bus is None:
-            cls._session_bus = dbus.SessionBus()
-        return cls._session_bus
+# Create secure client (session bus, standard tier)
+client = SecureDBusClient(bus_type='session', permission_tier='standard')
 
-# BAD: Create new connection each call
-def get_service():
-    bus = dbus.SessionBus()  # Expensive!
-    return bus.get_object('org.test.Service', '/')
-```
-
-### Pattern 2: Signal Filtering
-
-```python
-# GOOD: Filter signals at subscription
-bus.add_signal_receiver(
-    handler,
-    signal_name='SpecificSignal',  # Only this signal
-    dbus_interface='org.test.Interface',
-    path='/specific/path'  # Only this path
+# Call method with automatic validation and logging
+result = client.call_method(
+    'org.freedesktop.Notifications',
+    '/org/freedesktop/Notifications',
+    'org.freedesktop.Notifications',
+    'Notify',
+    'App', 0, '', 'Summary', 'Body', [], {}, 5000
 )
-
-# BAD: Receive all signals and filter in handler
-bus.add_signal_receiver(
-    handler,
-    signal_name=None,  # All signals - expensive!
-    dbus_interface=None
-)
 ```
 
-### Pattern 3: Async Calls with dasbus
-
-```python
-# GOOD: Async calls for non-blocking operations
-from dasbus.connection import SessionMessageBus
-from dasbus.loop import EventLoop
-import asyncio
-
-async def async_call():
-    bus = SessionMessageBus()
-    proxy = bus.get_proxy('org.test.Service', '/')
-    result = await asyncio.to_thread(proxy.Method)
-    return result
-
-# BAD: Blocking calls in async context
-def blocking_call():
-    bus = dbus.SessionBus()
-    proxy = bus.get_object('org.test.Service', '/')
-    return proxy.Method()  # Blocks event loop!
-```
-
-### Pattern 4: Message Batching
-
-```python
-# GOOD: Batch property reads
-def get_all_properties(proxy, interface):
-    props = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-    return props.GetAll(interface)  # One call
-
-# BAD: Individual property reads
-def get_properties_slow(proxy, interface):
-    props = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-    return {
-        'prop1': props.Get(interface, 'prop1'),  # Call 1
-        'prop2': props.Get(interface, 'prop2'),  # Call 2
-        'prop3': props.Get(interface, 'prop3'),  # Call 3
-    }
-```
-
-### Pattern 5: Property Caching
-
-```python
-# GOOD: Cache properties with TTL
-from functools import lru_cache
-from time import time
-
-class CachedPropertyAccess:
-    def __init__(self, client, cache_ttl=5):
-        self.client = client
-        self.cache_ttl = cache_ttl
-        self._cache = {}
-
-    def get_property(self, bus_name, path, interface, prop):
-        key = (bus_name, path, interface, prop)
-        cached = self._cache.get(key)
-
-        if cached and time() - cached['time'] < self.cache_ttl:
-            return cached['value']
-
-        value = self._fetch_property(bus_name, path, interface, prop)
-        self._cache[key] = {'value': value, 'time': time()}
-        return value
-
-# BAD: Fetch property every time
-def get_property(proxy, interface, prop):
-    props = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-    return props.Get(interface, prop)  # Always fetches
-```
+**See**: `references/advanced-patterns.md` for complete implementation patterns
 
 ---
 
-## 7. Implementation Patterns
+## 8. Security Standards
 
-### Pattern 1: Secure D-Bus Client
+### Critical Vulnerabilities to Mitigate
 
-```python
-import dbus
-from dbus.exceptions import DBusException
-import logging
+1. **Privilege Escalation via PolicyKit** (CVE-2021-4034) - CRITICAL
+   - Mitigation: Block PolicyKit service access
 
-class SecureDBusClient:
-    """Secure D-Bus client with access controls."""
+2. **D-Bus Authentication Bypass** (CVE-2022-42012) - HIGH
+   - Mitigation: Validate peer credentials
 
-    BLOCKED_SERVICES = {
-        'org.freedesktop.PolicyKit1',          # Privilege escalation
-        'org.freedesktop.systemd1',            # System service control
-        'org.freedesktop.login1',              # Session/power management
-        'org.gnome.keyring',                   # Secret storage
-        'org.freedesktop.secrets',             # Secret service
-        'org.freedesktop.PackageKit',          # Package installation
-    }
+3. **Service Impersonation** (CWE-290) - HIGH
+   - Mitigation: Verify service credentials
 
-    BLOCKED_INTERFACES = {
-        'org.freedesktop.DBus.Properties',     # Can read/write any property
-    }
+4. **Method Injection** (CWE-74) - MEDIUM
+   - Mitigation: Input validation, service allowlists
 
-    def __init__(self, bus_type: str = 'session', permission_tier: str = 'standard'):
-        self.permission_tier = permission_tier
-        self.logger = logging.getLogger('dbus.security')
-        self.timeout = 30  # seconds
+5. **Information Disclosure** (CWE-200) - MEDIUM
+   - Mitigation: Property access control
 
-        # Connect to bus
-        if bus_type == 'session':
-            self.bus = dbus.SessionBus()
-        elif bus_type == 'system':
-            if permission_tier != 'elevated':
-                raise PermissionError("System bus requires 'elevated' tier")
-            self.bus = dbus.SystemBus()
-        else:
-            raise ValueError(f"Invalid bus type: {bus_type}")
+### Permission Tier Model
 
-    def get_object(self, bus_name: str, object_path: str) -> dbus.Interface:
-        """Get D-Bus object with validation."""
-        # Security check
-        if bus_name in self.BLOCKED_SERVICES:
-            self.logger.warning('blocked_service', service=bus_name)
-            raise SecurityError(f"Access to {bus_name} is blocked")
+- **read-only**: Session bus, read operations only
+- **standard**: Session bus, full operations (default)
+- **elevated**: System bus access (requires explicit approval)
 
-        # Validate bus name format
-        if not self._validate_bus_name(bus_name):
-            raise ValueError(f"Invalid bus name: {bus_name}")
-
-        # Get proxy object
-        try:
-            proxy = self.bus.get_object(bus_name, object_path)
-            self._audit_log('get_object', bus_name, object_path)
-            return proxy
-        except DBusException as e:
-            self.logger.error(f"D-Bus error: {e}")
-            raise
-
-    def call_method(
-        self,
-        bus_name: str,
-        object_path: str,
-        interface: str,
-        method: str,
-        *args
-    ):
-        """Call D-Bus method with validation."""
-        # Security checks
-        if interface in self.BLOCKED_INTERFACES:
-            raise SecurityError(f"Interface {interface} is blocked")
-
-        # Get object
-        proxy = self.get_object(bus_name, object_path)
-        iface = dbus.Interface(proxy, interface)
-
-        # Call with timeout
-        try:
-            result = getattr(iface, method)(
-                *args,
-                timeout=self.timeout
-            )
-            self._audit_log('call_method', bus_name, f"{interface}.{method}")
-            return result
-        except DBusException as e:
-            if 'Timeout' in str(e):
-                raise TimeoutError(f"Method call timed out after {self.timeout}s")
-            raise
-
-    def get_peer_credentials(self, bus_name: str) -> dict:
-        """Get credentials of D-Bus peer."""
-        dbus_obj = self.bus.get_object(
-            'org.freedesktop.DBus',
-            '/org/freedesktop/DBus'
-        )
-        dbus_iface = dbus.Interface(dbus_obj, 'org.freedesktop.DBus')
-
-        return {
-            'pid': dbus_iface.GetConnectionUnixProcessID(bus_name),
-            'uid': dbus_iface.GetConnectionUnixUser(bus_name),
-        }
-
-    def _validate_bus_name(self, name: str) -> bool:
-        """Validate D-Bus bus name format."""
-        import re
-        pattern = r'^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$'
-        return bool(re.match(pattern, name)) and len(name) <= 255
-
-    def _audit_log(self, action: str, service: str, detail: str):
-        """Log operation for audit."""
-        self.logger.info(
-            f'dbus.{action}',
-            extra={
-                'service': service,
-                'detail': detail,
-                'permission_tier': self.permission_tier
-            }
-        )
-```
-
-### Pattern 2: Signal Monitoring
-
-```python
-from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import GLib
-
-class SecureSignalMonitor:
-    """Monitor D-Bus signals safely."""
-
-    ALLOWED_SIGNALS = {
-        'org.freedesktop.Notifications': ['NotificationClosed', 'ActionInvoked'],
-        'org.freedesktop.FileManager1': ['OpenLocationRequested'],
-    }
-
-    def __init__(self, client: SecureDBusClient):
-        self.client = client
-        self.handlers = {}
-        self.logger = logging.getLogger('dbus.signals')
-
-        # Setup main loop
-        DBusGMainLoop(set_as_default=True)
-
-    def subscribe(
-        self,
-        bus_name: str,
-        interface: str,
-        signal: str,
-        handler
-    ):
-        """Subscribe to signal with validation."""
-        # Check if signal is allowed
-        allowed = self.ALLOWED_SIGNALS.get(interface, [])
-        if signal not in allowed:
-            raise SecurityError(f"Signal {interface}.{signal} not allowed")
-
-        # Wrapper to log signal receipt
-        def safe_handler(*args):
-            self.logger.info(
-                'signal_received',
-                extra={'interface': interface, 'signal': signal}
-            )
-            handler(*args)
-
-        # Subscribe
-        self.client.bus.add_signal_receiver(
-            safe_handler,
-            signal_name=signal,
-            dbus_interface=interface,
-            bus_name=bus_name
-        )
-        self.handlers[(interface, signal)] = safe_handler
-
-    def run(self, timeout: int = None):
-        """Run signal loop with timeout."""
-        loop = GLib.MainLoop()
-
-        if timeout:
-            GLib.timeout_add_seconds(timeout, loop.quit)
-
-        loop.run()
-```
-
-### Pattern 3: Property Access Control
-
-```python
-class SecurePropertyAccess:
-    """Controlled access to D-Bus properties."""
-
-    READABLE_PROPERTIES = {
-        'org.freedesktop.Notifications': ['ServerCapabilities'],
-        'org.mpris.MediaPlayer2': ['Identity', 'PlaybackStatus'],
-    }
-
-    WRITABLE_PROPERTIES = {
-        'org.mpris.MediaPlayer2.Player': ['Volume'],
-    }
-
-    def __init__(self, client: SecureDBusClient):
-        self.client = client
-        self.logger = logging.getLogger('dbus.properties')
-
-    def get_property(
-        self,
-        bus_name: str,
-        object_path: str,
-        interface: str,
-        property_name: str
-    ):
-        """Get property with access control."""
-        # Check if property is readable
-        allowed = self.READABLE_PROPERTIES.get(interface, [])
-        if property_name not in allowed:
-            raise SecurityError(f"Property {interface}.{property_name} not readable")
-
-        proxy = self.client.get_object(bus_name, object_path)
-        props = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-
-        value = props.Get(interface, property_name)
-        self.logger.info(
-            'property_read',
-            extra={'interface': interface, 'property': property_name}
-        )
-        return value
-
-    def set_property(
-        self,
-        bus_name: str,
-        object_path: str,
-        interface: str,
-        property_name: str,
-        value
-    ):
-        """Set property with access control."""
-        if self.client.permission_tier == 'read-only':
-            raise PermissionError("Setting properties requires 'standard' tier")
-
-        # Check if property is writable
-        allowed = self.WRITABLE_PROPERTIES.get(interface, [])
-        if property_name not in allowed:
-            raise SecurityError(f"Property {interface}.{property_name} not writable")
-
-        proxy = self.client.get_object(bus_name, object_path)
-        props = dbus.Interface(proxy, 'org.freedesktop.DBus.Properties')
-
-        props.Set(interface, property_name, value)
-        self.logger.info(
-            'property_write',
-            extra={'interface': interface, 'property': property_name}
-        )
-```
-
-### Pattern 4: Service Discovery
-
-```python
-class ServiceDiscovery:
-    """Discover D-Bus services safely."""
-
-    def __init__(self, client: SecureDBusClient):
-        self.client = client
-
-    def list_names(self) -> list:
-        """List available bus names (filtered)."""
-        dbus_obj = self.client.bus.get_object(
-            'org.freedesktop.DBus',
-            '/org/freedesktop/DBus'
-        )
-        dbus_iface = dbus.Interface(dbus_obj, 'org.freedesktop.DBus')
-
-        all_names = dbus_iface.ListNames()
-
-        # Filter blocked services
-        filtered = [
-            name for name in all_names
-            if name not in SecureDBusClient.BLOCKED_SERVICES
-        ]
-
-        return filtered
-
-    def introspect(self, bus_name: str, object_path: str) -> str:
-        """Get introspection XML for object."""
-        if bus_name in SecureDBusClient.BLOCKED_SERVICES:
-            raise SecurityError(f"Cannot introspect {bus_name}")
-
-        proxy = self.client.get_object(bus_name, object_path)
-        return proxy.Introspect(
-            dbus_interface='org.freedesktop.DBus.Introspectable'
-        )
-```
+**See**: `references/threat-model.md` for complete STRIDE analysis and security controls
+**See**: `references/security-examples.md` for secure implementation examples
 
 ---
 
-## 5. Security Standards
+## 9. Anti-Patterns to Avoid
 
-### 5.1 Critical Vulnerabilities
+Common D-Bus mistakes that lead to security issues and poor performance:
 
-#### 1. Privilege Escalation via PolicyKit (CVE-2021-4034)
-- **Severity**: CRITICAL
-- **Description**: Polkit vulnerability for local privilege escalation
-- **Mitigation**: Block PolicyKit service access
+1. ❌ Using system bus when session bus is sufficient
+2. ❌ Allowing access to PolicyKit and systemd
+3. ❌ Skipping timeout enforcement
+4. ❌ Creating new connections for each operation
+5. ❌ Not validating bus names and paths
+6. ❌ No audit logging
+7. ❌ Receiving all signals without filtering
+8. ❌ Skipping peer credential validation
+9. ❌ Individual property reads instead of batching
+10. ❌ Generic exception handling losing error details
 
-#### 2. D-Bus Authentication Bypass (CVE-2022-42012)
-- **Severity**: HIGH
-- **Description**: Unauthorized session bus access
-- **Mitigation**: Validate peer credentials
-
-#### 3. Service Impersonation (CWE-290)
-- **Severity**: HIGH
-- **Description**: Malicious service claiming trusted name
-- **Mitigation**: Verify service credentials
-
-#### 4. Method Injection (CWE-74)
-- **Severity**: MEDIUM
-- **Description**: Malicious method parameters
-- **Mitigation**: Input validation, service allowlists
-
-#### 5. Information Disclosure (CWE-200)
-- **Severity**: MEDIUM
-- **Description**: Exposing sensitive service data
-- **Mitigation**: Property access control
-
-### 5.2 Permission Tier Model
-
-```python
-PERMISSION_TIERS = {
-    'read-only': {
-        'bus_type': 'session',
-        'allowed_operations': ['get_property', 'introspect', 'list_names'],
-        'blocked_services': BLOCKED_SERVICES,
-    },
-    'standard': {
-        'bus_type': 'session',
-        'allowed_operations': ['*', 'set_property', 'call_method'],
-        'blocked_services': BLOCKED_SERVICES,
-    },
-    'elevated': {
-        'bus_type': ['session', 'system'],
-        'allowed_operations': ['*'],
-        'blocked_services': ['org.freedesktop.PackageKit'],
-    }
-}
-```
+**See**: `references/anti-patterns.md` for detailed examples and corrections
 
 ---
 
-## 8. Common Mistakes
+## 10. Pre-Deployment Checklist
 
-### Never: Access System Bus Without Need
-
-```python
-# BAD: Always use system bus
-bus = dbus.SystemBus()
-
-# GOOD: Prefer session bus
-bus = dbus.SessionBus()
-# Only use system bus when required
-```
-
-### Never: Allow PolicyKit Access
-
-```python
-# BAD: No service filtering
-result = client.call_method('org.freedesktop.PolicyKit1', ...)
-
-# GOOD: Block privileged services
-if service not in BLOCKED_SERVICES:
-    result = client.call_method(service, ...)
-```
-
-### Never: Skip Timeout Enforcement
-
-```python
-# BAD: No timeout
-result = iface.SomeMethod()
-
-# GOOD: With timeout
-result = iface.SomeMethod(timeout=30)
-```
-
----
-
-## 13. Pre-Deployment Checklist
-
-- [ ] Service blocklist configured
+Before deploying D-Bus code:
+- [ ] Service blocklist configured and enforced
 - [ ] Session bus preferred over system bus
-- [ ] Timeout enforcement on all calls
-- [ ] Peer credential validation
-- [ ] Audit logging enabled
+- [ ] Timeout enforcement on all method calls
+- [ ] Peer credential validation implemented
+- [ ] Comprehensive audit logging enabled
 - [ ] Property access control configured
+- [ ] Connection pooling/reuse implemented
+- [ ] Error handling with specific D-Bus exceptions
 
 ---
 
-## 14. Summary
+## 11. Summary
 
 Your goal is to create D-Bus automation that is:
 - **Secure**: Service blocklists, credential validation, access control
-- **Reliable**: Timeout enforcement, error handling
-- **Minimal**: Session bus by default, least privilege
+- **Reliable**: Timeout enforcement, error handling, retry logic
+- **Performant**: Connection reuse, signal filtering, property caching
+- **Minimal**: Session bus by default, least privilege principle
 
 **Security Reminders**:
 1. Always prefer session bus over system bus
-2. Block access to PolicyKit and systemd
-3. Validate peer credentials when needed
+2. Block access to PolicyKit and systemd services
+3. Validate peer credentials for sensitive operations
 4. Enforce timeouts on all method calls
-5. Log all operations for audit
+5. Log all operations for security audit
 
 ---
 
-## References
+## 12. References
 
-- See `references/security-examples.md`
-- See `references/threat-model.md`
-- See `references/advanced-patterns.md`
+### Core Documentation
+- `references/advanced-patterns.md` - Complete implementation patterns
+- `references/security-examples.md` - Security-focused code examples
+- `references/threat-model.md` - STRIDE analysis and threat scenarios
+- `references/performance-optimization.md` - Performance patterns and benchmarks
+- `references/anti-patterns.md` - Common mistakes and how to avoid them
+
+### External Resources
+- [D-Bus Specification](https://dbus.freedesktop.org/doc/dbus-specification.html)
+- [D-Bus Tutorial](https://dbus.freedesktop.org/doc/dbus-tutorial.html)
+- [Python D-Bus Documentation](https://dbus.freedesktop.org/doc/dbus-python/)

@@ -6,6 +6,54 @@ description: "Expert in Windows UI Automation (UIA) and Win32 APIs for desktop a
 
 > **File Organization**: This skill uses split structure. Main SKILL.md contains core decision-making context. See `references/` for detailed implementations.
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Windows UI Automation code**
+
+### Verification Requirements
+
+When using this skill to implement Windows UI Automation features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Microsoft UI Automation documentation
+   - ✅ Confirm UIA patterns and control types are current
+   - ✅ Validate security best practices against official guides
+   - ❌ Never guess UIA property IDs or control type constants
+   - ❌ Never invent automation patterns or element discovery methods
+   - ❌ Never assume Win32 API signatures without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for patterns
+   - 🔍 Grep: Search for similar UI automation implementations
+   - 🔍 WebSearch: Verify UIA specifications in official docs
+   - 🔍 WebFetch: Read Microsoft documentation pages
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY UIA API, Win32 function, or security pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in UI automation can cause privilege escalation, credential theft, system instability
+
+4. **Common UI Automation Hallucination Traps** (AVOID)
+   - ❌ Invented UIA property ID constants (always use official IDs)
+   - ❌ Made-up control patterns (use documented patterns only)
+   - ❌ Non-existent Win32 API functions or incorrect signatures
+   - ❌ Assumed security boundaries without validation
+   - ❌ Incorrect COM interop code for UIA objects
+
+### Self-Check Checklist
+
+Before EVERY response with UI Automation code:
+- [ ] All UIA property IDs verified against official documentation
+- [ ] Control patterns verified as existing and current
+- [ ] Win32 API signatures verified against Windows SDK docs
+- [ ] Security controls verified against OWASP/CWE guidelines
+- [ ] Can cite official Microsoft documentation sources
+
+**⚠️ CRITICAL**: UI Automation code with hallucinated APIs causes privilege escalation vulnerabilities, system crashes, and security failures. Always verify.
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System-level access, process manipulation, input injection capabilities
@@ -96,264 +144,66 @@ kernel32.dll              # Process management
 
 ---
 
-## 4. Implementation Patterns
+## 4. Implementation Patterns (Overview)
+
+**For detailed implementations, see** `references/advanced-patterns.md`
 
 ### Pattern 1: Secure Element Discovery
-
-**When to use**: Finding UI elements for automation
-
-```python
-from comtypes.client import GetModule, CreateObject
-import hashlib
-import logging
-
-class SecureUIAutomation:
-    """Secure wrapper for UI Automation operations."""
-
-    BLOCKED_PROCESSES = {
-        'keepass.exe', '1password.exe', 'lastpass.exe',    # Password managers
-        'mmc.exe', 'secpol.msc', 'gpedit.msc',             # Admin tools
-        'regedit.exe', 'cmd.exe', 'powershell.exe',        # System tools
-        'taskmgr.exe', 'procexp.exe',                       # Process tools
-    }
-
-    def __init__(self, permission_tier: str = 'read-only'):
-        self.permission_tier = permission_tier
-        self.uia = CreateObject('UIAutomationClient.CUIAutomation')
-        self.logger = logging.getLogger('uia.security')
-        self.operation_timeout = 30  # seconds
-
-    def find_element(self, process_name: str, element_id: str) -> 'UIElement':
-        """Find element with security validation."""
-        # Security check: blocked processes
-        if process_name.lower() in self.BLOCKED_PROCESSES:
-            self.logger.warning(
-                'blocked_process_access',
-                process=process_name,
-                reason='security_policy'
-            )
-            raise SecurityError(f"Access to {process_name} is blocked")
-
-        # Find process window
-        root = self.uia.GetRootElement()
-        condition = self.uia.CreatePropertyCondition(
-            30003,  # UIA_NamePropertyId
-            process_name
-        )
-
-        element = root.FindFirst(4, condition)  # TreeScope_Children
-
-        if element:
-            self._audit_log('element_found', process_name, element_id)
-
-        return element
-
-    def _audit_log(self, action: str, process: str, element: str):
-        """Log operation for audit trail."""
-        self.logger.info(
-            f'uia.{action}',
-            extra={
-                'process': process,
-                'element': element,
-                'permission_tier': self.permission_tier,
-                'correlation_id': self._get_correlation_id()
-            }
-        )
-```
+**Purpose**: Finding UI elements with full security validation
+**Key Features**: Process blocklist, audit logging, permission tiers
+**See**: `references/advanced-patterns.md` - Pattern: Secure Element Discovery
 
 ### Pattern 2: Safe Input Simulation
-
-**When to use**: Sending keyboard/mouse input to applications
-
-```python
-import ctypes
-from ctypes import wintypes
-import time
-
-class SafeInputSimulator:
-    """Input simulation with security controls."""
-
-    # Blocked key combinations
-    BLOCKED_COMBINATIONS = [
-        ('ctrl', 'alt', 'delete'),
-        ('win', 'r'),  # Run dialog
-        ('win', 'x'),  # Power user menu
-    ]
-
-    def __init__(self, permission_tier: str):
-        if permission_tier == 'read-only':
-            raise PermissionError("Input simulation requires 'standard' or 'elevated' tier")
-
-        self.permission_tier = permission_tier
-        self.rate_limit = 100  # max inputs per second
-        self._input_count = 0
-        self._last_reset = time.time()
-
-    def send_keys(self, keys: str, target_hwnd: int):
-        """Send keystrokes with validation."""
-        # Rate limiting
-        self._check_rate_limit()
-
-        # Validate target window
-        if not self._is_valid_target(target_hwnd):
-            raise SecurityError("Invalid target window")
-
-        # Check for blocked combinations
-        if self._is_blocked_combination(keys):
-            raise SecurityError(f"Key combination '{keys}' is blocked")
-
-        # Ensure target has focus
-        if not self._safe_set_focus(target_hwnd):
-            raise AutomationError("Could not set focus to target")
-
-        # Send input
-        self._send_input_safe(keys)
-
-    def _check_rate_limit(self):
-        """Prevent input flooding."""
-        now = time.time()
-        if now - self._last_reset > 1.0:
-            self._input_count = 0
-            self._last_reset = now
-
-        self._input_count += 1
-        if self._input_count > self.rate_limit:
-            raise RateLimitError("Input rate limit exceeded")
-```
+**Purpose**: Sending keyboard/mouse input with security controls
+**Key Features**: Rate limiting, blocked key combinations, target validation
+**See**: `references/advanced-patterns.md` - Pattern: Safe Input Simulation
 
 ### Pattern 3: Process Validation
-
-**When to use**: Before any automation interaction
-
-```python
-import psutil
-import hashlib
-
-class ProcessValidator:
-    """Validate processes before automation."""
-
-    def __init__(self):
-        self.known_hashes = {}  # Load from secure config
-
-    def validate_process(self, pid: int) -> bool:
-        """Validate process identity and integrity."""
-        try:
-            proc = psutil.Process(pid)
-
-            # Check process name against blocklist
-            if proc.name().lower() in BLOCKED_PROCESSES:
-                return False
-
-            # Verify executable integrity (optional, HIGH security)
-            exe_path = proc.exe()
-            if not self._verify_integrity(exe_path):
-                return False
-
-            # Check process owner
-            if not self._check_owner(proc):
-                return False
-
-            return True
-
-        except psutil.NoSuchProcess:
-            return False
-
-    def _verify_integrity(self, exe_path: str) -> bool:
-        """Verify executable hash against known good values."""
-        if exe_path not in self.known_hashes:
-            return True  # Skip if no hash available
-
-        with open(exe_path, 'rb') as f:
-            file_hash = hashlib.sha256(f.read()).hexdigest()
-
-        return file_hash == self.known_hashes[exe_path]
-```
+**Purpose**: Validate process identity before automation
+**Key Features**: Process name checks, executable integrity, owner verification
+**See**: `references/advanced-patterns.md` - Pattern: Process Validation
 
 ### Pattern 4: Timeout Enforcement
+**Purpose**: Prevent hanging operations
+**Key Features**: Configurable timeouts, maximum limits, context manager
+**See**: `references/advanced-patterns.md` - Pattern: Timeout Enforcement
 
-**When to use**: All automation operations
+### Additional Advanced Patterns
 
-```python
-import signal
-from contextlib import contextmanager
-
-class TimeoutManager:
-    """Enforce operation timeouts."""
-
-    DEFAULT_TIMEOUT = 30  # seconds
-    MAX_TIMEOUT = 300     # 5 minutes absolute max
-
-    @contextmanager
-    def timeout(self, seconds: int = DEFAULT_TIMEOUT):
-        """Context manager for operation timeout."""
-        if seconds > self.MAX_TIMEOUT:
-            seconds = self.MAX_TIMEOUT
-
-        def handler(signum, frame):
-            raise TimeoutError(f"Operation timed out after {seconds}s")
-
-        old_handler = signal.signal(signal.SIGALRM, handler)
-        signal.alarm(seconds)
-
-        try:
-            yield
-        finally:
-            signal.alarm(0)
-            signal.signal(signal.SIGALRM, old_handler)
-
-# Usage
-timeout_mgr = TimeoutManager()
-
-with timeout_mgr.timeout(10):
-    element = automation.find_element('notepad.exe', 'Edit1')
-```
+See `references/advanced-patterns.md` for:
+- Secure Automation Session
+- Hierarchical Element Discovery
+- Robust Wait Conditions
+- Multi-Monitor Support
+- Clipboard Security
+- Screenshot Redaction
+- Automation Guard (Runaway Prevention)
+- Correlation ID Tracking
 
 ---
 
-## 5. Security Standards
+## 5. Security Standards (Overview)
 
-### 5.1 Critical Vulnerabilities (Top 5)
+### 5.1 Critical Vulnerabilities
 
-**Research Date**: 2025-01-15
+**For complete vulnerability analysis and mitigations**: See `references/security-examples.md`
 
-#### 1. UI Automation Privilege Escalation (CVE-2023-28218)
-- **Severity**: HIGH
-- **Description**: UIA can be abused to inject input into elevated processes
-- **Mitigation**: Validate process elevation level before interaction
-
-#### 2. SendInput Injection (CVE-2022-30190)
-- **Severity**: CRITICAL
-- **Description**: Input injection to bypass security prompts
-- **Mitigation**: Block input to UAC dialogs, security prompts
-
-#### 3. Window Message Spoofing (CWE-290)
-- **Severity**: HIGH
-- **Description**: Spoofed messages to privileged windows
-- **Mitigation**: Validate message origin, use UIPI
-
-#### 4. Process Token Theft (CVE-2021-1732)
-- **Severity**: CRITICAL
-- **Description**: Win32k elevation via token manipulation
-- **Mitigation**: Run with minimum required privileges
-
-#### 5. Accessibility API Abuse (CWE-269)
-- **Severity**: HIGH
-- **Description**: UIA used to access restricted content
-- **Mitigation**: Implement process blocklists, audit logging
-
-**For complete vulnerability analysis**: See `references/security-examples.md`
+**Top 5 Security Concerns**:
+1. **CVE-2023-28218**: UI Automation Privilege Escalation (HIGH)
+2. **CVE-2022-30190**: SendInput Injection (CRITICAL)
+3. **CWE-290**: Window Message Spoofing (HIGH)
+4. **CVE-2021-1732**: Process Token Theft (CRITICAL)
+5. **CWE-269**: Accessibility API Abuse (HIGH)
 
 ### 5.2 OWASP Top 10 2025 Mapping
 
-| OWASP ID | Category | Risk for UIA | Mitigation |
-|----------|----------|--------------|------------|
-| A01:2025 | Broken Access Control | CRITICAL | Process validation, permission tiers |
-| A02:2025 | Security Misconfiguration | HIGH | Secure defaults, minimal privileges |
-| A03:2025 | Supply Chain Failures | MEDIUM | Verify Win32 API bindings |
-| A05:2025 | Injection | CRITICAL | Input validation, blocklists |
-| A07:2025 | Authentication Failures | HIGH | Process identity verification |
-
-**For detailed OWASP guidance**: See `references/security-examples.md`
+| OWASP ID | Category | Risk for UIA | See Reference |
+|----------|----------|--------------|---------------|
+| A01:2025 | Broken Access Control | CRITICAL | security-examples.md |
+| A02:2025 | Security Misconfiguration | HIGH | security-examples.md |
+| A03:2025 | Supply Chain Failures | MEDIUM | threat-model.md |
+| A05:2025 | Injection | CRITICAL | security-examples.md |
+| A07:2025 | Authentication Failures | HIGH | security-examples.md |
 
 ### 5.3 Permission Tier Model
 
@@ -378,216 +228,90 @@ PERMISSION_TIERS = {
 }
 ```
 
----
-
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_ui_automation.py
-import pytest
-from unittest.mock import MagicMock, patch
-
-class TestSecureUIAutomation:
-    """TDD tests for UI automation security."""
-
-    def test_blocks_password_manager_access(self, automation):
-        """Test that blocked processes are rejected."""
-        with pytest.raises(SecurityError, match="blocked"):
-            automation.find_element('keepass.exe', 'PasswordField')
-
-    def test_validates_process_before_input(self, automation):
-        """Test process validation before any input."""
-        with patch.object(automation, '_validate_process') as mock_validate:
-            mock_validate.return_value = False
-            with pytest.raises(SecurityError):
-                automation.send_keys('test', hwnd=12345)
-            mock_validate.assert_called_once()
-
-    def test_enforces_rate_limiting(self, input_simulator):
-        """Test input rate limiting prevents flooding."""
-        for _ in range(100):
-            input_simulator.send_keys('a', hwnd=12345)
-        with pytest.raises(RateLimitError):
-            input_simulator.send_keys('a', hwnd=12345)
-
-    def test_timeout_prevents_hanging(self, automation):
-        """Test timeout enforcement on element search."""
-        with pytest.raises(TimeoutError):
-            with automation.timeout(0.001):
-                automation.find_element('app.exe', 'NonExistent')
-
-@pytest.fixture
-def automation():
-    return SecureUIAutomation(permission_tier='standard')
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-class SecureUIAutomation:
-    BLOCKED_PROCESSES = {'keepass.exe', '1password.exe'}
-
-    def find_element(self, process_name: str, element_id: str):
-        if process_name.lower() in self.BLOCKED_PROCESSES:
-            raise SecurityError(f"Access to {process_name} is blocked")
-        # Minimal implementation
-```
-
-### Step 3: Refactor with Full Patterns
-
-Apply security patterns from Section 4 after tests pass.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/test_ui_automation.py -v --cov=src/automation --cov-report=term-missing
-
-# Run security-specific tests
-pytest tests/ -k "security or blocked" -v
-
-# Type checking
-mypy src/automation --strict
-```
+**For detailed security examples and mitigation code**: See `references/security-examples.md`
+**For threat model and attack scenarios**: See `references/threat-model.md`
 
 ---
 
-## 7. Performance Patterns
+## 6. TDD Implementation Workflow
 
-### Pattern 1: Element Caching
+**For complete TDD guide with examples**: See `references/testing-guide.md`
 
-```python
-# BAD: Re-find element every operation
-for i in range(100):
-    element = uia.find_element('app.exe', 'TextField')
-    element.send_keys(str(i))
+### Quick TDD Steps
 
-# GOOD: Cache element reference
-element = uia.find_element('app.exe', 'TextField')
-for i in range(100):
-    if element.is_valid():
-        element.send_keys(str(i))
-    else:
-        element = uia.find_element('app.exe', 'TextField')
-```
+1. **Write Failing Tests First**
+   - Define security requirements as tests
+   - Test blocked process enforcement
+   - Test timeout enforcement
+   - Test rate limiting
 
-### Pattern 2: Scope Limiting
+2. **Implement Minimum Code**
+   - Write only enough code to pass tests
+   - Focus on security checks first
 
-```python
-# BAD: Search from root every time
-root = uia.GetRootElement()
-element = root.FindFirst(TreeScope.Descendants, condition)  # Searches entire desktop
+3. **Refactor with Patterns**
+   - Apply security patterns from Section 4
+   - Maintain test coverage
 
-# GOOD: Narrow search scope
-app_window = uia.find_window('notepad.exe')
-element = app_window.FindFirst(TreeScope.Children, condition)  # Only direct children
-```
+4. **Verify**
+   - Run all tests: `pytest tests/ -v`
+   - Check coverage: `pytest --cov=automation --cov-fail-under=80`
+   - Type checking: `mypy src/automation --strict`
 
-### Pattern 3: Async Operations
-
-```python
-# BAD: Blocking wait for element
-while not element.is_enabled():
-    time.sleep(0.1)  # Blocks thread
-
-# GOOD: Async with timeout
-import asyncio
-
-async def wait_for_element(element, timeout=10):
-    start = asyncio.get_event_loop().time()
-    while not element.is_enabled():
-        if asyncio.get_event_loop().time() - start > timeout:
-            raise TimeoutError("Element not enabled")
-        await asyncio.sleep(0.05)  # Non-blocking
-```
-
-### Pattern 4: COM Object Pooling
-
-```python
-# BAD: Create new COM object per operation
-def find_element(name):
-    uia = CreateObject('UIAutomationClient.CUIAutomation')  # Expensive
-    return uia.GetRootElement().FindFirst(...)
-
-# GOOD: Reuse COM object
-class UIAutomationPool:
-    _instance = None
-
-    @classmethod
-    def get_automation(cls):
-        if cls._instance is None:
-            cls._instance = CreateObject('UIAutomationClient.CUIAutomation')
-        return cls._instance
-```
-
-### Pattern 5: Condition Optimization
-
-```python
-# BAD: Multiple sequential conditions
-name_cond = uia.CreatePropertyCondition(UIA_NamePropertyId, 'Submit')
-type_cond = uia.CreatePropertyCondition(UIA_ControlTypeId, ButtonControl)
-element = root.FindFirst(TreeScope.Descendants, name_cond)
-if element.ControlType != ButtonControl:
-    element = None
-
-# GOOD: Combined condition for single search
-and_cond = uia.CreateAndCondition(
-    uia.CreatePropertyCondition(UIA_NamePropertyId, 'Submit'),
-    uia.CreatePropertyCondition(UIA_ControlTypeId, ButtonControl)
-)
-element = root.FindFirst(TreeScope.Descendants, and_cond)
-```
+**Complete testing guide with examples**: `references/testing-guide.md`
 
 ---
 
-## 8. Common Mistakes
+## 7. Performance Optimization
 
-### 8.1 Critical Security Anti-Patterns
+**For complete performance patterns and benchmarks**: See `references/performance-optimization.md`
 
-#### Never: Automate Without Process Validation
+### Quick Performance Tips
 
-```python
-# BAD: No validation
-element = uia.find_element_by_name('Password')
-element.send_keys(password)
+1. **Element Caching** - Cache elements for repeated operations (10-50x faster)
+2. **Scope Limiting** - Search from app window, not desktop root (5-20x faster)
+3. **COM Object Pooling** - Reuse COM objects (2-5x faster)
+4. **Condition Optimization** - Use combined conditions for single search (2x faster)
+5. **Async Operations** - Non-blocking waits for better resource utilization
 
-# GOOD: Full validation
-if validator.validate_process(target_pid):
-    if automation.permission_tier != 'read-only':
-        element = automation.find_element(process_name, 'Password')
-        element.send_keys(password)
-```
+**Performance Targets**:
+- Element lookup: < 100ms (95th percentile)
+- Input operations: < 50ms (95th percentile)
+- Full workflow: < 5s (95th percentile)
 
-#### Never: Skip Timeout Enforcement
-
-```python
-# BAD: No timeout
-element = uia.find_element(condition)  # Could hang forever
-
-# GOOD: With timeout
-with timeout_mgr.timeout(10):
-    element = uia.find_element(condition)
-```
-
-#### Never: Allow System Key Combinations
-
-```python
-# BAD: Allow any keys
-def send_keys(keys):
-    SendInput(keys)
-
-# GOOD: Block dangerous combinations
-def send_keys(keys):
-    if is_blocked_combination(keys):
-        raise SecurityError("Blocked key combination")
-    SendInput(keys)
-```
+**Complete performance guide**: `references/performance-optimization.md`
 
 ---
 
-## 13. Pre-Implementation Checklist
+## 8. Common Mistakes to Avoid
+
+**For complete anti-patterns guide**: See `references/anti-patterns.md`
+
+### Critical Security Anti-Patterns
+
+❌ **Never**: Automate without process validation
+❌ **Never**: Skip timeout enforcement
+❌ **Never**: Allow system key combinations
+❌ **Never**: Ignore elevation boundaries
+❌ **Never**: Skip audit logging
+
+### Reliability Anti-Patterns
+
+❌ **Never**: Ignore element staleness
+❌ **Never**: Use hardcoded delays (use condition-based waits)
+❌ **Never**: Swallow exceptions silently
+
+### Performance Anti-Patterns
+
+❌ **Never**: Search from root every time
+❌ **Never**: Create COM objects in loops
+❌ **Never**: Re-find elements for every operation
+
+**Complete anti-patterns guide with examples**: `references/anti-patterns.md`
+
+---
+
+## 9. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Read threat model in `references/threat-model.md`
@@ -597,7 +321,6 @@ def send_keys(keys):
 - [ ] Define timeout limits for all operations
 
 ### Phase 2: During Implementation
-- [ ] Implement minimum code to pass security tests first
 - [ ] Process validation for all target interactions
 - [ ] Blocked application list configured
 - [ ] Permission tier enforcement active
@@ -615,7 +338,7 @@ def send_keys(keys):
 
 ---
 
-## 14. Summary
+## 10. Summary
 
 Your goal is to create Windows UI automation that is:
 - **Secure**: Strict process validation, permission tiers, and audit logging
@@ -635,8 +358,77 @@ Automation should enhance productivity while maintaining system security boundar
 
 ---
 
-## References
+## 11. References
 
-- **Advanced Patterns**: See `references/advanced-patterns.md`
-- **Security Examples**: See `references/security-examples.md`
-- **Threat Model**: See `references/threat-model.md`
+### Core Reference Documents
+
+- **Advanced Patterns**: `references/advanced-patterns.md`
+  - Secure Element Discovery
+  - Safe Input Simulation
+  - Process Validation
+  - Timeout Enforcement
+  - Automation Session Management
+  - Multi-Monitor Support
+  - Clipboard Security
+  - Screenshot Redaction
+
+- **Security Examples**: `references/security-examples.md`
+  - CVE Mitigations (2022-2025)
+  - OWASP Top 10 2025 Guidance
+  - Input Validation Patterns
+  - Audit Logging Examples
+  - Access Control Implementation
+
+- **Threat Model**: `references/threat-model.md`
+  - Attack Scenarios
+  - STRIDE Analysis
+  - Security Controls Matrix
+  - Mitigation Strategies
+
+- **Testing Guide**: `references/testing-guide.md`
+  - TDD Workflow
+  - Unit Testing Patterns
+  - Integration Testing
+  - Security Testing
+  - Mocking Strategies
+  - CI/CD Integration
+
+- **Performance Optimization**: `references/performance-optimization.md`
+  - Element Caching Patterns
+  - Scope Limiting
+  - COM Object Pooling
+  - Async Operations
+  - Benchmarking
+  - Performance Targets
+
+- **Anti-Patterns**: `references/anti-patterns.md`
+  - Security Anti-Patterns
+  - Reliability Anti-Patterns
+  - Performance Anti-Patterns
+  - Design Anti-Patterns
+  - Testing Anti-Patterns
+
+### Quick Reference Card
+
+**Blocked Processes**:
+```
+Password Managers: keepass.exe, 1password.exe, lastpass.exe
+Admin Tools: mmc.exe, secpol.msc, gpedit.msc, regedit.exe
+System Tools: cmd.exe, powershell.exe, taskmgr.exe
+```
+
+**Permission Tiers**: read-only → standard → elevated
+
+**Timeout Defaults**: 30s (default), 300s (max)
+
+**Rate Limits**: 100 inputs/second (default)
+
+---
+
+## 12. Official Documentation Links
+
+- [Microsoft UI Automation Overview](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-overview)
+- [UI Automation Control Patterns](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-control-patterns-overview)
+- [Win32 API - SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
+- [OWASP Top 10 2025](https://owasp.org/Top10/)
+- [CWE - Common Weakness Enumeration](https://cwe.mitre.org/)

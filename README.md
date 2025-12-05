@@ -63,8 +63,11 @@ Real-World Examples:
 • /aid-router-challenger "Implement OAuth2"
   → Claude generates code, Gemini reviews security, all in one command
 
+• Start coding session
+  → Auto-loads relevant skills based on your tech stack (Python, React, Docker...)
+
 • Edit src/auth/password.ts
-  → devsecops-expert skill auto-activates with OWASP guidelines
+  → devsecops-expert skill provides OWASP guidelines in context
 
 • git commit
   → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
@@ -137,11 +140,14 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/aid-router-challenger`, `/aid-router-ensemble`
 
-### 🎓 **65 Expert Skills**
-- Auto-activate based on context (e.g., `*auth*` → devsecops-expert)
-- Manual activation via skill name
-- Custom skill generation with `/aid-build-skill`
-- Domains: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
+### 🎓 **65 Expert Skills** (🆕 Hook-Based Auto-Loading)
+- **Intelligent auto-loading** - Detects project context (tech stack, files) at session start
+- **Scoring algorithm** - Ranks skills by relevance (keywords, technologies, file patterns)
+- **Zero configuration** - Works automatically for Claude Code and Gemini CLI
+- **Universal architecture** - Same auto-loading logic across all AI providers
+- **Manual activation** - Still available via skill name when needed
+- **Custom skills** - Generate new skills with `/aid-build-skill`
+- **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
 
 ### 💾 **Persistent Memory Bank**
 - Context survives across sessions

@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2025-12-05
+
+### Added
+
+#### Hook-Based Skill Auto-Loading (NEW!)
+- **Intelligent Context Detection**: Analyzes project files, dependencies, and tech stack to identify relevant technologies
+- **Scoring Algorithm**: Ranks skills using weighted scoring (primary keywords: 10pts, technologies: 8pts, secondary keywords: 5pts)
+- **SessionStart Hooks**: Auto-loads relevant skills once per session for both Claude Code and Gemini CLI
+- **External Registry**: `.dev-aid/skills/registry/skills-index.json` with activation metadata for all skills
+- **Universal Architecture**: Same auto-loading logic works across all AI providers
+
+#### New Components
+- **detect-context.sh**: Scans project for file patterns, config files (package.json, requirements.txt), and technology indicators
+- **select-skills.sh**: Intelligent skill selector with scoring, conflict resolution, and dependency management
+- **validate-bash-scripts.sh**: Compliance checker for bash-expert skill guidelines (32 validation checks)
+- **Claude SessionStart Hook**: `.dev-aid/providers/claude/.claude/hooks/session-start.sh` displays auto-loaded skills
+- **Gemini SessionStart Hook**: `.dev-aid/providers/gemini/.gemini/hooks/session-start.sh` updates GEMINI.md once per session
+- **Gemini Configuration**: `.dev-aid/providers/gemini/.gemini/settings.json` for hook management
+
+#### Skills Registry
+- **10 Initial Skills**: api-expert, bash-expert, devsecops-expert, typescript-expert, fastapi-expert, graphql-expert, docker-expert, python, rust, cicd-expert
+- **Metadata Format**: Keywords, file patterns, technologies, confidence weights, dependencies, exclusions
+- **Extensible Design**: Easy to add new skills with activation rules
+
+### Changed
+- **GEMINI.md Update Strategy**: Now updated ONCE at session start (not after every prompt) for better performance
+- **Skills Architecture**: Enhanced from v2.0 (Shared Skills) to v3.0 (Hook-Based Auto-Loading + Shared Skills)
+- **Documentation**: Comprehensive update to SKILLS-ARCHITECTURE.md with new sections on hook-based system
+
+### Technical Details
+- **Compliance**: All Bash scripts follow bash-expert skill guidelines with strict mode, proper quoting, input validation
+- **Validation**: 32/32 checks passed for bash-expert compliance
+- **JSON Validation**: All JSON files validated with jq
+- **Testing**: End-to-end testing confirmed for both Claude and Gemini providers
+
+### Benefits
+- ✅ **Zero manual skill management** - Skills auto-load based on project context
+- ✅ **GEMINI.md efficiency** - Updated once per session, not per prompt
+- ✅ **Multi-provider consistency** - Same logic for Claude, Gemini, future providers
+- ✅ **Intelligent selection** - Top 5 relevant skills chosen automatically
+- ✅ **Respects limits** - Honors Claude's 2000-line Read tool limit
+
+---
+
 ## [1.0.0] - 2025-12-04
 
 ### Added

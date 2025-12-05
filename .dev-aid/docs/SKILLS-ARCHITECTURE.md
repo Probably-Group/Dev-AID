@@ -14,29 +14,42 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 │   │   │   └── SKILL.md
 │   │   └── secret-scanner/
 │   │       └── SKILL.md
-│   └── expert/                      # Expert skills (auto-loaded by context)
-│       ├── api-expert/
-│       │   ├── SKILL.md             # Main skill (<500 lines)
-│       │   └── references/          # Detailed documentation
-│       │       ├── advanced-patterns.md
-│       │       ├── anti-patterns.md
-│       │       ├── performance-optimization.md
-│       │       ├── security-examples.md
-│       │       └── testing-guide.md
-│       ├── devsecops-expert/
-│       ├── typescript-expert/
-│       └── ... (66 total expert skills)
+│   ├── expert/                      # Expert skills (auto-loaded by context)
+│   │   ├── api-expert/
+│   │   │   ├── SKILL.md             # Main skill (<500 lines)
+│   │   │   └── references/          # Detailed documentation
+│   │   │       ├── advanced-patterns.md
+│   │   │       ├── anti-patterns.md
+│   │   │       ├── performance-optimization.md
+│   │   │       ├── security-examples.md
+│   │   │       └── testing-guide.md
+│   │   ├── devsecops-expert/
+│   │   ├── typescript-expert/
+│   │   └── ... (66 total expert skills)
+│   └── registry/                    # 🆕 Hook-based auto-loading system
+│       └── skills-index.json        # Activation metadata (keywords, patterns, scores)
+│
+├── orchestration/                   # 🆕 Skill auto-loading engine
+│   ├── detect-context.sh            # Analyzes project context (tech stack, files)
+│   ├── select-skills.sh             # Scores and selects relevant skills
+│   └── validate-bash-scripts.sh     # bash-expert compliance validator
 │
 ├── providers/
 │   ├── claude/.claude/
-│   │   └── skills -> ../../../skills  # Symlink to shared skills
+│   │   ├── skills -> ../../../skills  # Symlink to shared skills
+│   │   └── hooks/
+│   │       └── session-start.sh     # 🆕 Auto-loads skills at session start
 │   ├── gemini/.gemini/
-│   │   └── skills -> ../../../skills  # Symlink to shared skills
+│   │   ├── skills -> ../../../skills  # Symlink to shared skills
+│   │   ├── settings.json            # 🆕 Hook configuration
+│   │   ├── GEMINI.md                # 🆕 Auto-generated skill references
+│   │   └── hooks/
+│   │       └── session-start.sh     # 🆕 Updates GEMINI.md at session start
 │   └── openai/.openai/
 │       └── skills -> ../../../skills  # Symlink to shared skills (future)
 │
 └── config/
-    └── skill-rules.json              # Auto-activation rules
+    └── skill-rules.json              # Legacy auto-activation rules
 ```
 
 ## Key Principles
@@ -196,6 +209,238 @@ Located in `.dev-aid/skills/expert/`:
 - Auto-load based on keywords (`security` → `devsecops-expert`)
 - Manual activation: `use api-expert skill`
 
+---
+
+## 🆕 Hook-Based Auto-Loading System (v3.0)
+
+**NEW as of 2025-12-05**: Intelligent skill auto-loading using SessionStart hooks for both Claude Code and Gemini CLI.
+
+### Why Hook-Based Auto-Loading?
+
+**Problems Solved:**
+1. ❌ **Manual skill management** - Developers forget to activate relevant skills
+2. ❌ **Context switching overhead** - Constantly loading/unloading skills manually
+3. ❌ **GEMINI.md maintenance burden** - Updating skill list after every prompt
+4. ❌ **No multi-provider consistency** - Different auto-loading for Claude vs Gemini
+
+**Solutions Delivered:**
+1. ✅ **Automatic context detection** - Scans project files, dependencies, tech stack
+2. ✅ **Intelligent skill selection** - Scores skills by relevance using metadata
+3. ✅ **SessionStart hooks** - Auto-loads skills once per session (not per prompt)
+4. ✅ **Universal architecture** - Same logic for Claude, Gemini, and future providers
+
+### Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Session Start (user runs: claude code / gemini chat)  │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ↓
+┌─────────────────────────────────────────────────────────┐
+│  SessionStart Hook (.claude/hooks/session-start.sh)     │
+│  • Triggered automatically by provider                  │
+│  • Runs ONCE per session (not per prompt)               │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ↓
+┌─────────────────────────────────────────────────────────┐
+│  Context Detection (detect-context.sh)                  │
+│  • Scans: package.json, Cargo.toml, pyproject.toml      │
+│  • Extracts: Dependencies, file patterns, technologies  │
+│  • Output: "TypeScript React FastAPI Docker..."         │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ↓
+┌─────────────────────────────────────────────────────────┐
+│  Skill Selection Engine (select-skills.sh)              │
+│  • Reads: skills-index.json (activation metadata)       │
+│  • Scores: Primary keywords (10pts), Technologies (8pts) │
+│  • Filters: Excludes conflicts (graphql vs rest-api)    │
+│  • Resolves: Auto-includes required dependencies        │
+│  • Returns: Top 5 skills sorted by score                │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ↓
+┌─────────────────────────────────────────────────────────┐
+│  Provider Integration                                   │
+│                                                          │
+│  📘 Claude Code:                                         │
+│     • Displays: "Auto-loading: python, bash-expert..."  │
+│     • Skills available for activation when needed       │
+│                                                          │
+│  📗 Gemini CLI:                                          │
+│     • Updates: GEMINI.md with @skill references         │
+│     • GEMINI.md loaded with every prompt (but only      │
+│       updated at session start)                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Components
+
+#### 1. Skills Registry (skills-index.json)
+
+External JSON database with activation metadata for all skills.
+
+**Example entry:**
+```json
+{
+  "api-expert": {
+    "activation": {
+      "primary_keywords": ["REST API", "RESTful", "OpenAPI", "Swagger"],
+      "secondary_keywords": ["endpoint", "route", "HTTP method"],
+      "file_patterns": ["*/routes/*", "*/api/*", "*.routes.ts"],
+      "technologies": ["FastAPI", "Express", "Django REST"],
+      "confidence_weights": {
+        "OpenAPI": 0.3,
+        "REST API": 0.25
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": ["graphql-expert"]
+    }
+  }
+}
+```
+
+**Fields:**
+- `primary_keywords`: High-value matches (10 points each)
+- `secondary_keywords`: Supporting matches (5 points each)
+- `file_patterns`: Glob patterns for file detection (8 points each)
+- `technologies`: Framework/library names (8 points each)
+- `confidence_weights`: Bonus scoring for specific keywords
+- `requires`: Skills that must be included if this skill is selected
+- `exclude_with`: Conflicting skills (e.g., GraphQL vs REST API)
+
+#### 2. Context Detection (detect-context.sh)
+
+Analyzes project to extract relevant keywords.
+
+**Detection methods:**
+1. **File patterns**: Dockerfile → Docker, package.json → Node.js
+2. **Config parsing**: Extracts dependencies from package.json, requirements.txt
+3. **Technology indicators**: Searches source code for framework imports
+
+**Example output:**
+```bash
+$ .dev-aid/orchestration/detect-context.sh .
+Bash scripts Python pip FastAPI Docker TypeScript Next.js
+```
+
+#### 3. Skill Selector (select-skills.sh)
+
+Scores and ranks skills using registry metadata.
+
+**Scoring algorithm:**
+```bash
+score = (primary_keyword_matches × 10) +
+        (technology_matches × 8) +
+        (secondary_keyword_matches × 5) +
+        (confidence_weight_bonuses)
+```
+
+**Features:**
+- Minimum score threshold (5 points)
+- Excludes conflicting skills
+- Auto-includes required dependencies
+- Returns top N skills (default: 5)
+
+**Example:**
+```bash
+$ context=$(.dev-aid/orchestration/detect-context.sh .)
+$ .dev-aid/orchestration/select-skills.sh "$context" 5
+python
+bash-expert
+typescript-expert
+devsecops-expert
+docker-expert
+```
+
+#### 4. SessionStart Hooks
+
+**Claude Hook** (`.dev-aid/providers/claude/.claude/hooks/session-start.sh`):
+```bash
+#!/usr/bin/env bash
+# Runs automatically when Claude Code session starts
+
+# Detect context
+context=$(.dev-aid/orchestration/detect-context.sh "$PROJECT_ROOT")
+
+# Select skills
+skills=$(.dev-aid/orchestration/select-skills.sh "$context" 5)
+
+# Display to user
+echo "✅ Auto-loading skills based on context:"
+for skill in $skills; do
+    echo "   📚 $skill"
+done
+```
+
+**Gemini Hook** (`.dev-aid/providers/gemini/.gemini/hooks/session-start.sh`):
+```bash
+#!/usr/bin/env bash
+# Runs automatically when Gemini CLI session starts
+
+# Detect context
+context=$(.dev-aid/orchestration/detect-context.sh "$PROJECT_ROOT")
+
+# Select skills
+skills=$(.dev-aid/orchestration/select-skills.sh "$context" 5)
+
+# Update GEMINI.md ONCE at session start
+cat > .gemini/GEMINI.md <<EOF
+# Gemini Context - Auto-Generated at Session Start
+
+## Active Skills
+@../../../skills/expert/python/SKILL.md
+@../../../skills/expert/bash-expert/SKILL.md
+@../../../skills/expert/typescript-expert/SKILL.md
+EOF
+
+echo "✅ GEMINI.md updated and will be loaded with every prompt"
+```
+
+**Key difference**:
+- Claude displays skills (user can activate manually)
+- Gemini updates GEMINI.md (skills auto-loaded with every prompt)
+
+### Configuration
+
+**Gemini settings.json** (`.dev-aid/providers/gemini/.gemini/settings.json`):
+```json
+{
+  "hooks": {
+    "SessionStart": {
+      "command": ".dev-aid/providers/gemini/.gemini/hooks/session-start.sh",
+      "enabled": true,
+      "description": "Auto-loads relevant skills based on project context"
+    }
+  }
+}
+```
+
+### Benefits
+
+| Aspect | Before (Manual) | After (Hook-Based) |
+|--------|----------------|-------------------|
+| **Skill Loading** | Manual: `use api-expert skill` | Automatic at session start |
+| **Context Awareness** | User must remember relevant skills | AI analyzes project and selects |
+| **GEMINI.md Updates** | Manual edits every time | Auto-generated ONCE per session |
+| **Multi-Provider** | Different logic per provider | Universal hook architecture |
+| **Maintenance** | Update activation rules manually | Update registry once, works everywhere |
+| **Performance** | N/A | GEMINI.md updated once (not per prompt) |
+
+### Compliance
+
+All Bash scripts follow **bash-expert skill** guidelines:
+- ✅ Strict mode (`set -euo pipefail`)
+- ✅ Proper variable quoting
+- ✅ Input validation
+- ✅ Cleanup traps
+- ✅ No dangerous patterns (eval, backticks)
+- ✅ Validated with custom compliance checker (32/32 checks passed)
+
+---
+
 ## Skill Activation Flow
 
 ```
@@ -303,4 +548,4 @@ Core skills: 2
 ---
 
 **Last Updated:** 2025-12-05
-**Architecture Version:** 2.0 (Shared Skills)
+**Architecture Version:** 3.0 (Hook-Based Auto-Loading + Shared Skills)

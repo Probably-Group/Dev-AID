@@ -1,5 +1,249 @@
 # UI/UX Advanced Patterns
 
+## HUD Layout Structure
+
+### Use Case
+Creating heads-up display (HUD) interfaces for AI assistants and futuristic applications.
+
+**Implementation**:
+```html
+<!-- Main HUD container -->
+<div class="hud-container">
+  <!-- Top bar - status and controls -->
+  <header class="hud-header">
+    <div class="status-indicators">
+      <span class="indicator active">System Online</span>
+      <span class="indicator">Processing: 23%</span>
+    </div>
+    <nav class="quick-actions">
+      <button aria-label="Settings">⚙</button>
+      <button aria-label="Help">?</button>
+    </nav>
+  </header>
+
+  <!-- Main content area -->
+  <main class="hud-main">
+    <!-- Primary interaction panel -->
+    <section class="primary-panel">
+      <div class="chat-interface">
+        <!-- Conversation display -->
+      </div>
+      <div class="input-area">
+        <!-- User input -->
+      </div>
+    </section>
+
+    <!-- Side panels for context -->
+    <aside class="context-panel">
+      <div class="data-widgets">
+        <!-- Status widgets -->
+      </div>
+    </aside>
+  </main>
+
+  <!-- Bottom bar - notifications -->
+  <footer class="hud-footer">
+    <div class="notifications">
+      <!-- System notifications -->
+    </div>
+  </footer>
+</div>
+```
+
+**Styling**:
+```css
+.hud-container {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+}
+
+.hud-header,
+.hud-footer {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: var(--space-4);
+}
+
+.hud-main {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .hud-main {
+    grid-template-columns: 1fr;
+  }
+
+  .context-panel {
+    display: none;
+  }
+}
+```
+
+---
+
+## Attention Management System
+
+### Use Case
+Prioritize notifications and information based on importance without overwhelming users.
+
+**Implementation**:
+```typescript
+// Attention priority queue
+interface AttentionItem {
+  id: string;
+  priority: "critical" | "high" | "normal" | "low";
+  content: string;
+  duration?: number;
+  timestamp: number;
+}
+
+class AttentionManager {
+  private queue: AttentionItem[] = [];
+  private activeItem: AttentionItem | null = null;
+
+  add(item: Omit<AttentionItem, 'id' | 'timestamp'>): void {
+    const newItem: AttentionItem = {
+      ...item,
+      id: crypto.randomUUID(),
+      timestamp: Date.now()
+    };
+
+    // Insert by priority
+    const index = this.queue.findIndex(i =>
+      this.getPriorityValue(i.priority) < this.getPriorityValue(newItem.priority)
+    );
+
+    if (index === -1) {
+      this.queue.push(newItem);
+    } else {
+      this.queue.splice(index, 0, newItem);
+    }
+
+    this.notify();
+  }
+
+  private getPriorityValue(priority: string): number {
+    const values = { critical: 4, high: 3, normal: 2, low: 1 };
+    return values[priority] || 0;
+  }
+
+  private notify(): void {
+    if (this.activeItem) return; // Don't interrupt active item
+
+    const next = this.queue.shift();
+    if (!next) return;
+
+    this.activeItem = next;
+    this.display(next);
+
+    // Auto-dismiss after duration
+    if (next.duration) {
+      setTimeout(() => {
+        this.dismiss(next.id);
+      }, next.duration);
+    }
+  }
+
+  private display(item: AttentionItem): void {
+    // Emit event for UI to handle
+    window.dispatchEvent(new CustomEvent('attention:show', {
+      detail: item
+    }));
+  }
+
+  dismiss(id: string): void {
+    if (this.activeItem?.id === id) {
+      this.activeItem = null;
+      this.notify(); // Show next item
+    }
+  }
+}
+```
+
+**Visual Priority Levels**:
+```css
+/* Priority levels through visual weight */
+
+/* Critical - highest attention */
+.priority-critical {
+  color: var(--color-error);
+  font-weight: 700;
+  font-size: var(--font-size-lg);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+/* High - significant attention */
+.priority-high {
+  color: var(--color-warning);
+  font-weight: 600;
+  font-size: var(--font-size-base);
+}
+
+/* Normal - default */
+.priority-normal {
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+/* Low - reduced attention */
+.priority-low {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Ambient - minimal attention */
+.priority-ambient {
+  color: var(--text-disabled);
+  font-size: var(--font-size-xs);
+}
+```
+
+**Usage**:
+```typescript
+const attention = new AttentionManager();
+
+// Critical system alert
+attention.add({
+  priority: 'critical',
+  content: 'System error detected',
+  duration: 0 // Requires manual dismissal
+});
+
+// Normal notification
+attention.add({
+  priority: 'normal',
+  content: 'Task completed',
+  duration: 5000
+});
+
+// Low priority update
+attention.add({
+  priority: 'low',
+  content: 'New message',
+  duration: 3000
+});
+```
+
+---
+
 ## Micro-Interactions
 
 ```css

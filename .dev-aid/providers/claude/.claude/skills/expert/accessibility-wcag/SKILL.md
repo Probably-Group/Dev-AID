@@ -11,6 +11,60 @@ tags: [accessibility, wcag, a11y, screen-reader, keyboard]
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any accessibility code using this skill**
+
+### Verification Requirements
+
+When using this skill to implement accessible features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official WCAG 2.2 documentation at w3.org
+   - ✅ Confirm ARIA patterns are current (WAI-ARIA 1.2+)
+   - ✅ Validate against official ARIA Authoring Practices Guide (APG)
+   - ❌ Never guess ARIA attributes or roles
+   - ❌ Never invent accessibility properties
+   - ❌ Never assume browser support without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for accessibility patterns
+   - 🔍 Grep: Search for similar accessible implementations
+   - 🔍 WebSearch: Verify specs in official WCAG/WAI-ARIA docs
+   - 🔍 WebFetch: Read official W3C documentation
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY ARIA attribute, role, or WCAG criterion
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in accessibility can exclude users with disabilities
+
+4. **Common Accessibility Hallucination Traps** (AVOID)
+   - ❌ Invented ARIA attributes (e.g., aria-action, aria-purpose)
+   - ❌ Made-up ARIA roles (e.g., role="card", role="tile")
+   - ❌ Non-existent WCAG criteria
+   - ❌ Incorrect ARIA state values (e.g., aria-hidden="0")
+   - ❌ Mixing HTML5 and ARIA unnecessarily
+   - ❌ Using outdated ARIA 1.0 patterns
+
+### Self-Check Checklist
+
+Before EVERY response with accessibility code:
+- [ ] All ARIA attributes verified against WAI-ARIA 1.2 spec
+- [ ] Roles verified against ARIA role definitions
+- [ ] WCAG criteria referenced by number (e.g., 1.3.1, 2.4.7)
+- [ ] Can cite official W3C/WAI documentation sources
+- [ ] Semantic HTML preferred over ARIA when possible
+
+**⚠️ CRITICAL**: Incorrect accessibility code can exclude users with disabilities from using your application. Always verify against official sources.
+
+**Official Sources**:
+- WCAG 2.2: https://www.w3.org/WAI/WCAG22/quickref/
+- WAI-ARIA 1.2: https://www.w3.org/TR/wai-aria-1.2/
+- ARIA Authoring Practices: https://www.w3.org/WAI/ARIA/apg/
+
+---
+
 ## 1. Overview
 
 **Risk Level**: LOW-RISK
@@ -27,17 +81,19 @@ You are an expert in **web accessibility** and WCAG compliance. You create inclu
 4. **Progressive Enhancement** - Works without JavaScript first
 
 ### Core Expertise
-- WCAG 2.2 Level AA compliance
-- Keyboard navigation
-- Screen reader optimization
+- WCAG 2.2 Level AA compliance (including new 2.2 criteria)
+- Keyboard navigation patterns
+- Screen reader optimization (NVDA, JAWS, VoiceOver)
 - Color and contrast requirements
-- Focus management
+- Focus management and visible indicators
+- ARIA Authoring Practices patterns
 
 ### Primary Use Cases
-- Auditing interfaces for accessibility
-- Implementing accessible components
-- Screen reader compatibility
-- Keyboard-only navigation
+- Auditing interfaces for accessibility violations
+- Implementing accessible components (modals, dropdowns, tabs)
+- Screen reader compatibility and optimization
+- Keyboard-only navigation implementation
+- Remediating accessibility issues
 
 ---
 
@@ -97,34 +153,32 @@ describe('ActionButton Accessibility', () => {
 ### Step 2: Implement Minimum to Pass
 
 ```vue
-<!-- components/ActionButton.vue -->
 <template>
   <button
     :aria-busy="loading"
-    :aria-disabled="disabled"
     :disabled="disabled || loading"
     class="action-button"
   >
     <span v-if="loading" aria-hidden="true" class="spinner" />
-    <span :class="{ 'visually-hidden': loading && hideTextWhenLoading }">
-      {{ label }}
-    </span>
+    <span>{{ label }}</span>
   </button>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  label: string
-  loading?: boolean
-  disabled?: boolean
-  hideTextWhenLoading?: boolean
-}>()
-</script>
+<style scoped>
+.action-button:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+</style>
 ```
 
 ### Step 3: Refactor Following WCAG Patterns
 
-Add enhanced focus styles, proper contrast, and ARIA improvements.
+Enhance with additional accessibility features:
+- Add proper color contrast (4.5:1 minimum for AA)
+- Implement focus trap for modals
+- Add live region announcements
+- Optimize for screen reader navigation
 
 ### Step 4: Run Full Accessibility Verification
 
@@ -133,7 +187,7 @@ Add enhanced focus styles, proper contrast, and ARIA improvements.
 npm run test -- --grep "a11y"
 
 # Run axe-core audit
-npx axe --dir ./dist
+npx @axe-core/cli http://localhost:3000
 
 # Check with Lighthouse
 npx lighthouse http://localhost:3000 --only-categories=accessibility
@@ -141,56 +195,124 @@ npx lighthouse http://localhost:3000 --only-categories=accessibility
 
 ---
 
-## 3. Performance Patterns
+## 3. Core Responsibilities
 
-### Pattern 1: Semantic HTML Over ARIA
+### Fundamental Duties
+1. **POUR Principles**: Perceivable, Operable, Understandable, Robust
+2. **Semantic Structure**: Use correct HTML elements
+3. **Keyboard Support**: All functionality keyboard-accessible
+4. **Assistive Technology**: Works with screen readers
+
+### Accessibility Principles
+- **Equal access**: Everyone can use the interface
+- **Independence**: No special assistance needed
+- **Progressive enhancement**: Works without JavaScript
+- **Graceful degradation**: Fallbacks for limitations
+
+---
+
+## 4. WCAG 2.2 Success Criteria Overview
+
+### Level A (Minimum)
+- 1.1.1: Non-text content has alternatives
+- 2.1.1: Keyboard accessible
+- 2.1.2: No keyboard traps
+- 2.2.1: Timing adjustable
+- 2.4.1: Bypass blocks (skip links)
+- 3.2.6: Consistent help (NEW in 2.2)
+- 3.3.7: Redundant entry (NEW in 2.2)
+
+### Level AA (Standard)
+- 1.4.3: Color contrast 4.5:1 (text), 3:1 (large text)
+- 1.4.4: Resize text to 200%
+- 1.4.10: Reflow at 320px width
+- 1.4.11: Non-text contrast 3:1
+- 2.4.7: Focus visible
+- 2.4.11: Focus not obscured (minimum) (NEW in 2.2)
+- 2.5.7: Dragging movements (NEW in 2.2)
+- 2.5.8: Target size minimum 24x24px (NEW in 2.2)
+- 3.3.8: Accessible authentication (NEW in 2.2)
+
+### Level AAA (Enhanced)
+- 1.4.6: Color contrast 7:1
+- 2.4.12: Focus not obscured (enhanced) (NEW in 2.2)
+- 2.4.13: Focus appearance (NEW in 2.2)
+- 2.5.5: Target size 44x44px
+- 3.3.9: Accessible authentication enhanced (NEW in 2.2)
+
+**Full reference**: See `references/wcag-criteria.md`
+
+---
+
+## 5. Implementation Patterns
+
+### 5.1 Semantic HTML
 
 ```html
-<!-- Bad: Excessive ARIA recreating native semantics -->
-<div role="button" tabindex="0" aria-pressed="false" onclick="toggle()">
-  Toggle
+<!-- Correct landmark usage -->
+<header>
+  <nav aria-label="Main navigation">
+    <ul>
+      <li><a href="/">Home</a></li>
+      <li><a href="/about">About</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+  <article>
+    <h1>Page Title</h1>
+    <section aria-labelledby="section-heading">
+      <h2 id="section-heading">Section Title</h2>
+      <p>Content...</p>
+    </section>
+  </article>
+</main>
+
+<footer>
+  <!-- Footer content -->
+</footer>
+```
+
+### 5.2 Form Accessibility
+
+```html
+<form>
+  <div>
+    <label for="email">Email address</label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      autocomplete="email"
+      aria-required="true"
+      aria-describedby="email-hint email-error"
+    />
+    <p id="email-hint" class="hint">We'll never share your email</p>
+    <p id="email-error" class="error" aria-live="polite"></p>
+  </div>
+  <button type="submit">Save preferences</button>
+</form>
+```
+
+### 5.3 Live Regions
+
+```html
+<!-- Status updates (polite, non-interrupting) -->
+<div role="status" aria-live="polite" aria-atomic="true">
+  <!-- Status messages appear here -->
 </div>
 
-<!-- Good: Native HTML with automatic accessibility -->
-<button type="button" aria-pressed="false" onclick="toggle()">
-  Toggle
-</button>
+<!-- Alert messages (assertive, interrupting) -->
+<div role="alert" aria-live="assertive">
+  <!-- Critical alerts appear here -->
+</div>
 ```
 
-### Pattern 2: Efficient ARIA Updates
+### 5.4 Focus Management
 
 ```typescript
-// Bad: Updating entire live region on each change
-function updateStatus(message: string) {
-  liveRegion.innerHTML = `
-    <div role="status">
-      <span>${timestamp}</span>
-      <span>${message}</span>
-      <span>${context}</span>
-    </div>
-  `
-}
-
-// Good: Minimal updates to live regions
-function updateStatus(message: string) {
-  // Only update the text content, not structure
-  statusText.textContent = message
-}
-```
-
-### Pattern 3: Optimized Focus Management
-
-```typescript
-// Bad: Searching DOM repeatedly
-function trapFocus(element: HTMLElement) {
-  document.addEventListener('keydown', (e) => {
-    // Queries DOM on every keypress
-    const focusable = element.querySelectorAll('button, [href], input')
-    // ...
-  })
-}
-
-// Good: Cache focusable elements
+// Focus trap for modal
 function trapFocus(element: HTMLElement) {
   const focusable = element.querySelectorAll<HTMLElement>(
     'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -215,15 +337,24 @@ function trapFocus(element: HTMLElement) {
 }
 ```
 
-### Pattern 4: Reduced Motion Support
+### 5.5 Focus Styles
 
 ```css
-/* Bad: Animations without motion preference check */
-.animated-element {
-  animation: slide-in 0.5s ease-out;
+/* Use :focus-visible for better UX */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
-/* Good: Respect user motion preferences */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+```
+
+### 5.6 Reduced Motion
+
+```css
+/* Respect user motion preferences */
 .animated-element {
   animation: slide-in 0.5s ease-out;
 }
@@ -236,246 +367,54 @@ function trapFocus(element: HTMLElement) {
 }
 ```
 
-```typescript
-// JavaScript motion preference detection
-const prefersReducedMotion = window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
-).matches
+---
 
-function animate(element: HTMLElement) {
-  if (prefersReducedMotion) {
-    // Instant state change, no animation
-    element.style.opacity = '1'
-    return
-  }
+## 6. Common Component Patterns
 
-  // Full animation for users who prefer it
-  element.animate([
-    { opacity: 0 },
-    { opacity: 1 }
-  ], { duration: 300 })
-}
-```
-
-### Pattern 5: Lazy Loading for Screen Readers
-
+### Modal Dialog
 ```html
-<!-- Bad: Loading all content, overwhelming screen readers -->
-<div class="content">
-  <!-- 100+ items all loaded at once -->
-</div>
-
-<!-- Good: Progressive disclosure with proper announcements -->
-<div class="content" role="feed" aria-busy="false">
-  <article aria-posinset="1" aria-setsize="100">...</article>
-  <article aria-posinset="2" aria-setsize="100">...</article>
-  <!-- Load more on scroll/request -->
-</div>
-
-<div role="status" aria-live="polite" class="visually-hidden">
-  <!-- Announce when new content loads -->
-  Loaded 10 more items
+<div role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+  <h2 id="dialog-title">Confirm Action</h2>
+  <button type="button">Confirm</button>
+  <button type="button">Cancel</button>
 </div>
 ```
 
-```typescript
-// Efficient lazy loading with accessibility
-function loadMoreContent() {
-  const liveRegion = document.querySelector('[role="status"]')
-  const feed = document.querySelector('[role="feed"]')
+### Accordion
+```html
+<button type="button" aria-expanded="false" aria-controls="panel-1">
+  Section 1
+</button>
+<div id="panel-1" role="region" hidden>Content...</div>
+```
 
-  // Mark as loading
-  feed?.setAttribute('aria-busy', 'true')
-
-  // Load content
-  const newItems = await fetchItems()
-
-  // Append without reflow
-  const fragment = document.createDocumentFragment()
-  newItems.forEach(item => fragment.appendChild(createArticle(item)))
-  feed?.appendChild(fragment)
-
-  // Mark complete and announce
-  feed?.setAttribute('aria-busy', 'false')
-  if (liveRegion) {
-    liveRegion.textContent = `Loaded ${newItems.length} more items`
-  }
-}
+### Tabs
+```html
+<div role="tablist">
+  <button role="tab" aria-selected="true" aria-controls="panel-1">Tab 1</button>
+  <button role="tab" aria-selected="false" aria-controls="panel-2">Tab 2</button>
+</div>
+<div role="tabpanel" id="panel-1">Panel 1 content</div>
+<div role="tabpanel" id="panel-2" hidden>Panel 2 content</div>
 ```
 
 ---
 
-## 4. Core Responsibilities
-
-### Fundamental Duties
-1. **POUR Principles**: Perceivable, Operable, Understandable, Robust
-2. **Semantic Structure**: Use correct HTML elements
-3. **Keyboard Support**: All functionality keyboard-accessible
-4. **Assistive Technology**: Works with screen readers
-
-### Accessibility Principles
-- **Equal access**: Everyone can use the interface
-- **Independence**: No special assistance needed
-- **Progressive enhancement**: Works without JavaScript
-- **Graceful degradation**: Fallbacks for limitations
-
----
-
-## 5. Technical Foundation
-
-### WCAG 2.2 Success Criteria Overview
-
-**Level A (Minimum)**:
-- Non-text content has alternatives
-- Keyboard accessible
-- No keyboard traps
-- Timing adjustable
-
-**Level AA (Standard)**:
-- Color contrast 4.5:1 (text), 3:1 (large text)
-- Resize text to 200%
-- Images of text avoided
-- Multiple ways to find pages
-- Focus visible
-
-**Level AAA (Enhanced)**:
-- Color contrast 7:1
-- Sign language for media
-- Extended audio description
-
----
-
-## 6. Implementation Patterns
-
-### 6.1 Semantic HTML
-
-```html
-<!-- Correct landmark usage -->
-<header role="banner">
-  <nav aria-label="Main navigation">
-    <ul>
-      <li><a href="/">Home</a></li>
-      <li><a href="/about">About</a></li>
-    </ul>
-  </nav>
-</header>
-
-<main role="main">
-  <article>
-    <h1>Page Title</h1>
-    <section aria-labelledby="section-heading">
-      <h2 id="section-heading">Section Title</h2>
-      <p>Content...</p>
-    </section>
-  </article>
-</main>
-
-<footer role="contentinfo">
-  <!-- Footer content -->
-</footer>
-```
-
-### 6.2 Form Accessibility
-
-```html
-<form>
-  <div>
-    <label for="email">Email address</label>
-    <input
-      type="email"
-      id="email"
-      name="email"
-      autocomplete="email"
-      aria-required="true"
-      aria-describedby="email-hint email-error"
-    />
-    <p id="email-hint" class="hint">We'll never share your email</p>
-    <p id="email-error" class="error" aria-live="polite"></p>
-  </div>
-  <button type="submit">Save preferences</button>
-</form>
-```
-
-### 6.3 Live Regions
-
-```html
-<!-- Status updates -->
-<div role="status" aria-live="polite" aria-atomic="true">
-  <!-- Status messages appear here -->
-</div>
-
-<!-- Alert messages -->
-<div role="alert" aria-live="assertive">
-  <!-- Critical alerts appear here -->
-</div>
-```
-
-### 6.4 Focus Styles
-
-```css
-:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
-
-:focus:not(:focus-visible) {
-  outline: none;
-}
-```
-
----
-
-## 7. Common Mistakes
-
-### DON'T: Use Color Alone
-
-```html
-<!-- Bad -->
-<span style="color: red;">Error</span>
-
-<!-- Good -->
-<span class="error">
-  <svg aria-hidden="true"><!-- error icon --></svg>
-  Error: Invalid email format
-</span>
-```
-
-### DON'T: Use Non-Semantic Elements
-
-```html
-<!-- Bad -->
-<div onclick="handleClick()">Click me</div>
-
-<!-- Good -->
-<button type="button" onclick="handleClick()">Click me</button>
-```
-
-### DON'T: Hide Focus Indicators
-
-```css
-/* Bad */
-*:focus { outline: none; }
-
-/* Good */
-*:focus-visible { outline: 2px solid var(--color-primary); }
-```
-
----
-
-## 8. Pre-Implementation Checklist
+## 7. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Write accessibility tests with jest-axe/vitest
 - [ ] Define keyboard navigation flow
 - [ ] Plan focus management strategy
-- [ ] Identify ARIA requirements
-- [ ] Check color contrast ratios
+- [ ] Identify ARIA requirements (minimize usage)
+- [ ] Check color contrast ratios (4.5:1 minimum)
+- [ ] Verify touch target sizes (44x44px for AA)
 
 ### Phase 2: During Implementation
-- [ ] Use semantic HTML elements
+- [ ] Use semantic HTML elements (prefer over ARIA)
 - [ ] Add proper ARIA only when needed
-- [ ] Implement keyboard handlers
-- [ ] Add visible focus styles
+- [ ] Implement keyboard handlers (Tab, Enter, Space, Escape, Arrows)
+- [ ] Add visible focus styles (:focus-visible)
 - [ ] Support prefers-reduced-motion
 - [ ] Test with screen reader during development
 
@@ -484,13 +423,66 @@ function loadMoreContent() {
 - [ ] Lighthouse accessibility score >= 90
 - [ ] axe-core passes with no errors
 - [ ] Keyboard-only navigation works
-- [ ] Screen reader announces correctly
-- [ ] Color contrast verified
-- [ ] Touch targets >= 44px
+- [ ] Screen reader announces correctly (test with NVDA/VoiceOver)
+- [ ] Color contrast verified (use DevTools)
+- [ ] Touch targets >= 44px (or 24px for AA minimum)
+- [ ] Works at 200% zoom
+- [ ] No horizontal scroll at 320px width
 
 ---
 
-## 9. Summary
+## 8. References
+
+See `references/` directory for detailed guides:
+
+- **`wcag-criteria.md`** - Complete WCAG 2.2 success criteria reference with examples
+- **`performance-optimization.md`** - Performance patterns for accessibility (semantic HTML, efficient ARIA, focus management)
+- **`anti-patterns.md`** - Common accessibility mistakes and how to fix them
+- **`testing-guide.md`** - Comprehensive testing guide (automated, manual, screen readers, CI)
+
+---
+
+## 9. Tools and Resources
+
+### Testing Tools
+- **jest-axe / vitest-axe**: Automated testing
+- **@axe-core/cli**: Command-line scanner
+- **Lighthouse**: Chrome DevTools
+- **WAVE**: Browser extension
+
+### Screen Readers
+- **NVDA** (Windows): https://www.nvaccess.org/
+- **JAWS** (Windows): https://www.freedomscientific.com/
+- **VoiceOver** (Mac/iOS): Cmd+F5
+- **TalkBack** (Android): Settings > Accessibility
+
+---
+
+## 10. Quick Reference
+
+### Keyboard Shortcuts
+- **Tab/Shift+Tab**: Move focus
+- **Enter**: Activate links, buttons
+- **Space**: Activate buttons, toggle checkboxes
+- **Escape**: Close modals, dismiss tooltips
+- **Arrow keys**: Navigate within components
+
+### Common ARIA Attributes
+- `aria-label`, `aria-labelledby`, `aria-describedby`: Accessible names/descriptions
+- `aria-hidden`: Hides from accessibility tree
+- `aria-live`: Announces changes (polite, assertive)
+- `aria-expanded`, `aria-pressed`, `aria-selected`: Component states
+- `aria-disabled`, `aria-required`, `aria-invalid`: Field states
+
+### Prefer Semantic HTML
+```html
+<!-- Bad --> <div role="button" tabindex="0">Click</div>
+<!-- Good --> <button type="button">Click</button>
+```
+
+---
+
+## 11. Summary
 
 Your goal is to create interfaces that are:
 - **Perceivable**: Users can sense the content
@@ -498,6 +490,6 @@ Your goal is to create interfaces that are:
 - **Understandable**: Users can comprehend content and operation
 - **Robust**: Content works with assistive technologies
 
-Accessibility is not a feature - it's a requirement. Every interface you create should work for everyone, regardless of ability. Test early, test often, and involve users with disabilities in your design process.
+**Accessibility is not a feature - it's a requirement.** Every interface you create should work for everyone, regardless of ability. Test early, test often, and involve users with disabilities in your design process.
 
 Build interfaces that include everyone.

@@ -217,3 +217,314 @@ class SecureScreenCapture:
 
         return regions
 ```
+
+---
+
+## Core Implementation Patterns from SKILL.md
+
+### Pattern: Secure Element Discovery
+
+**Use Case**: Finding UI elements for automation with full security validation.
+
+**Implementation**:
+```python
+from comtypes.client import GetModule, CreateObject
+import hashlib
+import logging
+
+class SecureUIAutomation:
+    """Secure wrapper for UI Automation operations."""
+
+    BLOCKED_PROCESSES = {
+        'keepass.exe', '1password.exe', 'lastpass.exe',    # Password managers
+        'mmc.exe', 'secpol.msc', 'gpedit.msc',             # Admin tools
+        'regedit.exe', 'cmd.exe', 'powershell.exe',        # System tools
+        'taskmgr.exe', 'procexp.exe',                       # Process tools
+    }
+
+    def __init__(self, permission_tier: str = 'read-only'):
+        self.permission_tier = permission_tier
+        self.uia = CreateObject('UIAutomationClient.CUIAutomation')
+        self.logger = logging.getLogger('uia.security')
+        self.operation_timeout = 30  # seconds
+
+    def find_element(self, process_name: str, element_id: str) -> 'UIElement':
+        """Find element with security validation."""
+        # Security check: blocked processes
+        if process_name.lower() in self.BLOCKED_PROCESSES:
+            self.logger.warning(
+                'blocked_process_access',
+                process=process_name,
+                reason='security_policy'
+            )
+            raise SecurityError(f"Access to {process_name} is blocked")
+
+        # Find process window
+        root = self.uia.GetRootElement()
+        condition = self.uia.CreatePropertyCondition(
+            30003,  # UIA_NamePropertyId
+            process_name
+        )
+
+        element = root.FindFirst(4, condition)  # TreeScope_Children
+
+        if element:
+            self._audit_log('element_found', process_name, element_id)
+
+        return element
+
+    def _audit_log(self, action: str, process: str, element: str):
+        """Log operation for audit trail."""
+        self.logger.info(
+            f'uia.{action}',
+            extra={
+                'process': process,
+                'element': element,
+                'permission_tier': self.permission_tier,
+                'correlation_id': self._get_correlation_id()
+            }
+        )
+```
+
+**Security Features**:
+- Process blocklist enforcement
+- Comprehensive audit logging
+- Permission tier management
+- Correlation IDs for tracking
+
+---
+
+### Pattern: Safe Input Simulation
+
+**Use Case**: Sending keyboard/mouse input to applications with security controls.
+
+**Implementation**:
+```python
+import ctypes
+from ctypes import wintypes
+import time
+
+class SafeInputSimulator:
+    """Input simulation with security controls."""
+
+    # Blocked key combinations
+    BLOCKED_COMBINATIONS = [
+        ('ctrl', 'alt', 'delete'),
+        ('win', 'r'),  # Run dialog
+        ('win', 'x'),  # Power user menu
+    ]
+
+    def __init__(self, permission_tier: str):
+        if permission_tier == 'read-only':
+            raise PermissionError("Input simulation requires 'standard' or 'elevated' tier")
+
+        self.permission_tier = permission_tier
+        self.rate_limit = 100  # max inputs per second
+        self._input_count = 0
+        self._last_reset = time.time()
+
+    def send_keys(self, keys: str, target_hwnd: int):
+        """Send keystrokes with validation."""
+        # Rate limiting
+        self._check_rate_limit()
+
+        # Validate target window
+        if not self._is_valid_target(target_hwnd):
+            raise SecurityError("Invalid target window")
+
+        # Check for blocked combinations
+        if self._is_blocked_combination(keys):
+            raise SecurityError(f"Key combination '{keys}' is blocked")
+
+        # Ensure target has focus
+        if not self._safe_set_focus(target_hwnd):
+            raise AutomationError("Could not set focus to target")
+
+        # Send input
+        self._send_input_safe(keys)
+
+    def _check_rate_limit(self):
+        """Prevent input flooding."""
+        now = time.time()
+        if now - self._last_reset > 1.0:
+            self._input_count = 0
+            self._last_reset = now
+
+        self._input_count += 1
+        if self._input_count > self.rate_limit:
+            raise RateLimitError("Input rate limit exceeded")
+```
+
+**Security Features**:
+- Rate limiting to prevent input flooding
+- Blocked key combination enforcement
+- Target window validation
+- Focus management
+
+---
+
+### Pattern: Process Validation
+
+**Use Case**: Validating process identity and integrity before automation.
+
+**Implementation**:
+```python
+import psutil
+import hashlib
+
+class ProcessValidator:
+    """Validate processes before automation."""
+
+    def __init__(self):
+        self.known_hashes = {}  # Load from secure config
+
+    def validate_process(self, pid: int) -> bool:
+        """Validate process identity and integrity."""
+        try:
+            proc = psutil.Process(pid)
+
+            # Check process name against blocklist
+            if proc.name().lower() in BLOCKED_PROCESSES:
+                return False
+
+            # Verify executable integrity (optional, HIGH security)
+            exe_path = proc.exe()
+            if not self._verify_integrity(exe_path):
+                return False
+
+            # Check process owner
+            if not self._check_owner(proc):
+                return False
+
+            return True
+
+        except psutil.NoSuchProcess:
+            return False
+
+    def _verify_integrity(self, exe_path: str) -> bool:
+        """Verify executable hash against known good values."""
+        if exe_path not in self.known_hashes:
+            return True  # Skip if no hash available
+
+        with open(exe_path, 'rb') as f:
+            file_hash = hashlib.sha256(f.read()).hexdigest()
+
+        return file_hash == self.known_hashes[exe_path]
+```
+
+**Security Features**:
+- Process name validation
+- Executable integrity checking (hash verification)
+- Process owner verification
+- Graceful handling of non-existent processes
+
+---
+
+### Pattern: Timeout Enforcement
+
+**Use Case**: Preventing runaway automation operations.
+
+**Implementation**:
+```python
+import signal
+from contextlib import contextmanager
+
+class TimeoutManager:
+    """Enforce operation timeouts."""
+
+    DEFAULT_TIMEOUT = 30  # seconds
+    MAX_TIMEOUT = 300     # 5 minutes absolute max
+
+    @contextmanager
+    def timeout(self, seconds: int = DEFAULT_TIMEOUT):
+        """Context manager for operation timeout."""
+        if seconds > self.MAX_TIMEOUT:
+            seconds = self.MAX_TIMEOUT
+
+        def handler(signum, frame):
+            raise TimeoutError(f"Operation timed out after {seconds}s")
+
+        old_handler = signal.signal(signal.SIGALRM, handler)
+        signal.alarm(seconds)
+
+        try:
+            yield
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+
+# Usage
+timeout_mgr = TimeoutManager()
+
+with timeout_mgr.timeout(10):
+    element = automation.find_element('notepad.exe', 'Edit1')
+```
+
+**Features**:
+- Configurable timeout per operation
+- Maximum timeout enforcement
+- Context manager for clean resource management
+- Automatic cleanup on exit
+
+---
+
+## Additional Advanced Patterns
+
+### Pattern: Automation Guard (Runaway Prevention)
+
+```python
+class AutomationGuard:
+    """Prevent runaway automation."""
+
+    MAX_OPERATIONS = 1000
+    MAX_DURATION = 300  # seconds
+
+    def __init__(self):
+        self.operation_count = 0
+        self.start_time = time.time()
+
+    def check_limits(self):
+        """Check if limits exceeded."""
+        self.operation_count += 1
+
+        if self.operation_count > self.MAX_OPERATIONS:
+            raise AutomationError("Operation limit exceeded")
+
+        if time.time() - self.start_time > self.MAX_DURATION:
+            raise AutomationError("Duration limit exceeded")
+
+    def reset(self):
+        """Reset counters."""
+        self.operation_count = 0
+        self.start_time = time.time()
+```
+
+### Pattern: Correlation ID Tracking
+
+```python
+import uuid
+
+class CorrelationTracker:
+    """Track operations with correlation IDs."""
+
+    def __init__(self):
+        self.correlation_id = None
+
+    def start_session(self):
+        """Start new session with correlation ID."""
+        self.correlation_id = str(uuid.uuid4())
+        return self.correlation_id
+
+    def get_correlation_id(self):
+        """Get current correlation ID."""
+        if self.correlation_id is None:
+            self.correlation_id = str(uuid.uuid4())
+        return self.correlation_id
+
+    def log_with_correlation(self, logger, message, **kwargs):
+        """Log message with correlation ID."""
+        logger.info(
+            message,
+            extra={'correlation_id': self.get_correlation_id(), **kwargs}
+        )
+```

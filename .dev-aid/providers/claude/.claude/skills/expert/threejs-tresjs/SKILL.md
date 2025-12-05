@@ -7,7 +7,56 @@ version: 1.0.0
 
 # Three.js / TresJS Development Skill
 
-> **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
+> **File Organization**: This skill uses split structure. See `references/` for detailed patterns, examples, and guides.
+
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Three.js/TresJS code**
+
+### Verification Requirements
+
+When using this skill to implement 3D rendering features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Three.js documentation at threejs.org
+   - ✅ Confirm TresJS API methods at tresjs.org
+   - ✅ Validate WebGL best practices against official guides
+   - ❌ Never guess Three.js API methods
+   - ❌ Never invent geometry/material properties
+   - ❌ Never assume compatibility without checking versions
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for 3D patterns
+   - 🔍 Grep: Search for similar Three.js implementations
+   - 🔍 WebSearch: Verify Three.js API documentation
+   - 🔍 WebFetch: Read official Three.js/TresJS docs
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY Three.js feature/API/pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in 3D rendering can cause GPU crashes, memory leaks, security vulnerabilities
+
+4. **Common Three.js Hallucination Traps** (AVOID)
+   - ❌ Inventing Three.js class methods that don't exist
+   - ❌ Confusing Three.js versions (APIs change between versions)
+   - ❌ Making up TresJS component props
+   - ❌ Assuming automatic resource disposal (must call .dispose())
+   - ❌ Inventing shader uniform names
+   - ❌ Guessing geometry constructor parameters
+
+### Self-Check Checklist
+
+Before EVERY response with Three.js/TresJS code:
+- [ ] All Three.js classes/methods verified against official docs
+- [ ] TresJS component props verified against TresJS docs
+- [ ] Resource disposal (geometry/material) included
+- [ ] Color inputs validated (ReDoS prevention)
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Three.js code with hallucinated APIs causes runtime errors, GPU memory leaks, and security vulnerabilities. Always verify.
+
+---
 
 ## 1. Overview
 
@@ -21,6 +70,19 @@ This skill provides expertise for building 3D HUD interfaces using Three.js and 
 - Particle effects for system visualization
 - Real-time metric displays with 3D elements
 
+### Key Technologies
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| three | ^0.160.0+ | Core 3D rendering engine |
+| @tresjs/core | ^4.0.0 | Vue 3 integration |
+| @tresjs/cientos | ^3.0.0 | Component library |
+| postprocessing | ^6.0.0 | Visual effects |
+
+**Security Note**: Always use Three.js >= 0.137.0 to avoid known XSS and ReDoS vulnerabilities.
+
+---
+
 ## 2. Core Responsibilities
 
 ### 2.1 Fundamental Principles
@@ -29,43 +91,63 @@ This skill provides expertise for building 3D HUD interfaces using Three.js and 
 2. **Performance Aware**: Optimize for 60fps with instancing, LOD, and efficient render loops
 3. **Resource Management**: Always dispose of geometries, materials, and textures to prevent memory leaks
 4. **Vue Reactivity Integration**: Use TresJS for seamless Vue 3 composition API integration
-5. **Safe Color Parsing**: Validate color inputs to prevent ReDoS attacks
+5. **Safe Color Parsing**: Validate color inputs to prevent ReDoS attacks (CVE-2020-28496)
 6. **GPU Protection**: Implement safeguards against GPU resource exhaustion
 7. **Accessibility**: Provide fallbacks for devices without WebGL support
 
-## 3. Technology Stack & Versions
+### 2.2 Security Priorities
 
-### 3.1 Recommended Versions
+**Critical Vulnerabilities to Mitigate**:
+- **CVE-2020-28496** (HIGH): ReDoS in color parsing - validate all color inputs
+- **CVE-2022-0177** (MEDIUM): XSS in documentation - keep dependencies updated
+- **GPU Resource Exhaustion**: Limit triangle count and draw calls
+- **Memory Leaks**: Always dispose Three.js objects on component unmount
 
-| Package | Version | Security Notes |
-|---------|---------|----------------|
-| three | ^0.160.0+ | Latest stable, fixes CVE-2020-28496 ReDoS |
-| @tresjs/core | ^4.0.0 | Vue 3 integration |
-| @tresjs/cientos | ^3.0.0 | Component library |
-| postprocessing | ^6.0.0 | Effects library |
+---
 
-### 3.2 Security-Critical Updates
+## 3. Implementation Workflow (TDD)
 
-```json
-{
-  "dependencies": {
-    "three": "^0.160.0",
-    "@tresjs/core": "^4.0.0",
-    "@tresjs/cientos": "^3.0.0"
-  }
-}
-```
+### Quick TDD Process
 
-**Note**: Versions before 0.137.0 have XSS vulnerabilities, before 0.125.0 have ReDoS vulnerabilities.
+1. **Write Failing Test First**
+   ```typescript
+   it('renders HUD panel with correct dimensions', () => {
+     const wrapper = mount(HUDPanel, { props: { width: 2, height: 1 } })
+     expect(wrapper.exists()).toBe(true)
+   })
+   ```
 
-## 4. Implementation Patterns
+2. **Implement Minimum Code**
+   ```vue
+   <template>
+     <TresMesh>
+       <TresPlaneGeometry :args="[props.width, props.height]" />
+       <TresMeshBasicMaterial color="#001122" />
+     </TresMesh>
+   </template>
+   ```
 
-### 4.1 Basic HUD Scene Setup
+3. **Refactor & Optimize**
+   - Add resource disposal
+   - Implement performance optimizations
+   - Add error handling
+
+4. **Verify**
+   ```bash
+   npm test && npm run typecheck
+   ```
+
+**See `references/testing-guide.md` for comprehensive TDD patterns**
+
+---
+
+## 4. Quick Start Patterns
+
+### 4.1 Basic Scene Setup
 
 ```vue
 <script setup lang="ts">
 import { TresCanvas } from '@tresjs/core'
-import { OrbitControls } from '@tresjs/cientos'
 
 const gl = {
   clearColor: '#000011',
@@ -78,40 +160,31 @@ const gl = {
 <template>
   <TresCanvas v-bind="gl">
     <TresPerspectiveCamera :position="[0, 0, 5]" />
-    <OrbitControls :enable-damping="true" />
+    <TresAmbientLight :intensity="0.5" />
+    <TresDirectionalLight :position="[5, 5, 5]" />
 
     <HUDPanels />
-    <MetricsDisplay />
-    <ParticleEffects />
   </TresCanvas>
 </template>
 ```
 
-### 4.2 Secure Color Handling
+### 4.2 Safe Color Handling (ReDoS Prevention)
 
 ```typescript
-// utils/safeColor.ts
-import { Color } from 'three'
-
-// ✅ Safe color parsing with validation
+// ✅ SECURE - Validated color parsing
 export function safeParseColor(input: string): Color {
-  // Validate format to prevent ReDoS
   const hexPattern = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
-  const rgbPattern = /^rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)$/
 
-  if (!hexPattern.test(input) && !rgbPattern.test(input)) {
-    console.warn('Invalid color format, using default')
-    return new Color(0x00ff00)  // Default JARVIS green
+  if (!hexPattern.test(input)) {
+    console.warn('Invalid color, using default')
+    return new Color(0x00ff00)
   }
 
   return new Color(input)
 }
 
-// ❌ DANGEROUS - User input directly to Color
-// const color = new Color(userInput)  // Potential ReDoS
-
-// ✅ SECURE - Validated input
-const color = safeParseColor(userInput)
+// ❌ DANGEROUS - Never do this
+// const color = new Color(userInput)  // ReDoS vulnerability!
 ```
 
 ### 4.3 Memory-Safe Component
@@ -119,12 +192,12 @@ const color = safeParseColor(userInput)
 ```vue
 <script setup lang="ts">
 import { onUnmounted, shallowRef } from 'vue'
-import { Mesh, BoxGeometry, MeshStandardMaterial } from 'three'
+import { Mesh } from 'three'
 
 // ✅ Use shallowRef for Three.js objects
 const meshRef = shallowRef<Mesh | null>(null)
 
-// ✅ Cleanup on unmount
+// ✅ Always cleanup on unmount
 onUnmounted(() => {
   if (meshRef.value) {
     meshRef.value.geometry.dispose()
@@ -145,607 +218,27 @@ onUnmounted(() => {
 </template>
 ```
 
-### 4.4 Performance-Optimized Instancing
+**See `references/implementation-patterns.md` for more patterns**
 
-```vue
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { InstancedMesh, Object3D, Matrix4 } from 'three'
+---
 
-const instanceCount = 1000
-const instancedMeshRef = ref<InstancedMesh | null>(null)
+## 5. Performance Guidelines
 
-onMounted(() => {
-  if (!instancedMeshRef.value) return
+### Key Optimization Strategies
 
-  const dummy = new Object3D()
-  const matrix = new Matrix4()
+1. **Use Instancing** - Render 1000+ objects as efficiently as 1 object
+2. **Implement LOD** - Reduce detail for distant objects
+3. **Object Pooling** - Reuse objects instead of creating/destroying
+4. **Frustum Culling** - Don't render off-screen objects
+5. **Minimize Allocations** - Never create objects in render loop
+6. **Share Resources** - Reuse geometries and materials
 
-  // ✅ Batch updates for performance
-  for (let i = 0; i < instanceCount; i++) {
-    dummy.position.set(
-      Math.random() * 10 - 5,
-      Math.random() * 10 - 5,
-      Math.random() * 10 - 5
-    )
-    dummy.updateMatrix()
-    instancedMeshRef.value.setMatrixAt(i, dummy.matrix)
-  }
-
-  instancedMeshRef.value.instanceMatrix.needsUpdate = true
-})
-</script>
-
-<template>
-  <TresInstancedMesh ref="instancedMeshRef" :args="[null, null, instanceCount]">
-    <TresSphereGeometry :args="[0.05, 8, 8]" />
-    <TresMeshBasicMaterial color="#00ff41" />
-  </TresInstancedMesh>
-</template>
-```
-
-### 4.5 HUD Panel with Text
-
-```vue
-<script setup lang="ts">
-import { Text } from '@tresjs/cientos'
-
-const props = defineProps<{
-  title: string
-  value: number
-}>()
-
-// ✅ Sanitize text content
-const safeTitle = computed(() =>
-  props.title.replace(/[<>]/g, '').slice(0, 50)
-)
-</script>
-
-<template>
-  <TresGroup>
-    <!-- Panel background -->
-    <TresMesh>
-      <TresPlaneGeometry :args="[2, 1]" />
-      <TresMeshBasicMaterial
-        color="#001122"
-        :transparent="true"
-        :opacity="0.8"
-      />
-    </TresMesh>
-
-    <!-- Title text -->
-    <Text
-      :text="safeTitle"
-      :font-size="0.15"
-      color="#00ff41"
-      :position="[-0.8, 0.3, 0.01]"
-    />
-
-    <!-- Value display -->
-    <Text
-      :text="String(props.value)"
-      :font-size="0.3"
-      color="#ffffff"
-      :position="[0, -0.1, 0.01]"
-    />
-  </TresGroup>
-</template>
-```
-
-## 5. Implementation Workflow (TDD)
-
-### 5.1 TDD Process for 3D Components
-
-**Step 1: Write Failing Test First**
+### Quick Performance Check
 
 ```typescript
-// tests/components/hud-panel.test.ts
-import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { mount, VueWrapper } from '@vue/test-utils'
-import { Scene, WebGLRenderer } from 'three'
-import HUDPanel from '~/components/hud/HUDPanel.vue'
-
-describe('HUDPanel', () => {
-  let wrapper: VueWrapper
-
-  beforeEach(() => {
-    // Mock WebGL context for testing
-    const canvas = document.createElement('canvas')
-    const gl = canvas.getContext('webgl2')
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(gl)
-  })
-
-  afterEach(() => {
-    wrapper?.unmount()
-    vi.restoreAllMocks()
-  })
-
-  it('renders panel with correct dimensions', () => {
-    wrapper = mount(HUDPanel, {
-      props: { width: 2, height: 1, title: 'Status' }
-    })
-
-    // Test fails until component is implemented
-    expect(wrapper.exists()).toBe(true)
-  })
-
-  it('disposes resources on unmount', async () => {
-    wrapper = mount(HUDPanel, {
-      props: { width: 2, height: 1, title: 'Status' }
-    })
-
-    const disposeSpy = vi.fn()
-    wrapper.vm.meshRef.geometry.dispose = disposeSpy
-
-    wrapper.unmount()
-    expect(disposeSpy).toHaveBeenCalled()
-  })
-})
-```
-
-**Step 2: Implement Minimum to Pass**
-
-```vue
-<script setup lang="ts">
-import { shallowRef, onUnmounted } from 'vue'
-import { Mesh } from 'three'
-
-const props = defineProps<{
-  width: number
-  height: number
-  title: string
-}>()
-
-const meshRef = shallowRef<Mesh | null>(null)
-
-onUnmounted(() => {
-  if (meshRef.value) {
-    meshRef.value.geometry.dispose()
-    ;(meshRef.value.material as any).dispose()
-  }
-})
-</script>
-
-<template>
-  <TresMesh ref="meshRef">
-    <TresPlaneGeometry :args="[props.width, props.height]" />
-    <TresMeshBasicMaterial color="#001122" :transparent="true" :opacity="0.8" />
-  </TresMesh>
-</template>
-```
-
-**Step 3: Refactor Following Patterns**
-
-```typescript
-// After tests pass, add performance optimizations
-// - Use instancing for multiple panels
-// - Add LOD for distant panels
-// - Implement texture atlases for text
-```
-
-**Step 4: Run Full Verification**
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm test -- --coverage
-
-# Type check
-npm run typecheck
-
-# Performance benchmark
-npm run test:perf
-```
-
-### 5.2 Testing 3D Animations
-
-```typescript
-import { describe, it, expect, vi } from 'vitest'
-import { useRenderLoop } from '@tresjs/core'
-
-describe('Animation Loop', () => {
-  it('maintains 60fps during animation', async () => {
-    const frameTimes: number[] = []
-    let lastTime = performance.now()
-
-    const { onLoop } = useRenderLoop()
-
-    onLoop(() => {
-      const now = performance.now()
-      frameTimes.push(now - lastTime)
-      lastTime = now
-    })
-
-    // Simulate 60 frames
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length
-    expect(avgFrameTime).toBeLessThan(16.67) // 60fps = 16.67ms per frame
-  })
-
-  it('cleans up animation loop on unmount', () => {
-    const cleanup = vi.fn()
-    const { pause } = useRenderLoop()
-
-    // Component unmounts
-    pause()
-
-    expect(cleanup).not.toThrow()
-  })
-})
-```
-
-### 5.3 Testing Resource Disposal
-
-```typescript
-describe('Resource Management', () => {
-  it('disposes all GPU resources', () => {
-    const geometry = new BoxGeometry(1, 1, 1)
-    const material = new MeshStandardMaterial({ color: 0x00ff41 })
-    const mesh = new Mesh(geometry, material)
-
-    const geoDispose = vi.spyOn(geometry, 'dispose')
-    const matDispose = vi.spyOn(material, 'dispose')
-
-    // Cleanup function
-    mesh.geometry.dispose()
-    mesh.material.dispose()
-
-    expect(geoDispose).toHaveBeenCalled()
-    expect(matDispose).toHaveBeenCalled()
-  })
-
-  it('handles material arrays correctly', () => {
-    const materials = [
-      new MeshBasicMaterial(),
-      new MeshStandardMaterial()
-    ]
-    const mesh = new Mesh(new BoxGeometry(), materials)
-
-    const spies = materials.map(m => vi.spyOn(m, 'dispose'))
-
-    materials.forEach(m => m.dispose())
-
-    spies.forEach(spy => expect(spy).toHaveBeenCalled())
-  })
-})
-```
-
-## 6. Performance Patterns
-
-### 6.1 Geometry Instancing
-
-```typescript
-// Good: Use InstancedMesh for repeated objects
-import { InstancedMesh, Matrix4, Object3D } from 'three'
-
-const COUNT = 1000
-const mesh = new InstancedMesh(geometry, material, COUNT)
-const dummy = new Object3D()
-
-for (let i = 0; i < COUNT; i++) {
-  dummy.position.set(Math.random() * 10, Math.random() * 10, Math.random() * 10)
-  dummy.updateMatrix()
-  mesh.setMatrixAt(i, dummy.matrix)
-}
-mesh.instanceMatrix.needsUpdate = true
-
-// Bad: Creating individual meshes
-for (let i = 0; i < COUNT; i++) {
-  const mesh = new Mesh(geometry.clone(), material.clone()) // Memory waste!
-  scene.add(mesh)
-}
-```
-
-### 6.2 Texture Atlases
-
-```typescript
-// Good: Single texture atlas for multiple sprites
-const atlas = new TextureLoader().load('/textures/hud-atlas.png')
-const materials = {
-  panel: new SpriteMaterial({ map: atlas }),
-  icon: new SpriteMaterial({ map: atlas })
-}
-
-// Set UV offsets for different sprites
-materials.panel.map.offset.set(0, 0.5)
-materials.panel.map.repeat.set(0.5, 0.5)
-
-// Bad: Loading separate textures
-const panelTex = new TextureLoader().load('/textures/panel.png')
-const iconTex = new TextureLoader().load('/textures/icon.png')
-// Multiple draw calls, more GPU memory
-```
-
-### 6.3 Level of Detail (LOD)
-
-```typescript
-// Good: Use LOD for complex objects
-import { LOD } from 'three'
-
-const lod = new LOD()
-
-// High detail - close up
-const highDetail = new Mesh(
-  new SphereGeometry(1, 32, 32),
-  material
-)
-lod.addLevel(highDetail, 0)
-
-// Medium detail - mid range
-const medDetail = new Mesh(
-  new SphereGeometry(1, 16, 16),
-  material
-)
-lod.addLevel(medDetail, 10)
-
-// Low detail - far away
-const lowDetail = new Mesh(
-  new SphereGeometry(1, 8, 8),
-  material
-)
-lod.addLevel(lowDetail, 20)
-
-scene.add(lod)
-
-// Bad: Always rendering high detail
-const sphere = new Mesh(new SphereGeometry(1, 64, 64), material)
-```
-
-### 6.4 Frustum Culling
-
-```typescript
-// Good: Enable frustum culling (default, but verify)
-mesh.frustumCulled = true
-
-// For custom bounds optimization
-mesh.geometry.computeBoundingSphere()
-mesh.geometry.computeBoundingBox()
-
-// Manual visibility check for complex scenes
-const frustum = new Frustum()
-const matrix = new Matrix4().multiplyMatrices(
-  camera.projectionMatrix,
-  camera.matrixWorldInverse
-)
-frustum.setFromProjectionMatrix(matrix)
-
-objects.forEach(obj => {
-  obj.visible = frustum.intersectsObject(obj)
-})
-
-// Bad: Disabling culling or rendering everything
-mesh.frustumCulled = false // Renders even when off-screen
-```
-
-### 6.5 Object Pooling
-
-```typescript
-// Good: Pool and reuse objects
-class ParticlePool {
-  private pool: Mesh[] = []
-  private active: Set<Mesh> = new Set()
-
-  constructor(private geometry: BufferGeometry, private material: Material) {
-    // Pre-allocate pool
-    for (let i = 0; i < 100; i++) {
-      const mesh = new Mesh(geometry, material)
-      mesh.visible = false
-      this.pool.push(mesh)
-    }
-  }
-
-  acquire(): Mesh | null {
-    const mesh = this.pool.find(m => !this.active.has(m))
-    if (mesh) {
-      mesh.visible = true
-      this.active.add(mesh)
-      return mesh
-    }
-    return null
-  }
-
-  release(mesh: Mesh): void {
-    mesh.visible = false
-    this.active.delete(mesh)
-  }
-}
-
-// Bad: Creating/destroying objects each frame
-function spawnParticle() {
-  const mesh = new Mesh(geometry, material) // GC pressure!
-  scene.add(mesh)
-  setTimeout(() => {
-    scene.remove(mesh)
-    mesh.geometry.dispose()
-  }, 1000)
-}
-```
-
-### 6.6 RAF Optimization
-
-```typescript
-// Good: Efficient render loop
-let lastTime = 0
-const targetFPS = 60
-const frameInterval = 1000 / targetFPS
-
-function animate(currentTime: number) {
-  requestAnimationFrame(animate)
-
-  const delta = currentTime - lastTime
-
-  // Skip frame if too soon (for battery saving)
-  if (delta < frameInterval) return
-
-  lastTime = currentTime - (delta % frameInterval)
-
-  // Update only what changed
-  if (needsUpdate) {
-    updateScene()
-    renderer.render(scene, camera)
-  }
-}
-
-// Bad: Rendering every frame unconditionally
+// ❌ BAD - Creates new objects every frame
 function animate() {
-  requestAnimationFrame(animate)
-
-  // Always updates everything
-  updateAllObjects()
-  renderer.render(scene, camera) // Even if nothing changed
-}
-```
-
-### 6.7 Shader Optimization
-
-```typescript
-// Good: Simple, optimized shaders
-const material = new ShaderMaterial({
-  vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  fragmentShader: `
-    varying vec2 vUv;
-    uniform vec3 color;
-    void main() {
-      gl_FragColor = vec4(color, 1.0);
-    }
-  `,
-  uniforms: {
-    color: { value: new Color(0x00ff41) }
-  }
-})
-
-// Bad: Complex calculations in fragment shader
-// Avoid: loops, conditionals, texture lookups when possible
-```
-
-## 7. Security Standards
-
-### 7.1 Known Vulnerabilities
-
-| CVE | Severity | Description | Mitigation |
-|-----|----------|-------------|------------|
-| CVE-2020-28496 | HIGH | ReDoS in color parsing | Update to 0.125.0+, validate colors |
-| CVE-2022-0177 | MEDIUM | XSS in docs | Update to 0.137.0+ |
-
-### 7.2 OWASP Top 10 Coverage
-
-| OWASP Category | Risk | Mitigation |
-|----------------|------|------------|
-| A05 Injection | MEDIUM | Validate all color/text inputs |
-| A06 Vulnerable Components | HIGH | Keep Three.js updated |
-
-### 7.3 GPU Resource Protection
-
-```typescript
-// composables/useResourceLimit.ts
-export function useResourceLimit() {
-  const MAX_TRIANGLES = 1_000_000
-  const MAX_DRAW_CALLS = 100
-
-  let triangleCount = 0
-
-  function checkGeometry(geometry: BufferGeometry): boolean {
-    const triangles = geometry.index
-      ? geometry.index.count / 3
-      : geometry.attributes.position.count / 3
-
-    if (triangleCount + triangles > MAX_TRIANGLES) {
-      console.error('Triangle limit exceeded')
-      return false
-    }
-
-    triangleCount += triangles
-    return true
-  }
-
-  return { checkGeometry }
-}
-```
-
-## 6. Testing & Quality
-
-### 6.1 Component Testing
-
-```typescript
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-
-describe('HUD Panel', () => {
-  it('sanitizes malicious title input', () => {
-    const wrapper = mount(HUDPanel, {
-      props: {
-        title: '<script>alert("xss")</script>Status',
-        value: 75
-      }
-    })
-
-    expect(wrapper.vm.safeTitle).not.toContain('<script>')
-  })
-})
-```
-
-### 6.2 Performance Testing
-
-```typescript
-describe('Instanced Mesh', () => {
-  it('handles 1000 instances without frame drop', async () => {
-    const scene = new Scene()
-    // Setup instanced mesh...
-
-    const startTime = performance.now()
-    renderer.render(scene, camera)
-    const renderTime = performance.now() - startTime
-
-    expect(renderTime).toBeLessThan(16.67)  // 60fps target
-  })
-})
-```
-
-## 8. Common Mistakes & Anti-Patterns
-
-### 8.1 Critical Security Anti-Patterns
-
-#### Never: Parse User Colors Directly
-
-```typescript
-// ❌ DANGEROUS - ReDoS vulnerability
-const color = new Color(userInput)
-
-// ✅ SECURE - Validated input
-const color = safeParseColor(userInput)
-```
-
-#### Never: Skip Resource Disposal
-
-```typescript
-// ❌ MEMORY LEAK
-const mesh = new Mesh(geometry, material)
-scene.remove(mesh)
-// Geometry and material still in GPU memory!
-
-// ✅ PROPER CLEANUP
-scene.remove(mesh)
-mesh.geometry.dispose()
-mesh.material.dispose()
-```
-
-### 8.2 Performance Anti-Patterns
-
-#### Avoid: Creating Objects in Render Loop
-
-```typescript
-// ❌ BAD - Creates garbage every frame
-function animate() {
-  mesh.position.add(new Vector3(0, 0.01, 0))  // New object every frame!
+  mesh.position.add(new Vector3(0, 0.01, 0))  // GC pressure!
 }
 
 // ✅ GOOD - Reuse objects
@@ -755,35 +248,190 @@ function animate() {
 }
 ```
 
-## 13. Pre-Deployment Checklist
+**See `references/performance-optimization.md` for detailed strategies**
 
-### Security Verification
+---
+
+## 6. Security Best Practices
+
+### Critical Security Checks
 
 - [ ] Three.js version >= 0.137.0 (XSS fix)
 - [ ] All color inputs validated before parsing
 - [ ] No user input directly to `new Color()`
+- [ ] Resource limits enforced (max triangles, draw calls)
+- [ ] All geometries/materials disposed on unmount
+- [ ] Text content sanitized before rendering
+
+### GPU Resource Limits
+
+```typescript
+export function useResourceLimit() {
+  const MAX_TRIANGLES = 1_000_000
+  const MAX_DRAW_CALLS = 100
+
+  function checkGeometry(geometry: BufferGeometry): boolean {
+    const triangles = geometry.index
+      ? geometry.index.count / 3
+      : geometry.attributes.position.count / 3
+
+    if (triangles > MAX_TRIANGLES) {
+      console.error('Triangle limit exceeded')
+      return false
+    }
+    return true
+  }
+
+  return { checkGeometry }
+}
+```
+
+**See `references/security-examples.md` for comprehensive security patterns**
+
+---
+
+## 7. Common Mistakes to Avoid
+
+### Critical Anti-Patterns
+
+| Anti-Pattern | Impact | Solution |
+|--------------|--------|----------|
+| Parse user colors directly | ReDoS vulnerability | Use `safeParseColor()` |
+| Skip resource disposal | Memory leaks | Always dispose in `onUnmounted()` |
+| Create objects in render loop | GC pressure | Pre-allocate and reuse |
+| Clone unnecessarily | GPU memory waste | Share resources or use instancing |
+| Use reactive refs | Performance overhead | Use `shallowRef()` |
+
+### Quick Anti-Pattern Check
+
+```typescript
+// ❌ DANGEROUS
+const color = new Color(userInput)  // ReDoS!
+const mesh = ref(new Mesh())        // Reactive overhead!
+
+// ✅ SECURE
+const color = safeParseColor(userInput)
+const mesh = shallowRef(new Mesh())
+```
+
+**See `references/anti-patterns.md` for detailed anti-patterns and solutions**
+
+---
+
+## 8. Testing Strategy
+
+### Test Coverage Requirements
+
+1. **Component Tests**: Verify rendering, props, disposal
+2. **Performance Tests**: Ensure 60fps with target load
+3. **Security Tests**: Validate input sanitization
+4. **Resource Tests**: Verify cleanup on unmount
+
+### Example Test
+
+```typescript
+describe('HUDPanel', () => {
+  it('disposes resources on unmount', () => {
+    const wrapper = mount(HUDPanel)
+    const disposeSpy = vi.spyOn(wrapper.vm.meshRef.geometry, 'dispose')
+
+    wrapper.unmount()
+
+    expect(disposeSpy).toHaveBeenCalled()
+  })
+})
+```
+
+**See `references/testing-guide.md` for comprehensive testing patterns**
+
+---
+
+## 9. Pre-Deployment Checklist
+
+### Security Verification
+- [ ] Three.js version >= 0.137.0
+- [ ] All color inputs validated
 - [ ] Resource limits enforced
+- [ ] No unvalidated text rendering
 
 ### Performance Verification
-
-- [ ] All geometries/materials disposed on unmount
-- [ ] Instancing used for repeated objects
+- [ ] All resources disposed on unmount
+- [ ] Instancing used for repeated objects (>10)
 - [ ] No object creation in render loop
 - [ ] LOD implemented for complex scenes
+- [ ] Frame rate >= 60fps under target load
 
-## 14. Summary
+### Code Quality
+- [ ] All tests passing
+- [ ] TypeScript errors resolved
+- [ ] ESLint warnings addressed
+- [ ] Components separated by concern
 
-Three.js/TresJS provides 3D rendering for the JARVIS HUD:
+---
+
+## 10. References
+
+### Detailed Documentation
+
+- **`references/implementation-patterns.md`** - Complete implementation examples for HUD panels, instancing, text rendering
+- **`references/testing-guide.md`** - TDD workflow, component tests, performance tests, resource disposal tests
+- **`references/performance-optimization.md`** - Instancing, LOD, frustum culling, object pooling, shader optimization
+- **`references/security-examples.md`** - Security standards, ReDoS prevention, GPU protection, vulnerability mitigation
+- **`references/anti-patterns.md`** - Common mistakes, security anti-patterns, performance anti-patterns, Vue integration issues
+- **`references/3d-patterns.md`** - HUD interface patterns, particle systems, camera animations, post-processing
+- **`references/advanced-patterns.md`** - Custom shaders, post-processing effects, physics integration
+
+### Official Documentation
+
+- Three.js: https://threejs.org/docs/
+- TresJS: https://tresjs.org/
+- WebGL Best Practices: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
+
+---
+
+## 11. Quick Reference
+
+### Common Operations
+
+```typescript
+// Create and dispose mesh
+const mesh = new Mesh(geometry, material)
+scene.add(mesh)
+
+// Later: ALWAYS dispose
+mesh.geometry.dispose()
+mesh.material.dispose()
+
+// Update uniforms
+material.uniforms.time.value = clock.getElapsedTime()
+
+// Instance multiple objects
+const instances = new InstancedMesh(geometry, material, 1000)
+```
+
+### Troubleshooting
+
+**Problem**: Memory usage keeps increasing
+**Solution**: Check that all geometries/materials are disposed on unmount
+
+**Problem**: Frame rate drops below 60fps
+**Solution**: Use instancing, implement LOD, reduce draw calls
+
+**Problem**: Browser freezes on color input
+**Solution**: Validate color input before passing to `new Color()`
+
+**Problem**: Components not updating reactively
+**Solution**: Use `shallowRef()` for Three.js objects, not `ref()`
+
+---
+
+## 12. Summary
+
+Three.js/TresJS provides powerful 3D rendering for the JARVIS HUD:
 
 1. **Security**: Validate all inputs, especially colors to prevent ReDoS
 2. **Memory**: Always dispose resources on component unmount
 3. **Performance**: Use instancing, avoid allocations in render loop
 4. **Integration**: TresJS provides seamless Vue 3 reactivity
 
-**Remember**: WebGL has direct GPU access - always validate inputs and manage resources carefully.
-
----
-
-**References**:
-- `references/advanced-patterns.md` - Complex 3D patterns
-- `references/security-examples.md` - WebGL security practices
+**Remember**: WebGL has direct GPU access - always validate inputs and manage resources carefully. Test thoroughly before deployment.

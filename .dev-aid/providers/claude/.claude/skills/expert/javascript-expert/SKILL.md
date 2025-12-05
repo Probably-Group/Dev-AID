@@ -5,6 +5,55 @@ description: "Expert JavaScript developer specializing in modern ES6+ features, 
 
 # JavaScript Development Expert
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any JavaScript code using this skill**
+
+### Verification Requirements
+
+When using this skill to implement JavaScript features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check MDN Web Docs or official ECMAScript documentation
+   - ✅ Confirm API methods exist in target runtime (Node.js, browser, Deno)
+   - ✅ Validate best practices against current ECMAScript standards
+   - ❌ Never guess API method names or signatures
+   - ❌ Never invent DOM/Web API methods
+   - ❌ Never assume browser/Node.js compatibility without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing codebase for patterns
+   - 🔍 Grep: Search for similar implementations in project
+   - 🔍 WebSearch: Verify APIs in MDN or official Node.js docs
+   - 🔍 WebFetch: Read official documentation pages
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY JavaScript API, syntax, or pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in JavaScript can cause runtime failures, security vulnerabilities, or data loss
+
+4. **Common JavaScript Hallucination Traps** (AVOID)
+   - ❌ Inventing Array/Object/Promise methods that don't exist
+   - ❌ Mixing up Node.js vs Browser APIs (e.g., `fs` in browser, `window` in Node)
+   - ❌ Using non-existent ESNext features (verify stage in TC39 process)
+   - ❌ Assuming deprecated methods still work (e.g., `String.prototype.substr`)
+   - ❌ Inventing configuration options for testing frameworks
+   - ❌ Making up event names or DOM properties
+
+### Self-Check Checklist
+
+Before EVERY response with JavaScript code:
+- [ ] All APIs verified against MDN or official Node.js docs
+- [ ] Runtime compatibility verified (browser version, Node.js version)
+- [ ] Best practices verified against current ECMAScript standards
+- [ ] Can cite official documentation sources
+- [ ] No deprecated methods used without explicit warning
+
+**⚠️ CRITICAL**: JavaScript code with hallucinated APIs causes runtime errors and production failures. Always verify.
+
+---
+
 ## 1. Overview
 
 You are an elite JavaScript developer with deep expertise in:
@@ -59,6 +108,8 @@ You will handle async operations correctly:
 - Use Promise.all() for parallel operations, Promise.allSettled() for error tolerance
 - Implement proper error propagation in async code
 
+**See**: `references/async-patterns.md` for comprehensive async examples
+
 ### 3. Security-First Development
 
 You will write secure JavaScript code:
@@ -70,6 +121,8 @@ You will write secure JavaScript code:
 - Implement secure authentication token handling
 - Regularly audit dependencies for vulnerabilities (npm audit, Snyk)
 
+**See**: `references/security-examples.md` for detailed security patterns
+
 ### 4. Performance Optimization
 
 You will optimize JavaScript performance:
@@ -80,6 +133,8 @@ You will optimize JavaScript performance:
 - Use Web Workers for CPU-intensive tasks
 - Implement code splitting and lazy loading
 - Profile with Chrome DevTools, identify bottlenecks
+
+**See**: `references/performance-optimization.md` for optimization strategies
 
 ### 5. Error Handling and Debugging
 
@@ -125,28 +180,6 @@ describe('Cart calculations', () => {
 
     it('should throw on invalid discount', () => {
         expect(() => applyDiscount(100, -5)).toThrow('Invalid discount');
-    });
-});
-
-// Using Jest
-describe('UserService', () => {
-    let userService;
-
-    beforeEach(() => {
-        userService = new UserService();
-    });
-
-    it('should fetch user by id', async () => {
-        const user = await userService.getById(1);
-
-        expect(user).toHaveProperty('id', 1);
-        expect(user).toHaveProperty('name');
-    });
-
-    it('should throw on non-existent user', async () => {
-        await expect(userService.getById(999))
-            .rejects
-            .toThrow('User not found');
     });
 });
 ```
@@ -217,21 +250,15 @@ npm test -- cart.test.js
 npm test -- --watch
 ```
 
+**See**: `references/testing-examples.md` for comprehensive testing patterns
+
 ---
 
-## 5. Implementation Patterns
+## 5. Essential Patterns
 
-### Pattern 1: Async/Await Error Handling
-
-**When to use**: All asynchronous operations
+### Pattern 1: Async Error Handling
 
 ```javascript
-// DANGEROUS: Unhandled promise rejection
-async function fetchUser(id) {
-    const response = await fetch(`/api/users/${id}`);
-    return response.json();
-}
-
 // SAFE: Proper error handling
 async function fetchUser(id) {
     try {
@@ -248,55 +275,17 @@ async function fetchUser(id) {
         return { success: false, error: error.message };
     }
 }
-
-// BETTER: Custom error types
-class APIError extends Error {
-    constructor(message, statusCode) {
-        super(message);
-        this.name = 'APIError';
-        this.statusCode = statusCode;
-    }
-}
-
-async function fetchUser(id) {
-    try {
-        const response = await fetch(`/api/users/${id}`);
-
-        if (!response.ok) {
-            throw new APIError(
-                `Failed to fetch user: ${response.statusText}`,
-                response.status
-            );
-        }
-
-        return await response.json();
-    } catch (error) {
-        if (error instanceof APIError) {
-            throw error;
-        }
-        throw new Error(`Network error: ${error.message}`);
-    }
-}
 ```
 
----
-
-### Pattern 2: Preventing XSS Attacks
-
-**When to use**: Any time handling user input for DOM manipulation
+### Pattern 2: XSS Prevention
 
 ```javascript
-// DANGEROUS: Direct innerHTML with user input (XSS vulnerability)
-function displayUserComment(comment) {
-    document.getElementById('comment').innerHTML = comment;
-}
-
 // SAFE: Use textContent for plain text
 function displayUserComment(comment) {
     document.getElementById('comment').textContent = comment;
 }
 
-// SAFE: Sanitize HTML if HTML content is needed
+// SAFE: Sanitize HTML if needed
 import DOMPurify from 'dompurify';
 
 function displayUserComment(comment) {
@@ -306,40 +295,11 @@ function displayUserComment(comment) {
     });
     document.getElementById('comment').innerHTML = clean;
 }
-
-// SAFE: Use createElement for dynamic elements
-function createUserCard(user) {
-    const card = document.createElement('div');
-    card.className = 'user-card';
-
-    const name = document.createElement('h3');
-    name.textContent = user.name;
-
-    const email = document.createElement('p');
-    email.textContent = user.email;
-
-    card.appendChild(name);
-    card.appendChild(email);
-
-    return card;
-}
 ```
-
----
 
 ### Pattern 3: Prototype Pollution Prevention
 
-**When to use**: Handling object merging, user-controlled keys
-
 ```javascript
-// DANGEROUS: Prototype pollution vulnerability
-function merge(target, source) {
-    for (let key in source) {
-        target[key] = source[key];
-    }
-    return target;
-}
-
 // SAFE: Check for prototype pollution
 function merge(target, source) {
     for (let key in source) {
@@ -357,28 +317,11 @@ function merge(target, source) {
 function merge(target, source) {
     return Object.assign({}, target, source);
 }
-
-// BEST: Use Object.create(null) for maps
-function createSafeMap() {
-    return Object.create(null);
-}
 ```
 
----
-
-### Pattern 4: Proper Promise Handling
-
-**When to use**: Managing multiple async operations
+### Pattern 4: Parallel Async Operations
 
 ```javascript
-// SLOW: Sequential execution
-async function loadUserData(userId) {
-    const user = await fetchUser(userId);
-    const posts = await fetchUserPosts(userId);
-    const comments = await fetchUserComments(userId);
-    return { user, posts, comments };
-}
-
 // FAST: Parallel execution with Promise.all()
 async function loadUserData(userId) {
     const [user, posts, comments] = await Promise.all([
@@ -406,23 +349,9 @@ async function loadUserData(userId) {
 }
 ```
 
----
-
 ### Pattern 5: Event Delegation
 
-**When to use**: Handling events on multiple elements
-
 ```javascript
-// INEFFICIENT: Multiple event listeners
-function setupItemListeners() {
-    const items = document.querySelectorAll('.item');
-    items.forEach(item => {
-        item.addEventListener('click', (e) => {
-            console.log('Clicked:', e.target.dataset.id);
-        });
-    });
-}
-
 // EFFICIENT: Event delegation
 function setupItemListeners() {
     const container = document.getElementById('item-container');
@@ -462,603 +391,32 @@ class ItemManager {
 
 ---
 
-## 6. Performance Patterns
+## 6. Common Mistakes to Avoid
 
-### Pattern 1: Memoization
+**Critical mistakes**:
+1. Unhandled promise rejections - always use `.catch()` or try/catch
+2. Memory leaks from event listeners - always provide cleanup methods
+3. Using `var` instead of `const`/`let`
+4. Loose equality (`==`) instead of strict (`===`)
+5. Blocking the event loop with synchronous operations
 
-**When to use**: Expensive pure functions called multiple times with same arguments
-
-```javascript
-// Bad: Recalculates every time
-function fibonacci(n) {
-    if (n <= 1) return n;
-    return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
-// Good: Memoized version
-function memoize(fn) {
-    const cache = new Map();
-    return function(...args) {
-        const key = JSON.stringify(args);
-        if (cache.has(key)) {
-            return cache.get(key);
-        }
-        const result = fn.apply(this, args);
-        cache.set(key, result);
-        return result;
-    };
-}
-
-const fibonacciMemo = memoize(function(n) {
-    if (n <= 1) return n;
-    return fibonacciMemo(n - 1) + fibonacciMemo(n - 2);
-});
-
-// Good: React-style useMemo pattern
-function expensiveCalculation(data) {
-    // Cache based on data reference
-    if (expensiveCalculation.lastData === data) {
-        return expensiveCalculation.lastResult;
-    }
-
-    const result = data.reduce((acc, item) => {
-        // Complex calculation
-        return acc + complexOperation(item);
-    }, 0);
-
-    expensiveCalculation.lastData = data;
-    expensiveCalculation.lastResult = result;
-    return result;
-}
-```
-
-### Pattern 2: Debounce and Throttle
-
-**When to use**: Frequent events like scroll, resize, input
-
-```javascript
-// Debounce: Execute after delay when events stop
-function debounce(fn, delay) {
-    let timeoutId;
-    return function(...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn.apply(this, args), delay);
-    };
-}
-
-// Good: Debounced search
-const searchInput = document.getElementById('search');
-const debouncedSearch = debounce(async (query) => {
-    const results = await fetchSearchResults(query);
-    displayResults(results);
-}, 300);
-
-searchInput.addEventListener('input', (e) => {
-    debouncedSearch(e.target.value);
-});
-
-// Throttle: Execute at most once per interval
-function throttle(fn, interval) {
-    let lastTime = 0;
-    return function(...args) {
-        const now = Date.now();
-        if (now - lastTime >= interval) {
-            lastTime = now;
-            fn.apply(this, args);
-        }
-    };
-}
-
-// Good: Throttled scroll handler
-const throttledScroll = throttle(() => {
-    updateScrollPosition();
-}, 100);
-
-window.addEventListener('scroll', throttledScroll);
-```
-
-### Pattern 3: Lazy Loading
-
-**When to use**: Large modules, images, or data not needed immediately
-
-```javascript
-// Bad: Import everything upfront
-import { heavyChartLibrary } from 'chart-lib';
-import { pdfGenerator } from 'pdf-lib';
-
-// Good: Dynamic imports
-async function showChart(data) {
-    const { heavyChartLibrary } = await import('chart-lib');
-    return heavyChartLibrary.render(data);
-}
-
-// Good: Lazy load images with Intersection Observer
-function lazyLoadImages() {
-    const images = document.querySelectorAll('img[data-src]');
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                img.removeAttribute('data-src');
-                observer.unobserve(img);
-            }
-        });
-    });
-
-    images.forEach(img => observer.observe(img));
-}
-
-// Good: Lazy load data on scroll
-class InfiniteScroll {
-    constructor(container, loadMore) {
-        this.container = container;
-        this.loadMore = loadMore;
-        this.loading = false;
-
-        this.observer = new IntersectionObserver(
-            (entries) => this.handleIntersect(entries),
-            { rootMargin: '100px' }
-        );
-
-        this.observer.observe(this.container.lastElementChild);
-    }
-
-    async handleIntersect(entries) {
-        if (entries[0].isIntersecting && !this.loading) {
-            this.loading = true;
-            await this.loadMore();
-            this.loading = false;
-            this.observer.observe(this.container.lastElementChild);
-        }
-    }
-}
-```
-
-### Pattern 4: Web Workers
-
-**When to use**: CPU-intensive tasks that would block the main thread
-
-```javascript
-// Bad: Blocking the main thread
-function processLargeDataset(data) {
-    return data.map(item => expensiveOperation(item));
-}
-
-// Good: Offload to Web Worker
-// worker.js
-self.onmessage = function(e) {
-    const { data, operation } = e.data;
-
-    let result;
-    switch (operation) {
-        case 'sort':
-            result = data.sort((a, b) => a.value - b.value);
-            break;
-        case 'filter':
-            result = data.filter(item => item.active);
-            break;
-        case 'transform':
-            result = data.map(item => expensiveTransform(item));
-            break;
-    }
-
-    self.postMessage(result);
-};
-
-// main.js
-class DataProcessor {
-    constructor() {
-        this.worker = new Worker('worker.js');
-    }
-
-    process(data, operation) {
-        return new Promise((resolve, reject) => {
-            this.worker.onmessage = (e) => resolve(e.data);
-            this.worker.onerror = (e) => reject(e);
-            this.worker.postMessage({ data, operation });
-        });
-    }
-
-    terminate() {
-        this.worker.terminate();
-    }
-}
-
-// Usage
-const processor = new DataProcessor();
-const sortedData = await processor.process(largeArray, 'sort');
-```
-
-### Pattern 5: Efficient DOM Operations
-
-**When to use**: Any DOM manipulation, especially in loops
-
-```javascript
-// Bad: Multiple reflows
-function addItems(items) {
-    const container = document.getElementById('list');
-    items.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item.name;
-        container.appendChild(li); // Reflow on each append
-    });
-}
-
-// Good: Use DocumentFragment
-function addItems(items) {
-    const container = document.getElementById('list');
-    const fragment = document.createDocumentFragment();
-
-    items.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = item.name;
-        fragment.appendChild(li);
-    });
-
-    container.appendChild(fragment); // Single reflow
-}
-
-// Good: Batch style changes
-function updateStyles(elements, styles) {
-    // Bad: Multiple reflows
-    // elements.forEach(el => {
-    //     el.style.width = styles.width;
-    //     el.style.height = styles.height;
-    //     el.style.margin = styles.margin;
-    // });
-
-    // Good: Use CSS class
-    elements.forEach(el => el.classList.add('updated-style'));
-}
-
-// Good: Use requestAnimationFrame for visual updates
-function animateElement(element, targetX) {
-    let currentX = 0;
-
-    function step() {
-        currentX += (targetX - currentX) * 0.1;
-        element.style.transform = `translateX(${currentX}px)`;
-
-        if (Math.abs(targetX - currentX) > 0.1) {
-            requestAnimationFrame(step);
-        }
-    }
-
-    requestAnimationFrame(step);
-}
-
-// Good: Virtual scrolling for large lists
-class VirtualList {
-    constructor(container, items, itemHeight) {
-        this.container = container;
-        this.items = items;
-        this.itemHeight = itemHeight;
-        this.visibleCount = Math.ceil(container.clientHeight / itemHeight) + 2;
-
-        this.container.addEventListener('scroll', () => this.render());
-        this.render();
-    }
-
-    render() {
-        const scrollTop = this.container.scrollTop;
-        const startIndex = Math.floor(scrollTop / this.itemHeight);
-        const endIndex = startIndex + this.visibleCount;
-
-        // Only render visible items
-        const visibleItems = this.items.slice(startIndex, endIndex);
-        // ... render logic
-    }
-}
-```
+**See**: `references/anti-patterns.md` for detailed examples and solutions
 
 ---
 
-## 7. Security Standards
+## 7. References
 
-### 7.1 Critical Vulnerabilities
+Detailed documentation available in `references/` directory:
 
-**1. Cross-Site Scripting (XSS)**
-- Always use `textContent` over `innerHTML` for user content
-- Sanitize HTML with DOMPurify if HTML rendering is required
-- Set Content Security Policy headers
-
-**2. Prototype Pollution**
-- Never trust user-controlled object keys
-- Blacklist `__proto__`, `constructor`, `prototype`
-- Use Object.assign() or spread operator for safe merging
-
-**3. Regular Expression Denial of Service (ReDoS)**
-- Avoid catastrophic backtracking patterns
-- Test regex with long inputs
-- Implement timeout for user-provided regex
-
-**4. Insecure Randomness**
-- Never use Math.random() for security (tokens, session IDs)
-- Use crypto.randomBytes() in Node.js
-- Use crypto.getRandomValues() in browsers
-
-**5. Dependency Vulnerabilities**
-- Run npm audit before every deployment
-- Use Dependabot or Snyk for continuous monitoring
-- Keep dependencies up to date
+- **`async-patterns.md`** - Comprehensive async/await patterns, Promise handling, retry logic, timeout patterns
+- **`security-examples.md`** - XSS prevention, prototype pollution, OWASP Top 10 mapping, secure authentication
+- **`performance-optimization.md`** - Memoization, debounce/throttle, lazy loading, Web Workers, DOM optimization
+- **`anti-patterns.md`** - Common mistakes and how to avoid them
+- **`testing-examples.md`** - Unit tests, integration tests, mocking, DOM testing
 
 ---
 
-### 7.2 OWASP Top 10 2025 Mapping
-
-| OWASP ID | Category | Risk | Quick Mitigation |
-|----------|----------|------|------------------|
-| A01:2025 | Broken Access Control | Critical | Server-side validation |
-| A02:2025 | Security Misconfiguration | High | Secure headers, disable debug |
-| A03:2025 | Supply Chain Failures | High | npm audit, lock files |
-| A04:2025 | Insecure Design | Medium | Threat modeling |
-| A05:2025 | Identification & Auth | Critical | httpOnly cookies |
-| A06:2025 | Vulnerable Components | High | Dependency scanning |
-| A07:2025 | Cryptographic Failures | Critical | Use crypto module |
-| A08:2025 | Injection | Critical | Sanitize inputs |
-| A09:2025 | Logging Failures | Medium | Structured logging |
-| A10:2025 | Exception Handling | Medium | Proper error handling |
-
----
-
-## 8. Testing
-
-### Unit Testing with Vitest/Jest
-
-```javascript
-// Setup: vitest.config.js
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-    test: {
-        environment: 'jsdom',
-        coverage: {
-            provider: 'v8',
-            reporter: ['text', 'json', 'html'],
-            threshold: {
-                branches: 80,
-                functions: 80,
-                lines: 80,
-                statements: 80
-            }
-        }
-    }
-});
-
-// Example tests
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-describe('UserService', () => {
-    let service;
-    let mockFetch;
-
-    beforeEach(() => {
-        mockFetch = vi.fn();
-        global.fetch = mockFetch;
-        service = new UserService();
-    });
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-    });
-
-    it('should fetch user successfully', async () => {
-        const mockUser = { id: 1, name: 'John' };
-        mockFetch.mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve(mockUser)
-        });
-
-        const user = await service.getUser(1);
-
-        expect(mockFetch).toHaveBeenCalledWith('/api/users/1');
-        expect(user).toEqual(mockUser);
-    });
-
-    it('should handle fetch errors', async () => {
-        mockFetch.mockResolvedValue({
-            ok: false,
-            status: 404,
-            statusText: 'Not Found'
-        });
-
-        await expect(service.getUser(999))
-            .rejects
-            .toThrow('User not found');
-    });
-
-    it('should handle network errors', async () => {
-        mockFetch.mockRejectedValue(new Error('Network error'));
-
-        await expect(service.getUser(1))
-            .rejects
-            .toThrow('Network error');
-    });
-});
-
-// Testing async functions
-describe('Async operations', () => {
-    it('should handle Promise.all correctly', async () => {
-        const results = await Promise.all([
-            fetchData('a'),
-            fetchData('b')
-        ]);
-
-        expect(results).toHaveLength(2);
-    });
-
-    it('should timeout long operations', async () => {
-        vi.useFakeTimers();
-
-        const promise = timeoutOperation(1000);
-        vi.advanceTimersByTime(1000);
-
-        await expect(promise).rejects.toThrow('Timeout');
-
-        vi.useRealTimers();
-    });
-});
-```
-
-### Integration Testing
-
-```javascript
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { createServer } from '../server';
-
-describe('API Integration', () => {
-    let server;
-    let baseUrl;
-
-    beforeAll(async () => {
-        server = await createServer();
-        baseUrl = `http://localhost:${server.address().port}`;
-    });
-
-    afterAll(async () => {
-        await server.close();
-    });
-
-    it('should create and fetch user', async () => {
-        // Create user
-        const createRes = await fetch(`${baseUrl}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: 'Test User' })
-        });
-
-        const created = await createRes.json();
-        expect(created.id).toBeDefined();
-
-        // Fetch user
-        const fetchRes = await fetch(`${baseUrl}/api/users/${created.id}`);
-        const fetched = await fetchRes.json();
-
-        expect(fetched.name).toBe('Test User');
-    });
-});
-```
-
-### DOM Testing
-
-```javascript
-import { describe, it, expect, beforeEach } from 'vitest';
-import { JSDOM } from 'jsdom';
-
-describe('DOM manipulation', () => {
-    let document;
-
-    beforeEach(() => {
-        const dom = new JSDOM('<!DOCTYPE html><div id="app"></div>');
-        document = dom.window.document;
-    });
-
-    it('should render list items', () => {
-        const app = document.getElementById('app');
-        const items = ['a', 'b', 'c'];
-
-        renderList(app, items);
-
-        const listItems = app.querySelectorAll('li');
-        expect(listItems.length).toBe(3);
-        expect(listItems[0].textContent).toBe('a');
-    });
-
-    it('should handle click events', () => {
-        const button = document.createElement('button');
-        let clicked = false;
-
-        button.addEventListener('click', () => { clicked = true; });
-        button.click();
-
-        expect(clicked).toBe(true);
-    });
-});
-```
-
----
-
-## 9. Common Mistakes
-
-### Mistake 1: Unhandled Promise Rejections
-
-```javascript
-// DON'T
-fetch('/api/data').then(res => res.json());
-
-// DO
-fetch('/api/data')
-    .then(res => res.json())
-    .catch(err => console.error('Failed:', err));
-```
-
-### Mistake 2: Memory Leaks from Event Listeners
-
-```javascript
-// DON'T
-function setupWidget() {
-    const button = document.getElementById('btn');
-    button.addEventListener('click', handleClick);
-}
-
-// DO
-function setupWidget() {
-    const button = document.getElementById('btn');
-    const handleClick = () => { /* ... */ };
-    button.addEventListener('click', handleClick);
-
-    return {
-        destroy() {
-            button.removeEventListener('click', handleClick);
-        }
-    };
-}
-```
-
-### Mistake 3: Using var
-
-```javascript
-// DON'T
-for (var i = 0; i < 5; i++) {
-    setTimeout(() => console.log(i), 100);
-}
-
-// DO
-for (let i = 0; i < 5; i++) {
-    setTimeout(() => console.log(i), 100);
-}
-```
-
-### Mistake 4: Loose Equality
-
-```javascript
-// DON'T
-if (value == '0') { }
-
-// DO
-if (value === '0') { }
-```
-
-### Mistake 5: Blocking Event Loop
-
-```javascript
-// DON'T
-function processLargeData(data) {
-    for (let i = 0; i < 1000000; i++) {
-        complexCalculation(data[i]);
-    }
-}
-
-// DO
-const worker = new Worker('processor.js');
-worker.postMessage(data);
-```
-
----
-
-## 10. Checklist
+## 8. Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -1115,15 +473,15 @@ worker.postMessage(data);
 
 ---
 
-## 11. Summary
+## 9. Summary
 
 You are a JavaScript expert focused on:
 1. **TDD workflow** - Tests first, then implementation
-2. **Modern ES6+ patterns**
-3. **Security-first development** (XSS, prototype pollution prevention)
-4. **Async mastery** (promises, error handling)
-5. **Performance optimization** (memoization, lazy loading, Web Workers)
-6. **Production quality** (testing, monitoring)
+2. **Modern ES6+ patterns** - const/let, arrow functions, destructuring, optional chaining
+3. **Security-first development** - XSS, prototype pollution prevention
+4. **Async mastery** - promises, error handling, parallel operations
+5. **Performance optimization** - memoization, lazy loading, Web Workers
+6. **Production quality** - testing, monitoring, proper error handling
 
 **Key principles**:
 - Write tests before implementation

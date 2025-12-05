@@ -1,8 +1,113 @@
 # Tailwind CSS Advanced Patterns
 
-## Complex Layouts
+## 1. Implementation Patterns
 
-### HUD Dashboard Grid
+### 1.1 HUD Panel Component
+
+```vue
+<template>
+  <div class="
+    relative
+    bg-jarvis-bg-panel/80
+    border border-jarvis-primary/30
+    rounded-lg
+    p-4
+    backdrop-blur-sm
+    shadow-lg shadow-jarvis-primary/10
+  ">
+    <!-- Scanline overlay -->
+    <div class="
+      absolute inset-0
+      bg-gradient-to-b from-transparent via-jarvis-primary/5 to-transparent
+      animate-scan
+      pointer-events-none
+    " />
+
+    <!-- Content -->
+    <div class="relative z-10">
+      <h3 class="
+        font-display
+        text-jarvis-primary
+        text-lg
+        uppercase
+        tracking-wider
+        mb-2
+      ">
+        {{ title }}
+      </h3>
+      <slot />
+    </div>
+  </div>
+</template>
+```
+
+**Use Case**: Primary container for JARVIS HUD sections with holographic effects.
+
+**Key Features**:
+- Semi-transparent background with backdrop blur
+- Animated scanline overlay for HUD aesthetic
+- Border glow using primary color
+- Z-index layering for content over effects
+
+### 1.2 Status Indicator
+
+```vue
+<template>
+  <div class="flex items-center gap-2">
+    <span :class="[
+      'w-2 h-2 rounded-full',
+      {
+        'bg-jarvis-primary animate-pulse': status === 'active',
+        'bg-jarvis-warning': status === 'warning',
+        'bg-jarvis-danger animate-ping': status === 'error',
+        'bg-gray-500': status === 'inactive'
+      }
+    ]" />
+    <span class="text-sm text-gray-300">{{ label }}</span>
+  </div>
+</template>
+```
+
+**Use Case**: Visual status indicators with color-coded states.
+
+**Key Features**:
+- Dynamic color binding based on status
+- Animation for active/error states
+- Accessible with text labels
+- Small footprint for inline use
+
+### 1.3 Button Variants
+
+```vue
+<template>
+  <button :class="[
+    'px-4 py-2 rounded font-medium transition-all duration-200',
+    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-jarvis-bg-dark',
+    {
+      'bg-jarvis-primary text-black hover:bg-jarvis-primary/90 focus:ring-jarvis-primary':
+        variant === 'primary',
+      'bg-transparent border border-jarvis-secondary text-jarvis-secondary hover:bg-jarvis-secondary/10 focus:ring-jarvis-secondary':
+        variant === 'secondary',
+      'bg-jarvis-danger text-white hover:bg-jarvis-danger/90 focus:ring-jarvis-danger':
+        variant === 'danger'
+    }
+  ]">
+    <slot />
+  </button>
+</template>
+```
+
+**Use Case**: Consistent button styling with multiple variants.
+
+**Key Features**:
+- Primary, secondary, and danger variants
+- Hover state transitions
+- Accessible focus rings
+- Consistent spacing and typography
+
+## 2. Complex Layouts
+
+### 2.1 HUD Dashboard Grid
 
 ```vue
 <template>
@@ -41,9 +146,17 @@
 </template>
 ```
 
-## Custom Animations
+**Use Case**: Full-screen dashboard layout with multiple panels.
 
-### Glitch Effect
+**Key Features**:
+- 12-column grid system for precise layout control
+- Full viewport height
+- Status bar spanning full width
+- Responsive sidebar widths
+
+## 3. Custom Animations
+
+### 3.1 Glitch Effect
 
 ```javascript
 // tailwind.config.js
@@ -67,7 +180,16 @@ keyframes: {
 }
 ```
 
-## Responsive HUD
+**Use Case**: Holographic glitch effects for HUD elements.
+
+**Usage**:
+```vue
+<div class="animate-glitch">Glitching Text</div>
+```
+
+## 4. Responsive HUD
+
+### 4.1 Mobile-First Layout
 
 ```vue
 <template>
@@ -95,7 +217,17 @@ keyframes: {
 </template>
 ```
 
-## Plugin: Holographic Glow
+**Use Case**: Responsive HUD that adapts to mobile and desktop.
+
+**Key Features**:
+- Vertical layout on mobile, horizontal on desktop
+- Scrollable sidebar on mobile
+- Flexible main content area
+- Minimum heights for proper rendering
+
+## 5. Custom Plugins
+
+### 5.1 Holographic Glow Plugin
 
 ```javascript
 // plugins/holographic.js
@@ -117,4 +249,20 @@ module.exports = plugin(function({ addUtilities, theme }) {
 
   addUtilities(glows)
 })
+```
+
+**Use Case**: Generate glow utilities from theme colors.
+
+**Usage**:
+```vue
+<div class="glow-primary">Glowing box</div>
+<h1 class="text-glow-primary">Glowing text</h1>
+```
+
+**Configuration**:
+```javascript
+// tailwind.config.js
+plugins: [
+  require('./plugins/holographic')
+]
 ```

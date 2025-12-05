@@ -6,35 +6,83 @@ risk_level: HIGH
 
 # Tauri Desktop Framework Skill
 
-## File Organization
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any Tauri code**
+
+### Verification Requirements
+
+When using this skill to implement Tauri features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official Tauri documentation (tauri.app)
+   - ✅ Confirm capability syntax is current for Tauri 2.0+
+   - ✅ Validate IPC patterns against official guides
+   - ❌ Never guess configuration options
+   - ❌ Never invent capability names
+   - ❌ Never assume CSP directives without checking
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing Tauri configuration files
+   - 🔍 Grep: Search for similar IPC command patterns
+   - 🔍 WebSearch: Verify specs in official Tauri docs
+   - 🔍 WebFetch: Read official documentation pages
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY Tauri config/capability/pattern
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in Tauri can cause security vulnerabilities, privilege escalation, or XSS attacks
+
+4. **Common Tauri Hallucination Traps** (AVOID)
+   - ❌ Invented capability identifiers (e.g., "fs:allow-all")
+   - ❌ Made-up CSP directives
+   - ❌ Non-existent IPC command patterns
+   - ❌ Incorrect path variable names ($APP, $HOME instead of $APPDATA, $RESOURCE)
+   - ❌ Mixing Tauri 1.x and 2.x syntax
+
+### Validation Gates
+
+#### Gate 0.1: Domain Expertise Validation
+- **Status**: PASSED
+- **Expertise Areas**: IPC security, capabilities system, CSP, plugin architecture, window management
+
+#### Gate 0.2: Vulnerability Research (BLOCKING for HIGH-RISK)
+- **Status**: PASSED (5+ CVEs documented)
+- **Research Date**: 2025-11-20
+- **CVEs Documented**: CVE-2024-35222, CVE-2024-24576, CVE-2023-46115, CVE-2023-34460, CVE-2022-46171
+
+#### Gate 0.5: Hallucination Self-Check
+- **Status**: PASSED
+- **Verification**: All configurations tested against Tauri 2.0
+
+### Self-Check Checklist
+
+Before EVERY response with Tauri code:
+- [ ] All capability identifiers verified against Tauri 2.0 schema
+- [ ] CSP directives verified against current CSP spec
+- [ ] IPC patterns verified against official docs
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: Tauri code with hallucinated patterns causes security vulnerabilities. Always verify.
+
+---
+
+## 1. File Organization
 
 This skill uses a split structure for HIGH-RISK requirements:
 - **SKILL.md**: Core principles, patterns, and essential security (this file)
 - **references/security-examples.md**: Complete CVE details and OWASP implementations
 - **references/advanced-patterns.md**: Advanced Tauri patterns and plugins
 - **references/threat-model.md**: Attack scenarios and STRIDE analysis
-
-## Validation Gates
-
-### Gate 0.1: Domain Expertise Validation
-- **Status**: PASSED
-- **Expertise Areas**: IPC security, capabilities system, CSP, plugin architecture, window management
-
-### Gate 0.2: Vulnerability Research (BLOCKING for HIGH-RISK)
-- **Status**: PASSED (5+ CVEs documented)
-- **Research Date**: 2025-11-20
-- **CVEs Documented**: CVE-2024-35222, CVE-2024-24576, CVE-2023-46115, CVE-2023-34460, CVE-2022-46171
-
-### Gate 0.5: Hallucination Self-Check
-- **Status**: PASSED
-- **Verification**: All configurations tested against Tauri 2.0
-
-### Gate 0.11: File Organization Decision
-- **Decision**: Split structure (HIGH-RISK, ~500 lines main + extensive references)
+- **references/performance-optimization.md**: Performance patterns and optimization strategies
+- **references/anti-patterns.md**: Common mistakes and anti-patterns to avoid
+- **references/testing-guide.md**: Comprehensive testing strategies
+- **references/ipc-patterns.md**: IPC communication patterns and best practices
 
 ---
 
-## 1. Overview
+## 2. Overview
 
 **Risk Level**: HIGH
 
@@ -52,7 +100,7 @@ You are an expert in Tauri desktop application development with deep understandi
 
 ---
 
-## 2. Core Responsibilities
+## 3. Core Responsibilities
 
 ### Fundamental Principles
 
@@ -77,7 +125,7 @@ You are an expert in Tauri desktop application development with deep understandi
 
 ---
 
-## 3. Technical Foundation
+## 4. Technical Foundation
 
 ### Version Recommendations
 
@@ -103,7 +151,7 @@ src-tauri/
 
 ---
 
-## 4. Implementation Workflow (TDD)
+## 5. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -174,9 +222,11 @@ npm test
 npm run typecheck
 ```
 
+> **For comprehensive testing strategies, see `references/testing-guide.md`**
+
 ---
 
-## 5. Implementation Patterns
+## 6. Core Security Patterns
 
 ### Pattern 1: Minimal Capability Configuration
 
@@ -238,34 +288,26 @@ pub struct FileRequest {
 #[command]
 pub async fn read_file(request: FileRequest, app: AppHandle) -> Result<String, String> {
     request.validate().map_err(|e| format!("Validation error: {}", e))?;
-
     let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let full_path = app_dir.join(&request.path);
-    let canonical = dunce::canonicalize(&full_path).map_err(|_| "Invalid path")?;
-
-    // Security: ensure path is within app directory
+    let canonical = dunce::canonicalize(app_dir.join(&request.path)).map_err(|_| "Invalid path")?;
     if !canonical.starts_with(&app_dir) {
         return Err("Access denied: path traversal detected".into());
     }
-
     std::fs::read_to_string(canonical).map_err(|e| format!("Failed: {}", e))
 }
 ```
 
+> **For complete IPC patterns, see `references/ipc-patterns.md`**
+
 ### Pattern 4: Origin Verification
 
 ```rust
-use tauri::Window;
-
 #[command]
 pub async fn sensitive_operation(window: Window) -> Result<(), String> {
-    let url = window.url();
-    match url.origin() {
+    match window.url().origin() {
         url::Origin::Tuple(scheme, host, _) => {
-            if scheme != "tauri" && scheme != "https" {
-                return Err("Invalid origin".into());
-            }
-            if host.to_string() != "localhost" && host.to_string() != "tauri.localhost" {
+            if (scheme != "tauri" && scheme != "https") ||
+               (host.to_string() != "localhost" && host.to_string() != "tauri.localhost") {
                 return Err("Invalid origin".into());
             }
         }
@@ -278,8 +320,6 @@ pub async fn sensitive_operation(window: Window) -> Result<(), String> {
 ### Pattern 5: Secure Auto-Updater
 
 ```rust
-use tauri_plugin_updater::UpdaterExt;
-
 pub fn configure_updater(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let handle = app.handle().clone();
     tauri::async_runtime::spawn(async move {
@@ -296,114 +336,13 @@ pub fn configure_updater(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
 }
 ```
 
-> **For advanced patterns and plugin development, see `references/advanced-patterns.md`**
-
----
-
-## 6. Performance Patterns
-
-### Pattern 1: Async Commands for Heavy Operations
-
-```rust
-// BAD: Blocking the main thread
-#[command]
-fn process_file(path: String) -> Result<String, String> {
-    std::fs::read_to_string(path).map_err(|e| e.to_string())
-}
-
-// GOOD: Async with tokio
-#[command]
-async fn process_file(path: String) -> Result<String, String> {
-    tokio::fs::read_to_string(path).await.map_err(|e| e.to_string())
-}
-```
-
-### Pattern 2: Efficient IPC Serialization
-
-```rust
-// BAD: Large nested structures
-#[command]
-fn get_all_data() -> Result<Vec<ComplexObject>, String> {
-    // Returns megabytes of data
-}
-
-// GOOD: Paginated responses with minimal fields
-#[derive(serde::Serialize)]
-struct DataPage { items: Vec<MinimalItem>, cursor: Option<String> }
-
-#[command]
-async fn get_data_page(cursor: Option<String>, limit: usize) -> Result<DataPage, String> {
-    // Returns small batches
-}
-```
-
-### Pattern 3: Resource Cleanup and Lifecycle
-
-```rust
-// BAD: No cleanup on window close
-fn setup_handler(app: &mut App) {
-    let handle = app.handle().clone();
-    // Resources leak when window closes
-}
-
-// GOOD: Proper lifecycle management
-fn setup_handler(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
-    let handle = app.handle().clone();
-    app.on_window_event(move |window, event| {
-        if let tauri::WindowEvent::Destroyed = event {
-            // Cleanup resources for this window
-            cleanup_window_resources(window.label());
-        }
-    });
-    Ok(())
-}
-```
-
-### Pattern 4: State Management Optimization
-
-```rust
-// BAD: Cloning large state on every access
-#[command]
-fn get_state(state: State<'_, AppState>) -> AppState {
-    state.inner().clone()  // Expensive clone
-}
-
-// GOOD: Use Arc for shared state, return references
-use std::sync::Arc;
-
-#[command]
-fn get_config(state: State<'_, Arc<AppConfig>>) -> Arc<AppConfig> {
-    Arc::clone(state.inner())  // Cheap Arc clone
-}
-```
-
-### Pattern 5: Window Management Patterns
-
-```typescript
-// BAD: Creating windows without reuse
-async function showDialog() {
-    await new WebviewWindow('dialog', { url: '/dialog' })  // Creates new each time
-}
-
-// GOOD: Reuse existing windows
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
-
-async function showDialog() {
-    const existing = await WebviewWindow.getByLabel('dialog')
-    if (existing) {
-        await existing.show()
-        await existing.setFocus()
-    } else {
-        await new WebviewWindow('dialog', { url: '/dialog' })
-    }
-}
-```
+> **For advanced patterns, see `references/advanced-patterns.md` and `references/ipc-patterns.md`**
 
 ---
 
 ## 7. Security Standards
 
-### 5.1 Domain Vulnerability Landscape
+### 7.1 Domain Vulnerability Landscape
 
 **Research Date**: 2025-11-20
 
@@ -417,7 +356,7 @@ async function showDialog() {
 
 > **See `references/security-examples.md` for complete CVE details and mitigation code**
 
-### 5.2 OWASP Top 10 2025 Mapping
+### 7.2 OWASP Top 10 2025 Mapping
 
 | OWASP Category | Risk | Key Mitigations |
 |----------------|------|-----------------|
@@ -430,7 +369,7 @@ async function showDialog() {
 | A07 Auth Failures | MEDIUM | Origin verification |
 | A08 Data Integrity Failures | HIGH | Signed updates |
 
-### 5.3 Input Validation Framework
+### 7.3 Input Validation Framework
 
 ```rust
 use validator::Validate;
@@ -453,24 +392,20 @@ fn validate_path(path: &str) -> Result<(), validator::ValidationError> {
 }
 ```
 
-### 5.4 Secrets Management
+### 7.4 Secrets Management
 
-```json
-// NEVER in vite.config.ts - leaks TAURI_PRIVATE_KEY!
-{ "envPrefix": ["VITE_", "TAURI_"] }
-
-// GOOD: Only expose VITE_ variables
-{ "envPrefix": ["VITE_"] }
+```typescript
+// NEVER: { "envPrefix": ["VITE_", "TAURI_"] }  // Leaks TAURI_PRIVATE_KEY!
+// ALWAYS: { "envPrefix": ["VITE_"] }          // Only expose VITE_ variables
 ```
 
 ```rust
-// Load secrets at runtime, never hardcode
 fn get_api_key() -> Result<String, Error> {
     std::env::var("API_KEY").map_err(|_| Error::Configuration("API_KEY not set".into()))
 }
 ```
 
-### 5.5 Error Handling
+### 7.5 Error Handling
 
 ```rust
 use thiserror::Error;
@@ -485,7 +420,6 @@ pub enum AppError {
     Internal(#[source] anyhow::Error),
 }
 
-// Safe serialization - never expose internal details to frontend
 impl serde::Serialize for AppError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where S: serde::Serializer {
@@ -495,106 +429,11 @@ impl serde::Serialize for AppError {
 }
 ```
 
----
-
-## 6. Testing & Validation
-
-### Security Testing Checklist
-
-```bash
-npx tauri info                    # Check configuration
-cd src-tauri && cargo audit       # Audit dependencies
-npx tauri build --debug           # Check capability issues
-npm run test:security             # Test IPC boundaries
-```
-
-### Security Test Examples
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_path_traversal_blocked() {
-        let request = FileRequest { path: "../../../etc/passwd".to_string() };
-        assert!(request.validate().is_err());
-    }
-
-    #[tokio::test]
-    async fn test_unauthorized_access_blocked() {
-        let result = sensitive_operation(mock_window_bad_origin()).await;
-        assert!(result.unwrap_err().contains("Invalid origin"));
-    }
-}
-```
-
-> **For comprehensive test examples, see `references/security-examples.md`**
+> **See `references/threat-model.md` for attack scenarios; `references/anti-patterns.md` for common mistakes**
 
 ---
 
-## 8. Common Mistakes & Anti-Patterns
-
-### Anti-Pattern 1: Overly Permissive Capabilities
-
-```json
-// NEVER: Grants access to entire filesystem
-{ "permissions": ["fs:default", "fs:scope-home"] }
-
-// ALWAYS: Scope to specific directories
-{ "permissions": [{ "identifier": "fs:read-files", "allow": ["$APPDATA/myapp/*"] }] }
-```
-
-### Anti-Pattern 2: Disabled CSP
-
-```json
-// NEVER
-{ "security": { "csp": null } }
-
-// ALWAYS
-{ "security": { "csp": "default-src 'self'; script-src 'self'" } }
-```
-
-### Anti-Pattern 3: Shell Execution Enabled
-
-```json
-// NEVER
-{ "permissions": ["shell:allow-execute"] }
-
-// IF NEEDED: Strict allowlist only
-{
-  "permissions": [{
-    "identifier": "shell:allow-execute",
-    "allow": [{ "name": "git", "cmd": "git", "args": ["status"] }]
-  }]
-}
-```
-
-### Anti-Pattern 4: Exposing Tauri Keys
-
-```typescript
-// NEVER - leaks private keys!
-export default { envPrefix: ['VITE_', 'TAURI_'] }
-
-// ALWAYS
-export default { envPrefix: ['VITE_'] }
-```
-
-### Anti-Pattern 5: No IPC Validation
-
-```rust
-// NEVER: Direct use of user input
-#[command]
-fn read_file(path: String) -> String { std::fs::read_to_string(path).unwrap() }
-
-// ALWAYS: Validate and scope
-#[command]
-fn read_file(request: ValidatedFileRequest) -> Result<String, String> { /* ... */ }
-```
-
----
-
-## 13. Pre-Deployment Checklist
+## 8. Pre-Deployment Checklist
 
 ### Security Checklist
 
@@ -620,13 +459,33 @@ fn read_file(request: ValidatedFileRequest) -> Result<String, String> { /* ... *
 
 ---
 
-## 14. Summary
+## 9. References
+
+This skill provides comprehensive reference documentation:
+
+### Core References
+- **`references/advanced-patterns.md`**: Advanced Tauri patterns, plugin development, and complex scenarios
+- **`references/security-examples.md`**: Complete CVE details, OWASP implementations, and security test examples
+- **`references/threat-model.md`**: Attack scenarios, STRIDE analysis, and threat mitigation strategies
+
+### Implementation References
+- **`references/ipc-patterns.md`**: IPC communication patterns, command design, and type-safe patterns
+- **`references/performance-optimization.md`**: Performance patterns, optimization strategies, and resource management
+- **`references/anti-patterns.md`**: Common mistakes and anti-patterns to avoid
+
+### Testing & Validation
+- **`references/testing-guide.md`**: Comprehensive testing strategies, security tests, and CI/CD setup
+
+---
+
+## 10. Summary
 
 Your goal is to create Tauri applications that are:
 - **Secure by Default**: Minimal capabilities, restrictive CSP
 - **Defense in Depth**: Multiple security layers
 - **Validated**: All IPC inputs validated
 - **Transparent**: Signed updates, clear permissions
+- **Performant**: Async operations, efficient IPC
 
 **Security Reminder**:
 1. Never enable shell execution without strict allowlist
@@ -636,4 +495,4 @@ Your goal is to create Tauri applications that are:
 5. Sign updates and verify signatures
 6. Keep Tauri and Rust updated for security patches
 
-> **For attack scenarios and threat modeling, see `references/threat-model.md`**
+**When in doubt**: Consult the reference documentation for detailed examples and patterns.

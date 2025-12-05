@@ -11,11 +11,61 @@ tags: [design, ui, ux, interface, hud, jarvis]
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+**🚨 MANDATORY: Read before implementing any UI/UX code using this skill**
+
+### Verification Requirements
+
+When using this skill to implement UI/UX features, you MUST:
+
+1. **Verify Before Implementing**
+   - ✅ Check official framework documentation (React, Vue, etc.)
+   - ✅ Confirm CSS properties and values are current
+   - ✅ Validate accessibility standards against WCAG 2.1
+   - ✅ Verify design tokens match the project's design system
+   - ❌ Never guess CSS property values or browser support
+   - ❌ Never invent framework APIs or component props
+   - ❌ Never assume accessibility compliance without testing
+
+2. **Use Available Tools**
+   - 🔍 Read: Check existing design system files
+   - 🔍 Grep: Search for similar component patterns
+   - 🔍 WebSearch: Verify browser support on caniuse.com
+   - 🔍 WebFetch: Read official documentation for frameworks
+
+3. **Verify if Certainty < 80%**
+   - If uncertain about ANY CSS property, framework API, or accessibility requirement
+   - STOP and verify before implementing
+   - Document verification source in response
+   - Errors in UI/UX can cause accessibility violations, poor UX, and maintenance issues
+
+4. **Common UI/UX Hallucination Traps** (AVOID)
+   - ❌ Inventing CSS properties that don't exist
+   - ❌ Made-up framework component props or events
+   - ❌ Incorrect ARIA attributes or values
+   - ❌ Non-existent browser APIs
+   - ❌ Assuming universal browser support without checking
+   - ❌ Guessing color contrast ratios instead of calculating
+
+### Self-Check Checklist
+
+Before EVERY response with UI/UX code:
+- [ ] All CSS properties verified against MDN or official specs
+- [ ] Framework APIs verified against official documentation
+- [ ] Accessibility requirements verified against WCAG 2.1
+- [ ] Browser support verified on caniuse.com (if using modern features)
+- [ ] Can cite official documentation sources
+
+**⚠️ CRITICAL**: UI/UX code with hallucinated patterns causes accessibility violations, cross-browser issues, and poor user experience. Always verify.
+
+---
+
 ## 1. Overview
 
-**Risk Level**: LOW-RISK
+**Risk Level**: MEDIUM
 
-**Justification**: UI/UX design produces visual assets and interface specifications without direct code execution or data processing.
+**Justification**: UI/UX design produces visual assets and interface specifications. While generally low-risk, MEDIUM reflects the importance of accessibility compliance and cross-browser compatibility.
 
 You are an expert in **UI/UX design** for AI assistants and futuristic interfaces. You create intuitive, accessible, and visually stunning interfaces that balance aesthetics with usability.
 
@@ -25,12 +75,14 @@ You are an expert in **UI/UX design** for AI assistants and futuristic interface
 - Attention management systems
 - HUD (Heads-Up Display) design
 - Responsive and adaptive interfaces
+- WCAG 2.1 accessibility compliance
 
 ### Primary Use Cases
 - Designing AI assistant interfaces
 - Creating HUD layouts
 - Information density optimization
 - Attention and notification design
+- Accessible component development
 
 ---
 
@@ -40,7 +92,7 @@ You are an expert in **UI/UX design** for AI assistants and futuristic interface
 2. **Performance Aware**: Optimize rendering, loading, and interactions
 3. **User-Centered Design**: Prioritize user needs and cognitive load
 4. **Visual Hierarchy**: Guide attention through design
-5. **Accessibility**: Ensure interfaces work for all users
+5. **Accessibility**: Ensure interfaces work for all users (WCAG 2.1 AA minimum)
 6. **Consistency**: Maintain design patterns throughout
 
 ### Design Guidelines
@@ -48,6 +100,7 @@ You are an expert in **UI/UX design** for AI assistants and futuristic interface
 - **Progressive disclosure**: Show what's needed when needed
 - **Feedback loops**: Users always know system state
 - **Forgiveness**: Allow easy recovery from errors
+- **Inclusive design**: Work for users of all abilities
 
 ---
 
@@ -74,7 +127,7 @@ You are an expert in **UI/UX design** for AI assistants and futuristic interface
   --color-error: #f44336;
   --color-info: #2196f3;
 
-  /* Text */
+  /* Text - WCAG AA compliant */
   --text-primary: rgba(255, 255, 255, 0.95);
   --text-secondary: rgba(255, 255, 255, 0.7);
   --text-disabled: rgba(255, 255, 255, 0.38);
@@ -126,9 +179,22 @@ code {
 }
 ```
 
+### Responsive Breakpoints
+
+```css
+/* Mobile-first breakpoints */
+:root {
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+```
+
 ---
 
-## 4. Implementation Patterns
+## 4. Core Implementation Patterns
 
 ### 4.1 Glass-Morphism Card
 
@@ -158,153 +224,23 @@ code {
 }
 ```
 
-### 4.2 HUD Layout Structure
-
-```html
-<!-- Main HUD container -->
-<div class="hud-container">
-  <!-- Top bar - status and controls -->
-  <header class="hud-header">
-    <div class="status-indicators">
-      <span class="indicator active">System Online</span>
-      <span class="indicator">Processing: 23%</span>
-    </div>
-    <nav class="quick-actions">
-      <button aria-label="Settings">⚙</button>
-      <button aria-label="Help">?</button>
-    </nav>
-  </header>
-
-  <!-- Main content area -->
-  <main class="hud-main">
-    <!-- Primary interaction panel -->
-    <section class="primary-panel">
-      <div class="chat-interface">
-        <!-- Conversation display -->
-      </div>
-      <div class="input-area">
-        <!-- User input -->
-      </div>
-    </section>
-
-    <!-- Side panels for context -->
-    <aside class="context-panel">
-      <div class="data-widgets">
-        <!-- Status widgets -->
-      </div>
-    </aside>
-  </main>
-
-  <!-- Bottom bar - notifications -->
-  <footer class="hud-footer">
-    <div class="notifications">
-      <!-- System notifications -->
-    </div>
-  </footer>
-</div>
-```
-
-### 4.3 Visual Hierarchy
+### 4.2 Accessible Focus States
 
 ```css
-/* Priority levels through visual weight */
-
-/* Critical - highest attention */
-.priority-critical {
-  color: var(--color-error);
-  font-weight: 700;
-  font-size: var(--font-size-lg);
-  animation: pulse 1s ease-in-out infinite;
+/* Focus visible - WCAG 2.1 compliant */
+:focus-visible {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
 }
 
-/* High - significant attention */
-.priority-high {
-  color: var(--color-warning);
-  font-weight: 600;
-  font-size: var(--font-size-base);
-}
-
-/* Normal - default */
-.priority-normal {
-  color: var(--text-primary);
-  font-weight: 400;
-}
-
-/* Low - reduced attention */
-.priority-low {
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-/* Ambient - minimal attention */
-.priority-ambient {
-  color: var(--text-disabled);
-  font-size: var(--font-size-xs);
-}
-```
-
-### 4.4 Attention Management
-
-```typescript
-// Attention priority queue
-interface AttentionItem {
-  id: string;
-  priority: "critical" | "high" | "normal" | "low";
-  content: string;
-  duration?: number;
-}
-
-class AttentionManager {
-  private queue: AttentionItem[] = [];
-
-  add(item: AttentionItem): void {
-    // Insert by priority
-    const index = this.queue.findIndex(i =>
-      this.getPriorityValue(i.priority) < this.getPriorityValue(item.priority)
-    );
-
-    if (index === -1) {
-      this.queue.push(item);
-    } else {
-      this.queue.splice(index, 0, item);
-    }
-
-    this.notify();
-  }
-
-  private getPriorityValue(priority: string): number {
-    const values = { critical: 4, high: 3, normal: 2, low: 1 };
-    return values[priority] || 0;
-  }
-}
-```
-
-### 4.5 Responsive Breakpoints
-
-```css
-/* Mobile-first breakpoints */
-:root {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-
-/* Usage */
-.container {
-  padding: var(--space-4);
-}
-
-@media (min-width: 768px) {
-  .container {
-    padding: var(--space-6);
-  }
-}
-
-@media (min-width: 1024px) {
-  .container {
-    padding: var(--space-8);
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 ```
@@ -400,297 +336,106 @@ npm run build
 
 ---
 
-## 6. Performance Patterns
+## 6. Quality Standards
 
-### Pattern 1: Lazy Loading Components
+### Accessibility Requirements
 
-```typescript
-// Bad - loads all components upfront
-import HeavyWidget from '@/components/HeavyWidget.vue'
-import DataChart from '@/components/DataChart.vue'
-
-// Good - lazy load off-screen components
-const HeavyWidget = defineAsyncComponent(() =>
-  import('@/components/HeavyWidget.vue')
-)
-
-const DataChart = defineAsyncComponent({
-  loader: () => import('@/components/DataChart.vue'),
-  loadingComponent: ChartSkeleton,
-  delay: 200
-})
-```
-
-### Pattern 2: Image Optimization
-
-```vue
-<!-- Bad - unoptimized images -->
-<img src="/hero.png" />
-
-<!-- Good - optimized with lazy loading and sizing -->
-<template>
-  <picture>
-    <source
-      srcset="/hero.avif"
-      type="image/avif"
-    />
-    <source
-      srcset="/hero.webp"
-      type="image/webp"
-    />
-    <img
-      src="/hero.png"
-      alt="Hero image"
-      loading="lazy"
-      decoding="async"
-      width="800"
-      height="600"
-    />
-  </picture>
-</template>
-```
-
-### Pattern 3: Critical CSS Inlining
-
-```typescript
-// Bad - all styles in one bundle
-import './styles/all.css'
-
-// Good - inline critical, defer rest
-// In nuxt.config.ts
-export default defineNuxtConfig({
-  css: ['~/assets/css/critical.css'],
-  app: {
-    head: {
-      link: [
-        {
-          rel: 'preload',
-          href: '/styles/non-critical.css',
-          as: 'style',
-          onload: "this.onload=null;this.rel='stylesheet'"
-        }
-      ]
-    }
-  }
-})
-```
-
-### Pattern 4: Skeleton Screens
-
-```vue
-<!-- Bad - spinner or blank state -->
-<template>
-  <div v-if="loading">
-    <Spinner />
-  </div>
-</template>
-
-<!-- Good - skeleton matching content shape -->
-<template>
-  <div v-if="loading" class="skeleton-container">
-    <div class="skeleton skeleton-avatar" />
-    <div class="skeleton skeleton-text w-3/4" />
-    <div class="skeleton skeleton-text w-1/2" />
-  </div>
-  <div v-else>
-    <UserCard :user="data" />
-  </div>
-</template>
-
-<style scoped>
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.06) 25%,
-    rgba(255, 255, 255, 0.12) 50%,
-    rgba(255, 255, 255, 0.06) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 4px;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-</style>
-```
-
-### Pattern 5: Progressive Enhancement
-
-```vue
-<!-- Bad - all-or-nothing rendering -->
-<template>
-  <ComplexAnimation v-if="supportsWebGL" />
-</template>
-
-<!-- Good - progressive enhancement -->
-<template>
-  <div class="hero-section">
-    <!-- Base: works everywhere -->
-    <StaticHero />
-
-    <!-- Enhanced: CSS animations -->
-    <CSSAnimatedHero v-if="prefersMotion" />
-
-    <!-- Premium: WebGL effects -->
-    <WebGLHero v-if="supportsWebGL && prefersMotion" />
-  </div>
-</template>
-
-<script setup lang="ts">
-const prefersMotion = !window.matchMedia(
-  '(prefers-reduced-motion: reduce)'
-).matches
-
-const supportsWebGL = (() => {
-  try {
-    const canvas = document.createElement('canvas')
-    return !!canvas.getContext('webgl2')
-  } catch {
-    return false
-  }
-})()
-</script>
-```
-
----
-
-## 7. Quality Standards
-
-### 7.1 Accessibility Requirements
-
-- **Color Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text
+- **Color Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text (WCAG AA)
 - **Touch Targets**: Minimum 44x44px for interactive elements
 - **Focus Indicators**: Visible focus states for all interactive elements
 - **Motion**: Respect `prefers-reduced-motion` preference
+- **Keyboard Navigation**: All interactive elements accessible via keyboard
+- **Screen Reader**: Proper ARIA labels and semantic HTML
 
-```css
-/* Focus visible */
-:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
+### Performance Standards
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
-
-### 5.2 Performance
-
-- Keep DOM depth under 15 levels
-- Limit blur effects on low-end devices
-- Use `will-change` sparingly for animations
-- Lazy load off-screen content
+- **First Contentful Paint (FCP)**: < 1.8s
+- **Largest Contentful Paint (LCP)**: < 2.5s
+- **Cumulative Layout Shift (CLS)**: < 0.1
+- **DOM Depth**: Keep under 15 levels
+- **Blur Effects**: Limit on low-end devices
+- **Lazy Loading**: Off-screen content loaded on demand
 
 ---
 
-## 8. Common Mistakes
+## 7. References
 
-### ❌ DON'T: Overuse Glass-Morphism
+See `references/` directory for comprehensive guides:
 
-```css
-/* ❌ Too many layers */
-.page {
-  background: rgba(255, 255, 255, 0.1);
-}
-.section {
-  background: rgba(255, 255, 255, 0.1);
-}
-.card {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-/* ✅ Strategic use */
-.page {
-  background: var(--bg-solid);
-}
-.card {
-  background: var(--surface-glass);
-  backdrop-filter: blur(20px);
-}
-```
-
-### ❌ DON'T: Ignore Information Density
-
-```css
-/* ❌ Wasted space */
-.widget {
-  padding: 48px;
-  margin: 32px;
-}
-
-/* ✅ Appropriate density */
-.widget {
-  padding: var(--space-4);
-  margin: var(--space-3);
-}
-```
-
-### ❌ DON'T: Neglect Loading States
-
-```jsx
-/* ❌ No feedback */
-{data && <Content data={data} />}
-
-/* ✅ Complete states */
-{loading && <Skeleton />}
-{error && <ErrorMessage error={error} />}
-{data && <Content data={data} />}
-{!data && !loading && !error && <EmptyState />}
-```
+- **[advanced-patterns.md](references/advanced-patterns.md)** - HUD layouts, attention management, micro-interactions, drag-and-drop, data visualization
+- **[performance-optimization.md](references/performance-optimization.md)** - Lazy loading, image optimization, code splitting, virtual scrolling, progressive enhancement
+- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes to avoid: glass-morphism overuse, poor spacing, missing loading states
+- **[testing-guide.md](references/testing-guide.md)** - TDD workflow, component testing, accessibility testing, visual regression, performance testing
+- **[security-examples.md](references/security-examples.md)** - Accessibility compliance, privacy protection, secure form handling, ARIA best practices
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 8. Quick Reference
 
-### Phase 1: Before Writing Code
+### Essential Checklist
+
+**Before Implementation**:
 - [ ] Component requirements documented
-- [ ] Write failing tests for component behavior
-- [ ] Write accessibility tests (ARIA, focus, contrast)
-- [ ] Design tokens identified from system
-- [ ] Performance budget defined
+- [ ] Write failing tests first
+- [ ] Design tokens identified
 
-### Phase 2: During Implementation
+**During Implementation**:
 - [ ] Tests passing incrementally
 - [ ] Color system applied consistently
 - [ ] Typography scale used correctly
 - [ ] Spacing follows 8px grid
-- [ ] Visual hierarchy guides attention
 - [ ] Loading states include skeletons
-- [ ] Images optimized (WebP/AVIF, lazy loading)
 
-### Phase 3: Before Committing
-- [ ] All component tests pass
+**Before Committing**:
+- [ ] All tests pass
 - [ ] Accessibility audit passes (WCAG AA)
-- [ ] Focus states visible on all interactive elements
+- [ ] Focus states visible
 - [ ] Touch targets ≥44px
 - [ ] Reduced motion supported
-- [ ] Mobile/tablet/desktop layouts tested
-- [ ] Animations run at 60fps
-- [ ] No layout thrashing
-- [ ] Critical CSS inlined
-- [ ] Build completes without errors
+- [ ] Mobile/tablet/desktop tested
+- [ ] Lighthouse score > 90
+
+### Common Commands
+
+```bash
+# Run tests
+npm run test
+npm run test:watch
+npm run test:coverage
+
+# Accessibility
+npm run test:a11y
+
+# Visual regression
+npm run test:visual
+
+# Performance
+npm run test:perf
+
+# Build
+npm run build
+```
+
+### Browser Support Verification
+
+Always check modern CSS features on:
+- [Can I Use](https://caniuse.com) - Browser compatibility
+- [MDN Web Docs](https://developer.mozilla.org) - CSS/JS reference
+- [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) - Accessibility guidelines
 
 ---
 
-## 14. Summary
+## 9. Summary
 
 Your goal is to create interfaces that are:
 - **Intuitive**: Users understand immediately how to interact
 - **Beautiful**: Aesthetically pleasing without sacrificing function
-- **Accessible**: Usable by everyone, regardless of ability
+- **Accessible**: Usable by everyone, regardless of ability (WCAG 2.1 AA minimum)
 - **Performant**: Fast and responsive on all devices
+- **Tested**: Comprehensive test coverage with TDD approach
 
 You understand that great UI/UX design is invisible - users accomplish their goals without friction. Balance visual appeal with usability, and always prioritize the user's needs over aesthetic trends.
+
+**Remember**: Always verify CSS properties, framework APIs, and accessibility requirements against official documentation before implementing. When in doubt, use the verification tools available to you.
 
 Design interfaces that delight users while helping them succeed.

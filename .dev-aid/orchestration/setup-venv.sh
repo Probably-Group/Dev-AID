@@ -159,10 +159,15 @@ install_dependencies() {
 
     print_success "All dependencies installed"
 
-    # Show installed packages
+    # Show installed packages (dynamically from requirements.txt)
     echo ""
     print_info "Installed packages:"
-    pip list | grep -E "(anthropic|google-generativeai|openai|python-dotenv|pydantic|rich|typer)" || true
+    # Extract main package names from requirements.txt (exclude comments and dependencies section)
+    local main_packages
+    main_packages=$(grep -v "^#" "$REQUIREMENTS" | grep -v "^$" | sed -n '/^# AI Provider SDKs/,/^# Dependencies of above/p' | grep -E "^[a-zA-Z]" | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | head -20 | tr '\n' '|' | sed 's/|$//')
+    if [[ -n "$main_packages" ]]; then
+        pip list | grep -E "($main_packages)" || true
+    fi
 
     deactivate
     return 0
@@ -184,11 +189,34 @@ test_installation() {
 
     print_info "Testing imports..."
 
-    # Test each package
-    local packages=("anthropic" "google.generativeai" "openai" "dotenv" "pydantic" "rich" "typer")
-    local failed=0
+    # Dynamically extract core packages from requirements.txt
+    # Note: google-generativeai imports as 'google.generativeai', python-dotenv as 'dotenv'
+    local -A import_map=(
+        ["google-generativeai"]="google.generativeai"
+        ["python-dotenv"]="dotenv"
+    )
 
-    for package in "${packages[@]}"; do
+    # Extract main package names (exclude comments, blank lines, and dependency section)
+    local packages_to_test=()
+    while IFS= read -r line; do
+        # Skip comments, blank lines, and dependency section
+        if [[ "$line" =~ ^#.*Dependencies\ of\ above ]]; then
+            break
+        fi
+        if [[ -n "$line" && ! "$line" =~ ^# ]]; then
+            # Extract package name (before ==, >=, etc.)
+            local pkg_name=$(echo "$line" | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | tr -d ' ')
+            if [[ -n "$pkg_name" ]]; then
+                # Use import name from map, or package name as-is
+                local import_name="${import_map[$pkg_name]:-$pkg_name}"
+                packages_to_test+=("$import_name")
+            fi
+        fi
+    done < "$REQUIREMENTS"
+
+    # Test each package
+    local failed=0
+    for package in "${packages_to_test[@]}"; do
         if python3 -c "import ${package}" 2>/dev/null; then
             print_success "$package"
         else

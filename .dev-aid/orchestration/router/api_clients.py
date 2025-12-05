@@ -9,12 +9,56 @@ Provides unified interface for:
 
 import logging
 import os
+import time
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Callable
 from dataclasses import dataclass
+from functools import wraps
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+
+def track_api_call(func: Callable) -> Callable:
+    """
+    Decorator to track API call timing and handle errors consistently.
+
+    This eliminates code duplication across all API clients by:
+    - Measuring request latency
+    - Handling exceptions with logging
+    - Converting provider exceptions to safe APIClientError
+    """
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        start_time = time.time()
+
+        try:
+            # Call the actual send_request implementation
+            response = func(self, *args, **kwargs)
+
+            # Calculate and attach latency if not already set
+            if response.latency_ms is None:
+                response.latency_ms = (time.time() - start_time) * 1000
+
+            return response
+
+        except APIClientError:
+            # Already a safe error, re-raise as-is
+            raise
+
+        except Exception as e:
+            # Log full error internally with provider context
+            provider = getattr(self, 'provider', 'unknown')
+            logger.error(
+                f"{provider.title()} API error: {type(e).__name__}: {str(e)}",
+                exc_info=True
+            )
+            # Raise safe error to user (no sensitive details)
+            raise APIClientError(
+                "Failed to communicate with AI provider. Please try again."
+            )
+
+    return wrapper
 
 
 class APIClientError(Exception):
@@ -116,6 +160,7 @@ class AnthropicClient(BaseAIClient):
                 "Install with: pip install anthropic"
             )
 
+    @track_api_call
     def send_request(
         self,
         messages: List[Message],
@@ -125,9 +170,6 @@ class AnthropicClient(BaseAIClient):
         **kwargs
     ) -> APIResponse:
         """Send request to Anthropic API"""
-
-        import time
-        start_time = time.time()
 
         # Convert messages to Anthropic format
         api_messages = []
@@ -156,38 +198,29 @@ class AnthropicClient(BaseAIClient):
         # Add any additional kwargs
         request_params.update(kwargs)
 
-        try:
-            # Make API call
-            response = self.client.messages.create(**request_params)
+        # Make API call (timing and error handling via decorator)
+        response = self.client.messages.create(**request_params)
 
-            latency_ms = (time.time() - start_time) * 1000
+        # Extract response data
+        content = response.content[0].text
+        input_tokens = response.usage.input_tokens
+        output_tokens = response.usage.output_tokens
 
-            # Extract response data
-            content = response.content[0].text
-            input_tokens = response.usage.input_tokens
-            output_tokens = response.usage.output_tokens
+        # Calculate cost
+        cost = self.calculate_cost(input_tokens, output_tokens)
 
-            # Calculate cost
-            cost = self.calculate_cost(input_tokens, output_tokens)
-
-            return APIResponse(
-                content=content,
-                model=model,
-                provider="anthropic",
-                tokens_used={"input": input_tokens, "output": output_tokens},
-                cost=cost,
-                latency_ms=latency_ms,
-                metadata={
-                    "stop_reason": response.stop_reason,
-                    "response_id": response.id
-                }
-            )
-
-        except Exception as e:
-            # Log full error internally
-            logger.error(f"Anthropic API error: {type(e).__name__}: {str(e)}", exc_info=True)
-            # Raise safe error to user
-            raise APIClientError("Failed to communicate with AI provider. Please try again.")
+        return APIResponse(
+            content=content,
+            model=model,
+            provider="anthropic",
+            tokens_used={"input": input_tokens, "output": output_tokens},
+            cost=cost,
+            latency_ms=None,  # Set by decorator
+            metadata={
+                "stop_reason": response.stop_reason,
+                "response_id": response.id
+            }
+        )
 
 
 class GoogleClient(BaseAIClient):
@@ -206,6 +239,7 @@ class GoogleClient(BaseAIClient):
                 "Install with: pip install google-generativeai"
             )
 
+    @track_api_call
     def send_request(
         self,
         messages: List[Message],
@@ -215,9 +249,6 @@ class GoogleClient(BaseAIClient):
         **kwargs
     ) -> APIResponse:
         """Send request to Google Gemini API"""
-
-        import time
-        start_time = time.time()
 
         # Create model instance
         gemini_model = self.genai.GenerativeModel(model)
@@ -247,72 +278,56 @@ class GoogleClient(BaseAIClient):
                 "max_output_tokens": max_tokens,
             }
 
-            try:
-                # Make API call
-                response = gemini_model.generate_content(
-                    prompt,
-                    generation_config=generation_config
-                )
+            # Make API call (timing and error handling via decorator)
+            response = gemini_model.generate_content(
+                prompt,
+                generation_config=generation_config
+            )
 
-                latency_ms = (time.time() - start_time) * 1000
+            # Extract response
+            content = response.text
 
-                # Extract response
-                content = response.text
+            # Gemini doesn't return token counts in all responses
+            # We'll estimate or use default values
+            input_tokens = len(prompt.split()) * 1.3  # Rough estimate
+            output_tokens = len(content.split()) * 1.3
 
-                # Gemini doesn't return token counts in all responses
-                # We'll estimate or use default values
-                input_tokens = len(prompt.split()) * 1.3  # Rough estimate
-                output_tokens = len(content.split()) * 1.3
+            # Calculate cost
+            cost = self.calculate_cost(int(input_tokens), int(output_tokens))
 
-                # Calculate cost
-                cost = self.calculate_cost(int(input_tokens), int(output_tokens))
-
-                return APIResponse(
-                    content=content,
-                    model=model,
-                    provider="google",
-                    tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
-                    cost=cost,
-                    latency_ms=latency_ms,
-                    metadata={
-                        "finish_reason": getattr(response.candidates[0], "finish_reason", None) if response.candidates else None
-                    }
-                )
-
-            except Exception as e:
-                # Log full error internally
-                logger.error(f"Google Gemini API error: {type(e).__name__}: {str(e)}", exc_info=True)
-                # Raise safe error to user
-                raise APIClientError("Failed to communicate with AI provider. Please try again.")
+            return APIResponse(
+                content=content,
+                model=model,
+                provider="google",
+                tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
+                cost=cost,
+                latency_ms=None,  # Set by decorator
+                metadata={
+                    "finish_reason": getattr(response.candidates[0], "finish_reason", None) if response.candidates else None
+                }
+            )
 
         else:
             # Multi-turn conversation
             chat = gemini_model.start_chat(history=conversation_parts[:-1])
             last_message = conversation_parts[-1]["parts"][0]
 
-            try:
-                response = chat.send_message(last_message)
-                latency_ms = (time.time() - start_time) * 1000
+            # Make API call (timing and error handling via decorator)
+            response = chat.send_message(last_message)
 
-                content = response.text
-                input_tokens = len(last_message.split()) * 1.3
-                output_tokens = len(content.split()) * 1.3
-                cost = self.calculate_cost(int(input_tokens), int(output_tokens))
+            content = response.text
+            input_tokens = len(last_message.split()) * 1.3
+            output_tokens = len(content.split()) * 1.3
+            cost = self.calculate_cost(int(input_tokens), int(output_tokens))
 
-                return APIResponse(
-                    content=content,
-                    model=model,
-                    provider="google",
-                    tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
-                    cost=cost,
-                    latency_ms=latency_ms
-                )
-
-            except Exception as e:
-                # Log full error internally
-                logger.error(f"Google Gemini API error: {type(e).__name__}: {str(e)}", exc_info=True)
-                # Raise safe error to user
-                raise APIClientError("Failed to communicate with AI provider. Please try again.")
+            return APIResponse(
+                content=content,
+                model=model,
+                provider="google",
+                tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
+                cost=cost,
+                latency_ms=None  # Set by decorator
+            )
 
 
 class OpenAIClient(BaseAIClient):
@@ -330,6 +345,7 @@ class OpenAIClient(BaseAIClient):
                 "Install with: pip install openai"
             )
 
+    @track_api_call
     def send_request(
         self,
         messages: List[Message],
@@ -340,53 +356,41 @@ class OpenAIClient(BaseAIClient):
     ) -> APIResponse:
         """Send request to OpenAI API"""
 
-        import time
-        start_time = time.time()
-
         # Convert messages to OpenAI format
         api_messages = [
             {"role": msg.role, "content": msg.content}
             for msg in messages
         ]
 
-        try:
-            # Make API call
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=api_messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                **kwargs
-            )
+        # Make API call (timing and error handling via decorator)
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=api_messages,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            **kwargs
+        )
 
-            latency_ms = (time.time() - start_time) * 1000
+        # Extract response data
+        content = response.choices[0].message.content
+        input_tokens = response.usage.prompt_tokens
+        output_tokens = response.usage.completion_tokens
 
-            # Extract response data
-            content = response.choices[0].message.content
-            input_tokens = response.usage.prompt_tokens
-            output_tokens = response.usage.completion_tokens
+        # Calculate cost
+        cost = self.calculate_cost(input_tokens, output_tokens)
 
-            # Calculate cost
-            cost = self.calculate_cost(input_tokens, output_tokens)
-
-            return APIResponse(
-                content=content,
-                model=model,
-                provider="openai",
-                tokens_used={"input": input_tokens, "output": output_tokens},
-                cost=cost,
-                latency_ms=latency_ms,
-                metadata={
-                    "finish_reason": response.choices[0].finish_reason,
-                    "response_id": response.id
-                }
-            )
-
-        except Exception as e:
-            # Log full error internally
-            logger.error(f"OpenAI API error: {type(e).__name__}: {str(e)}", exc_info=True)
-            # Raise safe error to user
-            raise APIClientError("Failed to communicate with AI provider. Please try again.")
+        return APIResponse(
+            content=content,
+            model=model,
+            provider="openai",
+            tokens_used={"input": input_tokens, "output": output_tokens},
+            cost=cost,
+            latency_ms=None,  # Set by decorator
+            metadata={
+                "finish_reason": response.choices[0].finish_reason,
+                "response_id": response.id
+            }
+        )
 
 
 def create_client(provider: str, api_key: str, model_config: Dict[str, Any]) -> BaseAIClient:

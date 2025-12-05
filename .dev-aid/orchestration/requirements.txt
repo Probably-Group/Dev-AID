@@ -53,7 +53,7 @@ flake8==7.1.1               # Linting
 certifi==2024.8.30          # SSL certificates
 charset-normalizer==3.4.0   # Character encoding detection
 idna==3.10                  # Internationalized domain names
-urllib3==2.2.3              # HTTP library
+urllib3==2.6.0              # HTTP library
 sniffio==1.3.1              # Async library detection
 anyio==4.7.0                # Async I/O library
 h11==0.16.0                 # HTTP/1.1 protocol (CVE-2025-43859 patched)

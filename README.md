@@ -6,6 +6,7 @@
 
 > The only AI development framework that works natively inside the tools you already use—no new CLIs to learn, no context switching, just enhanced capabilities where you code.
 
+*Built for developers who want AI superpowers without the workflow disruption.*
 ---
 
 ## 🎯 What is Dev-AID?
@@ -790,7 +791,7 @@ cat .dev-aid/config/routing.json
 Dev-AID builds on excellent open-source projects and incorporates patterns from the AI development community:
 
 ### Inspiration & Structure
-- **[martins-ai-template](https://github.com/martinholovsky/martins-ai-template)** by [Martin Holovsky](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
+- **[claude-skills-generator](https://github.com/martinholovsky/claude-skills-generator)** by [Martin Holovsky - Dev-AID author](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
 - **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 
 ### Core Technologies
@@ -805,16 +806,11 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 - **[OpenRouter](https://openrouter.ai/)** - Unified AI API access
 
 ### Security Tools
-- **[Opengrep (Semgrep OSS)](https://semgrep.dev/)** - SAST for OWASP Top 10
+- **[Opengrep (fork of Semgrep OSS)](https://www.opengrep.dev/)** - SAST for OWASP Top 10
 - **[Gitleaks](https://gitleaks.io/)** - Secrets detection
 - **[Trivy](https://trivy.dev/)** - Vulnerability scanning
 - **[Hadolint](https://hadolint.github.io/hadolint/)** - Dockerfile linting
 - **[Checkov](https://www.checkov.io/)** - IaC security
-
-**Special thanks** to:
-- Martin Holovsky for the foundational architecture patterns that made Dev-AID's multi-provider approach possible
-- The claude-context-local project for making truly local, cost-free semantic search possible
-- The claude-code-tresor project for security command patterns and DevSecOps best practices
 
 ---
 

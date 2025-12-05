@@ -57,12 +57,13 @@ class ContextBuilder:
 
         project_info = self._get_project_info()
         git_context = self._get_git_context()
+        active_skills = self._detect_active_skills()
 
         return DevAIDContext(
             memory_bank=memory_bank,
             project_info=project_info,
             git_context=git_context,
-            active_skills=None  # TODO: Implement skill detection
+            active_skills=active_skills
         )
 
     def _load_memory_bank(self) -> Dict[str, str]:
@@ -170,6 +171,66 @@ class ContextBuilder:
 
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, ValueError):
             # Git not available, timeout, or invalid path
+            return None
+
+    def _detect_active_skills(self) -> Optional[List[str]]:
+        """
+        Detect currently active skills using Dev-AID's context detection
+
+        Returns:
+            List of active skill names, or None if detection fails
+        """
+        import subprocess
+
+        try:
+            # Validate root path
+            safe_root = self._validate_safe_path(self.root)
+
+            # Path to orchestration scripts
+            orchestration_dir = safe_root / ".dev-aid" / "orchestration"
+            detect_context_script = orchestration_dir / "detect-context-enhanced.sh"
+            select_skills_script = orchestration_dir / "select-skills.sh"
+
+            # Fall back to basic detect-context.sh if enhanced version doesn't exist
+            if not detect_context_script.exists():
+                detect_context_script = orchestration_dir / "detect-context.sh"
+
+            # Check if scripts exist
+            if not detect_context_script.exists() or not select_skills_script.exists():
+                return None
+
+            # Step 1: Detect project context
+            context_output = subprocess.check_output(
+                [str(detect_context_script), str(safe_root)],
+                cwd=safe_root,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=10
+            ).strip()
+
+            if not context_output:
+                return None
+
+            # Step 2: Select skills based on context
+            skills_output = subprocess.check_output(
+                [str(select_skills_script), context_output, "10"],
+                cwd=safe_root,
+                stderr=subprocess.DEVNULL,
+                text=True,
+                timeout=5
+            ).strip()
+
+            if not skills_output:
+                return None
+
+            # Parse skills (one per line)
+            skills = [skill.strip() for skill in skills_output.split('\n') if skill.strip()]
+
+            return skills if skills else None
+
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, ValueError, Exception) as e:
+            # Skill detection failed, return None
+            # Don't raise exception - this is optional context
             return None
 
     async def gather_mcp_context(
@@ -355,6 +416,13 @@ class ContextBuilder:
         sections.append("# Project Context")
         sections.append(f"Project: {context.project_info['name']}")
         sections.append(f"Orchestration Mode: {context.project_info['orchestration_mode']}")
+
+        # Active skills
+        if context.active_skills:
+            sections.append(f"\n## Active Skills")
+            sections.append("The following Dev-AID skills are active for this project:")
+            for skill in context.active_skills:
+                sections.append(f"  - {skill}")
 
         if context.git_context:
             sections.append(f"\n## Git Context")

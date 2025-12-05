@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": {
+      "command": ".dev-aid/providers/gemini/.gemini/hooks/session-start.sh",
+      "enabled": true,
+      "description": "Auto-loads relevant skills based on project context at session start"
+    }
+  },
+  "model": {
+    "name": "gemini-2.0-flash-exp",
+    "temperature": 0.7
+  },
+  "context": {
+    "max_tokens": 32000
+  }
+}

@@ -58,7 +58,9 @@ if command -v gitleaks &> /dev/null; then
         log_success "✓ No secrets found"
     fi
 else
-    log_warning "⚠️  Gitleaks not installed (skipping secret scan)"
+    log_error "❌ Gitleaks not installed - security check cannot run"
+    log_info "Install: brew install gitleaks (or see https://github.com/gitleaks/gitleaks#installing)"
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
 fi
 echo ""
 
@@ -85,7 +87,9 @@ if command -v opengrep &> /dev/null; then
         log_success "✓ No critical vulnerabilities found"
     fi
 else
-    log_warning "⚠️  Opengrep not installed (skipping SAST)"
+    log_error "❌ Opengrep not installed - security check cannot run"
+    log_info "Install: brew install semgrep (or see https://semgrep.dev/docs/getting-started/)"
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
 fi
 echo ""
 
@@ -101,7 +105,9 @@ if command -v trivy &> /dev/null; then
         log_success "✓ No critical CVEs found"
     fi
 else
-    log_warning "⚠️  Trivy not installed (skipping dependency scan)"
+    log_error "❌ Trivy not installed - security check cannot run"
+    log_info "Install: brew install trivy (or see https://aquasecurity.github.io/trivy/latest/getting-started/installation/)"
+    ISSUES_FOUND=$((ISSUES_FOUND + 1))
 fi
 echo ""
 

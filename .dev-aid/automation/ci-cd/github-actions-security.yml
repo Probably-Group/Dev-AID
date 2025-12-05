@@ -32,66 +32,86 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install security tools
+      - name: Install Checkov (IaC Scanner)
+        run: pip install checkov
+
+      - name: Install Semgrep (SAST)
         run: |
-          # Opengrep
-          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          pip install semgrep
           echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-          # Gitleaks
-          wget -q https://github.com/gitleaks/gitleaks/releases/download/v8.18.4/gitleaks_8.18.4_linux_amd64.tar.gz
-          tar xzf gitleaks_8.18.4_linux_amd64.tar.gz
-          sudo mv gitleaks /usr/local/bin/
-          rm gitleaks_8.18.4_linux_amd64.tar.gz
-
-          # Trivy
-          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-          sudo apt-get update
-          sudo apt-get install -y trivy
-
-          # Hadolint
-          wget -q https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -O hadolint
-          sudo mv hadolint /usr/local/bin/
-          sudo chmod +x /usr/local/bin/hadolint
-
-          # Checkov
-          pip install checkov
 
       - name: Run Gitleaks (Secret Scanning)
         id: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Semgrep (SAST)
+        id: semgrep
         continue-on-error: true
         run: |
-          gitleaks detect --verbose --report-path gitleaks-report.json --exit-code 1 || echo "GITLEAKS_FAILED=true" >> $GITHUB_ENV
+          semgrep scan --config=auto --sarif --output=semgrep.sarif .
+          semgrep scan --config=auto --json --output=semgrep.json .
 
-      - name: Run Opengrep (SAST)
-        id: opengrep
-        continue-on-error: true
-        run: |
-          opengrep scan --config=auto --sarif --output opengrep.sarif .
-          opengrep scan --config=auto --json --output opengrep.json .
-
-      - name: Run Trivy (Dependency & Container Scanning)
+      - name: Run Trivy (Dependency Scanning - SARIF)
         id: trivy
+        uses: aquasecurity/trivy-action@master
         continue-on-error: true
-        run: |
-          # Scan filesystem for vulnerabilities
-          trivy fs --scanners vuln --severity HIGH,CRITICAL --format sarif --output trivy-fs.sarif .
-          trivy fs --scanners vuln --severity HIGH,CRITICAL --format json --output trivy-fs.json .
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-fs.sarif'
+          severity: 'HIGH,CRITICAL'
 
-          # Scan Docker images if Dockerfile exists
-          if [ -f "Dockerfile" ]; then
-            docker build -t temp-image:latest .
-            trivy image --severity HIGH,CRITICAL --format sarif --output trivy-image.sarif temp-image:latest
-            trivy image --severity HIGH,CRITICAL --format json --output trivy-image.json temp-image:latest
-          fi
+      - name: Run Trivy (Dependency Scanning - JSON)
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'json'
+          output: 'trivy-fs.json'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Build Docker Image
+        if: hashFiles('Dockerfile') != ''
+        continue-on-error: true
+        run: docker build -t temp-image:latest .
+
+      - name: Run Trivy (Container Scanning - SARIF)
+        if: hashFiles('Dockerfile') != ''
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'image'
+          image-ref: 'temp-image:latest'
+          format: 'sarif'
+          output: 'trivy-image.sarif'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Run Trivy (Container Scanning - JSON)
+        if: hashFiles('Dockerfile') != ''
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'image'
+          image-ref: 'temp-image:latest'
+          format: 'json'
+          output: 'trivy-image.json'
+          severity: 'HIGH,CRITICAL'
 
       - name: Run Hadolint (Dockerfile Linting)
         id: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
         continue-on-error: true
         if: hashFiles('Dockerfile') != ''
-        run: |
-          hadolint Dockerfile --format json > hadolint-report.json || true
+        with:
+          dockerfile: Dockerfile
+          format: sarif
+          output-file: hadolint.sarif
+          no-fail: true
 
       - name: Run Checkov (IaC Scanning)
         id: checkov
@@ -105,9 +125,10 @@ jobs:
         if: always()
         with:
           sarif_file: |
-            opengrep.sarif
+            semgrep.sarif
             trivy-fs.sarif
             checkov.sarif
+            hadolint.sarif
 
       - name: Generate Security Summary
         if: always()
@@ -125,10 +146,10 @@ jobs:
             fi
           fi
 
-          # Opengrep
-          if [ -f "opengrep.json" ]; then
-            FINDINGS=$(jq '.results | length' opengrep.json)
-            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          # Semgrep
+          if [ -f "semgrep.json" ]; then
+            FINDINGS=$(jq '.results | length' semgrep.json)
+            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Trivy
@@ -170,9 +191,9 @@ jobs:
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Opengrep for ERROR severity
-          if [ -f "opengrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+          # Check Semgrep for ERROR severity
+          if [ -f "semgrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
             if [ "$CRITICAL" -gt 0 ]; then
               echo "❌ $CRITICAL critical code vulnerabilities!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))

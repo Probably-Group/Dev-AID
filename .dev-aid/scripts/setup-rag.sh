@@ -73,8 +73,37 @@ echo -e "${BLUE}(powered by claude-context-local)${NC}"
 echo ""
 
 # Install claude-context-local (the underlying engine)
-echo -e "${BLUE}→ Running official install script...${NC}"
-if curl -fsSL https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh | bash; then
+echo -e "${BLUE}→ Downloading official install script...${NC}"
+
+# Security: Download to temp file and verify checksum before execution
+INSTALL_SCRIPT=$(mktemp)
+trap "rm -f $INSTALL_SCRIPT" EXIT
+
+EXPECTED_CHECKSUM="f8bb95a4c3c13d71a336711baff8742503900cc67bb8de41394620ecec8d3c90"
+SCRIPT_URL="https://raw.githubusercontent.com/FarhanAliRaza/claude-context-local/main/scripts/install.sh"
+
+if ! curl -fsSL "$SCRIPT_URL" -o "$INSTALL_SCRIPT"; then
+    echo -e "${RED}✗ Failed to download install script${NC}"
+    exit 1
+fi
+
+# Verify checksum
+ACTUAL_CHECKSUM=$(shasum -a 256 "$INSTALL_SCRIPT" | awk '{print $1}')
+if [ "$ACTUAL_CHECKSUM" != "$EXPECTED_CHECKSUM" ]; then
+    echo -e "${RED}✗ Checksum verification failed!${NC}"
+    echo -e "${RED}  Expected: $EXPECTED_CHECKSUM${NC}"
+    echo -e "${RED}  Got:      $ACTUAL_CHECKSUM${NC}"
+    echo -e "${YELLOW}  The install script may have been updated or compromised.${NC}"
+    echo -e "${YELLOW}  To update the checksum, download manually and verify:${NC}"
+    echo -e "${YELLOW}    curl -fsSL $SCRIPT_URL -o install.sh${NC}"
+    echo -e "${YELLOW}    shasum -a 256 install.sh${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Checksum verified${NC}"
+echo -e "${BLUE}→ Running install script...${NC}"
+
+if bash "$INSTALL_SCRIPT"; then
     echo -e "${GREEN}✓ Dev-AID Local Search installed successfully${NC}"
 else
     echo -e "${RED}✗ Installation failed${NC}"

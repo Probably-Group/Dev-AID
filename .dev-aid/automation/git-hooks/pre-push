@@ -1,15 +1,38 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Pre-Push Hook - Thorough Security Checks
 # Runs comprehensive security scans before pushing (~60 seconds)
 
-set -e
+set -euo pipefail
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+# Temp files tracking
+declare -a TEMP_FILES=()
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+
+    # Clean up temp files securely
+    for temp_file in "${TEMP_FILES[@]}"; do
+        if [[ -f "$temp_file" ]]; then
+            if command -v shred >/dev/null 2>&1; then
+                shred -u "$temp_file" 2>/dev/null || rm -f "$temp_file"
+            else
+                rm -f "$temp_file"
+            fi
+        fi
+    done
+
+    exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
 
 log_info() { echo -e "${BLUE}[PRE-PUSH]${NC} $1"; }
 log_success() { echo -e "${GREEN}[PRE-PUSH]${NC} $1"; }
@@ -30,6 +53,9 @@ START_TIME=$(date +%s)
 log_info "1/5 Scanning for secrets (including git history)..."
 if command -v gitleaks &> /dev/null; then
     GITLEAKS_OUT=$(mktemp)
+    chmod 600 "$GITLEAKS_OUT"
+    TEMP_FILES+=("$GITLEAKS_OUT")
+
     if gitleaks detect --verbose --report-path "$GITLEAKS_OUT" --exit-code 1 2>&1; then
         log_success "✓ No secrets found"
     else
@@ -38,7 +64,6 @@ if command -v gitleaks &> /dev/null; then
         log_info "Details: $GITLEAKS_OUT"
         ISSUES_FOUND=$((ISSUES_FOUND + 1))
     fi
-    rm -f "$GITLEAKS_OUT"
 else
     log_warning "⚠️  Gitleaks not installed"
     WARNINGS_FOUND=$((WARNINGS_FOUND + 1))
@@ -49,17 +74,19 @@ echo ""
 log_info "2/5 Running static code analysis..."
 if command -v opengrep &> /dev/null; then
     OPENGREP_OUT=$(mktemp)
+    chmod 600 "$OPENGREP_OUT"
+    TEMP_FILES+=("$OPENGREP_OUT")
 
     # Scan with comprehensive rules
     opengrep scan --config=auto --json --output "$OPENGREP_OUT" . 2>/dev/null || true
 
     FINDINGS=$(jq -r '.results | length' "$OPENGREP_OUT" 2>/dev/null || echo "0")
-    if [ "$FINDINGS" -gt 0 ]; then
+    if [[ "$FINDINGS" -gt 0 ]]; then
         # Count by severity
         CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' "$OPENGREP_OUT" 2>/dev/null || echo "0")
         WARNINGS=$(jq -r '[.results[] | select(.extra.severity == "WARNING")] | length' "$OPENGREP_OUT" 2>/dev/null || echo "0")
 
-        if [ "$CRITICAL" -gt 0 ]; then
+        if [[ "$CRITICAL" -gt 0 ]]; then
             log_error "❌ $CRITICAL critical issue(s), $WARNINGS warning(s)"
             ISSUES_FOUND=$((ISSUES_FOUND + 1))
         else
@@ -71,8 +98,6 @@ if command -v opengrep &> /dev/null; then
     else
         log_success "✓ No issues found"
     fi
-
-    rm -f "$OPENGREP_OUT"
 else
     log_warning "⚠️  Opengrep not installed"
     WARNINGS_FOUND=$((WARNINGS_FOUND + 1))
@@ -83,6 +108,8 @@ echo ""
 log_info "3/5 Scanning dependencies for vulnerabilities..."
 if command -v trivy &> /dev/null; then
     TRIVY_OUT=$(mktemp)
+    chmod 600 "$TRIVY_OUT"
+    TEMP_FILES+=("$TRIVY_OUT")
 
     # Scan with HIGH and CRITICAL severities
     trivy fs --scanners vuln --severity HIGH,CRITICAL --format json --output "$TRIVY_OUT" . 2>/dev/null || true
@@ -90,11 +117,11 @@ if command -v trivy &> /dev/null; then
     # Count vulnerabilities
     VULNS=$(jq -r '[.Results[]?.Vulnerabilities[]?] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
 
-    if [ "$VULNS" -gt 0 ]; then
+    if [[ "$VULNS" -gt 0 ]]; then
         CRITICAL=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
         HIGH=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
 
-        if [ "$CRITICAL" -gt 0 ]; then
+        if [[ "$CRITICAL" -gt 0 ]]; then
             log_error "❌ $CRITICAL critical, $HIGH high severity CVEs"
             ISSUES_FOUND=$((ISSUES_FOUND + 1))
         else
@@ -106,8 +133,6 @@ if command -v trivy &> /dev/null; then
     else
         log_success "✓ No high/critical vulnerabilities"
     fi
-
-    rm -f "$TRIVY_OUT"
 else
     log_warning "⚠️  Trivy not installed"
     WARNINGS_FOUND=$((WARNINGS_FOUND + 1))
@@ -115,20 +140,22 @@ fi
 echo ""
 
 # Check 4: Dockerfile Scanning (if exists)
-if [ -f "Dockerfile" ]; then
+if [[ -f "Dockerfile" ]]; then
     log_info "4/5 Scanning Dockerfile..."
 
     if command -v hadolint &> /dev/null; then
         HADOLINT_OUT=$(mktemp)
+        chmod 600 "$HADOLINT_OUT"
+        TEMP_FILES+=("$HADOLINT_OUT")
 
         if hadolint Dockerfile --format json > "$HADOLINT_OUT" 2>/dev/null; then
             ERRORS=$(jq -r '[.[] | select(.level == "error")] | length' "$HADOLINT_OUT" 2>/dev/null || echo "0")
             WARNS=$(jq -r '[.[] | select(.level == "warning")] | length' "$HADOLINT_OUT" 2>/dev/null || echo "0")
 
-            if [ "$ERRORS" -gt 0 ]; then
+            if [[ "$ERRORS" -gt 0 ]]; then
                 log_error "❌ $ERRORS Dockerfile error(s), $WARNS warning(s)"
                 ISSUES_FOUND=$((ISSUES_FOUND + 1))
-            elif [ "$WARNS" -gt 0 ]; then
+            elif [[ "$WARNS" -gt 0 ]]; then
                 log_warning "⚠️  $WARNS Dockerfile warning(s)"
                 WARNINGS_FOUND=$((WARNINGS_FOUND + 1))
             else
@@ -137,8 +164,6 @@ if [ -f "Dockerfile" ]; then
         else
             log_success "✓ Dockerfile looks good"
         fi
-
-        rm -f "$HADOLINT_OUT"
     else
         log_warning "⚠️  Hadolint not installed (skipping Dockerfile scan)"
     fi
@@ -148,17 +173,19 @@ fi
 echo ""
 
 # Check 5: IaC Scanning (if exists)
-if [ -d "terraform" ] || [ -d "k8s" ] || [ -d "kubernetes" ] || [ -f "docker-compose.yml" ]; then
+if [[ -d "terraform" ]] || [[ -d "k8s" ]] || [[ -d "kubernetes" ]] || [[ -f "docker-compose.yml" ]]; then
     log_info "5/5 Scanning infrastructure-as-code..."
 
     if command -v checkov &> /dev/null; then
         CHECKOV_OUT=$(mktemp)
+        chmod 600 "$CHECKOV_OUT"
+        TEMP_FILES+=("$CHECKOV_OUT")
 
         # Scan IaC files (compact output)
         if checkov -d . --quiet --compact --output json > "$CHECKOV_OUT" 2>/dev/null; then
             FAILED=$(jq -r '.summary.failed' "$CHECKOV_OUT" 2>/dev/null || echo "0")
 
-            if [ "$FAILED" -gt 0 ]; then
+            if [[ "$FAILED" -gt 0 ]]; then
                 log_warning "⚠️  $FAILED IaC check(s) failed"
                 WARNINGS_FOUND=$((WARNINGS_FOUND + 1))
                 log_info "Run: checkov -d . --compact"
@@ -168,8 +195,6 @@ if [ -d "terraform" ] || [ -d "k8s" ] || [ -d "kubernetes" ] || [ -f "docker-com
         else
             log_success "✓ IaC checks passed"
         fi
-
-        rm -f "$CHECKOV_OUT"
     else
         log_warning "⚠️  Checkov not installed (skipping IaC scan)"
     fi
@@ -183,8 +208,8 @@ END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-if [ $ISSUES_FOUND -eq 0 ]; then
-    if [ $WARNINGS_FOUND -gt 0 ]; then
+if [[ $ISSUES_FOUND -eq 0 ]]; then
+    if [[ $WARNINGS_FOUND -gt 0 ]]; then
         log_success "✓ No critical issues (${WARNINGS_FOUND} warnings) (${DURATION}s)"
     else
         log_success "✓ All checks passed! (${DURATION}s)"

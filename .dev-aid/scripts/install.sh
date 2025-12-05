@@ -1,18 +1,50 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dev-AID Interactive Installer v2.0
 # Configures Dev-AID with granular model selection and flexible orchestration
 
 set -euo pipefail
 
+# Source shared security library
+readonly INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly LIB_DIR="${INSTALL_SCRIPT_DIR}/../lib"
+
+# shellcheck source=/dev/null
+if [[ -f "${LIB_DIR}/bash-common.sh" ]]; then
+    source "${LIB_DIR}/bash-common.sh"
+fi
+
+# Temp files tracking for cleanup
+declare -a TEMP_FILES=()
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+
+    # Clean up temp files securely
+    for temp_file in "${TEMP_FILES[@]}"; do
+        if [[ -f "$temp_file" ]]; then
+            if command -v shred >/dev/null 2>&1; then
+                shred -u "$temp_file" 2>/dev/null || rm -f "$temp_file"
+            else
+                rm -f "$temp_file"
+            fi
+        fi
+    done
+
+    exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
+
 # Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-MAGENTA='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly MAGENTA='\033[0;35m'
+readonly CYAN='\033[0;36m'
+readonly NC='\033[0m' # No Color
 
 # Configuration variables
 PROJECT_ROOT=""
@@ -538,6 +570,10 @@ create_config_files() {
     # Create .env file for API keys
     print_color "$CYAN" "→ Creating .dev-aid/config/.env..."
 
+    # Create with secure permissions
+    touch "$DEV_AID_DIR/config/.env"
+    chmod 600 "$DEV_AID_DIR/config/.env"
+
     cat > "$DEV_AID_DIR/config/.env" <<EOF
 # Dev-AID API Keys
 # This file is gitignored for security
@@ -545,7 +581,10 @@ create_config_files() {
 $(printf '%s\n' "${COLLECTED_API_KEYS[@]}")
 EOF
 
-    print_color "$GREEN" "✓ API keys saved to .dev-aid/config/.env"
+    # Ensure permissions are set (in case cat reset them)
+    chmod 600 "$DEV_AID_DIR/config/.env"
+
+    print_color "$GREEN" "✓ API keys saved to .dev-aid/config/.env (permissions: 600)"
 
     # Update settings.json
     print_color "$CYAN" "→ Updating .dev-aid/config/settings.json..."
@@ -667,11 +706,27 @@ setup_provider_symlinks() {
             openrouter) context_file="OPENROUTER.md" ;;
         esac
 
-        if [ -n "$context_file" ] && [ -f "$DEV_AID_DIR/providers/$provider/$context_file" ]; then
+        if [[ -n "$context_file" ]] && [[ -f "$DEV_AID_DIR/providers/$provider/$context_file" ]]; then
             print_color "$CYAN" "→ Creating symlink for $context_file..."
 
-            # Remove existing symlink/file if it exists
-            rm -f "$PROJECT_ROOT/$context_file"
+            # Validate target path before removal
+            local target_file="$PROJECT_ROOT/$context_file"
+            if [[ -e "$target_file" ]] || [[ -L "$target_file" ]]; then
+                # Validate path containment (prevent deletion outside project)
+                local target_dir
+                target_dir="$(dirname "$target_file")"
+                local resolved_target_dir
+                resolved_target_dir="$(realpath -m "$target_dir")"
+                local resolved_project_root
+                resolved_project_root="$(realpath "$PROJECT_ROOT")"
+
+                if [[ "$resolved_target_dir" == "$resolved_project_root"* ]]; then
+                    rm -f "$target_file"
+                else
+                    print_color "$RED" "Error: Path traversal detected for $context_file"
+                    continue
+                fi
+            fi
 
             # Create symlink
             ln -s ".dev-aid/providers/$provider/$context_file" "$PROJECT_ROOT/$context_file"
@@ -950,10 +1005,25 @@ show_summary() {
 main() {
     # Determine project root
     PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+
+    # Validate PROJECT_ROOT is within safe bounds (e.g., not system directories)
+    local resolved_project_root
+    resolved_project_root="$(realpath "$PROJECT_ROOT")"
+
+    # Ensure PROJECT_ROOT is not a system directory
+    local unsafe_paths=("/" "/etc" "/usr" "/bin" "/sbin" "/boot" "/sys" "/proc" "/dev")
+    for unsafe_path in "${unsafe_paths[@]}"; do
+        if [[ "$resolved_project_root" == "$unsafe_path" ]] || [[ "$resolved_project_root" == "$unsafe_path"/* ]]; then
+            print_color "$RED" "Error: PROJECT_ROOT points to a system directory: $resolved_project_root"
+            echo "This installer should be run from a user project directory."
+            exit 1
+        fi
+    done
+
     DEV_AID_DIR="$PROJECT_ROOT/.dev-aid"
 
     # Check if .dev-aid exists
-    if [ ! -d "$DEV_AID_DIR" ]; then
+    if [[ ! -d "$DEV_AID_DIR" ]]; then
         print_color "$RED" "Error: .dev-aid directory not found!"
         echo "Please ensure you're running this from a Dev-AID installation."
         exit 1

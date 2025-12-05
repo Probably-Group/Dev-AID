@@ -1,21 +1,35 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Router CLI Wrapper
 # Calls the Python router implementation
 # Automatically uses virtual environment if available
 
 set -euo pipefail
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROUTER_DIR="$SCRIPT_DIR/router"
-VENV_DIR="$SCRIPT_DIR/.venv"
+# Constants
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly ROUTER_DIR="$SCRIPT_DIR/router"
+readonly VENV_DIR="$SCRIPT_DIR/.venv"
 
 # Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m'
+readonly RED='\033[0;31m'
+readonly GREEN='\033[0;32m'
+readonly YELLOW='\033[1;33m'
+readonly BLUE='\033[0;34m'
+readonly NC='\033[0m'
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+
+    # Deactivate venv if it was activated
+    if [[ -n "${VIRTUAL_ENV:-}" ]]; then
+        deactivate 2>/dev/null || true
+    fi
+
+    exit "$exit_code"
+}
+
+trap cleanup EXIT INT TERM
 
 # Check if Python is available
 if ! command -v python3 &> /dev/null; then
@@ -71,8 +85,32 @@ check_dependencies() {
     return 0
 }
 
+# Validate input arguments for security
+validate_args() {
+    local arg
+    for arg in "$@"; do
+        # Check for null bytes
+        if [[ "$arg" =~ $'\0' ]]; then
+            echo -e "${RED}Error: Invalid characters in argument${NC}" >&2
+            return 1
+        fi
+
+        # Check reasonable length (prevent DoS)
+        if [[ ${#arg} -gt 100000 ]]; then
+            echo -e "${RED}Error: Argument too long (max 100000 characters)${NC}" >&2
+            return 1
+        fi
+    done
+    return 0
+}
+
 # Execute router CLI
 execute_router() {
+    # Validate arguments
+    if ! validate_args "$@"; then
+        exit 1
+    fi
+
     # Try to activate venv first
     if ! activate_venv; then
         # No venv - check if dependencies are in system Python
@@ -87,14 +125,7 @@ execute_router() {
     # Execute Python CLI
     python3 -m router.cli "$@"
 
-    local exit_code=$?
-
-    # Deactivate venv if it was activated
-    if [ -n "${VIRTUAL_ENV:-}" ]; then
-        deactivate 2>/dev/null || true
-    fi
-
-    return $exit_code
+    return $?
 }
 
 # Main execution

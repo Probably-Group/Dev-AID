@@ -518,17 +518,92 @@ What needs protection:
 
 ---
 
-### Phase 7: Update Skill Rules
+### Phase 7: Update skills-index.json (MANDATORY)
 
-Add the new skill to `.dev-aid/config/skill-rules.json`:
+**🚨 CRITICAL: Every new skill MUST be registered in skills-index.json for auto-injection!**
+
+If you skip this step, the skill will NEVER auto-load.
+
+Add the new skill to `.dev-aid/skills/registry/skills-index.json`:
 
 ```bash
-# Add file pattern rule
-jq '.rules += [{
-  "pattern": "*.${FILE_EXTENSION}",
-  "skills": ["${SKILL_NAME}"],
-  "priority": 8
-}]' .dev-aid/config/skill-rules.json > tmp.json && mv tmp.json .dev-aid/config/skill-rules.json
+# Update skills-index.json with new skill entry
+# This is REQUIRED for auto-injection to work
+
+# Add entry using this template:
+cat >> temp-skill-entry.json <<EOF
+{
+  "${SKILL_NAME}": {
+    "activation": {
+      "primary_keywords": ["${PRIMARY_KEYWORD_1}", "${PRIMARY_KEYWORD_2}", "${PRIMARY_KEYWORD_3}"],
+      "secondary_keywords": ["${SECONDARY_KEYWORD_1}", "${SECONDARY_KEYWORD_2}", "${SECONDARY_KEYWORD_3}"],
+      "file_patterns": ["${FILE_PATTERN_1}", "${FILE_PATTERN_2}"],
+      "technologies": ["${TECHNOLOGY_1}", "${TECHNOLOGY_2}"],
+      "confidence_weights": {
+        "${PRIMARY_KEYWORD_1}": 0.35,
+        "${PRIMARY_KEYWORD_2}": 0.30,
+        "${PRIMARY_KEYWORD_3}": 0.25
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  }
+}
+EOF
+
+# Merge into skills-index.json (manual editing recommended)
+echo ""
+echo "⚠️  IMPORTANT: Add this entry to .dev-aid/skills/registry/skills-index.json"
+echo ""
+cat temp-skill-entry.json
+echo ""
+rm temp-skill-entry.json
+```
+
+**Scoring System**:
+- **Primary keywords**: 10 points each (e.g., "MongoDB", "database design")
+- **Technologies**: 8 points each (e.g., "MongoDB", "NoSQL")
+- **Secondary keywords**: 5 points each (e.g., "schema", "indexing")
+- **Confidence weights**: Bonus multiplier (0.1-0.4)
+- **Minimum threshold**: 5 points to auto-load
+
+**Example for MongoDB skill**:
+```json
+{
+  "mongodb-expert": {
+    "activation": {
+      "primary_keywords": ["MongoDB", "mongo database", "NoSQL database"],
+      "secondary_keywords": ["schema design", "aggregation", "indexing", "replication"],
+      "file_patterns": ["*mongodb*", "*.mongo.js", "*/db/mongo/*"],
+      "technologies": ["MongoDB", "Mongoose", "MongoDB Atlas"],
+      "confidence_weights": {
+        "MongoDB": 0.40,
+        "mongo database": 0.35,
+        "NoSQL database": 0.30
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  }
+}
+```
+
+**Questions to ask user**:
+1. What are 3-5 primary keywords that should trigger this skill? (10 pts each)
+2. What are 3-5 secondary keywords? (5 pts each)
+3. What file patterns indicate this skill is needed? (e.g., `*.mongo.js`, `*/mongodb/*`)
+4. What technologies/frameworks activate this skill? (8 pts each)
+5. Does this skill require other skills to be loaded? (e.g., `devsecops-expert`)
+6. Does this skill conflict with any other skills? (e.g., `sql-expert` vs `nosql-expert`)
+
+**Verification**:
+```bash
+# Test skill activation
+cd .dev-aid/orchestration
+./select-skills.sh "MongoDB schema design"
+
+# Should show your skill in the output
+# If not, check skills-index.json for errors
 ```
 
 ---
@@ -627,7 +702,8 @@ echo ""
 - [ ] references/performance-optimization.md created
 - [ ] references/testing-guide.md created
 - [ ] Security files created (if applicable)
-- [ ] Skill rules updated
+- [ ] **🚨 CRITICAL: skills-index.json updated** (MANDATORY for auto-injection)
+- [ ] Skill activation tested with `./select-skills.sh`
 - [ ] Summary displayed to user
 - [ ] Files are properly formatted markdown
 - [ ] Follows Martins AI Templates structure

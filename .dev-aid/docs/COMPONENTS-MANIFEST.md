@@ -1,10 +1,65 @@
 # Components Manifest - Source Mapping
 
-**Purpose**: Lists which components to source from which repositories
-**Version**: 1.0.0
-**Date**: 2025-11-25
+**Purpose**: Lists which components to source from which repositories, plus Dev-AID native components
+**Version**: 1.1.0
+**Date**: 2025-12-05
 
-This manifest maps our elite setup components to their source repositories for installation.
+This manifest maps our elite setup components to their source repositories for installation, and documents Dev-AID's native components.
+
+---
+
+## 🆕 Dev-AID Native Components (v1.1.0)
+
+### Hook-Based Skill Auto-Loading System
+
+**Location**: `.dev-aid/`
+
+**Components**:
+```
+.dev-aid/
+├── skills/registry/
+│   └── skills-index.json              # Activation metadata for all skills
+├── orchestration/
+│   ├── detect-context.sh              # Project context analyzer
+│   ├── select-skills.sh               # Intelligent skill selector
+│   └── validate-bash-scripts.sh       # bash-expert compliance checker
+└── providers/
+    ├── claude/.claude/hooks/
+    │   └── session-start.sh           # Claude SessionStart hook
+    └── gemini/.gemini/
+        ├── hooks/
+        │   └── session-start.sh       # Gemini SessionStart hook
+        ├── settings.json              # Hook configuration
+        └── GEMINI.md                  # Auto-generated (don't edit manually)
+```
+
+**Purpose**: Automatically loads relevant skills based on project context at session start
+
+**Features**:
+- Context detection from files, dependencies, tech stack
+- Scoring algorithm (primary: 10pts, tech: 8pts, secondary: 5pts)
+- Universal architecture for Claude, Gemini, and future providers
+- GEMINI.md updated once per session (not per prompt)
+- bash-expert compliant (32/32 checks passed)
+
+**Registry Format** (`.dev-aid/skills/registry/skills-index.json`):
+```json
+{
+  "skill-name": {
+    "activation": {
+      "primary_keywords": ["keyword1", "keyword2"],
+      "secondary_keywords": ["keyword3"],
+      "file_patterns": ["*/pattern/*"],
+      "technologies": ["Tech1", "Tech2"],
+      "confidence_weights": {"keyword1": 0.3},
+      "requires": ["dependency-skill"],
+      "exclude_with": ["conflicting-skill"]
+    }
+  }
+}
+```
+
+**10 Initial Registry Skills**: api-expert, bash-expert, devsecops-expert, typescript-expert, fastapi-expert, graphql-expert, docker-expert, python, rust, cicd-expert
 
 ---
 

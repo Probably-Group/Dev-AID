@@ -1,0 +1,154 @@
+{
+  "api-expert": {
+    "activation": {
+      "primary_keywords": ["REST API", "RESTful", "OpenAPI", "Swagger", "API design", "HTTP API"],
+      "secondary_keywords": ["endpoint", "route", "HTTP method", "API versioning", "API documentation"],
+      "file_patterns": ["*/routes/*", "*/api/*", "*.routes.ts", "*/controllers/*", "openapi.yaml", "swagger.json"],
+      "technologies": ["FastAPI", "Express", "Django REST", "Flask-RESTX", "NestJS"],
+      "confidence_weights": {
+        "OpenAPI": 0.3,
+        "REST API": 0.25,
+        "Swagger": 0.2,
+        "endpoint": 0.15
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  },
+  "bash-expert": {
+    "activation": {
+      "primary_keywords": ["bash script", "shell script", "bash automation", "shell programming"],
+      "secondary_keywords": ["#!/bin/bash", "set -e", "shellcheck", "trap", "bash function"],
+      "file_patterns": ["*.sh", "*/scripts/*", "*/bin/*"],
+      "technologies": ["Bash", "Shell", "Unix", "Linux"],
+      "confidence_weights": {
+        "bash script": 0.35,
+        "shell script": 0.3,
+        "shellcheck": 0.2
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  },
+  "devsecops-expert": {
+    "activation": {
+      "primary_keywords": ["security", "vulnerability", "authentication", "authorization", "encryption"],
+      "secondary_keywords": ["OWASP", "CVE", "XSS", "SQL injection", "CSRF", "security audit"],
+      "file_patterns": ["*/security/*", "*/auth/*", ".security/*"],
+      "technologies": ["OAuth2", "JWT", "bcrypt", "HTTPS", "TLS"],
+      "confidence_weights": {
+        "security": 0.3,
+        "authentication": 0.25,
+        "vulnerability": 0.2,
+        "OWASP": 0.15
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "typescript-expert": {
+    "activation": {
+      "primary_keywords": ["TypeScript", "TS", "type definition", "interface", "generic"],
+      "secondary_keywords": ["tsconfig.json", "tsc", "type annotation", "enum", "namespace"],
+      "file_patterns": ["*.ts", "*.tsx", "tsconfig.json", "*/types/*"],
+      "technologies": ["TypeScript", "ts-node", "tsx"],
+      "confidence_weights": {
+        "TypeScript": 0.35,
+        "tsconfig.json": 0.25,
+        "interface": 0.2
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "fastapi-expert": {
+    "activation": {
+      "primary_keywords": ["FastAPI", "Pydantic", "async def", "APIRouter", "uvicorn"],
+      "secondary_keywords": ["@app.get", "@app.post", "Request", "Response", "Depends"],
+      "file_patterns": ["*/main.py", "*/app.py", "*/routers/*", "*/models/*"],
+      "technologies": ["FastAPI", "Pydantic", "Uvicorn", "Starlette"],
+      "confidence_weights": {
+        "FastAPI": 0.4,
+        "Pydantic": 0.25,
+        "uvicorn": 0.2
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  },
+  "graphql-expert": {
+    "activation": {
+      "primary_keywords": ["GraphQL", "GraphQL schema", "resolver", "mutation", "query type"],
+      "secondary_keywords": ["graphql-js", "Apollo", "type Query", "type Mutation", "subscription"],
+      "file_patterns": ["*.graphql", "*/schema/*", "*/resolvers/*", "schema.gql"],
+      "technologies": ["GraphQL", "Apollo Server", "graphql-js", "Relay"],
+      "confidence_weights": {
+        "GraphQL": 0.4,
+        "resolver": 0.25,
+        "mutation": 0.2
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": ["rest-api-design"]
+    }
+  },
+  "docker-expert": {
+    "activation": {
+      "primary_keywords": ["Docker", "Dockerfile", "container", "docker-compose", "containerization"],
+      "secondary_keywords": ["FROM", "RUN", "COPY", "ENTRYPOINT", "docker build", "docker run"],
+      "file_patterns": ["Dockerfile", "docker-compose.yml", "docker-compose.yaml", ".dockerignore"],
+      "technologies": ["Docker", "docker-compose", "containerd"],
+      "confidence_weights": {
+        "Dockerfile": 0.35,
+        "docker-compose": 0.3,
+        "container": 0.2
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  },
+  "python": {
+    "activation": {
+      "primary_keywords": ["Python", "pip", "virtualenv", "pytest", "Python package"],
+      "secondary_keywords": ["requirements.txt", "setup.py", "pyproject.toml", "__init__.py", "import"],
+      "file_patterns": ["*.py", "requirements.txt", "pyproject.toml", "setup.py", "*/tests/test_*.py"],
+      "technologies": ["Python", "pip", "pytest", "virtualenv", "poetry"],
+      "confidence_weights": {
+        "Python": 0.3,
+        "pytest": 0.25,
+        "requirements.txt": 0.2
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "rust": {
+    "activation": {
+      "primary_keywords": ["Rust", "cargo", "rustc", "trait", "impl"],
+      "secondary_keywords": ["Cargo.toml", "rustfmt", "clippy", "ownership", "borrow checker"],
+      "file_patterns": ["*.rs", "Cargo.toml", "Cargo.lock"],
+      "technologies": ["Rust", "cargo", "rustc"],
+      "confidence_weights": {
+        "Rust": 0.35,
+        "Cargo.toml": 0.3,
+        "trait": 0.2
+      },
+      "requires": [],
+      "exclude_with": []
+    }
+  },
+  "cicd-expert": {
+    "activation": {
+      "primary_keywords": ["CI/CD", "GitHub Actions", "GitLab CI", "Jenkins", "pipeline"],
+      "secondary_keywords": ["workflow", "job", "runner", "deploy", "build pipeline"],
+      "file_patterns": [".github/workflows/*", ".gitlab-ci.yml", "Jenkinsfile", ".circleci/config.yml"],
+      "technologies": ["GitHub Actions", "GitLab CI", "Jenkins", "CircleCI"],
+      "confidence_weights": {
+        "GitHub Actions": 0.3,
+        "pipeline": 0.25,
+        "CI/CD": 0.25
+      },
+      "requires": ["devsecops-expert"],
+      "exclude_with": []
+    }
+  }
+}

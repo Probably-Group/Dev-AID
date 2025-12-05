@@ -21,6 +21,11 @@ This command guides you through creating a professional, production-ready skill 
 - Threat model (for security-sensitive skills)
 - Complete frontmatter configuration
 
+**📁 Shared Architecture:**
+- Skills are stored in `.dev-aid/skills/` (provider-agnostic)
+- Accessible by Claude, Gemini, OpenAI, and future AI providers
+- Single source of truth - one skill, all providers benefit
+
 **⚠️ CRITICAL CONSTRAINT:**
 - **Main SKILL.md MUST be under 500 lines** (Claude Code loading limit)
 - Extract verbose content to `references/` directory to keep main file concise
@@ -100,8 +105,8 @@ Based on the answers, create the skill directory and files:
 **⚠️ IMPORTANT:** Keep main SKILL.md under 500 lines (Claude Code loading limit). Extract detailed examples, verbose patterns, and extensive code samples to reference files.
 
 ```bash
-# Create directory structure
-SKILL_DIR=".dev-aid/providers/claude/.claude/skills/expert/${SKILL_NAME}"
+# Create directory structure (shared across all AI providers)
+SKILL_DIR=".dev-aid/skills/expert/${SKILL_NAME}"
 mkdir -p "$SKILL_DIR/references"
 
 # Create main SKILL.md (MUST BE <500 LINES)

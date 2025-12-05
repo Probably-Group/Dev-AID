@@ -52,24 +52,28 @@ This document catalogues features that are **documented but not yet implemented*
 
 ## 📦 External Dependencies (Cannot Implement Without Source Repos)
 
-### 1. 35 Planned Agents
-**Status**: 🔴 BLOCKED - Source repositories don't exist
+### 1. Agent Integration (35 Planned Agents)
+**Status**: ✅ ANALYZED & READY FOR IMPLEMENTATION
 
-**Issue**: COMPONENTS-MANIFEST.md references agents from external repos:
-- `claude-code-tresor` (15 agents)
-- `claude-code-infrastructure-showcase` (4 agents)
-- `my-claude-code-setup` (4 agents)
-- `claude-code-skill-factory` (4 agents)
+**Source repositories located**:
+- `claude-code-tresor` (15 agents) - https://github.com/alirezarezvani/claude-code-tresor/
+- `claude-code-infrastructure-showcase` (4 agents) - https://github.com/diet103/claude-code-infrastructure-showcase
+- `my-claude-code-setup` (4 agents) - https://github.com/centminmod/my-claude-code-setup
+- `claude-code-skill-factory` (4 agents) - https://github.com/alirezarezvani/claude-code-skill-factory
 
-**These repositories are not available in the current environment.**
+**Analysis completed**: See `.dev-aid/analysis/` for comprehensive analysis (83KB, 4 documents):
+- `SUMMARY.md` - Executive summary and recommendations
+- `agent-repositories-analysis.md` - Deep-dive analysis (40KB)
+- `agent-integration-quick-start.md` - Practical quick reference
+- `refactor-planner-adaptation-example.md` - Step-by-step example
 
-**Options**:
-1. **Create agents from scratch** - Would require defining complete specifications for all 35 agents
-2. **Skip agents entirely** - Current system works with just skills and commands
-3. **Wait for source repos** - If they become available, install using manifest instructions
-4. **Hybrid approach** - Create only the most useful agents (5-10) based on common use cases
+**Key findings**:
+- **Don't integrate all 35** - Quality over quantity
+- **Integrate 10-12 high-quality agents** only
+- **Winner**: infrastructure-showcase (highest quality, lowest effort)
+- **Top priority**: refactor-planner, documentation-architect, web-research-specialist
 
-**Recommendation**: **Option 2 - Skip for now**. The system functions well without them. Claude Code's built-in Task tool provides similar functionality.
+**Recommendation**: **Selective integration** - Start with 5 Tier 1 agents (Week 1), add 5 Tier 2 agents (Weeks 2-3), skip low-quality/redundant agents.
 
 ### 2. Additional 8 Commands
 **Status**: 🔴 BLOCKED - Source repositories don't exist
@@ -401,20 +405,36 @@ This document catalogues features that are **documented but not yet implemented*
 
 ---
 
-## ❓ Questions for User/Stakeholders
+## ✅ Decisions Made (2025-12-05)
 
-### Critical Questions (Block RAG Implementation)
-1. **RAG Backend**: Which to prioritize - claude-context-local, LightRAG, or LlamaIndex?
-2. **RAG Trigger**: Always, only for large queries, or user opt-in?
+### RAG Integration
+- **Backend**: claude-context-local (Option A) ✅
+- **Trigger**: Only for massive_context tasks (Option B) ✅
+- **Failure Handling**: Fall back to memory bank + **notify user with error/explanation** ✅
 
-### Important Questions (Affect Roadmap)
-3. **Dashboard**: Is TUI acceptable, or must it be web-based?
-4. **Target Users**: Individual developers, small teams, or enterprises?
-5. **Windows Support**: Required, or WSL-only acceptable?
+### MCP Integration
+- **Client**: Use existing `mcp` Python package (not custom) ✅
+- **Priority Servers**: GitHub + Code Search ✅
+- **New Feature**: Build MCP search/install function for https://github.com/modelcontextprotocol/servers ✅
 
-### Nice-to-Have Questions
-6. **API Integration Tests**: Can we get test API keys/budgets?
-7. **Cross-Platform**: Need native Windows support, or WSL okay?
+### Dashboard
+- **Type**: TUI with rich/textual (Option B) ✅
+
+### API Integration Tests
+- **Approach**: Set up test accounts, mock most calls, test critical paths (Option B) ✅
+
+### Cross-Platform Testing
+- **Windows**: WSL only (Option B) ✅
+- **Testing**: GitHub Actions matrix (ubuntu, macos, windows-wsl) ✅
+
+### Agent Integration (NEW)
+- **Source Repos**: All 4 repositories located ✅
+- **Challenge**: Different quality/approaches, need unification strategy
+- **Repos**:
+  - claude-code-tresor (15 agents)
+  - claude-code-infrastructure-showcase (4 agents)
+  - my-claude-code-setup (4 agents)
+  - claude-code-skill-factory (4 agents)
 
 ---
 

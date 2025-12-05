@@ -97,8 +97,8 @@ cp -r claude-code-infrastructure-showcase/.claude/skills/skill-developer elite-c
 **Location**: `claude-code-skill-factory/generated-skills/`
 
 ```bash
-# Copy factory skills:
-cp -r claude-code-skill-factory/generated-skills/agent-factory elite-claude-dev/.claude/skills/factory/
+# Copy factory skills (NOTE: agent-factory deprecated, use skill-creation-expert skill):
+# cp -r claude-code-skill-factory/generated-skills/agent-factory elite-claude-dev/.claude/skills/factory/
 cp -r claude-code-skill-factory/generated-skills/prompt-factory elite-claude-dev/.claude/skills/factory/
 cp -r claude-code-skill-factory/generated-skills/hook-factory elite-claude-dev/.claude/skills/factory/
 cp -r claude-code-skill-factory/generated-skills/slash-command-factory elite-claude-dev/.claude/skills/factory/
@@ -257,7 +257,8 @@ cp -r my-claude-code-setup/.claude/commands/cleanup/cleanup-context elite-claude
 ```bash
 cp -r claude-code-skill-factory/.claude/commands/build elite-claude-dev/.claude/commands/development/
 cp -r claude-code-skill-factory/.claude/commands/build-skill elite-claude-dev/.claude/commands/development/
-cp -r claude-code-skill-factory/.claude/commands/build-agent elite-claude-dev/.claude/commands/development/
+# build-agent is DEPRECATED - use /dev-aid-build-skill instead (creates skills, not agents)
+# cp -r claude-code-skill-factory/.claude/commands/build-agent elite-claude-dev/.claude/commands/development/
 cp -r claude-code-skill-factory/.claude/commands/validate-output elite-claude-dev/.claude/commands/development/
 ```
 

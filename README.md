@@ -791,7 +791,7 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 
 ### Inspiration & Structure
 - **[martins-ai-template](https://github.com/martinholovsky/martins-ai-template)** by [Martin Holovsky](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
-- **[claude-code-tresor](https://github.com/anthropics/claude-code-tresor)** - Security commands, DevSecOps patterns, and command organization (see [TRESOR-COMMANDS-ANALYSIS.md](.dev-aid/docs/TRESOR-COMMANDS-ANALYSIS.md))
+- **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 
 ### Core Technologies
 - **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers Dev-AID Local Search with 100% local semantic code search using EmbeddingGemma

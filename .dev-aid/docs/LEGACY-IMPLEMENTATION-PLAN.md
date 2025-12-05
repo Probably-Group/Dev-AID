@@ -91,9 +91,9 @@ Domain (12):
   ├── performance-expert
   └── observability
 
-Factory (4):
-  ├── agent-factory
-  ├── prompt-factory
+Factory (3):
+  ├── ~~agent-factory~~ (deprecated - use `skill-creation-expert`)
+  ├── prompt-factory (use `prompt-engineering-expert`)
   ├── hook-factory
   └── slash-command-factory
 
@@ -355,11 +355,11 @@ memory-bank/
 - Consequences: Some manual skill loading needed
 
 **ADR-002: Balanced Architecture**
-- Decision: Orchestration + Agents + Commands
+- Decision: Orchestration + Skills + Commands
 - Context: Different problems need different tools
-- Alternatives: Orchestration-heavy, agent-heavy
-- Rationale: Right tool for the job
-- Consequences: More choices, better fit
+- Alternatives: Orchestration-heavy, skills-heavy
+- Rationale: Right tool for the job (agents deprecated in favor of skills)
+- Consequences: More choices, better fit, cross-provider compatibility
 
 **ADR-003: 1,000 Token Standing Budget**
 - Decision: ~900-1,500 tokens standing context

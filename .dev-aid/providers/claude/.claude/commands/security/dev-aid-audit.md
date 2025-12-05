@@ -249,8 +249,8 @@ cat > "$REPORT_DIR/audit-report.md" <<EOF
 
 1. Review this report: $REPORT_DIR/audit-report.md
 2. Update security.md: .dev-aid/memory-bank/security.md
-3. Run \`/aid-vulnerability-scan\` for deep CVE analysis
-4. Run \`/aid-deploy-validate\` before next deployment
+3. Run \`/dev-aid-vulnerability-scan\` for deep CVE analysis
+4. Run \`/dev-aid-deploy-validate\` before next deployment
 
 ---
 
@@ -322,7 +322,7 @@ Default behavior:
 
 ### Basic Audit
 ```bash
-/aid-audit
+/dev-aid-audit
 ```
 
 ### Focus on Web Application Security
@@ -354,9 +354,9 @@ Audit is successful if:
 
 ## Related Commands
 
-- `/aid-vulnerability-scan` - Deep CVE scanning with exploit correlation
-- `/aid-compliance-check` - GDPR, SOC2, HIPAA compliance validation
-- `/aid-deploy-validate` - Pre-deployment security validation
+- `/dev-aid-vulnerability-scan` - Deep CVE scanning with exploit correlation
+- `/dev-aid-compliance-check` - GDPR, SOC2, HIPAA compliance validation
+- `/dev-aid-deploy-validate` - Pre-deployment security validation
 
 ---
 

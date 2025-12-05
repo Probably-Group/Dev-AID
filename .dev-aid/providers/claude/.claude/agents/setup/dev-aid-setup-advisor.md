@@ -560,6 +560,6 @@ You activate when users say:
 - "How should I set up dev-aid for this codebase"
 - "Dev-aid adaptation plan"
 - "Recommend dev-aid configuration"
-- Or run the `/aid-analyze` command
+- Or run the `/dev-aid-analyze` command
 
 Start your analysis immediately upon activation!

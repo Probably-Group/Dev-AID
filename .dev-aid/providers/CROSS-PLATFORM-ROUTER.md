@@ -71,34 +71,34 @@ ln -s dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 
 ```bash
 # In Claude Code terminal
-/aid-router-challenger "Implement OAuth2 authentication"
-/aid-router-ensemble "Analyze entire codebase for performance issues"
-/aid-router-status
+/dev-aid-router-challenger "Implement OAuth2 authentication"
+/dev-aid-router-ensemble "Analyze entire codebase for performance issues"
+/dev-aid-router-status
 ```
 
 ### Gemini CLI
 
 ```bash
 # In Gemini CLI
-/aid-router-challenger Implement OAuth2 authentication
-/aid-router-ensemble Analyze entire codebase for performance issues
-/aid-router-status
+/dev-aid-router-challenger Implement OAuth2 authentication
+/dev-aid-router-ensemble Analyze entire codebase for performance issues
+/dev-aid-router-status
 ```
 
 ## Command Reference
 
-### `/aid-router-challenger`
+### `/dev-aid-router-challenger`
 
 **Purpose:** Two-AI review workflow (Claude generates, Gemini reviews)
 
 **Claude Code:**
 ```bash
-/aid-router-challenger "Your request here"
+/dev-aid-router-challenger "Your request here"
 ```
 
 **Gemini CLI:**
 ```bash
-/aid-router-challenger Your request here
+/dev-aid-router-challenger Your request here
 ```
 
 **Output:**
@@ -109,20 +109,20 @@ ln -s dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 
 ---
 
-### `/aid-router-ensemble`
+### `/dev-aid-router-ensemble`
 
 **Purpose:** Smart routing to optimal AI model based on task type
 
 **Claude Code:**
 ```bash
-/aid-router-ensemble "Analyze entire codebase"
-/aid-router-ensemble "Implement user authentication"
+/dev-aid-router-ensemble "Analyze entire codebase"
+/dev-aid-router-ensemble "Implement user authentication"
 ```
 
 **Gemini CLI:**
 ```bash
-/aid-router-ensemble Analyze entire codebase
-/aid-router-ensemble Implement user authentication
+/dev-aid-router-ensemble Analyze entire codebase
+/dev-aid-router-ensemble Implement user authentication
 ```
 
 **Routing Logic:**
@@ -135,22 +135,22 @@ ln -s dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 
 ---
 
-### `/aid-router-status`
+### `/dev-aid-router-status`
 
 **Purpose:** View routing configuration and cost analytics
 
 **Claude Code:**
 ```bash
-/aid-router-status
-/aid-router-status --costs
-/aid-router-status --history
+/dev-aid-router-status
+/dev-aid-router-status --costs
+/dev-aid-router-status --history
 ```
 
 **Gemini CLI:**
 ```bash
-/aid-router-status
-/aid-router-status --costs
-/aid-router-status --history
+/dev-aid-router-status
+/dev-aid-router-status --costs
+/dev-aid-router-status --history
 ```
 
 **Output:**
@@ -221,7 +221,7 @@ Model registry with costs and capabilities:
 
 ### Claude Code Implementation
 
-**File:** `.claude/commands/router/aid-router-challenger.md`
+**File:** `.claude/commands/router/dev-aid-router-challenger.md`
 
 ```markdown
 ---
@@ -236,7 +236,7 @@ tags: [routing, multi-ai, security, review]
 
 ### Gemini CLI Implementation
 
-**File:** `.gemini/commands/router/aid-router-challenger.toml`
+**File:** `.gemini/commands/router/dev-aid-router-challenger.toml`
 
 ```toml
 description = "Execute with Challenger mode - Claude generates, Gemini reviews"
@@ -359,13 +359,13 @@ ln -s $(pwd)/dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 
 ### Command not found in Claude Code
 
-1. Check file location: `.claude/commands/router/aid-router-*.md`
+1. Check file location: `.claude/commands/router/dev-aid-router-*.md`
 2. Verify frontmatter syntax (YAML with `---`)
 3. Restart Claude Code session
 
 ### Command not found in Gemini CLI
 
-1. Check file location: `.gemini/commands/router/aid-router-*.toml`
+1. Check file location: `.gemini/commands/router/dev-aid-router-*.toml`
 2. Verify TOML syntax (`description = "..."`)
 3. Update Gemini CLI: `gemini update` (requires v0.4.0+)
 4. Check command discovery: `gemini /help`
@@ -393,7 +393,7 @@ export OPENAI_API_KEY="your-key-here"
 2. **Route massive context to Gemini** (97% cheaper than Claude)
 3. **Use challenger mode selectively** (only for security-critical code)
 4. **Set daily budget limits** in `routing.json`
-5. **Monitor with /aid-router-status** to track spending
+5. **Monitor with /dev-aid-router-status** to track spending
 
 ## Roadmap
 

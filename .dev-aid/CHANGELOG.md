@@ -60,7 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ensemble Mode**: Automatic routing to optimal AI based on task classification
 - **Solo Mode**: Single model for predictable workflows
 - **Cost Tracking**: Real-time cost monitoring with daily budgets and logging
-- **Slash Commands**: `/aid-router-challenger`, `/aid-router-ensemble`, `/aid-router-status`
+- **Slash Commands**: `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`, `/dev-aid-router-status`
 - **Full API Integration**: Anthropic, Google, OpenAI clients with unified interface
 - **Virtual Environment Support**: Complete dependency isolation with automated setup
 

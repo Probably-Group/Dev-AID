@@ -54,7 +54,7 @@ Execute your request with **Challenger mode + Semantic Search**: Local AI finds 
 
 **Basic Usage:**
 ```
-/aid-router-challenger-rag "Implement OAuth2 authentication with JWT tokens"
+/dev-aid-router-challenger-rag "Implement OAuth2 authentication with JWT tokens"
 ```
 
 **What happens:**
@@ -65,12 +65,12 @@ Execute your request with **Challenger mode + Semantic Search**: Local AI finds 
 
 **With Specific Context:**
 ```
-/aid-router-challenger-rag "Add password reset functionality"
+/dev-aid-router-challenger-rag "Add password reset functionality"
 ```
 
 **For Security-Critical Features:**
 ```
-/aid-router-challenger-rag "Implement payment processing with Stripe"
+/dev-aid-router-challenger-rag "Implement payment processing with Stripe"
 ```
 
 ## 🛠️ Setup Required
@@ -96,7 +96,7 @@ This command requires claude-context-local to be installed and indexed.
 
 **Request:**
 ```
-/aid-router-challenger-rag "Implement password validation function"
+/dev-aid-router-challenger-rag "Implement password validation function"
 ```
 
 **Step 1: Semantic Search finds:**
@@ -167,7 +167,7 @@ def validate_password(password: str, user_id: str) -> tuple[bool, str]:
 - ✅ Privacy matters (100% local)
 - ✅ Cost-conscious (zero API fees)
 
-**Use standard `/aid-router-challenger` when:**
+**Use standard `/dev-aid-router-challenger` when:**
 - ⚠️ Small codebase (RAG won't find much context)
 - ⚠️ Brand new feature (no existing patterns to reference)
 - ⚠️ RAG not set up yet
@@ -227,9 +227,9 @@ def validate_password(password: str, user_id: str) -> tuple[bool, str]:
 
 ## 📚 Related Commands
 
-- `/aid-router-challenger` - Standard challenger mode (no RAG)
-- `/aid-router-ensemble-rag` - Smart routing with RAG
-- `/aid-router-status` - View routing statistics
+- `/dev-aid-router-challenger` - Standard challenger mode (no RAG)
+- `/dev-aid-router-ensemble-rag` - Smart routing with RAG
+- `/dev-aid-router-status` - View routing statistics
 
 ## 🔧 Troubleshooting
 

@@ -18,7 +18,7 @@
 - ✅ **`dev-aid`** - Directory names, file paths (lowercase with hyphen)
 - ✅ **`.dev-aid/`** - Configuration directory
 - ✅ **`dev-aid-search`** - Standalone commands (lowercase with hyphen)
-- ✅ **`/aid-*`** - Slash commands (just "aid" prefix, e.g., `/aid-router-challenger`)
+- ✅ **`/dev-aid-*`** - Slash commands (just "aid" prefix, e.g., `/dev-aid-router-challenger`)
 
 ### Examples
 
@@ -35,8 +35,8 @@ cd .dev-aid/scripts
 dev-aid-search index .
 
 # Slash command usage
-/aid-router-challenger "Implement auth"
-/aid-audit
+/dev-aid-router-challenger "Implement auth"
+/dev-aid-audit
 ```
 
 **Incorrect Usage**:
@@ -136,9 +136,9 @@ Always use `.dev-aid/` (lowercase with hyphen):
 
 **Slash commands** (just "aid" prefix):
 ```bash
-✅ /aid-router-challenger   # Slash command
-✅ /aid-audit               # Slash command
-✅ /aid-build-skill         # Slash command
+✅ /dev-aid-router-challenger   # Slash command
+✅ /dev-aid-audit               # Slash command
+✅ /dev-aid-build-skill         # Slash command
 ❌ /devaid-router           # Wrong: don't use "devaid"
 ❌ /dev-aid-router          # Wrong: too long for slash commands
 ```
@@ -183,8 +183,8 @@ Run `dev-aid-search index .` to index your code.
 Use `./.dev-aid/scripts/setup-rag.sh` to install.
 
 # When referencing slash commands
-Use `/aid-router-challenger "task"` for two-AI review.
-Run `/aid-audit` to scan for security issues.
+Use `/dev-aid-router-challenger "task"` for two-AI review.
+Run `/dev-aid-audit` to scan for security issues.
 ```
 
 ---
@@ -289,7 +289,7 @@ This is the first production-ready release of Dev-AID...
 | **Documentation headers** | Dev-AID |
 | **Directory paths** | `.dev-aid/` |
 | **Standalone commands** | `dev-aid-search` |
-| **Slash commands** | `/aid-router-*` |
+| **Slash commands** | `/dev-aid-router-*` |
 | **RAG feature** | Dev-AID Local Search |
 | **Router feature** | Dev-AID Router |
 | **File references** | `.dev-aid/config/routing.json` |

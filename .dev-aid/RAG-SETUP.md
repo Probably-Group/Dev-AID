@@ -139,7 +139,7 @@ gemini> "Search for OAuth2 implementation"
 
 **RAG-enhanced challenger mode:**
 ```
-/aid-router-challenger-rag "Implement password reset"
+/dev-aid-router-challenger-rag "Implement password reset"
 ```
 
 **What happens:**

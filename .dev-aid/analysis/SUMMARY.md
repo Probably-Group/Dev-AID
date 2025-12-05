@@ -273,8 +273,8 @@
 - ux-design-expert (redundant)
 
 **From skill-factory**:
-- factory-guide (redundant with /aid-build-skill)
-- skills-guide (redundant with /aid-build-skill)
+- factory-guide (redundant with /dev-aid-build-skill)
+- skills-guide (redundant with /dev-aid-build-skill)
 
 **Why skip?**
 - Redundant with Dev-AID's 65+ skills

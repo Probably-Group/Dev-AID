@@ -587,7 +587,7 @@ echo ""
 ### Example 1: Create MongoDB Expert Skill
 
 ```
-/aid-build-skill
+/dev-aid-build-skill
 
 → What's the name of your skill? mongodb-expert
 → What technology does this cover? MongoDB database design and optimization
@@ -602,7 +602,7 @@ echo ""
 ### Example 2: Create React Testing Skill
 
 ```
-/aid-build-skill
+/dev-aid-build-skill
 
 → What's the name of your skill? react-testing-expert
 → What technology does this cover? React component testing

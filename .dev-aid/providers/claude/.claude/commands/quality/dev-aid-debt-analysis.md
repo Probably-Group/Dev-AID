@@ -599,7 +599,7 @@ echo "💰 Cost Analysis: $REPORT_DIR/cost-analysis.md"
 
 ### Basic Analysis
 ```bash
-/aid-debt-analysis
+/dev-aid-debt-analysis
 ```
 
 ### After Analysis - Create Sprint Tasks
@@ -615,7 +615,7 @@ cat .dev-aid/reports/quality/debt-*/refactoring-roadmap.md
 ### Quarterly Debt Review
 ```bash
 # Run analysis every quarter
-/aid-debt-analysis
+/dev-aid-debt-analysis
 
 # Compare with previous reports
 # Track debt reduction progress

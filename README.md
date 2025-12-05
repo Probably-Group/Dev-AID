@@ -27,7 +27,7 @@ Still You: Switch back to VS Code
 ```
 You: Working in Claude Code (or Cursor, or Gemini CLI)
 Dev-AID: *Already there, enhancing your AI with expert skills*
-You: /aid-router-challenger "Implement OAuth"
+You: /dev-aid-router-challenger "Implement OAuth"
 Dev-AID: *Claude generates, Gemini reviews, all in one place*
 ✨ Never left your editor
 ```
@@ -60,7 +60,7 @@ Real-World Examples:
 • "Find authentication functions"
   → Local RAG searches instantly ($0, never leaves your machine)
 
-• /aid-router-challenger "Implement OAuth2"
+• /dev-aid-router-challenger "Implement OAuth2"
   → Claude generates code, Gemini reviews security, all in one command
 
 • Start coding session
@@ -72,7 +72,7 @@ Real-World Examples:
 • git commit
   → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
 
-• /aid-router-status
+• /dev-aid-router-status
   → View AI routing decisions and costs across all sessions
 ```
 
@@ -138,7 +138,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Ensemble mode** - Route to best AI for each task
 - **Cost optimization** - Gemini for large context (97% cheaper)
 - **Configuration-driven** - JSON-based routing rules
-- **Slash commands** - `/aid-router-challenger`, `/aid-router-ensemble`
+- **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
 
 ### 🎓 **65 Expert Skills** (🆕 Hook-Based Auto-Loading)
 - **Intelligent auto-loading** - Detects project context (tech stack, files) at session start
@@ -146,7 +146,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Zero configuration** - Works automatically for Claude Code and Gemini CLI
 - **Universal architecture** - Same auto-loading logic across all AI providers
 - **Manual activation** - Still available via skill name when needed
-- **Custom skills** - Generate new skills with `/aid-build-skill`
+- **Custom skills** - Generate new skills with `/dev-aid-build-skill`
 - **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
 
 ### 💾 **Persistent Memory Bank**
@@ -230,7 +230,7 @@ You: "Find all authentication functions"
 AI: *uses local RAG, returns relevant code*
 
 # Or via router with RAG
-/aid-router-challenger-rag "Implement password reset"
+/dev-aid-router-challenger-rag "Implement password reset"
 ```
 
 **What happens:**
@@ -243,11 +243,11 @@ AI: *uses local RAG, returns relevant code*
 
 ### 🔀 **Router Commands** (Multi-AI Orchestration)
 
-#### `/aid-router-challenger`
+#### `/dev-aid-router-challenger`
 **Two-AI review workflow**
 
 ```bash
-/aid-router-challenger "Implement OAuth2 authentication"
+/dev-aid-router-challenger "Implement OAuth2 authentication"
 ```
 
 **Process:**
@@ -260,11 +260,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/aid-router-challenger-rag`
+#### `/dev-aid-router-challenger-rag`
 **Challenger mode + Local RAG**
 
 ```bash
-/aid-router-challenger-rag "Add password validation"
+/dev-aid-router-challenger-rag "Add password validation"
 ```
 
 **Process:**
@@ -277,11 +277,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/aid-router-ensemble`
+#### `/dev-aid-router-ensemble`
 **Smart routing to optimal AI**
 
 ```bash
-/aid-router-ensemble "Analyze entire codebase for security issues"
+/dev-aid-router-ensemble "Analyze entire codebase for security issues"
 ```
 
 **Routing logic:**
@@ -295,11 +295,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/aid-router-status`
+#### `/dev-aid-router-status`
 **View routing stats**
 
 ```bash
-/aid-router-status
+/dev-aid-router-status
 ```
 
 **Shows:**
@@ -312,44 +312,44 @@ AI: *uses local RAG, returns relevant code*
 
 ### 🛠️ **Development Commands**
 
-#### `/aid-audit`
+#### `/dev-aid-audit`
 Security audit with 5 tools
 
 ```bash
-/aid-audit
+/dev-aid-audit
 ```
 
 Runs: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
 
 ---
 
-#### `/aid-build-skill`
+#### `/dev-aid-build-skill`
 Generate custom expert skill
 
 ```bash
-/aid-build-skill "Create a Kubernetes expert skill"
+/dev-aid-build-skill "Create a Kubernetes expert skill"
 ```
 
 Generates skill with references, activation rules, and context.
 
 ---
 
-#### `/aid-deploy-validate`
+#### `/dev-aid-deploy-validate`
 Pre-deployment validation
 
 ```bash
-/aid-deploy-validate production
+/dev-aid-deploy-validate production
 ```
 
 Validates: Dependencies, configs, security, tests
 
 ---
 
-#### `/aid-test-suite`
+#### `/dev-aid-test-suite`
 Run comprehensive test suite
 
 ```bash
-/aid-test-suite
+/dev-aid-test-suite
 ```
 
 Runs all tests with coverage
@@ -460,7 +460,7 @@ Claude: *automatically uses local RAG*
 
 **Via Router:**
 ```bash
-/aid-router-challenger-rag "Implement authentication"
+/dev-aid-router-challenger-rag "Implement authentication"
 # Uses RAG to find existing patterns, then generates
 ```
 
@@ -510,19 +510,19 @@ Claude: *automatically uses local RAG*
 │   ├── claude/
 │   │   └── .claude/
 │   │       ├── commands/router/
-│   │       │   ├── aid-router-challenger.md
-│   │       │   ├── aid-router-challenger-rag.md
-│   │       │   ├── aid-router-ensemble.md
-│   │       │   └── aid-router-status.md
+│   │       │   ├── dev-aid-router-challenger.md
+│   │       │   ├── dev-aid-router-challenger-rag.md
+│   │       │   ├── dev-aid-router-ensemble.md
+│   │       │   └── dev-aid-router-status.md
 │   │       └── skills/expert/ (65 skills)
 │   │
 │   └── gemini/
 │       └── .gemini/
 │           └── commands/router/
-│               ├── aid-router-challenger.toml
-│               ├── aid-router-challenger-rag.toml
-│               ├── aid-router-ensemble.toml
-│               └── aid-router-status.toml
+│               ├── dev-aid-router-challenger.toml
+│               ├── dev-aid-router-challenger-rag.toml
+│               ├── dev-aid-router-ensemble.toml
+│               └── dev-aid-router-status.toml
 │
 ├── 📁 memory-bank/
 │   ├── activeContext.md               # Current sprint
@@ -723,7 +723,7 @@ Skills auto-activate based on file patterns:
 
 ```bash
 # Use built-in generator
-/aid-build-skill "Create a [domain] expert skill"
+/dev-aid-build-skill "Create a [domain] expert skill"
 
 # Or manually:
 # 1. Create .dev-aid/providers/claude/.claude/skills/expert/your-skill/
@@ -772,7 +772,7 @@ See existing commands as templates.
 cat .dev-aid/config/routing.json
 
 # View current costs
-/aid-router-status
+/dev-aid-router-status
 
 # Adjust cost_limit_per_day
 ```

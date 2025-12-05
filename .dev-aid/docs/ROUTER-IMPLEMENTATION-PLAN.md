@@ -57,7 +57,7 @@ Implement the missing execution layer for Dev-AID's multi-AI router to enable ac
 4. ✅ Ensemble mode implementation
 5. ✅ Cost calculation
 
-**Deliverable:** `/aid-router-ensemble` works end-to-end
+**Deliverable:** `/dev-aid-router-ensemble` works end-to-end
 
 **Files:**
 ```
@@ -85,7 +85,7 @@ Implement the missing execution layer for Dev-AID's multi-AI router to enable ac
 4. ✅ Refinement step (optional)
 5. ✅ Response formatting
 
-**Deliverable:** `/aid-router-challenger` works end-to-end
+**Deliverable:** `/dev-aid-router-challenger` works end-to-end
 
 **Files:**
 ```
@@ -113,7 +113,7 @@ Implement the missing execution layer for Dev-AID's multi-AI router to enable ac
 5. ✅ Integration with slash commands
 
 **Deliverable:**
-- `/aid-router-status` shows real data
+- `/dev-aid-router-status` shows real data
 - All costs logged
 - CLI tool for manual invocation
 
@@ -141,7 +141,7 @@ Implement the missing execution layer for Dev-AID's multi-AI router to enable ac
 **Components:**
 1. ✅ RAG query integration
 2. ✅ Context injection
-3. ✅ `/aid-router-challenger-rag` command
+3. ✅ `/dev-aid-router-challenger-rag` command
 
 **Deliverable:** RAG-enhanced routing works
 
@@ -287,7 +287,7 @@ tests/
 
 - [ ] Install Python dependencies
 - [ ] Configure API keys
-- [ ] Run `/aid-router-ensemble "test request"`
+- [ ] Run `/dev-aid-router-ensemble "test request"`
 - [ ] Verify correct model selected
 - [ ] Check logs created
 - [ ] Verify cost calculated

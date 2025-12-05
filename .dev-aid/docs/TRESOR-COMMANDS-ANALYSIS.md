@@ -167,7 +167,7 @@ cp claude-code-tresor/commands/development/* \
 
 **Note**: The following were mentioned in earlier analysis but **don't actually exist in Tresor**:
 
-- `/setup-analysis` - Doesn't exist (we have `/aid-analyze`)
+- `/setup-analysis` - Doesn't exist (we have `/dev-aid-analyze`)
 - `/context-init` - Doesn't exist (install.sh handles this)
 - `/claude-optimize` - Doesn't exist (was speculative example)
 - `/prompt-engineering` - Doesn't exist (was speculative example)
@@ -205,24 +205,24 @@ cp claude-code-tresor/commands/development/* \
 ### Phase 1: High Priority (Week 1-2)
 Commands that provide immediate security and deployment value:
 
-1. `/aid-audit` (rename from `/audit`)
-2. `/aid-vulnerability-scan` (rename from `/vulnerability-scan`)
-3. `/aid-deploy-validate` (rename from `/deploy-validate`)
-4. `/aid-code-health` (rename from `/code-health`)
-5. `/aid-debt-analysis` (rename from `/debt-analysis`)
+1. `/dev-aid-audit` (rename from `/audit`)
+2. `/dev-aid-vulnerability-scan` (rename from `/vulnerability-scan`)
+3. `/dev-aid-deploy-validate` (rename from `/deploy-validate`)
+4. `/dev-aid-code-health` (rename from `/code-health`)
+5. `/dev-aid-debt-analysis` (rename from `/debt-analysis`)
 
 ### Phase 2: Medium Priority (Week 3-4)
 Commands that enhance operations and compliance:
 
-6. `/aid-compliance-check` (rename from `/compliance-check`)
-7. `/aid-health-check` (rename from `/health-check`)
-8. `/aid-incident-response` (rename from `/incident-response`)
+6. `/dev-aid-compliance-check` (rename from `/compliance-check`)
+7. `/dev-aid-health-check` (rename from `/health-check`)
+8. `/dev-aid-incident-response` (rename from `/incident-response`)
 
 ### Phase 3: Lower Priority (Week 5-6)
 Performance optimization commands:
 
-9. `/aid-profile` (rename from `/profile`)
-10. `/aid-benchmark` (rename from `/benchmark`)
+9. `/dev-aid-profile` (rename from `/profile`)
+10. `/dev-aid-benchmark` (rename from `/benchmark`)
 
 ---
 
@@ -232,19 +232,19 @@ When integrating Tresor commands, we need to:
 
 ### 1. Rename with `aid-` Prefix
 **Before**: `/audit`
-**After**: `/aid-audit`
+**After**: `/dev-aid-audit`
 **Reason**: Distinguish Dev-AID commands from user custom commands
 
 ### 2. Integrate with Memory Bank
-**Example**: `/aid-audit` should update `.dev-aid/memory-bank/security.md` with findings
+**Example**: `/dev-aid-audit` should update `.dev-aid/memory-bank/security.md` with findings
 **Pattern**: All commands should log learnings to appropriate memory bank file
 
 ### 3. Support Multi-Provider Orchestration
-**Example**: `/aid-code-health` should work whether Claude, Gemini, or OpenAI is running it
+**Example**: `/dev-aid-code-health` should work whether Claude, Gemini, or OpenAI is running it
 **Pattern**: Commands should be provider-agnostic in their implementation
 
 ### 4. Add Configuration Support
-**Example**: `/aid-compliance-check` should read compliance requirements from settings
+**Example**: `/dev-aid-compliance-check` should read compliance requirements from settings
 **Pattern**: Commands should respect Dev-AID configuration files
 
 ### 5. Update Output Paths

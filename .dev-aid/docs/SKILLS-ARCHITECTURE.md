@@ -139,10 +139,10 @@ Every `SKILL.md` must include:
 
 ## Creating New Skills
 
-Use the `/aid-build-skill` command:
+Use the `/dev-aid-build-skill` command:
 
 ```bash
-/aid-build-skill
+/dev-aid-build-skill
 
 → Skill name: mongodb-expert
 → Technology: MongoDB database design
@@ -512,7 +512,7 @@ Core skills: 2
 
 1. **Keep SKILL.md under 500 lines** - Use `references/` for details
 2. **Use shared location** - Never create provider-specific skills
-3. **Follow template** - Use `/aid-build-skill` command
+3. **Follow template** - Use `/dev-aid-build-skill` command
 4. **Test across providers** - Verify skills work with Claude AND Gemini
 5. **Document changes** - Update skill when domain changes
 
@@ -540,7 +540,7 @@ Core skills: 2
 
 ## Related Documentation
 
-- [aid-build-skill.md](../providers/claude/.claude/commands/setup/aid-build-skill.md) - Skill creation template
+- [aid-build-skill.md](../providers/claude/.claude/commands/setup/dev-aid-build-skill.md) - Skill creation template
 - [skill-rules.json](../config/skill-rules.json) - Auto-activation configuration
 - [CONTEXT-SHARING.md](CONTEXT-SHARING.md) - Multi-provider collaboration
 - [DEV-AID-STYLE-GUIDE.md](DEV-AID-STYLE-GUIDE.md) - Coding standards

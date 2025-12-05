@@ -244,7 +244,7 @@ Gemini CLI uses `~/.gemini/mcp.json` which must be edited manually:
 
 Currently: **Indirectly, yes!**
 
-When you use Dev-AID router commands like `/aid-router-challenger`:
+When you use Dev-AID router commands like `/dev-aid-router-challenger`:
 1. Router sends request to Claude/Gemini via API
 2. Claude/Gemini sees ALL your MCP servers
 3. They can use any available server
@@ -252,7 +252,7 @@ When you use Dev-AID router commands like `/aid-router-challenger`:
 
 **Example**:
 ```
-/aid-router-challenger "Review our authentication code and check
+/dev-aid-router-challenger "Review our authentication code and check
                         if there are any related GitHub issues"
 
 → Claude generates code review (uses code-search MCP + github MCP)

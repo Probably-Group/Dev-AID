@@ -465,7 +465,7 @@ echo "📄 Full Report: $REPORT_DIR/health-score.md"
 
 ### Basic Assessment
 ```bash
-/aid-code-health
+/dev-aid-code-health
 ```
 
 ### After Assessment - Fix Issues
@@ -484,7 +484,7 @@ find . -name "*.js" -o -name "*.ts" | xargs wc -l | sort -rn | head -10
 Add to weekly tasks:
 ```bash
 # Weekly code health check
-/aid-code-health
+/dev-aid-code-health
 
 # Review health score trend over time
 ```

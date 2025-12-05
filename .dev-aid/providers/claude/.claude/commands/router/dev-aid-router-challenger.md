@@ -36,17 +36,17 @@ Execute your request with **Challenger mode**: Claude (primary) generates the so
 
 **Basic Usage:**
 ```
-/aid-router-challenger "Implement OAuth2 authentication with JWT tokens"
+/dev-aid-router-challenger "Implement OAuth2 authentication with JWT tokens"
 ```
 
 **With Specific Context:**
 ```
-/aid-router-challenger "Add password reset functionality" --context "Using existing auth system in src/auth/"
+/dev-aid-router-challenger "Add password reset functionality" --context "Using existing auth system in src/auth/"
 ```
 
 **For Code Review:**
 ```
-/aid-router-challenger "Review the authentication changes I just made"
+/dev-aid-router-challenger "Review the authentication changes I just made"
 ```
 
 ## 🚀 Implementation
@@ -361,7 +361,7 @@ Challenger mode can be configured in `.dev-aid/config/routing.json`:
 ## 🎯 Example Session
 
 ```
-User: /aid-router-challenger "Implement password reset with email verification"
+User: /dev-aid-router-challenger "Implement password reset with email verification"
 
 [Claude generates implementation]
 ✅ Generated: Password reset flow with email verification
@@ -392,7 +392,7 @@ If challenger review fails:
 ```
 ⚠️ Challenger review failed (Gemini API error)
 Falling back to primary implementation only.
-Recommendation: Run /aid-audit manually to verify security.
+Recommendation: Run /dev-aid-audit manually to verify security.
 ```
 
 ## 📝 Logging

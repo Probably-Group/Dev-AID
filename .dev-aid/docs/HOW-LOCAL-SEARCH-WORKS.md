@@ -209,7 +209,7 @@ results = await mcp.call_tool("code-search", {
 
 **You use slash command**:
 ```
-/aid-router-challenger-rag "Add OAuth2 authentication"
+/dev-aid-router-challenger-rag "Add OAuth2 authentication"
 ```
 
 **What happens**:

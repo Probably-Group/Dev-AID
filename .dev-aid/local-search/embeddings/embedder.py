@@ -3,7 +3,7 @@
 import os
 import torch
 from sentence_transformers import SentenceTransformer
-from typing import List
+from typing import List, Optional
 import numpy as np
 from pathlib import Path
 
@@ -86,7 +86,3 @@ class CodeEmbedder:
     def embedding_dim(self) -> int:
         """Get embedding dimensionality"""
         return self.model.get_sentence_embedding_dimension()
-
-
-# Import typing
-from typing import Optional

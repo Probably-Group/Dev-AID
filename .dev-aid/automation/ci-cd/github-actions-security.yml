@@ -35,9 +35,9 @@ jobs:
       - name: Install Checkov (IaC Scanner)
         run: pip install checkov
 
-      - name: Install Semgrep (SAST)
+      - name: Install Opengrep (SAST)
         run: |
-          pip install semgrep
+          pip install opengrep
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
@@ -47,12 +47,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Semgrep (SAST)
-        id: semgrep
+      - name: Run Opengrep (SAST)
+        id: opengrep
         continue-on-error: true
         run: |
-          semgrep scan --config=auto --sarif --output=semgrep.sarif .
-          semgrep scan --config=auto --json --output=semgrep.json .
+          opengrep scan --config=auto --sarif --output=opengrep.sarif .
+          opengrep scan --config=auto --json --output=opengrep.json .
 
       - name: Run Trivy (Dependency Scanning - SARIF)
         id: trivy
@@ -123,9 +123,10 @@ jobs:
       - name: Upload SARIF results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
         if: always()
+        continue-on-error: true  # Prevents build failures on repos without Advanced Security
         with:
           sarif_file: |
-            semgrep.sarif
+            opengrep.sarif
             trivy-fs.sarif
             checkov.sarif
             hadolint.sarif
@@ -146,10 +147,10 @@ jobs:
             fi
           fi
 
-          # Semgrep
-          if [ -f "semgrep.json" ]; then
-            FINDINGS=$(jq '.results | length' semgrep.json)
-            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          # Opengrep
+          if [ -f "opengrep.json" ]; then
+            FINDINGS=$(jq '.results | length' opengrep.json)
+            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Trivy
@@ -191,9 +192,9 @@ jobs:
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Semgrep for ERROR severity
-          if [ -f "semgrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
+          # Check Opengrep for ERROR severity
+          if [ -f "opengrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
             if [ "$CRITICAL" -gt 0 ]; then
               echo "❌ $CRITICAL critical code vulnerabilities!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))

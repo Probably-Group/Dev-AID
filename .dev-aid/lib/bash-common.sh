@@ -45,7 +45,7 @@ validate_safe_input() {
     local field_name="${2:-input}"
 
     # Check for shell metacharacters
-    if [[ "$input" =~ [;\|\&\$\`\(\)\<\>] ]]; then
+    if [[ "$input" =~ [\;\|\&\$\`\(\)\<\>] ]]; then
         echo "Error: Invalid characters in $field_name" >&2
         return 1
     fi

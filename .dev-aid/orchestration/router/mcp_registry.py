@@ -10,9 +10,9 @@ Discovers MCP servers from:
 import json
 import os
 import subprocess
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set
-from dataclasses import dataclass, asdict
 
 
 @dataclass

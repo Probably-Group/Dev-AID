@@ -5,10 +5,10 @@ This module provides VCR configuration to record and replay HTTP interactions
 for testing AI API clients without incurring costs or exposing API keys.
 """
 
-import vcr
 import os
 from pathlib import Path
 
+import vcr
 
 # Cassettes directory
 CASSETTES_DIR = Path(__file__).parent / "cassettes"

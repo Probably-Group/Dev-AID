@@ -7,11 +7,11 @@ Compares documentation claims against actual code, config files, and CLIs.
 """
 
 import json
-import sys
 import re
 import subprocess
+import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class DocSync:

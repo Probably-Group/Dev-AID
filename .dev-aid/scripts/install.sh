@@ -408,29 +408,29 @@ select_model_for_task() {
         case $provider in
             claude)
                 available_models+=("claude-sonnet-4.5")
-                echo "  $i) claude-sonnet-4.5 (Balanced, ${3}/1M)"
+                echo "  $i) claude-sonnet-4.5 (Balanced, \$3/1M)"
                 ((i++))
                 available_models+=("claude-opus-4.5")
-                echo "  $i) claude-opus-4.5 (Most capable, $15/1M)"
+                echo "  $i) claude-opus-4.5 (Most capable, \$15/1M)"
                 ((i++))
                 available_models+=("claude-haiku-4.5")
-                echo "  $i) claude-haiku-4.5 (Fastest, $0.25/1M)"
+                echo "  $i) claude-haiku-4.5 (Fastest, \$0.25/1M)"
                 ((i++))
                 ;;
             gemini)
                 available_models+=("gemini-2.0-flash")
-                echo "  $i) gemini-2.0-flash (1M context, $0.075/1M)"
+                echo "  $i) gemini-2.0-flash (1M context, \$0.075/1M)"
                 ((i++))
                 available_models+=("gemini-2.0-pro")
-                echo "  $i) gemini-2.0-pro (2M context, $1.25/1M)"
+                echo "  $i) gemini-2.0-pro (2M context, \$1.25/1M)"
                 ((i++))
                 ;;
             openai)
                 available_models+=("gpt-4o")
-                echo "  $i) gpt-4o (Versatile, $5/1M)"
+                echo "  $i) gpt-4o (Versatile, \$5/1M)"
                 ((i++))
                 available_models+=("gpt-4-turbo")
-                echo "  $i) gpt-4-turbo (Capable, $10/1M)"
+                echo "  $i) gpt-4-turbo (Capable, \$10/1M)"
                 ((i++))
                 ;;
         esac

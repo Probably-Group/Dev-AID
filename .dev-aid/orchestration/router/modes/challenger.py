@@ -2,8 +2,9 @@
 Challenger Mode - Primary generates, challenger reviews
 """
 
-from typing import Dict, Any, Optional
-from ..api_clients import Message, APIResponse, create_client
+from typing import Any, Dict, Optional
+
+from ..api_clients import APIResponse, Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 
 

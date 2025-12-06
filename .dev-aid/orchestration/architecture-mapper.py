@@ -7,12 +7,12 @@ understand system relationships, data flow, and dependencies.
 """
 
 import ast
-import sys
 import json
-from pathlib import Path
-from typing import Dict, List, Set, Optional
-from collections import defaultdict
 import re
+import sys
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 
 class ArchitectureMapper:

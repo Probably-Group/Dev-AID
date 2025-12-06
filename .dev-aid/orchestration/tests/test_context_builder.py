@@ -1,5 +1,7 @@
+from unittest.mock import AsyncMock, Mock
+
 import pytest
-from unittest.mock import Mock, AsyncMock
+
 from router.context_builder import ContextBuilder, DevAIDContext
 
 
@@ -17,6 +19,11 @@ class TestContextBuilder:
         return ContextBuilder(mock_config)
 
     def test_build_context_basic(self, builder):
+        # Mock methods that access files
+        builder._load_memory_bank = Mock(return_value={})
+        builder._detect_active_skills = Mock(return_value=[])
+        builder._get_git_context = Mock(return_value={})
+
         context = builder.build_context()
         assert isinstance(context, DevAIDContext)
         assert context.project_info["orchestration_mode"] == "solo"
@@ -35,7 +42,7 @@ class TestContextBuilder:
     def test_format_context(self, builder):
         context = DevAIDContext(
             memory_bank={"activeContext.md": "# Active\nDoing things"},
-            project_info={"name": "Test"},
+            project_info={"name": "Test", "orchestration_mode": "solo"},
             git_context={"branch": "main"},
         )
 

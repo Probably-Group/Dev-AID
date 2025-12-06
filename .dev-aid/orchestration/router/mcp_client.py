@@ -5,12 +5,12 @@ Implements Model Context Protocol client to connect to MCP servers
 and execute tools for enhanced context gathering.
 """
 
+import asyncio
 import json
 import subprocess
-import asyncio
-from typing import Dict, Any, List, Optional
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

@@ -6,8 +6,8 @@ Dev-AID Router Modes
 - challenger: Primary generates, challenger reviews
 """
 
-from .solo import SoloMode
-from .ensemble import EnsembleMode
 from .challenger import ChallengerMode
+from .ensemble import EnsembleMode
+from .solo import SoloMode
 
 __all__ = ["SoloMode", "EnsembleMode", "ChallengerMode"]

@@ -677,7 +677,7 @@ change_providers() {
     local providers_json
     providers_json=$(printf '%s\n' "${new_providers[@]}" | jq -R . | jq -s .)
     if command -v jq &> /dev/null; then
-        jq ".enabled_providers = $providers_json" "$CONFIG_DIR/settings.json" > "$CONFIG_DIR/settings.json.tmp"
+        jq --argjson providers "$providers_json" '.enabled_providers = $providers' "$CONFIG_DIR/settings.json" > "$CONFIG_DIR/settings.json.tmp"
         mv "$CONFIG_DIR/settings.json.tmp" "$CONFIG_DIR/settings.json"
         print_color "$GREEN" "✓ Updated enabled providers"
     fi

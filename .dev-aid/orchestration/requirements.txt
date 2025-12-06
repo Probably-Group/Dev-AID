@@ -26,7 +26,7 @@ rich==13.9.4                # Pretty terminal output
 typer==0.15.1               # CLI framework
 
 # HTTP client
-httpx==0.28.1               # Modern HTTP client (used by Anthropic SDK)
+httpx==0.26.0                # Modern HTTP client (used by Anthropic SDK, <0.27 for proxies compatibility)
 
 # Testing dependencies
 pytest==8.3.4               # Testing framework

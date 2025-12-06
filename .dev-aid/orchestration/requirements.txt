@@ -11,9 +11,9 @@
 #   4. Test: pytest .dev-aid/orchestration/tests/
 
 # AI Provider SDKs
-anthropic==0.39.0           # Anthropic API (Claude)
-google-generativeai==0.8.3  # Google Gemini API
-openai==1.54.5              # OpenAI API
+anthropic==0.39.0            # Anthropic API (Claude)
+google-generativeai==0.1.0rc1  # Google Gemini API
+openai==1.54.5               # OpenAI API
 
 # Core utilities
 python-dotenv==1.0.1        # Load .env files for API keys
@@ -31,23 +31,23 @@ httpx==0.28.1               # Modern HTTP client (used by Anthropic SDK)
 # Testing dependencies
 pytest==8.3.4               # Testing framework
 pytest-asyncio==0.24.0      # Async test support
-pytest-cov==6.0.0           # Coverage reporting
+pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
 vcrpy==6.0.2                # Record/replay HTTP interactions for testing
-hypothesis==6.122.3         # Property-based testing
+hypothesis==6.113.0          # Property-based testing
 
 # Security & Quality
-bandit==1.8.0               # Security vulnerability scanner
+bandit==1.7.10              # Security vulnerability scanner
 safety==3.2.11              # Dependency vulnerability scanner
-pip-audit==2.8.0            # Audit pip packages for vulnerabilities
+pip-audit==2.7.3             # Audit pip packages for vulnerabilities
 mypy==1.13.0                # Static type checker
 types-requests==2.32.0.20241016  # Type stubs for requests
 
 # Development tools
-pre-commit==4.0.1           # Git hooks framework
-black==24.10.0              # Code formatter
-isort==5.13.2               # Import sorter
-flake8==7.1.1               # Linting
+pre-commit==3.5.0            # Git hooks framework
+black==24.8.0                # Code formatter
+isort==5.13.2                # Import sorter
+flake8==7.1.1                # Linting
 
 # Dependencies of above packages (explicitly pinned for full control)
 # Note: pip will resolve these automatically, but pinning prevents unexpected updates

@@ -68,9 +68,19 @@ class MultiLanguageChunker:
         chunks = []
 
         try:
-            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            # SECURITY: Try UTF-8 first (strict), fallback to detection if needed
+            with open(file_path, 'r', encoding='utf-8') as f:
                 lines = f.readlines()
+        except UnicodeDecodeError:
+            # Fallback to latin-1 which never fails (but may produce garbage)
+            try:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    lines = f.readlines()
+            except Exception as e:
+                print(f"Error reading {file_path}: {e}")
+                return chunks
 
+        try:
             # Simple line-based chunking (can be enhanced with tree-sitter later)
             total_lines = len(lines)
             current_line = 0

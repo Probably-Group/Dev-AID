@@ -111,7 +111,7 @@ def status(project):
             table.add_column("Hash", style="dim")
 
             for path, hash_val in result["projects"].items():
-                table.add_column(path, hash_val)
+                table.add_row(path, hash_val)  # BUGFIX: was add_column
 
             console.print(table)
     else:

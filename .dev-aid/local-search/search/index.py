@@ -2,14 +2,16 @@
 
 import os
 import json
-import pickle
+import logging
 import numpy as np
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 import faiss
 from dataclasses import dataclass, asdict
 
 from chunking.chunker import CodeChunk
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -70,7 +72,7 @@ class CodeSearchIndex:
         self.metadata["total_chunks"] = len(chunks)
         self.metadata["indexed_files"] = list(set(chunk.file_path for chunk in chunks))
 
-        print(f"Built index with {len(chunks)} chunks from {len(self.metadata['indexed_files'])} files")
+        logger.info(f"Built index with {len(chunks)} chunks from {len(self.metadata['indexed_files'])} files")
 
     def search(self, query_embedding: np.ndarray, top_k: int = 10) -> List[SearchResult]:
         """
@@ -107,7 +109,7 @@ class CodeSearchIndex:
         return results
 
     def save(self):
-        """Save index to disk"""
+        """Save index to disk (using JSON instead of pickle for security)"""
         if self.index is None:
             return
 
@@ -115,22 +117,24 @@ class CodeSearchIndex:
         index_file = self.index_dir / "index.faiss"
         faiss.write_index(self.index, str(index_file))
 
-        # Save chunks
-        chunks_file = self.index_dir / "chunks.pkl"
-        with open(chunks_file, 'wb') as f:
-            pickle.dump(self.chunks, f)
+        # Save chunks as JSON (SECURITY: avoid pickle RCE vulnerability)
+        chunks_file = self.index_dir / "chunks.json"
+        chunks_data = [asdict(chunk) for chunk in self.chunks]
+        with open(chunks_file, 'w', encoding='utf-8') as f:
+            json.dump(chunks_data, f, indent=2)
 
         # Save metadata
         metadata_file = self.index_dir / "metadata.json"
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(self.metadata, f, indent=2)
 
-        print(f"Index saved to {self.index_dir}")
+        logger.info(f"Index saved to {self.index_dir}")
 
     def load(self):
-        """Load index from disk"""
+        """Load index from disk (using JSON instead of pickle for security)"""
         index_file = self.index_dir / "index.faiss"
-        chunks_file = self.index_dir / "chunks.pkl"
+        chunks_file_json = self.index_dir / "chunks.json"
+        chunks_file_pkl = self.index_dir / "chunks.pkl"  # Legacy format
         metadata_file = self.index_dir / "metadata.json"
 
         if not index_file.exists():
@@ -140,18 +144,59 @@ class CodeSearchIndex:
             # Load FAISS index
             self.index = faiss.read_index(str(index_file))
 
-            # Load chunks
-            with open(chunks_file, 'rb') as f:
-                self.chunks = pickle.load(f)
+            # Load chunks (prefer JSON, fallback to pickle for migration)
+            if chunks_file_json.exists():
+                # Secure JSON format
+                with open(chunks_file_json, 'r', encoding='utf-8') as f:
+                    chunks_data = json.load(f)
+
+                # Validate and reconstruct CodeChunk objects
+                self.chunks = []
+                for chunk_dict in chunks_data:
+                    try:
+                        chunk = CodeChunk(**chunk_dict)
+                        self.chunks.append(chunk)
+                    except (TypeError, KeyError) as e:
+                        logger.warning(f"Skipping invalid chunk: {e}")
+                        continue
+
+                logger.info(f"Loaded index with {len(self.chunks)} chunks (JSON format)")
+
+            elif chunks_file_pkl.exists():
+                # Legacy pickle format - migrate to JSON
+                logger.warning("Found legacy pickle format - migrating to JSON for security")
+                import pickle
+                with open(chunks_file_pkl, 'rb') as f:
+                    self.chunks = pickle.load(f)
+
+                # Save as JSON and remove pickle file
+                chunks_data = [asdict(chunk) for chunk in self.chunks]
+                with open(chunks_file_json, 'w', encoding='utf-8') as f:
+                    json.dump(chunks_data, f, indent=2)
+                chunks_file_pkl.unlink()  # Delete insecure pickle file
+
+                logger.info(f"Migrated {len(self.chunks)} chunks to secure JSON format")
+
+            else:
+                logger.error("No chunks file found")
+                self.index = None
+                self.chunks = []
+                return
 
             # Load metadata
-            with open(metadata_file, 'r') as f:
+            with open(metadata_file, 'r', encoding='utf-8') as f:
                 self.metadata = json.load(f)
 
-            print(f"Loaded index with {len(self.chunks)} chunks")
-
+        except json.JSONDecodeError as e:
+            logger.error(f"Invalid JSON in index files: {e}")
+            self.index = None
+            self.chunks = []
+        except OSError as e:
+            logger.error(f"I/O error loading index: {e}")
+            self.index = None
+            self.chunks = []
         except Exception as e:
-            print(f"Error loading index: {e}")
+            logger.error(f"Unexpected error loading index: {e}")
             self.index = None
             self.chunks = []
 
@@ -178,4 +223,4 @@ class CodeSearchIndex:
             if file.is_file():
                 file.unlink()
 
-        print("Index cleared")
+        logger.info("Index cleared")

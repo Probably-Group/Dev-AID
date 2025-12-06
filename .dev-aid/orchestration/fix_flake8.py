@@ -2,7 +2,6 @@
 """Automatically fix Flake8 errors: F401, F841, F541"""
 
 import re
-import sys
 from pathlib import Path
 
 def fix_f841_unused_variables(filepath):

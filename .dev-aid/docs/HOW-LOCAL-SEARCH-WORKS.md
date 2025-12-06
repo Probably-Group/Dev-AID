@@ -11,7 +11,7 @@ You → Claude/Gemini → Detects "code search" intent
                     ↓
               Uses local MCP tool
                     ↓
-         claude-context-local searches locally
+         Dev-AID Local Search searches locally
                     ↓
               Returns results ($0 cost)
                     ↓
@@ -63,14 +63,15 @@ These tools support MCP but require manual configuration:
 When you run `.dev-aid/scripts/setup-rag.sh`:
 
 ```bash
-# Installs local search engine
-uv tool install claude-context-local
+# Installs Dev-AID Local Search (embedded in .dev-aid/local-search/)
+pip3 install -e .dev-aid/local-search/
 
 # Registers it as an MCP server with your AI tool
 claude mcp add code-search --scope user -- \
-    uv run --directory ~/.local/share/claude-context-local \
-    python mcp_server/server.py
+    python3 .dev-aid/local-search/mcp_server/server.py
 ```
+
+**Key difference from external versions**: This is fully self-contained in the Dev-AID repository. No external GitHub dependencies, no separate installations - everything is embedded and maintained by Dev-AID.
 
 ### 2. What This Registration Does
 
@@ -80,17 +81,21 @@ After registration, your Claude Code or Gemini CLI gains a **new tool** called `
 {
   "mcpServers": {
     "code-search": {
-      "command": "uv",
-      "args": ["run", "...mcp_server/server.py"],
+      "command": "python3",
+      "args": [".dev-aid/local-search/mcp_server/server.py"],
       "capabilities": [
-        "search_codebase",
-        "find_similar_code",
-        "semantic_search"
+        "search_code",
+        "index_directory",
+        "get_index_status",
+        "list_projects",
+        "clear_index"
       ]
     }
   }
 }
 ```
+
+**Implementation**: `.dev-aid/local-search/mcp_server/server.py` - Self-contained MCP server owned and maintained by Dev-AID (not external dependency).
 
 ### 3. Runtime Phase (Every Query)
 

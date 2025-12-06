@@ -106,45 +106,40 @@ This document catalogues features that are **documented but not yet implemented*
 
 ## 🔮 Future Features (Need Architectural Decisions)
 
-### 1. RAG Integration (Phase 5)
-**Status**: 🟡 DOCUMENTED BUT NOT IMPLEMENTED
+### 1. RAG Integration / Local Search (COMPLETED 2025-12-06)
+**Status**: ✅ FULLY IMPLEMENTED (Self-Contained)
 
-**What's missing**:
-- `router/mcp_client.py` - MCP protocol client
-- `router/mcp_registry.py` - MCP server discovery
-- Integration with `claude-context-local`
-- `/dev-aid-router-challenger-rag` command functionality
+**What was implemented**:
+- ✅ `router/mcp_client.py` - MCP protocol client (255 lines)
+- ✅ `router/mcp_registry.py` - MCP server discovery (354 lines)
+- ✅ **Self-contained local search** in `.dev-aid/local-search/`:
+  - `embeddings/embedder.py` - EmbeddingGemma integration
+  - `chunking/chunker.py` - Multi-language code parsing
+  - `search/index.py` - FAISS vector search
+  - `mcp_server/server.py` - MCP protocol server
+  - `mcp_server/cli.py` - CLI interface
+- ✅ `setup-rag.sh` - Installs embedded implementation (NO external GitHub dependencies)
+- ✅ Integration with Claude Code and Gemini CLI via MCP
 
-**Why not implemented**:
-- MCP protocol still evolving
-- `claude-context-local` exists but isn't integrated
-- Requires significant testing infrastructure
-- Current context builder loads memory bank files (works well enough)
+**Key Achievement**:
+Originally depended on external `claude-context-local` GitHub repository. Now **fully embedded and self-contained** in Dev-AID. No external dependencies - all code owned and maintained by Dev-AID project.
 
-**Questions needing clarification**:
-1. **Which RAG backend to prioritize?**
-   - A. `claude-context-local` (100% local, free)
-   - B. LightRAG (newer, better performance)
-   - C. LlamaIndex (most mature)
-   - D. Support multiple backends
+**Location**: `.dev-aid/local-search/` (complete implementation)
+**Setup**: `.dev-aid/scripts/setup-rag.sh`
+**Credits**: Inspired by claude-context-local by FarhanAliRaza (MIT License), reimplemented for independence
 
-2. **When should RAG trigger automatically?**
-   - A. Always (every request)
-   - B. Only for large codebase queries
-   - C. User opt-in per request
-   - D. Configurable threshold
+**Usage**:
+```bash
+# Setup (installs all dependencies locally)
+./.dev-aid/scripts/setup-rag.sh
 
-3. **How to handle RAG failures?**
-   - A. Fall back to memory bank only
-   - B. Return error to user
-   - C. Retry with different backend
+# CLI usage
+devaid-code-search index .
+devaid-code-search search "authentication functions"
 
-**Proposed approach**:
-- Start with `claude-context-local` (Option 1A) - already documented
-- Trigger only for massive_context tasks (Option 2B) - cost-effective
-- Fall back gracefully (Option 3A) - best UX
-
-**Effort estimate**: 2-3 weeks (integration + testing)
+# MCP usage (automatic in Claude Code/Gemini)
+# Just ask questions - AI uses code-search tool automatically
+```
 
 ### 2. MCP Integration Infrastructure
 **Status**: 🟡 400+ lines of docs written, zero code

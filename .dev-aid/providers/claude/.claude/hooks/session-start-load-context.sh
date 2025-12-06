@@ -45,7 +45,6 @@ readonly MEMORY_BANK_DIR="$CLAUDE_PROJECT_DIR/memory-bank"
 readonly ACTIVE_CONTEXT="$MEMORY_BANK_DIR/CLAUDE-activeContext.md"
 
 # Validate memory bank path containment
-local resolved_memory_bank
 resolved_memory_bank="$(realpath -m "$MEMORY_BANK_DIR" 2>/dev/null)" || {
     echo "ℹ️  Memory Bank directory not found. Initialize with /update-memory-bank"
     exit 0

@@ -110,3 +110,33 @@ def sample_messages():
     return [
         Message(role="user", content="Hello, how are you?")
     ]
+
+
+@pytest.fixture
+def mock_google_config() -> Dict[str, Any]:
+    """Mock Google (Gemini) model configuration"""
+    return {
+        "provider": "google",
+        "model_id": "gemini-flash",
+        "cost_per_1m_tokens": {
+            "input": 0.075,
+            "output": 0.30
+        },
+        "max_tokens": 8192,
+        "temperature": 0.7
+    }
+
+
+@pytest.fixture
+def mock_openai_config() -> Dict[str, Any]:
+    """Mock OpenAI (GPT) model configuration"""
+    return {
+        "provider": "openai",
+        "model_id": "gpt-4o",
+        "cost_per_1m_tokens": {
+            "input": 2.50,
+            "output": 10.0
+        },
+        "max_tokens": 4096,
+        "temperature": 0.7
+    }

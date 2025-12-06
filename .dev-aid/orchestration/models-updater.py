@@ -70,7 +70,7 @@ class ModelDiscovery:
             return []
 
         try:
-            _client = anthropic.Anthropic(api_key=api_key)
+        # _client = anthropic.Anthropic(api_key=api_key)
 
             # Anthropic doesn't have a public list_models endpoint yet
             # We'll use known model patterns and validate they exist

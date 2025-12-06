@@ -137,7 +137,7 @@ class DataFactory:
 
     def parse_json_schema(self, schema: Dict) -> List[Dict]:
         """Parse JSON Schema and generate data"""
-        schema_type = schema.get("type")
+        schema.get("type")
         properties = schema.get("properties", {})
         required = schema.get("required", [])
 

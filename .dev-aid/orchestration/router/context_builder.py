@@ -9,7 +9,6 @@ Gathers relevant context from:
 - MCP servers (database, GitHub, code search, etc.)
 """
 
-import asyncio
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -82,7 +81,7 @@ class ContextBuilder:
                     with open(filepath, "r", encoding="utf-8") as f:
                         content = f.read()
                         memory_bank[filename] = content
-                except Exception as e:
+                except Exception:
                     # Log error but continue
                     print(f"Warning: Could not read {filename}: {e}")
 
@@ -139,7 +138,7 @@ class ContextBuilder:
 
             # Get current branch
             branch = subprocess.check_output(
-                ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                ["git", "rev-parse", "--abbrev-re", "HEAD"],
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
@@ -293,11 +292,11 @@ class ContextBuilder:
                         if result:
                             mcp_context["github"] = result
 
-                except Exception as e:
+                except Exception:
                     print(f"Warning: Failed to gather context from {server_name}: {e}")
                     continue
 
-        except Exception as e:
+        except Exception:
             print(f"Error gathering MCP context: {e}")
 
         return mcp_context
@@ -361,7 +360,7 @@ class ContextBuilder:
 
             return {"search_results": result.get("content", []), "query": search_terms}
 
-        except Exception as e:
+        except Exception:
             print(f"Code search failed: {e}")
             return None
 
@@ -373,7 +372,7 @@ class ContextBuilder:
 
             return {"schema": result, "server": server_name}
 
-        except Exception as e:
+        except Exception:
             print(f"Database schema query failed: {e}")
             return None
 
@@ -391,7 +390,7 @@ class ContextBuilder:
 
             return {"issues": result.get("issues", []), "query": search_query}
 
-        except Exception as e:
+        except Exception:
             print(f"GitHub query failed: {e}")
             return None
 
@@ -436,30 +435,30 @@ class ContextBuilder:
 
         # Active skills
         if context.active_skills:
-            sections.append(f"\n## Active Skills")
+            sections.append("\n## Active Skills")
             sections.append("The following Dev-AID skills are active for this project:")
             for skill in context.active_skills:
                 sections.append(f"  - {skill}")
 
         if context.git_context:
-            sections.append(f"\n## Git Context")
+            sections.append("\n## Git Context")
             sections.append(f"Branch: {context.git_context['branch']}")
             sections.append(f"Last Commit: {context.git_context['last_commit']}")
             sections.append(f"Status: {context.git_context['status']}")
 
         # Memory bank
         if context.memory_bank:
-            sections.append(f"\n## Memory Bank")
+            sections.append("\n## Memory Bank")
             for filename, content in context.memory_bank.items():
                 sections.append(f"\n### {filename}")
                 sections.append(content)
 
         # MCP Context
         if context.mcp_context:
-            sections.append(f"\n## MCP Context (From External Tools)")
+            sections.append("\n## MCP Context (From External Tools)")
 
             if "code_search" in context.mcp_context:
-                sections.append(f"\n### Code Search Results")
+                sections.append("\n### Code Search Results")
                 cs = context.mcp_context["code_search"]
                 sections.append(f"Query: {cs.get('query', '')}")
                 sections.append("Relevant code found in your codebase:")
@@ -467,14 +466,14 @@ class ContextBuilder:
                     sections.append(f"  - {result}")
 
             if "database_schema" in context.mcp_context:
-                sections.append(f"\n### Database Schema")
+                sections.append("\n### Database Schema")
                 db = context.mcp_context["database_schema"]
                 sections.append(f"Server: {db.get('server', '')}")
                 sections.append("Schema information:")
                 sections.append(str(db.get("schema", ""))[:1000])  # Limit size
 
             if "github" in context.mcp_context:
-                sections.append(f"\n### GitHub Issues/PRs")
+                sections.append("\n### GitHub Issues/PRs")
                 gh = context.mcp_context["github"]
                 sections.append(f"Search: {gh.get('query', '')}")
                 sections.append("Related issues:")
@@ -543,17 +542,17 @@ if __name__ == "__main__":
         print("Building context...")
         context = builder.build_context()
 
-        print(f"\n✅ Context built successfully")
+        print("\n✅ Context built successfully")
         print(f"   Memory Bank Files: {len(context.memory_bank)}")
         print(f"   Project: {context.project_info['name']}")
 
         if context.git_context:
             print(f"   Git Branch: {context.git_context['branch']}")
 
-        print(f"\n📝 System Prompt Preview:")
+        print("\n📝 System Prompt Preview:")
         print("=" * 60)
         system_prompt = build_system_prompt(context, builder)
         print(system_prompt[:500] + "..." if len(system_prompt) > 500 else system_prompt)
 
-    except Exception as e:
+    except Exception:
         print(f"❌ Error: {e}")

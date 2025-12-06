@@ -10,10 +10,10 @@ Tracks:
 """
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 @dataclass
@@ -68,7 +68,7 @@ class CostTracker:
         try:
             with open(self.costs_file, "w") as f:
                 json.dump(self.costs, f, indent=2)
-        except IOError as e:
+        except except IOError::
             print(f"Warning: Could not save costs: {e}")
 
     def log_decision(
@@ -132,7 +132,7 @@ class CostTracker:
                     f'Request: "{decision.request_preview}..."\n'
                 )
                 f.write(log_line)
-        except IOError as e:
+        except except IOError::
             print(f"Warning: Could not write routing log: {e}")
 
     def _update_costs(self, decision: RoutingDecision):
@@ -295,7 +295,7 @@ if __name__ == "__main__":
     # Budget check
     daily_limit = 100.0
     budget = tracker.get_budget_status(daily_limit)
-    print(f"\n💰 Budget Status:")
+    print("\n💰 Budget Status:")
     print(f"   Daily Limit: ${budget['daily_limit']:.2f}")
     print(f"   Used: ${budget['used']:.4f} ({budget['percentage']:.1f}%)")
     print(f"   Remaining: ${budget['remaining']:.4f}")

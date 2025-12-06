@@ -2,7 +2,6 @@
 Tests for API clients
 """
 
-from unittest.mock import Mock, patch
 
 import pytest
 

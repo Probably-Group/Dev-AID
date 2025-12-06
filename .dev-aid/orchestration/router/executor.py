@@ -14,7 +14,7 @@ import asyncio
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from .config_loader import ConfigLoader, load_config
+from .config_loader import load_config
 from .context_builder import ContextBuilder
 from .cost_tracker import CostTracker
 from .mcp_client import MCPClientPool, MCPServerConfig
@@ -49,7 +49,7 @@ class RouterExecutor:
                 self.mcp_registry.discover_all()
                 self.mcp_pool = MCPClientPool()
                 # Pool will be populated when needed
-            except Exception as e:
+            except except Exception::
                 print(f"Warning: MCP initialization failed: {e}")
                 self.mcp_enabled = False
 
@@ -90,7 +90,7 @@ class RouterExecutor:
 
                 # Store MCP context for this request
                 kwargs["mcp_context"] = mcp_context
-            except Exception as e:
+            except except Exception::
                 print(f"Warning: MCP context gathering failed: {e}")
                 # Continue without MCP context
 
@@ -106,7 +106,7 @@ class RouterExecutor:
 
             return result
 
-        except Exception as e:
+        except except Exception::
             return {"success": False, "mode": mode, "error": str(e)}
 
     def execute(
@@ -162,7 +162,7 @@ class RouterExecutor:
                 )
                 try:
                     await self.mcp_pool.add_server(config)
-                except Exception as e:
+                except except Exception::
                     print(f"Warning: Failed to connect to MCP server {server_name}: {e}")
 
     def _log_decision(self, result: Dict[str, Any], mode: str, request: str):
@@ -272,7 +272,7 @@ class RouterExecutor:
             lines.append(f"🤖 Selected Model: {selected_model}")
 
             if result.get("used_fallback"):
-                lines.append(f"⚠️  Note: Used fallback model")
+                lines.append("⚠️  Note: Used fallback model")
 
             lines.append("")
 
@@ -281,13 +281,13 @@ class RouterExecutor:
             challenger = result.get("challenger_model", "unknown")
             issues_found = result.get("issues_found", False)
 
-            lines.append(f"⚔️  Challenger Mode Workflow:")
+            lines.append("⚔️  Challenger Mode Workflow:")
             lines.append(f"   Primary Model: {primary}")
             lines.append(f"   Challenger Model: {challenger}")
             lines.append(f"   Issues Found: {'Yes' if issues_found else 'No'}")
 
             if result.get("refined"):
-                lines.append(f"   ✨ Solution Refined")
+                lines.append("   ✨ Solution Refined")
 
             lines.append("")
 
@@ -367,6 +367,6 @@ if __name__ == "__main__":
     try:
         output = execute_request(request, mode=mode, verbose=True)
         print(output)
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}")
         sys.exit(1)

@@ -10,14 +10,14 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 try:
     import anthropic
     import google.generativeai as genai
     import openai
     from dotenv import load_dotenv
-except ImportError as e:
+except ImportError:
     print(f"Error: Missing required package: {e}")
     print("Run: pip install -r .dev-aid/orchestration/requirements.txt")
     sys.exit(1)
@@ -70,7 +70,7 @@ class ModelDiscovery:
             return []
 
         try:
-            client = anthropic.Anthropic(api_key=api_key)
+            _client = anthropic.Anthropic(api_key=api_key)
 
             # Anthropic doesn't have a public list_models endpoint yet
             # We'll use known model patterns and validate they exist
@@ -99,7 +99,7 @@ class ModelDiscovery:
 
             return discovered
 
-        except Exception as e:
+        except Exception:
             print(f"⚠ Error discovering Anthropic models: {e}")
             return []
 
@@ -139,7 +139,7 @@ class ModelDiscovery:
 
             return discovered
 
-        except Exception as e:
+        except Exception:
             print(f"⚠ Error discovering Google models: {e}")
             return []
 
@@ -151,7 +151,7 @@ class ModelDiscovery:
             return []
 
         try:
-            client = openai.OpenAI(api_key=api_key)
+            _client = openai.OpenAI(api_key=api_key)
 
             # List available models
             models = client.models.list()
@@ -192,7 +192,7 @@ class ModelDiscovery:
 
             return discovered
 
-        except Exception as e:
+        except Exception:
             print(f"⚠ Error discovering OpenAI models: {e}")
             return []
 

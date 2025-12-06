@@ -1,0 +1,155 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.8.5, pytest-8.3.5, pluggy-1.5.0 -- /Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/venv/bin/python
+cachedir: .pytest_cache
+hypothesis profile 'default' -> database=DirectoryBasedExampleDatabase(PosixPath('/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/.hypothesis/examples'))
+rootdir: /Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration
+configfile: pyproject.toml
+plugins: asyncio-0.24.0, cov-5.0.0, hypothesis-6.113.0, anyio-4.5.2, mock-3.14.1
+asyncio: mode=auto, default_loop_scope=None
+collecting ... collected 0 items / 8 errors
+
+==================================== ERRORS ====================================
+__________________ ERROR collecting tests/test_api_clients.py __________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_api_clients.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_api_clients.py:8: in <module>
+    from router.api_clients import Message, APIResponse, AnthropicClient, create_client, APIClientError
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+________________ ERROR collecting tests/test_api_clients_vcr.py ________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_api_clients_vcr.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_api_clients_vcr.py:39: in <module>
+    from router.api_clients import Message, AnthropicClient, GoogleClient, OpenAIClient, create_client
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+_________________ ERROR collecting tests/test_config_loader.py _________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_config_loader.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_config_loader.py:11: in <module>
+    from router.config_loader import ConfigLoader
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+________________ ERROR collecting tests/test_context_builder.py ________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_context_builder.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_context_builder.py:3: in <module>
+    from router.context_builder import ContextBuilder, DevAIDContext
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+_________________ ERROR collecting tests/test_cost_tracker.py __________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_cost_tracker.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_cost_tracker.py:6: in <module>
+    from router.cost_tracker import CostTracker, RoutingDecision
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+___________________ ERROR collecting tests/test_security.py ____________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_security.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_security.py:16: in <module>
+    from router.config_loader import ConfigLoader
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+________________ ERROR collecting tests/test_task_classifier.py ________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_task_classifier.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_task_classifier.py:2: in <module>
+    from router.task_classifier import TaskClassifier, TaskType
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+__________________ ERROR collecting tests/test_validators.py ___________________
+ImportError while importing test module '/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/tests/test_validators.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+../../../../opt/anaconda3/lib/python3.8/importlib/__init__.py:127: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+tests/test_validators.py:2: in <module>
+    from router.validators import (
+router/__init__.py:11: in <module>
+    from .config_loader import load_config
+router/config_loader.py:16: in <module>
+    from dotenv import load_dotenv
+E   ModuleNotFoundError: No module named 'dotenv'
+
+---------- coverage: platform darwin, python 3.8.5-final-0 -----------
+Name                         Stmts   Miss  Cover   Missing
+----------------------------------------------------------
+router/__init__.py               5      2 60.00%   12-14
+router/api_clients.py          146    146  0.00%   10-424
+router/cli.py                  241    241  0.00%   10-424
+router/config_loader.py        117    112  4.27%   19-278
+router/context_builder.py      233    233  0.00%   12-559
+router/cost_tracker.py         132    132  0.00%   12-302
+router/executor.py             159    159  0.00%   13-372
+router/mcp_client.py            91     91  0.00%   8-251
+router/mcp_registry.py         144    144  0.00%   10-345
+router/modes/__init__.py         4      4  0.00%   9-13
+router/modes/challenger.py     110    110  0.00%   5-374
+router/modes/ensemble.py        72     72  0.00%   5-204
+router/modes/solo.py            32     32  0.00%   5-103
+router/task_classifier.py       55     55  0.00%   13-217
+router/validators.py           112    112  0.00%   11-223
+----------------------------------------------------------
+TOTAL                         1653   1645  0.48%
+Coverage HTML written to dir htmlcov
+Coverage XML written to file coverage.xml
+
+FAIL Required test coverage of 80% not reached. Total coverage: 0.48%
+=========================== short test summary info ============================
+ERROR tests/test_api_clients.py
+ERROR tests/test_api_clients_vcr.py
+ERROR tests/test_config_loader.py
+ERROR tests/test_context_builder.py
+ERROR tests/test_cost_tracker.py
+ERROR tests/test_security.py
+ERROR tests/test_task_classifier.py
+ERROR tests/test_validators.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 8 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 8 errors in 2.27s ===============================
+/Users/martinholovsky/Github/Dev-AID/.dev-aid/orchestration/venv/lib/python3.8/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))

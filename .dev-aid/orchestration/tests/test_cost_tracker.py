@@ -1,11 +1,6 @@
-import json
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import pytest
 
-from router.cost_tracker import CostTracker, RoutingDecision
 
 
 class TestCostTracker:

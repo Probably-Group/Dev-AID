@@ -11,7 +11,6 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from pydantic import ValidationError
 
@@ -32,7 +31,6 @@ logger = logging.getLogger(__name__)
 class SafeError(Exception):
     """Error that is safe to display to users"""
 
-    pass
 
 
 def cmd_execute(args):
@@ -46,7 +44,7 @@ def cmd_execute(args):
                 context_size=args.context_size,
                 use_mcp=not args.no_mcp if hasattr(args, "no_mcp") else True,
             )
-        except ValidationError as e:
+        except except ValidationError::
             # Safe error message - don't leak validation details
             error_msg = "Invalid request parameters. Please check your input."
             logger.error(f"Validation error: {e}")
@@ -62,11 +60,11 @@ def cmd_execute(args):
         )
         print(output)
         return 0
-    except SafeError as e:
+    except except SafeError::
         # Safe to display
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
-    except Exception as e:
+    except except Exception::
         # Log full error, show safe message
         logger.error(f"Unexpected error: {e}", exc_info=True)
         print("❌ An unexpected error occurred. Please check logs for details.", file=sys.stderr)
@@ -91,7 +89,7 @@ def cmd_status(args):
 
         # Mode info
         mode_info = status["mode_info"]
-        print(f"📋 Mode Configuration:")
+        print("📋 Mode Configuration:")
         for key, value in mode_info.items():
             if key != "mode":
                 print(f"   {key}: {value}")
@@ -99,7 +97,7 @@ def cmd_status(args):
 
         # Budget
         budget = status["budget"]
-        print(f"💰 Budget Status:")
+        print("💰 Budget Status:")
         print(f"   Daily Limit: ${budget['daily_limit']:.2f}")
         print(f"   Used Today: ${budget['used']:.4f} ({budget['percentage']:.1f}%)")
         print(f"   Remaining: ${budget['remaining']:.4f}")
@@ -116,7 +114,7 @@ def cmd_status(args):
 
         # Per-model stats
         if status["models"]:
-            print(f"🤖 Models Used Today:")
+            print("🤖 Models Used Today:")
             for model, stats in status["models"].items():
                 print(f"   {model}:")
                 print(f"      Calls: {stats['calls']}")
@@ -128,7 +126,7 @@ def cmd_status(args):
         if args.history:
             recent = status["recent_decisions"]
             if recent:
-                print(f"📝 Recent Routing Decisions:")
+                print("📝 Recent Routing Decisions:")
                 for decision in reversed(recent[-10:]):
                     timestamp = decision["timestamp"].split(".")[0]  # Remove microseconds
                     print(
@@ -138,7 +136,7 @@ def cmd_status(args):
 
         return 0
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -199,7 +197,7 @@ def cmd_test(args):
 
         return 0
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -230,12 +228,12 @@ def cmd_mcp_discover(args):
             print(f"{status:<12} {name:<20} {server.source:<10} {capabilities:<40}")
 
         print("\nTo enable/disable servers for router use:")
-        print(f"  router-cli.sh mcp enable <name>")
-        print(f"  router-cli.sh mcp disable <name>")
+        print("  router-cli.sh mcp enable <name>")
+        print("  router-cli.sh mcp disable <name>")
 
         return 0
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -257,13 +255,13 @@ def cmd_mcp_enable(args):
             print(f"✅ Enabled '{args.name}' for router use")
             print(f"   Source: {server.source}")
             print(f"   Capabilities: {caps}")
-            print(f"\nThe router will now use this MCP server to gather context.")
+            print("\nThe router will now use this MCP server to gather context.")
             return 0
         else:
             print(f"❌ Failed to enable '{args.name}'")
             return 1
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -280,13 +278,13 @@ def cmd_mcp_disable(args):
 
         if registry.disable_server(args.name):
             print(f"✅ Disabled '{args.name}' for router use")
-            print(f"   The server is still installed, just not used by router")
+            print("   The server is still installed, just not used by router")
             return 0
         else:
             print(f"❌ Failed to disable '{args.name}'")
             return 1
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -300,7 +298,7 @@ def cmd_mcp_list(args):
         print(registry.get_summary())
         return 0
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -313,14 +311,14 @@ def cmd_mcp_sync(args):
         registry = MCPRegistry()
         servers = registry.sync()
 
-        print(f"✅ Sync complete!")
+        print("✅ Sync complete!")
         print(f"   Discovered: {len(servers)} server(s)")
         print(f"   Enabled: {len(registry.get_enabled_servers())} server(s)")
         print("\nRun 'mcp list' to see details")
 
         return 0
 
-    except Exception as e:
+    except except Exception::
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 

@@ -2,9 +2,9 @@
 Challenger Mode - Primary generates, challenger reviews
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
-from ..api_clients import APIResponse, Message, create_client
+from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 
 
@@ -120,7 +120,7 @@ class ChallengerMode:
                 "latency_ms": response.latency_ms,
             }
 
-        except Exception as e:
+        except except Exception::
             return {"success": False, "mode": "challenger", "challenged": False, "error": str(e)}
 
     def _execute_with_challenge(
@@ -271,7 +271,7 @@ class ChallengerMode:
                 "latency_ms": response.latency_ms,
             }
 
-        except Exception as e:
+        except except Exception::
             return {"success": False, "role": role, "model": model_name, "error": str(e)}
 
     def _build_review_prompt(self, original_request: str, primary_response: str) -> str:

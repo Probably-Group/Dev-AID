@@ -102,7 +102,7 @@ class ConfigLoader:
         if not safe_path.exists():
             raise FileNotFoundError(
                 f"Configuration file not found: {filename}\n"
-                f"Make sure Dev-AID is properly initialized."
+                "Make sure Dev-AID is properly initialized."
             )
 
         try:
@@ -117,7 +117,7 @@ class ConfigLoader:
 
             return data
 
-        except json.JSONDecodeError as e:
+        except json.JSONDecodeError:
             raise ValueError(f"Invalid JSON in {filename}. Please check your configuration file.")
 
     def get_orchestration_mode(self) -> str:
@@ -260,13 +260,13 @@ def load_config(dev_aid_root: Optional[Path] = None) -> ConfigLoader:
 if __name__ == "__main__":
     try:
         config = load_config()
-        print(f"✅ Configuration loaded successfully")
+        print("✅ Configuration loaded successfully")
         print(f"   Orchestration Mode: {config.get_orchestration_mode()}")
         print(f"   Default Model: {config.get_default_model()}")
         print(f"   Enabled Providers: {', '.join(config.get_enabled_providers())}")
 
         # Validate providers
-        print(f"\n🔍 Provider Validation:")
+        print("\n🔍 Provider Validation:")
         for provider in config.get_enabled_providers():
             is_valid, error = config.validate_provider(provider)
             if is_valid:
@@ -274,5 +274,5 @@ if __name__ == "__main__":
             else:
                 print(f"   ❌ {provider}: {error}")
 
-    except Exception as e:
+    except Exception:
         print(f"❌ Error loading configuration: {e}")

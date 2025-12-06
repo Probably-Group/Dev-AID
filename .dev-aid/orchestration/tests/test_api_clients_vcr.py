@@ -37,7 +37,6 @@ from pathlib import Path
 
 import pytest
 
-from router.api_clients import AnthropicClient, GoogleClient, Message, OpenAIClient, create_client
 
 from .vcr_config import use_cassette
 

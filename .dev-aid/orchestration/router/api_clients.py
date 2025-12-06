@@ -8,7 +8,6 @@ Provides unified interface for:
 """
 
 import logging
-import os
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -47,7 +46,7 @@ def track_api_call(func: Callable) -> Callable:
             # Already a safe error, re-raise as-is
             raise
 
-        except Exception as e:
+        except except Exception::
             # Log full error internally with provider context
             provider = getattr(self, "provider", "unknown")
             logger.error(
@@ -62,7 +61,6 @@ def track_api_call(func: Callable) -> Callable:
 class APIClientError(Exception):
     """Safe API client error that doesn't leak details"""
 
-    pass
 
 
 @dataclass
@@ -123,7 +121,6 @@ class BaseAIClient(ABC):
         Returns:
             APIResponse object
         """
-        pass
 
     def calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
         """

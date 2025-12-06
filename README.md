@@ -185,6 +185,12 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
 
 ### New Features
+- **🤖 Auto-Generate CI/CD Workflows**: Production-ready GitHub Actions from project detection
+  - Supports Node.js, Python, Rust, Go with auto-detection
+  - Security by default: Gitleaks + Trivy included
+  - Detects package managers: npm/yarn/pnpm/bun, pip/poetry/uv, cargo, go
+  - Usage: `.dev-aid/scripts/generate-ci.sh`
+
 - **🔧 Refactoring Expert Skill**: 522-line comprehensive guide for safe code refactoring
   - Safety-first methodology with mandatory testing
   - Strangler Fig pattern for legacy modernization
@@ -194,6 +200,21 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
   - Fork and maintain your own copy
   - Environment variable support for custom repositories
 
+- **🧪 VCR/Replay Testing**: Cost-free AI client testing with recorded HTTP interactions
+  - Record once with real API keys, replay forever in CI
+  - Automatic API key sanitization
+  - Fast, deterministic, $0 cost testing
+
+- **✅ PR Check Workflow**: Fast feedback loop for pull requests
+  - Path-based filtering (runs only on relevant changes)
+  - Python/Bash linting, type checking, unit tests
+  - Saves GitHub Actions minutes
+
+- **🚀 Release Gate Workflow**: Deep validation before releases
+  - Cross-platform tests (Ubuntu, MacOS, Windows)
+  - Comprehensive security scans
+  - Documentation link validation
+
 ### Code Quality
 - **♻️ DRY Improvements**: Eliminated 158 lines of duplicate code in API clients
 - **🎨 Decorator Pattern**: New `@track_api_call` for centralized error handling and timing
@@ -201,7 +222,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 
 **See full changelog:** [CHANGELOG.md](./.dev-aid/CHANGELOG.md)
 
-**Issues resolved:** #17, #18, #19, #20, #21, #22, #23, #24, #26, #27, #28, #31, #32
+**Issues resolved:** #17-24, #26-28, #31-36
 
 ---
 

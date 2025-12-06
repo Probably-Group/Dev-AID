@@ -1,7 +1,13 @@
 import pytest
+from router.validators import (
+    ExecuteRequest,
+    ModelConfig,
+    APIKeyConfig,
+    SafePath,
+    SubprocessCommand,
+    CostLimit,
+)
 from pydantic import ValidationError
-
-from router.validators import CostLimit, ExecuteRequest, SafePath, SubprocessCommand
 
 
 class TestExecuteRequest:
@@ -18,6 +24,16 @@ class TestExecuteRequest:
             ExecuteRequest(request="hello\0world")
 
 
+class TestModelConfig:
+    def test_valid_config(self):
+        config = ModelConfig(provider="anthropic", model_id="claude-3", max_tokens=100)
+        assert config.provider == "anthropic"
+
+    def test_invalid_model_id(self):
+        with pytest.raises(ValidationError, match="alphanumeric"):
+            ModelConfig(provider="anthropic", model_id="claude; rm -rf")
+
+
 class TestSafePath:
     def test_traversal(self):
         with pytest.raises(ValidationError, match="traversal"):
@@ -25,11 +41,13 @@ class TestSafePath:
 
     def test_containment(self):
         with pytest.raises(ValidationError, match="not within"):
-            # Ensure base_dir is absolute for the check to work reliably
             SafePath(path="/etc/passwd", base_dir="/app")
 
     def test_valid(self):
-        # Use absolute paths to avoid resolution issues in test env
+        path = SafePath(path="file.txt", base_dir="/app")
+        # Note: logic uses resolve(), so in test environment /app might not exist or resolve differently.
+        # We accept this might fail if /app doesn't exist.
+        # Let's use cwd
         import os
 
         cwd = os.getcwd()
@@ -47,8 +65,7 @@ class TestSubprocessCommand:
             SubprocessCommand(program="git", args=["; rm -rf /"])
 
     def test_invalid_program(self):
-        # match argument is a regex, 'one of' matches the error message from Literal validator
-        with pytest.raises(ValidationError, match="Input should be 'git', 'python'"):
+        with pytest.raises(ValidationError, match="one of"):
             SubprocessCommand(program="evil_script", args=[])
 
 
@@ -58,5 +75,5 @@ class TestCostLimit:
         assert limit.daily_limit == 10.0
 
     def test_invalid_threshold(self):
-        with pytest.raises(ValidationError, match="less than"):
+        with pytest.raises(ValidationError, match="less than 1.0"):
             CostLimit(daily_limit=10.0, warning_threshold=1.5)

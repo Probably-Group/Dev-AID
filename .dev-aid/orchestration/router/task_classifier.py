@@ -10,9 +10,9 @@ Classifies user requests into task types to route to appropriate model:
 - complex_reasoning: Architecture decisions
 """
 
+from typing import Tuple, List
 import re
 from enum import Enum
-from typing import List, Tuple
 
 
 class TaskType(str, Enum):
@@ -152,12 +152,12 @@ class TaskClassifier:
 
         # Default mappings if not in config
         default_routes = {
-            TaskType.MASSIVE_CONTEXT.value: "gemini-flash",
-            TaskType.CODE_GENERATION.value: "claude-sonnet",
-            TaskType.SECURITY_AUDIT.value: "claude-sonnet",
-            TaskType.DOCUMENTATION.value: "gpt-4o",
-            TaskType.DEBUGGING.value: "claude-sonnet",
-            TaskType.COMPLEX_REASONING.value: "claude-opus",
+            TaskType.MASSIVE_CONTEXT: "gemini-flash",
+            TaskType.CODE_GENERATION: "claude-sonnet",
+            TaskType.SECURITY_AUDIT: "claude-sonnet",
+            TaskType.DOCUMENTATION: "gpt-4o",
+            TaskType.DEBUGGING: "claude-sonnet",
+            TaskType.COMPLEX_REASONING: "claude-opus",
         }
 
         return task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet"))
@@ -177,12 +177,12 @@ class TaskClassifier:
             Explanation string
         """
         explanations = {
-            TaskType.MASSIVE_CONTEXT.value: "Large-scale codebase analysis requiring extensive context",
-            TaskType.CODE_GENERATION.value: "Code writing, implementation, or refactoring task",
-            TaskType.SECURITY_AUDIT.value: "Security review or vulnerability assessment",
-            TaskType.DOCUMENTATION.value: "Documentation writing or explanation task",
-            TaskType.DEBUGGING.value: "Bug investigation and fixing",
-            TaskType.COMPLEX_REASONING.value: "Architectural design or strategic decision",
+            TaskType.MASSIVE_CONTEXT: "Large-scale codebase analysis requiring extensive context",
+            TaskType.CODE_GENERATION: "Code writing, implementation, or refactoring task",
+            TaskType.SECURITY_AUDIT: "Security review or vulnerability assessment",
+            TaskType.DOCUMENTATION: "Documentation writing or explanation task",
+            TaskType.DEBUGGING: "Bug investigation and fixing",
+            TaskType.COMPLEX_REASONING: "Architectural design or strategic decision",
         }
 
         explanation = explanations.get(task_type, "General development task")

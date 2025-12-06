@@ -26,10 +26,41 @@ class DataFactory:
             random.seed(seed)
 
         # Sample data pools for realistic generation
-        self.first_names = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Henry", "Ivy", "Jack"]
-        self.last_names = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez"]
+        self.first_names = [
+            "Alice",
+            "Bob",
+            "Charlie",
+            "Diana",
+            "Eve",
+            "Frank",
+            "Grace",
+            "Henry",
+            "Ivy",
+            "Jack",
+        ]
+        self.last_names = [
+            "Smith",
+            "Johnson",
+            "Williams",
+            "Brown",
+            "Jones",
+            "Garcia",
+            "Miller",
+            "Davis",
+            "Rodriguez",
+            "Martinez",
+        ]
         self.domains = ["example.com", "test.com", "demo.org", "sample.net"]
-        self.cities = ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix", "Philadelphia", "San Antonio", "San Diego"]
+        self.cities = [
+            "New York",
+            "Los Angeles",
+            "Chicago",
+            "Houston",
+            "Phoenix",
+            "Philadelphia",
+            "San Antonio",
+            "San Diego",
+        ]
         self.states = ["CA", "NY", "TX", "FL", "IL", "PA", "OH", "GA", "NC", "MI"]
 
     def generate_string(self, constraints: Dict = None) -> str:
@@ -50,10 +81,11 @@ class DataFactory:
                 return f"https://www.{random.choice(self.domains)}/path"
             elif pattern == "uuid":
                 import uuid
+
                 return str(uuid.uuid4())
 
         length = random.randint(min_length, max_length)
-        return ''.join(random.choices(string.ascii_letters, k=length))
+        return "".join(random.choices(string.ascii_letters, k=length))
 
     def generate_int(self, constraints: Dict = None) -> int:
         """Generate random integer with constraints"""
@@ -100,7 +132,7 @@ class DataFactory:
             "street": f"{random.randint(1, 9999)} {random.choice(self.last_names)} St",
             "city": random.choice(self.cities),
             "state": random.choice(self.states),
-            "zipCode": f"{random.randint(10000, 99999)}"
+            "zipCode": f"{random.randint(10000, 99999)}",
         }
 
     def parse_json_schema(self, schema: Dict) -> List[Dict]:
@@ -138,11 +170,9 @@ class DataFactory:
                 count = random.randint(1, 5)
                 field_value = [self.generate_from_type(items.get("type")) for _ in range(count)]
 
-            generated.append({
-                "field": field_name,
-                "value": field_value,
-                "required": field_name in required
-            })
+            generated.append(
+                {"field": field_name, "value": field_value, "required": field_name in required}
+            )
 
         return generated
 
@@ -167,9 +197,9 @@ class DataFactory:
         """Parse Pydantic model definition"""
         # Simple regex-based parsing
         fields = {}
-        for line in model_code.split('\n'):
+        for line in model_code.split("\n"):
             # Match: field_name: Type = Field(...)
-            match = re.match(r'\s+(\w+):\s*(\w+)(?:\[.*?\])?\s*=?\s*.*', line)
+            match = re.match(r"\s+(\w+):\s*(\w+)(?:\[.*?\])?\s*=?\s*.*", line)
             if match:
                 field_name, field_type = match.groups()
                 fields[field_name] = field_type.lower()
@@ -179,9 +209,9 @@ class DataFactory:
     def parse_typescript_interface(self, interface_code: str) -> Dict:
         """Parse TypeScript interface"""
         fields = {}
-        for line in interface_code.split('\n'):
+        for line in interface_code.split("\n"):
             # Match: fieldName: type;
-            match = re.match(r'\s+(\w+)\??\s*:\s*(\w+)', line)
+            match = re.match(r"\s+(\w+)\??\s*:\s*(\w+)", line)
             if match:
                 field_name, field_type = match.groups()
                 fields[field_name] = field_type.lower()
@@ -214,16 +244,16 @@ class DataFactory:
         content = file_path.read_text()
 
         # Detect file type
-        if file_path.suffix == '.json':
+        if file_path.suffix == ".json":
             schema = json.loads(content)
             return self.generate_from_schema(schema, count)
 
-        elif file_path.suffix == '.py':
+        elif file_path.suffix == ".py":
             # Parse Pydantic model
             fields = self.parse_pydantic_model(content)
             return self.generate_from_schema(fields, count)
 
-        elif file_path.suffix in ['.ts', '.tsx']:
+        elif file_path.suffix in [".ts", ".tsx"]:
             # Parse TypeScript interface
             fields = self.parse_typescript_interface(content)
             return self.generate_from_schema(fields, count)
@@ -253,12 +283,20 @@ class DataFactory:
         sql_statements = []
         for record in records:
             columns = ", ".join(record.keys())
-            values = ", ".join([f"'{v}'" if isinstance(v, str) else str(v) for v in record.values()])
+            values = ", ".join(
+                [f"'{v}'" if isinstance(v, str) else str(v) for v in record.values()]
+            )
             sql_statements.append(f"INSERT INTO {table_name} ({columns}) VALUES ({values});")
 
         return "\n".join(sql_statements)
 
-    def run(self, schema_file: Path, count: int = 10, format: str = "json", output_file: Optional[Path] = None):
+    def run(
+        self,
+        schema_file: Path,
+        count: int = 10,
+        format: str = "json",
+        output_file: Optional[Path] = None,
+    ):
         """Main execution"""
         print(f"🔍 Reading schema from: {schema_file}")
 
@@ -291,36 +329,22 @@ def main():
     """CLI entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Generate realistic test data from schemas"
+    parser = argparse.ArgumentParser(description="Generate realistic test data from schemas")
+    parser.add_argument(
+        "schema", type=Path, help="Schema file (JSON Schema, Pydantic model, TypeScript interface)"
     )
     parser.add_argument(
-        "schema",
-        type=Path,
-        help="Schema file (JSON Schema, Pydantic model, TypeScript interface)"
+        "-c", "--count", type=int, default=10, help="Number of records to generate (default: 10)"
     )
     parser.add_argument(
-        "-c", "--count",
-        type=int,
-        default=10,
-        help="Number of records to generate (default: 10)"
-    )
-    parser.add_argument(
-        "-f", "--format",
+        "-f",
+        "--format",
         choices=["json", "csv", "sql"],
         default="json",
-        help="Output format (default: json)"
+        help="Output format (default: json)",
     )
-    parser.add_argument(
-        "-o", "--output",
-        type=Path,
-        help="Output file (default: stdout)"
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        help="Random seed for reproducibility"
-    )
+    parser.add_argument("-o", "--output", type=Path, help="Output file (default: stdout)")
+    parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
 
     args = parser.parse_args()
 

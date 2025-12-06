@@ -37,17 +37,17 @@ def mock_dev_aid_root(temp_dir):
         "orchestration_mode": "solo",
         "default_model": "claude-sonnet",
         "enabled_providers": ["claude"],
-        "memory_bank": {"auto_load": ["activeContext.md"]}
+        "memory_bank": {"auto_load": ["activeContext.md"]},
     }
 
     routing = {
         "modes": {
             "solo": {"enabled": True},
             "ensemble": {"enabled": True},
-            "challenger": {"enabled": True}
+            "challenger": {"enabled": True},
         },
         "fallback_chain": ["claude-sonnet"],
-        "cost_limit_per_day": 100.0
+        "cost_limit_per_day": 100.0,
     }
 
     models = {
@@ -57,15 +57,13 @@ def mock_dev_aid_root(temp_dir):
             "models": {
                 "claude-sonnet": {
                     "id": "claude-sonnet-4",
-                    "cost_per_1m_tokens": {"input": 3.0, "output": 15.0}
+                    "cost_per_1m_tokens": {"input": 3.0, "output": 15.0},
                 }
-            }
+            },
         }
     }
 
-    orchestration = {
-        "default_mode": "solo"
-    }
+    orchestration = {"default_mode": "solo"}
 
     # Write config files
     (config_dir / "settings.json").write_text(json.dumps(settings, indent=2))
@@ -94,12 +92,9 @@ def mock_model_config() -> Dict[str, Any]:
     return {
         "provider": "anthropic",
         "model_id": "claude-sonnet-4",
-        "cost_per_1m_tokens": {
-            "input": 3.0,
-            "output": 15.0
-        },
+        "cost_per_1m_tokens": {"input": 3.0, "output": 15.0},
         "max_tokens": 4096,
-        "temperature": 0.7
+        "temperature": 0.7,
     }
 
 
@@ -107,9 +102,8 @@ def mock_model_config() -> Dict[str, Any]:
 def sample_messages():
     """Sample messages for API testing"""
     from router.api_clients import Message
-    return [
-        Message(role="user", content="Hello, how are you?")
-    ]
+
+    return [Message(role="user", content="Hello, how are you?")]
 
 
 @pytest.fixture
@@ -118,12 +112,9 @@ def mock_google_config() -> Dict[str, Any]:
     return {
         "provider": "google",
         "model_id": "gemini-flash",
-        "cost_per_1m_tokens": {
-            "input": 0.075,
-            "output": 0.30
-        },
+        "cost_per_1m_tokens": {"input": 0.075, "output": 0.30},
         "max_tokens": 8192,
-        "temperature": 0.7
+        "temperature": 0.7,
     }
 
 
@@ -133,10 +124,7 @@ def mock_openai_config() -> Dict[str, Any]:
     return {
         "provider": "openai",
         "model_id": "gpt-4o",
-        "cost_per_1m_tokens": {
-            "input": 2.50,
-            "output": 10.0
-        },
+        "cost_per_1m_tokens": {"input": 2.50, "output": 10.0},
         "max_tokens": 4096,
-        "temperature": 0.7
+        "temperature": 0.7,
     }

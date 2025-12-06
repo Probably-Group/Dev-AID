@@ -6,7 +6,8 @@
 set -euo pipefail
 
 # Source shared security library
-readonly INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly INSTALL_SCRIPT_DIR
+INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LIB_DIR="${INSTALL_SCRIPT_DIR}/../lib"
 
 # shellcheck source=/dev/null
@@ -64,7 +65,7 @@ declare -A TASK_MODEL_MAPPING
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$@${NC}"
+    echo -e "${color}$*${NC}"
 }
 
 # Print section header
@@ -352,7 +353,7 @@ ask_model_assignment() {
     select_model_for_task "code_generation" "claude-sonnet-4.5"
 
     # Massive Context
-    if [[ " ${ENABLED_PROVIDERS[@]} " =~ " gemini " ]]; then
+    if [[ " ${ENABLED_PROVIDERS[*]} " =~ " gemini " ]]; then
         echo ""
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
         print_color "$CYAN" "2. Massive Context Analysis"
@@ -365,7 +366,7 @@ ask_model_assignment() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     print_color "$CYAN" "3. Documentation & Explanations"
     echo "   (Writing READMEs, docs, code comments)"
-    if [[ " ${ENABLED_PROVIDERS[@]} " =~ " openai " ]]; then
+    if [[ " ${ENABLED_PROVIDERS[*]} " =~ " openai " ]]; then
         select_model_for_task "documentation" "gpt-4o"
     else
         select_model_for_task "documentation" "claude-sonnet-4.5"
@@ -407,7 +408,7 @@ select_model_for_task() {
         case $provider in
             claude)
                 available_models+=("claude-sonnet-4.5")
-                echo "  $i) claude-sonnet-4.5 (Balanced, $3/1M)"
+                echo "  $i) claude-sonnet-4.5 (Balanced, ${3}/1M)"
                 ((i++))
                 available_models+=("claude-opus-4.5")
                 echo "  $i) claude-opus-4.5 (Most capable, $15/1M)"

@@ -1,228 +1,75 @@
-"""
-Unit tests for cost_tracker.py
-"""
-
+import json
 import pytest
 from pathlib import Path
 from datetime import datetime
-import sys
-import json
-import tempfile
-
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from router.cost_tracker import CostTracker, RequestLog
+from unittest.mock import patch, MagicMock
+from router.cost_tracker import CostTracker, RoutingDecision
 
 
 class TestCostTracker:
-    """Test suite for CostTracker"""
-
     @pytest.fixture
-    def temp_log_file(self):
-        """Create temporary log file"""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            temp_path = Path(f.name)
-        yield temp_path
-        # Cleanup
-        if temp_path.exists():
-            temp_path.unlink()
+    def tracker(self, tmp_path):
+        logs_dir = tmp_path / "logs"
+        return CostTracker(logs_dir)
 
-    @pytest.fixture
-    def cost_tracker(self, temp_log_file):
-        """Create CostTracker with temporary log file"""
-        return CostTracker(log_path=temp_log_file)
+    def test_init_creates_files(self, tracker):
+        assert tracker.logs_dir.exists()
+        # Files are created on save, not init?
+        # No, init loads costs which might not exist.
+        assert tracker.costs["total_all_time"] == 0.0
 
-    def test_track_request_basic(self, cost_tracker):
-        """Test basic request tracking"""
-        cost_tracker.track_request(
-            model="claude-sonnet-4.5",
+    def test_log_decision(self, tracker):
+        tracker.log_decision(
+            mode="solo",
             task_type="code_generation",
-            input_tokens=1000,
-            output_tokens=500,
-            cost=0.015
+            model="claude-sonnet",
+            provider="anthropic",
+            cost=0.5,
+            tokens_input=100,
+            tokens_output=200,
+            latency_ms=500,
+            request="Test request",
         )
 
-        logs = cost_tracker.get_today_logs()
-        assert len(logs) == 1
-        assert logs[0].model == "claude-sonnet-4.5"
-        assert logs[0].task_type == "code_generation"
-        assert logs[0].cost == 0.015
+        assert tracker.costs["total_all_time"] == 0.5
+        assert tracker.costs["by_model"]["claude-sonnet"]["cost"] == 0.5
 
-    def test_track_multiple_requests(self, cost_tracker):
-        """Test tracking multiple requests"""
-        requests = [
-            ("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015),
-            ("gemini-flash", "massive_context", 50000, 1000, 0.004),
-            ("gpt-4o", "documentation", 2000, 800, 0.025)
-        ]
+        # Check log file
+        assert tracker.routing_log_file.exists()
+        content = tracker.routing_log_file.read_text()
+        assert "Test request" in content
+        assert "claude-sonnet" in content
 
-        for model, task, input_tok, output_tok, cost in requests:
-            cost_tracker.track_request(model, task, input_tok, output_tok, cost)
+    def test_get_today_cost(self, tracker):
+        tracker.log_decision("solo", "test", "model", "provider", 1.5, 10, 10, 100, "req")
+        assert tracker.get_today_cost() == 1.5
 
-        logs = cost_tracker.get_today_logs()
-        assert len(logs) == 3
+    def test_budget_status(self, tracker):
+        tracker.log_decision("solo", "test", "model", "provider", 80.0, 10, 10, 100, "req")
 
-    def test_get_today_cost(self, cost_tracker):
-        """Test calculating today's total cost"""
-        cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-        cost_tracker.track_request("gemini-flash", "massive_context", 50000, 1000, 0.004)
+        status = tracker.get_budget_status(100.0)
+        assert status["used"] == 80.0
+        assert status["remaining"] == 20.0
+        assert status["over_budget"] is False
+        assert status["percentage"] == 80.0
 
-        total_cost = cost_tracker.get_today_cost()
-        assert total_cost == 0.019
+        status_over = tracker.get_budget_status(50.0)
+        assert status_over["over_budget"] is True
 
-    def test_get_cost_by_model(self, cost_tracker):
-        """Test getting cost breakdown by model"""
-        cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-        cost_tracker.track_request("claude-sonnet-4.5", "debugging", 800, 400, 0.012)
-        cost_tracker.track_request("gemini-flash", "massive_context", 50000, 1000, 0.004)
+    def test_get_recent_decisions(self, tracker):
+        tracker.log_decision("solo", "task1", "model1", "p1", 0.1, 10, 10, 100, "req1")
+        tracker.log_decision("solo", "task2", "model2", "p2", 0.2, 10, 10, 100, "req2")
 
-        by_model = cost_tracker.get_cost_by_model()
+        decisions = tracker.get_recent_decisions(limit=1)
+        assert len(decisions) == 1
+        assert decisions[0]["task_type"] == "task2"
+        assert decisions[0]["cost"] == 0.2
 
-        assert "claude-sonnet-4.5" in by_model
-        assert "gemini-flash" in by_model
-        assert by_model["claude-sonnet-4.5"] == 0.027
-        assert by_model["gemini-flash"] == 0.004
+    def test_persistence(self, tmp_path):
+        logs_dir = tmp_path / "logs"
+        tracker1 = CostTracker(logs_dir)
+        tracker1.log_decision("solo", "task", "model", "p", 1.0, 10, 10, 100, "req")
 
-    def test_get_cost_by_task_type(self, cost_tracker):
-        """Test getting cost breakdown by task type"""
-        cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-        cost_tracker.track_request("gemini-flash", "code_generation", 2000, 600, 0.002)
-        cost_tracker.track_request("claude-sonnet-4.5", "debugging", 800, 400, 0.012)
-
-        by_task = cost_tracker.get_cost_by_task_type()
-
-        assert "code_generation" in by_task
-        assert "debugging" in by_task
-        assert by_task["code_generation"] == 0.017
-        assert by_task["debugging"] == 0.012
-
-    def test_check_budget_under_limit(self, cost_tracker):
-        """Test budget check when under limit"""
-        cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 5.0)
-
-        # Daily limit is 100 by default
-        is_over, current, limit = cost_tracker.check_budget()
-
-        assert is_over is False
-        assert current == 5.0
-        assert limit == 100.0
-
-    def test_check_budget_over_limit(self, cost_tracker):
-        """Test budget check when over limit"""
-        # Track requests totaling over 100
-        for _ in range(30):
-            cost_tracker.track_request("claude-opus-4", "complex_reasoning", 10000, 5000, 4.0)
-
-        is_over, current, limit = cost_tracker.check_budget()
-
-        assert is_over is True
-        assert current == 120.0
-        assert limit == 100.0
-
-    def test_persistence(self, temp_log_file):
-        """Test that logs persist across CostTracker instances"""
-        # Create first tracker and log request
-        tracker1 = CostTracker(log_path=temp_log_file)
-        tracker1.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-
-        # Create second tracker with same log file
-        tracker2 = CostTracker(log_path=temp_log_file)
-        logs = tracker2.get_today_logs()
-
-        assert len(logs) == 1
-        assert logs[0].model == "claude-sonnet-4.5"
-        assert logs[0].cost == 0.015
-
-    def test_json_format(self, temp_log_file, cost_tracker):
-        """Test that log file is valid JSON"""
-        cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-
-        # Read log file
-        with open(temp_log_file, 'r') as f:
-            data = json.load(f)
-
-        assert isinstance(data, list)
-        assert len(data) == 1
-        assert "model" in data[0]
-        assert "timestamp" in data[0]
-        assert "cost" in data[0]
-
-    def test_get_request_count(self, cost_tracker):
-        """Test getting total request count"""
-        for _ in range(5):
-            cost_tracker.track_request("claude-sonnet-4.5", "code_generation", 1000, 500, 0.015)
-
-        logs = cost_tracker.get_today_logs()
-        assert len(logs) == 5
-
-    def test_zero_cost_tracking(self, cost_tracker):
-        """Test tracking requests with zero cost"""
-        cost_tracker.track_request("test-model", "test_task", 100, 50, 0.0)
-
-        logs = cost_tracker.get_today_logs()
-        assert len(logs) == 1
-        assert logs[0].cost == 0.0
-
-    def test_custom_daily_limit(self, temp_log_file):
-        """Test custom daily limit"""
-        tracker = CostTracker(log_path=temp_log_file, daily_limit=50.0)
-
-        tracker.track_request("claude-opus-4", "complex_reasoning", 10000, 5000, 60.0)
-
-        is_over, current, limit = tracker.check_budget()
-
-        assert is_over is True
-        assert current == 60.0
-        assert limit == 50.0
-
-
-class TestRequestLog:
-    """Test RequestLog dataclass"""
-
-    def test_request_log_creation(self):
-        """Test creating RequestLog"""
-        log = RequestLog(
-            timestamp=datetime.now().isoformat(),
-            model="claude-sonnet-4.5",
-            task_type="code_generation",
-            input_tokens=1000,
-            output_tokens=500,
-            cost=0.015,
-            latency_ms=2500
-        )
-
-        assert log.model == "claude-sonnet-4.5"
-        assert log.task_type == "code_generation"
-        assert log.input_tokens == 1000
-        assert log.output_tokens == 500
-        assert log.cost == 0.015
-        assert log.latency_ms == 2500
-
-    def test_request_log_to_dict(self):
-        """Test converting RequestLog to dict"""
-        log = RequestLog(
-            timestamp="2025-12-05T10:00:00",
-            model="claude-sonnet-4.5",
-            task_type="code_generation",
-            input_tokens=1000,
-            output_tokens=500,
-            cost=0.015
-        )
-
-        log_dict = {
-            "timestamp": log.timestamp,
-            "model": log.model,
-            "task_type": log.task_type,
-            "input_tokens": log.input_tokens,
-            "output_tokens": log.output_tokens,
-            "cost": log.cost,
-            "latency_ms": log.latency_ms
-        }
-
-        assert log_dict["model"] == "claude-sonnet-4.5"
-        assert log_dict["cost"] == 0.015
-
-
-if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+        # Reload
+        tracker2 = CostTracker(logs_dir)
+        assert tracker2.costs["total_all_time"] == 1.0

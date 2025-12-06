@@ -26,6 +26,7 @@ except ImportError as e:
 @dataclass
 class ModelInfo:
     """Information about a discovered model"""
+
     id: str
     tier: str  # opus, sonnet, haiku, pro, flash, gpt-4, gpt-3.5
     version: float  # e.g., 4.5, 2.0, 3.0
@@ -52,12 +53,12 @@ class ModelDiscovery:
             print(f"Error: {self.models_file} not found")
             sys.exit(1)
 
-        with open(self.models_file, 'r') as f:
+        with open(self.models_file, "r") as f:
             return json.load(f)
 
     def _save_config(self):
         """Save updated models configuration"""
-        with open(self.models_file, 'w') as f:
+        with open(self.models_file, "w") as f:
             json.dump(self.models_config, f, indent=2)
         print(f"✓ Updated {self.models_file}")
 
@@ -85,19 +86,16 @@ class ModelDiscovery:
             discovered = []
             for model_id in known_models:
                 # Parse tier and version
-                match = re.search(r'claude-(opus|sonnet|haiku)-(\d+)-(\d+)', model_id)
+                match = re.search(r"claude-(opus|sonnet|haiku)-(\d+)-(\d+)", model_id)
                 if match:
                     tier = match.group(1)
                     major = int(match.group(2))
                     minor = int(match.group(3))
                     version = float(f"{major}.{minor}")
 
-                    discovered.append(ModelInfo(
-                        id=model_id,
-                        tier=tier,
-                        version=version,
-                        provider="claude"
-                    ))
+                    discovered.append(
+                        ModelInfo(id=model_id, tier=tier, version=version, provider="claude")
+                    )
 
             return discovered
 
@@ -128,19 +126,16 @@ class ModelDiscovery:
 
                 # Parse tier and version
                 # Examples: gemini-2.0-flash, gemini-2.0-pro, gemini-3.0-pro
-                match = re.search(r'gemini-(\d+)\.(\d+)-(flash|pro)', model_id)
+                match = re.search(r"gemini-(\d+)\.(\d+)-(flash|pro)", model_id)
                 if match:
                     major = int(match.group(1))
                     minor = int(match.group(2))
                     tier = match.group(3)
                     version = float(f"{major}.{minor}")
 
-                    discovered.append(ModelInfo(
-                        id=model_id,
-                        tier=tier,
-                        version=version,
-                        provider="gemini"
-                    ))
+                    discovered.append(
+                        ModelInfo(id=model_id, tier=tier, version=version, provider="gemini")
+                    )
 
             return discovered
 
@@ -175,7 +170,7 @@ class ModelDiscovery:
                     tier = "gpt-4"
 
                     # Try to extract version
-                    match = re.search(r'gpt-(\d+)\.(\d+)', model_id)
+                    match = re.search(r"gpt-(\d+)\.(\d+)", model_id)
                     if match:
                         version = float(f"{match.group(1)}.{match.group(2)}")
                     elif "4o" in model_id:
@@ -191,12 +186,9 @@ class ModelDiscovery:
                 else:
                     continue
 
-                discovered.append(ModelInfo(
-                    id=model_id,
-                    tier=tier,
-                    version=version,
-                    provider="openai"
-                ))
+                discovered.append(
+                    ModelInfo(id=model_id, tier=tier, version=version, provider="openai")
+                )
 
             return discovered
 
@@ -317,8 +309,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Discover and update AI model versions")
     parser.add_argument("--dry-run", action="store_true", help="Show changes without saving")
-    parser.add_argument("--config-dir", type=Path, default=Path(".dev-aid/config"),
-                       help="Path to config directory")
+    parser.add_argument(
+        "--config-dir", type=Path, default=Path(".dev-aid/config"), help="Path to config directory"
+    )
 
     args = parser.parse_args()
 

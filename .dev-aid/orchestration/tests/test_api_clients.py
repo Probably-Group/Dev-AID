@@ -5,13 +5,7 @@ Tests for API clients
 import pytest
 from unittest.mock import Mock, patch
 
-from router.api_clients import (
-    Message,
-    APIResponse,
-    AnthropicClient,
-    create_client,
-    APIClientError
-)
+from router.api_clients import Message, APIResponse, AnthropicClient, create_client, APIClientError
 
 
 class TestMessage:
@@ -34,7 +28,7 @@ class TestAPIResponse:
             model="claude-sonnet-4",
             provider="anthropic",
             tokens_used={"input": 100, "output": 200},
-            cost=0.05
+            cost=0.05,
         )
         assert response.content == "Response text"
         assert response.provider == "anthropic"
@@ -63,12 +57,13 @@ class TestAnthropicClient:
         # $3 * 0.5 + $15 * 0.2 = $1.5 + $3.0 = $4.5
         assert cost == 4.5
 
-    @patch('router.api_clients.anthropic')
+    @patch("router.api_clients.anthropic")
     def test_send_request_error_handling(self, mock_anthropic, mock_api_key, mock_model_config):
         """Test that errors don't leak API details"""
         # Mock anthropic to raise an exception
-        mock_anthropic.Anthropic.return_value.messages.create.side_effect = \
-            Exception("API key invalid: sk-ant-secret-key")
+        mock_anthropic.Anthropic.return_value.messages.create.side_effect = Exception(
+            "API key invalid: sk-ant-secret-key"
+        )
 
         client = AnthropicClient(mock_api_key, mock_model_config)
 

@@ -18,6 +18,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class MCPServerInfo:
     """Information about an MCP server"""
+
     name: str
     command: str
     args: List[str]
@@ -85,10 +86,7 @@ class MCPRegistry:
         try:
             # Try using 'claude mcp list' command
             result = subprocess.run(
-                ["claude", "mcp", "list"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["claude", "mcp", "list"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
@@ -112,7 +110,7 @@ class MCPRegistry:
                                 args=server_config.get("args", []),
                                 env=server_config.get("env"),
                                 source="claude",
-                                capabilities=self._infer_capabilities(name)
+                                capabilities=self._infer_capabilities(name),
                             )
 
         except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
@@ -126,7 +124,7 @@ class MCPRegistry:
                         args=server_config.get("args", []),
                         env=server_config.get("env"),
                         source="claude",
-                        capabilities=self._infer_capabilities(name)
+                        capabilities=self._infer_capabilities(name),
                     )
 
         return servers
@@ -141,7 +139,7 @@ class MCPRegistry:
         for path in config_paths:
             if os.path.exists(path):
                 try:
-                    with open(path, 'r') as f:
+                    with open(path, "r") as f:
                         return json.load(f)
                 except Exception:
                     continue
@@ -161,7 +159,7 @@ class MCPRegistry:
 
         if os.path.exists(gemini_config_path):
             try:
-                with open(gemini_config_path, 'r') as f:
+                with open(gemini_config_path, "r") as f:
                     config = json.load(f)
 
                 for name, server_config in config.get("mcpServers", {}).items():
@@ -171,7 +169,7 @@ class MCPRegistry:
                         args=server_config.get("args", []),
                         env=server_config.get("env"),
                         source="gemini",
-                        capabilities=self._infer_capabilities(name)
+                        capabilities=self._infer_capabilities(name),
                     )
 
             except Exception as e:
@@ -267,11 +265,7 @@ class MCPRegistry:
         Returns:
             Dict of enabled servers
         """
-        return {
-            name: server
-            for name, server in self.servers.items()
-            if server.enabled_for_router
-        }
+        return {name: server for name, server in self.servers.items() if server.enabled_for_router}
 
     def get_servers_by_capability(self, capability: str) -> List[MCPServerInfo]:
         """
@@ -302,7 +296,7 @@ class MCPRegistry:
         """Load saved configuration"""
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path, "r") as f:
                     config = json.load(f)
 
                 # Apply enabled/disabled state
@@ -315,23 +309,20 @@ class MCPRegistry:
 
     def _save_config(self):
         """Save configuration"""
-        config = {
-            "version": "1.0.0",
-            "servers": {}
-        }
+        config = {"version": "1.0.0", "servers": {}}
 
         for name, server in self.servers.items():
             config["servers"][name] = {
                 "name": name,
                 "enabled": server.enabled_for_router,
                 "capabilities": server.capabilities,
-                "source": server.source
+                "source": server.source,
             }
 
         # Ensure directory exists
         os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
 
-        with open(self.config_path, 'w') as f:
+        with open(self.config_path, "w") as f:
             json.dump(config, f, indent=2)
 
     def get_summary(self) -> str:

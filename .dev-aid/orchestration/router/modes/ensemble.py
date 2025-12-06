@@ -75,15 +75,15 @@ class EnsembleMode:
         context = self.context_builder.build_context()
 
         # Add MCP context if provided
-        if 'mcp_context' in kwargs and kwargs['mcp_context']:
-            context.mcp_context = kwargs['mcp_context']
+        if "mcp_context" in kwargs and kwargs["mcp_context"]:
+            context.mcp_context = kwargs["mcp_context"]
 
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=request)
+            Message(role="user", content=request),
         ]
 
         # Get model ID
@@ -91,11 +91,7 @@ class EnsembleMode:
 
         # Execute request
         try:
-            response = client.send_request(
-                messages=messages,
-                model=model_id,
-                **kwargs
-            )
+            response = client.send_request(messages=messages, model=model_id, **kwargs)
 
             # Get explanation
             explanation = self.classifier.explain_classification(task_type, keywords, confidence)
@@ -115,7 +111,7 @@ class EnsembleMode:
                 "cost": response.cost,
                 "latency_ms": response.latency_ms,
                 "metadata": response.metadata,
-                "matched_keywords": len(keywords)
+                "matched_keywords": len(keywords),
             }
 
         except Exception as e:
@@ -125,7 +121,7 @@ class EnsembleMode:
                 "task_type": task_type,
                 "selected_model": selected_model,
                 "provider": provider,
-                "error": str(e)
+                "error": str(e),
             }
 
     def _get_fallback_model(self) -> Tuple[str, Dict[str, Any], str]:
@@ -167,7 +163,7 @@ class EnsembleMode:
             "enabled": ensemble_config.get("enabled", True),
             "routing_strategy": ensemble_config.get("routing_strategy", "semantic"),
             "task_routes": task_routes,
-            "fallback_chain": self.config.get_fallback_chain()
+            "fallback_chain": self.config.get_fallback_chain(),
         }
 
     def estimate_cost_comparison(self, tokens_used: Dict[str, int]) -> Dict[str, float]:
@@ -197,10 +193,9 @@ class EnsembleMode:
                 input_cost = cost_config.get("input", 0)
                 output_cost = cost_config.get("output", 0)
 
-                total_cost = (
-                    (tokens_used["input"] / 1_000_000) * input_cost +
-                    (tokens_used["output"] / 1_000_000) * output_cost
-                )
+                total_cost = (tokens_used["input"] / 1_000_000) * input_cost + (
+                    tokens_used["output"] / 1_000_000
+                ) * output_cost
 
                 model_name = f"{provider}-{short_name}"
                 costs[model_name] = total_cost

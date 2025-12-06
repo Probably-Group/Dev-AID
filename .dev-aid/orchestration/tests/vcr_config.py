@@ -22,19 +22,19 @@ def scrub_request(request):
     This prevents API keys from being committed to cassettes.
     """
     # Remove authorization headers
-    if 'authorization' in request.headers:
-        request.headers['authorization'] = ['REDACTED']
+    if "authorization" in request.headers:
+        request.headers["authorization"] = ["REDACTED"]
 
-    if 'x-api-key' in request.headers:
-        request.headers['x-api-key'] = ['REDACTED']
+    if "x-api-key" in request.headers:
+        request.headers["x-api-key"] = ["REDACTED"]
 
     # Anthropic API key header
-    if 'anthropic-api-key' in request.headers:
-        request.headers['anthropic-api-key'] = ['REDACTED']
+    if "anthropic-api-key" in request.headers:
+        request.headers["anthropic-api-key"] = ["REDACTED"]
 
     # OpenAI API key header
-    if 'openai-api-key' in request.headers:
-        request.headers['openai-api-key'] = ['REDACTED']
+    if "openai-api-key" in request.headers:
+        request.headers["openai-api-key"] = ["REDACTED"]
 
     return request
 
@@ -50,9 +50,9 @@ def scrub_response(response):
 # VCR instance with custom configuration
 api_vcr = vcr.VCR(
     cassette_library_dir=str(CASSETTES_DIR),
-    record_mode='once',  # Record once, then replay
-    match_on=['method', 'scheme', 'host', 'port', 'path', 'query'],
-    filter_headers=['authorization', 'x-api-key', 'anthropic-api-key', 'openai-api-key'],
+    record_mode="once",  # Record once, then replay
+    match_on=["method", "scheme", "host", "port", "path", "query"],
+    filter_headers=["authorization", "x-api-key", "anthropic-api-key", "openai-api-key"],
     before_record_request=scrub_request,
     before_record_response=scrub_response,
     decode_compressed_response=True,

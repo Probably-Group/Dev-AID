@@ -28,6 +28,7 @@ def track_api_call(func: Callable) -> Callable:
     - Handling exceptions with logging
     - Converting provider exceptions to safe APIClientError
     """
+
     @wraps(func)
     def wrapper(self, *args, **kwargs):
         start_time = time.time()
@@ -48,27 +49,26 @@ def track_api_call(func: Callable) -> Callable:
 
         except Exception as e:
             # Log full error internally with provider context
-            provider = getattr(self, 'provider', 'unknown')
+            provider = getattr(self, "provider", "unknown")
             logger.error(
-                f"{provider.title()} API error: {type(e).__name__}: {str(e)}",
-                exc_info=True
+                f"{provider.title()} API error: {type(e).__name__}: {str(e)}", exc_info=True
             )
             # Raise safe error to user (no sensitive details)
-            raise APIClientError(
-                "Failed to communicate with AI provider. Please try again."
-            )
+            raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
     return wrapper
 
 
 class APIClientError(Exception):
     """Safe API client error that doesn't leak details"""
+
     pass
 
 
 @dataclass
 class Message:
     """Represents a chat message"""
+
     role: str  # "user", "assistant", "system"
     content: str
 
@@ -76,6 +76,7 @@ class Message:
 @dataclass
 class APIResponse:
     """Unified response format from all providers"""
+
     content: str
     model: str
     provider: str
@@ -107,7 +108,7 @@ class BaseAIClient(ABC):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs
+        **kwargs,
     ) -> APIResponse:
         """
         Send request to AI provider
@@ -153,11 +154,11 @@ class AnthropicClient(BaseAIClient):
 
         try:
             import anthropic
+
             self.client = anthropic.Anthropic(api_key=api_key)
         except ImportError:
             raise ImportError(
-                "anthropic package not installed. "
-                "Install with: pip install anthropic"
+                "anthropic package not installed. " "Install with: pip install anthropic"
             )
 
     @track_api_call
@@ -167,7 +168,7 @@ class AnthropicClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs
+        **kwargs,
     ) -> APIResponse:
         """Send request to Anthropic API"""
 
@@ -179,17 +180,14 @@ class AnthropicClient(BaseAIClient):
             if msg.role == "system":
                 system_message = msg.content
             else:
-                api_messages.append({
-                    "role": msg.role,
-                    "content": msg.content
-                })
+                api_messages.append({"role": msg.role, "content": msg.content})
 
         # Prepare request parameters
         request_params = {
             "model": model,
             "max_tokens": max_tokens,
             "temperature": temperature,
-            "messages": api_messages
+            "messages": api_messages,
         }
 
         if system_message:
@@ -199,7 +197,7 @@ class AnthropicClient(BaseAIClient):
         request_params.update(kwargs)
 
         # Make API call (timing and error handling via decorator)
-        response = self.client.messages.create(**request_params)
+        response = self.client.messages.create(**request_params)  # type: ignore
 
         # Extract response data
         content = response.content[0].text
@@ -216,10 +214,7 @@ class AnthropicClient(BaseAIClient):
             tokens_used={"input": input_tokens, "output": output_tokens},
             cost=cost,
             latency_ms=None,  # Set by decorator
-            metadata={
-                "stop_reason": response.stop_reason,
-                "response_id": response.id
-            }
+            metadata={"stop_reason": response.stop_reason, "response_id": response.id},
         )
 
 
@@ -231,6 +226,7 @@ class GoogleClient(BaseAIClient):
 
         try:
             import google.generativeai as genai
+
             genai.configure(api_key=api_key)
             self.genai = genai
         except ImportError:
@@ -246,7 +242,7 @@ class GoogleClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs
+        **kwargs,
     ) -> APIResponse:
         """Send request to Google Gemini API"""
 
@@ -279,10 +275,7 @@ class GoogleClient(BaseAIClient):
             }
 
             # Make API call (timing and error handling via decorator)
-            response = gemini_model.generate_content(
-                prompt,
-                generation_config=generation_config
-            )
+            response = gemini_model.generate_content(prompt, generation_config=generation_config)
 
             # Extract response
             content = response.text
@@ -303,8 +296,12 @@ class GoogleClient(BaseAIClient):
                 cost=cost,
                 latency_ms=None,  # Set by decorator
                 metadata={
-                    "finish_reason": getattr(response.candidates[0], "finish_reason", None) if response.candidates else None
-                }
+                    "finish_reason": (
+                        getattr(response.candidates[0], "finish_reason", None)
+                        if response.candidates
+                        else None
+                    )
+                },
             )
 
         else:
@@ -326,7 +323,7 @@ class GoogleClient(BaseAIClient):
                 provider="google",
                 tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
                 cost=cost,
-                latency_ms=None  # Set by decorator
+                latency_ms=None,  # Set by decorator
             )
 
 
@@ -338,12 +335,10 @@ class OpenAIClient(BaseAIClient):
 
         try:
             import openai
+
             self.client = openai.OpenAI(api_key=api_key)
         except ImportError:
-            raise ImportError(
-                "openai package not installed. "
-                "Install with: pip install openai"
-            )
+            raise ImportError("openai package not installed. " "Install with: pip install openai")
 
     @track_api_call
     def send_request(
@@ -352,23 +347,20 @@ class OpenAIClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs
+        **kwargs,
     ) -> APIResponse:
         """Send request to OpenAI API"""
 
         # Convert messages to OpenAI format
-        api_messages = [
-            {"role": msg.role, "content": msg.content}
-            for msg in messages
-        ]
+        api_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
 
         # Make API call (timing and error handling via decorator)
         response = self.client.chat.completions.create(
             model=model,
-            messages=api_messages,
+            messages=api_messages,  # type: ignore
             max_tokens=max_tokens,
             temperature=temperature,
-            **kwargs
+            **kwargs,
         )
 
         # Extract response data
@@ -388,8 +380,8 @@ class OpenAIClient(BaseAIClient):
             latency_ms=None,  # Set by decorator
             metadata={
                 "finish_reason": response.choices[0].finish_reason,
-                "response_id": response.id
-            }
+                "response_id": response.id,
+            },
         )
 
 
@@ -422,7 +414,7 @@ def create_client(provider: str, api_key: str, model_config: Dict[str, Any]) -> 
             f"Supported providers: {', '.join(clients.keys())}"
         )
 
-    return client_class(api_key, model_config)
+    return client_class(api_key, model_config)  # type: ignore
 
 
 # Example usage

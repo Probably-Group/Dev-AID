@@ -33,7 +33,7 @@ class DocSync:
             "scripts": pkg_data.get("scripts", {}),
             "dependencies": list(pkg_data.get("dependencies", {}).keys()),
             "name": pkg_data.get("name"),
-            "version": pkg_data.get("version")
+            "version": pkg_data.get("version"),
         }
 
     def detect_node_package_manager(self) -> str:
@@ -63,10 +63,7 @@ class DocSync:
         elif "[tool.uv]" in content or "uv" in content:
             package_manager = "uv"
 
-        return {
-            "package_manager": package_manager,
-            "is_python": True
-        }
+        return {"package_manager": package_manager, "is_python": True}
 
     def extract_truth_from_docker(self) -> Dict:
         """Extract truth from Docker files"""
@@ -78,7 +75,7 @@ class DocSync:
             truth["has_dockerfile"] = True
             # Extract exposed ports
             content = docker_file.read_text()
-            ports = re.findall(r'EXPOSE\s+(\d+)', content)
+            ports = re.findall(r"EXPOSE\s+(\d+)", content)
             truth["exposed_ports"] = ports
 
         if compose_file.exists():
@@ -95,21 +92,33 @@ class DocSync:
         commands = []
 
         # Find code blocks
-        code_blocks = re.findall(r'```(?:bash|sh|shell)?\n(.*?)```', content, re.DOTALL)
+        code_blocks = re.findall(r"```(?:bash|sh|shell)?\n(.*?)```", content, re.DOTALL)
 
         for block in code_blocks:
-            for line in block.split('\n'):
+            for line in block.split("\n"):
                 line = line.strip()
                 # Skip comments and empty lines
-                if line.startswith('#') or not line:
+                if line.startswith("#") or not line:
                     continue
 
                 # Extract commands
-                if any(cmd in line for cmd in ['npm', 'yarn', 'pnpm', 'bun', 'pip', 'poetry', 'uv', 'docker', 'make']):
-                    commands.append({
-                        "command": line,
-                        "type": "install" if "install" in line else "run"
-                    })
+                if any(
+                    cmd in line
+                    for cmd in [
+                        "npm",
+                        "yarn",
+                        "pnpm",
+                        "bun",
+                        "pip",
+                        "poetry",
+                        "uv",
+                        "docker",
+                        "make",
+                    ]
+                ):
+                    commands.append(
+                        {"command": line, "type": "install" if "install" in line else "run"}
+                    )
 
         return commands
 
@@ -132,13 +141,15 @@ class DocSync:
                 cmd = cmd_data["command"]
                 for wrong_pm in wrong_pms:
                     if wrong_pm in cmd and actual_pm not in cmd:
-                        issues.append({
-                            "severity": "HIGH",
-                            "type": "package_manager_mismatch",
-                            "claim": cmd,
-                            "reality": f"Project uses {actual_pm}, not {wrong_pm}",
-                            "suggestion": cmd.replace(wrong_pm, actual_pm)
-                        })
+                        issues.append(
+                            {
+                                "severity": "HIGH",
+                                "type": "package_manager_mismatch",
+                                "claim": cmd,
+                                "reality": f"Project uses {actual_pm}, not {wrong_pm}",
+                                "suggestion": cmd.replace(wrong_pm, actual_pm),
+                            }
+                        )
 
         if python_truth:
             actual_pm = python_truth["package_manager"]
@@ -150,13 +161,15 @@ class DocSync:
                 cmd = cmd_data["command"]
                 for wrong_pm in wrong_pms:
                     if wrong_pm in cmd and actual_pm not in cmd:
-                        issues.append({
-                            "severity": "MEDIUM",
-                            "type": "python_pm_mismatch",
-                            "claim": cmd,
-                            "reality": f"Project uses {actual_pm}, not {wrong_pm}",
-                            "suggestion": cmd.replace(wrong_pm, actual_pm)
-                        })
+                        issues.append(
+                            {
+                                "severity": "MEDIUM",
+                                "type": "python_pm_mismatch",
+                                "claim": cmd,
+                                "reality": f"Project uses {actual_pm}, not {wrong_pm}",
+                                "suggestion": cmd.replace(wrong_pm, actual_pm),
+                            }
+                        )
 
         return issues
 
@@ -172,12 +185,14 @@ class DocSync:
             for port in actual_ports:
                 # Check if port is mentioned
                 if port not in readme_content:
-                    issues.append({
-                        "severity": "LOW",
-                        "type": "missing_port_documentation",
-                        "reality": f"Dockerfile exposes port {port}",
-                        "suggestion": f"Document that the application uses port {port}"
-                    })
+                    issues.append(
+                        {
+                            "severity": "LOW",
+                            "type": "missing_port_documentation",
+                            "reality": f"Dockerfile exposes port {port}",
+                            "suggestion": f"Document that the application uses port {port}",
+                        }
+                    )
 
         return issues
 
@@ -195,12 +210,14 @@ class DocSync:
                 if script_name in ["start", "build", "test", "dev"]:
                     command = f"{pm} {'run ' if pm != 'bun' else ''}{script_name}"
                     if command not in readme_content and script_name not in readme_content:
-                        issues.append({
-                            "severity": "MEDIUM",
-                            "type": "undocumented_script",
-                            "reality": f"package.json has '{script_name}' script",
-                            "suggestion": f"Document how to run: {command}"
-                        })
+                        issues.append(
+                            {
+                                "severity": "MEDIUM",
+                                "type": "undocumented_script",
+                                "reality": f"package.json has '{script_name}' script",
+                                "suggestion": f"Document how to run: {command}",
+                            }
+                        )
 
         return issues
 
@@ -242,7 +259,9 @@ class DocSync:
 
         for idx, issue in enumerate(all_issues, 1):
             severity_icon = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}[issue["severity"]]
-            print(f"{idx}. {severity_icon} {issue['severity']} - {issue['type'].replace('_', ' ').title()}")
+            print(
+                f"{idx}. {severity_icon} {issue['severity']} - {issue['type'].replace('_', ' ').title()}"
+            )
 
             if "claim" in issue:
                 print(f"   Documented: {issue['claim']}")
@@ -259,25 +278,19 @@ def main():
     """CLI entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Detect documentation drift in README"
-    )
+    parser = argparse.ArgumentParser(description="Detect documentation drift in README")
     parser.add_argument(
         "project_dir",
         nargs="?",
         type=Path,
         default=Path("."),
-        help="Project directory (default: current directory)"
+        help="Project directory (default: current directory)",
     )
     parser.add_argument(
-        "--readme",
-        type=Path,
-        help="README file path (default: README.md in project)"
+        "--readme", type=Path, help="README file path (default: README.md in project)"
     )
     parser.add_argument(
-        "--fix",
-        action="store_true",
-        help="Attempt to auto-fix issues (experimental)"
+        "--fix", action="store_true", help="Attempt to auto-fix issues (experimental)"
     )
 
     args = parser.parse_args()

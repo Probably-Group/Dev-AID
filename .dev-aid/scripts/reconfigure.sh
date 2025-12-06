@@ -21,7 +21,7 @@ BACKUP_DIR="$DEV_AID_ROOT/.dev-aid/config/backups"
 print_color() {
     local color="$1"
     shift
-    echo -e "${color}$@${NC}"
+    echo -e "${color}$*${NC}"
 }
 
 print_header() {
@@ -37,7 +37,8 @@ backup_config() {
     print_header "Backing Up Current Configuration"
 
     mkdir -p "$BACKUP_DIR"
-    local backup_timestamp=$(date +"%Y%m%d_%H%M%S")
+    local backup_timestamp
+    backup_timestamp=$(date +"%Y%m%d_%H%M%S")
     local backup_path="$BACKUP_DIR/config_$backup_timestamp"
 
     mkdir -p "$backup_path"
@@ -61,7 +62,8 @@ restore_from_backup() {
         return 1
     fi
 
-    local latest_backup=$(cat "$BACKUP_DIR/.latest")
+    local latest_backup
+    latest_backup=$(cat "$BACKUP_DIR/.latest")
 
     if [ ! -d "$latest_backup" ]; then
         print_color "$RED" "Latest backup not found: $latest_backup"
@@ -227,8 +229,10 @@ detect_project_info() {
     # Check for JavaScript/TypeScript frontend
     if [ -f "$project_root/package.json" ]; then
         if command -v jq &> /dev/null; then
-            local deps=$(jq -r '.dependencies | keys[]' "$project_root/package.json" 2>/dev/null)
-            local dev_deps=$(jq -r '.devDependencies | keys[]' "$project_root/package.json" 2>/dev/null)
+            local deps
+            deps=$(jq -r '.dependencies | keys[]' "$project_root/package.json" 2>/dev/null)
+            local dev_deps
+            dev_deps=$(jq -r '.devDependencies | keys[]' "$project_root/package.json" 2>/dev/null)
             local all_deps="$deps $dev_deps"
 
             # Detect frontend frameworks
@@ -657,19 +661,21 @@ change_providers() {
     fi
 
     # Convert to array
-    local new_providers=($providers_input)
+    local new_providers
+    read -ra new_providers <<< "$providers_input"
 
     # Validate providers
     local valid_providers=("claude" "gemini" "openai" "openrouter")
     for provider in "${new_providers[@]}"; do
-        if [[ ! " ${valid_providers[@]} " =~ " ${provider} " ]]; then
+        if [[ ! " ${valid_providers[*]} " =~ " ${provider} " ]]; then
             print_color "$RED" "✗ Invalid provider: $provider"
             return 1
         fi
     done
 
     # Update settings.json
-    local providers_json=$(printf '%s\n' "${new_providers[@]}" | jq -R . | jq -s .)
+    local providers_json
+    providers_json=$(printf '%s\n' "${new_providers[@]}" | jq -R . | jq -s .)
     if command -v jq &> /dev/null; then
         jq ".enabled_providers = $providers_json" "$CONFIG_DIR/settings.json" > "$CONFIG_DIR/settings.json.tmp"
         mv "$CONFIG_DIR/settings.json.tmp" "$CONFIG_DIR/settings.json"
@@ -775,7 +781,8 @@ validate_config() {
     fi
 
     # Check provider symlinks
-    local providers=$(jq -r '.enabled_providers[]' "$CONFIG_DIR/settings.json" 2>/dev/null || echo "")
+    local providers
+    providers=$(jq -r '.enabled_providers[]' "$CONFIG_DIR/settings.json" 2>/dev/null || echo "")
     for provider in $providers; do
         case $provider in
             claude)

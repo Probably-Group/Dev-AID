@@ -49,11 +49,7 @@ class ChallengerMode:
 
         # Execute full challenger workflow
         return self._execute_with_challenge(
-            request,
-            primary_model_name,
-            challenger_model_name,
-            challenger_config,
-            **kwargs
+            request, primary_model_name, challenger_model_name, challenger_config, **kwargs
         )
 
     def _should_challenge(self, request: str, challenger_config: Dict[str, Any]) -> bool:
@@ -69,10 +65,7 @@ class ChallengerMode:
         return False
 
     def _execute_primary_only(
-        self,
-        request: str,
-        primary_model_name: str,
-        **kwargs
+        self, request: str, primary_model_name: str, **kwargs
     ) -> Dict[str, Any]:
         """Execute with primary model only (no challenge)"""
 
@@ -97,15 +90,15 @@ class ChallengerMode:
         context = self.context_builder.build_context()
 
         # Add MCP context if provided
-        if 'mcp_context' in kwargs and kwargs['mcp_context']:
-            context.mcp_context = kwargs['mcp_context']
+        if "mcp_context" in kwargs and kwargs["mcp_context"]:
+            context.mcp_context = kwargs["mcp_context"]
 
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=request)
+            Message(role="user", content=request),
         ]
 
         # Execute
@@ -123,16 +116,11 @@ class ChallengerMode:
                 "response": response.content,
                 "tokens_used": response.tokens_used,
                 "cost": response.cost,
-                "latency_ms": response.latency_ms
+                "latency_ms": response.latency_ms,
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "mode": "challenger",
-                "challenged": False,
-                "error": str(e)
-            }
+            return {"success": False, "mode": "challenger", "challenged": False, "error": str(e)}
 
     def _execute_with_challenge(
         self,
@@ -140,16 +128,13 @@ class ChallengerMode:
         primary_model_name: str,
         challenger_model_name: str,
         challenger_config: Dict[str, Any],
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Execute full two-model challenger workflow"""
 
         # Step 1: Primary generates solution
         primary_result = self._execute_with_model(
-            request,
-            primary_model_name,
-            role="primary",
-            **kwargs
+            request, primary_model_name, role="primary", **kwargs
         )
 
         if not primary_result["success"]:
@@ -161,10 +146,7 @@ class ChallengerMode:
         review_prompt = self._build_review_prompt(request, primary_response)
 
         challenger_result = self._execute_with_model(
-            review_prompt,
-            challenger_model_name,
-            role="challenger",
-            **kwargs
+            review_prompt, challenger_model_name, role="challenger", **kwargs
         )
 
         if not challenger_result["success"]:
@@ -173,7 +155,7 @@ class ChallengerMode:
                 **primary_result,
                 "challenged": True,
                 "challenger_failed": True,
-                "challenger_error": challenger_result.get("error")
+                "challenger_error": challenger_result.get("error"),
             }
 
         challenger_review = challenger_result["response"]
@@ -183,18 +165,16 @@ class ChallengerMode:
 
         # Step 4: Refine if needed (optional - check config)
         auto_refine_on = challenger_config.get("auto_refine_on", ["HIGH", "CRITICAL"])
-        should_refine = has_issues and any(severity in challenger_review.upper() for severity in auto_refine_on)
+        should_refine = has_issues and any(
+            severity in challenger_review.upper() for severity in auto_refine_on
+        )
 
         refined_response = None
         refinement_result = None
 
         if should_refine:
             refinement_result = self._execute_refinement(
-                request,
-                primary_response,
-                challenger_review,
-                primary_model_name,
-                **kwargs
+                request, primary_response, challenger_review, primary_model_name, **kwargs
             )
 
             if refinement_result["success"]:
@@ -203,8 +183,10 @@ class ChallengerMode:
         # Calculate total cost and tokens
         total_cost = primary_result["cost"] + challenger_result["cost"]
         total_tokens = {
-            "input": primary_result["tokens_used"]["input"] + challenger_result["tokens_used"]["input"],
-            "output": primary_result["tokens_used"]["output"] + challenger_result["tokens_used"]["output"]
+            "input": primary_result["tokens_used"]["input"]
+            + challenger_result["tokens_used"]["input"],
+            "output": primary_result["tokens_used"]["output"]
+            + challenger_result["tokens_used"]["output"],
         }
 
         if refinement_result:
@@ -228,18 +210,14 @@ class ChallengerMode:
             "tokens_used": total_tokens,
             "cost": total_cost,
             "latency_ms": (
-                primary_result["latency_ms"] +
-                challenger_result["latency_ms"] +
-                (refinement_result["latency_ms"] if refinement_result else 0)
-            )
+                primary_result["latency_ms"]
+                + challenger_result["latency_ms"]
+                + (refinement_result["latency_ms"] if refinement_result else 0)
+            ),
         }
 
     def _execute_with_model(
-        self,
-        request: str,
-        model_name: str,
-        role: str = "primary",
-        **kwargs
+        self, request: str, model_name: str, role: str = "primary", **kwargs
     ) -> Dict[str, Any]:
         """Execute request with a specific model"""
 
@@ -247,20 +225,14 @@ class ChallengerMode:
         model_config = self.config.get_model_config(model_name)
 
         if not model_config:
-            return {
-                "success": False,
-                "error": f"Model configuration not found: {model_name}"
-            }
+            return {"success": False, "error": f"Model configuration not found: {model_name}"}
 
         provider = model_config["provider"]
 
         # Validate provider
         is_valid, error = self.config.validate_provider(provider)
         if not is_valid:
-            return {
-                "success": False,
-                "error": error
-            }
+            return {"success": False, "error": error}
 
         # Get API key and create client
         api_key = self.config.get_api_key(provider)
@@ -270,15 +242,15 @@ class ChallengerMode:
         context = self.context_builder.build_context()
 
         # Add MCP context if provided
-        if 'mcp_context' in kwargs and kwargs['mcp_context']:
-            context.mcp_context = kwargs['mcp_context']
+        if "mcp_context" in kwargs and kwargs["mcp_context"]:
+            context.mcp_context = kwargs["mcp_context"]
 
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=request)
+            Message(role="user", content=request),
         ]
 
         # Execute
@@ -295,16 +267,11 @@ class ChallengerMode:
                 "response": response.content,
                 "tokens_used": response.tokens_used,
                 "cost": response.cost,
-                "latency_ms": response.latency_ms
+                "latency_ms": response.latency_ms,
             }
 
         except Exception as e:
-            return {
-                "success": False,
-                "role": role,
-                "model": model_name,
-                "error": str(e)
-            }
+            return {"success": False, "role": role, "model": model_name, "error": str(e)}
 
     def _build_review_prompt(self, original_request: str, primary_response: str) -> str:
         """Build prompt for challenger to review primary's response"""
@@ -348,7 +315,7 @@ If no issues found, respond with:
             "SEVERITY**: NONE",
             "NO ISSUES",
             "LOOKS GOOD",
-            "IMPLEMENTATION LOOKS GOOD"
+            "IMPLEMENTATION LOOKS GOOD",
         ]
 
         for indicator in no_issues_indicators:
@@ -356,7 +323,15 @@ If no issues found, respond with:
                 return False
 
         # Check for severity levels (indicates issues)
-        if any(severity in review_upper for severity in ["SEVERITY: LOW", "SEVERITY: MEDIUM", "SEVERITY: HIGH", "SEVERITY: CRITICAL"]):
+        if any(
+            severity in review_upper
+            for severity in [
+                "SEVERITY: LOW",
+                "SEVERITY: MEDIUM",
+                "SEVERITY: HIGH",
+                "SEVERITY: CRITICAL",
+            ]
+        ):
             return True
 
         # Default: assume issues if review is substantial
@@ -368,7 +343,7 @@ If no issues found, respond with:
         primary_response: str,
         challenger_review: str,
         primary_model_name: str,
-        **kwargs
+        **kwargs,
     ) -> Dict[str, Any]:
         """Execute refinement step based on challenger feedback"""
 
@@ -387,10 +362,7 @@ Please provide an improved solution that addresses the identified issues.
 """
 
         return self._execute_with_model(
-            refinement_prompt,
-            primary_model_name,
-            role="refinement",
-            **kwargs
+            refinement_prompt, primary_model_name, role="refinement", **kwargs
         )
 
     def get_info(self) -> Dict[str, Any]:
@@ -405,5 +377,5 @@ Please provide an improved solution that addresses the identified issues.
             "primary_model": challenger_config.get("primary_model", "claude-sonnet"),
             "challenger_model": challenger_config.get("challenger_model", "gemini-flash"),
             "auto_refine_on": challenger_config.get("auto_refine_on", ["HIGH", "CRITICAL"]),
-            "review_triggers": challenger_config.get("review_triggers", [])
+            "review_triggers": challenger_config.get("review_triggers", []),
         }

@@ -23,14 +23,15 @@ from .validators import ExecuteRequest
 # Configure secure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stderr)]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stderr)],
 )
 logger = logging.getLogger(__name__)
 
 
 class SafeError(Exception):
     """Error that is safe to display to users"""
+
     pass
 
 
@@ -43,7 +44,7 @@ def cmd_execute(args):
                 request=args.request,
                 mode=args.mode,
                 context_size=args.context_size,
-                use_mcp=not args.no_mcp if hasattr(args, 'no_mcp') else True
+                use_mcp=not args.no_mcp if hasattr(args, "no_mcp") else True,
             )
         except ValidationError as e:
             # Safe error message - don't leak validation details
@@ -57,7 +58,7 @@ def cmd_execute(args):
             context_size=validated_request.context_size,
             verbose=args.verbose,
             use_mcp=validated_request.use_mcp,
-            dev_aid_root=Path(args.root) if args.root else None
+            dev_aid_root=Path(args.root) if args.root else None,
         )
         print(output)
         return 0
@@ -79,9 +80,9 @@ def cmd_status(args):
         status = executor.get_status()
 
         # Format status output
-        print("="*70)
+        print("=" * 70)
         print("🚀 Dev-AID Router Status")
-        print("="*70)
+        print("=" * 70)
         print()
 
         # Current configuration
@@ -89,7 +90,7 @@ def cmd_status(args):
         print()
 
         # Mode info
-        mode_info = status['mode_info']
+        mode_info = status["mode_info"]
         print(f"📋 Mode Configuration:")
         for key, value in mode_info.items():
             if key != "mode":
@@ -97,7 +98,7 @@ def cmd_status(args):
         print()
 
         # Budget
-        budget = status['budget']
+        budget = status["budget"]
         print(f"💰 Budget Status:")
         print(f"   Daily Limit: ${budget['daily_limit']:.2f}")
         print(f"   Used Today: ${budget['used']:.4f} ({budget['percentage']:.1f}%)")
@@ -106,7 +107,7 @@ def cmd_status(args):
         print()
 
         # Today's stats
-        today = status['today']
+        today = status["today"]
         print(f"📊 Today's Activity:")
         print(f"   Total Cost: ${today['cost']:.4f}")
         print(f"   Requests: {today['requests']}")
@@ -114,9 +115,9 @@ def cmd_status(args):
         print()
 
         # Per-model stats
-        if status['models']:
+        if status["models"]:
             print(f"🤖 Models Used Today:")
-            for model, stats in status['models'].items():
+            for model, stats in status["models"].items():
                 print(f"   {model}:")
                 print(f"      Calls: {stats['calls']}")
                 print(f"      Cost: ${stats['cost']:.4f}")
@@ -125,12 +126,14 @@ def cmd_status(args):
 
         # Recent decisions
         if args.history:
-            recent = status['recent_decisions']
+            recent = status["recent_decisions"]
             if recent:
                 print(f"📝 Recent Routing Decisions:")
                 for decision in reversed(recent[-10:]):
-                    timestamp = decision['timestamp'].split('.')[0]  # Remove microseconds
-                    print(f"   [{timestamp}] {decision['mode']:10} → {decision['model']:15} ${decision['cost']:.4f}")
+                    timestamp = decision["timestamp"].split(".")[0]  # Remove microseconds
+                    print(
+                        f"   [{timestamp}] {decision['mode']:10} → {decision['model']:15} ${decision['cost']:.4f}"
+                    )
                 print()
 
         return 0
@@ -174,7 +177,9 @@ def cmd_test(args):
             mode_config = config.get_mode_config(mode)
             enabled = mode_config.get("enabled", True)
             status_icon = "✅" if enabled else "❌"
-            print(f"   {status_icon} {mode:10} - {mode_config.get('description', 'No description')}")
+            print(
+                f"   {status_icon} {mode:10} - {mode_config.get('description', 'No description')}"
+            )
 
         print()
 
@@ -341,13 +346,11 @@ Examples:
 
   # Test configuration
   python -m router.cli test
-        """
+        """,
     )
 
     parser.add_argument(
-        "--root",
-        help="Dev-AID root directory (auto-detected if not specified)",
-        default=None
+        "--root", help="Dev-AID root directory (auto-detected if not specified)", default=None
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
@@ -358,32 +361,21 @@ Examples:
     execute_parser.add_argument(
         "--mode",
         choices=["solo", "ensemble", "challenger"],
-        help="Orchestration mode (overrides config)"
+        help="Orchestration mode (overrides config)",
     )
     execute_parser.add_argument(
-        "--context-size",
-        type=int,
-        default=0,
-        help="Estimated context size in tokens"
+        "--context-size", type=int, default=0, help="Estimated context size in tokens"
     )
+    execute_parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     execute_parser.add_argument(
-        "--verbose",
-        action="store_true",
-        help="Show detailed output"
-    )
-    execute_parser.add_argument(
-        "--no-mcp",
-        action="store_true",
-        help="Disable MCP context gathering (default: MCP enabled)"
+        "--no-mcp", action="store_true", help="Disable MCP context gathering (default: MCP enabled)"
     )
     execute_parser.set_defaults(func=cmd_execute)
 
     # Status command
     status_parser = subparsers.add_parser("status", help="Show router status")
     status_parser.add_argument(
-        "--history",
-        action="store_true",
-        help="Include recent routing decisions"
+        "--history", action="store_true", help="Include recent routing decisions"
     )
     status_parser.set_defaults(func=cmd_status)
 
@@ -396,7 +388,9 @@ Examples:
     mcp_subparsers = mcp_parser.add_subparsers(dest="mcp_command", help="MCP sub-command")
 
     # mcp discover
-    mcp_discover_parser = mcp_subparsers.add_parser("discover", help="Discover available MCP servers")
+    mcp_discover_parser = mcp_subparsers.add_parser(
+        "discover", help="Discover available MCP servers"
+    )
     mcp_discover_parser.set_defaults(func=cmd_mcp_discover)
 
     # mcp enable

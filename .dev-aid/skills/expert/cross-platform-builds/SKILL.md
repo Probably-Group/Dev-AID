@@ -14,89 +14,9 @@ model: claude-sonnet-4-5-20250929
 
 **CRITICAL**: Before implementing ANY platform-specific build configuration, you MUST read the relevant reference files.
 
-### Trigger Conditions for Reference Files
-
-**Read `references/build-patterns.md` WHEN**:
-- Configuring GitHub Actions build matrices
-- Setting up Tauri configuration for multi-platform builds
-- Creating platform-specific installers (MSI, DMG, DEB, AppImage)
-- Implementing CI/CD workflows
-
-**Read `references/security-examples.md` WHEN**:
-- Setting up code signing certificates (Windows, macOS, Linux)
-- Configuring notarization for macOS
-- Implementing secure build environments
-- Managing signing credentials in CI/CD
-- Verifying signatures before distribution
-
-**Read `references/performance-optimization.md` WHEN**:
-- Optimizing build times (incremental builds, caching)
-- Reducing bundle sizes (LTO, tree-shaking)
-- Improving application startup time
-- Configuring fast linkers (mold, lld)
-
-**Read `references/anti-patterns.md` WHEN**:
-- Encountering build failures or platform-specific errors
-- Setting up cross-platform path handling
-- Implementing platform-specific features
-- Debugging code signing or notarization issues
-
-**Read `references/testing-guide.md` WHEN**:
-- Writing tests for build configurations
-- Setting up TDD workflow for builds
-- Creating CI/CD test pipelines
-- Validating build artifacts
-
-**Read `references/advanced-patterns.md` WHEN**:
-- Building macOS universal binaries
-- Creating custom Windows installers with WiX
-- Implementing auto-update functionality
-- Advanced platform-specific optimizations
-
-### Verification Requirements
-
-When implementing cross-platform builds, you MUST:
-
-1. **Verify Before Implementing**
-   - Check official Tauri documentation for current configuration options
-   - Confirm platform requirements against official docs
-   - Validate certificate/signing procedures are current
-   - Never guess configuration options
-   - Never invent build commands
-   - Never assume cross-platform compatibility without testing
-
-2. **Use Available Tools**
-   - Read: Check existing build configurations
-   - Grep: Search for similar patterns in codebase
-   - WebSearch: Verify against official Tauri/platform docs
-   - WebFetch: Read official documentation when uncertain
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY build config, code signing, or platform feature
-   - STOP and read relevant reference file
-   - Document verification source in response
-   - Errors in builds can cause failed releases, security warnings, or installation failures
-
-4. **Common Cross-Platform Build Hallucination Traps** (AVOID)
-   - Inventing Tauri configuration options
-   - Making up code signing procedures
-   - Assuming paths work the same on all platforms
-   - Guessing platform dependency names
-   - Confusing Windows/macOS/Linux build requirements
-
-### Self-Check Checklist
-
-Before EVERY response with cross-platform build code:
-- [ ] All Tauri configuration options verified against current docs
-- [ ] Platform-specific requirements verified (dependencies, certificates)
-- [ ] Build commands verified against official Tauri CLI docs
-- [ ] Code signing procedures verified for target platform
-- [ ] Can cite official documentation sources
-
-**CRITICAL**: Incorrect build configurations can cause failed releases, security warnings for users, or applications that won't install. Always verify against official documentation.
+📚 **For complete details**: See `references/anti-hallucination-protocol.md`
 
 ---
-
 ## 1. Overview
 
 **Risk Level: MEDIUM**
@@ -166,7 +86,54 @@ You are an expert in cross-platform desktop application builds, specializing in:
 
 ---
 
-## 4. Quick Start: Basic Tauri Configuration
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Quick Start: Basic Tauri Configuration
 
 ### 4.1 Minimal tauri.conf.json
 
@@ -230,7 +197,7 @@ fn main() {
 
 ---
 
-## 5. Build Workflow (TDD Approach)
+## 6. Build Workflow (TDD Approach)
 
 ### Step 1: Write Failing Test First
 
@@ -262,7 +229,7 @@ Add platform-specific configurations, signing, and optimization.
 
 ---
 
-## 6. Code Signing Essentials
+## 7. Code Signing Essentials
 
 ### 6.1 Certificate Types
 
@@ -295,7 +262,7 @@ gpg --detach-sign --armor MyApp.AppImage
 
 ---
 
-## 7. CI/CD Quick Start
+## 8. CI/CD Quick Start
 
 ### 7.1 Basic Build Matrix
 
@@ -324,7 +291,7 @@ jobs:
 
 ---
 
-## 8. Performance Quick Wins
+## 9. Performance Quick Wins
 
 ### 8.1 Enable Incremental Builds
 
@@ -353,7 +320,7 @@ lto = "thin"
 
 ---
 
-## 9. Common Mistakes to Avoid
+## 10. Common Mistakes to Avoid
 
 **Critical Anti-Patterns**:
 - ❌ Hardcoded platform-specific paths (use `directories` crate)
@@ -367,7 +334,7 @@ lto = "thin"
 
 ---
 
-## 10. Platform-Specific Gotchas
+## 11. Platform-Specific Gotchas
 
 ### Windows
 - Use EV certificates to avoid SmartScreen warnings
@@ -386,7 +353,7 @@ lto = "thin"
 
 ---
 
-## 11. Pre-Implementation Checklist
+## 12. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Read relevant reference files based on task
@@ -406,30 +373,24 @@ lto = "thin"
 
 ### Phase 3: Before Release
 - [ ] All build configuration tests pass
-- [ ] Windows certificate uses timestamping
-- [ ] macOS app is signed AND notarized
-- [ ] Linux packages are signed with GPG
-- [ ] Signing credentials only in CI secrets
-- [ ] Build artifacts have checksums
-- [ ] Dependencies are pinned
-- [ ] Installer tested on clean systems
+- ## 7. Code Signing Essentials
+
+| Platform | Certificate Type | Purpose |
+|----------|-----------------|---------|
+| Windows | EV Code Signing | Immediate SmartScreen trust |
+| macOS | Developer ID Application | Distribution outside App Store |
+| Linux | GPG Key | Package signing |
+
+📚 **For complete details**: See `references/code-signing-essentials.md`
 
 ---
-
-## 12. Reference Files
-
-For detailed implementation guidance, see:
-
-- **`references/build-patterns.md`** - Complete Tauri configurations, GitHub Actions workflows, platform-specific build patterns
-- **`references/security-examples.md`** - Code signing procedures, certificate management, notarization steps, security checklist
-- **`references/performance-optimization.md`** - Build time optimization, bundle size reduction, startup performance, caching strategies
-- **`references/anti-patterns.md`** - Common mistakes, error messages, troubleshooting guide, what to avoid
+ages, troubleshooting guide, what to avoid
 - **`references/testing-guide.md`** - TDD workflow, build configuration tests, CI/CD testing, integration tests
 - **`references/advanced-patterns.md`** - Universal binaries, custom installers, platform-specific optimizations, auto-updates
 
 ---
 
-## 13. Quick Reference Commands
+## 14. Quick Reference Commands
 
 ```bash
 # Build for current platform
@@ -454,7 +415,7 @@ gpg --verify MyApp.AppImage.asc MyApp.AppImage
 
 ---
 
-## 14. Summary
+## 15. Summary
 
 Your goal is to create cross-platform builds that are:
 

@@ -14,6 +14,21 @@ last_updated: 2025-01-15
 
 > **MANDATORY READING PROTOCOL**: Before implementing ANY encryption, read `references/advanced-patterns.md` for key derivation and `references/security-examples.md` for implementation patterns.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -142,7 +157,54 @@ pytest tests/security/test_timing.py -v
 pytest --log-cli-level=DEBUG 2>&1 | grep -i "key\|secret\|password" && echo "WARNING: Secrets in logs!"
 ```
 
-## 4. Technology Stack
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technology Stack
 
 ### 4.1 Recommended Libraries
 
@@ -171,93 +233,14 @@ SQLCIPHER_PRAGMAS = {
 }
 ```
 
-## 5. Performance Patterns
-
-### 5.1 Key Caching
+## 6. Performance Patterns
 
 **Bad:** Deriving key on every operation (~500ms per Argon2id call)
 
-**Good - Cache with TTL:**
-```python
-class CachedKeyManager:
-    def __init__(self, cache_ttl: int = 300):
-        self._cache: dict[str, tuple[bytes, float]] = {}
-        self._ttl = cache_ttl
+📚 **For complete details**: See `references/performance-patterns.md`
 
-    def get_key(self, password: str, salt: bytes) -> bytes:
-        cache_key = f"{hash(password)}:{salt.hex()}"
-        if cache_key in self._cache:
-            key, ts = self._cache[cache_key]
-            if time.time() - ts < self._ttl:
-                return key
-        key, _ = SecureKeyDerivation.derive_key(password, salt)
-        self._cache[cache_key] = (key, time.time())
-        return key
-```
-
-### 5.2 Streaming Encryption for Large Data
-
-**Bad:** `data = f.read()` loads entire file into memory
-
-**Good - Stream with chunking (64KB chunks):**
-```python
-nonce = secrets.token_bytes(12)
-encryptor = Cipher(algorithms.AES(key), modes.GCM(nonce)).encryptor()
-with open(input_path, 'rb') as fin, open(output_path, 'wb') as fout:
-    fout.write(nonce)
-    while chunk := fin.read(64 * 1024):
-        fout.write(encryptor.update(chunk))
-    fout.write(encryptor.finalize() + encryptor.tag)
-```
-
-### 5.3 Hardware Acceleration
-
-**Bad:** PyCryptodome without OpenSSL backend (10-100x slower)
-
-**Good:** Use `cryptography` library - auto-detects AES-NI via OpenSSL 3.x backend
-
-### 5.4 Batch Operations
-
-**Bad - Individual loop with append:**
-```python
-results = []
-for record in records:
-    results.append(encryptor.encrypt(record))
-```
-
-**Good - List comprehension with single encryptor:**
-```python
-encryptor = SecureEncryption(key)
-results = [encryptor.encrypt(record) for record in records]
-
-# For large batches, use ProcessPoolExecutor for parallelization
-```
-
-### 5.5 Memory-Safe Key Handling
-
-**Bad - Keys remain in memory:**
-```python
-self.key = SecureKeyDerivation.derive_key(password)  # Never cleared
-```
-
-**Good - Zero keys after use with context manager:**
-```python
-import ctypes
-
-class SecureKeyHolder:
-    def __init__(self, password: str):
-        self._key, self.salt = SecureKeyDerivation.derive_key(password)
-
-    def __exit__(self, *args):
-        if self._key:
-            key_buffer = (ctypes.c_char * len(self._key)).from_buffer_copy(self._key)
-            ctypes.memset(key_buffer, 0, len(self._key))
-            self._key = None
-
-# Usage: with SecureKeyHolder(password) as kh: encrypt(kh._key, data)
-```
-
-## 6. Implementation Patterns
+---
+## 7. Implementation Patterns
 
 ### 6.1 Key Derivation with Argon2id
 
@@ -334,125 +317,15 @@ class SecureEncryption:
 
     def decrypt(self, ciphertext: bytes, associated_data: bytes = None) -> bytes:
         """
-        Decrypt and verify authenticity.
+        Decrypt ## 7. Implementation Patterns
 
-        Raises:
-            InvalidTag: If authentication fails
-        """
-        if len(ciphertext) < self.NONCE_SIZE + 16:  # nonce + tag minimum
-            raise ValueError("Ciphertext too short")
+class SecureKeyDerivation:
+    """Derive encryption keys from passwords using Argon2id."""
 
-        nonce = ciphertext[:self.NONCE_SIZE]
-        actual_ciphertext = ciphertext[self.NONCE_SIZE:]
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-        return self._aesgcm.decrypt(nonce, actual_ciphertext, associated_data)
-```
-
-### 6.3 SQLCipher Database Integration
-
-```python
-import sqlcipher3
-from contextlib import contextmanager
-
-class EncryptedDatabase:
-    """Encrypted SQLite database using SQLCipher."""
-
-    def __init__(self, db_path: str, key: bytes):
-        self._db_path = db_path
-        self._key = key
-        self._conn = None
-
-    @contextmanager
-    def connect(self):
-        """Context manager for database connections."""
-        conn = sqlcipher3.connect(self._db_path)
-        try:
-            # Apply security pragmas
-            conn.execute(f"PRAGMA key = \"x'{self._key.hex()}'\";")
-            conn.execute("PRAGMA cipher = 'aes-256-gcm';")
-            conn.execute("PRAGMA kdf_iter = 256000;")
-            conn.execute("PRAGMA cipher_page_size = 4096;")
-
-            # Verify encryption is active
-            result = conn.execute("PRAGMA cipher_version;").fetchone()
-            if not result:
-                raise RuntimeError("SQLCipher encryption not active")
-
-            yield conn
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        finally:
-            conn.close()
-
-    def rekey(self, new_key: bytes):
-        """Rotate database encryption key."""
-        with self.connect() as conn:
-            conn.execute(f"PRAGMA rekey = \"x'{new_key.hex()}'\";")
-        self._key = new_key
-```
-
-## 7. Security Standards
-
-### 7.1 Known Vulnerabilities
-
-| CVE | Severity | Component | Description | Mitigation |
-|-----|----------|-----------|-------------|------------|
-| CVE-2020-27207 | High | SQLCipher <4.4.1 | Use-after-free in codec pragma | Upgrade to 4.5.6+ |
-| CVE-2024-0232 | Medium | SQLite <3.44.0 | Heap use-after-free in JSON | Upgrade SQLCipher 4.5.6+ |
-| CVE-2023-42811 | High | aes-gcm (Rust) | Plaintext exposure on auth failure | Upgrade to 0.10.3+ |
-| CVE-2024-4603 | Medium | OpenSSL | Key derivation timing attack | Upgrade OpenSSL 3.3+ |
-| CVE-2023-48056 | Medium | Crypto libs | IV reuse detection failure | Use random nonces |
-
-### 7.2 OWASP Mapping
-
-| OWASP 2025 | Relevance | Implementation |
-|------------|-----------|----------------|
-| A02: Cryptographic Failures | Critical | AES-256-GCM, Argon2id, secure RNG |
-| A04: Insecure Design | High | Threat modeling, key rotation |
-| A05: Security Misconfiguration | High | Secure defaults, validation |
-| A08: Software Integrity Failures | Medium | Authenticated encryption |
-
-### 7.3 Cryptography Standards
-
-**Approved Algorithms**:
-- Symmetric: AES-256-GCM (primary), ChaCha20-Poly1305 (alternative)
-- KDF: Argon2id (primary), PBKDF2-HMAC-SHA512 (SQLCipher)
-- Hash: SHA-256, SHA-512, BLAKE2b
-- RNG: OS CSPRNG only (`secrets` module, `/dev/urandom`)
-
-**Prohibited**:
-- DES, 3DES, RC4, Blowfish
-- MD5, SHA-1 for security purposes
-- ECB mode for any cipher
-- Custom random number generators
-
-## 8. Testing Requirements
-
-See Section 3 (Implementation Workflow - TDD) for comprehensive test examples including:
-- Encryption/decryption round-trips
-- Ciphertext tampering detection
-- Key derivation consistency
-- Nonce uniqueness validation
-
-## 9. Common Mistakes
-
-### 9.1 Critical Anti-Patterns
-
-| Anti-Pattern | Never Do | Always Do |
-|--------------|----------|-----------|
-| ECB Mode | `modes.ECB()` | `AESGCM(key)` |
-| Hardcoded Keys | `SECRET_KEY = b"..."` | `os_keychain.get_key()` |
-| Predictable Nonces | `struct.pack(">Q", time())` | `secrets.token_bytes(12)` |
-| No Auth | `modes.CBC(iv)` | `aesgcm.encrypt(nonce, pt, aad)` |
-| Weak KDF | `sha256(password)` | `Argon2id.derive_key()` |
-
-## 10. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Read threat model in `references/threat-model.md`
+---
+nces/threat-model.md`
 - [ ] Identify data classification (PII, PHI, credentials)
 - [ ] Choose appropriate algorithm (AES-256-GCM or ChaCha20-Poly1305)
 - [ ] Design key derivation strategy (Argon2id parameters)
@@ -485,7 +358,7 @@ See Section 3 (Implementation Workflow - TDD) for comprehensive test examples in
   - Batch operations: Linear scaling
 - [ ] Security review requested for HIGH risk code
 
-## 11. Summary
+## 12. Summary
 
 **Key Objectives**: AES-256-GCM with random nonces, Argon2id KDF, OS keychain integration, authenticated encryption, key rotation support.
 

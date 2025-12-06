@@ -58,6 +58,21 @@ Before EVERY refactoring response:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an expert refactoring engineer with deep expertise in:
@@ -143,54 +158,64 @@ You approach refactoring with:
 
 ## 3. Refactoring Patterns
 
-### Architectural Patterns
-
 **Strangler Fig Pattern** (Recommended for Legacy Systems)
 ```
 Old System          Strangler Facade          New System
 ┌─────────┐         ┌────────────┐           ┌─────────┐
 │ Legacy  │◄────────│  Router    │──────────►│ Modern  │
 │ Code    │         │  (flags)   │           │ Code    │
-└─────────┘         └────────────┘           └─────────┘
-                     Gradually replace
-```
+└────────...
 
-**When to Use:**
-- Large legacy systems
-- Can't afford big-bang rewrite
-- Need to maintain service during migration
+📚 **For complete details**: See `references/refactoring-patterns.md`
 
-**Microservices Extraction**
-- Identify bounded contexts
-- Extract to separate service
-- Use API gateway for routing
+---
+## 4. Quality Assurance Checklist
 
-**Layered Architecture Cleanup**
-- Separate concerns (Presentation, Business, Data)
-- Enforce dependency rules
-- Use dependency injection
+**Before implementing this skill, ensure**:
 
-### Code-Level Refactorings
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-**Extract Method/Function**
-- Long functions → smaller, focused functions
-- Improves readability and testability
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-**Replace Conditional with Polymorphism**
-- Long if/else chains → Strategy pattern
-- Type-based switching → Polymorphic dispatch
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-**Introduce Parameter Object**
-- Many parameters → Single configuration object
-- Improves maintainability
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-**Replace Magic Numbers with Constants**
-- Hardcoded values → Named constants/enums
-- Self-documenting code
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Safety-First Refactoring Workflow
+## 5. Safety-First Refactoring Workflow
 
 ### Mandatory Pre-Refactoring Checklist
 
@@ -230,72 +255,14 @@ git commit -m "refactor: extract getUserData method"
 # 1. Run full test suite
 ./run-all-tests.sh
 
-# 2. Run linting and static analysis
-./lint.sh
+# 2. Run linting## 5. Safety-First Refactoring Workflow
 
-# 3. Performance benchmarks (if applicable)
-./run-benchmarks.sh
+## 5. Safety-First Refactoring Workflow
 
-# 4. Manual smoke testing of critical paths
-
-# 5. Create PR with detailed description
-gh pr create --title "Refactor: User authentication flow" \
-  --body "$(cat <<EOF
-## Summary
-Refactored user authentication to use strategy pattern for better extensibility.
-
-## Changes
-- Extracted AuthStrategy interface
-- Implemented LocalAuthStrategy, OAuthStrategy
-- Removed duplicate code in login/signup flows
-- Added tests for new auth strategies
-
-## Testing
-- All existing tests pass (242/242)
-- Added 18 new unit tests for strategies
-- Manual testing: login/signup/logout flows verified
-- No breaking changes to API
-
-## Migration Guide
-No action needed - internal refactoring only.
-EOF
-)"
-```
+📚 **For complete details**: See `references/safety-first-refactoring-workflow.md`
 
 ---
-
-## 5. Technical Debt Prioritization
-
-### Debt Assessment Matrix
-
-| Debt Type | Impact | Effort | Priority |
-|-----------|--------|--------|----------|
-| **Critical Bug Risk** | High | Low-Medium | **DO NOW** |
-| **Performance Bottleneck** | High | Medium | **DO SOON** |
-| **Security Vulnerability** | High | Any | **DO NOW** |
-| **Hard to Change Code** | Medium | Low | **DO SOON** |
-| **Code Duplication** | Low-Medium | Low | **BACKLOG** |
-| **Outdated Dependencies** | Medium | Medium | **SCHEDULED** |
-| **Missing Documentation** | Low | Low | **BACKLOG** |
-
-### Prioritization Formula
-
-```
-Priority Score = (Impact × 10) / (Effort × Risk)
-
-Where:
-- Impact: 1-10 (business value, user experience, developer productivity)
-- Effort: 1-10 (time, complexity, unknowns)
-- Risk: 1-5 (chance of breaking things)
-
-High Score (>5) = Do Soon
-Medium Score (2-5) = Scheduled
-Low Score (<2) = Backlog
-```
-
----
-
-## 6. Common Refactoring Scenarios
+ommon Refactoring Scenarios
 
 ### Scenario 1: Legacy Codebase Modernization
 
@@ -334,7 +301,7 @@ Low Score (<2) = Backlog
 
 ---
 
-## 7. Anti-Patterns to Avoid
+## 8. Anti-Patterns to Avoid
 
 ### ❌ Big Bang Rewrite
 - **Problem**: Rewriting entire system at once
@@ -363,7 +330,7 @@ Low Score (<2) = Backlog
 
 ---
 
-## 8. Refactoring Tools & Techniques
+## 9. Refactoring Tools & Techniques
 
 ### Automated Refactoring Tools
 
@@ -415,7 +382,7 @@ def test_current_behavior():
 
 ---
 
-## 9. Activation & Scope
+## 10. Activation & Scope
 
 ### Auto-Activates On:
 - Keywords: `refactor`, `rewrite`, `legacy`, `technical debt`, `code smell`, `clean up`, `modernize`
@@ -437,7 +404,7 @@ def test_current_behavior():
 
 ---
 
-## 10. Success Metrics
+## 11. Success Metrics
 
 ### Refactoring Done Right:
 - ✅ All existing tests pass
@@ -458,7 +425,7 @@ def test_current_behavior():
 
 ---
 
-## 11. Communication Guidelines
+## 12. Communication Guidelines
 
 ### When Proposing Refactoring:
 
@@ -498,7 +465,7 @@ login logic, causing bugs and making security updates difficult.
 
 ---
 
-## 12. Remember
+## 13. Remember
 
 > **"Make the change easy, then make the easy change."** - Kent Beck
 

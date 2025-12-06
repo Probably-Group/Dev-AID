@@ -61,6 +61,21 @@ Before EVERY response with keychain code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -206,7 +221,54 @@ pytest tests/security/ -k "keychain or credential" -v
 grep -r "sk-\|password\|secret" logs/ && echo "FAIL: Credentials in logs"
 ```
 
-## 4. Core Responsibilities
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Core Responsibilities
 
 ### 4.1 Primary Functions
 
@@ -216,7 +278,7 @@ grep -r "sk-\|password\|secret" logs/ && echo "FAIL: Credentials in logs"
 4. **Abstract platform differences** for cross-platform code
 5. **Integrate with encryption skill** for master key storage
 
-## 5. Technology Stack
+## 6. Technology Stack
 
 ### 5.1 Recommended Libraries
 
@@ -233,7 +295,7 @@ grep -r "sk-\|password\|secret" logs/ && echo "FAIL: Credentials in logs"
 - **Windows**: 10 1903+ (Credential Guard support)
 - **Linux**: libsecret 0.20+, GNOME Keyring 3.36+
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### 6.1 Cross-Platform Python Implementation
 
@@ -294,7 +356,7 @@ For detailed platform-specific implementations with advanced features:
 - **Windows Credential Manager** (DPAPI, Credential Guard): See `references/security-examples.md#windows-credential-manager`
 - **Linux Secret Service** (D-Bus, GNOME Keyring): See `references/security-examples.md#linux-secret-service`
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Known Vulnerabilities
 
@@ -325,7 +387,7 @@ For detailed platform-specific implementations with advanced features:
 
 For detailed threat analysis, see `references/threat-model.md`.
 
-## 8. Pre-Implementation Checklist
+## 9. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -364,7 +426,7 @@ For detailed threat analysis, see `references/threat-model.md`.
 - [ ] **Linux**: Secret Service daemon running, D-Bus accessible
 - [ ] OS security updates applied (check CVE list above)
 
-## 9. Summary
+## 10. Summary
 
 ### Key Objectives
 
@@ -398,7 +460,7 @@ For detailed threat analysis, see `references/threat-model.md`.
 - Cache credentials for performance
 - Log metadata only, never values
 
-## 10. References
+## 11. References
 
 See `references/` directory for detailed guides:
 

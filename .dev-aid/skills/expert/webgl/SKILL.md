@@ -9,6 +9,21 @@ version: 1.0.0
 
 > **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides WebGL expertise for creating custom shaders and visual effects in the JARVIS AI Assistant HUD. It focuses on GPU-accelerated rendering with security considerations.
@@ -66,12 +81,54 @@ function getWebGLContext(canvas: HTMLCanvasElement): WebGL2RenderingContext | nu
 }
 ```
 
-## 4. Implementation Patterns
 
-### 4.1 Safe Shader Compilation
+## 4. Quality Assurance Checklist
 
-```typescript
-// utils/shaderUtils.ts
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 // ✅ Safe shader compilation with error handling
 export function compileShader(
@@ -82,182 +139,10 @@ export function compileShader(
   const shader = gl.createShader(type)
   if (!shader) return null
 
-  gl.shaderSource(shader, source)
-  gl.compileShader(shader)
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const error = gl.getShaderInfoLog(shader)
-    console.error('Shader compilation error:', error)
-    gl.deleteShader(shader)
-    return null
-  }
-
-  return shader
-}
-
-// ✅ Safe program linking
-export function createProgram(
-  gl: WebGL2RenderingContext,
-  vertexShader: WebGLShader,
-  fragmentShader: WebGLShader
-): WebGLProgram | null {
-  const program = gl.createProgram()
-  if (!program) return null
-
-  gl.attachShader(program, vertexShader)
-  gl.attachShader(program, fragmentShader)
-  gl.linkProgram(program)
-
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const error = gl.getProgramInfoLog(program)
-    console.error('Program linking error:', error)
-    gl.deleteProgram(program)
-    return null
-  }
-
-  return program
-}
-```
-
-### 4.2 Context Loss Handling
-
-```typescript
-// composables/useWebGL.ts
-export function useWebGL(canvas: Ref<HTMLCanvasElement | null>) {
-  const gl = ref<WebGL2RenderingContext | null>(null)
-  const contextLost = ref(false)
-
-  onMounted(() => {
-    if (!canvas.value) return
-
-    // ✅ Handle context loss
-    canvas.value.addEventListener('webglcontextlost', (e) => {
-      e.preventDefault()
-      contextLost.value = true
-      console.warn('WebGL context lost')
-    })
-
-    canvas.value.addEventListener('webglcontextrestored', () => {
-      contextLost.value = false
-      initializeGL()
-      console.info('WebGL context restored')
-    })
-
-    initializeGL()
-  })
-
-  function initializeGL() {
-    gl.value = getWebGLContext(canvas.value!)
-    // Reinitialize all resources
-  }
-
-  return { gl, contextLost }
-}
-```
-
-### 4.3 Holographic Shader
-
-```glsl
-// shaders/holographic.frag
-#version 300 es
-precision highp float;
-
-uniform float uTime;
-uniform vec3 uColor;
-uniform float uScanlineIntensity;
-
-in vec2 vUv;
-out vec4 fragColor;
-
-void main() {
-  // Scanline effect
-  float scanline = sin(vUv.y * 200.0 + uTime * 2.0) * 0.5 + 0.5;
-  scanline = mix(1.0, scanline, uScanlineIntensity);
-
-  // Edge glow
-  float edge = smoothstep(0.0, 0.1, vUv.x) *
-               smoothstep(1.0, 0.9, vUv.x) *
-               smoothstep(0.0, 0.1, vUv.y) *
-               smoothstep(1.0, 0.9, vUv.y);
-
-  vec3 color = uColor * scanline * edge;
-  float alpha = edge * 0.8;
-
-  fragColor = vec4(color, alpha);
-}
-```
-
-### 4.4 Resource Management
-
-```typescript
-// utils/resourceManager.ts
-export class WebGLResourceManager {
-  private textures: Set<WebGLTexture> = new Set()
-  private buffers: Set<WebGLBuffer> = new Set()
-  private programs: Set<WebGLProgram> = new Set()
-
-  private textureMemory = 0
-  private readonly MAX_TEXTURE_MEMORY = 256 * 1024 * 1024  // 256MB
-
-  constructor(private gl: WebGL2RenderingContext) {}
-
-  createTexture(width: number, height: number): WebGLTexture | null {
-    const size = width * height * 4  // RGBA
-
-    // ✅ Enforce memory limits
-    if (this.textureMemory + size > this.MAX_TEXTURE_MEMORY) {
-      console.error('Texture memory limit exceeded')
-      return null
-    }
-
-    const texture = this.gl.createTexture()
-    if (texture) {
-      this.textures.add(texture)
-      this.textureMemory += size
-    }
-    return texture
-  }
-
-  dispose(): void {
-    this.textures.forEach(t => this.gl.deleteTexture(t))
-    this.buffers.forEach(b => this.gl.deleteBuffer(b))
-    this.programs.forEach(p => this.gl.deleteProgram(p))
-    this.textureMemory = 0
-  }
-}
-```
-
-### 4.5 Uniform Validation
-
-```typescript
-// ✅ Type-safe uniform setting
-export function setUniforms(
-  gl: WebGL2RenderingContext,
-  program: WebGLProgram,
-  uniforms: Record<string, number | number[] | Float32Array>
-): void {
-  for (const [name, value] of Object.entries(uniforms)) {
-    const location = gl.getUniformLocation(program, name)
-    if (!location) {
-      console.warn(`Uniform '${name}' not found`)
-      continue
-    }
-
-    if (typeof value === 'number') {
-      gl.uniform1f(location, value)
-    } else if (Array.isArray(value)) {
-      switch (value.length) {
-        case 2: gl.uniform2fv(location, value); break
-        case 3: gl.uniform3fv(location, value); break
-        case 4: gl.uniform4fv(location, value); break
-        case 16: gl.uniformMatrix4fv(location, false, value); break
-      }
-    }
-  }
-}
-```
-
-## 5. Implementation Workflow (TDD)
+---
+## 6. Implementation Workflow (TDD)
 
 ### 5.1 Step-by-Step Process
 
@@ -312,7 +197,7 @@ describe('Resource Manager', () => {
 })
 ```
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### 6.1 Buffer Reuse
 
@@ -380,7 +265,7 @@ gl.bindVertexArray(vao)
 // Set up once, then just bind VAO for rendering
 ```
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Known Vulnerabilities
 
@@ -420,7 +305,7 @@ function checkLimits(stats: RenderStats): boolean {
 }
 ```
 
-## 8. Common Mistakes & Anti-Patterns
+## 9. Common Mistakes & Anti-Patterns
 
 ### 8.1 Critical Security Anti-Patterns
 
@@ -470,7 +355,7 @@ batches.forEach(batch => {
 })
 ```
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Write failing tests for shaders, context, and resources
@@ -484,16 +369,19 @@ batches.forEach(batch => {
 - [ ] Use VAOs, batch draws, reuse buffers
 - [ ] Instanced rendering for particles
 
-### Phase 3: Before Committing
-- [ ] Tests pass: `npm test -- --run tests/webgl/`
-- [ ] Type check: `npm run typecheck`
-- [ ] Build: `npm run build`
-- [ ] Performance verified (draws, memory)
-- [ ] Fallback for no WebGL tested
+##### 7. Performance Patterns
 
-## 10. Summary
+// Good - Reuse buffer, update only data
+gl.bufferSubData(gl.ARRAY_BUFFER, 0, data)  // Update existing buffer
+```
 
-WebGL provides GPU-accelerated graphics for JARVIS HUD. Key principles: handle context loss, enforce resource limits, validate shaders, track memory, batch draw calls, minimize state changes.
+📚 **For complete details**: See `references/performance-patterns.md`
 
-**Remember**: WebGL bypasses browser sandboxing - always protect against resource exhaustion.
-**References**: `references/advanced-patterns.md`, `references/security-examples.md`
+---
+## 9. Common Mistakes & Anti-Patterns
+
+## 9. Common Mistakes & Anti-Patterns
+
+📚 **For complete details**: See `references/common-mistakes-anti-patterns.md`
+
+---

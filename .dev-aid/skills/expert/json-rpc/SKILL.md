@@ -11,6 +11,21 @@ tags: [protocol, json-rpc, api, rpc, messaging]
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM-RISK
@@ -61,7 +76,54 @@ You are an expert in **JSON-RPC 2.0** protocol implementation. You build secure,
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ### JSON-RPC 2.0 Message Format
 
@@ -103,80 +165,17 @@ interface JSONRPCError {
 
 ---
 
-## 5. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_rpc_methods.py
-import pytest
-from jsonrpc_server import JSONRPCServer
+## 6. Implementation Workflow (TDD)
 
 class TestRPCMethods:
     @pytest.fixture
     def server(self):
         return JSONRPCServer()
 
-    def test_method_not_found(self, server):
-        response = server.handle_request({"jsonrpc": "2.0", "method": "nonexistent", "id": 1})
-        assert response["error"]["code"] == -32601
-
-    def test_invalid_params(self, server):
-        server.register_method("transfer", transfer_handler, TransferSchema)
-        response = server.handle_request({"jsonrpc": "2.0", "method": "transfer", "params": {"amount": "bad"}, "id": 1})
-        assert response["error"]["code"] == -32602
-
-    def test_batch_request_limit(self, server):
-        requests = [{"jsonrpc": "2.0", "method": "ping", "id": i} for i in range(200)]
-        response = server.handle_request(requests)
-        assert response[0]["error"]["code"] == -32600
-
-    def test_successful_method_call(self, server):
-        server.register_method("add", lambda p: p["a"] + p["b"], AddSchema)
-        response = server.handle_request({"jsonrpc": "2.0", "method": "add", "params": {"a": 2, "b": 3}, "id": 1})
-        assert response["result"] == 5
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# jsonrpc_server.py
-class JSONRPCServer:
-    def __init__(self):
-        self.methods = {}
-        self.max_batch_size = 100
-
-    def register_method(self, name, handler, schema):
-        self.methods[name] = {"handler": handler, "schema": schema}
-
-    def handle_request(self, request):
-        if isinstance(request, list):
-            return self._handle_batch(request)
-        return self._handle_single(request)
-
-    def _handle_single(self, request):
-        method = request.get("method")
-        if method not in self.methods:
-            return self._error(request.get("id"), -32601, "Method not found")
-        # ... implement validation and execution
-```
-
-### Step 3: Refactor with Full Patterns
-
-Apply security patterns, error handling, and performance optimizations from sections below.
-
-### Step 4: Run Full Verification
-
-```bash
-pytest tests/test_rpc_methods.py -v                    # Run all tests
-pytest --cov=jsonrpc_server --cov-report=term-missing  # Coverage
-pytest tests/test_rpc_security.py -v                   # Security tests
-pytest tests/test_rpc_performance.py --benchmark-only  # Benchmarks
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### 6.1 Secure JSON-RPC Server
 
@@ -236,164 +235,15 @@ class JSONRPCServer {
 }
 ```
 
-### 6.2 Method Registration with Authorization
+##### 7. Implementation Patterns
 
-```typescript
-const server = new JSONRPCServer();
+class JSONRPCServer {
+  private methods: Map<string, MethodHandler> = new Map();
 
-// Public method
-server.registerMethod("getStatus", z.object({}), async () => ({ status: "healthy" }));
-
-// Authenticated method
-server.registerMethod("getUserData", z.object({
-  userId: z.string().uuid(),
-  authToken: z.string().min(1)
-}), async (params) => {
-  const user = await verifyAuthToken(params.authToken);
-  if (!user) throw new Error("Unauthorized");
-  if (user.id !== params.userId && !user.isAdmin) throw new Error("Forbidden");
-  return await getUserData(params.userId);
-});
-
-// Admin-only method
-server.registerMethod("admin.deleteUser", z.object({
-  userId: z.string().uuid(),
-  authToken: z.string().min(1)
-}), async (params) => {
-  const user = await verifyAuthToken(params.authToken);
-  if (!user?.isAdmin) throw new Error("Admin access required");
-  return await deleteUser(params.userId);
-});
-```
-
-### 6.3 Batch Processing with Limits
-
-```typescript
-// Secure batch handling
-async handleBatchRequest(requests: JSONRPCRequest[]): Promise<JSONRPCResponse[]> {
-  // Limit batch size
-  const MAX_BATCH_SIZE = 100;
-  if (requests.length > MAX_BATCH_SIZE) {
-    return [this.createError(null, -32600, `Batch size exceeds limit of ${MAX_BATCH_SIZE}`)];
-  }
-
-  // Process with concurrency limit
-  const CONCURRENCY_LIMIT = 10;
-  const results: JSONRPCResponse[] = [];
-
-  for (let i = 0; i < requests.length; i += CONCURRENCY_LIMIT) {
-    const batch = requests.slice(i, i + CONCURRENCY_LIMIT);
-    const batchResults = await Promise.all(
-      batch.map(req => this.handleSingleRequest(req))
-    );
-    results.push(...batchResults.filter(r => r !== null));
-  }
-
-  return results;
-}
-```
-
-### 6.4 HTTP Transport Integration
-
-```typescript
-import express from "express";
-import helmet from "helmet";
-import rateLimit from "express-rate-limit";
-
-const app = express();
-app.use(helmet());
-app.use(express.json({ limit: "1mb" }));
-app.use("/rpc", rateLimit({
-  windowMs: 60000, max: 100,
-  message: { jsonrpc: "2.0", error: { code: -32000, message: "Rate limit exceeded" }, id: null }
-}));
-
-app.post("/rpc", async (req, res) => {
-  if (req.headers["content-type"] !== "application/json") {
-    return res.status(415).json({ jsonrpc: "2.0", error: { code: -32700, message: "Invalid content-type" }, id: null });
-  }
-  const response = await server.handleRequest(req.body);
-  if (!response || (Array.isArray(response) && !response.length)) return res.status(204).end();
-  res.json(response);
-});
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 7. Performance Patterns
-
-### 7.1 Batch Requests
-
-```typescript
-// Bad: Multiple individual requests
-for (const item of items) { await client.call("process", { item }); }
-
-// Good: Single batch request
-const batch = items.map((item, i) => ({ jsonrpc: "2.0", method: "process", params: { item }, id: i }));
-const results = await client.batch(batch);
-```
-
-### 7.2 Connection Pooling
-
-```typescript
-// Bad: New connection per request
-const client = new RPCClient(url); // Creates new connection each call
-
-// Good: Reuse connections from pool
-const pool = new RPCClientPool(url, { maxConnections: 10 });
-const client = await pool.acquire();
-try { return await client.call(method, params); } finally { pool.release(client); }
-```
-
-### 7.3 Response Caching
-
-```typescript
-// Bad: DB hit every time
-server.registerMethod("getConfig", schema, async () => await db.query("SELECT * FROM config"));
-
-// Good: LRU cache with TTL
-const cache = new LRUCache({ max: 1000, ttl: 60000 });
-server.registerMethod("getConfig", schema, async (params) => {
-  const key = `config:${params.section}`;
-  return cache.get(key) || cache.set(key, await db.query("SELECT * FROM config WHERE section = ?", [params.section]));
-});
-```
-
-### 7.4 Streaming Large Results
-
-```typescript
-// Bad: Load entire dataset (OOM risk)
-server.registerMethod("exportData", schema, async () => await db.query("SELECT * FROM huge_table"));
-
-// Good: Paginated results
-server.registerMethod("exportData", schema, async ({ cursor = 0, limit = 100 }) => {
-  const data = await db.query("SELECT * FROM huge_table WHERE id > ? LIMIT ?", [cursor, limit]);
-  return { data, nextCursor: data.length === limit ? data[data.length - 1].id : null };
-});
-```
-
-### 7.5 Payload Optimization
-
-```typescript
-// Bad: Return all fields (50KB)
-server.registerMethod("getUser", schema, async ({ id }) => await getUser(id));
-
-// Good: Return only requested fields (500B)
-server.registerMethod("getUser", schema, async ({ id, fields }) => {
-  const user = await getUser(id);
-  return fields ? Object.fromEntries(fields.map(f => [f, user[f]])) : user;
-});
-```
-
----
-
-## 8. Security Standards
-
-### 8.1 Domain Vulnerability Landscape
-
-> **See `references/security-examples.md` for complete CVE details.**
-
-**Top Vulnerabilities**:
+nerabilities**:
 - **Method Injection**: Accessing unregistered/internal methods
 - **Parameter Injection**: Malicious params causing code execution
 - **Batch DoS**: Large batches consuming resources
@@ -433,7 +283,7 @@ throw new SafeJSONRPCError(-32603, "Internal error", `DB failed: ${dbError.messa
 
 ---
 
-## 9. Common Mistakes
+## 10. Common Mistakes
 
 ### NEVER: Execute Dynamic Methods
 
@@ -459,7 +309,7 @@ catch (error) { console.error(error); return { error: { code: -32603, message: "
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Write failing tests for RPC methods and error handling
@@ -485,7 +335,7 @@ catch (error) { console.error(error); return { error: { code: -32603, message: "
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to implement JSON-RPC services that are:
 - **Compliant**: Follow JSON-RPC 2.0 specification exactly
@@ -493,3 +343,13 @@ Your goal is to implement JSON-RPC services that are:
 - **Robust**: Handle batches safely, enforce limits, timeout operations
 
 Remember: Every RPC method is a potential attack vector. Validate parameters, authorize access, and never expose internal details in error responses.
+## 8. Performance Patterns
+
+// Good: Single batch request
+const batch = items.map((item, i) => ({ jsonrpc: "2.0", method: "process", params: { item }, id: i }));
+const results = await client.batch(batch);
+```
+
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---

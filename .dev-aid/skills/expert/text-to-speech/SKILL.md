@@ -8,6 +8,21 @@ description: "Expert skill for implementing text-to-speech with Kokoro TTS. Cove
 
 > **File Organization**: Split structure. See `references/` for detailed implementations.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM - Generates audio output, potential for inappropriate content synthesis, resource-intensive
@@ -104,72 +119,61 @@ python -m jarvis.tts --test "Hello JARVIS"            # Integration
 
 ---
 
-## 4. Performance Patterns
 
-### Pattern: Streaming Synthesis (Low Latency)
+## 4. Quality Assurance Checklist
 
-```python
-# BAD - Wait for full audio
-audio_chunks = []
-for _, _, audio in pipeline(text):
-    audio_chunks.append(audio)
-play_audio(np.concatenate(audio_chunks))  # Long wait
+**Before implementing this skill, ensure**:
 
-# GOOD - Stream chunks immediately
-with sd.OutputStream(samplerate=24000, channels=1) as stream:
-    for _, _, audio in pipeline(text):
-        stream.write(audio)  # Play as generated
-```
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-### Pattern: Model Caching (Faster Startup)
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-```python
-# BAD: pipeline = KPipeline(lang_code="a")  # Reload each time
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-# GOOD - Singleton pattern
-class TTSEngine:
-    _pipeline = None
-    @classmethod
-    def get_pipeline(cls):
-        if cls._pipeline is None:
-            cls._pipeline = KPipeline(lang_code="a")
-        return cls._pipeline
-```
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-### Pattern: Audio Chunking (Memory Efficient)
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-```python
-# BAD: data, sr = sf.read(audio_path)  # Full file in RAM
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-# GOOD - Process in chunks
-with sf.SoundFile(audio_path) as f:
-    while f.tell() < len(f):
-        yield process(f.read(24000))
-```
-
-### Pattern: Async Generation (Non-blocking)
-
-```python
-# BAD: audio = engine.synthesize(text)  # Blocks event loop
-
-# GOOD - Run in executor
-audio = await loop.run_in_executor(None, engine.synthesize, text)
-```
-
-### Pattern: Voice Preloading (Instant Response)
-
-```python
-# BAD: return SecureTTSEngine(voice=VOICES[voice_type])  # Cold start
-
-# GOOD - Preload at startup
-def _preload_voices(self, types: list[str]):
-    for t in types:
-        self.engines[t] = SecureTTSEngine(voice=VOICES[t])
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Core Responsibilities
+## 5. Performance Patterns
+
+## 5. Performance Patterns
+
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---
+## 6. Core Responsibilities
 
 ### 5.1 Secure Audio Generation
 
@@ -189,7 +193,7 @@ When implementing TTS, you will:
 
 ---
 
-## 6. Technical Foundation
+## 7. Technical Foundation
 
 ### 6.1 Core Technologies
 
@@ -223,7 +227,7 @@ structlog>=23.0
 
 ---
 
-## 7. Implementation Patterns
+## 8. Implementation Patterns
 
 ### Pattern 1: Secure TTS Engine
 
@@ -277,158 +281,14 @@ class SecureTTSEngine:
         )
 
         # Collect audio chunks
-        audio_chunks = []
-        for _, _, audio in generator:
-            audio_chunks.append(audio)
+    ## 8. Implementation Patterns
 
-        if not audio_chunks:
-            raise TTSError("No audio generated")
+## 8. Implementation Patterns
 
-        # Concatenate and save
-        full_audio = np.concatenate(audio_chunks)
-        sf.write(str(audio_path), full_audio, 24000)
-
-        logger.info("tts.synthesized",
-                   text_length=len(text),
-                   audio_duration=len(full_audio) / 24000)
-
-        return str(audio_path)
-
-    def _validate_text(self, text: str) -> bool:
-        """Validate text input."""
-        if not text or not text.strip():
-            return False
-
-        # Length limit (prevent DoS)
-        if len(text) > 5000:
-            logger.warning("tts.text_too_long", length=len(text))
-            return False
-
-        return True
-
-    def _filter_sensitive(self, text: str) -> str:
-        """Filter sensitive content from text."""
-        import re
-
-        filtered = text
-        for pattern in self.blocked_patterns:
-            if re.search(pattern, filtered, re.IGNORECASE):
-                logger.warning("tts.sensitive_content_filtered")
-                filtered = re.sub(pattern + r'\S+', '[FILTERED]', filtered, flags=re.IGNORECASE)
-
-        return filtered
-
-    def cleanup(self):
-        """Clean up temp files."""
-        import shutil
-        if os.path.exists(self.temp_dir):
-            shutil.rmtree(self.temp_dir)
-```
-
-### Pattern 2: Streaming TTS
-
-```python
-# Stream audio chunks as generated for low latency
-with sd.OutputStream(samplerate=24000, channels=1) as stream:
-    for _, _, audio in pipeline(text, voice=voice):
-        stream.write(audio)  # Play immediately
-```
-
-### Pattern 3: Audio Caching
-
-```python
-# Cache common phrases with hash key
-cache_key = hashlib.sha256(f"{text}:{voice}".encode()).hexdigest()
-cache_path = cache_dir / f"{cache_key}.wav"
-if cache_path.exists():
-    return str(cache_path)  # Cache hit
-# Generate, save to cache, return path
-```
-
-### Pattern 4: Voice Manager
-
-```python
-# Lazy-load engines per voice type
-VOICES = {"default": "af_heart", "formal": "af_bella"}
-
-def get_engine(voice_type: str) -> SecureTTSEngine:
-    if voice_type not in engines:
-        engines[voice_type] = SecureTTSEngine(voice=VOICES[voice_type])
-    return engines[voice_type]
-```
-
-### Pattern 5: Resource Limits
-
-```python
-# Semaphore for concurrency + timeout for protection
-async with asyncio.Semaphore(2):
-    result = await asyncio.wait_for(
-        loop.run_in_executor(None, engine.synthesize, text),
-        timeout=30.0
-    )
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
 
-## 8. Security Standards
-
-### 8.1 Content Filtering
-
-**Prevent synthesis of inappropriate content:**
-
-```python
-class ContentFilter:
-    """Filter inappropriate content before synthesis."""
-
-    BLOCKED_CATEGORIES = [
-        "violence",
-        "hate_speech",
-        "explicit",
-    ]
-
-    def filter(self, text: str) -> tuple[str, bool]:
-        """Filter text and return (filtered_text, was_modified)."""
-        # Remove potential command injection
-        text = text.replace(";", "").replace("|", "").replace("&", "")
-
-        # Check for blocked patterns
-        for pattern in self.blocked_patterns:
-            if re.search(pattern, text, re.IGNORECASE):
-                return "[Content filtered]", True
-
-        return text, False
-```
-
-### 8.2 Input Validation
-
-```python
-def validate_tts_input(text: str) -> bool:
-    """Validate text for TTS synthesis."""
-    # Length limit
-    if len(text) > 5000:
-        raise ValidationError("Text too long (max 5000 chars)")
-
-    # Character validation
-    if not all(c.isprintable() or c in '\n\t' for c in text):
-        raise ValidationError("Invalid characters in text")
-
-    return True
-```
-
----
-
-## 9. Common Mistakes
-
-### NEVER: Synthesize Untrusted Input Directly
-
-```python
-# BAD - No filtering
-def speak(user_input: str):
-    engine.synthesize(user_input)
-
-# GOOD - Filter first
-def speak(user_input: str):
-    filtered = content_filter.filter(user_input)
     engine.synthesize(filtered)
 ```
 
@@ -446,7 +306,7 @@ engine.synthesize(text)
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Before Writing Code
 
@@ -478,7 +338,7 @@ engine.synthesize(text)
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create TTS systems that are:
 - **Fast**: Real-time streaming for responsive voice assistant

@@ -8,6 +8,21 @@ description: "Expert skill for integrating cloud AI APIs (Claude, GPT-4, Gemini)
 
 > **File Organization**: Split structure. Main SKILL.md for core patterns. See `references/` for complete implementations.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Handles API credentials, processes untrusted prompts, network exposure, data privacy concerns
@@ -41,119 +56,59 @@ You excel at:
 
 ## 3. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_cloud_api.py
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from src.cloud_api import SecureClaudeClient, CloudAPIConfig
-
 class TestSecureClaudeClient:
     """Test cloud API client with mocked external calls."""
 
-    @pytest.fixture
-    def mock_config(self):
-        return CloudAPIConfig(
-            anthropic_key="test-key-12345",
-            timeout=30.0
-        )
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-    @pytest.fixture
-    def mock_anthropic_response(self):
-        """Mock Anthropic API response."""
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Test response")]
-        mock_response.usage.input_tokens = 10
-        mock_response.usage.output_tokens = 20
-        return mock_response
+---
+## 4. Quality Assurance Checklist
 
-    @pytest.mark.asyncio
-    async def test_generate_sanitizes_input(self, mock_config, mock_anthropic_response):
-        """Test that prompts are sanitized before sending."""
-        with patch('anthropic.Anthropic') as mock_client:
-            mock_client.return_value.messages.create.return_value = mock_anthropic_response
+**Before implementing this skill, ensure**:
 
-            client = SecureClaudeClient(mock_config)
-            result = await client.generate("Test <script>alert('xss')</script>")
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-            # Verify sanitization was applied
-            call_args = mock_client.return_value.messages.create.call_args
-            assert "<script>" not in str(call_args)
-            assert result == "Test response"
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-    @pytest.mark.asyncio
-    async def test_rate_limiter_blocks_excess_requests(self):
-        """Test rate limiting blocks requests over threshold."""
-        from src.cloud_api import RateLimiter
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-        limiter = RateLimiter(rpm=2, daily_cost=100)
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-        await limiter.acquire(100)
-        await limiter.acquire(100)
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-        with pytest.raises(Exception):  # RateLimitError
-            await limiter.acquire(100)
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-    @pytest.mark.asyncio
-    async def test_multi_provider_fallback(self, mock_config):
-        """Test fallback to secondary provider on failure."""
-        from src.cloud_api import MultiProviderClient
-
-        with patch('src.cloud_api.SecureClaudeClient') as mock_claude:
-            with patch('src.cloud_api.SecureOpenAIClient') as mock_openai:
-                mock_claude.return_value.generate = AsyncMock(
-                    side_effect=Exception("Rate limited")
-                )
-                mock_openai.return_value.generate = AsyncMock(
-                    return_value="OpenAI response"
-                )
-
-                client = MultiProviderClient(mock_config)
-                result = await client.generate("test prompt")
-
-                assert result == "OpenAI response"
-                mock_openai.return_value.generate.assert_called_once()
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# src/cloud_api.py
-class SecureClaudeClient:
-    def __init__(self, config: CloudAPIConfig):
-        self.client = Anthropic(api_key=config.anthropic_key.get_secret_value())
-        self.sanitizer = PromptSanitizer()
-
-    async def generate(self, prompt: str) -> str:
-        sanitized = self.sanitizer.sanitize(prompt)
-        response = self.client.messages.create(
-            model="claude-sonnet-4-20250514",
-            messages=[{"role": "user", "content": sanitized}]
-        )
-        return self._filter_output(response.content[0].text)
-```
-
-### Step 3: Refactor with Patterns
-
-Apply caching, connection pooling, and retry logic from Performance Patterns.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/test_cloud_api.py -v --cov=src.cloud_api --cov-report=term-missing
-
-# Run security checks
-bandit -r src/cloud_api.py
-
-# Type checking
-mypy src/cloud_api.py --strict
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Performance Patterns
+## 5. Performance Patterns
 
 ### Pattern 1: Connection Pooling
 
@@ -275,149 +230,19 @@ class AsyncCloudClient:
         await self._client.aclose()
 
     async def generate(self, prompt: str) -> str:
-        response = await self._client.post(
-            self.endpoint,
-            json={"prompt": prompt},
-            timeout=30.0
+        respo## 5. Performance Patterns
+
+class CloudAPIClient:
+    def __init__(self):
+        self._client = httpx.AsyncClient(
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+            timeout=httpx.Timeout(30.0)
         )
-        return response.json()["text"]
 
-# Usage
-async with AsyncCloudClient() as client:
-    result = await client.generate("Hello")
-
-# Bad: Blocking calls in async context
-def bad_generate(prompt: str):
-    response = requests.post(endpoint, json={"prompt": prompt})  # Blocks!
-    return response.json()
-```
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## 5. Core Responsibilities
-
-### 5.1 Security-First API Integration
-
-When integrating cloud AI APIs, you will:
-- **Never hardcode API keys** - Always use environment variables or secret managers
-- **Treat all prompts as untrusted** - Sanitize user input before sending
-- **Filter all outputs** - Prevent data exfiltration and injection
-- **Implement rate limiting** - Protect against abuse and cost overruns
-- **Log securely** - Never log API keys or sensitive prompts
-
-### 5.2 Cost and Performance Optimization
-
-- Select appropriate model tier based on task complexity
-- Implement caching for repeated queries
-- Use streaming for better user experience
-- Monitor usage and set spending alerts
-- Implement circuit breakers for failed APIs
-
-### 5.3 Privacy and Compliance
-
-- Minimize data sent to cloud APIs
-- Never send PII without explicit consent
-- Implement data retention policies
-- Use API features that disable training on data
-- Document data flows for compliance
-
----
-
-## 6. Technical Foundation
-
-### 6.1 Core SDKs & Versions
-
-| Provider | Production | Minimum | Notes |
-|----------|------------|---------|-------|
-| **Anthropic** | anthropic>=0.40.0 | >=0.25.0 | Messages API support |
-| **OpenAI** | openai>=1.50.0 | >=1.0.0 | Structured outputs |
-| **Gemini** | google-generativeai>=0.8.0 | - | Latest features |
-
-### 6.2 Security Dependencies
-
-```python
-# requirements.txt
-anthropic>=0.40.0
-openai>=1.50.0
-google-generativeai>=0.8.0
-pydantic>=2.0          # Input validation
-httpx>=0.27.0          # HTTP client with timeouts
-tenacity>=8.0          # Retry logic
-structlog>=23.0        # Secure logging
-cryptography>=41.0     # Key encryption
-cachetools>=5.0        # Response caching
-```
-
----
-
-## 7. Implementation Patterns
-
-### Pattern 1: Secure API Client Configuration
-
-```python
-from pydantic import BaseModel, SecretStr, Field, validator
-from anthropic import Anthropic
-import os, structlog
-
-logger = structlog.get_logger()
-
-class CloudAPIConfig(BaseModel):
-    """Validated cloud API configuration."""
-    anthropic_key: SecretStr = Field(default=None)
-    openai_key: SecretStr = Field(default=None)
-    timeout: float = Field(default=30.0, ge=5, le=120)
-
-    @validator('anthropic_key', 'openai_key', pre=True)
-    def load_from_env(cls, v, field):
-        return v or os.environ.get(field.name.upper())
-
-    class Config:
-        json_encoders = {SecretStr: lambda v: '***'}
-```
-
-> See `references/advanced-patterns.md` for complete implementations.
-
----
-
-## 8. Security Standards
-
-### 8.1 Critical Vulnerabilities
-
-| Vulnerability | Severity | Mitigation |
-|--------------|----------|------------|
-| **Prompt Injection** | HIGH | Input sanitization, output filtering |
-| **API Key Exposure** | CRITICAL | Environment variables, secret managers |
-| **Data Exfiltration** | HIGH | Restrict network access |
-
-### 8.2 OWASP LLM Top 10 Mapping
-
-| OWASP ID | Category | Mitigation |
-|----------|----------|------------|
-| LLM01 | Prompt Injection | Sanitize all inputs |
-| LLM02 | Insecure Output | Filter before use |
-| LLM06 | Info Disclosure | No secrets in prompts |
-
----
-
-## 9. Common Mistakes
-
-```python
-# NEVER: Hardcode API Keys
-client = Anthropic(api_key="sk-ant-api03-xxxxx")  # DANGEROUS
-client = Anthropic()  # SECURE - uses env var
-
-# NEVER: Log API Keys
-logger.info(f"Using API key: {api_key}")  # DANGEROUS
-logger.info("API client initialized", provider="anthropic")  # SECURE
-
-# NEVER: Trust External Content
-content = fetch_url(url)
-response = claude.generate(f"Summarize: {content}")  # INJECTION VECTOR!
-```
-
----
-
-## 10. Pre-Implementation Checklist
+re-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -446,7 +271,7 @@ response = claude.generate(f"Summarize: {content}")  # INJECTION VECTOR!
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create cloud API integrations that are:
 - **Test-Driven**: All functionality verified with mocked tests

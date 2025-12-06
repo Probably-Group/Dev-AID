@@ -4,6 +4,21 @@ risk_level: MEDIUM
 description: "Expert in macOS Accessibility APIs (AXUIElement) for desktop automation. Specializes in secure automation of macOS applications with proper TCC permissions, element discovery, and system interaction. HIGH-RISK skill requiring strict security controls."
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System-level access, TCC permission requirements, process interaction
@@ -88,169 +103,62 @@ Security.framework            # TCC queries
 
 ---
 
-## 4. Implementation Patterns
 
-### Pattern 1: TCC Permission Validation
+## 4. Quality Assurance Checklist
 
-```python
-import subprocess
-from ApplicationServices import (
-    AXIsProcessTrustedWithOptions,
-    kAXTrustedCheckOptionPrompt
-)
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 class TCCValidator:
     """Validate TCC permissions before automation."""
 
-    @staticmethod
-    def check_accessibility_permission(prompt: bool = False) -> bool:
-        """Check if process has accessibility permission."""
-        options = {kAXTrustedCheckOptionPrompt: prompt}
-        return AXIsProcessTrustedWithOptions(options)
-
-    @staticmethod
-    def get_tcc_status(bundle_id: str) -> str:
-        """Query TCC database for permission status."""
-        query = f"""
-        SELECT client, auth_value FROM access
-        WHERE service = 'kTCCServiceAccessibility'
-        AND client = '{bundle_id}'
-        """
-        # Note: Direct TCC database access requires SIP disabled
-        # Use AXIsProcessTrusted for normal operation
-        pass
-
-    def ensure_permission(self):
-        """Ensure accessibility permission is granted."""
-        if not self.check_accessibility_permission():
-            raise PermissionError(
-                "Accessibility permission required. "
-                "Enable in System Preferences > Security & Privacy > Accessibility"
-            )
-```
-
-### Pattern 2: Secure Element Discovery
-
-```python
-from ApplicationServices import (
-    AXUIElementCreateSystemWide,
-    AXUIElementCreateApplication,
-    AXUIElementCopyAttributeValue,
-    AXUIElementCopyAttributeNames,
-)
-from Quartz import kAXErrorSuccess
-import logging
-
-class SecureAXAutomation:
-    """Secure wrapper for AXUIElement automation."""
-
-    BLOCKED_APPS = {
-        'com.apple.keychainaccess',           # Keychain Access
-        'com.apple.systempreferences',         # System Preferences
-        'com.apple.SecurityAgent',             # Security dialogs
-        'com.apple.Terminal',                  # Terminal
-        'com.1password.1password',             # 1Password
-    }
-
-    def __init__(self, permission_tier: str = 'read-only'):
-        self.permission_tier = permission_tier
-        self.logger = logging.getLogger('ax.security')
-        self.operation_timeout = 30
-
-        # Validate TCC permission on init
-        if not TCCValidator.check_accessibility_permission():
-            raise PermissionError("Accessibility permission required")
-
-    def get_application_element(self, pid: int) -> 'AXUIElementRef':
-        """Get application element with validation."""
-        # Get bundle ID
-        bundle_id = self._get_bundle_id(pid)
-
-        # Security check
-        if bundle_id in self.BLOCKED_APPS:
-            self.logger.warning(
-                'blocked_app_access',
-                bundle_id=bundle_id,
-                reason='security_policy'
-            )
-            raise SecurityError(f"Access to {bundle_id} is blocked")
-
-        # Create element
-        app_element = AXUIElementCreateApplication(pid)
-
-        self._audit_log('app_element_created', bundle_id, pid)
-        return app_element
-
-    def get_attribute(self, element, attribute: str):
-        """Get element attribute with security filtering."""
-        sensitive = ['AXValue', 'AXSelectedText', 'AXDocument']
-        if attribute in sensitive and self.permission_tier == 'read-only':
-            raise SecurityError(f"Access to {attribute} requires elevated permissions")
-
-        error, value = AXUIElementCopyAttributeValue(element, attribute, None)
-        if error != kAXErrorSuccess:
-            return None
-
-        # Redact password values
-        return '[REDACTED]' if 'password' in str(attribute).lower() else value
-
-    def _audit_log(self, action: str, bundle_id: str, pid: int):
-        self.logger.info(f'ax.{action}', extra={
-            'bundle_id': bundle_id, 'pid': pid, 'permission_tier': self.permission_tier
-        })
-```
-
-### Pattern 3: Safe Action Execution
-
-```python
-from ApplicationServices import AXUIElementPerformAction
-
-class SafeActionExecutor:
-    """Execute AX actions with security controls."""
-    BLOCKED_ACTIONS = {
-        'read-only': ['AXPress', 'AXIncrement', 'AXDecrement', 'AXConfirm'],
-        'standard': ['AXDelete', 'AXCancel'],
-    }
-
-    def __init__(self, permission_tier: str):
-        self.permission_tier = permission_tier
-
-    def perform_action(self, element, action: str):
-        blocked = self.BLOCKED_ACTIONS.get(self.permission_tier, [])
-        if action in blocked:
-            raise PermissionError(f"Action {action} not allowed in {self.permission_tier} tier")
-        error = AXUIElementPerformAction(element, action)
-        return error == kAXErrorSuccess
-```
-
-### Pattern 4: Application Monitoring
-
-```python
-from AppKit import NSWorkspace, NSRunningApplication
-
-class ApplicationMonitor:
-    """Monitor and validate running applications."""
-
-    def get_frontmost_app(self) -> dict:
-        app = NSWorkspace.sharedWorkspace().frontmostApplication()
-        return {
-            'pid': app.processIdentifier(),
-            'bundle_id': app.bundleIdentifier(),
-            'name': app.localizedName(),
-        }
-
-    def validate_application(self, pid: int) -> bool:
-        app = NSRunningApplication.runningApplicationWithProcessIdentifier_(pid)
-        if not app or app.bundleIdentifier() in SecureAXAutomation.BLOCKED_APPS:
-            return False
-        # Verify code signature
-        result = subprocess.run(['codesign', '-v', app.bundleURL().path()], capture_output=True)
-        return result.returncode == 0
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -308,7 +216,7 @@ pytest tests/ --timeout=30
 
 ---
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### Pattern 1: Element Caching
 
@@ -398,7 +306,7 @@ class OptimizedObserver:
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Critical Vulnerabilities
 
@@ -429,7 +337,7 @@ class OptimizedObserver:
 
 ---
 
-## 8. Common Mistakes
+## 9. Common Mistakes
 
 **Critical Anti-Patterns** - Always avoid:
 - Automating without TCC permission check
@@ -440,7 +348,7 @@ class OptimizedObserver:
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] TCC permission requirements documented
@@ -472,24 +380,12 @@ class OptimizedObserver:
 
 ---
 
-## 10. Summary
+## 11. Summary
 
-Your goal is to create macOS accessibility automation that is:
-- **Secure**: TCC validation, code signature verification, application blocklists
-- **Reliable**: Proper error handling, timeout enforcement
-- **Compliant**: Respects macOS security model and sandbox boundaries
+Your goal is to create macOS ## 7. Performance Patterns
 
-**Security Reminders**:
-1. Always validate TCC permissions before automation
-2. Verify code signatures, not just bundle IDs
-3. Never automate security dialogs or Keychain
-4. Log all operations with correlation IDs
-5. Respect macOS security boundaries
+## 7. Performance Patterns
+
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## References
-
-- **Advanced Patterns**: See `references/advanced-patterns.md`
-- **Security Examples**: See `references/security-examples.md`
-- **Threat Model**: See `references/threat-model.md`

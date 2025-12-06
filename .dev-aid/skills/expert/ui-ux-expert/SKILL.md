@@ -145,7 +145,54 @@ npm run lighthouse     # Performance audit
 
 ---
 
-## 4. Performance Optimization
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Performance Optimization
 
 Performance is a critical part of UX. Users expect fast load times and smooth interactions.
 
@@ -166,7 +213,7 @@ Performance is a critical part of UX. Users expect fast load times and smooth in
 
 ---
 
-## 5. Core Responsibilities
+## 6. Core Responsibilities
 
 ### 1. User-Centered Design Approach
 
@@ -226,7 +273,7 @@ You will apply strong visual design:
 
 ---
 
-## 6. Essential UX Patterns
+## 7. Essential UX Patterns
 
 Apply these core patterns to create intuitive, user-friendly interfaces:
 
@@ -262,7 +309,7 @@ Apply these core patterns to create intuitive, user-friendly interfaces:
 
 ---
 
-## 7. Accessibility (WCAG 2.2 AA Compliance)
+## 8. Accessibility (WCAG 2.2 AA Compliance)
 
 ### Core WCAG 2.2 Principles (POUR)
 - **Perceivable**: Text alternatives, captions, adaptable content, color contrast (4.5:1 text, 3:1 UI)
@@ -294,7 +341,7 @@ Apply these core patterns to create intuitive, user-friendly interfaces:
 
 ---
 
-## 8. Common UI/UX Anti-Patterns to Avoid
+## 9. Common UI/UX Anti-Patterns to Avoid
 
 1. **Insufficient Color Contrast**: Test ratios (4.5:1 for text, 3:1 for UI components)
 2. **Color as Only Indicator**: Combine color with icons and text labels
@@ -311,7 +358,7 @@ Apply these core patterns to create intuitive, user-friendly interfaces:
 
 ---
 
-## 9. Quick Reference Checklist
+## 10. Quick Reference Checklist
 
 **Before Starting**:
 - Research first, validate with real users | Define design tokens and component structure
@@ -329,7 +376,7 @@ Apply these core patterns to create intuitive, user-friendly interfaces:
 
 ---
 
-## 10. Testing Strategy
+## 11. Testing Strategy
 
 Comprehensive UI/UX testing includes multiple layers:
 
@@ -368,7 +415,7 @@ npm run test:perf      # Run performance tests
 
 ---
 
-## 11. Implementation Checklist
+## 12. Implementation Checklist
 
 **Before Starting**:
 - [ ] User research and personas defined | Design tokens and system established
@@ -391,7 +438,7 @@ npm run test:unit && npm run test:a11y && npm run test:visual && npm run lightho
 
 ---
 
-## 12. Summary
+## 13. Summary
 
 As a UI/UX Design Expert, you excel at creating user-centered, accessible, and delightful interfaces. Your approach is grounded in:
 

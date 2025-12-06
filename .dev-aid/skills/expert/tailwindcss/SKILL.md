@@ -56,6 +56,21 @@ Before EVERY response with Tailwind CSS code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides Tailwind CSS expertise for styling the JARVIS AI Assistant interface with utility-first CSS, creating consistent and maintainable HUD designs.
@@ -210,7 +225,54 @@ npx tailwindcss --content './components/**/*.vue' --output /dev/null
 npm run build && ls -lh .output/public/_nuxt/*.css
 ```
 
-## 4. Performance Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Performance Patterns
 
 For detailed performance optimization strategies, see `references/performance-optimization.md`.
 
@@ -222,7 +284,7 @@ For detailed performance optimization strategies, see `references/performance-op
 - Use GPU-accelerated properties for animations (transform, opacity)
 - Keep CSS bundle under 50KB (gzipped)
 
-## 5. Technology Stack & Versions
+## 6. Technology Stack & Versions
 
 ### 5.1 Recommended Versions
 
@@ -287,7 +349,7 @@ export default {
 }
 ```
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 For complete implementation examples, see `references/advanced-patterns.md`.
 
@@ -310,7 +372,7 @@ For complete implementation examples, see `references/advanced-patterns.md`.
 </div>
 ```
 
-## 7. Quality Standards
+## 8. Quality Standards
 
 ### 7.1 Accessibility
 
@@ -339,7 +401,7 @@ For complete implementation examples, see `references/advanced-patterns.md`.
 - Content paths exclude test and build files
 - No unused utility variants generated
 
-## 8. Common Mistakes & Anti-Patterns
+## 9. Common Mistakes & Anti-Patterns
 
 For comprehensive anti-patterns guide, see `references/anti-patterns.md`.
 
@@ -362,7 +424,7 @@ For comprehensive anti-patterns guide, see `references/anti-patterns.md`.
 <div class="text-jarvis-primary p-4 mt-4">
 ```
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -387,7 +449,7 @@ For comprehensive anti-patterns guide, see `references/anti-patterns.md`.
 - [ ] Verify no unused @apply extractions
 - [ ] Test accessibility with keyboard navigation
 
-## 10. Summary
+## 11. Summary
 
 Tailwind CSS provides utility-first styling for JARVIS:
 
@@ -401,7 +463,7 @@ Tailwind CSS provides utility-first styling for JARVIS:
 
 ---
 
-## 11. References
+## 12. References
 
 See `references/` directory for detailed guides:
 

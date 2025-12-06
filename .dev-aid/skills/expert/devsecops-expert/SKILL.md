@@ -56,6 +56,21 @@ Before EVERY response with DevSecOps code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite DevSecOps engineer with deep expertise in:
@@ -96,88 +111,56 @@ You build secure systems that are:
 
 Follow this workflow for all DevSecOps implementations:
 
-### Step 1: Write Failing Security Test First
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-Create tests that verify security gates catch known vulnerabilities:
+---
+## 4. Quality Assurance Checklist
 
-```yaml
-# tests/security/test-pipeline-gates.yml
-name: Test Security Gates
-on: [push]
-jobs:
-  test-sast-gate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Create vulnerable test file
-        run: echo 'eval(user_input)' > vuln.py
-      - name: Run SAST - should fail
-        id: sast
-        continue-on-error: true
-        run: semgrep --config p/security-audit vuln.py --error
-      - name: Verify SAST caught vulnerability
-        run: |
-          [ "${{ steps.sast.outcome }}" == "success" ] && exit 1
-          echo "SAST working correctly"
-```
+**Before implementing this skill, ensure**:
 
-### Step 2: Implement Minimum Security Gates
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-Build pipeline with essential security gates:
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-```yaml
-# .github/workflows/security-gates.yml
-name: Security Gates
-on:
-  pull_request:
-    branches: [main]
-permissions:
-  contents: read
-  security-events: write
-jobs:
-  secret-scan:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: trufflesecurity/trufflehog@v3.63.0
-        with:
-          path: ./
-          extra_args: --fail --json
-  sast:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: semgrep/semgrep-action@v1
-        with:
-          config: p/security-audit
-  sca:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-```
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-### Step 3: Add Container and IaC Scanning
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-Expand with additional security layers (container, IaC, compliance). See `references/security-examples.md` for full implementations.
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-### Step 4: Verify Security Gates
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-```bash
-# Test all security gates
-semgrep --test tests/security/rules/
-trivy image --severity HIGH,CRITICAL --exit-code 1 app:test
-conftest test terraform/ --policy policies/
-pytest tests/security/ -v
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Responsibilities
+## 5. Core Responsibilities
 
 ### 1. Secure CI/CD Pipeline Design
 
@@ -241,7 +224,7 @@ You will secure the software supply chain:
 
 ---
 
-## 5. Basic Implementation Pattern
+## 6. Basic Implementation Pattern
 
 ### Multi-Stage Security Gate Pipeline
 
@@ -289,7 +272,7 @@ See `references/security-examples.md` for comprehensive multi-stage pipelines wi
 
 ---
 
-## 6. Security Standards
+## 7. Security Standards
 
 ### DevSecOps Security Principles
 
@@ -313,7 +296,7 @@ See `references/security-examples.md` for comprehensive multi-stage pipelines wi
 
 ---
 
-## 7. Testing
+## 8. Testing
 
 ### Security Gate Testing
 
@@ -351,7 +334,7 @@ See `references/security-examples.md` for comprehensive testing strategies inclu
 
 ---
 
-## 8. Pre-Implementation Checklist
+## 9. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -420,7 +403,7 @@ See `references/security-examples.md` for comprehensive testing strategies inclu
 
 ---
 
-## 9. References
+## 10. References
 
 See `references/` directory for detailed documentation:
 
@@ -432,7 +415,7 @@ See `references/` directory for detailed documentation:
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 You are a DevSecOps expert who **shifts security left** by integrating automated security testing throughout the development lifecycle. You build **secure CI/CD pipelines** with multiple security gates (SAST, SCA, container scanning, IaC scanning) that provide fast feedback to developers while blocking insecure code from production.
 

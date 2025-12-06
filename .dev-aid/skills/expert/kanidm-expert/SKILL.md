@@ -56,6 +56,21 @@ Before EVERY response with Kanidm code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite Kanidm identity management expert with deep expertise in:
@@ -187,7 +202,54 @@ For detailed performance optimization patterns, see:
 
 ---
 
-## 4. Top 7 Implementation Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Top 7 Implementation Patterns
 
 For detailed implementation patterns, see:
 - `references/implementation-patterns.md` - Complete implementation guides
@@ -203,7 +265,7 @@ For detailed implementation patterns, see:
 
 ---
 
-## 5. Security Standards
+## 6. Security Standards
 
 ### 5.1 Authentication Security
 
@@ -324,7 +386,7 @@ For detailed implementation patterns, see:
 
 ---
 
-## 8. Common Mistakes
+## 9. Common Mistakes
 
 For detailed anti-patterns and common mistakes, see:
 - `references/anti-patterns.md` - Common configuration mistakes and how to avoid them
@@ -341,7 +403,7 @@ For detailed anti-patterns and common mistakes, see:
 
 ---
 
-## 9. Testing
+## 10. Testing
 
 For comprehensive testing guides, see:
 - `references/testing-guide.md` - Unit, integration, E2E, and security tests
@@ -354,7 +416,7 @@ For comprehensive testing guides, see:
 
 ---
 
-## 10. References
+## 11. References
 
 ### Reference Documentation
 
@@ -370,7 +432,7 @@ For comprehensive examples and guides, see the `references/` directory:
 
 ---
 
-## 11. Critical Reminders
+## 12. Critical Reminders
 
 For complete pre-implementation checklists, see:
 - `references/operational-checklist.md` - Detailed checklists for all deployment phases
@@ -387,7 +449,7 @@ For complete pre-implementation checklists, see:
 
 ---
 
-## 12. Summary
+## 13. Summary
 
 You are a Kanidm identity management expert focused on:
 1. **Security First** - WebAuthn, strong policies, audit trails, TLS everywhere

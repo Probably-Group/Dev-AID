@@ -8,6 +8,21 @@ description: "Expert skill for implementing speech-to-text with Faster Whisper. 
 
 > **File Organization**: Split structure. See `references/` for detailed implementations.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM - Processes audio input, potential privacy concerns, resource-intensive
@@ -93,16 +108,54 @@ structlog>=23.0
 
 ---
 
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
 ## 5. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_stt_engine.py
-import pytest
-import numpy as np
-from pathlib import Path
-import soundfile as sf
 
 class TestSTTEngine:
     @pytest.fixture
@@ -110,87 +163,9 @@ class TestSTTEngine:
         from jarvis.stt import SecureSTTEngine
         return SecureSTTEngine(model_size="base", device="cpu")
 
-    def test_transcription_returns_string(self, engine, tmp_path):
-        audio = np.zeros(16000, dtype=np.float32)
-        path = tmp_path / "test.wav"
-        sf.write(path, audio, 16000)
-        assert isinstance(engine.transcribe(str(path)), str)
-
-    def test_audio_deleted_after_transcription(self, engine, tmp_path):
-        path = tmp_path / "test.wav"
-        sf.write(path, np.zeros(16000, dtype=np.float32), 16000)
-        engine.transcribe(str(path))
-        assert not path.exists()
-
-    def test_rejects_oversized_files(self, engine, tmp_path):
-        large_file = tmp_path / "large.wav"
-        large_file.write_bytes(b"0" * (51 * 1024 * 1024))
-        with pytest.raises(Exception):
-            engine.transcribe(str(large_file))
-
-class TestSTTPerformance:
-    @pytest.fixture
-    def engine(self):
-        from jarvis.stt import SecureSTTEngine
-        return SecureSTTEngine(model_size="base", device="cpu")
-
-    def test_latency_under_300ms(self, engine, tmp_path):
-        import time
-        audio = np.random.randn(16000).astype(np.float32) * 0.1
-        path = tmp_path / "short.wav"
-        sf.write(path, audio, 16000)
-        start = time.perf_counter()
-        engine.transcribe(str(path))
-        assert (time.perf_counter() - start) * 1000 < 300
-
-    def test_memory_stable(self, engine, tmp_path):
-        import tracemalloc
-        tracemalloc.start()
-        initial = tracemalloc.get_traced_memory()[0]
-        for i in range(10):
-            path = tmp_path / f"test_{i}.wav"
-            sf.write(path, np.random.randn(16000).astype(np.float32) * 0.1, 16000)
-            engine.transcribe(str(path))
-        growth = (tracemalloc.get_traced_memory()[0] - initial) / 1024 / 1024
-        tracemalloc.stop()
-        assert growth < 50, f"Memory grew {growth:.1f}MB"
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# jarvis/stt/engine.py
-from faster_whisper import WhisperModel
-
-class SecureSTTEngine:
-    def __init__(self, model_size="base", device="cpu", compute_type="int8"):
-        self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
-
-    def transcribe(self, audio_path: str) -> str:
-        # Minimum implementation to pass tests
-        segments, _ = self.model.transcribe(audio_path)
-        return " ".join(s.text for s in segments).strip()
-```
-
-### Step 3: Refactor with Full Implementation
-
-Add validation, security, cleanup, and optimizations from Pattern 1.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all STT tests
-pytest tests/test_stt_engine.py -v --tb=short
-
-# Run with coverage
-pytest tests/test_stt_engine.py --cov=jarvis.stt --cov-report=term-missing
-
-# Run performance tests only
-pytest tests/test_stt_engine.py -k "performance" -v
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
 ## 6. Performance Patterns
 
 ### Pattern 1: Streaming Transcription (Low Latency)
@@ -288,89 +263,14 @@ chunks.append(audio)  # Memory leak over time
 ### Pattern 1: Secure Faster Whisper Setup
 
 ```python
-from faster_whisper import WhisperModel
-from pathlib import Path
-import tempfile, os, structlog
+from faster_whisper import Whis## 6. Performance Patterns
 
-logger = structlog.get_logger()
+## 6. Performance Patterns
 
-class SecureSTTEngine:
-    def __init__(self, model_size="base", device="cpu", compute_type="int8"):
-        valid_sizes = ["tiny", "base", "small", "medium", "large-v3"]
-        if model_size not in valid_sizes:
-            raise ValueError(f"Invalid model size: {model_size}")
+📚 **For complete details**: See `references/performance-patterns.md`
 
-        self.model = WhisperModel(model_size, device=device, compute_type=compute_type)
-        self.temp_dir = tempfile.mkdtemp(prefix="jarvis_stt_")
-        os.chmod(self.temp_dir, 0o700)
-
-    def transcribe(self, audio_path: str) -> str:
-        path = Path(audio_path).resolve()
-        if not self._validate_audio_file(path):
-            raise ValidationError("Invalid audio file")
-
-        try:
-            segments, info = self.model.transcribe(
-                str(path), beam_size=5, vad_filter=True,
-                vad_parameters=dict(min_silence_duration_ms=500)
-            )
-            text = " ".join(s.text for s in segments)
-            logger.info("stt.transcribed", duration=info.duration)
-            return text.strip()
-        finally:
-            path.unlink(missing_ok=True)
-
-    def _validate_audio_file(self, path: Path) -> bool:
-        if not path.exists():
-            return False
-        if path.stat().st_size > 50 * 1024 * 1024:
-            return False
-        return path.suffix.lower() in {'.wav', '.mp3', '.flac', '.ogg', '.m4a'}
-
-    def cleanup(self):
-        import shutil
-        shutil.rmtree(self.temp_dir, ignore_errors=True)
-```
-
-### Pattern 2: Privacy-Preserving Transcription
-
-```python
-class PrivacyAwareSTT:
-    """STT with privacy protections."""
-
-    def __init__(self, engine: SecureSTTEngine):
-        self.engine = engine
-
-    def transcribe_private(self, audio_path: str) -> dict:
-        """Transcribe with privacy features."""
-        # Transcribe
-        text = self.engine.transcribe(audio_path)
-
-        # Remove PII patterns
-        cleaned = self._remove_pii(text)
-
-        # Log without content
-        logger.info("stt.transcribed_private",
-                   word_count=len(cleaned.split()),
-                   had_pii=cleaned != text)
-
-        return {
-            "text": cleaned,
-            "privacy_filtered": cleaned != text
-        }
-
-    def _remove_pii(self, text: str) -> str:
-        """Remove potential PII from transcription."""
-        import re
-
-        # Phone numbers
-        text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
-
-        # Email addresses
-        text = re.sub(r'\b[\w.-]+@[\w.-]+\.\w+\b', '[EMAIL]', text)
-
-        # Social security numbers
-        text = re.sub(r'\b\d{3}[-]?\d{2}[-]?\d{4}\b', '[SSN]', text)
+---
+ext)
 
         # Credit card numbers
         text = re.sub(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b', '[CARD]', text)
@@ -470,16 +370,10 @@ logger.info("stt.complete", word_count=len(text.split()))
 
 ## 11. Summary
 
-Your goal is to create STT systems that are:
-- **Private**: Audio processed locally, deleted immediately
-- **Fast**: Optimized for real-time voice assistant responses
-- **Accurate**: Appropriate model and preprocessing for context
+Your goal is to create STT systems tha## 7. Implementation Patterns
 
-You understand that voice data requires special privacy protection. Always delete audio after processing, never log transcription content, and filter PII from outputs.
+## 7. Implementation Patterns
 
-**Critical Reminders**:
-1. Delete audio files immediately after transcription
-2. Never log transcription content
-3. Filter PII from transcription results
-4. Use secure temp directories with restricted permissions
-5. Validate all audio input (size, format, duration)
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---

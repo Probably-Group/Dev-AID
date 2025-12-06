@@ -57,6 +57,21 @@ Before EVERY response with LLM integration code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Handles AI model execution, processes untrusted prompts, potential for code execution vulnerabilities
@@ -114,7 +129,54 @@ When integrating local LLMs, you will:
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ### 4.1 Core Technologies & Version Strategy
 
@@ -144,7 +206,7 @@ structlog>=23.0  # Secure logging
 
 ---
 
-## 5. Essential Implementation Patterns
+## 6. Essential Implementation Patterns
 
 ### Pattern 1: Secure Ollama Client (Basic)
 
@@ -256,7 +318,7 @@ class ResourceLimitedInference:
 
 ---
 
-## 6. Implementation Workflow (TDD)
+## 7. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -313,7 +375,7 @@ pytest tests/test_llm_client.py -k "injection or sanitize" -v
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### Critical Vulnerabilities
 
@@ -353,7 +415,7 @@ if not Path(MODEL_DIR).is_dir():
 
 ---
 
-## 8. Common Mistakes to Avoid
+## 9. Common Mistakes to Avoid
 
 | Anti-Pattern | Danger | Secure Alternative |
 |--------------|--------|-------------------|
@@ -368,7 +430,7 @@ if not Path(MODEL_DIR).is_dir():
 
 ---
 
-## 9. Pre-Deployment Checklist
+## 10. Pre-Deployment Checklist
 
 ### Security
 
@@ -396,7 +458,7 @@ if not Path(MODEL_DIR).is_dir():
 
 ---
 
-## 10. Reference Documentation
+## 11. Reference Documentation
 
 See `references/` directory for detailed implementations:
 
@@ -408,7 +470,7 @@ See `references/` directory for detailed implementations:
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create LLM integrations that are:
 - **Secure**: Protected against prompt injection, RCE, and information disclosure

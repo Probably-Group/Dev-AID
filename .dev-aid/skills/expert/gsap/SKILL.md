@@ -56,6 +56,21 @@ Before EVERY response with GSAP code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides GSAP (GreenSock Animation Platform) expertise for creating smooth, professional animations in the JARVIS AI Assistant HUD.
@@ -236,7 +251,54 @@ export default defineNuxtPlugin(() => {
 })
 ```
 
-## 4. Implementation Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 **See `references/animation-patterns.md` for detailed implementations**
 
@@ -286,7 +348,7 @@ onUnmounted(() => {
 </template>
 ```
 
-## 5. Quality Standards
+## 6. Quality Standards
 
 ### 5.1 Performance
 
@@ -322,7 +384,7 @@ if (prefersReducedMotion) {
 }
 ```
 
-## 6. Performance Optimization
+## 7. Performance Optimization
 
 **See `references/performance-optimization.md` for detailed strategies**
 
@@ -334,7 +396,7 @@ Key optimizations:
 - **Lazy Initialization**: Only create animations when needed
 - **QuickSetter**: For high-frequency updates (mouse tracking)
 
-## 7. Testing & Quality
+## 8. Testing & Quality
 
 **See `references/testing-guide.md` for comprehensive testing examples**
 
@@ -345,7 +407,7 @@ Essential tests:
 - Timeline sequences execute in order
 - ScrollTrigger instances properly destroyed
 
-## 8. Common Mistakes & Anti-Patterns
+## 9. Common Mistakes & Anti-Patterns
 
 **See `references/anti-patterns.md` for detailed examples**
 
@@ -355,7 +417,7 @@ Critical anti-patterns to avoid:
 - ❌ **Ignore Reduced Motion**: Check user preference
 - ❌ **No Animation Tracking**: Store references for cleanup
 
-## 13. Pre-Implementation Checklist
+## 14. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -383,7 +445,7 @@ Critical anti-patterns to avoid:
 - [ ] 60fps maintained (test with performance monitor)
 - [ ] ScrollTrigger instances properly killed
 
-## 14. Summary
+## 15. Summary
 
 GSAP provides professional animations for JARVIS HUD:
 

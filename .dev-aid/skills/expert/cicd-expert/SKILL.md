@@ -54,6 +54,21 @@ Before EVERY response with CI/CD code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite CI/CD pipeline engineer with deep expertise in:
@@ -93,63 +108,58 @@ You build pipelines that are:
 
 ## 3. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 3. Implementation Workflow (TDD)
 
-```yaml
-# .github/workflows/test-pipeline.yml
-name: Test Pipeline Configuration
-on: [push]
-jobs:
-  validate-workflow:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate workflow syntax
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-          ./actionlint -color
-      - name: Verify security scans required
-        run: |
-          grep -A 10 "deploy:" .github/workflows/ci-cd.yml | grep -q "needs:.*security" || exit 1
-      - name: Verify minimal permissions
-        run: grep -q "^permissions:" .github/workflows/ci-cd.yml || exit 1
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-### Step 2: Implement Minimum to Pass
+---
+## 4. Quality Assurance Checklist
 
-```yaml
-# .github/workflows/ci-cd.yml
-name: CI/CD Pipeline
-permissions:
-  contents: read
-  security-events: write
-on:
-  push:
-    branches: [main]
-jobs:
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Security scan"
-  deploy:
-    needs: [security]
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Deploying..."
-```
+**Before implementing this skill, ensure**:
 
-### Step 3: Refactor and Verify
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-```bash
-actionlint                          # Validate syntax
-act -n                              # Dry run locally
-gh workflow run test-pipeline.yml   # Run tests
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Responsibilities
+## 5. Core Responsibilities
 
 ### 1. Pipeline Architecture Design
 
@@ -203,7 +213,7 @@ You will ensure pipeline visibility:
 
 ---
 
-## 5. Essential Patterns
+## 6. Essential Patterns
 
 ### Pattern 1: Minimal Secure Pipeline
 
@@ -264,123 +274,22 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - run: echo "Deploy to production"
-```
+    environment: p## 6. Essential Patterns
 
-### Pattern 2: Reusable Workflow
-
-```yaml
-# .github/workflows/reusable-build.yml
-name: Reusable Build
-
-on:
-  workflow_call:
-    inputs:
-      node-version:
-        required: false
-        type: string
-        default: '20'
-    secrets:
-      NPM_TOKEN:
-        required: false
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ inputs.node-version }}
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-
-# Usage:
-# jobs:
-#   build-app:
-#     uses: ./.github/workflows/reusable-build.yml
-#     with:
-#       node-version: '20'
-```
-
-### Pattern 3: Matrix Testing
-
-```yaml
-jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [18, 20, 21]
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm test
-```
-
----
-
-## 6. Quick Security Checklist
-
-### Before Deployment
-
-- [ ] Workflow permissions set to minimum required
-- [ ] All third-party actions pinned to commit SHA
-- [ ] OIDC/Workload Identity configured (no static secrets)
-- [ ] Branch protection rules enabled
-- [ ] SAST/SCA integrated into CI pipeline
-- [ ] Container images scanned for vulnerabilities
-- [ ] Artifacts signed with Cosign/Sigstore
-- [ ] SBOM generated for all dependencies
-- [ ] Environment protection rules configured
-- [ ] Manual approval required for production
-
-### Security Guidelines
-
-**Pipeline Permissions**:
-```yaml
-# ✅ GOOD: Explicit minimal permissions
 permissions:
   contents: read
-  pull-requests: write
+  security-events: write
+  id-token: write  # For OIDC
 
-# ❌ BAD: Default write-all permissions
-# (no permissions block)
-```
+📚 **For complete details**: See `references/essential-patterns.md`
 
-**Action Pinning**:
-```yaml
-# ✅ GOOD: Pin to SHA
-- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
-
-# ❌ BAD: Mutable tag
-- uses: actions/checkout@main
-```
-
-**Secrets Management**:
-```yaml
-# ✅ GOOD: Use OIDC
-- uses: aws-actions/configure-aws-credentials@v4
-  with:
-    role-to-assume: arn:aws:iam::123456789012:role/GitHubActions
-
-# ❌ BAD: Static credentials
-- run: aws s3 sync
-  env:
-    AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+---
+ }}
 ```
 
 ---
 
-## 7. Pre-Implementation Checklist
+## 8. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -417,35 +326,26 @@ permissions:
 
 ---
 
-## 8. References
+## 9. References
 
 For comprehensive examples and advanced patterns, see the `references/` directory:
 
 - **[`performance-patterns.md`](references/performance-patterns.md)** - Caching strategies, parallel execution, incremental builds
 - **[`pipeline-patterns.md`](references/pipeline-patterns.md)** - Complete multi-stage pipelines, reusable workflows, monorepo patterns
-- **[`security-examples.md`](references/security-examples.md)** - SAST/DAST integration, secrets management, OWASP CI/CD Top 10
-- **[`anti-patterns.md`](references/anti-patterns.md)** - Common mistakes and how to avoid them
+- **[`security-examples.md`](references/security-examples.md)** - SAST/DAST integr## 7. Quick Security Checklist
+
+- [ ] Workflow permissions set to minimum required
+- [ ] All third-party actions pinned to commit SHA
+- [ ] OIDC/Workload Identity configured (no static secrets)
+- [ ] Branch protection rules enabled
+- [ ] SAST/SCA integrated into CI pipeline
+- [ ] Container images scanned for vulnerabilities
+- [ ] ...
+
+📚 **For complete details**: See `references/quick-security-checklist.md`
 
 ---
 
-## 9. Summary
-
-You are an elite CI/CD pipeline engineer responsible for building secure, efficient, and reliable automation. Your mission is to enable fast, safe deployments while maintaining security and compliance.
-
-**Core Competencies**:
-- **Pipeline Architecture**: Multi-stage workflows, reusable components, optimized execution
-- **Security Integration**: SAST/DAST/SCA, secrets management, artifact signing, supply chain security
-- **Deployment Strategies**: Blue/green, canary, GitOps, automated rollback
-- **Performance Optimization**: Caching, parallelization, incremental builds
-- **Observability**: Metrics, logging, alerting, incident response
-
-**Security Principles**:
-1. **Least Privilege**: Minimal permissions for workflows and service accounts
-2. **Defense in Depth**: Multiple security gates throughout pipeline
-3. **Immutable Artifacts**: Tagged, signed, and verified artifacts
-4. **Audit Everything**: Complete audit trails for compliance
-5. **Fail Securely**: Proper error handling, no secret exposure
-6. **Zero Trust**: Verify every stage, assume breach
 
 **Best Practices**:
 - Pin dependencies and actions to specific versions

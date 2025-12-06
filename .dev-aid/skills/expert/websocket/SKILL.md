@@ -19,6 +19,21 @@ risk_level: HIGH
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH
@@ -84,80 +99,61 @@ ALLOWED_ORIGINS = ["https://app.example.com", "https://admin.example.com"]
 
 ---
 
-## 4. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 4. Quality Assurance Checklist
 
-```python
-import pytest
-from httpx import AsyncClient, ASGITransport
-from fastapi.testclient import TestClient
+**Before implementing this skill, ensure**:
 
-# Test security boundaries first
-@pytest.mark.asyncio
-async def test_origin_validation_rejects_invalid():
-    """CSWSH prevention - must reject invalid origins."""
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test"
-    ) as client:
-        # This should fail until origin validation is implemented
-        with pytest.raises(Exception):
-            async with client.websocket_connect(
-                "/ws?token=valid",
-                headers={"Origin": "https://evil.com"}
-            ):
-                pass
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-@pytest.mark.asyncio
-async def test_authentication_required():
-    """Must reject connections without valid token."""
-    with TestClient(app) as client:
-        with pytest.raises(Exception):
-            with client.websocket_connect("/ws") as ws:
-                pass
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-@pytest.mark.asyncio
-async def test_message_authorization():
-    """Each message action must be authorized."""
-    with TestClient(app) as client:
-        with client.websocket_connect(
-            "/ws?token=readonly_user",
-            headers={"Origin": "https://app.example.com"}
-        ) as ws:
-            ws.send_json({"action": "delete", "id": "123"})
-            response = ws.receive_json()
-            assert response.get("error") == "Permission denied"
-```
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-### Step 2: Implement Minimum to Pass
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-```python
-# Implement only what's needed to pass the test
-async def validate_origin(websocket: WebSocket) -> bool:
-    origin = websocket.headers.get("origin")
-    if not origin or origin not in ALLOWED_ORIGINS:
-        await websocket.close(code=4003, reason="Invalid origin")
-        return False
-    return True
-```
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-### Step 3: Refactor and Verify
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-```bash
-# Run all WebSocket tests
-pytest tests/websocket/ -v --asyncio-mode=auto
-
-# Check for security issues
-bandit -r src/websocket/
-
-# Verify no regressions
-pytest tests/ -v
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Performance Patterns
+## 5. Implementation Workflow (TDD)
+
+## 5. Implementation Workflow (TDD)
+
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+
+---
+## 6. Performance Patterns
 
 ### Pattern 1: Connection Pooling
 
@@ -225,7 +221,7 @@ except asyncio.TimeoutError:
 
 ---
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### Pattern 1: Origin Validation (Critical for CSWSH Prevention)
 
@@ -233,63 +229,14 @@ except asyncio.TimeoutError:
 from fastapi import WebSocket
 
 async def validate_origin(websocket: WebSocket) -> bool:
-    """Validate WebSocket origin against allowlist."""
-    origin = websocket.headers.get("origin")
-    if not origin or origin not in ALLOWED_ORIGINS:
-        await websocket.close(code=4003, reason="Invalid origin")
-        return False
-    return True
+    """Va## 6. Performance Patterns
 
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    if not await validate_origin(websocket):
-        return
-    await websocket.accept()
-```
+## 6. Performance Patterns
 
-### Pattern 2: Token-Based Authentication
+📚 **For complete details**: See `references/performance-patterns.md`
 
-```python
-from jose import jwt, JWTError
-
-async def authenticate_websocket(websocket: WebSocket) -> User | None:
-    """Authenticate via token (not cookies - vulnerable to CSWSH)."""
-    token = websocket.query_params.get("token")
-    if not token:
-        await websocket.close(code=4001, reason="Authentication required")
-        return None
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        user = await user_service.get(payload.get("sub"))
-        if not user:
-            await websocket.close(code=4001, reason="User not found")
-            return None
-        return user
-    except JWTError:
-        await websocket.close(code=4001, reason="Invalid token")
-        return None
-```
-
-### Pattern 3: Per-Message Authorization
-
-```python
-from pydantic import BaseModel, field_validator
-
-class WebSocketMessage(BaseModel):
-    action: str
-    data: dict
-
-    @field_validator('action')
-    @classmethod
-    def validate_action(cls, v):
-        if v not in {'subscribe', 'unsubscribe', 'send', 'query'}:
-            raise ValueError(f'Invalid action: {v}')
-        return v
-
-async def handle_message(websocket: WebSocket, user: User, raw_data: dict):
-    try:
-        message = WebSocketMessage(**raw_data)
-    except ValueError:
+---
+ept ValueError:
         await websocket.send_json({"error": "Invalid message format"})
         return
 
@@ -336,157 +283,24 @@ class SecureConnectionManager:
 ### Pattern 5: Complete Secure Handler
 
 ```python
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    if not await validate_origin(websocket):
-        return
-    user = await authenticate_websocket(websocket)
-    if not user:
-        return
+@app.websocket("/w## 7. Implementation Patterns
 
-    ip = websocket.client.host
-    if not await manager.connect(websocket, user.id, ip):
-        return
+async def validate_origin(websocket: WebSocket) -> bool:
+    """Validate WebSocket origin against allowlist."""
+    origin = websocket.headers.get("origin")
+    if not origin or origin not in ALLOWED_ORIGINS:
+        await websocket.close(code=4003, reason="Invalid origin")
+        return False
+    ...
 
-    try:
-        while True:
-            raw = await asyncio.wait_for(
-                websocket.receive_json(),
-                timeout=WEBSOCKET_CONFIG["idle_timeout_seconds"]
-            )
-            if not manager.check_rate_limit(user.id):
-                await websocket.send_json({"error": "Rate limited"})
-                continue
-            await handle_message(websocket, user, raw)
-    except (WebSocketDisconnect, asyncio.TimeoutError):
-        pass
-    finally:
-        manager.disconnect(user.id, ip)
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---
+/ -v`
 
 ---
 
-## 7. Security Standards
-
-### Domain Vulnerability Landscape
-
-| CVE ID | Severity | Description | Mitigation |
-|--------|----------|-------------|------------|
-| CVE-2024-23898 | HIGH | Jenkins CSWSH - command execution | Validate Origin |
-| CVE-2024-26135 | HIGH | MeshCentral CSWSH - config leak | Origin + SameSite |
-| CVE-2023-0957 | CRITICAL | Gitpod CSWSH - account takeover | Origin + token auth |
-
-### OWASP Top 10 Mapping
-
-| Category | Mitigations |
-|----------|-------------|
-| A01 Access Control | Origin validation, per-message authz |
-| A02 Crypto Failures | TLS/WSS only, signed tokens |
-| A03 Injection | Validate all message content |
-| A07 Auth Failures | Token auth, session validation |
-
-### CSWSH Prevention Summary
-
-```python
-async def secure_websocket_handler(websocket: WebSocket):
-    # 1. VALIDATE ORIGIN (Critical)
-    if websocket.headers.get("origin") not in ALLOWED_ORIGINS:
-        await websocket.close(code=4003)
-        return
-    # 2. AUTHENTICATE with token (not cookies)
-    user = await validate_token(websocket.query_params.get("token"))
-    if not user:
-        await websocket.close(code=4001)
-        return
-    # 3. Accept only after validation
-    await websocket.accept()
-    # 4. AUTHORIZE each message, 5. RATE LIMIT, 6. TIMEOUT idle
-```
-
----
-
-## 8. Common Mistakes & Anti-Patterns
-
-### No Origin Validation
-
-```python
-# NEVER - vulnerable to CSWSH
-@app.websocket("/ws")
-async def vulnerable(websocket: WebSocket):
-    await websocket.accept()  # Accepts any origin!
-
-# ALWAYS - validate origin first
-if websocket.headers.get("origin") not in ALLOWED_ORIGINS:
-    await websocket.close(code=4003)
-    return
-```
-
-### Cookie-Only Authentication
-
-```python
-# NEVER - cookies sent automatically in CSWSH attacks
-session = websocket.cookies.get("session")
-
-# ALWAYS - require explicit token parameter
-token = websocket.query_params.get("token")
-```
-
-### No Per-Message Authorization
-
-```python
-# NEVER - assumes connection = full access
-if data["action"] == "delete":
-    await delete_resource(data["id"])
-
-# ALWAYS - check permission for each action
-if not user.has_permission("delete"):
-    return {"error": "Permission denied"}
-```
-
-### No Input Validation
-
-```python
-# NEVER - trust WebSocket messages
-await db.execute(f"SELECT * FROM {data['table']}")  # SQL injection!
-
-# ALWAYS - validate with Pydantic
-message = WebSocketMessage(**data)
-```
-
----
-
-## 9. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Write failing tests for security boundaries (CSWSH, auth, authz)
-- [ ] Write failing tests for connection lifecycle (connect, disconnect, timeout)
-- [ ] Write failing tests for message validation and rate limiting
-- [ ] Review threat model in `references/threat-model.md`
-- [ ] Identify performance requirements (latency, throughput, connections)
-
-### Phase 2: During Implementation
-
-- [ ] Origin validation against explicit allowlist
-- [ ] Token-based authentication (not cookie-only)
-- [ ] Per-message authorization checks
-- [ ] Rate limiting and idle timeout implemented
-- [ ] All messages validated with Pydantic
-- [ ] Connection pooling for efficiency
-- [ ] Backpressure handling for slow clients
-
-### Phase 3: Before Committing
-
-- [ ] All security tests pass: `pytest tests/websocket/ -v`
-- [ ] No security issues: `bandit -r src/websocket/`
-- [ ] WSS (TLS) enforced in production config
-- [ ] CSWSH test coverage verified
-- [ ] Performance benchmarks meet targets (<50ms latency)
-- [ ] No regressions: `pytest tests/ -v`
-
----
-
-## 10. Summary
+## 11. Summary
 
 **Security Goals**:
 - **CSWSH-Resistant**: Origin validation, token auth
@@ -495,3 +309,10 @@ message = WebSocketMessage(**data)
 - **Validated**: All messages treated as untrusted
 
 **Critical Reminders**: ALWAYS validate Origin, use token auth (not cookies), authorize EACH message, use WSS in production.
+## 9. Common Mistakes & Anti-Patterns
+
+## 9. Common Mistakes & Anti-Patterns
+
+📚 **For complete details**: See `references/common-mistakes-anti-patterns.md`
+
+---

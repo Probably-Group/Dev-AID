@@ -22,6 +22,21 @@ model: claude-sonnet-4-5-20250929
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level: HIGH**
@@ -87,111 +102,66 @@ argon2 = "0.5"   # Optional: stronger KDF
 
 ---
 
-## 4. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 4. Quality Assurance Checklist
 
-```python
-# tests/test_encrypted_db.py
-import pytest
-from pathlib import Path
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Workflow (TDD)
 
 class TestEncryptedDatabase:
     def test_database_file_is_encrypted(self, tmp_path):
         db_path = tmp_path / "test.db"
         key = "x'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'"
         db = EncryptedDatabase(db_path, key)
-        db.execute("CREATE TABLE secrets (data TEXT)")
-        db.execute("INSERT INTO secrets VALUES ('super-secret-value')")
-        db.close()
-        raw_content = db_path.read_bytes()
-        assert b"super-secret-value" not in raw_content
-        assert b"SQLite format" not in raw_content
+        db.execute("CREATE TABLE secrets (data...
 
-    def test_wrong_key_fails_to_open(self, tmp_path):
-        db_path = tmp_path / "test.db"
-        correct_key = "x'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'"
-        wrong_key = "x'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'"
-        db = EncryptedDatabase(db_path, correct_key)
-        db.execute("CREATE TABLE test (id INTEGER)")
-        db.close()
-        with pytest.raises(DatabaseDecryptionError):
-            EncryptedDatabase(db_path, wrong_key)
-
-    def test_key_rotation_preserves_data(self, tmp_path):
-        db_path, backup_path = tmp_path / "test.db", tmp_path / "backup.db"
-        old_key = "x'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'"
-        new_key = "x'fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210'"
-        db = EncryptedDatabase(db_path, old_key)
-        db.execute("CREATE TABLE data (value TEXT)")
-        db.execute("INSERT INTO data VALUES ('preserved')")
-        db.rotate_key(new_key, backup_path)
-        db.close()
-        with pytest.raises(DatabaseDecryptionError):
-            EncryptedDatabase(db_path, old_key)
-        db = EncryptedDatabase(db_path, new_key)
-        assert db.query("SELECT value FROM data")[0][0] == "preserved"
-
-    def test_key_derivation_produces_valid_key(self):
-        password = "user-password"
-        key, salt = derive_key_from_password(password)
-        assert key.startswith("x'") and key.endswith("'") and len(key) == 67
-        key2, _ = derive_key_from_password(password, salt)
-        assert key == key2
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# src/encrypted_db.py
-import sqlite3
-from pathlib import Path
-
-class DatabaseDecryptionError(Exception):
-    pass
-
-class EncryptedDatabase:
-    def __init__(self, path: Path, key: str):
-        self.path = path
-        self.conn = sqlite3.connect(str(path))
-        self.conn.execute(f"PRAGMA key = {key}")  # MUST be first
-        self.conn.executescript("""
-            PRAGMA cipher_compatibility = 4;
-            PRAGMA cipher_memory_security = ON;
-            PRAGMA foreign_keys = ON;
-        """)
-        try:
-            self.conn.execute("SELECT count(*) FROM sqlite_master").fetchone()
-        except sqlite3.DatabaseError as e:
-            raise DatabaseDecryptionError(f"Failed to decrypt: {e}")
-
-    def rotate_key(self, new_key: str, backup_path: Path) -> None:
-        backup = sqlite3.connect(str(backup_path))
-        self.conn.backup(backup)
-        backup.close()
-        self.conn.execute(f"PRAGMA rekey = {new_key}")
-```
-
-### Step 3: Refactor and Optimize
-
-Apply performance patterns from Section 6 after tests pass.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/test_encrypted_db.py -v --cov=src --cov-report=term-missing
-
-# Security-specific tests
-pytest tests/test_encrypted_db.py -k "encrypted or key" -v
-
-# Performance benchmarks
-pytest tests/test_encrypted_db.py --benchmark-only
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 5. Implementation Patterns
+## 6. Implementation Patterns
 
 ### 5.1 Encrypted Database Initialization
 
@@ -295,115 +265,21 @@ impl EncryptedDatabase {
 
 ---
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### 6.1 Page Size Optimization
 
 ```python
 # Good: Optimize page size for workload
 conn.execute("PRAGMA cipher_page_size = 4096")  # Default, good for mixed
-conn.execute("PRAGMA cipher_page_size = 8192")  # Better for large BLOBs
-conn.execute("PRAGMA cipher_page_size = 1024")  # Better for small records
+conn.execute("PRAGMA cipher_pag## 6. Implementation Patterns
 
-# Bad: Using default without consideration
-conn.execute("PRAGMA key = ...")
-# No page size optimization
-```
+## 6. Implementation Patterns
 
-### 6.2 Cipher Configuration Tuning
-
-```python
-# Good: Balance security and performance
-conn.executescript("""
-    PRAGMA kdf_iter = 256000;           -- Strong but not excessive
-    PRAGMA cipher_plaintext_header_size = 32;  -- Allow mmap optimization
-    PRAGMA cipher_use_hmac = ON;        -- Required for integrity
-""")
-
-# Bad: Excessive iterations slowing operations
-conn.execute("PRAGMA kdf_iter = 1000000")  -- Unnecessary, hurts open time
-```
-
-### 6.3 Connection and Key Caching
-
-```python
-# Good: Cache connection, derive key once
-class DatabasePool:
-    _instance = None
-    _key_cache = {}
-
-    def get_connection(self, db_name: str, password: str):
-        if db_name not in self._key_cache:
-            self._key_cache[db_name] = derive_key(password)
-        return EncryptedDatabase(db_name, self._key_cache[db_name])
-
-# Bad: Deriving key on every operation
-def query(password, sql):
-    key = derive_key(password)  # Expensive! ~100ms each time
-    db = EncryptedDatabase("app.db", key)
-    return db.execute(sql)
-```
-
-### 6.4 WAL Mode with Encryption
-
-```python
-# Good: Enable WAL for concurrent reads
-conn.executescript("""
-    PRAGMA key = ...;
-    PRAGMA journal_mode = WAL;
-    PRAGMA synchronous = NORMAL;        -- Faster, still safe with WAL
-    PRAGMA wal_autocheckpoint = 1000;   -- Checkpoint every 1000 pages
-""")
-
-# Bad: Default journal mode
-conn.execute("PRAGMA key = ...")
-# Uses DELETE journal - slower, blocks readers
-```
-
-### 6.5 Memory Security Trade-offs
-
-```python
-# Good: Enable memory security for sensitive apps
-conn.execute("PRAGMA cipher_memory_security = ON")  # Zeros freed memory
-
-# Good: Disable for performance-critical, lower-security contexts
-conn.execute("PRAGMA cipher_memory_security = OFF")  # 10-15% faster
-
-# Bad: No explicit choice - relying on default
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 7. Security Standards
-
-### 7.1 Vulnerability Landscape
-
-**Critical**: Monitor both SQLite AND OpenSSL CVEs as SQLCipher inherits from both.
-
-| CVE | Severity | Mitigation |
-|-----|----------|------------|
-| CVE-2020-27207 | High | Update to SQLCipher 4.4.1+ |
-| CVE-2024-0232 | Medium | Update to SQLCipher 4.9+ |
-| CVE-2023-2650 | High | Update OpenSSL to 3.1.1+ |
-
-### 7.2 OWASP Mapping
-
-| OWASP Category | Risk | Key Controls |
-|----------------|------|--------------|
-| A02:2021 - Cryptographic Failures | Critical | Strong KDF, secure key storage |
-| A03:2021 - Injection | Critical | Parameterized queries |
-| A04:2021 - Insecure Design | High | Key rotation, secure deletion |
-
-### 7.3 Key Management Rules
-
-1. NEVER hardcode encryption keys
-2. Use strong KDF (Argon2id > PBKDF2 with 256000+ iterations)
-3. Store keys in OS keychain/credential manager
-4. Zero out keys in memory after use
-5. Implement key rotation procedures
-
-```rust
-// WRONG: conn.pragma_update(None, "key", "hardcoded-key")?;
+)?;
 // CORRECT:
 let (key, salt) = derive_key_from_password(password, stored_salt)?;
 conn.pragma_update(None, "key", key.as_str())?;  // key auto-zeroed on drop
@@ -411,7 +287,7 @@ conn.pragma_update(None, "key", key.as_str())?;  // key auto-zeroed on drop
 
 ---
 
-## 8. Common Mistakes
+## 9. Common Mistakes
 
 ### Hardcoded Keys
 ```rust
@@ -441,7 +317,7 @@ if page_size == 0 { return Err(Error::EncryptionNotActive); }
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -474,7 +350,7 @@ if page_size == 0 { return Err(Error::EncryptionNotActive); }
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 Your goal is to create SQLCipher implementations that are:
 
@@ -493,3 +369,17 @@ Your goal is to create SQLCipher implementations that are:
 - **Security Examples**: `references/security-examples.md` - Complete implementations
 - **Advanced Patterns**: `references/advanced-patterns.md` - Migration, performance
 - **Threat Model**: `references/threat-model.md` - Security architecture
+## 7. Performance Patterns
+
+## 7. Performance Patterns
+
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---
+## 9. Common Mistakes
+
+## 9. Common Mistakes
+
+📚 **For complete details**: See `references/common-mistakes.md`
+
+---

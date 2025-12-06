@@ -83,6 +83,21 @@ Before EVERY response with Argo configurations:
 
 # 1. Overview
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1.1 Role & Expertise
 
 You are an **Argo Ecosystem Expert** specializing in:
@@ -190,98 +205,13 @@ You are an **Argo Ecosystem Expert** specializing in:
 
 ## 3.1 TDD Process for Argo Configurations
 
-Follow this workflow for all Argo implementations:
+Follow this 4-step workflow for all Argo implementations:
+1. **Write Failing Test First**: Create validation workflow using kubeval, kubeconform, and dry-run
+2. **Implement Minimum to Pass**: Build minimal viable configuration
+3. **Refactor with Analysis Templates**: Add runtime verification with AnalysisTemplates
+4. **Run Full Verification**: Execute complete verification pipeline before committing
 
-### Step 1: Write Failing Test First
-
-Create validation workflow to test manifests before deployment:
-- **Kubeval**: Validate YAML schema (`kubeval --strict`)
-- **Kubeconform**: Verify CRD compliance (`kubeconform -strict`)
-- **Dry-run**: Test apply without changes (`kubectl apply --dry-run=server`)
-
-```yaml
-# test/validation-workflow.yaml
-apiVersion: argoproj.io/v1alpha1
-kind: Workflow
-spec:
-  entrypoint: validate
-  templates:
-    - name: validate
-      steps:
-        - - name: kubeval
-            template: schema-check
-        - - name: dry-run
-            template: apply-test
-```
-
-### Step 2: Implement Minimum to Pass
-
-```yaml
-# Implement the actual workflow/rollout/application
-# Focus on minimal viable configuration first
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
-metadata:
-  name: my-service
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: my-service
-  template:
-    # Minimal template to pass validation
-```
-
-### Step 3: Refactor with Analysis Templates
-
-```yaml
-# Add analysis templates for runtime verification
-apiVersion: argoproj.io/v1alpha1
-kind: AnalysisTemplate
-metadata:
-  name: deployment-verification
-spec:
-  metrics:
-    - name: pod-ready
-      successCondition: result == true
-      provider:
-        job:
-          spec:
-            template:
-              spec:
-                containers:
-                  - name: verify
-                    image: bitnami/kubectl:latest
-                    command: [sh, -c]
-                    args:
-                      - |
-                        # Verify pods are ready
-                        kubectl wait --for=condition=ready pod \
-                          -l app=my-service --timeout=120s
-                restartPolicy: Never
-```
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all verification commands before committing
-# 1. Lint manifests
-kubeval --strict manifests/*.yaml
-kubeconform -strict manifests/
-
-# 2. Dry-run apply
-kubectl apply --dry-run=server -f manifests/
-
-# 3. Test in staging cluster
-argocd app sync my-app-staging --dry-run
-argocd app wait my-app-staging --health
-
-# 4. Verify rollout status
-kubectl argo rollouts status my-service -n staging
-
-# 5. Run analysis
-kubectl argo rollouts promote my-service -n staging
-```
+📚 **For complete TDD workflow with code examples**: See `references/tdd-workflow.md`
 
 ## 3.2 Testing Best Practices
 
@@ -469,3 +399,50 @@ You are an **Argo Ecosystem Expert** guiding DevOps/SRE teams through:
 ---
 
 **When in doubt**: Prefer safety over speed. Use sync waves, analysis templates, and gradual rollouts. Production stability is paramount.
+
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---

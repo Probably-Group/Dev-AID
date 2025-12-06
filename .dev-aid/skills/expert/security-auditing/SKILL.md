@@ -62,6 +62,21 @@ Before EVERY response with security auditing code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -120,7 +135,54 @@ This skill provides security auditing and compliance capabilities:
 | Integrity | Signed logs, WORM storage | Tamper evidence |
 | Compliance | OpenSCAP, Prowler, Trivy | Assessment tools |
 
-## 4. Implementation Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 ### 4.1 Tamper-Evident Audit Logging (Summary)
 
@@ -252,7 +314,7 @@ class VulnerabilityScanner:
 
 **📚 For complete scanner**: See `references/advanced-patterns.md#vulnerability-assessment`
 
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -318,7 +380,7 @@ pytest tests/security_auditing/ -v --tb=short
 pytest tests/security_auditing/ --cov=security_auditing --cov-report=term-missing
 ```
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 **Key Principles**:
 - Use incremental scanning (only scan changed files)
@@ -329,7 +391,7 @@ pytest tests/security_auditing/ --cov=security_auditing --cov-report=term-missin
 **📚 For detailed performance patterns**:
 - See `references/performance-patterns.md` for complete implementations
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Known Vulnerabilities
 
@@ -359,7 +421,7 @@ pytest tests/security_auditing/ --cov=security_auditing --cov-report=term-missin
 - **PCI-DSS 10**: Track all access to network resources
 - **SOC2 CC7.2**: Monitor system components
 
-## 8. Testing Requirements
+## 9. Testing Requirements
 
 ```python
 def test_log_integrity_tamper_detection(audit_logger):
@@ -379,7 +441,7 @@ def test_no_pii_in_logs(audit_logger):
 **📚 For complete test suite**:
 - See `references/security-examples.md#testing`
 
-## 9. Common Mistakes
+## 10. Common Mistakes
 
 **Critical Anti-Patterns to Avoid**:
 - ❌ Logging passwords, tokens, or PII
@@ -390,7 +452,7 @@ def test_no_pii_in_logs(audit_logger):
 
 **📚 For complete anti-patterns catalog**: See `references/anti-patterns.md`
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 **Three Phases**:
 1. **Before Code**: Read threat model, identify compliance needs, design format, plan SIEM integration
@@ -399,7 +461,7 @@ def test_no_pii_in_logs(audit_logger):
 
 **📚 For complete checklists**: See `references/audit-checklists.md` (includes GDPR, HIPAA, PCI-DSS, SOC2, ISO27001 compliance checklists)
 
-## 11. Summary
+## 12. Summary
 
 ### Key Objectives
 

@@ -11,9 +11,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from pydantic import ValidationError
 
-# Add parent directory to path for imports (cleaner than before)
-import sys
-from pathlib import Path
+# Add parent directory to path for imports (only when run as script)
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent.parent))
 

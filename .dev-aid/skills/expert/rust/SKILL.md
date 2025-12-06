@@ -38,6 +38,77 @@ risk_level: MEDIUM
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Command injection via std::process::Command on Windows, TAR archive path traversal attacks, Logic bugs in unsafe code blocks
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-24576** (CVSS 10.0): BatBadBut - Windows command injection via improper argument escaping
+     Source: https://blog.rust-lang.org/2024/04/09/cve-2024-24576.html
+   - **CVE-2025-62518** (CVSS 8.1): TARmageddon - async-tar library RCE via file overwriting
+     Source: https://www.csoonline.com/article/4077445/serious-vulnerability-found-in-rust-library.html
+   - **CVE-2024-43402** (CVSS 7.5): Standard library vulnerability in batch file handling
+     Source: https://blog.rust-lang.org/2024/09/04/cve-2024-43402.html
+
+**Step 3: Common Attack Patterns**
+
+   - Command injection via std::process::Command on Windows
+   - TAR archive path traversal attacks
+   - Logic bugs in unsafe code blocks
+   - Supply chain attacks via crates.io
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use std::process::Command with untrusted input on Windows without validation
+- ❌ NEVER extract TAR archives without path sanitization
+- ❌ NEVER assume Rust prevents all security vulnerabilities
+- ❌ ALWAYS validate external command arguments
+- ❌ ALWAYS audit unsafe blocks for logic errors
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM

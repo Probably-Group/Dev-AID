@@ -7,6 +7,75 @@ description: "Expert in Cilium eBPF-based networking and security for Kubernetes
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Network policy bypass via CIDR range manipulation, eBPF program injection for traffic interception, DNS spoofing to bypass egress policies
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-64715** (CVSS 8.8): Network policy bypass via CIDR manipulation
+     Source: https://github.com/cilium/cilium/security/advisories
+   - **CVE-2025-30162** (CVSS 7.5): eBPF program validation bypass
+     Source: https://cilium.io/blog/2025/security-advisories/
+   - **CVE-2024-42488** (CVSS 6.5): DNS policy enforcement bypass
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-42488
+
+**Step 3: Common Attack Patterns**
+
+   - Network policy bypass via CIDR range manipulation
+   - eBPF program injection for traffic interception
+   - DNS spoofing to bypass egress policies
+   - Service mesh privilege escalation
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER allow unrestricted egress traffic
+- ❌ NEVER trust DNS responses without validation
+- ❌ NEVER bypass network policies for debugging
+- ❌ ALWAYS validate eBPF programs before loading
+- ❌ ALWAYS enforce mutual TLS in service mesh
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any Cilium code**
 
 ### Verification Requirements

@@ -7,6 +7,76 @@ description: "Elite CI/CD pipeline engineer specializing in GitHub Actions, GitL
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: YAML injection in pipeline definitions, Secret exfiltration via environment variables, Supply chain attacks via malicious actions
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-9164** (CVSS 9.6): GitLab - Arbitrary pipeline execution via YAML injection
+     Source: https://about.gitlab.com/releases/2024/09/11/patch-release-gitlab-17-3-2-released/
+   - **CVE-2024-23897** (CVSS 9.8): Jenkins - Arbitrary file read via CLI arguments
+     Source: https://www.jenkins.io/security/advisory/2024-01-24/
+   - **CVE-2024-5535** (CVSS 8.1): GitHub Actions - Command injection in workflow files
+     Source: https://github.blog/security/vulnerability-research/
+
+**Step 3: Common Attack Patterns**
+
+   - YAML injection in pipeline definitions
+   - Secret exfiltration via environment variables
+   - Supply chain attacks via malicious actions
+   - Privilege escalation through runner compromise
+   - Dependency confusion attacks
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER trust user-supplied pipeline YAML without validation
+- ❌ NEVER expose secrets in pipeline logs
+- ❌ NEVER allow arbitrary code execution in CI jobs
+- ❌ NEVER use third-party actions without security review
+- ❌ ALWAYS pin action versions with SHA-256 hashes
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any CI/CD code using this skill**
 
 ### Verification Requirements

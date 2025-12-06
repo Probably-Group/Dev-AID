@@ -19,6 +19,78 @@ description: "Expert in macOS Accessibility APIs (AXUIElement) for desktop autom
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Security concerns in medium-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Privilege escalation via AX API, Keylogging with accessibility permissions, Screen recording abuse
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **MACOS-PRIV-ESC** (CVSS N/A): Accessibility API privilege escalation
+     Source: https://developer.apple.com/documentation/accessibility
+   - **KEYLOGGING-VIA-AX** (CVSS N/A): Keylogging via accessibility permissions
+     Source: https://www.apple.com/security/
+   - **SCREEN-RECORDING-ABUSE** (CVSS N/A): Unauthorized screen recording
+     Source: https://support.apple.com/guide/security/
+
+**Step 3: Common Attack Patterns**
+
+   - Privilege escalation via AX API
+   - Keylogging with accessibility permissions
+   - Screen recording abuse
+   - UI automation for phishing
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER request accessibility permissions without clear user consent
+- ❌ NEVER store accessibility data unencrypted
+- ❌ ALWAYS validate accessibility API calls
+- ❌ ALWAYS implement least-privilege access
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System-level access, TCC permission requirements, process interaction

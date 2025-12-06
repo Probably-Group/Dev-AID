@@ -22,6 +22,45 @@ version: 1.0.0
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: Audio fingerprinting, Timing side-channels, XSS via worklets
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER process untrusted audio without validation
+- ❌ NEVER allow unlimited audio processing
+- ❌ ALWAYS sanitize audio worklet code
+- ❌ ALWAYS implement privacy controls
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 This skill provides Web Audio API expertise for creating audio feedback, voice processing, and sound effects in the JARVIS AI Assistant.

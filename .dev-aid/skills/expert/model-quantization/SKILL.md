@@ -10,6 +10,76 @@ description: "Expert skill for AI model quantization and optimization. Covers 4-
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Security concerns in medium-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Backdoor persistence, Model extraction, Adversarial example transferability
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **QUANTIZATION-BACKDOOR** (CVSS N/A): Backdoor attacks survive quantization
+     Source: https://arxiv.org/abs/2104.15129
+   - **ACCURACY-DEGRADATION** (CVSS N/A): Security degradation from quantization
+     Source: https://arxiv.org/abs/2002.11219
+   - **MODEL-EXTRACTION** (CVSS 8.0): Model extraction via quantized outputs
+     Source: https://arxiv.org/abs/2011.05094
+
+**Step 3: Common Attack Patterns**
+
+   - Backdoor persistence
+   - Model extraction
+   - Adversarial example transferability
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER quantize without validating security properties
+- ❌ NEVER skip adversarial testing post-quantization
+- ❌ ALWAYS validate model integrity
+- ❌ ALWAYS test backdoor resilience
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any model quantization code**
 
 ### Verification Requirements

@@ -7,6 +7,76 @@ description: "Expert FastAPI developer specializing in production-ready async RE
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: OWASP API Top 10 2023 attacks, Path traversal via static files, ReDoS (Regular Expression DoS)
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-47874** (CVSS 8.7): Starlette - Path traversal via static file serving
+     Source: https://github.com/encode/starlette/security/advisories/GHSA-2jv5-9r88-3w3p
+   - **CVE-2024-24762** (CVSS 7.5): ReDoS in Pydantic email validation
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-24762
+   - **OWASP-API-2023-01** (CVSS N/A): BOLA (Broken Object Level Authorization) - 40% of attacks
+     Source: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+
+**Step 3: Common Attack Patterns**
+
+   - OWASP API Top 10 2023 attacks
+   - Path traversal via static files
+   - ReDoS (Regular Expression DoS)
+   - Mass assignment vulnerabilities
+   - Unrestricted resource consumption
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER expose internal object IDs without authorization
+- ❌ NEVER trust Pydantic validation alone for security
+- ❌ NEVER disable CORS without understanding implications
+- ❌ ALWAYS implement rate limiting on all endpoints
+- ❌ ALWAYS validate file uploads with type checking and size limits
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any FastAPI code**
 
 ### Verification Requirements

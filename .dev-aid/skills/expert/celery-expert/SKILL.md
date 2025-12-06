@@ -7,6 +7,79 @@ description: "Expert Celery distributed task queue engineer specializing in asyn
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: Command injection via task metadata, Broker compromise for code execution, Deserialization attacks
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2021-23727** (CVSS 7.5): Command injection via deserialized backend metadata
+     Source: https://github.com/advisories/GHSA-q4xr-rc97-m4xx
+   - **CELERY-BROKER-INJECTION** (CVSS 8.8): Command injection when attacker controls broker
+     Source: https://moldstud.com/articles/p-are-there-any-known-security-vulnerabilities-in-celery
+   - **CELERY-DESERIALIZATION** (CVSS 9.0): Arbitrary code execution via pickle deserialization
+     Source: https://security.snyk.io/package/pip/celery
+
+**Step 3: Common Attack Patterns**
+
+   - Command injection via task metadata
+   - Broker compromise for code execution
+   - Deserialization attacks
+   - Task queue poisoning
+   - Result backend tampering
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use Celery < 5.2.2
+- ❌ NEVER trust task results from backend without validation
+- ❌ NEVER allow direct broker access to untrusted users
+- ❌ ALWAYS secure broker with authentication
+- ❌ ALWAYS use message signing
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any Celery code**
 
 ### Verification Requirements

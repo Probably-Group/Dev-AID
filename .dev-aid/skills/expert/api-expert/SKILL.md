@@ -7,6 +7,76 @@ description: "Expert API architect specializing in RESTful API design, GraphQL, 
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: OWASP API Security Top 10 2023, BOLA via ID manipulation, JWT token manipulation
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **OWASP-API-2023-01** (CVSS N/A): BOLA - Broken Object Level Authorization (40% of attacks)
+     Source: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+   - **OWASP-API-2023-02** (CVSS N/A): Broken Authentication
+     Source: https://owasp.org/API-Security/editions/2023/en/0xa2-broken-authentication/
+   - **OWASP-API-2023-03** (CVSS N/A): Broken Object Property Level Authorization
+     Source: https://owasp.org/API-Security/editions/2023/en/0xa3-broken-object-property-level-authorization/
+
+**Step 3: Common Attack Patterns**
+
+   - OWASP API Security Top 10 2023
+   - BOLA via ID manipulation
+   - JWT token manipulation
+   - API rate limit bypass
+   - Mass assignment attacks
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER rely on client-side authorization
+- ❌ NEVER expose sensitive data in API responses
+- ❌ NEVER use predictable resource identifiers
+- ❌ ALWAYS implement rate limiting per user/IP
+- ❌ ALWAYS validate all input parameters
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any code using this skill**
 
 ### Verification Requirements

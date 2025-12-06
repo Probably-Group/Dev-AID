@@ -16,6 +16,77 @@ last_updated: 2025-01-15
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Security concerns in high-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Keychain credential theft, Export/import abuse, Weak encryption exploitation
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **KEYCHAIN-EXPORT-VULN** (CVSS N/A): Keychain export vulnerabilities
+     Source: https://developer.apple.com/documentation/security/keychain_services
+   - **CREDENTIAL-THEFT** (CVSS 9.0): Credential extraction from keychain
+     Source: https://www.apple.com/security/
+   - **WEAK-ENCRYPTION** (CVSS N/A): Weak keychain encryption
+     Source: https://support.apple.com/guide/security/
+
+**Step 3: Common Attack Patterns**
+
+   - Keychain credential theft
+   - Export/import abuse
+   - Weak encryption exploitation
+   - Unauthorized access
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER store highly sensitive data in default keychain
+- ❌ NEVER export keychain without user consent
+- ❌ ALWAYS use SecItemAdd with proper access controls
+- ❌ ALWAYS validate keychain permissions
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any code using this skill**
 
 ### Verification Requirements

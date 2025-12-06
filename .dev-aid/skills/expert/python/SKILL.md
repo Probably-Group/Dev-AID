@@ -40,6 +40,78 @@ This skill uses a split structure for HIGH-RISK requirements:
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Memory exhaustion via asyncio.writelines(), Tarfile extraction path traversal, Supply chain attacks via missing dependencies
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-12254** (CVSS 7.5): Python asyncio module memory exhaustion vulnerability
+     Source: https://linuxsecurity.com/news/security-vulnerabilities/new-python-memory-exhaustion-bug
+   - **CVE-2024-12718** (CVSS 9.8): Critical tarfile module vulnerability allowing RCE
+     Source: https://www.sweet.security/blog/python-tar-file-vulnerability-cve-2024-12718-what-you-need-to-know
+   - **CVE-2025-27607** (CVSS 9.8): RCE affecting 43 million Python installations via msgspec-python313-pre
+     Source: https://gbhackers.com/over-43-million-python-installations-vulnerable/
+
+**Step 3: Common Attack Patterns**
+
+   - Memory exhaustion via asyncio.writelines()
+   - Tarfile extraction path traversal
+   - Supply chain attacks via missing dependencies
+   - Zipfile infinite loop DoS
+   - Deserialization attacks in pickle/msgspec
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use pickle for untrusted data deserialization
+- ❌ NEVER extract archives without path validation
+- ❌ NEVER ignore dependency security warnings
+- ❌ ALWAYS validate tarfile filter parameters
+- ❌ ALWAYS use virtual environments with pinned dependencies
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level**: HIGH

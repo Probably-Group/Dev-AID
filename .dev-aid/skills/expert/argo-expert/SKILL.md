@@ -34,6 +34,75 @@ This skill uses a split structure for HIGH-RISK requirements:
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Repository credential theft from Redis, JWT token manipulation for privilege escalation, Malicious manifest injection
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-55190** (CVSS 10.0): Repository credentials exposure in Redis cache
+     Source: https://zeropath.com/blog/cve-2025-55190-argo-cd-critical-repository-credential-exposure
+   - **CVE-2025-47933** (CVSS 8.8): Authentication bypass via JWT token manipulation
+     Source: https://securityonline.info/cve-2025-47933-cvss-8-8-argo-cd-flaw-exposes-sensitive-repository-credentials/
+   - **CVE-2024-37152** (CVSS 6.5): Denial of Service via malformed manifests
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-37152
+
+**Step 3: Common Attack Patterns**
+
+   - Repository credential theft from Redis
+   - JWT token manipulation for privilege escalation
+   - Malicious manifest injection
+   - Supply chain attacks via compromised repositories
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER deploy applications without validating repository signatures
+- ❌ NEVER store secrets in application manifests
+- ❌ NEVER bypass RBAC policies for convenience
+- ❌ NEVER trust user-supplied manifests without validation
+- ❌ ALWAYS encrypt Redis cache at rest and in transit
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any Argo configurations using this skill**
 
 ### Verification Requirements

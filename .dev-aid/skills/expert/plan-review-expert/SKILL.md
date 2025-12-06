@@ -15,6 +15,44 @@ credit: |
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Security concerns in low-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Prompt injection, Review bias, Hallucinated recommendations
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER trust AI reviews alone
+- ❌ NEVER skip human validation
+- ❌ ALWAYS verify security recommendations
+- ❌ ALWAYS cite sources
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 ### Critical Verification Requirements
 - **NEVER review without reading the complete plan** - Examine all context before assessing
 - **NEVER research technologies without verifying official documentation** - Use authoritative sources only

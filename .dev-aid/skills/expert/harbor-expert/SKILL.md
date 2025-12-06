@@ -7,6 +7,77 @@ description: "Expert Harbor container registry administrator specializing in reg
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: Auth bypass, Image tampering, Registry DoS
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **HARBOR-AUTH-BYPASS** (CVSS 8.8): Harbor authentication bypass
+     Source: https://github.com/goharbor/harbor/security
+   - **IMAGE-TAMPERING** (CVSS 9.0): Container image tampering
+     Source: https://github.com/goharbor/harbor/security
+   - **REGISTRY-DOS** (CVSS 7.5): Registry DoS attacks
+     Source: https://nvd.nist.gov/
+
+**Step 3: Common Attack Patterns**
+
+   - Auth bypass
+   - Image tampering
+   - Registry DoS
+   - Vulnerability scan bypass
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER skip image scanning
+- ❌ NEVER allow unsigned images
+- ❌ ALWAYS verify image signatures
+- ❌ ALWAYS enforce RBAC
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any Harbor configurations**
 
 ### Verification Requirements

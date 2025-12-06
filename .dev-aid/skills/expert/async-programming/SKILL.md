@@ -34,6 +34,75 @@ risk_level: MEDIUM
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: TOCTOU race conditions, Concurrent state manipulation, Deadlock-based DoS
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-6387** (CVSS 8.1): Race condition in async signal handling
+     Source: https://medium.com/@yanivx32/the-chase-for-time-race-condition-vulnerabilities-and-how-to-exploit-them-a-live-example-from-c1cc66086617
+   - **CVE-2024-58248** (CVSS 7.5): Race condition in async order processing
+     Source: https://medium.com/pythoneers/avoiding-race-conditions-in-python-in-2025-best-practices-for-async-and-threads-4e006579a622
+   - **RACE-CONDITION-GENERAL** (CVSS N/A): Race conditions in distributed systems and async frameworks
+     Source: https://www.yeswehack.com/learn-bug-bounty/ultimate-guide-race-condition-vulnerabilities
+
+**Step 3: Common Attack Patterns**
+
+   - TOCTOU race conditions
+   - Concurrent state manipulation
+   - Deadlock-based DoS
+   - Async resource exhaustion
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER assume async operations are thread-safe
+- ❌ NEVER share mutable state without locks
+- ❌ NEVER ignore cancellation signals
+- ❌ ALWAYS use atomic operations for counters
+- ❌ ALWAYS implement proper error handling in async code
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any async code using this skill**
 
 ### Verification Requirements

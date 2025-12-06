@@ -8,6 +8,77 @@ description: "Expert in Windows UI Automation (UIA) and Win32 APIs for desktop a
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Security concerns in medium-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Privilege escalation via UIA, Credential harvesting, Automated clickjacking
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **UIA-PRIV-ESC** (CVSS N/A): UI Automation privilege escalation
+     Source: https://docs.microsoft.com/en-us/windows/win32/winauto/
+   - **CREDENTIAL-THEFT** (CVSS N/A): Credential theft via UI Automation
+     Source: https://www.microsoft.com/security/
+   - **CLICKJACKING** (CVSS N/A): Automated clickjacking attacks
+     Source: https://docs.microsoft.com/security/
+
+**Step 3: Common Attack Patterns**
+
+   - Privilege escalation via UIA
+   - Credential harvesting
+   - Automated clickjacking
+   - UI spoofing
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER grant UIA access without validation
+- ❌ NEVER automate credential inputs
+- ❌ ALWAYS validate automation requests
+- ❌ ALWAYS implement UIPI boundaries
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any Windows UI Automation code**
 
 ### Verification Requirements

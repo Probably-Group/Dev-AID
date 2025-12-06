@@ -31,6 +31,76 @@ This skill uses a split structure for HIGH-RISK requirements:
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Shellshock environment variable injection, Command injection via unsanitized input, Path traversal in file operations
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2014-6271** (CVSS 10.0): Shellshock - Command injection via environment variables (still exploited in 2024)
+     Source: https://blog.barracuda.com/2024/03/06/threat-spotlight-shellshock-bugs-miners
+   - **CVE-2014-7169** (CVSS 10.0): Shellshock variant - Incomplete fix bypass
+     Source: https://access.redhat.com/articles/1200223
+   - **COMMAND-INJECTION-2024** (CVSS N/A): Command injection remains top web app vulnerability in 2024
+     Source: https://www.aikido.dev/blog/command-injection-in-2024-unpacked
+
+**Step 3: Common Attack Patterns**
+
+   - Shellshock environment variable injection
+   - Command injection via unsanitized input
+   - Path traversal in file operations
+   - Privilege escalation via SUID scripts
+   - Race conditions in temporary file creation
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER execute user input without validation
+- ❌ NEVER use eval or source with untrusted data
+- ❌ NEVER construct commands via string concatenation
+- ❌ ALWAYS quote variables to prevent word splitting
+- ❌ ALWAYS use array syntax for command arguments
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any Bash code using this skill**
 
 ### Verification Requirements

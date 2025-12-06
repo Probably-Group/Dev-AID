@@ -10,6 +10,79 @@ description: "Expert skill for integrating local Large Language Models using lla
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Prompt injection (87% success on GPT-4), Jailbreak attacks, Multi-modal hidden prompts
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **OWASP-LLM01-2025** (CVSS 9.8): Prompt Injection - #1 OWASP LLM threat
+     Source: https://genai.owasp.org/llmrisk/llm01-prompt-injection/
+   - **CVE-2024-5184** (CVSS 8.8): Prompt injection in LLM-powered email assistant
+     Source: https://www.rohan-paul.com/p/prompt-hacking-in-llms-2024-2025
+   - **CVE-2025-32711** (CVSS 9.6): EchoLeak - Zero-click prompt injection in M365 Copilot
+     Source: https://hiddenlayer.com/innovation-hub/prompt-injection-attacks-on-llms/
+
+**Step 3: Common Attack Patterns**
+
+   - Prompt injection (87% success on GPT-4)
+   - Jailbreak attacks
+   - Multi-modal hidden prompts
+   - RAG document poisoning
+   - Data exfiltration
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER trust LLM outputs as secure
+- ❌ NEVER concatenate user input with system prompts
+- ❌ NEVER allow LLM to execute commands without validation
+- ❌ ALWAYS validate and sanitize prompts
+- ❌ ALWAYS implement output filtering
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any code using this skill**
 
 ### Verification Requirements

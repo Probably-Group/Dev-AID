@@ -343,6 +343,98 @@ jobs:
 
 ---
 
+## 🛠️ Utility Scripts
+
+Dev-AID provides standalone utility scripts for common development tasks:
+
+### CI/CD Automation
+
+#### `generate-ci.sh`
+**Purpose:** Auto-generate GitHub Actions workflows
+**Location:** `.dev-aid/scripts/generate-ci.sh`
+**Detects:** Node.js, Python, Rust, Go projects
+**Features:**
+- Auto-detects package managers (npm/yarn/pnpm/bun, pip/poetry/uv, cargo)
+- Security by default (Gitleaks + Trivy included)
+- Docker support with image scanning
+**Usage:**
+```bash
+.dev-aid/scripts/generate-ci.sh
+.dev-aid/scripts/generate-ci.sh -o custom-workflow.yml
+```
+
+### Architecture & Visualization
+
+#### `map-architecture.sh`
+**Purpose:** Generate Mermaid.js architecture diagrams
+**Location:** `.dev-aid/scripts/map-architecture.sh`
+**Generates:**
+- Class diagrams (OOP structure)
+- Module dependency graphs
+- C4 component diagrams
+**Usage:**
+```bash
+.dev-aid/scripts/map-architecture.sh
+.dev-aid/scripts/map-architecture.sh src/ -t class
+.dev-aid/scripts/map-architecture.sh -o docs/my-diagram.md
+```
+
+### Testing & Data
+
+#### `fabricate-data.sh`
+**Purpose:** Generate realistic mock test data
+**Location:** `.dev-aid/scripts/fabricate-data.sh`
+**Supports:** JSON Schema, Pydantic, TypeScript interfaces
+**Formats:** JSON, CSV, SQL
+**Usage:**
+```bash
+.dev-aid/scripts/fabricate-data.sh schema.json
+.dev-aid/scripts/fabricate-data.sh model.py -c 100 -f csv
+.dev-aid/scripts/fabricate-data.sh schema.json -f sql -o data.sql
+```
+
+### Documentation
+
+#### `sync-docs.sh`
+**Purpose:** Detect documentation drift
+**Location:** `.dev-aid/scripts/sync-docs.sh`
+**Checks:** Package managers, scripts, Docker ports
+**Usage:**
+```bash
+.dev-aid/scripts/sync-docs.sh
+.dev-aid/scripts/sync-docs.sh --readme CONTRIBUTING.md
+```
+
+### Productivity
+
+#### `dev-aid-guide.sh`
+**Purpose:** Interactive feature discovery
+**Location:** `.dev-aid/scripts/dev-aid-guide.sh`
+**Features:** Menu-driven, best practices, command catalog
+**Usage:**
+```bash
+.dev-aid/scripts/dev-aid-guide.sh
+```
+
+#### `draft-pr.sh`
+**Purpose:** Generate PR descriptions from git diff
+**Location:** `.dev-aid/scripts/draft-pr.sh`
+**Usage:**
+```bash
+.dev-aid/scripts/draft-pr.sh > pr-description.md
+```
+
+#### `onboard.sh`
+**Purpose:** Onboard new developers
+**Location:** `.dev-aid/scripts/onboard.sh`
+**Features:** Environment checks, project detection, setup guide
+**Usage:**
+```bash
+.dev-aid/scripts/onboard.sh
+```
+
+---
+
 ## 🚀 Next Steps
 
 1. **Try the built-in commands:**
@@ -378,5 +470,5 @@ jobs:
 
 ---
 
-**Last Updated:** 2025-11-26
-**Version:** 1.0.0
+**Last Updated:** 2025-12-06
+**Version:** 1.2.0

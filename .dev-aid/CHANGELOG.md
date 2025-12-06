@@ -55,6 +55,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Three strategies: Vendored copy, Git submodule, or Upstream
   - Environment variable support for custom repositories
 
+#### CI/CD & Testing Automation
+- **PR Check Workflow** (#33): Fast feedback loop for pull requests
+  - Path-based filtering (runs only on *.py, *.sh, workflows, .dev-aid changes)
+  - Python Lint: Black, Isort, Flake8 + Pytest with coverage + Mypy type checking
+  - Bash Lint: Shellcheck for all shell scripts
+  - Summary job for overall pass/fail status
+  - Saves GitHub Actions minutes by filtering irrelevant changes
+
+- **Release Gate Workflow** (#34): Deep validation before publishing releases
+  - Cross-platform testing: Ubuntu, macOS, Windows (Python 3.9-3.11)
+  - Deep security: Full Gitleaks + Trivy scans (all severities)
+  - Documentation validation: Lychee link checker for all markdown
+  - Blocks release if CRITICAL vulnerabilities found
+  - Comprehensive reporting with SARIF upload
+
+- **VCR/Replay Testing** (#35): Cost-free AI client testing
+  - Record HTTP interactions once with real API keys
+  - Replay from cassettes in CI (fast, free, deterministic)
+  - Automatic API key sanitization in recordings
+  - Test suite: test_api_clients_vcr.py with multi-provider support
+  - Smart skip logic: runs with cassettes OR API keys
+
+#### Developer Productivity Tools
+- **Auto-Generate CI/CD Workflows** (#36): Production-ready GitHub Actions from project detection
+  - Supports: Node.js (npm/yarn/pnpm/bun), Python (pip/poetry/uv), Rust (cargo), Go
+  - Security by default: All workflows include Gitleaks + Trivy
+  - Auto-detects: package managers, build tools, test frameworks
+  - Template library: Modular YAML templates in .dev-aid/templates/ci/
+  - Docker support: Build and scan images if Dockerfile present
+  - Usage: `.dev-aid/scripts/generate-ci.sh`
+
+- **Architecture Mapper** (#37): Visual codebase understanding with Mermaid diagrams
+  - AST-based analysis for Python files (classes, methods, inheritance)
+  - Regex-based analysis for TypeScript/JavaScript
+  - Generates: Class diagrams, Module dependency graphs, C4 component diagrams
+  - Auto-saves to docs/architecture/generated-diagram.md
+  - Limits: 100 files for performance, skips node_modules/venv/dist
+  - Usage: `.dev-aid/scripts/map-architecture.sh`
+
+- **Test Data Factory** (#38): Realistic mock data generation from schemas
+  - Multi-schema support: JSON Schema, Pydantic models, TypeScript interfaces
+  - Realistic data pools: names, emails, phones, addresses, URLs, UUIDs
+  - Output formats: JSON, CSV, SQL INSERT statements
+  - Type constraints: minLength, maxLength, minimum, maximum, patterns
+  - Reproducible with --seed option
+  - Usage: `.dev-aid/scripts/fabricate-data.sh schema.json -c 100 -f csv`
+
+- **Living README** (#39): Documentation drift detector
+  - Detects mismatches between README and project reality
+  - Checks: Package manager commands, npm/pip scripts, Docker ports
+  - Severity levels: HIGH, MEDIUM, LOW with actionable suggestions
+  - Truth sources: package.json, pyproject.toml, Dockerfile, lockfiles
+  - Usage: `.dev-aid/scripts/sync-docs.sh`
+
+- **Interactive Guide** (#40): Feature discovery and best practices
+  - Menu-driven interface for all Dev-AID capabilities
+  - Context-aware tips: New project, bug fix, code review workflows
+  - Complete command catalog with descriptions
+  - Best practices for security, performance, quality
+  - Usage: `.dev-aid/scripts/dev-aid-guide.sh`
+
+- **PR Storyteller** (#41): Auto-generate semantic PR descriptions
+  - Analyzes git diff and commit history
+  - Structured template: Summary, Changes, Commits, Verification, Risk
+  - Generates markdown ready for GitHub PRs
+  - Usage: `.dev-aid/scripts/draft-pr.sh > pr-description.md`
+
+- **Onboarding Buddy** (#42): Interactive developer setup
+  - Environment checks: git, python, node, docker
+  - Auto-detects: project type, package manager, build system
+  - Shows correct install commands for the detected stack
+  - Lists available Dev-AID features
+  - Reduces "Time to First Commit" for new developers
+  - Usage: `.dev-aid/scripts/onboard.sh`
+
 ### Changed
 
 #### Code Quality Improvements
@@ -94,6 +169,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - #28: Removed hardcoded package lists from setup script
 - #31: Patched h11 CVE-2025-43859 vulnerability
 - #32: Activated GitHub Actions security workflows
+- #33: Added optimized PR check workflow for fast feedback
+- #34: Implemented release gate workflow with cross-platform testing
+- #35: Added VCR/replay testing for cost-free AI client tests
+- #36: Created auto-generate CI/CD workflows tool
+- #37: Implemented architecture mapper for visual diagrams
+- #38: Built test data factory for mock generation
+- #39: Added living README documentation drift detector
+- #40: Created interactive guide for feature discovery
+- #41: Implemented PR storyteller for auto PR descriptions
+- #42: Built onboarding buddy for new developer setup
+
+**Total: 26 issues resolved in v1.2.0**
 
 ### Technical Details
 

@@ -11,7 +11,7 @@ Loads and validates configuration from:
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from dotenv import load_dotenv
 
@@ -128,7 +128,7 @@ class ConfigLoader:
         """Get default model name"""
         return self.settings.get("default_model", "claude-sonnet-4.5")
 
-    def get_enabled_providers(self) -> list[str]:
+    def get_enabled_providers(self) -> List[str]:
         """Get list of enabled providers"""
         return self.settings.get("enabled_providers", ["claude"])
 

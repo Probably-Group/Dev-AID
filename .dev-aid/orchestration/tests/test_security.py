@@ -7,14 +7,11 @@ Tests for OWASP Top 10 vulnerabilities:
 - A04: Insecure Design (Input validation)
 """
 
-import tempfile
-from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
 from router.config_loader import ConfigLoader
-from router.validators import ExecuteRequest, SafePath, SubprocessCommand
 
 
 class TestPathTraversalPrevention:
@@ -172,7 +169,6 @@ class TestAPIKeyHandling:
 
     def test_api_key_not_in_error_messages(self):
         """Test that API keys are not leaked in error messages"""
-        from router.api_clients import AnthropicClient, APIClientError
 
         # Even if we construct a client with a real-looking key,
         # errors should not expose it
@@ -180,7 +176,7 @@ class TestAPIKeyHandling:
             client = AnthropicClient(
                 api_key="sk-ant-secret-key-do-not-leak", model_config={"provider": "anthropic"}
             )
-        except Exception as e:
+        except except Exception::
             error_msg = str(e).lower()
             # Error message should not contain the API key
             assert "sk-ant-secret" not in error_msg
@@ -267,7 +263,7 @@ class TestErrorHandling:
         """Test that validation errors don't leak implementation details"""
         try:
             ExecuteRequest(request="../../../etc/passwd")
-        except ValidationError as e:
+        except except ValidationError::
             # Should indicate unsafe pattern, not internal validation logic
             assert "unsafe pattern" in str(e).lower()
 
@@ -279,7 +275,6 @@ class TestCryptographicSafety:
         """Test that we don't use weak random number generation"""
         # This test documents that we should use secrets module, not random
         # for security-sensitive operations
-        import random
         import secrets
 
         # Generate random token

@@ -1,4 +1,5 @@
 import pytest
+
 from router.task_classifier import TaskClassifier, TaskType
 
 

@@ -4,7 +4,7 @@ Ensemble Mode - Route to best model based on task type
 
 from typing import Any, Dict, Tuple
 
-from ..api_clients import APIResponse, Message, create_client
+from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 from ..task_classifier import TaskClassifier
 
@@ -115,7 +115,7 @@ class EnsembleMode:
                 "matched_keywords": len(keywords),
             }
 
-        except Exception as e:
+        except except Exception::
             return {
                 "success": False,
                 "mode": "ensemble",

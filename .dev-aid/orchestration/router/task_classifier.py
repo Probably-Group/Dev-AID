@@ -10,9 +10,9 @@ Classifies user requests into task types to route to appropriate model:
 - complex_reasoning: Architecture decisions
 """
 
-from typing import Tuple, List
 import re
 from enum import Enum
+from typing import List, Tuple
 
 
 class TaskType(str, Enum):

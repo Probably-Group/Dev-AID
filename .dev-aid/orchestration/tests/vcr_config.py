@@ -5,7 +5,6 @@ This module provides VCR configuration to record and replay HTTP interactions
 for testing AI API clients without incurring costs or exposing API keys.
 """
 
-import os
 from pathlib import Path
 
 import vcr

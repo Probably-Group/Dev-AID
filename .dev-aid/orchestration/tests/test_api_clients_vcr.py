@@ -32,13 +32,13 @@ In CI or without API keys, tests will replay from cassettes:
 API keys in cassettes are automatically redacted.
 """
 
-import pytest
 import os
 from pathlib import Path
 
-from router.api_clients import Message, AnthropicClient, GoogleClient, OpenAIClient, create_client
-from .vcr_config import use_cassette
+import pytest
 
+
+from .vcr_config import use_cassette
 
 # Skip VCR tests if no API keys AND no cassettes exist
 # This allows CI to run with cassettes but developers to skip if no setup

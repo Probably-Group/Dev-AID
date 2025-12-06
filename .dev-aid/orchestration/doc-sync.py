@@ -8,10 +8,9 @@ Compares documentation claims against actual code, config files, and CLIs.
 
 import json
 import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 class DocSync:
@@ -230,7 +229,7 @@ class DocSync:
             print(f"❌ README not found: {readme_path}")
             return 1
 
-        print(f"🔍 Checking documentation consistency...")
+        print("🔍 Checking documentation consistency...")
         print(f"   README: {readme_path}")
         print()
 

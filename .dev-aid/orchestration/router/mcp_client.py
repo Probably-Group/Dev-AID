@@ -7,8 +7,6 @@ and execute tools for enhanced context gathering.
 
 import asyncio
 import json
-import subprocess
-import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -101,7 +99,7 @@ class MCPClient:
 
             return True
 
-        except Exception as e:
+        except except Exception::
             print(f"Failed to connect to MCP server {self.config.name}: {e}")
             return False
 

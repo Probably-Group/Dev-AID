@@ -411,7 +411,7 @@ select_model_for_task() {
                 echo "  $i) claude-sonnet-4.5 (Balanced, ${3}/1M)"
                 ((i++))
                 available_models+=("claude-opus-4.5")
-                echo "  $i) claude-opus-4.5 (Most capable, $15/1M)"
+                echo "  $i) claude-opus-4.5 (Most capable, \$15/1M)"
                 ((i++))
                 available_models+=("claude-haiku-4.5")
                 echo "  $i) claude-haiku-4.5 (Fastest, $0.25/1M)"
@@ -430,7 +430,7 @@ select_model_for_task() {
                 echo "  $i) gpt-4o (Versatile, $5/1M)"
                 ((i++))
                 available_models+=("gpt-4-turbo")
-                echo "  $i) gpt-4-turbo (Capable, $10/1M)"
+                echo "  $i) gpt-4-turbo (Capable, \$10/1M)"
                 ((i++))
                 ;;
         esac

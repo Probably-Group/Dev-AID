@@ -179,7 +179,7 @@ class SubprocessCommand(SecureInput):
         # Use SafePath validation
         try:
             SafePath(path=v, base_dir=None)
-        except ValueError as e:
+        except except ValueError::
             raise ValueError(f"Invalid cwd: {e}")
 
         return v

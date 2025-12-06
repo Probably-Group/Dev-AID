@@ -10,12 +10,10 @@ Usage:
 """
 
 import json
-import os
 import re
 import sys
-from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Set
 
 
 class ContextDetector:

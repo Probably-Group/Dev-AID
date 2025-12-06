@@ -12,13 +12,13 @@ Create a new expert skill following the Martins AI Templates structure with comp
 
 ## Overview
 
-This command guides you through creating a professional, production-ready skill that follows Dev-AID's style guide and best practices.
+This command guides you through creating a professional, production-ready skill that follows Dev-AID's two-tier template system.
 
 **What you'll create:**
-- Main SKILL.md file with anti-hallucination protocol
+- Main SKILL.md file (<500 lines, with security-first framework)
 - References directory with advanced patterns
-- Security examples (if applicable)
-- Threat model (for security-sensitive skills)
+- Risk-appropriate security content (based on LOW/MEDIUM/HIGH)
+- Threat model (for HIGH-risk skills)
 - Complete frontmatter configuration
 
 **📁 Shared Architecture:**
@@ -26,10 +26,17 @@ This command guides you through creating a professional, production-ready skill 
 - Accessible by Claude, Gemini, OpenAI, and future AI providers
 - Single source of truth - one skill, all providers benefit
 
+**📚 Two-Tier Template System:**
+- **Tier 1**: SKILL_TEMPLATE.md (477 lines) - Main template, loadable by Claude Code
+- **Tier 2**: template-references/ (3,537 lines) - Detailed security content
+- Template adapts based on risk level (LOW/MEDIUM/HIGH)
+- Preserves comprehensive security guidance from original 12k-line template
+
 **⚠️ CRITICAL CONSTRAINT:**
 - **Main SKILL.md MUST be under 500 lines** (Claude Code loading limit)
 - Extract verbose content to `references/` directory to keep main file concise
 - Core concepts and workflow in main file, detailed examples in references
+- **Progressive disclosure**: See template-references/progressive-disclosure.md
 
 **Time:** ~5-10 minutes depending on complexity
 
@@ -71,12 +78,44 @@ Your answer: ___
 **Question 4: Risk Level**
 ```
 What's the risk level for this domain?
-A. 🟢 LOW - Documentation, UI/UX, design
-B. 🟡 MEDIUM - General development, non-critical features
-C. 🔴 HIGH - Security, infrastructure, data handling, production systems
+A. 🟢 LOW - Documentation, UI/UX, design, testing
+B. 🟡 MEDIUM - Application code, APIs, data processing
+C. 🔴 HIGH - Security, infrastructure, auth, data storage, production systems
 
 Your choice [A/B/C]: ___
 ```
+
+**📚 Two-Tier Template System** (Based on Risk Level):
+
+The template system adapts based on your risk level choice:
+
+**🟢 LOW Risk** (Documentation, UI/UX, Testing):
+- Use standard SKILL_TEMPLATE.md structure
+- Focus on § 4: Quality Assurance Checklist
+- Security framework optional
+- Vulnerability research: Not required
+
+**🟡 MEDIUM Risk** (APIs, Data Processing):
+- Use SKILL_TEMPLATE.md with § 0: Security-First Framework
+- **MUST complete § 0.2: Vulnerability Research Protocol**
+- Search NVD database for domain-specific CVEs (2022-2025)
+- Review OWASP Top 10 2025 applicability
+- Reference template-references/security-framework.md
+
+**🔴 HIGH Risk** (Security, Infrastructure, Auth):
+- Use SKILL_TEMPLATE.md with full security framework
+- **MANDATORY: § 0.2 Vulnerability Research Protocol**
+- **MANDATORY: Review template-references/security-framework.md**
+- **MANDATORY: Create threat model** (template-references/threat-modeling.md)
+- **MANDATORY: OWASP Top 10 2025** compliance check
+- **MANDATORY: Compliance review** (GDPR/HIPAA/PCI-DSS if applicable)
+
+**Template References Available** (`.dev-aid/skills/template-references/`):
+- `security-framework.md` (2,021 lines) - Complete security protocol
+- `owasp-2025-guide.md` (774 lines) - All 10 OWASP categories
+- `threat-modeling.md` (241 lines) - STRIDE methodology
+- `compliance-guide.md` (301 lines) - GDPR/HIPAA/PCI-DSS
+- `progressive-disclosure.md` (200 lines) - 500-line limit guidance
 
 **Question 5: Security Sensitive?**
 ```

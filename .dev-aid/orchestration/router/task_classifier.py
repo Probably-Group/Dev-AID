@@ -12,6 +12,19 @@ Classifies user requests into task types to route to appropriate model:
 
 from typing import Tuple, List
 import re
+from enum import Enum
+
+
+class TaskType(str, Enum):
+    """Task types for classification"""
+
+    MASSIVE_CONTEXT = "massive_context"
+    CODE_GENERATION = "code_generation"
+    SECURITY_AUDIT = "security_audit"
+    DOCUMENTATION = "documentation"
+    DEBUGGING = "debugging"
+    COMPLEX_REASONING = "complex_reasoning"
+    GENERAL = "general"
 
 
 class TaskClassifier:
@@ -19,7 +32,7 @@ class TaskClassifier:
 
     # Task type definitions with keywords
     TASK_PATTERNS = {
-        "massive_context": [
+        TaskType.MASSIVE_CONTEXT: [
             # Phrases indicating large scope
             r"\b(entire|whole|all|every)\s+(codebase|repository|project|files?)\b",
             r"\banalyze\s+everything\b",
@@ -30,8 +43,7 @@ class TaskClassifier:
             # File count indicators
             r"\b(scan|search|find|analyze)\s+(all|every)\b",
         ],
-
-        "security_audit": [
+        TaskType.SECURITY_AUDIT: [
             # Security keywords
             r"\b(security|vulnerability|vulnerabilities|exploit|owasp)\b",
             r"\bsecure\s+(code|audit|review)\b",
@@ -41,8 +53,7 @@ class TaskClassifier:
             r"\b(credential|password|token|secret)\s+(leak|exposure)\b",
             r"\bsecurity\s+scan\b",
         ],
-
-        "code_generation": [
+        TaskType.CODE_GENERATION: [
             # Code writing keywords
             r"\b(implement|create|write|build|develop|code)\b",
             r"\b(function|class|method|component|module)\b",
@@ -51,8 +62,7 @@ class TaskClassifier:
             r"\brefactor(ing)?\b",
             r"\brewrite\b",
         ],
-
-        "documentation": [
+        TaskType.DOCUMENTATION: [
             # Documentation keywords
             r"\b(document|documentation|readme|docs)\b",
             r"\b(write|create|generate)\s+(docs|documentation|readme|guide)\b",
@@ -62,8 +72,7 @@ class TaskClassifier:
             r"\btutorial\b",
             r"\buser\s+guide\b",
         ],
-
-        "debugging": [
+        TaskType.DEBUGGING: [
             # Bug/error keywords
             r"\b(bug|error|issue|problem|broken|failing|failed)\b",
             r"\b(fix|debug|troubleshoot|investigate)\b",
@@ -72,8 +81,7 @@ class TaskClassifier:
             r"\bwhy\s+(is|does)\b",
             r"\bstack\s+trace\b",
         ],
-
-        "complex_reasoning": [
+        TaskType.COMPLEX_REASONING: [
             # Architecture/design keywords
             r"\b(architecture|design|structure)\b",
             r"\b(trade[-\s]?off|tradeoff)s?\b",
@@ -82,7 +90,7 @@ class TaskClassifier:
             r"\b(best\s+practice|optimal|strategy)\b",
             r"\b(pros\s+and\s+cons|advantages|disadvantages)\b",
             r"\bdesign\s+pattern\b",
-        ]
+        ],
     }
 
     def classify(self, request: str, context_size: int = 0) -> Tuple[str, List[str], float]:
@@ -100,7 +108,7 @@ class TaskClassifier:
 
         # Check for massive context first (high priority)
         if context_size > 100_000:
-            return "massive_context", ["large_context"], 1.0
+            return TaskType.MASSIVE_CONTEXT, ["large_context"], 1.0
 
         # Score each task type
         scores = {}
@@ -121,7 +129,7 @@ class TaskClassifier:
 
         # If no matches, default to code_generation
         if not scores:
-            return "code_generation", ["default"], 0.5
+            return TaskType.CODE_GENERATION, ["default"], 0.5
 
         # Get task type with highest score
         best_task = max(scores, key=scores.get)
@@ -144,17 +152,19 @@ class TaskClassifier:
 
         # Default mappings if not in config
         default_routes = {
-            "massive_context": "gemini-flash",
-            "code_generation": "claude-sonnet",
-            "security_audit": "claude-sonnet",
-            "documentation": "gpt-4o",
-            "debugging": "claude-sonnet",
-            "complex_reasoning": "claude-opus"
+            TaskType.MASSIVE_CONTEXT: "gemini-flash",
+            TaskType.CODE_GENERATION: "claude-sonnet",
+            TaskType.SECURITY_AUDIT: "claude-sonnet",
+            TaskType.DOCUMENTATION: "gpt-4o",
+            TaskType.DEBUGGING: "claude-sonnet",
+            TaskType.COMPLEX_REASONING: "claude-opus",
         }
 
         return task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet"))
 
-    def explain_classification(self, task_type: str, matched_keywords: List[str], confidence: float) -> str:
+    def explain_classification(
+        self, task_type: str, matched_keywords: List[str], confidence: float
+    ) -> str:
         """
         Generate human-readable explanation of classification
 
@@ -167,12 +177,12 @@ class TaskClassifier:
             Explanation string
         """
         explanations = {
-            "massive_context": "Large-scale codebase analysis requiring extensive context",
-            "code_generation": "Code writing, implementation, or refactoring task",
-            "security_audit": "Security review or vulnerability assessment",
-            "documentation": "Documentation writing or explanation task",
-            "debugging": "Bug investigation and fixing",
-            "complex_reasoning": "Architectural design or strategic decision"
+            TaskType.MASSIVE_CONTEXT: "Large-scale codebase analysis requiring extensive context",
+            TaskType.CODE_GENERATION: "Code writing, implementation, or refactoring task",
+            TaskType.SECURITY_AUDIT: "Security review or vulnerability assessment",
+            TaskType.DOCUMENTATION: "Documentation writing or explanation task",
+            TaskType.DEBUGGING: "Bug investigation and fixing",
+            TaskType.COMPLEX_REASONING: "Architectural design or strategic decision",
         }
 
         explanation = explanations.get(task_type, "General development task")
@@ -201,7 +211,7 @@ if __name__ == "__main__":
         task_type, keywords, confidence = classifier.classify(request)
         explanation = classifier.explain_classification(task_type, keywords, confidence)
 
-        print(f"\nRequest: \"{request}\"")
+        print(f'\nRequest: "{request}"')
         print(f"  → Task Type: {task_type}")
         print(f"  → Explanation: {explanation}")
         print(f"  → Matched Patterns: {len(keywords)}")

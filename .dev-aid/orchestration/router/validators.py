@@ -61,9 +61,7 @@ class ExecuteRequest(SecureInput):
 
         for pattern in suspicious_patterns:
             if re.search(pattern, v, re.IGNORECASE):
-                raise ValueError(
-                    f"Request contains potentially unsafe pattern: {pattern}"
-                )
+                raise ValueError(f"Request contains potentially unsafe pattern: {pattern}")
 
         return v
 
@@ -71,12 +69,8 @@ class ExecuteRequest(SecureInput):
 class ModelConfig(SecureInput):
     """Validated model configuration"""
 
-    provider: Literal["anthropic", "google", "openai"] = Field(
-        description="AI provider name"
-    )
-    model_id: str = Field(
-        min_length=1, max_length=200, description="Model identifier"
-    )
+    provider: Literal["anthropic", "google", "openai"] = Field(description="AI provider name")
+    model_id: str = Field(min_length=1, max_length=200, description="Model identifier")
     max_tokens: int = Field(default=4096, ge=1, le=1_000_000)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     cost_per_1m_tokens: Dict[str, float] = Field(
@@ -146,9 +140,7 @@ class SafePath(SecureInput):
             target = (base / self.path).resolve()
 
             if not str(target).startswith(str(base)):
-                raise ValueError(
-                    f"Path traversal detected: {target} is not within {base}"
-                )
+                raise ValueError(f"Path traversal detected: {target} is not within {base}")
 
         return self
 
@@ -186,7 +178,7 @@ class SubprocessCommand(SecureInput):
 
         # Use SafePath validation
         try:
-            SafePath(path=v)
+            SafePath(path=v, base_dir=None)
         except ValueError as e:
             raise ValueError(f"Invalid cwd: {e}")
 
@@ -209,9 +201,7 @@ class MCPServerConfig(SecureInput):
         allowed_prefixes = ["node", "python", "python3", "npx", "/usr/", "/opt/"]
 
         if not any(v.startswith(prefix) for prefix in allowed_prefixes):
-            raise ValueError(
-                f"Command must start with one of: {', '.join(allowed_prefixes)}"
-            )
+            raise ValueError(f"Command must start with one of: {', '.join(allowed_prefixes)}")
 
         return v
 

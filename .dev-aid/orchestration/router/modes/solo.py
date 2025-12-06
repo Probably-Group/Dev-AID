@@ -56,15 +56,15 @@ class SoloMode:
         context = self.context_builder.build_context()
 
         # Add MCP context if provided
-        if 'mcp_context' in kwargs and kwargs['mcp_context']:
-            context.mcp_context = kwargs['mcp_context']
+        if "mcp_context" in kwargs and kwargs["mcp_context"]:
+            context.mcp_context = kwargs["mcp_context"]
 
         system_prompt = build_system_prompt(context, self.context_builder)
 
         # Prepare messages
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=request)
+            Message(role="user", content=request),
         ]
 
         # Get model ID
@@ -72,11 +72,7 @@ class SoloMode:
 
         # Execute request
         try:
-            response = client.send_request(
-                messages=messages,
-                model=model_id,
-                **kwargs
-            )
+            response = client.send_request(messages=messages, model=model_id, **kwargs)
 
             return {
                 "success": True,
@@ -87,7 +83,7 @@ class SoloMode:
                 "tokens_used": response.tokens_used,
                 "cost": response.cost,
                 "latency_ms": response.latency_ms,
-                "metadata": response.metadata
+                "metadata": response.metadata,
             }
 
         except Exception as e:
@@ -96,7 +92,7 @@ class SoloMode:
                 "mode": "solo",
                 "model": model_name,
                 "provider": provider,
-                "error": str(e)
+                "error": str(e),
             }
 
     def get_info(self) -> Dict[str, Any]:
@@ -107,5 +103,5 @@ class SoloMode:
             "mode": "solo",
             "description": "Single model handles all tasks",
             "default_model": model_name,
-            "enabled": True
+            "enabled": True,
         }

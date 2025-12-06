@@ -19,6 +19,7 @@ from dataclasses import dataclass, asdict
 @dataclass
 class RoutingDecision:
     """Represents a single routing decision"""
+
     timestamp: str
     mode: str  # solo, ensemble, challenger
     task_type: str
@@ -54,23 +55,18 @@ class CostTracker:
         """Load existing cost data from JSON"""
         if self.costs_file.exists():
             try:
-                with open(self.costs_file, 'r') as f:
+                with open(self.costs_file, "r") as f:
                     return json.load(f)
             except (json.JSONDecodeError, IOError):
                 pass
 
         # Default structure
-        return {
-            "total_all_time": 0.0,
-            "by_date": {},
-            "by_model": {},
-            "by_provider": {}
-        }
+        return {"total_all_time": 0.0, "by_date": {}, "by_model": {}, "by_provider": {}}
 
     def _save_costs(self):
         """Save cost data to JSON"""
         try:
-            with open(self.costs_file, 'w') as f:
+            with open(self.costs_file, "w") as f:
                 json.dump(self.costs, f, indent=2)
         except IOError as e:
             print(f"Warning: Could not save costs: {e}")
@@ -85,7 +81,7 @@ class CostTracker:
         tokens_input: int,
         tokens_output: int,
         latency_ms: float,
-        request: str
+        request: str,
     ):
         """
         Log a routing decision
@@ -112,7 +108,7 @@ class CostTracker:
             tokens_input=tokens_input,
             tokens_output=tokens_output,
             latency_ms=latency_ms,
-            request_preview=request[:100]
+            request_preview=request[:100],
         )
 
         # Write to routing log (append)
@@ -124,7 +120,7 @@ class CostTracker:
     def _write_routing_log(self, decision: RoutingDecision):
         """Write routing decision to log file"""
         try:
-            with open(self.routing_log_file, 'a') as f:
+            with open(self.routing_log_file, "a") as f:
                 # Format: ISO_timestamp [MODE] Task: task_type | Model: model | Cost: $X.XXXX | Tokens: I→O | Latency: Xms
                 log_line = (
                     f"{decision.timestamp} [{decision.mode.upper()}] "
@@ -133,7 +129,7 @@ class CostTracker:
                     f"Cost: ${decision.cost:.4f} | "
                     f"Tokens: {decision.tokens_input}→{decision.tokens_output} | "
                     f"Latency: {decision.latency_ms:.0f}ms | "
-                    f"Request: \"{decision.request_preview}...\"\n"
+                    f'Request: "{decision.request_preview}..."\n'
                 )
                 f.write(log_line)
         except IOError as e:
@@ -148,11 +144,7 @@ class CostTracker:
 
         # Update by date
         if today not in self.costs["by_date"]:
-            self.costs["by_date"][today] = {
-                "total": 0.0,
-                "requests": 0,
-                "by_model": {}
-            }
+            self.costs["by_date"][today] = {"total": 0.0, "requests": 0, "by_model": {}}
 
         day_data = self.costs["by_date"][today]
         day_data["total"] += decision.cost
@@ -164,7 +156,7 @@ class CostTracker:
                 "cost": 0.0,
                 "calls": 0,
                 "tokens_input": 0,
-                "tokens_output": 0
+                "tokens_output": 0,
             }
 
         model_stats = day_data["by_model"][decision.model]
@@ -175,20 +167,14 @@ class CostTracker:
 
         # Update by model (all-time)
         if decision.model not in self.costs["by_model"]:
-            self.costs["by_model"][decision.model] = {
-                "cost": 0.0,
-                "calls": 0
-            }
+            self.costs["by_model"][decision.model] = {"cost": 0.0, "calls": 0}
 
         self.costs["by_model"][decision.model]["cost"] += decision.cost
         self.costs["by_model"][decision.model]["calls"] += 1
 
         # Update by provider (all-time)
         if decision.provider not in self.costs["by_provider"]:
-            self.costs["by_provider"][decision.provider] = {
-                "cost": 0.0,
-                "calls": 0
-            }
+            self.costs["by_provider"][decision.provider] = {"cost": 0.0, "calls": 0}
 
         self.costs["by_provider"][decision.provider]["cost"] += decision.cost
         self.costs["by_provider"][decision.provider]["calls"] += 1
@@ -223,7 +209,7 @@ class CostTracker:
             "used": used,
             "remaining": remaining,
             "percentage": percentage,
-            "over_budget": used > daily_limit
+            "over_budget": used > daily_limit,
         }
 
     def get_model_stats_today(self) -> Dict[str, Dict[str, Any]]:
@@ -242,43 +228,49 @@ class CostTracker:
         Returns:
             List of decision dicts
         """
-        decisions = []
+        decisions: list[Dict[str, Any]] = []
 
         if not self.routing_log_file.exists():
             return decisions
 
         try:
-            with open(self.routing_log_file, 'r') as f:
+            with open(self.routing_log_file, "r") as f:
                 lines = f.readlines()
 
             # Get last N lines
             for line in lines[-limit:]:
                 # Parse log line
                 # Format: timestamp [MODE] Task: X | Model: Y | Cost: $Z | ...
-                parts = line.strip().split('|')
+                parts = line.strip().split("|")
                 if len(parts) >= 4:
                     # Extract timestamp and mode
-                    header = parts[0].split('[')
+                    header = parts[0].split("[")
                     timestamp = header[0].strip()
-                    mode = header[1].split(']')[0].strip() if len(header) > 1 else "UNKNOWN"
+                    mode = header[1].split("]")[0].strip() if len(header) > 1 else "UNKNOWN"
 
                     # Extract other fields
-                    task = parts[0].split('Task:')[1].strip() if 'Task:' in parts[0] else ""
-                    model = parts[1].split('Model:')[1].strip() if 'Model:' in parts[1] else ""
-                    cost_str = parts[2].split('Cost:')[1].strip().replace('$', '') if 'Cost:' in parts[2] else "0"
+                    task = parts[0].split("Task:")[1].strip() if "Task:" in parts[0] else ""
+                    model = parts[1].split("Model:")[1].strip() if "Model:" in parts[1] else ""
+                    cost_str = (
+                        parts[2].split("Cost:")[1].strip().replace("$", "")
+                        if "Cost:" in parts[2]
+                        else "0"
+                    )
 
                     try:
                         cost = float(cost_str)
                     except ValueError:
                         cost = 0.0
 
-                    decisions.append({
-                        "timestamp": timestamp,
-                        "mode": mode,
-                        "task_type": task,
-                        "model": model,
-                        "cost": cost
-                    })
+                    decisions.append(
+                        {
+                            "timestamp": timestamp,
+                            "mode": mode,
+                            "task_type": task,
+                            "model": model,
+                            "cost": cost,
+                        }
+                    )
 
         except IOError:
             pass

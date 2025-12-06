@@ -23,35 +23,35 @@ class ContextDetector:
 
     def __init__(self, registry_path: str):
         """Initialize detector with skills registry."""
-        with open(registry_path, 'r') as f:
+        with open(registry_path, "r") as f:
             self.registry = json.load(f)
 
         # Pre-compile patterns for efficiency
         self.file_extensions = self._build_extension_map()
         self.config_files = {
-            'package.json': self._extract_package_json,
-            'Cargo.toml': self._extract_cargo_toml,
-            'pyproject.toml': self._extract_python_deps,
-            'requirements.txt': self._extract_python_deps,
-            'go.mod': self._extract_go_mod,
-            'Gemfile': self._extract_gemfile,
+            "package.json": self._extract_package_json,
+            "Cargo.toml": self._extract_cargo_toml,
+            "pyproject.toml": self._extract_python_deps,
+            "requirements.txt": self._extract_python_deps,
+            "go.mod": self._extract_go_mod,
+            "Gemfile": self._extract_gemfile,
         }
 
     def _build_extension_map(self) -> Dict[str, str]:
         """Build extension to technology mapping."""
         return {
-            '.js': 'JavaScript',
-            '.ts': 'TypeScript',
-            '.tsx': 'TypeScript React',
-            '.jsx': 'React',
-            '.py': 'Python',
-            '.rs': 'Rust',
-            '.go': 'Go',
-            '.rb': 'Ruby',
-            '.sh': 'Bash',
-            '.graphql': 'GraphQL',
-            '.vue': 'Vue',
-            '.svelte': 'Svelte',
+            ".js": "JavaScript",
+            ".ts": "TypeScript",
+            ".tsx": "TypeScript React",
+            ".jsx": "React",
+            ".py": "Python",
+            ".rs": "Rust",
+            ".go": "Go",
+            ".rb": "Ruby",
+            ".sh": "Bash",
+            ".graphql": "GraphQL",
+            ".vue": "Vue",
+            ".svelte": "Svelte",
         }
 
     def detect_context(self, project_dir: str, max_files: int = 1000) -> Set[str]:
@@ -76,19 +76,19 @@ class ContextDetector:
                     pass  # Skip files that can't be parsed
 
         # Check for Docker
-        if (project_path / 'Dockerfile').exists():
-            context.add('Docker')
-        if (project_path / 'docker-compose.yml').exists():
-            context.add('Docker Compose')
+        if (project_path / "Dockerfile").exists():
+            context.add("Docker")
+        if (project_path / "docker-compose.yml").exists():
+            context.add("Docker Compose")
 
         # Check for GitHub Actions
-        gh_workflows = project_path / '.github' / 'workflows'
+        gh_workflows = project_path / ".github" / "workflows"
         if gh_workflows.exists():
-            context.add('GitHub Actions')
+            context.add("GitHub Actions")
 
         # Single-pass file scanning (limit to prevent slowdown on large repos)
         file_count = 0
-        for file_path in project_path.rglob('*'):
+        for file_path in project_path.rglob("*"):
             if file_count >= max_files:
                 break
 
@@ -96,12 +96,14 @@ class ContextDetector:
                 continue
 
             # Skip common ignore patterns
-            if any(part.startswith('.') for part in file_path.parts[len(project_path.parts):]):
-                if not any(part in ['.github', '.dev-aid'] for part in file_path.parts):
+            if any(part.startswith(".") for part in file_path.parts[len(project_path.parts) :]):
+                if not any(part in [".github", ".dev-aid"] for part in file_path.parts):
                     continue
 
-            if any(part in ['node_modules', 'venv', '__pycache__', 'target', 'dist', 'build']
-                   for part in file_path.parts):
+            if any(
+                part in ["node_modules", "venv", "__pycache__", "target", "dist", "build"]
+                for part in file_path.parts
+            ):
                 continue
 
             # Extract technology from extension
@@ -115,11 +117,11 @@ class ContextDetector:
 
     def _extract_package_json(self, path: Path) -> Set[str]:
         """Extract dependencies from package.json."""
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             data = json.load(f)
 
-        keywords = {'Node.js', 'JavaScript'}
-        for dep_type in ['dependencies', 'devDependencies']:
+        keywords = {"Node.js", "JavaScript"}
+        for dep_type in ["dependencies", "devDependencies"]:
             if dep_type in data:
                 keywords.update(data[dep_type].keys())
 
@@ -127,39 +129,39 @@ class ContextDetector:
 
     def _extract_cargo_toml(self, path: Path) -> Set[str]:
         """Extract dependencies from Cargo.toml."""
-        keywords = {'Rust'}
-        with open(path, 'r') as f:
+        keywords = {"Rust"}
+        with open(path, "r") as f:
             in_deps = False
             for line in f:
                 line = line.strip()
-                if line.startswith('[dependencies]'):
+                if line.startswith("[dependencies]"):
                     in_deps = True
-                elif line.startswith('['):
+                elif line.startswith("["):
                     in_deps = False
-                elif in_deps and '=' in line:
-                    dep_name = line.split('=')[0].strip()
+                elif in_deps and "=" in line:
+                    dep_name = line.split("=")[0].strip()
                     keywords.add(dep_name)
         return keywords
 
     def _extract_python_deps(self, path: Path) -> Set[str]:
         """Extract dependencies from Python files."""
-        keywords = {'Python'}
-        with open(path, 'r') as f:
+        keywords = {"Python"}
+        with open(path, "r") as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith('#'):
+                if line and not line.startswith("#"):
                     # Extract package name before version specifier
-                    pkg = re.split(r'[=<>~!\[]', line)[0].strip()
+                    pkg = re.split(r"[=<>~!\[]", line)[0].strip()
                     if pkg:
                         keywords.add(pkg)
         return keywords
 
     def _extract_go_mod(self, path: Path) -> Set[str]:
         """Extract dependencies from go.mod."""
-        keywords = {'Go'}
-        with open(path, 'r') as f:
+        keywords = {"Go"}
+        with open(path, "r") as f:
             for line in f:
-                if line.strip().startswith('require'):
+                if line.strip().startswith("require"):
                     continue
                 parts = line.strip().split()
                 if len(parts) >= 2:
@@ -168,8 +170,8 @@ class ContextDetector:
 
     def _extract_gemfile(self, path: Path) -> Set[str]:
         """Extract dependencies from Gemfile."""
-        keywords = {'Ruby'}
-        with open(path, 'r') as f:
+        keywords = {"Ruby"}
+        with open(path, "r") as f:
             for line in f:
                 match = re.match(r"gem\s+['\"]([^'\"]+)['\"]", line)
                 if match:
@@ -182,10 +184,12 @@ class SkillSelector:
 
     def __init__(self, registry_path: str):
         """Initialize selector with skills registry."""
-        with open(registry_path, 'r') as f:
+        with open(registry_path, "r") as f:
             self.registry = json.load(f)
 
-    def select_skills(self, context: Set[str], max_skills: int = 5, min_score: int = 5) -> List[str]:
+    def select_skills(
+        self, context: Set[str], max_skills: int = 5, min_score: int = 5
+    ) -> List[str]:
         """
         Select skills based on context keywords.
         Returns list of skill names sorted by relevance.
@@ -209,8 +213,8 @@ class SkillSelector:
 
         for skill_name, score in sorted_skills:
             # Check exclusions
-            activation = self.registry[skill_name].get('activation', {})
-            exclude_with = set(activation.get('exclude_with', []))
+            activation = self.registry[skill_name].get("activation", {})
+            exclude_with = set(activation.get("exclude_with", []))
 
             if exclude_with & selected_set:
                 continue  # Skip if conflicts with already selected skill
@@ -224,8 +228,8 @@ class SkillSelector:
         # Add required dependencies
         final_skills = selected.copy()
         for skill_name in selected:
-            activation = self.registry[skill_name].get('activation', {})
-            requires = activation.get('requires', [])
+            activation = self.registry[skill_name].get("activation", {})
+            requires = activation.get("requires", [])
             for required_skill in requires:
                 if required_skill not in final_skills:
                     final_skills.append(required_skill)
@@ -234,26 +238,26 @@ class SkillSelector:
 
     def _calculate_score(self, skill_name: str, skill_data: Dict, context_lower: Set[str]) -> int:
         """Calculate relevance score for a skill."""
-        activation = skill_data.get('activation', {})
+        activation = skill_data.get("activation", {})
         score = 0
 
         # Primary keywords: 10 points each
-        for keyword in activation.get('primary_keywords', []):
+        for keyword in activation.get("primary_keywords", []):
             if keyword.lower() in context_lower:
                 score += 10
 
         # Secondary keywords: 5 points each
-        for keyword in activation.get('secondary_keywords', []):
+        for keyword in activation.get("secondary_keywords", []):
             if keyword.lower() in context_lower:
                 score += 5
 
         # Technologies: 8 points each
-        for tech in activation.get('technologies', []):
+        for tech in activation.get("technologies", []):
             if tech.lower() in context_lower:
                 score += 8
 
         # Confidence weights: boost score
-        weights = activation.get('confidence_weights', {})
+        weights = activation.get("confidence_weights", {})
         for keyword, weight in weights.items():
             if keyword.lower() in context_lower:
                 score += int(weight * 100)
@@ -269,23 +273,23 @@ def main():
 
     command = sys.argv[1]
     script_dir = Path(__file__).parent.resolve()
-    registry_path = script_dir / '../skills/registry/skills-index.json'
+    registry_path = script_dir / "../skills/registry/skills-index.json"
 
     if not registry_path.exists():
         print(f"Error: Registry file not found: {registry_path}", file=sys.stderr)
         sys.exit(1)
 
-    if command == 'detect':
+    if command == "detect":
         # Detect context only
-        project_dir = sys.argv[2] if len(sys.argv) > 2 else '.'
+        project_dir = sys.argv[2] if len(sys.argv) > 2 else "."
         detector = ContextDetector(str(registry_path))
         context = detector.detect_context(project_dir)
-        print(' '.join(sorted(context)))
+        print(" ".join(sorted(context)))
 
-    elif command == 'select':
+    elif command == "select":
         # Select skills from context keywords
         if len(sys.argv) < 3:
-            print("Usage: context-detector.py select \"keywords\" [max_skills]", file=sys.stderr)
+            print('Usage: context-detector.py select "keywords" [max_skills]', file=sys.stderr)
             sys.exit(1)
 
         context_str = sys.argv[2]
@@ -297,9 +301,9 @@ def main():
         for skill in skills:
             print(skill)
 
-    elif command == 'auto':
+    elif command == "auto":
         # Detect context and select skills in one go
-        project_dir = sys.argv[2] if len(sys.argv) > 2 else '.'
+        project_dir = sys.argv[2] if len(sys.argv) > 2 else "."
         max_skills = int(sys.argv[3]) if len(sys.argv) > 3 else 5
 
         detector = ContextDetector(str(registry_path))
@@ -316,5 +320,5 @@ def main():
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

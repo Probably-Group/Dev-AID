@@ -16,6 +16,7 @@ import time
 @dataclass
 class MCPTool:
     """Represents an MCP tool"""
+
     name: str
     description: str
     input_schema: Dict[str, Any]
@@ -25,6 +26,7 @@ class MCPTool:
 @dataclass
 class MCPServerConfig:
     """Configuration for an MCP server"""
+
     name: str
     command: str
     args: List[str]
@@ -42,9 +44,9 @@ class MCPClient:
             server_config: Configuration for the MCP server
         """
         self.config = server_config
-        self.process = None
+        self.process: Optional[asyncio.subprocess.Process] = None
         self.message_id = 0
-        self.available_tools = {}
+        self.available_tools: Dict[str, MCPTool] = {}
 
     async def connect(self) -> bool:
         """
@@ -63,34 +65,30 @@ class MCPClient:
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env={**dict(os.environ), **env}
+                env={**dict(os.environ), **env},
             )
 
             # Initialize connection
-            init_response = await self._send_request({
-                "jsonrpc": "2.0",
-                "id": self._next_id(),
-                "method": "initialize",
-                "params": {
-                    "protocolVersion": "2024-11-05",
-                    "capabilities": {},
-                    "clientInfo": {
-                        "name": "devaid-router",
-                        "version": "1.0.0"
-                    }
+            init_response = await self._send_request(
+                {
+                    "jsonrpc": "2.0",
+                    "id": self._next_id(),
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": "2024-11-05",
+                        "capabilities": {},
+                        "clientInfo": {"name": "devaid-router", "version": "1.0.0"},
+                    },
                 }
-            })
+            )
 
             if "result" not in init_response:
                 return False
 
             # List available tools
-            tools_response = await self._send_request({
-                "jsonrpc": "2.0",
-                "id": self._next_id(),
-                "method": "tools/list",
-                "params": {}
-            })
+            tools_response = await self._send_request(
+                {"jsonrpc": "2.0", "id": self._next_id(), "method": "tools/list", "params": {}}
+            )
 
             if "result" in tools_response and "tools" in tools_response["result"]:
                 for tool in tools_response["result"]["tools"]:
@@ -98,7 +96,7 @@ class MCPClient:
                         name=tool["name"],
                         description=tool.get("description", ""),
                         input_schema=tool.get("inputSchema", {}),
-                        server=self.config.name
+                        server=self.config.name,
                     )
 
             return True
@@ -128,15 +126,14 @@ class MCPClient:
         if tool_name not in self.available_tools:
             raise ValueError(f"Tool {tool_name} not available on server {self.config.name}")
 
-        response = await self._send_request({
-            "jsonrpc": "2.0",
-            "id": self._next_id(),
-            "method": "tools/call",
-            "params": {
-                "name": tool_name,
-                "arguments": arguments
+        response = await self._send_request(
+            {
+                "jsonrpc": "2.0",
+                "id": self._next_id(),
+                "method": "tools/call",
+                "params": {"name": tool_name, "arguments": arguments},
             }
-        })
+        )
 
         if "error" in response:
             raise RuntimeError(f"MCP tool error: {response['error']}")
@@ -215,7 +212,9 @@ class MCPClientPool:
             await self.clients[name].disconnect()
             del self.clients[name]
 
-    async def call_tool(self, server_name: str, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    async def call_tool(
+        self, server_name: str, tool_name: str, arguments: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """
         Call tool on specific server
 
@@ -239,10 +238,7 @@ class MCPClientPool:
         Returns:
             Dict mapping server name to list of tools
         """
-        return {
-            name: client.get_tools()
-            for name, client in self.clients.items()
-        }
+        return {name: client.get_tools() for name, client in self.clients.items()}
 
     async def disconnect_all(self):
         """Disconnect from all servers"""

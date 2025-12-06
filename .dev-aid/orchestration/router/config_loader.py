@@ -76,9 +76,7 @@ class ConfigLoader:
 
             # Check containment
             if not str(resolved_file).startswith(str(resolved_base)):
-                raise ValueError(
-                    f"Path traversal detected: {filepath} is outside {base_dir}"
-                )
+                raise ValueError(f"Path traversal detected: {filepath} is outside {base_dir}")
 
             # Check for null bytes
             if "\0" in str(resolved_file):
@@ -107,7 +105,7 @@ class ConfigLoader:
             )
 
         try:
-            with open(safe_path, 'r', encoding='utf-8') as f:
+            with open(safe_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Parse JSON
@@ -119,9 +117,7 @@ class ConfigLoader:
             return data
 
         except json.JSONDecodeError as e:
-            raise ValueError(
-                f"Invalid JSON in {filename}. Please check your configuration file."
-            )
+            raise ValueError(f"Invalid JSON in {filename}. Please check your configuration file.")
 
     def get_orchestration_mode(self) -> str:
         """Get current orchestration mode (solo, ensemble, challenger)"""
@@ -165,7 +161,7 @@ class ConfigLoader:
                             "provider": provider,
                             "short_name": short_name,
                             "full_config": model_config,
-                            **model_config
+                            **model_config,
                         }
 
         return None

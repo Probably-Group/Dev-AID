@@ -57,18 +57,14 @@ class RouterExecutor:
         self.cost_tracker = CostTracker(self.config.root / ".dev-aid" / "logs")
 
         # Initialize modes
-        self.modes = {
+        self.modes: Dict[str, Any] = {
             "solo": SoloMode(self.config, self.context_builder),
             "ensemble": EnsembleMode(self.config, self.context_builder),
-            "challenger": ChallengerMode(self.config, self.context_builder)
+            "challenger": ChallengerMode(self.config, self.context_builder),
         }
 
     async def _execute_async(
-        self,
-        request: str,
-        mode: str,
-        context_size: int = 0,
-        **kwargs
+        self, request: str, mode: str, context_size: int = 0, **kwargs
     ) -> Dict[str, Any]:
         """
         Async execution helper
@@ -92,7 +88,7 @@ class RouterExecutor:
                 mcp_context = await self.context_builder.gather_mcp_context(request)
 
                 # Store MCP context for this request
-                kwargs['mcp_context'] = mcp_context
+                kwargs["mcp_context"] = mcp_context
             except Exception as e:
                 print(f"Warning: MCP context gathering failed: {e}")
                 # Continue without MCP context
@@ -110,18 +106,10 @@ class RouterExecutor:
             return result
 
         except Exception as e:
-            return {
-                "success": False,
-                "mode": mode,
-                "error": str(e)
-            }
+            return {"success": False, "mode": mode, "error": str(e)}
 
     def execute(
-        self,
-        request: str,
-        mode: Optional[str] = None,
-        context_size: int = 0,
-        **kwargs
+        self, request: str, mode: Optional[str] = None, context_size: int = 0, **kwargs
     ) -> Dict[str, Any]:
         """
         Execute a request with routing
@@ -148,7 +136,7 @@ class RouterExecutor:
             return {
                 "success": False,
                 "error": f"Daily budget limit exceeded (${daily_limit:.2f})",
-                "budget_status": self.cost_tracker.get_budget_status(daily_limit)
+                "budget_status": self.cost_tracker.get_budget_status(daily_limit),
             }
 
         # Run async execution in single event loop
@@ -169,7 +157,7 @@ class RouterExecutor:
                     name=server_info.name,
                     command=server_info.command,
                     args=server_info.args,
-                    env=server_info.env
+                    env=server_info.env,
                 )
                 try:
                     await self.mcp_pool.add_server(config)
@@ -207,7 +195,7 @@ class RouterExecutor:
             tokens_input=tokens_used.get("input", 0),
             tokens_output=tokens_used.get("output", 0),
             latency_ms=latency_ms,
-            request=request
+            request=request,
         )
 
     def get_status(self) -> Dict[str, Any]:
@@ -238,12 +226,12 @@ class RouterExecutor:
             "today": {
                 "cost": today_cost,
                 "requests": today_requests,
-                "average_cost": today_cost / today_requests if today_requests > 0 else 0.0
+                "average_cost": today_cost / today_requests if today_requests > 0 else 0.0,
             },
             "models": model_stats,
             "recent_decisions": recent_decisions,
             "enabled_providers": self.config.get_enabled_providers(),
-            "fallback_chain": self.config.get_fallback_chain()
+            "fallback_chain": self.config.get_fallback_chain(),
         }
 
     def format_output(self, result: Dict[str, Any], verbose: bool = False) -> str:
@@ -317,15 +305,17 @@ class RouterExecutor:
 
             lines.append("📊 Metrics:")
             lines.append(f"   Cost: ${cost:.4f}")
-            lines.append(f"   Tokens: {tokens.get('input', 0)} input → {tokens.get('output', 0)} output")
+            lines.append(
+                f"   Tokens: {tokens.get('input', 0)} input → {tokens.get('output', 0)} output"
+            )
             lines.append(f"   Latency: {latency:.0f}ms")
             lines.append("")
 
         # Challenger mode details
         if verbose and mode == "challenger" and result.get("challenged"):
-            lines.append("\n" + "="*70)
+            lines.append("\n" + "=" * 70)
             lines.append("🔍 Challenger Review:")
-            lines.append("="*70)
+            lines.append("=" * 70)
             lines.append(result.get("challenger_review", "No review available"))
             lines.append("")
 
@@ -339,7 +329,7 @@ def execute_request(
     verbose: bool = False,
     use_mcp: bool = True,
     dev_aid_root: Optional[Path] = None,
-    **kwargs
+    **kwargs,
 ) -> str:
     """
     Convenience function to execute a request and return formatted output

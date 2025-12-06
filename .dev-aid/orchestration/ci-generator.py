@@ -28,7 +28,7 @@ class CIGenerator:
             "build_tool": None,
             "has_docker": False,
             "test_framework": None,
-            "commands": {}
+            "commands": {},
         }
 
         # Check for Node.js/TypeScript
@@ -61,7 +61,9 @@ class CIGenerator:
             # Detect linter
             scripts = pkg_json.get("scripts", {})
             if "lint" in scripts:
-                context["commands"]["lint"] = f"{context['package_manager']} {'run ' if context['package_manager'] != 'bun' else ''}lint"
+                context["commands"][
+                    "lint"
+                ] = f"{context['package_manager']} {'run ' if context['package_manager'] != 'bun' else ''}lint"
             else:
                 context["commands"]["lint"] = "echo 'No lint script found, skipping'"
 
@@ -72,9 +74,11 @@ class CIGenerator:
                 context["commands"]["type_check"] = "echo 'No TypeScript, skipping'"
 
         # Check for Python
-        elif (self.project_dir / "pyproject.toml").exists() or \
-             (self.project_dir / "requirements.txt").exists() or \
-             (self.project_dir / "setup.py").exists():
+        elif (
+            (self.project_dir / "pyproject.toml").exists()
+            or (self.project_dir / "requirements.txt").exists()
+            or (self.project_dir / "setup.py").exists()
+        ):
 
             context["language"] = "python"
 
@@ -99,13 +103,17 @@ class CIGenerator:
                 context["commands"]["test"] = "pytest"
 
             # Detect linter
-            if (self.project_dir / "ruff.toml").exists() or "tool.ruff" in (self.project_dir / "pyproject.toml").read_text():
+            if (self.project_dir / "ruff.toml").exists() or "tool.ruff" in (
+                self.project_dir / "pyproject.toml"
+            ).read_text():
                 context["commands"]["lint"] = "ruff check ."
             else:
                 context["commands"]["lint"] = "flake8 ."
 
             # Detect type checker
-            if (self.project_dir / "mypy.ini").exists() or "[tool.mypy]" in (self.project_dir / "pyproject.toml").read_text():
+            if (self.project_dir / "mypy.ini").exists() or "[tool.mypy]" in (
+                self.project_dir / "pyproject.toml"
+            ).read_text():
                 context["commands"]["type_check"] = "mypy ."
             else:
                 context["commands"]["type_check"] = "echo 'No type checker configured'"
@@ -165,9 +173,11 @@ class CIGenerator:
 
         # Handle Docker conditional
         if context["has_docker"]:
-            workflow = re.sub(r'\{\{#DOCKER\}\}(.*?)\{\{/DOCKER\}\}', r'\1', workflow, flags=re.DOTALL)
+            workflow = re.sub(
+                r"\{\{#DOCKER\}\}(.*?)\{\{/DOCKER\}\}", r"\1", workflow, flags=re.DOTALL
+            )
         else:
-            workflow = re.sub(r'\{\{#DOCKER\}\}.*?\{\{/DOCKER\}\}', '', workflow, flags=re.DOTALL)
+            workflow = re.sub(r"\{\{#DOCKER\}\}.*?\{\{/DOCKER\}\}", "", workflow, flags=re.DOTALL)
 
         # Write to file if output path provided
         if output_path:
@@ -220,18 +230,12 @@ def main():
     """CLI entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Generate GitHub Actions CI/CD workflows"
+    parser = argparse.ArgumentParser(description="Generate GitHub Actions CI/CD workflows")
+    parser.add_argument(
+        "project_dir", nargs="?", default=".", help="Project directory (default: current directory)"
     )
     parser.add_argument(
-        "project_dir",
-        nargs="?",
-        default=".",
-        help="Project directory (default: current directory)"
-    )
-    parser.add_argument(
-        "-o", "--output",
-        help="Output file path (default: .github/workflows/ci.yml)"
+        "-o", "--output", help="Output file path (default: .github/workflows/ci.yml)"
     )
 
     args = parser.parse_args()

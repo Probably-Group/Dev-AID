@@ -18,6 +18,7 @@ import asyncio
 @dataclass
 class DevAIDContext:
     """Represents Dev-AID context for AI request"""
+
     memory_bank: Dict[str, str]  # filename -> content
     project_info: Dict[str, Any]
     git_context: Optional[Dict[str, str]] = None
@@ -63,7 +64,7 @@ class ContextBuilder:
             memory_bank=memory_bank,
             project_info=project_info,
             git_context=git_context,
-            active_skills=active_skills
+            active_skills=active_skills,
         )
 
     def _load_memory_bank(self) -> Dict[str, str]:
@@ -78,7 +79,7 @@ class ContextBuilder:
 
             if filepath.exists():
                 try:
-                    with open(filepath, 'r', encoding='utf-8') as f:
+                    with open(filepath, "r", encoding="utf-8") as f:
                         content = f.read()
                         memory_bank[filename] = content
                 except Exception as e:
@@ -95,7 +96,7 @@ class ContextBuilder:
             "name": project_name,
             "root": str(self.root),
             "orchestration_mode": self.config.get_orchestration_mode(),
-            "enabled_providers": self.config.get_enabled_providers()
+            "enabled_providers": self.config.get_enabled_providers(),
         }
 
     def _validate_safe_path(self, path: Path) -> Path:
@@ -142,7 +143,7 @@ class ContextBuilder:
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
-                timeout=5  # Add timeout for security
+                timeout=5,  # Add timeout for security
             ).strip()
 
             # Get last commit
@@ -151,7 +152,7 @@ class ContextBuilder:
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
-                timeout=5
+                timeout=5,
             ).strip()
 
             # Get status (short)
@@ -160,16 +161,21 @@ class ContextBuilder:
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
-                timeout=5
+                timeout=5,
             ).strip()
 
             return {
                 "branch": branch,
                 "last_commit": last_commit,
-                "status": status if status else "(clean)"
+                "status": status if status else "(clean)",
             }
 
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, ValueError):
+        except (
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+            ValueError,
+        ):
             # Git not available, timeout, or invalid path
             return None
 
@@ -205,7 +211,7 @@ class ContextBuilder:
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
-                timeout=10
+                timeout=10,
             ).strip()
 
             if not context_output:
@@ -217,18 +223,24 @@ class ContextBuilder:
                 cwd=safe_root,
                 stderr=subprocess.DEVNULL,
                 text=True,
-                timeout=5
+                timeout=5,
             ).strip()
 
             if not skills_output:
                 return None
 
             # Parse skills (one per line)
-            skills = [skill.strip() for skill in skills_output.split('\n') if skill.strip()]
+            skills = [skill.strip() for skill in skills_output.split("\n") if skill.strip()]
 
             return skills if skills else None
 
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired, FileNotFoundError, ValueError, Exception) as e:
+        except (
+            subprocess.CalledProcessError,
+            subprocess.TimeoutExpired,
+            FileNotFoundError,
+            ValueError,
+            Exception,
+        ) as e:
             # Skill detection failed, return None
             # Don't raise exception - this is optional context
             return None
@@ -237,7 +249,7 @@ class ContextBuilder:
         self,
         prompt: str,
         task_type: Optional[str] = None,
-        requested_servers: Optional[List[str]] = None
+        requested_servers: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Gather context from MCP servers
@@ -309,14 +321,20 @@ class ContextBuilder:
             selected.append("code-search")
 
         # Database-related
-        if task_type == "database" or any(kw in prompt_lower for kw in ["database", "db", "sql", "query", "table", "schema", "migration"]):
+        if task_type == "database" or any(
+            kw in prompt_lower
+            for kw in ["database", "db", "sql", "query", "table", "schema", "migration"]
+        ):
             for server_name in self.mcp_pool.clients.keys():
                 if "postgres" in server_name or "mysql" in server_name or "sqlite" in server_name:
                     selected.append(server_name)
                     break
 
         # GitHub-related
-        if task_type == "github" or any(kw in prompt_lower for kw in ["github", "issue", "pr", "pull request", "bug", "feature request"]):
+        if task_type == "github" or any(
+            kw in prompt_lower
+            for kw in ["github", "issue", "pr", "pull request", "bug", "feature request"]
+        ):
             for server_name in self.mcp_pool.clients.keys():
                 if "github" in server_name:
                     selected.append(server_name)
@@ -338,15 +356,10 @@ class ContextBuilder:
             search_terms = self._extract_search_terms(prompt)
 
             result = await self.mcp_pool.call_tool(
-                "code-search",
-                "search",
-                {"query": search_terms, "limit": 5}
+                "code-search", "search", {"query": search_terms, "limit": 5}
             )
 
-            return {
-                "search_results": result.get("content", []),
-                "query": search_terms
-            }
+            return {"search_results": result.get("content", []), "query": search_terms}
 
         except Exception as e:
             print(f"Code search failed: {e}")
@@ -356,37 +369,27 @@ class ContextBuilder:
         """Query database schema from postgres/mysql MCP"""
         try:
             # Try to get schema information
-            result = await self.mcp_pool.call_tool(
-                server_name,
-                "get_schema",
-                {}
-            )
+            result = await self.mcp_pool.call_tool(server_name, "get_schema", {})
 
-            return {
-                "schema": result,
-                "server": server_name
-            }
+            return {"schema": result, "server": server_name}
 
         except Exception as e:
             print(f"Database schema query failed: {e}")
             return None
 
-    async def _query_github_context(self, server_name: str, prompt: str) -> Optional[Dict[str, Any]]:
+    async def _query_github_context(
+        self, server_name: str, prompt: str
+    ) -> Optional[Dict[str, Any]]:
         """Query GitHub issues/PRs"""
         try:
             # Extract issue/PR numbers or search terms
             search_query = self._extract_search_terms(prompt)
 
             result = await self.mcp_pool.call_tool(
-                server_name,
-                "search_issues",
-                {"query": search_query, "limit": 3}
+                server_name, "search_issues", {"query": search_query, "limit": 3}
             )
 
-            return {
-                "issues": result.get("issues", []),
-                "query": search_query
-            }
+            return {"issues": result.get("issues", []), "query": search_query}
 
         except Exception as e:
             print(f"GitHub query failed: {e}")
@@ -395,7 +398,21 @@ class ContextBuilder:
     def _extract_search_terms(self, prompt: str) -> str:
         """Extract meaningful search terms from prompt"""
         # Simple extraction - remove common words
-        stop_words = {"the", "a", "an", "is", "are", "was", "were", "find", "show", "get", "how", "what", "where"}
+        stop_words = {
+            "the",
+            "a",
+            "an",
+            "is",
+            "are",
+            "was",
+            "were",
+            "find",
+            "show",
+            "get",
+            "how",
+            "what",
+            "where",
+        }
         words = prompt.lower().split()
         search_terms = " ".join(word for word in words if word not in stop_words)
         return search_terms[:100]  # Limit length
@@ -477,7 +494,7 @@ class ContextBuilder:
 
         if active_context_file.exists():
             try:
-                with open(active_context_file, 'r', encoding='utf-8') as f:
+                with open(active_context_file, "r", encoding="utf-8") as f:
                     return f.read()
             except Exception:
                 pass

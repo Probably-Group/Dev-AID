@@ -17,7 +17,7 @@ openai==1.54.5              # OpenAI API
 
 # Core utilities
 python-dotenv==1.0.1        # Load .env files for API keys
-requests==2.32.3            # HTTP requests (fallback)
+requests==2.32.4            # HTTP requests (fallback)
 pydantic==2.10.3            # Data validation and settings
 email-validator==2.2.0      # Email validation for Pydantic
 

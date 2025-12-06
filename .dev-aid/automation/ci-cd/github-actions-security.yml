@@ -145,7 +145,7 @@ jobs:
 
           # Checkov
           if [ -f "checkov-report.json" ]; then
-            FAILED=$(jq '.summary.failed' checkov-report.json)
+            FAILED=$(jq 'if type == "array" then length else .summary.failed // 0 end' checkov-report.json)
             echo "## ☸️ Checkov: $FAILED IaC check(s) failed" >> $GITHUB_STEP_SUMMARY
           fi
 

@@ -7,10 +7,10 @@ with security scanning (Gitleaks, Trivy) by default.
 """
 
 import json
+import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional, List
-import re
+from typing import Dict, List, Optional
 
 
 class CIGenerator:

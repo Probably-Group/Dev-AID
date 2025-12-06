@@ -18,26 +18,23 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      security-events: write  # For SARIF upload
-      pull-requests: write    # For PR comments
+      # security-events: write # Disabled for private repos without Advanced Security
+      pull-requests: write
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for Gitleaks
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Checkov (IaC Scanner)
-        run: pip install checkov
-
-      - name: Install Opengrep (SAST)
+      - name: Install Security Tools
         run: |
-          pip install opengrep
+          pip install checkov semgrep
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
@@ -47,23 +44,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Opengrep (SAST)
-        id: opengrep
+      - name: Run Semgrep (SAST)
+        id: semgrep
         continue-on-error: true
         run: |
-          opengrep scan --config=auto --sarif --output=opengrep.sarif .
-          opengrep scan --config=auto --json --output=opengrep.json .
-
-      - name: Run Trivy (Dependency Scanning - SARIF)
-        id: trivy
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-fs.sarif'
-          severity: 'HIGH,CRITICAL'
+          semgrep scan --config=auto --sarif --output=semgrep.sarif .
+          semgrep scan --config=auto --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning - JSON)
         uses: aquasecurity/trivy-action@master
@@ -79,17 +65,6 @@ jobs:
         if: hashFiles('Dockerfile') != ''
         continue-on-error: true
         run: docker build -t temp-image:latest .
-
-      - name: Run Trivy (Container Scanning - SARIF)
-        if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          scan-type: 'image'
-          image-ref: 'temp-image:latest'
-          format: 'sarif'
-          output: 'trivy-image.sarif'
-          severity: 'HIGH,CRITICAL'
 
       - name: Run Trivy (Container Scanning - JSON)
         if: hashFiles('Dockerfile') != ''
@@ -109,8 +84,7 @@ jobs:
         if: hashFiles('Dockerfile') != ''
         with:
           dockerfile: Dockerfile
-          format: sarif
-          output-file: hadolint.sarif
+          format: json
           no-fail: true
 
       - name: Run Checkov (IaC Scanning)
@@ -118,18 +92,22 @@ jobs:
         continue-on-error: true
         run: |
           checkov -d . --quiet --compact --output json > checkov-report.json || true
-          checkov -d . --quiet --output sarif --output-file checkov.sarif || true
 
-      - name: Upload SARIF results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+      # Disabled SARIF upload for private repo compatibility
+      # - name: Upload SARIF results
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   ...
+
+      - name: Upload security reports as artifacts
+        uses: actions/upload-artifact@v4
         if: always()
-        continue-on-error: true  # Prevents build failures on repos without Advanced Security
         with:
-          sarif_file: |
-            opengrep.sarif
-            trivy-fs.sarif
-            checkov.sarif
-            hadolint.sarif
+          name: security-reports
+          path: |
+            *-report.json
+            *.sarif
+            *.json
+          retention-days: 30
 
       - name: Generate Security Summary
         if: always()
@@ -147,10 +125,10 @@ jobs:
             fi
           fi
 
-          # Opengrep
-          if [ -f "opengrep.json" ]; then
-            FINDINGS=$(jq '.results | length' opengrep.json)
-            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          # Semgrep
+          if [ -f "semgrep.json" ]; then
+            FINDINGS=$(jq '.results | length' semgrep.json)
+            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Trivy
@@ -167,19 +145,9 @@ jobs:
 
           # Checkov
           if [ -f "checkov-report.json" ]; then
-            FAILED=$(jq '.summary.failed' checkov-report.json)
+            FAILED=$(jq 'if type == "array" then length else .summary.failed // 0 end' checkov-report.json)
             echo "## ☸️ Checkov: $FAILED IaC check(s) failed" >> $GITHUB_STEP_SUMMARY
           fi
-
-      - name: Upload security reports as artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-reports
-          path: |
-            *-report.json
-            *.sarif
-          retention-days: 30
 
       - name: Check for critical issues
         if: always()
@@ -192,9 +160,9 @@ jobs:
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Opengrep for ERROR severity
-          if [ -f "opengrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+          # Check Semgrep for ERROR severity
+          if [ -f "semgrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
             if [ "$CRITICAL" -gt 0 ]; then
               echo "❌ $CRITICAL critical code vulnerabilities!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))

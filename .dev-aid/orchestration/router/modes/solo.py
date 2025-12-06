@@ -2,8 +2,9 @@
 Solo Mode - Single model handles all tasks
 """
 
-from typing import Dict, Any
-from ..api_clients import Message, APIResponse, create_client
+from typing import Any, Dict
+
+from ..api_clients import APIResponse, Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 
 

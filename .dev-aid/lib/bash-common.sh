@@ -25,7 +25,7 @@ validate_path_containment() {
     }
 
     # Check containment
-    if [[ "$resolved_path" != "$resolved_base"* ]]; then
+    if [[ "$resolved_path" != "${resolved_base}"* ]]; then
         echo "Error: Path traversal attempt detected: $path is outside $base" >&2
         return 1
     fi

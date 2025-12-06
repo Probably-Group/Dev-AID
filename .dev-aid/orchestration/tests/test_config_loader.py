@@ -3,8 +3,10 @@ Tests for ConfigLoader
 """
 
 import json
-import pytest
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 
 from router.config_loader import ConfigLoader
 
@@ -66,14 +68,23 @@ class TestConfigLoader:
         assert is_valid
         assert error == ""
 
-    def test_validate_provider_missing_key(self, mock_dev_aid_root, monkeypatch):
-        """Test provider validation with missing API key"""
-        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        def test_validate_provider_missing_key(self, mock_dev_aid_root, monkeypatch):
+            """Test provider validation with missing API key"""
 
-        config = ConfigLoader(mock_dev_aid_root)
-        is_valid, error = config.validate_provider("claude")
+            monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
-        assert not is_valid
+            # Also mock the config file lookup to return nothing
+
+            with patch("router.config_loader.ConfigLoader.get_api_key", return_value=None):
+
+                config = ConfigLoader(mock_dev_aid_root)
+
+                is_valid, error = config.validate_provider("claude")
+
+                assert not is_valid
+
+                assert "API key not found" in error
+
         assert "API key not set" in error
 
     def test_get_model_config(self, mock_dev_aid_root):

@@ -12,15 +12,16 @@ Orchestrates the complete routing workflow:
 
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, Optional
-from .config_loader import load_config, ConfigLoader
+from typing import Any, Dict, Optional
+
+from .config_loader import ConfigLoader, load_config
 from .context_builder import ContextBuilder
 from .cost_tracker import CostTracker
-from .modes.solo import SoloMode
-from .modes.ensemble import EnsembleMode
-from .modes.challenger import ChallengerMode
-from .mcp_registry import MCPRegistry
 from .mcp_client import MCPClientPool, MCPServerConfig
+from .mcp_registry import MCPRegistry
+from .modes.challenger import ChallengerMode
+from .modes.ensemble import EnsembleMode
+from .modes.solo import SoloMode
 
 
 class RouterExecutor:

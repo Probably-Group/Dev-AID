@@ -2,10 +2,11 @@
 Pytest configuration and fixtures for Dev-AID Router tests
 """
 
+import json
 import tempfile
 from pathlib import Path
-from typing import Dict, Any
-import json
+from typing import Any, Dict
+
 import pytest
 
 

@@ -7,16 +7,16 @@ Provides command-line access to router functionality:
 - test: Test configuration
 """
 
+import argparse
 import logging
 import sys
 from pathlib import Path
 from typing import Optional
 
-import argparse
 from pydantic import ValidationError
 
-from .executor import RouterExecutor, execute_request
 from .config_loader import load_config
+from .executor import RouterExecutor, execute_request
 from .mcp_registry import MCPRegistry
 from .validators import ExecuteRequest
 

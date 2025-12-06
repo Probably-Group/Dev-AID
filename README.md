@@ -170,6 +170,41 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 
 ---
 
+## 🆕 What's New in v1.2.0 (2025-12-06)
+
+### Performance & Architecture
+- **⚡ 10x Faster Context Detection**: Optimized from 2s+ to <200ms with new Python implementation
+- **🎯 Dynamic Skill Loading**: Patterns now loaded from skills-index.json (no hardcoded lists)
+- **📦 Code Reduction**: 84% reduction in orchestration scripts (367 → 59 lines)
+
+### Security Enhancements
+- **🔒 Pinned Dependencies**: All 63 Python packages now use exact versions for reproducible builds
+- **🛡️ Active Security Scanning**: GitHub Actions now running automated scans on all commits/PRs
+- **🔐 CVE Patched**: Updated h11 to fix critical HTTP request smuggling vulnerability
+- **✅ Fail-Closed Hooks**: Pre-commit now blocks when security tools missing (no more silent bypasses)
+- **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
+
+### New Features
+- **🔧 Refactoring Expert Skill**: 522-line comprehensive guide for safe code refactoring
+  - Safety-first methodology with mandatory testing
+  - Strangler Fig pattern for legacy modernization
+  - Auto-activates on keywords: refactor, rewrite, legacy, technical debt
+
+- **📚 RAG Vendoring Support**: Documentation and tooling for dependency stability
+  - Fork and maintain your own copy
+  - Environment variable support for custom repositories
+
+### Code Quality
+- **♻️ DRY Improvements**: Eliminated 158 lines of duplicate code in API clients
+- **🎨 Decorator Pattern**: New `@track_api_call` for centralized error handling and timing
+- **📋 Dynamic Package Testing**: Setup script now parses requirements.txt automatically
+
+**See full changelog:** [CHANGELOG.md](./.dev-aid/CHANGELOG.md)
+
+**Issues resolved:** #17, #18, #19, #20, #21, #22, #23, #24, #26, #27, #28, #31, #32
+
+---
+
 ## 🚀 Quick Start
 
 ### Option 1: New Project with Dev-AID

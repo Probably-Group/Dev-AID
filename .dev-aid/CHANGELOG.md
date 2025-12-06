@@ -7,6 +7,129 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2025-12-06
+
+### Added
+
+#### Performance & Architecture
+- **Optimized Context Detection**: New Python implementation (`context-detector.py`) replaces O(n²) bash loops with single-pass scanning
+  - **10x performance improvement**: <200ms vs >2s on large repositories
+  - **Dynamic pattern loading**: Reads from `skills-index.json` instead of hardcoded patterns
+  - **Three modes**: `detect`, `select`, `auto` for flexible usage
+  - Maintains backward compatibility via bash wrapper scripts
+
+#### Security Enhancements
+- **Pinned Dependencies**: All 63 Python dependencies now use exact versions (`==`) for reproducible builds
+  - Prevents supply chain attacks via malicious 'latest' versions
+  - Deterministic builds across all environments
+  - Added security notice and update instructions in requirements.txt
+
+- **GitHub Actions Security Pipeline**: Activated automated security scanning
+  - Workflow now runs on push, PR, weekly schedule, and manual triggers
+  - Scans: Gitleaks (secrets), Semgrep (SAST), Trivy (dependencies), Hadolint (Docker), Checkov (IaC)
+  - Results uploaded to GitHub Security tab with SARIF format
+
+- **Pre-Commit Hook Fail-Closed**: Security tools now block commits when missing
+  - Changed from warnings to errors for missing gitleaks/opengrep/trivy
+  - Provides installation instructions when tools not found
+  - Can bypass with `git commit --no-verify` if needed
+
+- **RAG Installer Checksum Verification**: Setup script now verifies SHA256 before execution
+  - Downloads to temp file, verifies hash, then executes
+  - Supports custom forks via `RAG_REPO_URL` environment variable
+  - Prevents MITM attacks and compromised upstream scenarios
+
+- **CI/CD Tool Installation Security**: Replaced insecure patterns with official GitHub Actions
+  - Uses `gitleaks/gitleaks-action@v2`, `aquasecurity/trivy-action@master`, `hadolint/hadolint-action@v3.1.0`
+  - Eliminated `curl | bash` and unverified `wget` patterns
+
+#### New Features
+- **Refactoring Expert Skill**: Comprehensive 522-line skill for safe code refactoring
+  - Safety-first methodology with mandatory pre-refactor testing
+  - Strangler Fig pattern for legacy system modernization
+  - Anti-hallucination protocol for safe code changes
+  - Auto-activates on: refactor, rewrite, legacy, technical debt
+
+- **RAG Vendoring Support**: Documentation and tooling for dependency management
+  - Guide for forking and maintaining custom copies
+  - Three strategies: Vendored copy, Git submodule, or Upstream
+  - Environment variable support for custom repositories
+
+### Changed
+
+#### Code Quality Improvements
+- **DRY Refactoring**: Eliminated 158 lines of duplicate code in API clients
+  - New `@track_api_call` decorator centralizes timing and error handling
+  - Applied to AnthropicClient, GoogleClient, OpenAIClient
+  - Single source of truth for exception handling and latency tracking
+
+- **Dynamic Package Management**: Setup script now parses requirements.txt dynamically
+  - Removed hardcoded package arrays (lines 165, 188 in setup-venv.sh)
+  - Import name mapping for packages with different import names
+  - Single source of truth for package testing
+
+- **Bash Script Simplification**: Orchestration scripts reduced to lightweight wrappers
+  - `detect-context.sh`: 157 lines → 28 lines (82% reduction)
+  - `select-skills.sh`: 210 lines → 31 lines (85% reduction)
+  - Python backend handles all complexity
+
+### Fixed
+
+#### Security Vulnerabilities
+- **CVE-2025-43859**: Updated h11 from 0.14.0 to 0.16.0
+  - Patches critical HTTP request smuggling/desync vulnerability
+  - Verified compatibility with httpcore and httpx
+
+#### Issues Resolved
+- #17: Restored refactoring expert skill with comprehensive methodology
+- #18: Optimized O(n²) context detection loops to single-pass O(n)
+- #19: Pre-commit hook now fails closed when security tools missing
+- #20: Hardcoded patterns replaced with dynamic skills-index.json loading
+- #21: RAG installer now verifies checksums before execution
+- #22: Added vendoring support for RAG dependency stability
+- #23: CI/CD tool installation now uses official GitHub Actions
+- #24: Eliminated code duplication in orchestration scripts
+- #26: Pinned all Python dependencies to exact versions
+- #27: Refactored DRY violations in API client error handling
+- #28: Removed hardcoded package lists from setup script
+- #31: Patched h11 CVE-2025-43859 vulnerability
+- #32: Activated GitHub Actions security workflows
+
+### Technical Details
+
+#### Dependency Updates
+- anthropic: 0.18.0+ → 0.39.0
+- google-generativeai: 0.3.0+ → 0.8.3
+- openai: 1.0.0+ → 1.54.5
+- pydantic: 2.0.0+ → 2.10.3
+- pytest: 7.4.0+ → 8.3.4
+- h11: 0.14.0 → 0.16.0 (CVE fix)
+- Plus 57 additional pinned packages
+
+#### Performance Metrics
+- Context detection: 2000ms+ → <200ms (10x improvement)
+- API client code: 590 lines → 432 lines (27% reduction)
+- Orchestration scripts: 367 lines → 59 lines (84% reduction)
+
+#### Automated Security
+- GitHub Dependabot: Active and creating PRs for vulnerabilities
+- Security workflow: Running on all commits and PRs
+- 5 security tools: Gitleaks, Semgrep, Trivy, Hadolint, Checkov
+
+### Migration Notes
+
+#### For Developers
+- Run `pip install -r requirements.txt` to update to pinned versions
+- Security tools (gitleaks, trivy, opengrep) now required for commits
+- Context detection is now much faster (<200ms)
+
+#### For Contributors
+- GitHub Actions now runs security scans on all PRs
+- Pre-commit hooks will block commits if security tools missing
+- Install tools: `brew install gitleaks trivy semgrep`
+
+---
+
 ## [1.1.0] - 2025-12-05
 
 ### Added

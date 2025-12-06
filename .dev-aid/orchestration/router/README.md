@@ -15,10 +15,23 @@ Multi-AI orchestration engine that routes requests to different AI providers bas
 
 ### 1. Install Python Dependencies
 
+**Important:** All dependencies are pinned to exact versions for reproducible builds and security.
+
 ```bash
 cd .dev-aid/orchestration
+
+# Option 1: Install directly (not recommended for production)
 pip install -r requirements.txt
+
+# Option 2: Use virtual environment (recommended)
+./setup-venv.sh
+# This creates an isolated environment with all dependencies
 ```
+
+**Security Note:**
+- All 63 dependencies use exact version pins (`==`)
+- Prevents supply chain attacks via malicious 'latest' versions
+- See requirements.txt for version details and update instructions
 
 ### 2. Configure API Keys
 

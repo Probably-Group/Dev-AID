@@ -215,6 +215,40 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
   - Comprehensive security scans
   - Documentation link validation
 
+- **📊 Architecture Mapper**: Visual codebase understanding with Mermaid diagrams
+  - Auto-generates class diagrams, dependency graphs, C4 components
+  - Supports Python (AST) and TypeScript/JavaScript (regex)
+  - Usage: `.dev-aid/scripts/map-architecture.sh`
+
+- **🏭 Test Data Factory**: Realistic mock data generation from schemas
+  - Supports JSON Schema, Pydantic, TypeScript interfaces
+  - Output formats: JSON, CSV, SQL INSERT statements
+  - Realistic data pools (names, emails, addresses, phones)
+  - Usage: `.dev-aid/scripts/fabricate-data.sh schema.json`
+
+- **📖 Living README**: Documentation drift detector
+  - Detects mismatches between README and project reality
+  - Checks package managers, scripts, Docker ports
+  - Actionable fix suggestions
+  - Usage: `.dev-aid/scripts/sync-docs.sh`
+
+- **🎓 Interactive Guide**: Feature discovery and best practices
+  - Menu-driven interface for all Dev-AID capabilities
+  - Context-aware recommendations
+  - Complete command catalog
+  - Usage: `.dev-aid/scripts/dev-aid-guide.sh`
+
+- **📝 PR Storyteller**: Auto-generate semantic PR descriptions
+  - Analyzes git diff and commit history
+  - Structured template with verification checklist
+  - Usage: `.dev-aid/scripts/draft-pr.sh > pr.md`
+
+- **🚀 Onboarding Buddy**: Interactive developer setup
+  - Environment checks and project detection
+  - Shows correct install commands
+  - Lists available Dev-AID features
+  - Usage: `.dev-aid/scripts/onboard.sh`
+
 ### Code Quality
 - **♻️ DRY Improvements**: Eliminated 158 lines of duplicate code in API clients
 - **🎨 Decorator Pattern**: New `@track_api_call` for centralized error handling and timing
@@ -222,7 +256,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 
 **See full changelog:** [CHANGELOG.md](./.dev-aid/CHANGELOG.md)
 
-**Issues resolved:** #17-24, #26-28, #31-36
+**Issues resolved:** #17-24, #26-28, #31-42 (26 total issues)
 
 ---
 

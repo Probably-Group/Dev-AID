@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Security Tools
         run: |
-          pip install checkov opengrep
+          pip install checkov semgrep
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
@@ -44,12 +44,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Opengrep (SAST)
-        id: opengrep
+      - name: Run Semgrep (SAST)
+        id: semgrep
         continue-on-error: true
         run: |
-          opengrep scan --config=auto --sarif --output=opengrep.sarif .
-          opengrep scan --config=auto --json --output=opengrep.json .
+          semgrep scan --config=auto --sarif --output=semgrep.sarif .
+          semgrep scan --config=auto --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning - JSON)
         uses: aquasecurity/trivy-action@master
@@ -125,10 +125,10 @@ jobs:
             fi
           fi
 
-          # Opengrep
-          if [ -f "opengrep.json" ]; then
-            FINDINGS=$(jq '.results | length' opengrep.json)
-            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          # Semgrep
+          if [ -f "semgrep.json" ]; then
+            FINDINGS=$(jq '.results | length' semgrep.json)
+            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Trivy
@@ -160,9 +160,9 @@ jobs:
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Opengrep for ERROR severity
-          if [ -f "opengrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+          # Check Semgrep for ERROR severity
+          if [ -f "semgrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
             if [ "$CRITICAL" -gt 0 ]; then
               echo "❌ $CRITICAL critical code vulnerabilities!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))

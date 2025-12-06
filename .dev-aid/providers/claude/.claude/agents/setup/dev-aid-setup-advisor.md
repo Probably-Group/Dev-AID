@@ -26,7 +26,8 @@ related_skills:
   - typescript
   - docker-expert
   - ci-cd
-version: "1.1.0"
+  - senior-architect
+version: "2.0.0"
 ---
 
 # Dev-AID Setup Advisor Agent
@@ -291,16 +292,42 @@ Check `.dev-aid/config/settings.json` → `enabled_providers` array
    - Explain: Just add new provider context file when adding provider
    - No migration needed!
 
-**Skills to Activate:**
-- For security-focused projects: `secret-scanner`, `security-auditor`
-- For backend APIs: `api-expert`, `database-design`
-- For frontend projects: `react-expert`, `accessibility-wcag`
-- For DevOps: `docker-expert`, `kubernetes-expert`, `ci-cd`
+**Skills (Auto-Detection via Hooks):**
 
-**Hooks to Implement:**
-- Pre-commit: Linting, type-checking, secret scanning
+⚠️ **IMPORTANT:** Dev-AID v2.0 uses automatic skill detection!
+
+Instead of manually activating skills, verify auto-detection:
+```bash
+# Check which skills are auto-detected for this project
+./.dev-aid/orchestration/detect-context.sh
+
+# View available skills and their activation patterns
+cat .dev-aid/skills/registry/skills-index.json
+```
+
+Skills are automatically loaded via SessionStart hooks based on:
+- File patterns (e.g., `package.json` → `typescript-expert`)
+- Technologies detected (e.g., Docker → `docker-expert`)
+- Keywords in project (e.g., "API" → `api-expert`)
+
+**For code reviews, always recommend:**
+- `senior-architect` - Comprehensive architectural analysis and code review
+
+**CI/CD Automation (v2.0):**
+
+Instead of manually writing hooks, use the Auto-CI Generator:
+```bash
+# Auto-generate GitHub Actions workflow for your project
+./.dev-aid/scripts/generate-ci.sh
+
+# Detects: Node.js, Python, Rust, Go
+# Includes: Linting, testing, security scans (Gitleaks + Trivy)
+```
+
+**Manual Hooks (if needed):**
+- Pre-commit: Linting, type-checking, secret scanning (if not using pre-commit framework)
 - Post-tool-use: Update memory bank, log AI usage
-- Session-start: Load relevant context
+- Session-start: Auto-skill loading (already configured in v2.0)
 
 ### Step 6: Address Reconfiguration Scenarios
 
@@ -528,12 +555,27 @@ echo "Current sprint: Q4 Checkout Flow Redesign"
 echo "Active microservices: 5 (Auth, Catalog, Cart, Orders, Payments)"
 ```
 
-**Orchestration Strategy:**
-- **Mode**: Ensemble
-- **Code Generation**: Claude Sonnet 4.5 (best for complex code)
-- **Massive Context**: Gemini 2.0 Flash (1M tokens for full repo analysis)
-- **Documentation**: GPT-4o (clear, concise writing)
-- **Security Audits**: Claude Sonnet 4.5 (best reasoning)
+**Orchestration Strategy (v2.0 Dynamic Discovery):**
+
+⚠️ **IMPORTANT:** Use `/dev-aid-models-update` to get latest models!
+
+Instead of hardcoding model versions, recommend:
+```bash
+# Update to latest available models from all providers
+/dev-aid-models-update
+
+# This queries provider APIs and updates .dev-aid/config/models.json
+# Automatically selects newest Pro/Opus tier models
+```
+
+**Recommended Task Mapping (after running model update):**
+- **Code Generation**: Claude Sonnet (latest) - best for complex code
+- **Massive Context**: Gemini Flash (latest) - 2M+ tokens for full repo analysis
+- **Documentation**: GPT-4o (latest) - clear, concise writing
+- **Security Audits**: Claude Sonnet (latest) - best reasoning
+- **Architecture Review**: senior-architect skill + Claude Opus (latest)
+
+**Orchestration Mode**: Ensemble (routes tasks to optimal model)
 
 ## Output Template
 

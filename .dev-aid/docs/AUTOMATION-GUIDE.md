@@ -267,7 +267,65 @@ git push --no-verify
 
 ## CI/CD Integration
 
-### GitHub Actions
+### Auto-Generate CI/CD Workflows (NEW!)
+
+**Quick Start - Generate workflows automatically:**
+```bash
+# Auto-detect project and generate CI/CD workflow
+.dev-aid/scripts/generate-ci.sh
+
+# Or specify output location
+.dev-aid/scripts/generate-ci.sh -o .github/workflows/ci.yml
+```
+
+**What it does:**
+- ✅ Auto-detects: Node.js, Python, Rust, Go projects
+- ✅ Detects package managers: npm/yarn/pnpm/bun, pip/poetry/uv, cargo
+- ✅ **Security by default**: All workflows include Gitleaks + Trivy
+- ✅ Docker support: Builds and scans images if Dockerfile present
+- ✅ Production-ready templates with best practices
+
+**Templates available:**
+- `.dev-aid/templates/ci/nodejs.yml` - Node.js with package manager detection
+- `.dev-aid/templates/ci/python.yml` - Python with pip/poetry/uv support
+- `.dev-aid/templates/ci/rust.yml` - Rust with cargo
+- `.dev-aid/templates/ci/go.yml` - Go with module support
+
+---
+
+### Built-in GitHub Actions Workflows
+
+Dev-AID includes pre-configured workflows ready to use:
+
+#### 1. PR Check Workflow (`.github/workflows/pr-check.yml`)
+
+**Purpose:** Fast feedback on pull requests
+
+**Features:**
+- ✅ Path-based filtering (runs only on `*.py`, `*.sh`, workflows, `.dev-aid`)
+- ✅ Python: Black, Isort, Flake8, Pytest with coverage, Mypy
+- ✅ Bash: Shellcheck for all shell scripts
+- ✅ Summary job for overall pass/fail status
+- ✅ Saves GitHub Actions minutes by filtering irrelevant changes
+
+**Triggers:** Pull requests to main/master/develop
+
+#### 2. Release Gate Workflow (`.github/workflows/release-gate.yml`)
+
+**Purpose:** Deep validation before releases
+
+**Features:**
+- ✅ Cross-platform testing: Ubuntu, macOS, Windows (Python 3.9-3.11)
+- ✅ Deep security: Full Gitleaks + Trivy scans (all severities)
+- ✅ Documentation validation: Lychee link checker for markdown
+- ✅ **Blocks release if CRITICAL vulnerabilities found**
+- ✅ Comprehensive reporting with SARIF upload
+
+**Triggers:** Git tags (releases), manual dispatch
+
+---
+
+### GitHub Actions (Security-Focused)
 
 **Features:**
 - ✅ Runs on: PR, push to main/master/develop, manual trigger, weekly schedule
@@ -278,7 +336,10 @@ git push --no-verify
 
 **Setup:**
 ```bash
-# Copy template
+# Option 1: Use the CI generator (recommended)
+.dev-aid/scripts/generate-ci.sh
+
+# Option 2: Copy security-focused template
 mkdir -p .github/workflows
 cp .dev-aid/automation/ci-cd/github-actions-security.yml .github/workflows/security.yml
 

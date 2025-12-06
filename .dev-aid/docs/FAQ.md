@@ -364,6 +364,53 @@ git pull
 
 ---
 
+## 🛠️ Productivity Tools
+
+### Q: What developer productivity tools does Dev-AID provide?
+
+**A: Dev-AID includes 7 standalone utility scripts for common development tasks:**
+
+**CI/CD Automation:**
+- **`generate-ci.sh`** - Auto-generate GitHub Actions workflows from project detection
+  - Detects: Node.js, Python, Rust, Go with package managers
+  - Security by default (Gitleaks + Trivy included)
+  - Usage: `.dev-aid/scripts/generate-ci.sh`
+
+**Architecture & Visualization:**
+- **`map-architecture.sh`** - Generate Mermaid.js diagrams from codebase
+  - Creates: Class diagrams, dependency graphs, C4 component diagrams
+  - Supports: Python (AST), TypeScript/JavaScript (regex)
+  - Usage: `.dev-aid/scripts/map-architecture.sh`
+
+**Testing & Data:**
+- **`fabricate-data.sh`** - Generate realistic mock test data
+  - Supports: JSON Schema, Pydantic models, TypeScript interfaces
+  - Formats: JSON, CSV, SQL INSERT statements
+  - Usage: `.dev-aid/scripts/fabricate-data.sh schema.json -c 100 -f csv`
+
+**Documentation:**
+- **`sync-docs.sh`** - Detect documentation drift
+  - Checks: Package manager commands, scripts, Docker ports
+  - Compares: README vs package.json, pyproject.toml, Dockerfile
+  - Usage: `.dev-aid/scripts/sync-docs.sh`
+
+**Developer Experience:**
+- **`dev-aid-guide.sh`** - Interactive feature discovery menu
+  - Usage: `.dev-aid/scripts/dev-aid-guide.sh`
+- **`draft-pr.sh`** - Generate PR descriptions from git diff
+  - Usage: `.dev-aid/scripts/draft-pr.sh > pr-description.md`
+- **`onboard.sh`** - New developer onboarding assistant
+  - Usage: `.dev-aid/scripts/onboard.sh`
+
+**All scripts are:**
+- ✅ Ready to use (no configuration needed)
+- ✅ Standalone (can be copied to other projects)
+- ✅ Well-documented with `--help` options
+
+[Full details: COMMANDS-REFERENCE.md](./COMMANDS-REFERENCE.md#-utility-scripts)
+
+---
+
 ## 💰 Cost
 
 ### Q: What's the total cost to use Dev-AID?

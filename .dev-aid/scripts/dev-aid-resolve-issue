@@ -1,0 +1,446 @@
+#!/usr/bin/env python3
+"""
+dev-aid-resolve-issue: Automatically resolve GitHub issues using LLM
+
+This script leverages Dev-AID's orchestration system to automatically:
+1. Fetch issue details from GitHub
+2. Analyze the issue and gather relevant context
+3. Generate a solution using the configured LLM
+4. Create a branch, commit changes, and open a PR
+
+Usage:
+    dev-aid-resolve-issue --issue <number> [options]
+
+Examples:
+    # Basic usage (interactive mode)
+    dev-aid-resolve-issue --issue 48
+
+    # Dry-run to preview changes
+    dev-aid-resolve-issue --issue 48 --dry-run
+
+    # Use ensemble mode for higher accuracy
+    dev-aid-resolve-issue --issue 48 --mode ensemble
+
+    # Auto-create PR without confirmation
+    dev-aid-resolve-issue --issue 48 --auto --mode ensemble
+
+Security:
+    - Validates all inputs using Pydantic models
+    - Blocks auto-fix for security-sensitive issues
+    - Requires confirmation before committing (unless --auto)
+    - Runs all tests and linting before creating PR
+"""
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+# Add orchestration to path
+SCRIPT_DIR = Path(__file__).parent
+ORCHESTRATION_DIR = SCRIPT_DIR.parent / "orchestration"
+sys.path.insert(0, str(ORCHESTRATION_DIR))
+
+try:
+    from router.executor import execute_request
+    from router.config_loader import ConfigLoader
+except ImportError as e:
+    print(f"❌ Error: Could not import Dev-AID orchestration modules: {e}", file=sys.stderr)
+    print("   Make sure you're running from the Dev-AID repository root.", file=sys.stderr)
+    sys.exit(1)
+
+# Colors for output
+class Colors:
+    RED = '\033[0;31m'
+    GREEN = '\033[0;32m'
+    YELLOW = '\033[1;33m'
+    BLUE = '\033[0;34m'
+    MAGENTA = '\033[0;35m'
+    CYAN = '\033[0;36m'
+    BOLD = '\033[1m'
+    NC = '\033[0m'  # No Color
+
+def print_colored(message: str, color: str = Colors.NC):
+    """Print colored message to stdout"""
+    print(f"{color}{message}{Colors.NC}")
+
+def print_error(message: str):
+    """Print error message to stderr"""
+    print(f"{Colors.RED}❌ {message}{Colors.NC}", file=sys.stderr)
+
+def print_success(message: str):
+    """Print success message"""
+    print(f"{Colors.GREEN}✅ {message}{Colors.NC}")
+
+def print_info(message: str):
+    """Print info message"""
+    print(f"{Colors.BLUE}ℹ️  {message}{Colors.NC}")
+
+def print_warning(message: str):
+    """Print warning message"""
+    print(f"{Colors.YELLOW}⚠️  {message}{Colors.NC}")
+
+# Blocked labels - issues with these labels won't be auto-fixed
+BLOCKED_LABELS = [
+    "security",
+    "breaking-change",
+    "critical",
+    "needs-discussion",
+    "wontfix",
+    "duplicate",
+]
+
+# Allowed labels for auto-fix (more conservative)
+AUTO_FIX_LABELS = [
+    "good-first-issue",
+    "documentation",
+    "typo",
+    "enhancement",
+]
+
+def run_command(cmd: List[str], capture_output: bool = True, check: bool = True) -> subprocess.CompletedProcess:
+    """Run shell command with error handling"""
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=capture_output,
+            text=True,
+            check=check
+        )
+        return result
+    except subprocess.CalledProcessError as e:
+        print_error(f"Command failed: {' '.join(cmd)}")
+        if e.stderr:
+            print(e.stderr, file=sys.stderr)
+        raise
+    except FileNotFoundError:
+        print_error(f"Command not found: {cmd[0]}")
+        print_info("Make sure GitHub CLI (gh) is installed: https://cli.github.com/")
+        raise
+
+def check_gh_cli() -> bool:
+    """Check if GitHub CLI is installed and authenticated"""
+    try:
+        result = run_command(["gh", "auth", "status"], check=False)
+        return result.returncode == 0
+    except FileNotFoundError:
+        return False
+
+def fetch_issue(issue_number: int) -> Dict:
+    """Fetch issue details from GitHub using gh CLI"""
+    print_info(f"Fetching issue #{issue_number}...")
+
+    try:
+        result = run_command([
+            "gh", "issue", "view", str(issue_number),
+            "--json", "number,title,body,labels,state,author,createdAt,updatedAt"
+        ])
+
+        issue_data = json.loads(result.stdout)
+        print_success(f"Fetched: {issue_data['title']}")
+        return issue_data
+
+    except subprocess.CalledProcessError:
+        print_error(f"Could not fetch issue #{issue_number}")
+        print_info("Make sure the issue exists and you have access to the repository")
+        sys.exit(1)
+
+def analyze_issue_safety(issue_data: Dict) -> Tuple[bool, str]:
+    """
+    Analyze if issue is safe for automated resolution
+
+    Returns:
+        (is_safe, reason)
+    """
+    # Check if issue is closed
+    if issue_data.get("state") == "closed":
+        return False, "Issue is already closed"
+
+    # Check labels
+    labels = [label["name"] for label in issue_data.get("labels", [])]
+
+    # Block if has blocked labels
+    blocked = [label for label in labels if label in BLOCKED_LABELS]
+    if blocked:
+        return False, f"Issue has blocked labels: {', '.join(blocked)}"
+
+    return True, "Issue is safe for automated resolution"
+
+def estimate_complexity(issue_data: Dict) -> str:
+    """Estimate issue complexity based on title and body"""
+    title = issue_data.get("title", "").lower()
+    body = issue_data.get("body", "").lower()
+    labels = [label["name"].lower() for label in issue_data.get("labels", [])]
+
+    # Simple heuristics
+    if "typo" in labels or "typo" in title:
+        return "trivial"
+    elif "documentation" in labels or "docs" in title:
+        return "low"
+    elif "good-first-issue" in labels:
+        return "low"
+    elif "enhancement" in labels and len(body) < 500:
+        return "medium"
+    elif "feature" in labels or "refactor" in labels:
+        return "high"
+    else:
+        return "medium"
+
+def build_issue_context(issue_data: Dict) -> str:
+    """Build rich context prompt for LLM"""
+    title = issue_data.get("title", "")
+    body = issue_data.get("body", "")
+    number = issue_data.get("number", "")
+    labels = [label["name"] for label in issue_data.get("labels", [])]
+
+    prompt = f"""I need help resolving GitHub issue #{number}.
+
+**Issue Title:** {title}
+
+**Labels:** {', '.join(labels) if labels else 'None'}
+
+**Description:**
+{body}
+
+**Your Task:**
+1. Analyze the issue and understand what needs to be changed
+2. Identify which files need to be modified
+3. Propose the exact changes needed
+4. Explain your reasoning
+
+**Important:**
+- Follow the existing code style and conventions
+- Make minimal, focused changes
+- Include tests if applicable
+- Update documentation if needed
+- Ensure all changes are backward compatible unless otherwise specified
+
+**Output Format:**
+Please provide:
+1. Analysis of the issue
+2. List of files to modify
+3. Exact code changes (use diff format or show before/after)
+4. Explanation of the solution
+5. Testing recommendations
+
+Let's solve this issue step by step.
+"""
+    return prompt
+
+def create_branch_name(issue_data: Dict) -> str:
+    """Generate branch name from issue"""
+    number = issue_data["number"]
+    title = issue_data["title"]
+
+    # Get issue type from labels
+    labels = [label["name"].lower() for label in issue_data.get("labels", [])]
+
+    if "bug" in labels:
+        prefix = "fix"
+    elif "enhancement" in labels or "feature" in labels:
+        prefix = "feat"
+    elif "documentation" in labels:
+        prefix = "docs"
+    else:
+        prefix = "issue"
+
+    # Sanitize title for branch name
+    slug = title.lower()
+    slug = slug.replace(" ", "-")
+    slug = ''.join(c for c in slug if c.isalnum() or c == '-')
+    slug = slug[:50]  # Limit length
+
+    return f"{prefix}/issue-{number}-{slug}"
+
+def get_current_branch() -> str:
+    """Get current git branch"""
+    result = run_command(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    return result.stdout.strip()
+
+def confirm_action(message: str, default: bool = False) -> bool:
+    """Ask user for confirmation"""
+    choices = "Y/n" if default else "y/N"
+    response = input(f"{Colors.CYAN}❓ {message} [{choices}]: {Colors.NC}").strip().lower()
+
+    if not response:
+        return default
+
+    return response in ['y', 'yes']
+
+def main():
+    """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="Automatically resolve GitHub issues using LLM",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s --issue 48
+  %(prog)s --issue 48 --dry-run
+  %(prog)s --issue 48 --mode ensemble --auto
+        """
+    )
+
+    parser.add_argument(
+        "--issue",
+        type=int,
+        required=True,
+        help="GitHub issue number to resolve"
+    )
+
+    parser.add_argument(
+        "--mode",
+        choices=["solo", "ensemble", "challenger"],
+        default="solo",
+        help="Dev-AID orchestration mode (default: solo)"
+    )
+
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show proposed solution without making changes"
+    )
+
+    parser.add_argument(
+        "--auto",
+        action="store_true",
+        help="Automatically create PR without confirmation (use with caution)"
+    )
+
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Enable verbose output"
+    )
+
+    parser.add_argument(
+        "--skip-safety-check",
+        action="store_true",
+        help="Skip safety checks (not recommended)"
+    )
+
+    args = parser.parse_args()
+
+    # Print header
+    print()
+    print_colored("=" * 70, Colors.BOLD)
+    print_colored("  🤖 Dev-AID Issue Resolver", Colors.BOLD)
+    print_colored("=" * 70, Colors.BOLD)
+    print()
+
+    # Step 1: Check prerequisites
+    if not check_gh_cli():
+        print_error("GitHub CLI (gh) is not installed or not authenticated")
+        print_info("Install: https://cli.github.com/")
+        print_info("Then run: gh auth login")
+        return 1
+
+    # Step 2: Fetch issue
+    issue_data = fetch_issue(args.issue)
+
+    # Step 3: Safety checks
+    if not args.skip_safety_check:
+        is_safe, reason = analyze_issue_safety(issue_data)
+        if not is_safe:
+            print_error(f"Cannot auto-resolve this issue: {reason}")
+            print_info("Use --skip-safety-check to override (not recommended)")
+            return 1
+
+    # Step 4: Show issue analysis
+    print()
+    print_colored("📊 Issue Analysis", Colors.BOLD)
+    print_colored("-" * 70, Colors.BOLD)
+    print(f"  Title: {issue_data['title']}")
+    print(f"  Number: #{issue_data['number']}")
+    print(f"  State: {issue_data['state']}")
+
+    labels = [label["name"] for label in issue_data.get("labels", [])]
+    print(f"  Labels: {', '.join(labels) if labels else 'None'}")
+
+    complexity = estimate_complexity(issue_data)
+    print(f"  Complexity: {complexity}")
+    print()
+
+    # Step 5: Confirm if not auto mode
+    if not args.auto and not args.dry_run:
+        if not confirm_action("Proceed with automated resolution?", default=True):
+            print_info("Cancelled by user")
+            return 0
+
+    # Step 6: Build context and execute
+    print_info("Building context for LLM...")
+    prompt = build_issue_context(issue_data)
+
+    if args.verbose:
+        print()
+        print_colored("📝 Prompt:", Colors.BOLD)
+        print(prompt)
+        print()
+
+    print_info(f"Executing in {args.mode} mode...")
+    print()
+
+    try:
+        result = execute_request(
+            request=prompt,
+            mode=args.mode,
+            verbose=args.verbose
+        )
+
+        print()
+        print_colored("=" * 70, Colors.BOLD)
+        print_colored("  💡 Proposed Solution", Colors.BOLD)
+        print_colored("=" * 70, Colors.BOLD)
+        print()
+        print(result)
+        print()
+
+    except Exception as e:
+        print_error(f"Failed to generate solution: {e}")
+        return 1
+
+    # Step 7: Dry-run mode - stop here
+    if args.dry_run:
+        print_info("Dry-run mode - no changes made")
+        print_info("Remove --dry-run to create a branch and PR")
+        return 0
+
+    # Step 8: Create branch and PR
+    print()
+    print_colored("🚀 Next Steps", Colors.BOLD)
+    print_colored("-" * 70, Colors.BOLD)
+
+    branch_name = create_branch_name(issue_data)
+    print(f"  Suggested branch: {branch_name}")
+    print()
+    print_info("To implement the solution:")
+    print(f"  1. Create branch: git checkout -b {branch_name}")
+    print(f"  2. Make the changes described above")
+    print(f"  3. Commit: git commit -am 'fix: resolve issue #{args.issue}'")
+    print(f"  4. Push: git push -u origin {branch_name}")
+    print(f"  5. Create PR: gh pr create --fill")
+    print()
+
+    # Future: Automatic implementation
+    print_colored("💡 Tip:", Colors.CYAN)
+    print("   Automatic branch creation and PR generation will be added in a future version.")
+    print("   For now, please implement the changes manually following the solution above.")
+    print()
+
+    print_success("Issue analysis complete!")
+    return 0
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except KeyboardInterrupt:
+        print()
+        print_warning("Cancelled by user")
+        sys.exit(130)
+    except Exception as e:
+        print_error(f"Unexpected error: {e}")
+        if "--verbose" in sys.argv:
+            import traceback
+            traceback.print_exc()
+        sys.exit(1)

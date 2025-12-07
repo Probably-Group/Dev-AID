@@ -1,13 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from router.validators import (
-    CostLimit,
-    ExecuteRequest,
-    ModelConfig,
-    SafePath,
-    SubprocessCommand,
-)
+from router.validators import CostLimit, ExecuteRequest, ModelConfig, SafePath, SubprocessCommand
 
 
 class TestExecuteRequest:

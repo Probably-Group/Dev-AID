@@ -1,0 +1,180 @@
+name: Auto-Triage Issues
+
+# Automatically analyze and label new issues using Dev-AID orchestration
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to analyze'
+        required: true
+        type: number
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    name: Analyze and Label Issue
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dev-AID dependencies
+        run: |
+          pip install -r .dev-aid/orchestration/requirements.txt
+
+      - name: Analyze issue
+        id: analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
+
+          # Fetch issue details
+          ISSUE_DATA=$(gh issue view $ISSUE_NUM --json title,body,labels)
+          TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
+          BODY=$(echo "$ISSUE_DATA" | jq -r '.body // ""')
+          CURRENT_LABELS=$(echo "$ISSUE_DATA" | jq -r '.labels[].name' | tr '\n' ',' | sed 's/,$//')
+
+          # Estimate complexity
+          COMPLEXITY="medium"
+          if echo "$TITLE $BODY" | grep -qi "typo"; then
+            COMPLEXITY="trivial"
+          elif echo "$CURRENT_LABELS" | grep -q "good-first-issue"; then
+            COMPLEXITY="low"
+          elif echo "$CURRENT_LABELS" | grep -q "feature"; then
+            COMPLEXITY="high"
+          fi
+
+          # Suggest labels based on content
+          SUGGESTED_LABELS=""
+
+          if echo "$TITLE $BODY" | grep -qi "bug\|error\|fail\|broken"; then
+            SUGGESTED_LABELS="$SUGGESTED_LABELS,bug"
+          fi
+
+          if echo "$TITLE $BODY" | grep -qi "feature\|add\|implement"; then
+            SUGGESTED_LABELS="$SUGGESTED_LABELS,enhancement"
+          fi
+
+          if echo "$TITLE $BODY" | grep -qi "doc\|readme\|guide"; then
+            SUGGESTED_LABELS="$SUGGESTED_LABELS,documentation"
+          fi
+
+          if echo "$TITLE $BODY" | grep -qi "security\|vuln\|cve"; then
+            SUGGESTED_LABELS="$SUGGESTED_LABELS,security"
+          fi
+
+          if echo "$TITLE $BODY" | grep -qi "performance\|slow\|optimize"; then
+            SUGGESTED_LABELS="$SUGGESTED_LABELS,performance"
+          fi
+
+          # Clean up labels
+          SUGGESTED_LABELS=$(echo "$SUGGESTED_LABELS" | sed 's/^,//' | sed 's/,,*/,/g')
+
+          # Export for next steps
+          echo "complexity=$COMPLEXITY" >> $GITHUB_OUTPUT
+          echo "suggested_labels=$SUGGESTED_LABELS" >> $GITHUB_OUTPUT
+
+      - name: Add complexity comment
+        if: steps.analyze.outputs.complexity != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const complexity = '${{ steps.analyze.outputs.complexity }}';
+            const suggestedLabels = '${{ steps.analyze.outputs.suggested_labels }}'.split(',').filter(l => l);
+
+            const complexityEmoji = {
+              'trivial': '🟢',
+              'low': '🟡',
+              'medium': '🟠',
+              'high': '🔴'
+            };
+
+            let body = `🤖 **Auto-Triage Analysis**\n\n`;
+            body += `**Estimated Complexity:** ${complexityEmoji[complexity] || '⚪'} ${complexity}\n\n`;
+
+            if (suggestedLabels.length > 0) {
+              body += `**Suggested Labels:** ${suggestedLabels.join(', ')}\n\n`;
+            }
+
+            body += `---\n`;
+            body += `*This analysis was generated automatically by Dev-AID.*\n`;
+            body += `*You can run \`dev-aid-resolve-issue --issue ${{ github.event.issue.number || inputs.issue_number }}\` to attempt automated resolution.*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Apply suggested labels
+        if: steps.analyze.outputs.suggested_labels != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const labels = '${{ steps.analyze.outputs.suggested_labels }}'
+              .split(',')
+              .filter(l => l.trim())
+              .map(l => l.trim());
+
+            if (labels.length > 0) {
+              await github.rest.issues.addLabels({
+                issue_number: context.issue.number || ${{ inputs.issue_number }},
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                labels: labels
+              });
+            }
+
+      - name: Check if auto-fixable
+        id: auto_fixable
+        run: |
+          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
+          LABELS=$(gh issue view $ISSUE_NUM --json labels -q '.labels[].name' | tr '\n' ' ')
+
+          # Check if issue has auto-fixable labels
+          AUTO_FIXABLE=false
+          if echo "$LABELS" | grep -q "good-first-issue\|typo\|documentation"; then
+            # But not if it has blocking labels
+            if ! echo "$LABELS" | grep -q "security\|breaking-change\|critical"; then
+              AUTO_FIXABLE=true
+            fi
+          fi
+
+          echo "auto_fixable=$AUTO_FIXABLE" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Suggest auto-fix
+        if: steps.auto_fixable.outputs.auto_fixable == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `💡 **Auto-Fix Available**\n\n` +
+              `This issue appears to be auto-fixable. You can:\n` +
+              `1. Run \`dev-aid-resolve-issue --issue ${{ github.event.issue.number || inputs.issue_number }}\` locally\n` +
+              `2. Wait for a maintainer to trigger automated resolution\n\n` +
+              `The automated fix will create a draft PR for review.`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

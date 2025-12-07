@@ -1,0 +1,238 @@
+# Dev-AID Automation Configuration
+# This file configures automated issue resolution, conflict resolution, and triage
+
+# Issue Automation Settings
+issue_automation:
+  # Enable/disable issue automation features
+  enabled: true
+
+  # Auto-fix settings
+  auto_fix:
+    # Enable automatic fixing of issues (disabled by default for safety)
+    enabled: false
+
+    # Labels that allow auto-fixing
+    allowed_labels:
+      - good-first-issue
+      - documentation
+      - typo
+      - auto-fix
+
+    # Labels that block auto-fixing
+    blocked_labels:
+      - security
+      - breaking-change
+      - critical
+      - needs-discussion
+      - wontfix
+      - duplicate
+
+    # Maximum number of files that can be changed
+    max_files: 5
+
+    # Require tests to exist and pass
+    require_tests: true
+
+    # Create PRs as drafts by default
+    create_draft_pr: true
+
+    # Default orchestration mode for auto-fix
+    # Options: solo (fast), ensemble (accurate), challenger (best)
+    default_mode: ensemble
+
+  # Triage settings
+  triage:
+    # Enable automatic triage and labeling
+    enabled: true
+
+    # Automatically apply labels based on issue content
+    auto_label: true
+
+    # Add complexity estimation comments
+    complexity_estimation: true
+
+    # Label mapping based on keywords
+    keyword_labels:
+      bug:
+        keywords: [bug, error, fail, broken, crash, exception]
+        label: bug
+      enhancement:
+        keywords: [feature, add, implement, enhance, improve]
+        label: enhancement
+      documentation:
+        keywords: [doc, readme, guide, documentation, typo]
+        label: documentation
+      security:
+        keywords: [security, vuln, cve, exploit, xss, injection]
+        label: security
+      performance:
+        keywords: [performance, slow, optimize, speed, faster]
+        label: performance
+
+# Conflict Resolution Settings
+conflict_resolution:
+  # Enable automatic conflict resolution
+  auto_resolve: false
+
+  # Conflict resolution strategy
+  # Options: smart (analyze both), ours (prefer current), theirs (prefer incoming)
+  strategy: smart
+
+  # Maximum number of conflicts to auto-resolve
+  max_conflicts: 5
+
+  # Maximum number of files with conflicts to auto-resolve
+  max_files: 3
+
+  # Require tests to pass after resolution
+  require_tests_pass: true
+
+  # Default orchestration mode for conflict resolution
+  # ensemble recommended for higher accuracy
+  default_mode: ensemble
+
+  # Notify on conflict resolution
+  notify:
+    enabled: true
+    # Add comment to PR when conflicts are resolved
+    comment: true
+    # Add label to PR
+    add_label: true
+    label_name: auto-resolved-conflicts
+
+# Orchestration Defaults
+orchestration:
+  # Default mode for all operations
+  default_mode: solo
+
+  # Mode overrides for specific operations
+  modes:
+    issue_resolution: ensemble
+    conflict_resolution: ensemble
+    triage: solo
+    analysis: solo
+
+  # Provider preferences (optional)
+  # If not specified, uses the default from router config
+  provider_preferences:
+    # Prefer certain providers for specific tasks
+    code_analysis: anthropic  # Claude is good at code analysis
+    creative_tasks: openai    # GPT-4 for creative tasks
+    fast_queries: google      # Gemini for quick responses
+
+# GitHub Actions Integration
+github_actions:
+  # Enable GitHub Actions workflows
+  enabled: true
+
+  # Auto-triage on new issues
+  auto_triage:
+    enabled: true
+    trigger_on:
+      - opened
+      - edited
+
+  # Auto-detect conflicts in PRs
+  conflict_detection:
+    enabled: true
+    trigger_on:
+      - opened
+      - synchronize
+      - reopened
+
+  # Auto-fix labeled issues
+  auto_fix_on_label:
+    enabled: false  # Disabled by default for safety
+    labels:
+      - approved-auto-fix
+
+# Git Hooks Integration
+git_hooks:
+  # Enable git hooks
+  enabled: true
+
+  # Post-merge hook for conflict detection
+  post_merge:
+    enabled: true
+    auto_resolve: false  # Set to true to auto-resolve conflicts
+
+  # Pre-commit hook enhancements
+  pre_commit:
+    enabled: true
+    # Auto-fix linting issues
+    auto_fix_lint: false
+
+# Safety Settings
+safety:
+  # Always require confirmation for destructive operations
+  require_confirmation: true
+
+  # Always run in dry-run mode first
+  dry_run_first: true
+
+  # Maximum retries for LLM requests
+  max_retries: 3
+
+  # Timeout for LLM requests (seconds)
+  request_timeout: 120
+
+  # Rate limiting
+  rate_limit:
+    # Maximum auto-fixes per day
+    max_auto_fixes_per_day: 10
+    # Maximum conflict resolutions per PR
+    max_conflict_resolutions_per_pr: 3
+
+# Logging and Monitoring
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: INFO
+
+  # Log LLM interactions
+  log_llm_requests: true
+
+  # Log file location
+  log_file: .dev-aid/logs/automation.log
+
+  # Audit trail
+  audit:
+    enabled: true
+    # Store all LLM prompts and responses
+    store_prompts: true
+    # Location for audit logs
+    audit_file: .dev-aid/logs/audit.log
+
+# Notification Settings
+notifications:
+  # Enable notifications
+  enabled: false
+
+  # Notification channels
+  channels:
+    # Slack webhook (if configured)
+    slack:
+      enabled: false
+      webhook_url: ${SLACK_WEBHOOK_URL}
+
+    # Email notifications (if configured)
+    email:
+      enabled: false
+      recipients: []
+
+    # GitHub comments (always enabled)
+    github:
+      enabled: true
+
+# Experimental Features
+experimental:
+  # Use AI to learn from past resolutions
+  learning:
+    enabled: false
+
+  # Generate test cases automatically
+  auto_test_generation:
+    enabled: false
+
+  # Advanced code analysis
+  advanced_analysis:
+    enabled: false

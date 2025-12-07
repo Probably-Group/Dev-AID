@@ -1,0 +1,217 @@
+name: Auto-Fix Simple Issues
+
+# Automatically attempt to fix issues with specific labels
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to auto-fix'
+        required: true
+        type: number
+      mode:
+        description: 'Orchestration mode (solo/ensemble/challenger)'
+        required: false
+        default: 'ensemble'
+        type: choice
+        options:
+          - solo
+          - ensemble
+          - challenger
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  auto-fix:
+    # Only run if issue has auto-fixable labels and no blocking labels
+    if: |
+      (github.event_name == 'workflow_dispatch') ||
+      (contains(github.event.label.name, 'auto-fix') ||
+       contains(github.event.label.name, 'good-first-issue') ||
+       contains(github.event.label.name, 'typo') ||
+       contains(github.event.label.name, 'documentation'))
+    runs-on: ubuntu-latest
+    name: Attempt Automated Fix
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dev-AID dependencies
+        run: |
+          pip install -r .dev-aid/orchestration/requirements.txt
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "dev-aid-bot"
+          git config --global user.email "dev-aid-bot@users.noreply.github.com"
+
+      - name: Check safety (block sensitive issues)
+        id: safety
+        run: |
+          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
+          LABELS=$(gh issue view $ISSUE_NUM --json labels -q '.labels[].name' | tr '\n' ' ')
+
+          # Check for blocking labels
+          if echo "$LABELS" | grep -qE "security|breaking-change|critical|needs-discussion"; then
+            echo "safe=false" >> $GITHUB_OUTPUT
+            echo "reason=Issue has blocking labels" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if issue is closed
+          STATE=$(gh issue view $ISSUE_NUM --json state -q '.state')
+          if [ "$STATE" = "CLOSED" ]; then
+            echo "safe=false" >> $GITHUB_OUTPUT
+            echo "reason=Issue is already closed" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "safe=true" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add safety check comment
+        if: steps.safety.outputs.safe == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const reason = '${{ steps.safety.outputs.reason }}';
+            const body = `🛡️ **Auto-Fix Safety Check**\n\n` +
+              `Cannot automatically fix this issue: ${reason}\n\n` +
+              `Manual resolution is required.`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Exit if not safe
+        if: steps.safety.outputs.safe == 'false'
+        run: |
+          echo "⚠️ Issue is not safe for auto-fix: ${{ steps.safety.outputs.reason }}"
+          exit 0
+
+      - name: Generate solution
+        id: solution
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
+          MODE=${{ inputs.mode || 'ensemble' }}
+
+          echo "🤖 Generating solution for issue #$ISSUE_NUM using $MODE mode..."
+
+          # Run dev-aid-resolve-issue in dry-run mode first
+          SOLUTION_OUTPUT=$(.dev-aid/scripts/dev-aid-resolve-issue \
+            --issue $ISSUE_NUM \
+            --mode $MODE \
+            --dry-run \
+            --verbose 2>&1 || true)
+
+          # Save solution for later steps
+          echo "$SOLUTION_OUTPUT" > solution.txt
+
+          # Check if solution was generated
+          if [ -s solution.txt ]; then
+            echo "generated=true" >> $GITHUB_OUTPUT
+          else
+            echo "generated=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add solution comment
+        if: steps.solution.outputs.generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const solution = fs.readFileSync('solution.txt', 'utf8');
+
+            // Extract the relevant parts (skip headers and tips)
+            const lines = solution.split('\n');
+            let relevantLines = [];
+            let capturing = false;
+
+            for (const line of lines) {
+              if (line.includes('💡 Proposed Solution')) {
+                capturing = true;
+                continue;
+              }
+              if (capturing) {
+                relevantLines.push(line);
+              }
+            }
+
+            const solutionText = relevantLines.join('\n').trim();
+
+            const body = `🤖 **Automated Solution Analysis**\n\n` +
+              `${solutionText}\n\n` +
+              `---\n\n` +
+              `**Next Steps:**\n` +
+              `- Review the proposed solution above\n` +
+              `- A draft PR will be created if this is approved\n` +
+              `- Add the \`approved-auto-fix\` label to proceed with PR creation\n\n` +
+              `*Generated by Dev-AID using ${{ inputs.mode || 'ensemble' }} mode*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Add analysis label
+        if: steps.solution.outputs.generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['auto-fix-analyzed']
+            });
+
+      - name: Handle failure
+        if: steps.solution.outputs.generated == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `⚠️ **Auto-Fix Failed**\n\n` +
+              `Could not generate an automated solution for this issue.\n\n` +
+              `This may be because:\n` +
+              `- The issue is too complex for automated resolution\n` +
+              `- More context or clarification is needed\n` +
+              `- The issue requires human judgment\n\n` +
+              `Manual resolution is recommended.`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['auto-fix-failed']
+            });

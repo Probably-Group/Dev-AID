@@ -1,19 +1,33 @@
 name: Dev-AID Security Scan
 
-# Comprehensive security scan for releases and post-merge validation
+# Comprehensive security scan for releases, version tags, and scheduled maintenance
+# Runs on: releases, version tags, manual trigger, and weekly schedule
 # For PR checks, see pr-check.yml (faster, lighter validation)
 on:
   push:
-    branches: [main, master]
     tags:
       - 'v*'  # Trigger on version tags (v1.0.0, v2.1.3, etc.)
+    # Only run on main/master when security-critical files change
+    branches: [main, master]
+    paths:
+      - '.github/workflows/security.yml'
+      - '**/requirements.txt'
+      - '**/package.json'
+      - '**/package-lock.json'
+      - '**/Gemfile'
+      - '**/Gemfile.lock'
+      - '**/go.mod'
+      - '**/go.sum'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.dev-aid/config/**'
   release:
     types: [published, created]
   # Allow manual triggers
   workflow_dispatch:
-  # Weekly scheduled scan
+  # Weekly scheduled scan (Monday at 2 AM UTC)
   schedule:
-    - cron: '0 2 * * 1'  # Every Monday at 2 AM UTC
+    - cron: '0 2 * * 1'
 
 jobs:
   security-scan:

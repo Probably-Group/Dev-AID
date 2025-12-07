@@ -12,6 +12,77 @@ model: claude-sonnet-4-5-20250929
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: Pipeline injection, Secret leakage, Supply chain compromise
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-9164** (CVSS 9.6): GitLab pipeline injection
+     Source: https://about.gitlab.com/releases/2024/09/11/
+   - **CI-SUPPLY-CHAIN** (CVSS 9.0): CI/CD supply chain attacks
+     Source: https://slsa.dev/
+   - **SECRETS-LEAKAGE** (CVSS 8.8): Secrets exposure in CI logs
+     Source: https://owasp.org/
+
+**Step 3: Common Attack Patterns**
+
+   - Pipeline injection
+   - Secret leakage
+   - Supply chain compromise
+   - Artifact tampering
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER log secrets
+- ❌ NEVER skip pipeline validation
+- ❌ ALWAYS use secret scanning
+- ❌ ALWAYS sign artifacts
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any CI/CD pipeline code**
 
 ### Verification Requirements

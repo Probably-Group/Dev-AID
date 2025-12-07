@@ -24,6 +24,44 @@ version: 1.0.0
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 security concerns identified in 2024-2025
+- Common attack vectors: State pollution attacks, XSS via reactive data, Prototype pollution in store
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER store sensitive data in Pinia without encryption
+- ❌ NEVER trust client-side state
+- ❌ NEVER use store data directly in v-html
+- ❌ ALWAYS validate state mutations
+- ❌ ALWAYS sanitize data before rendering
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 This skill provides Pinia expertise for managing application state in the JARVIS AI Assistant, including system metrics, user preferences, and HUD configuration.

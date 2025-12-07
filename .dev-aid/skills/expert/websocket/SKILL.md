@@ -20,6 +20,77 @@ risk_level: HIGH
 ---
 
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Authentication bypass via upgrade header manipulation, Message flooding for DoS, Cross-site WebSocket hijacking (CSWSH)
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-55591** (CVSS 9.6): ws library - Authentication bypass via upgrade request manipulation
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-55591
+   - **CVE-2025-52882** (CVSS 8.8): socket.io - Remote code execution via deserialization
+     Source: https://github.com/socketio/socket.io/security/advisories
+   - **CVE-2024-47764** (CVSS 7.5): WebSocket message flooding DoS
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-47764
+
+**Step 3: Common Attack Patterns**
+
+   - Authentication bypass via upgrade header manipulation
+   - Message flooding for DoS
+   - Cross-site WebSocket hijacking (CSWSH)
+   - Deserialization attacks
+   - Origin validation bypass
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER skip origin validation
+- ❌ NEVER trust client-side connection state
+- ❌ NEVER deserialize untrusted message payloads
+- ❌ ALWAYS implement per-connection rate limiting
+- ❌ ALWAYS use secure WebSocket (wss://) in production
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
 ### 0.4 Progressive Disclosure (500-Line Limit)
 
 **⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.

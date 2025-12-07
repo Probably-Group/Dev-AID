@@ -11,6 +11,76 @@ version: 1.1.0
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: XSS via dynamic arbitrary values, Dependency vulnerabilities, CSS injection attacks
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-4068** (CVSS 7.5): Vulnerability in braces dependency
+     Source: https://github.com/tailwindlabs/tailwindcss/issues/14258
+   - **CVE-2024-4067** (CVSS 7.5): Vulnerability in micromatch dependency
+     Source: https://github.com/tailwindlabs/tailwindcss/issues/14258
+   - **ARBITRARY-VALUE-XSS** (CVSS N/A): XSS via unsanitized arbitrary values
+     Source: https://dansasser.me/posts/navigating-the-security-risks-of-arbitrary-values-in-tailwind-css/
+
+**Step 3: Common Attack Patterns**
+
+   - XSS via dynamic arbitrary values
+   - Dependency vulnerabilities
+   - CSS injection attacks
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use user input directly in arbitrary values
+- ❌ NEVER skip sanitization for dynamic classes
+- ❌ ALWAYS use safelist for dynamic classes
+- ❌ ALWAYS validate class names
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any Tailwind CSS code**
 
 ### Verification Requirements

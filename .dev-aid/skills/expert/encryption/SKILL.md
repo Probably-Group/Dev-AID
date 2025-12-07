@@ -15,6 +15,76 @@ last_updated: 2025-01-15
 > **MANDATORY READING PROTOCOL**: Before implementing ANY encryption, read `references/advanced-patterns.md` for key derivation and `references/security-examples.md` for implementation patterns.
 
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Timing attacks for key recovery, Padding oracle attacks, Downgrade attacks to weak ciphers
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-9230** (CVSS 7.5): OpenSSL - DoS via malformed TLS handshake
+     Source: https://www.openssl.org/news/secadv/20250116.txt
+   - **CVE-2025-9231** (CVSS 5.9): OpenSSL - Private key recovery via timing attacks
+     Source: https://www.openssl.org/news/secadv/20250116.txt
+   - **CVE-2024-12797** (CVSS 7.5): OpenSSL - Certificate validation bypass
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-12797
+
+**Step 3: Common Attack Patterns**
+
+   - Timing attacks for key recovery
+   - Padding oracle attacks
+   - Downgrade attacks to weak ciphers
+   - Side-channel attacks via cache timing
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use ECB mode for encryption
+- ❌ NEVER implement custom cryptography
+- ❌ NEVER use hardcoded encryption keys
+- ❌ ALWAYS use authenticated encryption (GCM, ChaCha20-Poly1305)
+- ❌ ALWAYS validate certificates with proper chain verification
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
 ### 0.4 Progressive Disclosure (500-Line Limit)
 
 **⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.

@@ -37,6 +37,77 @@ model: claude-sonnet-4-5-20250929
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: Memory corruption via SQLite bugs, Weak encryption due to OpenSSL CVEs, Key extraction via side-channels
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-6965** (CVSS 9.8): SQLite memory corruption affecting SQLCipher < 4.9.0
+     Source: https://www.zetetic.net/blog/2025/05/15/sqlcipher-4.9.0-release-security-update/
+   - **CVE-2025-0306** (CVSS 7.5): OpenSSL vulnerability in SQLCipher 4.6.1
+     Source: https://discuss.zetetic.net/t/new-vulnerability-detected-in-openssl/6877
+   - **CVE-2024-13176** (CVSS 7.3): OpenSSL vulnerability in SQLCipher dependencies
+     Source: https://discuss.zetetic.net/t/new-vulnerabilities-in-openssl/6530
+
+**Step 3: Common Attack Patterns**
+
+   - Memory corruption via SQLite bugs
+   - Weak encryption due to OpenSSL CVEs
+   - Key extraction via side-channels
+   - Malicious schema exploitation
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use SQLCipher < 4.9.0
+- ❌ NEVER store encryption keys in code
+- ❌ NEVER allow untrusted schema modifications
+- ❌ ALWAYS use latest OpenSSL
+- ❌ ALWAYS validate database integrity before decryption
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level: HIGH**

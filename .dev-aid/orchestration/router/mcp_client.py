@@ -7,6 +7,7 @@ and execute tools for enhanced context gathering.
 
 import asyncio
 import json
+import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
@@ -99,7 +100,7 @@ class MCPClient:
 
             return True
 
-        except except Exception::
+        except Exception as e:
             print(f"Failed to connect to MCP server {self.config.name}: {e}")
             return False
 
@@ -243,7 +244,3 @@ class MCPClientPool:
         for client in self.clients.values():
             await client.disconnect()
         self.clients.clear()
-
-
-# Import os module that was missing
-import os

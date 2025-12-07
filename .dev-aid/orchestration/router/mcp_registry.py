@@ -10,6 +10,7 @@ Discovers MCP servers from:
 import json
 import os
 import subprocess
+from dataclasses import dataclass
 from typing import Dict, List, Optional
 
 
@@ -111,7 +112,7 @@ class MCPRegistry:
                                 capabilities=self._infer_capabilities(name),
                             )
 
-        except (subprocess.TimeoutExpired, FileNotFoundError, Exception) as e:
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
             # Claude CLI not available, try reading config directly
             config = self._read_claude_config()
             if config:
@@ -170,7 +171,7 @@ class MCPRegistry:
                         capabilities=self._infer_capabilities(name),
                     )
 
-            except Exception:
+            except Exception as e:
                 print(f"Failed to read Gemini config: {e}")
 
         return servers
@@ -302,7 +303,7 @@ class MCPRegistry:
                     if name in self.servers:
                         self.servers[name].enabled_for_router = saved_server.get("enabled", False)
 
-            except Exception:
+            except Exception as e:
                 print(f"Failed to load MCP config: {e}")
 
     def _save_config(self):

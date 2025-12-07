@@ -23,6 +23,78 @@ description: "Expert skill for integrating cloud AI APIs (Claude, GPT-4, Gemini)
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Security concerns in medium-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: SSRF to cloud metadata, Credential theft, IAM privilege escalation
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **SSRF** (CVSS 9.0): Server-Side Request Forgery
+     Source: https://owasp.org/www-community/attacks/Server_Side_Request_Forgery
+   - **CREDENTIAL-LEAKAGE** (CVSS 8.8): Cloud credential exposure
+     Source: https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures/
+   - **IAM-MISCONFIGURATION** (CVSS N/A): IAM overprivileged access
+     Source: https://owasp.org/www-project-top-10-for-large-language-model-applications/
+
+**Step 3: Common Attack Patterns**
+
+   - SSRF to cloud metadata
+   - Credential theft
+   - IAM privilege escalation
+   - API key leakage
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER hardcode cloud credentials
+- ❌ NEVER use overprivileged IAM roles
+- ❌ ALWAYS validate cloud API responses
+- ❌ ALWAYS use IMDSv2 for AWS
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Handles API credentials, processes untrusted prompts, network exposure, data privacy concerns

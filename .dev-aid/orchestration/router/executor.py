@@ -49,7 +49,7 @@ class RouterExecutor:
                 self.mcp_registry.discover_all()
                 self.mcp_pool = MCPClientPool()
                 # Pool will be populated when needed
-            except except Exception::
+            except Exception as e:
                 print(f"Warning: MCP initialization failed: {e}")
                 self.mcp_enabled = False
 
@@ -90,7 +90,7 @@ class RouterExecutor:
 
                 # Store MCP context for this request
                 kwargs["mcp_context"] = mcp_context
-            except except Exception::
+            except Exception as e:
                 print(f"Warning: MCP context gathering failed: {e}")
                 # Continue without MCP context
 
@@ -106,7 +106,7 @@ class RouterExecutor:
 
             return result
 
-        except except Exception::
+        except Exception as e:
             return {"success": False, "mode": mode, "error": str(e)}
 
     def execute(
@@ -162,7 +162,7 @@ class RouterExecutor:
                 )
                 try:
                     await self.mcp_pool.add_server(config)
-                except except Exception::
+                except Exception as e:
                     print(f"Warning: Failed to connect to MCP server {server_name}: {e}")
 
     def _log_decision(self, result: Dict[str, Any], mode: str, request: str):
@@ -367,6 +367,6 @@ if __name__ == "__main__":
     try:
         output = execute_request(request, mode=mode, verbose=True)
         print(output)
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}")
         sys.exit(1)

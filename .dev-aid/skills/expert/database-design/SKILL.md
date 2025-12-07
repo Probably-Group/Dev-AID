@@ -45,6 +45,78 @@ model: claude-sonnet-4-5-20250929
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: SQL injection via quoting bypass, Second-order SQL injection, Blind SQL injection
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-1094** (CVSS 8.1): PostgreSQL SQL injection via PQescapeLiteral() quoting bypass
+     Source: https://www.rapid7.com/blog/post/2025/02/13/cve-2025-1094-postgresql-psql-sql-injection-fixed/
+   - **CVE-2024-1597** (CVSS 8.0): SQL injection in PostgreSQL JDBC driver
+     Source: https://www.sangfor.com/farsight-labs-threat-intelligence/cybersecurity/cve-2024-1597-sql-injection-vulnerability
+   - **CVE-2024-21096** (CVSS 7.5): MySQL similar SQL injection vulnerability
+     Source: https://www.armosec.io/blog/cve-2025-1094-postgresql-sql-injection-vulnerability/
+
+**Step 3: Common Attack Patterns**
+
+   - SQL injection via quoting bypass
+   - Second-order SQL injection
+   - Blind SQL injection
+   - Time-based SQL injection
+   - Boolean-based SQL injection
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER concatenate user input into SQL queries
+- ❌ NEVER trust ORM frameworks alone for injection protection
+- ❌ NEVER use string escaping for SQL injection prevention
+- ❌ ALWAYS use parameterized queries/prepared statements
+- ❌ ALWAYS validate input before database operations
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level: MEDIUM**

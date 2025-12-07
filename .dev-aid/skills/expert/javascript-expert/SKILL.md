@@ -7,6 +7,76 @@ description: "Expert JavaScript developer specializing in modern ES6+ features, 
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: HIGH
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: React Server Component payload manipulation, Prototype pollution attacks, Expression evaluation RCE
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-55182** (CVSS 10.0): React Server Components RCE via payload decoding flaw
+     Source: https://thehackernews.com/2025/12/critical-rsc-bugs-in-react-and-nextjs.html
+   - **CVE-2025-66478** (CVSS 10.0): Next.js RCE affecting default configurations
+     Source: https://www.endorlabs.com/learn/critical-remote-code-execution-rce-vulnerabilities-in-react-and-next-js
+   - **CVE-2025-12735** (CVSS 9.8): expr-eval library RCE via malicious input (800k weekly downloads)
+     Source: https://www.bleepingcomputer.com/news/security/popular-javascript-library-expr-eval-vulnerable-to-rce-flaw/
+
+**Step 3: Common Attack Patterns**
+
+   - React Server Component payload manipulation
+   - Prototype pollution attacks
+   - Expression evaluation RCE
+   - NPM supply chain attacks (2.6B downloads compromised Sept 2025)
+   - Client-side XSS via framework bypasses
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER trust client-side validation alone
+- ❌ NEVER use eval() or Function() with user input
+- ❌ NEVER install NPM packages without integrity checks
+- ❌ ALWAYS sanitize React dangerouslySetInnerHTML
+- ❌ ALWAYS validate Server Component payloads
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any JavaScript code using this skill**
 
 ### Verification Requirements

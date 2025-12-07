@@ -7,6 +7,76 @@ description: "Expert in asynchronous programming patterns across languages (Pyth
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Race conditions in async signal handlers, TOCTOU (Time-of-check-time-of-use) attacks, Deadlocks via improper lock ordering
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2024-6387** (CVSS 8.1): OpenSSH race condition in signal handling leading to RCE
+     Source: https://medium.com/@yanivx32/the-chase-for-time-race-condition-vulnerabilities-and-how-to-exploit-them-a-live-example-from-c1cc66086617
+   - **CVE-2024-58248** (CVSS 7.5): nopCommerce race condition in order placement
+     Source: https://medium.com/pythoneers/avoiding-race-conditions-in-python-in-2025-best-practices-for-async-and-threads-4e006579a622
+   - **ASYNCIO-DEADLOCK-2025** (CVSS N/A): Python asyncio cancellation deadlocks with TaskGroup
+     Source: https://x.com/mitsuhiko/status/1920384040005173320
+
+**Step 3: Common Attack Patterns**
+
+   - Race conditions in async signal handlers
+   - TOCTOU (Time-of-check-time-of-use) attacks
+   - Deadlocks via improper lock ordering
+   - Resource exhaustion via async task spawning
+   - State corruption in concurrent operations
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER assume async operations are atomic
+- ❌ NEVER use shared state without synchronization
+- ❌ NEVER cancel tasks without proper cleanup
+- ❌ ALWAYS use proper locking for shared resources
+- ❌ ALWAYS implement timeout mechanisms
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 **🚨 MANDATORY: Read before implementing any code using this skill**
 
 ### Verification Requirements

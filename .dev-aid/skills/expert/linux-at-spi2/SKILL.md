@@ -19,6 +19,78 @@ description: "Expert in AT-SPI2 (Assistive Technology Service Provider Interface
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Security concerns in medium-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: D-Bus injection attacks, Privilege escalation, Screen scraping for sensitive data
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **AT-SPI2-PRIV-ESC** (CVSS N/A): AT-SPI2 privilege escalation risks
+     Source: https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/
+   - **DBUS-INJECTION** (CVSS N/A): D-Bus injection via AT-SPI2
+     Source: https://www.freedesktop.org/wiki/Software/dbus/
+   - **SCREEN-SCRAPING-ABUSE** (CVSS N/A): Unauthorized screen scraping
+     Source: https://wiki.gnome.org/Accessibility
+
+**Step 3: Common Attack Patterns**
+
+   - D-Bus injection attacks
+   - Privilege escalation
+   - Screen scraping for sensitive data
+   - UI automation abuse
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER allow untrusted AT-SPI2 clients
+- ❌ NEVER expose sensitive UI elements
+- ❌ ALWAYS validate D-Bus messages
+- ❌ ALWAYS use least privilege
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System-wide accessibility access, D-Bus IPC, input injection

@@ -120,7 +120,7 @@ class ChallengerMode:
                 "latency_ms": response.latency_ms,
             }
 
-        except except Exception::
+        except Exception as e:
             return {"success": False, "mode": "challenger", "challenged": False, "error": str(e)}
 
     def _execute_with_challenge(
@@ -271,7 +271,7 @@ class ChallengerMode:
                 "latency_ms": response.latency_ms,
             }
 
-        except except Exception::
+        except Exception as e:
             return {"success": False, "role": role, "model": model_name, "error": str(e)}
 
     def _build_review_prompt(self, original_request: str, primary_response: str) -> str:

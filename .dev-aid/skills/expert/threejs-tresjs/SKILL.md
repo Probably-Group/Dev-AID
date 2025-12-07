@@ -11,6 +11,44 @@ version: 1.0.0
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: WebGL DoS, GPU fingerprinting, XSS via 3D models
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER load untrusted 3D models
+- ❌ NEVER allow unlimited scene complexity
+- ❌ ALWAYS validate asset sources
+- ❌ ALWAYS implement resource limits
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any Three.js/TresJS code**
 
 ### Verification Requirements

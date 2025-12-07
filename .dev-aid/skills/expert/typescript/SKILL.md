@@ -24,6 +24,77 @@ version: 1.0.0
 
 ---
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Type confusion vulnerabilities, Prototype pollution, NPM supply chain attacks
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-55182** (CVSS 10.0): React/Next.js RCE affecting TypeScript projects
+     Source: https://thehackernews.com/2025/12/critical-rsc-bugs-in-react-and-nextjs.html
+   - **NPM-SUPPLY-CHAIN-2025** (CVSS N/A): 18 popular NPM packages compromised
+     Source: https://blog.qualys.com/vulnerabilities-threat-research/2025/09/10/when-dependencies-turn-dangerous-responding-to-the-npm-supply-chain-attack
+   - **CVE-2023-6293** (CVSS 7.5): Prototype pollution in sequelize-typescript
+     Source: https://security.snyk.io/vuln/SNYK-JS-SEQUELIZETYPESCRIPT-6085300
+
+**Step 3: Common Attack Patterns**
+
+   - Type confusion vulnerabilities
+   - Prototype pollution
+   - NPM supply chain attacks
+   - TypeScript type system bypass
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER rely on TypeScript types for security
+- ❌ NEVER use "any" for untrusted data
+- ❌ NEVER skip runtime validation
+- ❌ ALWAYS validate external inputs
+- ❌ ALWAYS use strict mode
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
 ## 1. Overview
 
 This skill provides TypeScript expertise for the JARVIS AI Assistant, ensuring type safety across the entire codebase including Vue components, API routes, 3D rendering, and state management.

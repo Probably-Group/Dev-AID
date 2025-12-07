@@ -2,6 +2,77 @@
 
 ## Section 0: Anti-Hallucination Protocol
 
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs discovered in 2024-2025
+- Common attack vectors: Template injection XSS, SSR payload manipulation, Server component RCE
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-24981** (CVSS 7.5): XSS in @nuxtjs/mdc via unsafe URL parsing
+     Source: https://security.snyk.io/vuln/SNYK-JS-NUXTJSMDC-8707742
+   - **CVE-2024-34343** (CVSS 5.1): Cross-site Scripting in nuxt package
+     Source: https://security.snyk.io/vuln/SNYK-JS-NUXT-7640972
+   - **CVE-2023-3224** (CVSS 9.8): Remote Code Execution in nuxt-root.vue
+     Source: https://pentest-tools.com/vulnerabilities-exploits/nuxt-framework-remote-code-execution_27
+
+**Step 3: Common Attack Patterns**
+
+   - Template injection XSS
+   - SSR payload manipulation
+   - Server component RCE
+   - Client-side prototype pollution
+   - CSRF in API routes
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER use v-html with user input
+- ❌ NEVER trust client-side validation alone
+- ❌ NEVER expose server secrets to client
+- ❌ ALWAYS sanitize URLs in markdown components
+- ❌ ALWAYS validate SSR hydration data
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+---
+
 **🚨 MANDATORY: Read before implementing any Vue 3 or Nuxt 3 code**
 
 ### Verification Requirements

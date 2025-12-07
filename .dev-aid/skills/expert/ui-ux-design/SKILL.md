@@ -13,6 +13,43 @@ tags: [design, ui, ux, interface, hud, jarvis]
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: LOW
+
+**Key Risk Factors**:
+- Security concerns in low-risk domain
+- 3 security issues/patterns identified
+- Common attack vectors: Clickjacking, UI redressing, Social engineering via UI
+- Requires security awareness and best practices
+
+**Immediate Security Actions**:
+1. Review security concerns below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER allow iframe embedding without X-Frame-Options
+- ❌ NEVER implement deceptive UI patterns
+- ❌ ALWAYS use CSP frame-ancestors
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any UI/UX code using this skill**
 
 ### Verification Requirements

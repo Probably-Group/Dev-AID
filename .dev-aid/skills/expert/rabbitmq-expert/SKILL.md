@@ -7,6 +7,79 @@ description: "Expert RabbitMQ administrator and developer specializing in messag
 
 ## 0. Anti-Hallucination Protocol
 
+## 0. Anti-Hallucination Protocol
+
+### 0.1 Quick Risk Assessment
+
+**Risk Level**: MEDIUM
+
+**Key Risk Factors**:
+- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
+- 3 high-severity CVEs/security concerns in 2024-2025
+- Common attack vectors: XSS via virtual host names, Unauthorized queue operations, Message injection attacks
+- Requires continuous monitoring of security advisories
+
+**Immediate Security Actions**:
+1. Review recent CVEs below before any implementation
+2. Never proceed without understanding attack surface
+3. Implement security controls from § 0.3 as mandatory requirements
+
+### 0.2 Vulnerability Research Protocol
+
+**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+
+**Step 1: CVE Database Search** (NVD, MITRE)
+```bash
+# Search for latest CVEs (update dates for current year)
+https://nvd.nist.gov/vuln/search
+# Keywords: [technology name], [framework version]
+```
+
+**Step 2: Known Vulnerabilities (2024-2025)**
+
+   - **CVE-2025-30219** (CVSS 6.1): XSS in management UI via malicious virtual host names
+     Source: https://github.com/rabbitmq/rabbitmq-server/security/advisories/GHSA-g58g-82mw-9m3p
+   - **CVE-2024-51988** (CVSS 6.5): Unauthorized queue deletion via HTTP API
+     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-51988
+   - **MSMQ-RCE-2024** (CVSS 9.8): Microsoft Message Queuing RCE (related pattern)
+     Source: https://www.threatdown.com/blog/patch-now-critical-rce-vulnerability-in-microsoft-message-queuing/
+
+**Step 3: Common Attack Patterns**
+
+   - XSS via virtual host names
+   - Unauthorized queue operations
+   - Message injection attacks
+   - Authentication bypass
+   - DoS via message flooding
+
+**Step 4: MITRE ATT&CK Mapping**
+- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
+- Review MITRE ATT&CK framework for latest techniques
+
+**Update Frequency**: Check for new CVEs weekly during active development.
+
+### 0.3 Hallucination Prevention Checklist
+
+**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+
+**Domain-Specific Security Rules**:
+
+- ❌ NEVER expose management UI publicly
+- ❌ NEVER trust virtual host names without sanitization
+- ❌ NEVER allow unauthenticated queue access
+- ❌ ALWAYS validate user permissions
+- ❌ ALWAYS use SSL/TLS for connections
+
+**Before ANY code generation**:
+1. ✅ Verify rule compliance for proposed implementation
+2. ✅ Check if solution introduces any prohibited patterns
+3. ✅ Validate all security assumptions against current CVEs
+4. ✅ Confirm defensive coding practices are applied
+
+**If uncertain**: STOP and research. Never guess on security.
+
+
+
 **🚨 MANDATORY: Read before implementing any RabbitMQ code**
 
 ### Verification Requirements

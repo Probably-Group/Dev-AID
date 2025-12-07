@@ -138,6 +138,65 @@ class CIGenerator:
             context["commands"]["lint"] = "go vet ./..."
             context["commands"]["type_check"] = "go fmt -l ."
 
+        # Check for Java
+        elif (self.project_dir / "pom.xml").exists():
+            context["language"] = "java"
+            context["package_manager"] = "maven"
+            context["commands"]["install"] = "mvn dependency:resolve"
+            context["commands"]["build"] = "mvn clean compile"
+            context["commands"]["test"] = "mvn test"
+            context["commands"]["lint"] = "mvn checkstyle:check"
+            context["commands"]["coverage"] = "mvn jacoco:report"
+
+        elif (self.project_dir / "build.gradle").exists() or (self.project_dir / "build.gradle.kts").exists():
+            context["language"] = "java"
+            context["package_manager"] = "gradle"
+            context["commands"]["install"] = "./gradlew build --no-daemon"
+            context["commands"]["build"] = "./gradlew assemble"
+            context["commands"]["test"] = "./gradlew test"
+            context["commands"]["lint"] = "./gradlew checkstyleMain"
+            context["commands"]["coverage"] = "./gradlew jacocoTestReport"
+
+        # Check for C#/.NET
+        elif any((self.project_dir / f).exists() for f in ["*.csproj", "*.sln"]) or \
+             list(self.project_dir.glob("*.csproj")) or list(self.project_dir.glob("*.sln")):
+            context["language"] = "csharp"
+            context["package_manager"] = "dotnet"
+            context["commands"]["install"] = "dotnet restore"
+            context["commands"]["build"] = "dotnet build --configuration Release"
+            context["commands"]["test"] = "dotnet test --configuration Release"
+            context["commands"]["lint"] = "dotnet format --verify-no-changes"
+            context["commands"]["coverage"] = "dotnet test --collect:\"XPlat Code Coverage\""
+
+        # Check for PHP
+        elif (self.project_dir / "composer.json").exists():
+            context["language"] = "php"
+            context["package_manager"] = "composer"
+            context["commands"]["install"] = "composer install --prefer-dist --no-progress"
+            context["commands"]["build"] = "echo 'No build needed for PHP'"
+            context["commands"]["test"] = "vendor/bin/phpunit"
+            context["commands"]["lint"] = "vendor/bin/phpcs"
+            context["commands"]["coverage"] = "vendor/bin/phpunit --coverage-clover coverage.xml"
+
+        # Check for Ruby
+        elif (self.project_dir / "Gemfile").exists():
+            context["language"] = "ruby"
+            context["package_manager"] = "bundler"
+            context["commands"]["install"] = "bundle install"
+            context["commands"]["build"] = "echo 'No build needed for Ruby'"
+            context["commands"]["test"] = "bundle exec rspec"
+            context["commands"]["lint"] = "bundle exec rubocop"
+            context["commands"]["coverage"] = "bundle exec rspec"
+
+        # Check for C++
+        elif (self.project_dir / "CMakeLists.txt").exists():
+            context["language"] = "cpp"
+            context["package_manager"] = "cmake"
+            context["commands"]["install"] = "echo 'Dependencies managed by CMake'"
+            context["commands"]["build"] = "cmake -B build -DCMAKE_BUILD_TYPE=Release"
+            context["commands"]["test"] = "ctest --output-on-failure"
+            context["commands"]["lint"] = "clang-tidy src/*.cpp"
+
         # Check for Docker
         if (self.project_dir / "Dockerfile").exists():
             context["has_docker"] = True
@@ -193,7 +252,7 @@ class CIGenerator:
 
         if not context["language"]:
             print("❌ Could not detect project language")
-            print("Supported: Node.js, Python, Rust, Go")
+            print("Supported: Node.js, Python, Rust, Go, Java, C#/.NET, PHP, Ruby, C++")
             return 1
 
         print(f"✅ Detected: {context['language']}")

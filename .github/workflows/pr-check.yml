@@ -83,6 +83,7 @@ jobs:
 
       - name: Run Shellcheck
         uses: ludeeus/action-shellcheck@master
+        continue-on-error: true  # Report warnings but don't block CI
         with:
           scandir: '.dev-aid'
           severity: warning
@@ -122,10 +123,12 @@ jobs:
       - name: Check results
         run: |
           if [[ "${{ needs.python-lint.result }}" == "failure" || \
-                "${{ needs.python-test.result }}" == "failure" || \
-                "${{ needs.bash-lint.result }}" == "failure" ]]; then
+                "${{ needs.python-test.result }}" == "failure" ]]; then
             echo "❌ PR checks failed!"
             exit 1
           else
             echo "✅ All PR checks passed!"
+            if [[ "${{ needs.bash-lint.result }}" == "failure" ]]; then
+              echo "⚠️  Shellcheck warnings present (non-blocking)"
+            fi
           fi

@@ -83,33 +83,71 @@ Always consult with qualified compliance professionals.
 ---
 
 ### 1.3 "API Broker" Affiliate
-**Concept:** Partner with API aggregator (OpenRouter) for commission on usage
+**Concept:** Partner with API aggregator for commission on usage
+
+**UPDATED RECOMMENDATION: Use AI/ML API Instead of OpenRouter**
+
+**Why AI/ML API is Better:**
+- ✅✅ **30% commission** (vs. OpenRouter's unknown/likely lower rate)
+- ✅✅ **Has official affiliate program** (OpenRouter may not)
+- ✅ Same value prop: One key for 100+ models (GPT-4, Claude 3, Llama 3)
+- ✅ Claims to be "30% cheaper" than direct APIs
+- ✅ Website: aimlapi.com
 
 **Implementation:**
 ```bash
-# In setup flow:
-Choose API setup:
-  1. Use your own keys (OpenAI, Anthropic, Google)
-  2. Get unified access via OpenRouter (supports Dev-AID) 🌟
-     → https://openrouter.ai?ref=devaid
+# In dev-aid setup command:
+Select your AI Provider:
+  1. OpenAI / Anthropic / Google (Your Own Keys)
+  2. AI/ML API (One Key for ALL models + 30% cheaper) 🌟
+     → [Your Affiliate Link]
+
+If option 2 selected:
+  → Print affiliate URL to terminal
+  → User signs up, you earn 30% commission on their usage
 ```
 
+**Setup Process:**
+1. Sign up for AI/ML API affiliate program at aimlapi.com
+2. Get your unique referral link
+3. Add to CLI setup flow
+4. Update README with transparent disclosure
+
 **Pros:**
+- ✅✅ **30% commission** = 3x higher than typical 10% programs
 - ✅✅ Zero ongoing effort after setup
 - ✅ Solves real friction (multiple API keys)
 - ✅ Recurring revenue (monthly API spend)
 - ✅ No liability
-- ✅ OpenRouter already exists
+- ✅ Transparent value (30% cheaper for users too)
 
 **Cons:**
-- ⚠️ Lower margins (10-20% typical)
-- ⚠️ User trust concerns (be transparent)
-- ⚠️ Dependence on third-party
+- ⚠️ Less established than OpenRouter
+- ⚠️ User trust concerns (be transparent about affiliate)
+- ⚠️ Dependence on third-party (mitigate: keep option 1 prominent)
 
-**Revenue Estimate:**
-- 50 users × $20/month spend × 15% commission = **$150/month**
+**Revenue Estimate (Conservative):**
+- 50 users × $20/month spend × **30% commission** = **$300/month**
+- 100 users × $30/month spend × 30% = **$900/month**
 
-**Verdict:** ✅ **DO THIS NOW** - 2 hours of work, immediate passive income
+**Revenue Estimate (Aggressive, Year 1):**
+- 500 users × $25/month spend × 30% = **$3,750/month** = $45k/year
+
+**Transparency Best Practice:**
+```markdown
+README.md:
+## API Setup
+
+Dev-AID supports two modes:
+
+1. **Bring Your Own Keys** - Use your existing API keys
+2. **AI/ML API** - Single key for 100+ models, 30% cheaper*
+
+*Affiliate disclosure: We earn a commission when you use AI/ML API.
+This helps fund Dev-AID development at no extra cost to you.
+```
+
+**Verdict:** ✅✅ **DO THIS FIRST** - 2 hours of work, **highest ROI** of all strategies
 
 ---
 
@@ -141,10 +179,26 @@ Choose API setup:
 
 ## Proposal 2: Advanced Zero-Infra Model
 
-### 2.1 "Governance Key" Model
+### 2.1 "Governance Key" Model ⭐ **HIGHEST PRIORITY**
 **Concept:** Sell crypto-signed policy files for team-wide control (budget caps, model restrictions)
 
-**Product:** Dev-AID Admin CLI ($200-500/year)
+**Product:** Dev-AID Enterprise Policy Manager ($299-500/year)
+
+**WHY THIS IS SUPERIOR TO AFFILIATE PROGRAMS:**
+
+| Aspect | Affiliate (AI/ML API) | Governance Key |
+|--------|----------------------|----------------|
+| Revenue per customer | $5-10/month | $299-500/year |
+| Margins | 30% of their spend | 100% (pure profit) |
+| Dependency | External service can change terms | Zero dependencies |
+| Target audience | Individual developers | Enterprise CTOs |
+| Scalability | Linear with user spend | Flat annual fee |
+| Positioning | Commodity (price-sensitive) | Premium (necessity) |
+
+**The Enterprise Reality:**
+- Companies spending $50k+/year on Copilot/Cursor will gladly pay $500/year for compliance
+- One enterprise client = 50+ affiliate users worth of revenue
+- Affiliate pays pennies, Enterprise pays dollars
 
 **Original Vision:**
 ```python
@@ -158,7 +212,7 @@ if os.path.exists("policy.signed"):
         raise PolicyViolationError()
 ```
 
-**Critical Issues:**
+**Critical Issues with Enforcement:**
 
 #### Issue #1: Enforcement is Bypassable
 ```python
@@ -172,7 +226,7 @@ if os.path.exists("policy.signed"):
 - Can't revoke keys without phone-home server
 - Key leakage = entire system compromised
 
-**BETTER ALTERNATIVE: "Audit Trail" Model**
+**THE SOLUTION: "Audit Trail" Model (Non-Blocking)**
 
 Instead of *preventing* actions, provide *accountability*:
 
@@ -196,7 +250,127 @@ daily_budget: 10.00
 - ✅ Harder to bypass (logs are append-only + cryptographically signed)
 - ✅ Forking to remove logging = obvious tampering
 
-**Verdict:** ✅ **MODIFIED APPROACH** - Build Audit Trail CLI, not enforcement
+**THE MVP ACTION PLAN (Code Once, Sell Forever):**
+
+**Step 1: Add Policy Check to Dev-AID** (1 hour)
+```python
+# In orchestration/router/context_builder.py or similar
+import os
+import json
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+def check_policy_signature():
+    """Check if policy file has valid signature"""
+    policy_path = os.path.join(os.getcwd(), "dev-aid.policy")
+
+    if not os.path.exists(policy_path):
+        return None  # No policy = free version, no restrictions
+
+    try:
+        with open(policy_path, 'r') as f:
+            policy_data = json.load(f)
+
+        # Verify signature with public key
+        public_key = ed25519.Ed25519PublicKey.from_public_bytes(
+            bytes.fromhex(policy_data['public_key'])
+        )
+
+        signature = bytes.fromhex(policy_data['signature'])
+        message = json.dumps(policy_data['rules']).encode()
+
+        public_key.verify(signature, message)
+        return policy_data['rules']  # Valid policy
+    except Exception as e:
+        print(f"⚠️  Policy signature invalid: {e}")
+        return None
+
+# Use in your executor:
+policy = check_policy_signature()
+if policy:
+    print(f"📋 Enterprise policy active: {policy.get('description')}")
+    # Log to audit trail (don't block, just log)
+    append_to_audit_log(user, model, cost, policy)
+```
+
+**Step 2: Create Policy Generator Script** (2 hours)
+```python
+# policy_generator.py (OFF-REPO, sold via Gumroad)
+import json
+from cryptography.hazmat.primitives.asymmetric import ed25519
+
+# Generate key pair (do this once per customer)
+private_key = ed25519.Ed25519PrivateKey.generate()
+public_key = private_key.public_key()
+
+def create_policy(rules: dict, output_file: str):
+    """Create signed policy file"""
+    # Sign the rules
+    message = json.dumps(rules).encode()
+    signature = private_key.sign(message)
+
+    policy = {
+        'version': '1.0',
+        'rules': rules,
+        'public_key': public_key.public_bytes_raw().hex(),
+        'signature': signature.hex()
+    }
+
+    with open(output_file, 'w') as f:
+        json.dump(policy, f, indent=2)
+
+    print(f"✅ Policy created: {output_file}")
+    print(f"📋 Rules: {rules}")
+
+# Customer uses it like:
+if __name__ == "__main__":
+    rules = {
+        'description': 'Acme Corp Security Policy',
+        'allowed_models': ['gpt-4o', 'claude-sonnet-4'],
+        'daily_budget_usd': 10.0,
+        'require_audit_log': True
+    }
+
+    create_policy(rules, 'dev-aid.policy')
+```
+
+**Step 3: Package and Sell** (1 hour)
+```markdown
+Product: Dev-AID Enterprise Policy Manager
+Price: $299/year (or $500 lifetime)
+Delivery: Gumroad → sends Python script + unique key pair
+Support: Email only (you generate new keys manually per customer)
+
+Gumroad Product Description:
+---
+Enforce security policies across your Dev-AID deployment.
+
+Includes:
+✅ Policy generator script (Python)
+✅ Unique cryptographic key pair
+✅ 1 year of policy updates
+✅ Email support
+
+Perfect for:
+- Teams needing budget controls
+- Companies with compliance requirements
+- CTOs wanting audit trails
+
+License: Single organization, unlimited developers
+```
+
+**Total Implementation Time:** 4 hours
+**Revenue Potential:** $299-500 per customer, recurring annually
+**Scalability:** Infinite (no ongoing costs per customer)
+
+**Why This is the "Holy Grail":**
+1. **Zero Dependencies:** No external services, no revenue sharing
+2. **Higher Margins:** 100% profit vs. 30% affiliate commission
+3. **Perfect Audience Fit:** Enterprises who need Dev-AID ARE the ones who need governance
+4. **Recurring:** Annual renewals for policy updates (new compliance rules)
+5. **No Infrastructure:** You manually generate keys per customer (takes 5 minutes)
+
+**Verdict:** ✅✅ **BUILD THIS IMMEDIATELY** - Highest ROI strategy, complements affiliate model
 
 ---
 

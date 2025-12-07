@@ -1,0 +1,213 @@
+name: Auto-Resolve PR Conflicts
+
+# Automatically detect and optionally resolve merge conflicts in PRs
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to check for conflicts'
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-conflicts:
+    runs-on: ubuntu-latest
+    name: Check and Resolve Conflicts
+
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || format('refs/pull/{0}/head', inputs.pr_number) }}
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dev-AID dependencies
+        run: |
+          pip install -r .dev-aid/orchestration/requirements.txt
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "dev-aid-bot"
+          git config --global user.email "dev-aid-bot@users.noreply.github.com"
+
+      - name: Check for conflicts
+        id: conflicts
+        run: |
+          PR_NUM=${{ github.event.pull_request.number || inputs.pr_number }}
+          BASE_REF=${{ github.event.pull_request.base.ref || 'main' }}
+
+          # Fetch base branch
+          git fetch origin $BASE_REF
+
+          # Check if merge would create conflicts
+          echo "Attempting test merge..."
+          if git merge --no-commit --no-ff origin/$BASE_REF 2>&1 | tee merge_output.txt; then
+            echo "has_conflicts=false" >> $GITHUB_OUTPUT
+            git merge --abort || true
+          else
+            if grep -q "CONFLICT" merge_output.txt || git ls-files -u | grep -q .; then
+              echo "has_conflicts=true" >> $GITHUB_OUTPUT
+
+              # Count conflicts
+              CONFLICT_COUNT=$(git ls-files -u | cut -f2 | sort -u | wc -l)
+              echo "conflict_count=$CONFLICT_COUNT" >> $GITHUB_OUTPUT
+
+              # List conflicted files
+              CONFLICTED_FILES=$(git ls-files -u | cut -f2 | sort -u | tr '\n' ',' | sed 's/,$//')
+              echo "conflicted_files=$CONFLICTED_FILES" >> $GITHUB_OUTPUT
+            else
+              echo "has_conflicts=false" >> $GITHUB_OUTPUT
+              git merge --abort || true
+            fi
+          fi
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add conflict detection comment
+        if: steps.conflicts.outputs.has_conflicts == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conflictCount = '${{ steps.conflicts.outputs.conflict_count }}';
+            const conflictedFiles = '${{ steps.conflicts.outputs.conflicted_files }}'.split(',');
+
+            let body = `🔍 **Merge Conflicts Detected**\n\n`;
+            body += `This PR has **${conflictCount}** conflicted file(s):\n\n`;
+
+            conflictedFiles.forEach(file => {
+              body += `- \`${file}\`\n`;
+            });
+
+            body += `\n---\n\n`;
+            body += `**Resolution Options:**\n\n`;
+            body += `1. **Local Resolution:**\n`;
+            body += `   \`\`\`bash\n`;
+            body += `   git checkout ${{ github.event.pull_request.head.ref || format('pr-{0}', inputs.pr_number) }}\n`;
+            body += `   dev-aid-fix-conflicts\n`;
+            body += `   \`\`\`\n\n`;
+            body += `2. **Manual Resolution:**\n`;
+            body += `   \`\`\`bash\n`;
+            body += `   git checkout ${{ github.event.pull_request.head.ref || format('pr-{0}', inputs.pr_number) }}\n`;
+            body += `   git merge origin/${{ github.event.pull_request.base.ref || 'main' }}\n`;
+            body += `   # Resolve conflicts manually\n`;
+            body += `   git commit\n`;
+            body += `   git push\n`;
+            body += `   \`\`\`\n\n`;
+            body += `---\n`;
+            body += `*Conflict detection by Dev-AID*`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Label PR with conflicts
+        if: steps.conflicts.outputs.has_conflicts == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['conflicts']
+            });
+
+      - name: Remove conflict label if resolved
+        if: steps.conflicts.outputs.has_conflicts == 'false'
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            // Try to remove conflict label if it exists
+            try {
+              await github.rest.issues.removeLabel({
+                issue_number: context.issue.number || ${{ inputs.pr_number }},
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: 'conflicts'
+              });
+            } catch (error) {
+              // Label might not exist, ignore error
+              console.log('Conflict label not found or already removed');
+            }
+
+      - name: Attempt auto-resolution (if enabled)
+        if: steps.conflicts.outputs.has_conflicts == 'true' && vars.DEV_AID_AUTO_RESOLVE_CONFLICTS == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          echo "🤖 Auto-resolution enabled - attempting to resolve conflicts..."
+
+          # Run dev-aid-fix-conflicts
+          .dev-aid/scripts/dev-aid-fix-conflicts \
+            --strategy smart \
+            --mode ensemble \
+            --verbose
+
+          # Check if conflicts were resolved
+          if ! git ls-files -u | grep -q .; then
+            echo "✅ Conflicts resolved successfully!"
+
+            # Commit resolution
+            git add .
+            git commit -m "chore: auto-resolve merge conflicts
+
+Conflicts resolved automatically using Dev-AID orchestration.
+
+🤖 Generated with Dev-AID
+Co-Authored-By: dev-aid-bot <dev-aid-bot@users.noreply.github.com>"
+
+            # Push resolution
+            git push origin HEAD
+
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Auto-resolution failed - manual intervention required"
+            echo "success=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Add resolution status comment
+        if: steps.conflicts.outputs.has_conflicts == 'true' && vars.DEV_AID_AUTO_RESOLVE_CONFLICTS == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const success = process.env.RESOLUTION_SUCCESS === 'true';
+
+            let body;
+            if (success) {
+              body = `✅ **Conflicts Auto-Resolved**\n\n` +
+                `The merge conflicts have been automatically resolved using Dev-AID.\n\n` +
+                `Please review the resolution and run tests before merging.`;
+            } else {
+              body = `⚠️ **Auto-Resolution Failed**\n\n` +
+                `The conflicts could not be automatically resolved.\n` +
+                `Manual intervention is required.`;
+            }
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+        env:
+          RESOLUTION_SUCCESS: ${{ steps.auto_resolve.outputs.success || 'false' }}

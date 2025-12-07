@@ -430,8 +430,9 @@ class ContextBuilder:
 
         # Project info
         sections.append("# Project Context")
-        sections.append(f"Project: {context.project_info['name']}")
-        sections.append(f"Orchestration Mode: {context.project_info['orchestration_mode']}")
+        sections.append(f"Project: {context.project_info.get('name', 'Unknown')}")
+        if 'orchestration_mode' in context.project_info:
+            sections.append(f"Orchestration Mode: {context.project_info['orchestration_mode']}")
 
         # Active skills
         if context.active_skills:
@@ -442,15 +443,22 @@ class ContextBuilder:
 
         if context.git_context:
             sections.append("\n## Git Context")
-            sections.append(f"Branch: {context.git_context['branch']}")
-            sections.append(f"Last Commit: {context.git_context['last_commit']}")
-            sections.append(f"Status: {context.git_context['status']}")
+            if 'branch' in context.git_context:
+                sections.append(f"Branch: {context.git_context['branch']}")
+            if 'last_commit' in context.git_context:
+                sections.append(f"Last Commit: {context.git_context['last_commit']}")
+            if 'status' in context.git_context:
+                sections.append(f"Status: {context.git_context['status']}")
 
         # Memory bank
         if context.memory_bank:
             sections.append("\n## Memory Bank")
             for filename, content in context.memory_bank.items():
-                sections.append(f"\n### {filename}")
+                # Special handling for activeContext.md
+                if filename == "activeContext.md":
+                    sections.append("\n### Active Context")
+                else:
+                    sections.append(f"\n### {filename}")
                 sections.append(content)
 
         # MCP Context

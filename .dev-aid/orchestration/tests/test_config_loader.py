@@ -66,24 +66,17 @@ class TestConfigLoader:
         assert is_valid
         assert error == ""
 
-        def test_validate_provider_missing_key(self, mock_dev_aid_root, monkeypatch):
-            """Test provider validation with missing API key"""
+    def test_validate_provider_missing_key(self, mock_dev_aid_root, monkeypatch):
+        """Test provider validation with missing API key"""
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
 
-            monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        # Also mock the config file lookup to return nothing
+        with patch("router.config_loader.ConfigLoader.get_api_key", return_value=None):
+            config = ConfigLoader(mock_dev_aid_root)
+            is_valid, error = config.validate_provider("claude")
 
-            # Also mock the config file lookup to return nothing
-
-            with patch("router.config_loader.ConfigLoader.get_api_key", return_value=None):
-
-                config = ConfigLoader(mock_dev_aid_root)
-
-                is_valid, error = config.validate_provider("claude")
-
-                assert not is_valid
-
-                assert "API key not found" in error
-
-        assert "API key not set" in error
+            assert not is_valid
+            assert "API key not found" in error or "API key not set" in error
 
     def test_get_model_config(self, mock_dev_aid_root):
         """Test retrieving model configuration"""

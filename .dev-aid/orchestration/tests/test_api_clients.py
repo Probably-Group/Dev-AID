@@ -58,11 +58,12 @@ class TestAnthropicClient:
         # $3 * 0.5 + $15 * 0.2 = $1.5 + $3.0 = $4.5
         assert cost == 4.5
 
-    @patch("router.api_clients.anthropic")
-    def test_send_request_error_handling(self, mock_anthropic, mock_api_key, mock_model_config):
+    @patch("anthropic.Anthropic")
+    def test_send_request_error_handling(self, mock_anthropic_class, mock_api_key, mock_model_config):
         """Test that errors don't leak API details"""
-        # Mock anthropic to raise an exception
-        mock_anthropic.Anthropic.return_value.messages.create.side_effect = Exception(
+        # Mock anthropic client to raise an exception
+        mock_client = mock_anthropic_class.return_value
+        mock_client.messages.create.side_effect = Exception(
             "API key invalid: sk-ant-secret-key"
         )
 

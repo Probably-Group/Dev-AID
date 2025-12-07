@@ -12,6 +12,7 @@ class TestContextBuilder:
         return Mock(
             get_orchestration_mode=Mock(return_value="solo"),
             get_enabled_providers=Mock(return_value=["claude"]),
+            get_memory_bank_files=Mock(return_value=[]),
             root=Path("/tmp"),
         )
 

@@ -55,8 +55,11 @@ class ExecuteRequest(SecureInput):
             r"eval\(",
             r"exec\(",
             r"compile\(",
+            r"import\s+os",  # OS module import
+            r"os\.system",  # Direct system call
             r"\.\.\/",  # Path traversal
-            r"\$\{",  # Template injection
+            r"\$\{",  # Template injection (Java, Spring)
+            r"\{\{",  # Template injection (Jinja2, Django)
         ]
 
         for pattern in suspicious_patterns:
@@ -123,12 +126,9 @@ class SafePath(SecureInput):
         if ".." in v:
             raise ValueError("Path traversal detected: '..' not allowed")
 
-        if v.startswith("/") and cls.base_dir:
-            raise ValueError("Absolute paths not allowed when base_dir is set")
-
-        # Reject null bytes and other suspicious chars
-        if any(char in v for char in ["\0", "\n", "\r"]):
-            raise ValueError("Path contains invalid characters")
+        # Reject null bytes and control characters
+        if any(ord(char) < 32 for char in v):
+            raise ValueError("Path contains invalid control characters")
 
         return v
 

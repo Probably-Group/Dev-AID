@@ -59,7 +59,7 @@ class TestSubprocessCommand:
             SubprocessCommand(program="git", args=["; rm -rf /"])
 
     def test_invalid_program(self):
-        with pytest.raises(ValidationError, match="one of"):
+        with pytest.raises(ValidationError, match="Input should be"):
             SubprocessCommand(program="evil_script", args=[])
 
 
@@ -69,5 +69,5 @@ class TestCostLimit:
         assert limit.daily_limit == 10.0
 
     def test_invalid_threshold(self):
-        with pytest.raises(ValidationError, match="less than 1.0"):
+        with pytest.raises(ValidationError, match="less than or equal to"):
             CostLimit(daily_limit=10.0, warning_threshold=1.5)

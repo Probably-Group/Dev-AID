@@ -126,9 +126,6 @@ class SafePath(SecureInput):
         if ".." in v:
             raise ValueError("Path traversal detected: '..' not allowed")
 
-        if v.startswith("/") and cls.base_dir:
-            raise ValueError("Absolute paths not allowed when base_dir is set")
-
         # Reject null bytes and control characters
         if any(ord(char) < 32 for char in v):
             raise ValueError("Path contains invalid control characters")

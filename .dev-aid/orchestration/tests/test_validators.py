@@ -2,7 +2,6 @@ import pytest
 from pydantic import ValidationError
 
 from router.validators import (
-    APIKeyConfig,
     CostLimit,
     ExecuteRequest,
     ModelConfig,

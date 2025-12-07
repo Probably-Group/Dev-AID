@@ -81,7 +81,7 @@ class ContextBuilder:
                     with open(filepath, "r", encoding="utf-8") as f:
                         content = f.read()
                         memory_bank[filename] = content
-                except Exception:
+                except Exception as e:
                     # Log error but continue
                     print(f"Warning: Could not read {filename}: {e}")
 
@@ -239,7 +239,7 @@ class ContextBuilder:
             FileNotFoundError,
             ValueError,
             Exception,
-        ) as e:
+        ):
             # Skill detection failed, return None
             # Don't raise exception - this is optional context
             return None
@@ -292,11 +292,11 @@ class ContextBuilder:
                         if result:
                             mcp_context["github"] = result
 
-                except Exception:
+                except Exception as e:
                     print(f"Warning: Failed to gather context from {server_name}: {e}")
                     continue
 
-        except Exception:
+        except Exception as e:
             print(f"Error gathering MCP context: {e}")
 
         return mcp_context
@@ -360,7 +360,7 @@ class ContextBuilder:
 
             return {"search_results": result.get("content", []), "query": search_terms}
 
-        except Exception:
+        except Exception as e:
             print(f"Code search failed: {e}")
             return None
 
@@ -372,7 +372,7 @@ class ContextBuilder:
 
             return {"schema": result, "server": server_name}
 
-        except Exception:
+        except Exception as e:
             print(f"Database schema query failed: {e}")
             return None
 
@@ -390,7 +390,7 @@ class ContextBuilder:
 
             return {"issues": result.get("issues", []), "query": search_query}
 
-        except Exception:
+        except Exception as e:
             print(f"GitHub query failed: {e}")
             return None
 
@@ -554,5 +554,5 @@ if __name__ == "__main__":
         system_prompt = build_system_prompt(context, builder)
         print(system_prompt[:500] + "..." if len(system_prompt) > 500 else system_prompt)
 
-    except Exception:
+    except Exception as e:
         print(f"❌ Error: {e}")

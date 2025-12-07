@@ -115,7 +115,7 @@ class EnsembleMode:
                 "matched_keywords": len(keywords),
             }
 
-        except except Exception::
+        except Exception as e:
             return {
                 "success": False,
                 "mode": "ensemble",

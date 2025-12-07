@@ -32,7 +32,6 @@ class SafeError(Exception):
     """Error that is safe to display to users"""
 
 
-
 def cmd_execute(args):
     """Execute a request with routing"""
     try:
@@ -44,7 +43,7 @@ def cmd_execute(args):
                 context_size=args.context_size,
                 use_mcp=not args.no_mcp if hasattr(args, "no_mcp") else True,
             )
-        except except ValidationError::
+        except ValidationError as e:
             # Safe error message - don't leak validation details
             error_msg = "Invalid request parameters. Please check your input."
             logger.error(f"Validation error: {e}")
@@ -60,11 +59,11 @@ def cmd_execute(args):
         )
         print(output)
         return 0
-    except except SafeError::
+    except SafeError as e:
         # Safe to display
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
-    except except Exception::
+    except Exception as e:
         # Log full error, show safe message
         logger.error(f"Unexpected error: {e}", exc_info=True)
         print("❌ An unexpected error occurred. Please check logs for details.", file=sys.stderr)
@@ -106,7 +105,7 @@ def cmd_status(args):
 
         # Today's stats
         today = status["today"]
-        print(f"📊 Today's Activity:")
+        print("📊 Today's Activity:")
         print(f"   Total Cost: ${today['cost']:.4f}")
         print(f"   Requests: {today['requests']}")
         print(f"   Average Cost: ${today['average_cost']:.4f}")
@@ -136,7 +135,7 @@ def cmd_status(args):
 
         return 0
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -197,7 +196,7 @@ def cmd_test(args):
 
         return 0
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -233,7 +232,7 @@ def cmd_mcp_discover(args):
 
         return 0
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -261,7 +260,7 @@ def cmd_mcp_enable(args):
             print(f"❌ Failed to enable '{args.name}'")
             return 1
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -284,7 +283,7 @@ def cmd_mcp_disable(args):
             print(f"❌ Failed to disable '{args.name}'")
             return 1
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -298,7 +297,7 @@ def cmd_mcp_list(args):
         print(registry.get_summary())
         return 0
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 
@@ -318,7 +317,7 @@ def cmd_mcp_sync(args):
 
         return 0
 
-    except except Exception::
+    except Exception as e:
         print(f"❌ Error: {e}", file=sys.stderr)
         return 1
 

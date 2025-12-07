@@ -87,7 +87,7 @@ class SoloMode:
                 "metadata": response.metadata,
             }
 
-        except except Exception::
+        except Exception as e:
             return {
                 "success": False,
                 "mode": "solo",

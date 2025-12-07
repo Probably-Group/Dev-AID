@@ -10,7 +10,7 @@ Provides Pydantic models for validating all external inputs:
 
 import re
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -151,12 +151,12 @@ class SubprocessCommand(SecureInput):
     program: Literal["git", "python", "python3", "pip", "pip3"] = Field(
         description="Allowed program name"
     )
-    args: list[str] = Field(default_factory=list, max_length=50)
+    args: List[str] = Field(default_factory=list, max_length=50)
     cwd: Optional[str] = Field(None, max_length=4096)
 
     @field_validator("args")
     @classmethod
-    def validate_args(cls, v: list[str]) -> list[str]:
+    def validate_args(cls, v: List[str]) -> List[str]:
         """Validate command arguments don't contain injection attempts"""
         for arg in v:
             # Reject arguments with shell metacharacters
@@ -179,7 +179,7 @@ class SubprocessCommand(SecureInput):
         # Use SafePath validation
         try:
             SafePath(path=v, base_dir=None)
-        except except ValueError::
+        except ValueError as e:
             raise ValueError(f"Invalid cwd: {e}")
 
         return v
@@ -190,7 +190,7 @@ class MCPServerConfig(SecureInput):
 
     name: str = Field(min_length=1, max_length=100, pattern=r"^[a-zA-Z0-9_\-]+$")
     command: str = Field(min_length=1, max_length=500)
-    args: list[str] = Field(default_factory=list, max_length=50)
+    args: List[str] = Field(default_factory=list, max_length=50)
     env: Optional[Dict[str, str]] = Field(None, max_length=100)
 
     @field_validator("command")

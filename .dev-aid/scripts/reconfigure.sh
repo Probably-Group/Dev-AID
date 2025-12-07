@@ -462,7 +462,7 @@ The project maintains a **Memory Bank** for persistent context across sessions:
 | `testing.md` | Test strategies, coverage goals |
 | `chaos.md` | Chaos experiments, resilience tests |
 
-**Location**: `.dev-aid/memory-bank/`
+**Location**: \`.dev-aid/memory-bank/\`
 
 ## 💡 When to Use Your Strengths
 
@@ -555,7 +555,7 @@ The project maintains a **Memory Bank** for persistent context across sessions:
 | `testing.md` | Test strategies, coverage goals |
 | `chaos.md` | Chaos experiments, resilience tests |
 
-**Location**: `.dev-aid/memory-bank/`
+**Location**: \`.dev-aid/memory-bank/\`
 
 ## 💡 When to Use Your Strengths
 

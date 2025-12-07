@@ -13,7 +13,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 
 @dataclass
@@ -68,7 +68,7 @@ class CostTracker:
         try:
             with open(self.costs_file, "w") as f:
                 json.dump(self.costs, f, indent=2)
-        except except IOError::
+        except IOError as e:
             print(f"Warning: Could not save costs: {e}")
 
     def log_decision(
@@ -121,7 +121,8 @@ class CostTracker:
         """Write routing decision to log file"""
         try:
             with open(self.routing_log_file, "a") as f:
-                # Format: ISO_timestamp [MODE] Task: task_type | Model: model | Cost: $X.XXXX | Tokens: I→O | Latency: Xms
+                # Format: ISO_timestamp [MODE] Task: task_type | Model: model |
+                # Cost: $X.XXXX | Tokens: I→O | Latency: Xms
                 log_line = (
                     f"{decision.timestamp} [{decision.mode.upper()}] "
                     f"Task: {decision.task_type} | "
@@ -132,7 +133,7 @@ class CostTracker:
                     f'Request: "{decision.request_preview}..."\n'
                 )
                 f.write(log_line)
-        except except IOError::
+        except IOError as e:
             print(f"Warning: Could not write routing log: {e}")
 
     def _update_costs(self, decision: RoutingDecision):
@@ -218,7 +219,7 @@ class CostTracker:
         day_data = self.costs["by_date"].get(today, {})
         return day_data.get("by_model", {})
 
-    def get_recent_decisions(self, limit: int = 10) -> list[Dict[str, Any]]:
+    def get_recent_decisions(self, limit: int = 10) -> List[Dict[str, Any]]:
         """
         Get recent routing decisions from log
 
@@ -228,7 +229,7 @@ class CostTracker:
         Returns:
             List of decision dicts
         """
-        decisions: list[Dict[str, Any]] = []
+        decisions: List[Dict[str, Any]] = []
 
         if not self.routing_log_file.exists():
             return decisions

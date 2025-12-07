@@ -46,7 +46,7 @@ def track_api_call(func: Callable) -> Callable:
             # Already a safe error, re-raise as-is
             raise
 
-        except except Exception::
+        except Exception as e:
             # Log full error internally with provider context
             provider = getattr(self, "provider", "unknown")
             logger.error(
@@ -60,7 +60,6 @@ def track_api_call(func: Callable) -> Callable:
 
 class APIClientError(Exception):
     """Safe API client error that doesn't leak details"""
-
 
 
 @dataclass

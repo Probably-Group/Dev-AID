@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -46,6 +47,3 @@ class TestContextBuilder:
         assert "Active Context" in formatted
         assert "# Active" in formatted
         assert "Branch: main" in formatted
-
-
-from pathlib import Path

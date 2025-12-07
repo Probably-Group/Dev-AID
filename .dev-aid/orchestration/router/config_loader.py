@@ -11,7 +11,7 @@ Loads and validates configuration from:
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 
@@ -185,7 +185,7 @@ class ConfigLoader:
 
         return os.getenv(env_var)
 
-    def validate_provider(self, provider: str) -> tuple[bool, str]:
+    def validate_provider(self, provider: str) -> Tuple[bool, str]:
         """
         Validate that a provider is properly configured
 
@@ -221,7 +221,7 @@ class ConfigLoader:
         """Get configuration for a specific mode"""
         return self.routing.get("modes", {}).get(mode, {})
 
-    def get_fallback_chain(self) -> list[str]:
+    def get_fallback_chain(self) -> List[str]:
         """Get fallback model chain"""
         return self.routing.get("fallback_chain", ["claude-sonnet", "gpt-4o", "gemini-flash"])
 
@@ -229,7 +229,7 @@ class ConfigLoader:
         """Get daily cost limit"""
         return self.routing.get("cost_limit_per_day", 100.0)
 
-    def get_memory_bank_files(self) -> list[str]:
+    def get_memory_bank_files(self) -> List[str]:
         """Get list of memory bank files to auto-load"""
         memory_config = self.settings.get("memory_bank", {})
         return memory_config.get("auto_load", ["activeContext.md"])
@@ -274,5 +274,5 @@ if __name__ == "__main__":
             else:
                 print(f"   ❌ {provider}: {error}")
 
-    except Exception:
+    except Exception as e:
         print(f"❌ Error loading configuration: {e}")

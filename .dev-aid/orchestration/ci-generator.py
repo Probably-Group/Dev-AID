@@ -148,7 +148,9 @@ class CIGenerator:
             context["commands"]["lint"] = "mvn checkstyle:check"
             context["commands"]["coverage"] = "mvn jacoco:report"
 
-        elif (self.project_dir / "build.gradle").exists() or (self.project_dir / "build.gradle.kts").exists():
+        elif (self.project_dir / "build.gradle").exists() or (
+            self.project_dir / "build.gradle.kts"
+        ).exists():
             context["language"] = "java"
             context["package_manager"] = "gradle"
             context["commands"]["install"] = "./gradlew build --no-daemon"
@@ -158,15 +160,18 @@ class CIGenerator:
             context["commands"]["coverage"] = "./gradlew jacocoTestReport"
 
         # Check for C#/.NET
-        elif any((self.project_dir / f).exists() for f in ["*.csproj", "*.sln"]) or \
-             list(self.project_dir.glob("*.csproj")) or list(self.project_dir.glob("*.sln")):
+        elif (
+            any((self.project_dir / f).exists() for f in ["*.csproj", "*.sln"])
+            or list(self.project_dir.glob("*.csproj"))
+            or list(self.project_dir.glob("*.sln"))
+        ):
             context["language"] = "csharp"
             context["package_manager"] = "dotnet"
             context["commands"]["install"] = "dotnet restore"
             context["commands"]["build"] = "dotnet build --configuration Release"
             context["commands"]["test"] = "dotnet test --configuration Release"
             context["commands"]["lint"] = "dotnet format --verify-no-changes"
-            context["commands"]["coverage"] = "dotnet test --collect:\"XPlat Code Coverage\""
+            context["commands"]["coverage"] = 'dotnet test --collect:"XPlat Code Coverage"'
 
         # Check for PHP
         elif (self.project_dir / "composer.json").exists():

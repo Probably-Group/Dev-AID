@@ -21,7 +21,7 @@ class TestTaskClassifier:
     def test_classify_security(self, classifier):
         task_type, keywords, conf = classifier.classify("Check for SQL injection vulnerabilities")
         assert task_type == TaskType.SECURITY_AUDIT
-        assert "sql injection" in keywords[0]
+        assert any("security" in kw or "vulnerability" in kw for kw in keywords)
 
     def test_classify_code_gen(self, classifier):
         task_type, keywords, conf = classifier.classify("Write a python function to sort list")

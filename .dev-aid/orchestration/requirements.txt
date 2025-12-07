@@ -18,8 +18,8 @@ openai==1.54.5               # OpenAI API
 # Core utilities
 python-dotenv==1.0.1        # Load .env files for API keys
 requests==2.32.4            # HTTP requests (fallback)
-pydantic==2.10.3            # Data validation and settings
-email-validator==2.2.0      # Email validation for Pydantic
+pydantic==2.10.6            # Data validation and settings
+email-validator==2.3.0      # Email validation for Pydantic
 
 # CLI and formatting
 rich==13.9.4                # Pretty terminal output
@@ -29,7 +29,7 @@ typer==0.15.1               # CLI framework
 httpx==0.26.0                # Modern HTTP client (used by Anthropic SDK, <0.27 for proxies compatibility)
 
 # Testing dependencies
-pytest==8.3.4               # Testing framework
+pytest==8.3.5               # Testing framework
 pytest-asyncio==0.24.0      # Async test support
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
@@ -40,14 +40,15 @@ hypothesis==6.113.0          # Property-based testing
 bandit==1.7.10              # Security vulnerability scanner
 safety==3.2.11              # Dependency vulnerability scanner
 pip-audit==2.7.3             # Audit pip packages for vulnerabilities
-mypy==1.13.0                # Static type checker
-types-requests==2.32.0.20241016  # Type stubs for requests
+mypy==1.14.1                # Static type checker
+# types-requests temporarily removed due to urllib3 conflict with vcrpy on Python 3.8
+# types-requests==2.31.0.20240406  # Type stubs for requests
 
 # Development tools
 pre-commit==3.5.0            # Git hooks framework
 black==24.8.0                # Code formatter
 isort==5.13.2                # Import sorter
-flake8==7.1.1                # Linting
+flake8==7.1.2                # Linting
 
 # Note: Transitive dependencies are automatically resolved by pip
 # Only direct dependencies are pinned above to avoid version conflicts

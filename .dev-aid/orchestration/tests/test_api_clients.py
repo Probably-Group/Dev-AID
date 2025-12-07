@@ -185,7 +185,7 @@ class TestAnthropicClient:
         client = AnthropicClient(mock_api_key, mock_model_config)
         messages = [Message(role="user", content="Test")]
 
-        result = client.send_request(messages, "claude-sonnet-4", max_tokens=8192)
+        client.send_request(messages, "claude-sonnet-4", max_tokens=8192)
 
         # Verify max_tokens was passed
         call_args = mock_client.messages.create.call_args

@@ -17,10 +17,10 @@ dependencies = [
     # SECURITY: All dependencies pinned to exact versions for reproducibility
     # and to prevent supply chain attacks. Update with caution.
     "sentence-transformers==3.0.1",
-    "faiss-cpu==1.8.0",
-    "mcp==1.23.0",  # Updated to fix CVEs: DNS rebinding, DoS vulnerabilities
-    "pydantic==2.10.3",
-    "click==8.1.7",
+    "faiss-cpu==1.13.1",  # Latest version with Python 3.14 support
+    "mcp==1.23.1",  # Latest stable (Dec 2, 2025) - fixes CVEs in earlier versions
+    "pydantic==2.11.1",  # Required by mcp >= 1.23
+    "click==8.1.8",
     "rich==13.9.4",
     "tree-sitter==0.23.2",
     "tree-sitter-python==0.23.6",

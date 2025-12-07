@@ -162,6 +162,38 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **5 Security tools**: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
 - **Isolated dependencies**: Virtual environments, zero system pollution ([details](./.dev-aid/docs/DEPENDENCY-ISOLATION.md))
 
+### 🤖 **Intelligent Automation** (NEW!)
+AI-powered automation for issues, conflicts, and workflows - saving hours of manual work while following best practices.
+
+| Feature | What It Does | Developer Benefits | Documentation |
+|---------|-------------|-------------------|---------------|
+| 🎯 **Issue Resolution** | Analyzes GitHub issues and proposes complete solutions using LLMs | ⏱️ Saves 15-45 min per issue<br>✅ Follows your code style<br>🔒 Safety checks for security issues<br>📝 Detailed implementation guidance | [Quick Start](.dev-aid/docs/ISSUE-RESOLVER-GUIDE.md) |
+| 🔧 **Conflict Resolution** | Automatically resolves merge conflicts by understanding both sides | ⏱️ Saves 10-30 min per conflict<br>🧠 Smart merge strategies<br>🔁 Avoids "redo" work<br>✨ Preserves intent from both branches | [Quick Start](.dev-aid/docs/CONFLICT-RESOLVER-GUIDE.md) |
+| 🏷️ **Auto-Triage** | Labels and categorizes new issues automatically | ⏱️ Instant issue organization<br>📊 Complexity estimation<br>🎯 Identifies auto-fixable issues<br>👥 Better team coordination | [GitHub Actions](.dev-aid/docs/AUTOMATION-README.md#phase-4-github-actions-) |
+| 🪝 **Git Hooks** | Detects conflicts and offers automated resolution locally | ⚡ Immediate feedback<br>🔧 Optional auto-fix<br>💡 Helpful guidance<br>🚫 Prevents broken merges | [Git Hooks](.dev-aid/docs/AUTOMATION-README.md#phase-3-conflict-resolution-) |
+| 🔄 **GitHub Actions** | Automated workflows for triage, conflict detection, and issue fixing | 🤖 24/7 automation<br>📈 Scales with team<br>🔒 Configurable safety<br>📊 Audit trail | [Complete Guide](.dev-aid/docs/AUTOMATION-README.md) |
+
+**Key Commands:**
+```bash
+# Analyze and resolve GitHub issues
+dev-aid-resolve-issue --issue 123 --mode ensemble
+
+# Resolve merge conflicts intelligently
+dev-aid-fix-conflicts --strategy smart
+
+# Install git hooks for automatic conflict detection
+.dev-aid/automation/git-hooks/install-hooks.sh
+```
+
+**Why This Matters:**
+- 💰 **Save Time**: Automate 2-3 hours of manual work per week
+- ✅ **Best Practices**: AI follows OWASP, conventional commits, your code style
+- 🔒 **Security First**: Never auto-fixes security/critical issues without review
+- 🔁 **Avoid Rework**: Smart conflict resolution prevents "throwing away" good code
+- 📚 **Learn**: Detailed explanations help you understand the "why" behind solutions
+
+[**📖 Complete Automation Guide**](.dev-aid/docs/AUTOMATION-README.md)
+
 ### ⚙️ **Works Everywhere You Do**
 - **Native integration** with Claude Code, Cursor, Gemini CLI
 - **Multi-provider routing** - Use the best AI for each task
@@ -185,6 +217,32 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
 
 ### New Features
+
+- **🤖 Intelligent Automation System**: Complete automation for issues, conflicts, and workflows
+  - **Issue Resolution** (`dev-aid-resolve-issue`): AI analyzes GitHub issues and proposes solutions
+    - Safety checks block security/critical issues
+    - Multi-mode orchestration (solo/ensemble/challenger)
+    - Dry-run mode for safe previewing
+    - Saves 15-45 minutes per issue
+
+  - **Conflict Resolution** (`dev-aid-fix-conflicts`): Smart merge conflict resolution
+    - Multiple strategies: smart, ours, theirs
+    - Understands both sides of conflict
+    - Preserves intent from both branches
+    - Saves 10-30 minutes per conflict
+
+  - **Git Hooks**: Automatic conflict detection locally
+    - Post-merge hook detects conflicts
+    - Optional auto-resolution
+    - Helpful guidance and tips
+
+  - **GitHub Actions Workflows**: Automated triage, conflict detection, and fixing
+    - Auto-triage new issues with labels
+    - Detect PR conflicts automatically
+    - Optional automated issue fixing
+
+  - Documentation: [Complete Guide](.dev-aid/docs/AUTOMATION-README.md)
+
 - **🤖 Auto-Generate CI/CD Workflows**: Production-ready GitHub Actions from project detection
   - Supports Node.js, Python, Rust, Go with auto-detection
   - Security by default: Gitleaks + Trivy included
@@ -398,6 +456,65 @@ AI: *uses local RAG, returns relevant code*
 - Cost breakdown by model
 - Recent routing decisions
 - Budget status (under/over limit)
+
+---
+
+### 🤖 **Automation Commands**
+
+#### `dev-aid-resolve-issue`
+**Analyze and resolve GitHub issues with AI**
+
+```bash
+# Analyze issue and propose solution
+dev-aid-resolve-issue --issue 123
+
+# Preview without changes
+dev-aid-resolve-issue --issue 123 --dry-run
+
+# Use ensemble mode for accuracy
+dev-aid-resolve-issue --issue 123 --mode ensemble
+```
+
+**Features:**
+- Fetches issue from GitHub automatically
+- Safety checks block security/critical issues
+- Multiple orchestration modes
+- Detailed solution proposals
+- Time saved: 15-45 minutes per issue
+
+[Quick Start Guide](.dev-aid/docs/ISSUE-RESOLVER-GUIDE.md)
+
+---
+
+#### `dev-aid-fix-conflicts`
+**Resolve merge conflicts intelligently**
+
+```bash
+# Resolve conflicts in current branch
+dev-aid-fix-conflicts
+
+# Resolve conflicts in a PR
+dev-aid-fix-conflicts --pr 67
+
+# Use specific strategy
+dev-aid-fix-conflicts --strategy smart
+
+# Preview resolution
+dev-aid-fix-conflicts --dry-run
+```
+
+**Strategies:**
+- `smart` - Analyzes both sides, creates optimal merge (default)
+- `ours` - Prefers current branch changes
+- `theirs` - Prefers incoming branch changes
+
+**Features:**
+- Understands intent from both sides
+- Preserves functionality
+- Ensemble mode for accuracy
+- Time saved: 10-30 minutes per conflict
+
+[Quick Start Guide](.dev-aid/docs/CONFLICT-RESOLVER-GUIDE.md)
 
 ---
 
@@ -789,6 +906,13 @@ Skills auto-activate based on file patterns:
 - **[MCP-EXTENSIBILITY.md](.dev-aid/docs/MCP-EXTENSIBILITY.md)** - Using Dev-AID with other MCP servers (GitHub, Slack, databases)
 - **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update Dev-AID in existing repos
 - **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
+
+### Automation Guides
+- **[AUTOMATION-README.md](.dev-aid/docs/AUTOMATION-README.md)** - Complete automation overview and architecture
+- **[ISSUE-RESOLVER-GUIDE.md](.dev-aid/docs/ISSUE-RESOLVER-GUIDE.md)** - Quick start guide for `dev-aid-resolve-issue`
+- **[CONFLICT-RESOLVER-GUIDE.md](.dev-aid/docs/CONFLICT-RESOLVER-GUIDE.md)** - Quick start guide for `dev-aid-fix-conflicts`
+- **[ISSUE-AUTOMATION-IMPLEMENTATION.md](.dev-aid/docs/ISSUE-AUTOMATION-IMPLEMENTATION.md)** - Technical implementation details
+- **[ISSUE-AUTOMATION-PROPOSAL.md](.dev-aid/docs/ISSUE-AUTOMATION-PROPOSAL.md)** - Original feature design
 
 ### Setup Guides
 - **RAG-SETUP.md** - Complete RAG setup guide

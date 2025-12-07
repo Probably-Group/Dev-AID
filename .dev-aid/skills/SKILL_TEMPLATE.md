@@ -14,6 +14,81 @@ last_updated: YYYY-MM-DD
 
 > **MANDATORY**: Read this entire template before creating a new skill. Follow ALL quality checkpoints.
 
+---
+
+## 0. Security-First Framework & Progressive Disclosure
+
+### 0.1 Quick Risk Assessment (MANDATORY)
+
+**Before creating ANY skill, complete this assessment**:
+
+- [ ] **Determine risk level** (LOW/MEDIUM/HIGH)
+  - LOW: Documentation, UI/UX, design, testing
+  - MEDIUM: Application code, APIs, data processing
+  - HIGH: Security, infrastructure, auth, data storage, production systems
+
+- [ ] **Identify security requirements**:
+  - OWASP Top 10 2025 applicability
+  - Compliance needs (GDPR, HIPAA, PCI-DSS)
+  - Domain-specific CVEs (for MEDIUM/HIGH risk)
+
+### 0.2 Vulnerability Research Protocol (MEDIUM/HIGH Risk Only)
+
+**For MEDIUM and HIGH risk skills, you MUST**:
+
+- [ ] Search [NVD Database](https://nvd.nist.gov/) for domain-specific CVEs (2022-2025)
+- [ ] Review [MITRE ATT&CK](https://attack.mitre.org/) for relevant attack patterns
+- [ ] Check [OWASP Top 10 2025](https://owasp.org/Top10/) for applicable categories
+- [ ] Document top 5-10 vulnerabilities in skill's security section
+
+📚 **For complete vulnerability research protocol**:
+- See `template-references/security-framework.md#vulnerability-research`
+
+### 0.3 Hallucination Prevention Checklist
+
+**Before finalizing ANY code example or recommendation**:
+
+- [ ] All code examples verified against **official documentation**
+- [ ] Version numbers confirmed (not assumed)
+- [ ] Security recommendations verified against current best practices
+- [ ] Library/framework features confirmed to exist in specified version
+- [ ] Can cite **exact documentation URL** for all claims
+
+**Common Hallucination Traps to Avoid**:
+- ❌ Inventing configuration options that don't exist
+- ❌ Assuming API methods without verification
+- ❌ Recommending outdated security patterns
+- ❌ Mixing features from different versions
+- ❌ Citing non-existent documentation
+
+📚 **For complete hallucination prevention framework**:
+- See `template-references/security-framework.md#hallucination-prevention`
+
+### 0.4 Progressive Disclosure Strategy (500-Line Limit)
+
+**🚨 CRITICAL: Main SKILL.md MUST be <500 lines** (Claude Code loading limit)
+
+**Keep in Main SKILL.md** (<500 lines):
+- ✅ Frontmatter + overview + core responsibilities (§ 1-2)
+- ✅ Top 5-7 implementation patterns (condensed) (§ 4)
+- ✅ Security summary: Top 3 vulnerabilities + OWASP table (§ 4.4)
+- ✅ Quality checklist (§ 4)
+- ✅ Top 5 common mistakes (§ 5)
+- ✅ Testing overview (§ 7)
+
+**Move to references/** (no line limit):
+- ❌ Detailed OWASP examples (all 10 categories) → `references/security-examples.md`
+- ❌ Complete vulnerability analysis → `references/security-examples.md`
+- ❌ Advanced patterns → `references/advanced-patterns.md`
+- ❌ Full troubleshooting guides → `references/troubleshooting.md`
+- ❌ Compliance details → `references/compliance/`
+- ❌ Extensive code examples → `references/examples.md`
+
+📚 **For complete progressive disclosure guide**:
+- See `template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 ### 1.1 Purpose and Scope
@@ -258,72 +333,15 @@ if [[ "$x" =~ [<>] ]]; then  # Unescaped
 
 ## 5. Common Pitfalls to Avoid
 
-### Python
-```python
-# ❌ BAD
-import os  # unused import
-f"string without {placeholders}"  # empty f-string
-except Exception as e:  # unused variable e
+**Python**: Unused imports (F401), empty f-strings (F541), unused exception variables (F841)
+**Dependencies**: Unpinned versions (`>=`), manual transitive dependency pins
+**Security**: Command injection (`os.system`), SQL injection (f-strings in queries), XSS (unsanitized output)
 
-# ✅ GOOD
-# Only import what you use
-"string without placeholders"  # regular string
-except Exception:  # or use exception if needed
-```
+📚 **For detailed anti-patterns with code examples**: See `template-references/security-framework.md#common-mistakes`
 
-### Dependencies
-```python
-# ❌ BAD
-httpx>=0.26  # Unpinned - could break
-urllib3==2.6.0  # Manual transitive dependency pin
+## 6. Testing Strategy
 
-# ✅ GOOD
-httpx==0.26.0  # Exact pin with reason comment
-# Let pip resolve: urllib3, certifi, etc.
-```
-
-### Security
-```python
-# ❌ BAD
-os.system(user_input)  # Command injection
-query = f"SELECT * FROM users WHERE id={user_id}"  # SQL injection
-html = f"<div>{user_content}</div>"  # XSS
-
-# ✅ GOOD
-subprocess.run([cmd, arg1, arg2])  # Parameterized command
-cursor.execute("SELECT * FROM users WHERE id=?", (user_id,))  # Parameterized query
-html = escape(user_content)  # Sanitized output
-```
-
-## 6. Implementation Examples
-
-### 6.1 Minimal Working Example
-
-```python
-"""Minimal working example of this skill."""
-
-# Implementation here
-```
-
-### 6.2 Security-Hardened Example
-
-```python
-"""Production-ready example with security."""
-
-# Full implementation with validation, error handling, logging
-```
-
-### 6.3 Performance-Optimized Example
-
-```python
-"""Optimized version for high-throughput scenarios."""
-
-# Caching, batching, async operations
-```
-
-## 7. Testing Strategy
-
-### 7.1 Unit Tests
+### 6.1 Unit Tests
 
 ```python
 class TestUnit:
@@ -331,7 +349,7 @@ class TestUnit:
     pass
 ```
 
-### 7.2 Integration Tests
+### 6.2 Integration Tests
 
 ```python
 class TestIntegration:
@@ -339,7 +357,7 @@ class TestIntegration:
     pass
 ```
 
-### 7.3 Security Tests
+### 6.3 Security Tests
 
 ```python
 class TestSecurity:
@@ -379,35 +397,49 @@ except SpecificError as e:
     raise
 ```
 
-## 9. Maintenance and Updates
+## 9. References
 
-### 9.1 Version History
+### 9.1 Template References (Extended Content)
 
-- v1.0.0 (YYYY-MM-DD): Initial release
+**For detailed guidance beyond this template**:
 
-### 9.2 Known Limitations
+- 📚 **[Security-First Framework](template-references/security-framework.md)** (~2,000 lines)
+  - Master validation checklist
+  - Complete vulnerability research protocol
+  - Hallucination prevention framework (800+ lines)
+  - Security metrics & KPIs
 
-1. Limitation 1 and workaround
-2. Limitation 2 and mitigation
+- 📚 **[OWASP Top 10 2025 Guide](template-references/owasp-2025-guide.md)** (~700 lines)
+  - Detailed guidance for all 10 categories
+  - Domain-specific exploitation examples
+  - Detection and remediation code examples
 
-### 9.3 Future Enhancements
+- 📚 **[Threat Modeling Guide](template-references/threat-modeling.md)** (~240 lines)
+  - STRIDE methodology
+  - Attack scenario analysis
+  - Security controls matrix
 
-1. Planned enhancement 1
-2. Planned enhancement 2
+- 📚 **[Compliance Guide](template-references/compliance-guide.md)** (~300 lines)
+  - GDPR implementation guide
+  - HIPAA compliance checklist
+  - PCI-DSS requirements
 
-## 10. References
+- 📚 **[Progressive Disclosure Strategy](template-references/progressive-disclosure.md)** (~200 lines)
+  - How to organize references/ directory
+  - What to keep in main SKILL.md
+  - Claude Code loading optimization
 
-### 10.1 Related Skills
+### 9.2 Related Skills
 
 - Related Skill 1: When to use
 - Related Skill 2: How they interact
 
-### 10.2 External Documentation
+### 9.3 External Documentation
 
 - [Library Docs](https://example.com)
 - [Security Best Practices](https://owasp.org)
 
-### 10.3 Compliance & Standards
+### 9.4 Compliance & Standards
 
 - OWASP Top 10 (if applicable)
 - Industry standards (PCI-DSS, HIPAA, etc.)

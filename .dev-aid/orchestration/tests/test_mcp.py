@@ -127,14 +127,14 @@ class TestMCPClient:
         """Test that API keys and secrets are not leaked to MCP subprocesses"""
         # Set up environment with secrets
         test_env = {
-            'PATH': '/usr/bin',
-            'HOME': '/home/user',
-            'USER': 'testuser',
-            'LANG': 'en_US.UTF-8',
-            'ANTHROPIC_API_KEY': 'sk-ant-secret-key-should-not-leak',
-            'OPENAI_API_KEY': 'sk-openai-secret-key-should-not-leak',
-            'GOOGLE_API_KEY': 'google-secret-key-should-not-leak',
-            'AWS_SECRET_ACCESS_KEY': 'aws-secret-should-not-leak',
+            "PATH": "/usr/bin",
+            "HOME": "/home/user",
+            "USER": "testuser",
+            "LANG": "en_US.UTF-8",
+            "ANTHROPIC_API_KEY": "sk-ant-secret-key-should-not-leak",
+            "OPENAI_API_KEY": "sk-openai-secret-key-should-not-leak",
+            "GOOGLE_API_KEY": "google-secret-key-should-not-leak",
+            "AWS_SECRET_ACCESS_KEY": "aws-secret-should-not-leak",
         }
 
         mock_process = AsyncMock()
@@ -165,23 +165,27 @@ class TestMCPClient:
 
                 # Extract the env parameter from the call
                 call_kwargs = mock_exec.call_args[1]
-                passed_env = call_kwargs['env']
+                passed_env = call_kwargs["env"]
 
                 # Assert whitelisted vars are present
-                assert 'PATH' in passed_env
-                assert 'HOME' in passed_env
-                assert 'USER' in passed_env
-                assert 'LANG' in passed_env
+                assert "PATH" in passed_env
+                assert "HOME" in passed_env
+                assert "USER" in passed_env
+                assert "LANG" in passed_env
 
                 # Assert API keys and secrets are NOT present (SECURITY CHECK)
-                assert 'ANTHROPIC_API_KEY' not in passed_env, \
-                    "SECURITY VIOLATION: Anthropic API key leaked to subprocess"
-                assert 'OPENAI_API_KEY' not in passed_env, \
-                    "SECURITY VIOLATION: OpenAI API key leaked to subprocess"
-                assert 'GOOGLE_API_KEY' not in passed_env, \
-                    "SECURITY VIOLATION: Google API key leaked to subprocess"
-                assert 'AWS_SECRET_ACCESS_KEY' not in passed_env, \
-                    "SECURITY VIOLATION: AWS secret leaked to subprocess"
+                assert (
+                    "ANTHROPIC_API_KEY" not in passed_env
+                ), "SECURITY VIOLATION: Anthropic API key leaked to subprocess"
+                assert (
+                    "OPENAI_API_KEY" not in passed_env
+                ), "SECURITY VIOLATION: OpenAI API key leaked to subprocess"
+                assert (
+                    "GOOGLE_API_KEY" not in passed_env
+                ), "SECURITY VIOLATION: Google API key leaked to subprocess"
+                assert (
+                    "AWS_SECRET_ACCESS_KEY" not in passed_env
+                ), "SECURITY VIOLATION: AWS secret leaked to subprocess"
 
     @pytest.mark.asyncio
     async def test_server_specific_env_passed(self):
@@ -190,7 +194,7 @@ class TestMCPClient:
             name="test-server",
             command="test",
             args=[],
-            env={"SERVER_API_KEY": "server-specific-key"}
+            env={"SERVER_API_KEY": "server-specific-key"},
         )
         client = MCPClient(config)
 
@@ -217,11 +221,11 @@ class TestMCPClient:
 
             # Extract env parameter
             call_kwargs = mock_exec.call_args[1]
-            passed_env = call_kwargs['env']
+            passed_env = call_kwargs["env"]
 
             # Server-specific env should be present
-            assert 'SERVER_API_KEY' in passed_env
-            assert passed_env['SERVER_API_KEY'] == 'server-specific-key'
+            assert "SERVER_API_KEY" in passed_env
+            assert passed_env["SERVER_API_KEY"] == "server-specific-key"
 
     @pytest.mark.asyncio
     async def test_disconnect(self, mcp_client):

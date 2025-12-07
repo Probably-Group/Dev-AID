@@ -65,8 +65,22 @@ jobs:
         id: semgrep
         continue-on-error: true
         run: |
-          semgrep scan --config=auto --sarif --output=semgrep.sarif .
-          semgrep scan --config=auto --json --output=semgrep.json .
+          # Use explicit, strict rulesets instead of --config=auto
+          # This ensures high-value security and quality checks specific to our stack
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/python \
+            --config=p/bash \
+            --config=p/owasp-top-10 \
+            --config=p/secrets \
+            --sarif --output=semgrep.sarif .
+          semgrep scan \
+            --config=p/security-audit \
+            --config=p/python \
+            --config=p/bash \
+            --config=p/owasp-top-10 \
+            --config=p/secrets \
+            --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning - JSON)
         uses: aquasecurity/trivy-action@master

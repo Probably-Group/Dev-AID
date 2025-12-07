@@ -431,7 +431,7 @@ class ContextBuilder:
         # Project info
         sections.append("# Project Context")
         sections.append(f"Project: {context.project_info.get('name', 'Unknown')}")
-        if 'orchestration_mode' in context.project_info:
+        if "orchestration_mode" in context.project_info:
             sections.append(f"Orchestration Mode: {context.project_info['orchestration_mode']}")
 
         # Active skills
@@ -443,11 +443,11 @@ class ContextBuilder:
 
         if context.git_context:
             sections.append("\n## Git Context")
-            if 'branch' in context.git_context:
+            if "branch" in context.git_context:
                 sections.append(f"Branch: {context.git_context['branch']}")
-            if 'last_commit' in context.git_context:
+            if "last_commit" in context.git_context:
                 sections.append(f"Last Commit: {context.git_context['last_commit']}")
-            if 'status' in context.git_context:
+            if "status" in context.git_context:
                 sections.append(f"Status: {context.git_context['status']}")
 
         # Memory bank

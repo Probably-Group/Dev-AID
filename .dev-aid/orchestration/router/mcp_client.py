@@ -56,7 +56,15 @@ class MCPClient:
         """
         try:
             # Start MCP server process
-            env = self.config.env if self.config.env else {}
+            # SECURITY: Only pass whitelisted environment variables to prevent secret leakage
+            env_whitelist = {'PATH', 'HOME', 'USER', 'LANG', 'LC_ALL', 'TMPDIR', 'TEMP', 'TMP'}
+
+            # Build isolated environment with only whitelisted vars
+            safe_env = {k: v for k, v in os.environ.items() if k in env_whitelist}
+
+            # Add server-specific environment variables (if provided)
+            if self.config.env:
+                safe_env.update(self.config.env)
 
             self.process = await asyncio.create_subprocess_exec(
                 self.config.command,
@@ -64,7 +72,7 @@ class MCPClient:
                 stdin=asyncio.subprocess.PIPE,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                env={**dict(os.environ), **env},
+                env=safe_env,
             )
 
             # Initialize connection

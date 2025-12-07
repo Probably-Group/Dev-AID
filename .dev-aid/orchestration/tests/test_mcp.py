@@ -123,6 +123,107 @@ class TestMCPClient:
             assert mcp_client.process is None
 
     @pytest.mark.asyncio
+    async def test_environment_isolation(self, mcp_client):
+        """Test that API keys and secrets are not leaked to MCP subprocesses"""
+        # Set up environment with secrets
+        test_env = {
+            'PATH': '/usr/bin',
+            'HOME': '/home/user',
+            'USER': 'testuser',
+            'LANG': 'en_US.UTF-8',
+            'ANTHROPIC_API_KEY': 'sk-ant-secret-key-should-not-leak',
+            'OPENAI_API_KEY': 'sk-openai-secret-key-should-not-leak',
+            'GOOGLE_API_KEY': 'google-secret-key-should-not-leak',
+            'AWS_SECRET_ACCESS_KEY': 'aws-secret-should-not-leak',
+        }
+
+        mock_process = AsyncMock()
+        mock_process.stdin = AsyncMock()
+        mock_process.stdout = AsyncMock()
+        mock_process.stdin.write = Mock()
+        mock_process.stdin.drain = AsyncMock()
+
+        # Mock responses
+        init_response = {"jsonrpc": "2.0", "id": 1, "result": {"capabilities": {}}}
+        tools_response = {"jsonrpc": "2.0", "id": 2, "result": {"tools": []}}
+
+        mock_process.stdout.readline = AsyncMock(
+            side_effect=[
+                (json.dumps(init_response) + "\n").encode(),
+                (json.dumps(tools_response) + "\n").encode(),
+            ]
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
+            with patch.dict(os.environ, test_env, clear=True):
+                result = await mcp_client.connect()
+
+                assert result is True
+
+                # Verify create_subprocess_exec was called
+                mock_exec.assert_called_once()
+
+                # Extract the env parameter from the call
+                call_kwargs = mock_exec.call_args[1]
+                passed_env = call_kwargs['env']
+
+                # Assert whitelisted vars are present
+                assert 'PATH' in passed_env
+                assert 'HOME' in passed_env
+                assert 'USER' in passed_env
+                assert 'LANG' in passed_env
+
+                # Assert API keys and secrets are NOT present (SECURITY CHECK)
+                assert 'ANTHROPIC_API_KEY' not in passed_env, \
+                    "SECURITY VIOLATION: Anthropic API key leaked to subprocess"
+                assert 'OPENAI_API_KEY' not in passed_env, \
+                    "SECURITY VIOLATION: OpenAI API key leaked to subprocess"
+                assert 'GOOGLE_API_KEY' not in passed_env, \
+                    "SECURITY VIOLATION: Google API key leaked to subprocess"
+                assert 'AWS_SECRET_ACCESS_KEY' not in passed_env, \
+                    "SECURITY VIOLATION: AWS secret leaked to subprocess"
+
+    @pytest.mark.asyncio
+    async def test_server_specific_env_passed(self):
+        """Test that server-specific env vars are passed correctly"""
+        config = MCPServerConfig(
+            name="test-server",
+            command="test",
+            args=[],
+            env={"SERVER_API_KEY": "server-specific-key"}
+        )
+        client = MCPClient(config)
+
+        mock_process = AsyncMock()
+        mock_process.stdin = AsyncMock()
+        mock_process.stdout = AsyncMock()
+        mock_process.stdin.write = Mock()
+        mock_process.stdin.drain = AsyncMock()
+
+        init_response = {"jsonrpc": "2.0", "id": 1, "result": {"capabilities": {}}}
+        tools_response = {"jsonrpc": "2.0", "id": 2, "result": {"tools": []}}
+
+        mock_process.stdout.readline = AsyncMock(
+            side_effect=[
+                (json.dumps(init_response) + "\n").encode(),
+                (json.dumps(tools_response) + "\n").encode(),
+            ]
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
+            result = await client.connect()
+
+            assert result is True
+
+            # Extract env parameter
+            call_kwargs = mock_exec.call_args[1]
+            passed_env = call_kwargs['env']
+
+            # Server-specific env should be present
+            assert 'SERVER_API_KEY' in passed_env
+            assert passed_env['SERVER_API_KEY'] == 'server-specific-key'
+
+    @pytest.mark.asyncio
     async def test_disconnect(self, mcp_client):
         """Test disconnecting from server"""
         mock_process = AsyncMock()

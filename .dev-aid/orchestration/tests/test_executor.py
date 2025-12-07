@@ -239,7 +239,7 @@ class TestRouterExecutor:
                     mock_registry.get_enabled_servers = Mock(
                         return_value={"test-server": server_info}
                     )
-                    mock_pool.connect = AsyncMock()
+                    mock_pool.add_server = AsyncMock(return_value=True)
 
                     executor = RouterExecutor(dev_aid_root=tmp_path, use_mcp=True)
                     executor.mcp_registry = mock_registry
@@ -247,5 +247,5 @@ class TestRouterExecutor:
 
                     await executor._initialize_mcp_servers()
 
-                    # Should have tried to connect to the server
-                    assert mock_pool.connect.called
+                    # Should have tried to add the server
+                    assert mock_pool.add_server.called

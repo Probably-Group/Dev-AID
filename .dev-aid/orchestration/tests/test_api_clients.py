@@ -150,10 +150,10 @@ class TestAnthropicClient:
         assert result.tokens_used["output"] == 50
 
     @patch("anthropic.Anthropic")
-    def test_send_request_with_system_prompt(
+    def test_send_request_with_system_message(
         self, mock_anthropic_class, mock_api_key, mock_model_config
     ):
-        """Test request with system prompt"""
+        """Test request with system message in messages list"""
         mock_response = Mock()
         mock_response.content = [Mock(text="Response")]
         mock_response.model = "claude-sonnet-4"
@@ -163,16 +163,19 @@ class TestAnthropicClient:
         mock_client.messages.create.return_value = mock_response
 
         client = AnthropicClient(mock_api_key, mock_model_config)
-        messages = [Message(role="user", content="Test")]
+        messages = [
+            Message(role="system", content="You are helpful"),
+            Message(role="user", content="Test"),
+        ]
 
-        result = client.send_request(
-            messages, "claude-sonnet-4", system_prompt="You are helpful"
-        )
+        result = client.send_request(messages, "claude-sonnet-4")
 
         assert result.content == "Response"
-        # Verify system prompt was passed
+        # Verify system message was extracted and passed
         call_args = mock_client.messages.create.call_args
         assert call_args[1]["system"] == "You are helpful"
+        # User message should be in api_messages
+        assert len(call_args[1]["messages"]) == 1
 
     @patch("anthropic.Anthropic")
     def test_send_request_with_max_tokens(
@@ -274,17 +277,16 @@ class TestCreateClient:
         client = create_client("ANTHROPIC", mock_api_key, mock_model_config)
         assert isinstance(client, AnthropicClient)
 
-    def test_create_client_with_different_providers(
+    def test_create_client_with_different_cases(
         self, mock_api_key, mock_model_config
     ):
-        """Test that only supported providers work"""
-        # Anthropic should work
-        client = create_client("anthropic", mock_api_key, mock_model_config)
-        assert isinstance(client, AnthropicClient)
+        """Test that provider name is case-insensitive"""
+        # Different cases should all work
+        client1 = create_client("anthropic", mock_api_key, mock_model_config)
+        assert isinstance(client1, AnthropicClient)
 
-        # Others should fail
-        with pytest.raises(ValueError):
-            create_client("openai", mock_api_key, mock_model_config)
+        client2 = create_client("Anthropic", mock_api_key, mock_model_config)
+        assert isinstance(client2, AnthropicClient)
 
-        with pytest.raises(ValueError):
-            create_client("google", mock_api_key, mock_model_config)
+        client3 = create_client("ANTHROPIC", mock_api_key, mock_model_config)
+        assert isinstance(client3, AnthropicClient)

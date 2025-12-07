@@ -56,6 +56,21 @@ Before EVERY response with Vue/Nuxt code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides expertise for building the JARVIS AI Assistant user interface using Vue 3 and Nuxt 3. It focuses on creating responsive, performant 3D HUD interfaces with security-first development practices.
@@ -111,7 +126,54 @@ This skill provides expertise for building the JARVIS AI Assistant user interfac
 }
 ```
 
-## 4. Quick Implementation Reference
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Quick Implementation Reference
 
 ### 4.1 Basic Component Pattern
 
@@ -201,7 +263,7 @@ export default defineNuxtConfig({
 })
 ```
 
-## 5. TDD Workflow (Summary)
+## 6. TDD Workflow (Summary)
 
 ### Step 1: Write Failing Test
 ```typescript
@@ -233,7 +295,7 @@ npm run build
 
 **See**: `references/testing-guide.md` for comprehensive testing patterns
 
-## 6. Performance Essentials
+## 7. Performance Essentials
 
 ### Key Patterns
 - **Computed Properties**: Cache derived state
@@ -245,7 +307,7 @@ npm run build
 
 **See**: `references/performance-optimization.md` for detailed patterns and examples
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Known Vulnerabilities (CVE Research)
 
@@ -292,7 +354,7 @@ runtimeConfig: {
 
 **See**: `references/security-examples.md` for comprehensive security patterns
 
-## 8. Common Patterns
+## 9. Common Patterns
 
 ### 8.1 JARVIS HUD Component Workflow
 
@@ -311,7 +373,7 @@ runtimeConfig: {
 4. **Add loading/error states** to UI
 5. **Test error cases** and edge conditions
 
-## 9. Essential Composables Reference
+## 10. Essential Composables Reference
 
 ```typescript
 // State management
@@ -333,7 +395,7 @@ const { data } = await useAsyncData('key', () => fetchData())
 
 **See**: `references/composition-patterns.md` for detailed implementation patterns
 
-## 10. Common Mistakes to Avoid
+## 11. Common Mistakes to Avoid
 
 ### Critical Anti-Patterns
 - ❌ Never use v-html with unsanitized input (XSS)
@@ -347,7 +409,7 @@ const { data } = await useAsyncData('key', () => fetchData())
 
 **See**: `references/anti-patterns.md` for comprehensive examples and solutions
 
-## 11. Pre-Deployment Checklist
+## 12. Pre-Deployment Checklist
 
 ### Security Verification
 - [ ] Nuxt version >= 3.12.4 (CVE-2024-34344 fix)
@@ -365,7 +427,7 @@ const { data } = await useAsyncData('key', () => fetchData())
 - [ ] All security tests pass
 - [ ] Production build completes without errors
 
-## 12. References
+## 13. References
 
 This skill uses a split file structure for better organization. See the `references/` directory:
 
@@ -375,7 +437,7 @@ This skill uses a split file structure for better organization. See the `referen
 - **`anti-patterns.md`** - Common mistakes, security anti-patterns, performance pitfalls, and proper solutions
 - **`security-examples.md`** - CVE mitigations, XSS prevention, authentication, authorization, input validation, rate limiting
 
-## 13. Summary
+## 14. Summary
 
 This Vue/Nuxt skill provides secure patterns for building the JARVIS AI Assistant HUD interface:
 

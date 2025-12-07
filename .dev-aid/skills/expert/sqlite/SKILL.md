@@ -32,6 +32,21 @@ model: claude-sonnet-4-5-20250929
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level: MEDIUM**
@@ -105,143 +120,61 @@ r2d2_sqlite = "0.24"
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Database Initialization
+## 4. Quality Assurance Checklist
 
-```rust
-use rusqlite::{Connection, Result};
-use std::path::Path;
+**Before implementing this skill, ensure**:
 
-pub struct Database {
-    conn: Connection,
-}
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-impl Database {
-    pub fn new(path: &Path) -> Result<Self> {
-        let conn = Connection::open(path)?;
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-        // Enable security and performance features
-        conn.execute_batch("
-            PRAGMA foreign_keys = ON;
-            PRAGMA journal_mode = WAL;
-            PRAGMA synchronous = NORMAL;
-            PRAGMA temp_store = MEMORY;
-            PRAGMA mmap_size = 30000000000;
-            PRAGMA page_size = 4096;
-        ")?;
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-        Ok(Self { conn })
-    }
-}
-```
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-### 4.2 Parameterized Queries (CRITICAL)
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-```rust
-// CORRECT: Parameterized query
-pub fn get_user_by_id(&self, user_id: i64) -> Result<Option<User>> {
-    let mut stmt = self.conn.prepare(
-        "SELECT id, name, email FROM users WHERE id = ?1"
-    )?;
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-    let user = stmt.query_row([user_id], |row| {
-        Ok(User {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            email: row.get(2)?,
-        })
-    }).optional()?;
-
-    Ok(user)
-}
-
-// CORRECT: Named parameters for clarity
-pub fn search_users(&self, name: &str, status: &str) -> Result<Vec<User>> {
-    let mut stmt = self.conn.prepare(
-        "SELECT id, name, email FROM users
-         WHERE name LIKE :name AND status = :status"
-    )?;
-
-    let users = stmt.query_map(
-        &[(":name", &format!("%{}%", name)), (":status", &status)],
-        |row| Ok(User {
-            id: row.get(0)?,
-            name: row.get(1)?,
-            email: row.get(2)?,
-        })
-    )?.collect::<Result<Vec<_>>>()?;
-
-    Ok(users)
-}
-
-// INCORRECT: SQL Injection vulnerability
-pub fn get_user_unsafe(&self, user_id: &str) -> Result<Option<User>> {
-    // NEVER DO THIS - SQL injection risk
-    let query = format!("SELECT * FROM users WHERE id = {}", user_id);
-    // ...
-}
-```
-
-### 4.3 Transaction Management
-
-```rust
-pub fn transfer_funds(
-    &mut self,
-    from_id: i64,
-    to_id: i64,
-    amount: f64
-) -> Result<()> {
-    let tx = self.conn.transaction()?;
-
-    // Debit from source
-    tx.execute(
-        "UPDATE accounts SET balance = balance - ?1 WHERE id = ?2",
-        [amount, from_id as f64],
-    )?;
-
-    // Credit to destination
-    tx.execute(
-        "UPDATE accounts SET balance = balance + ?1 WHERE id = ?2",
-        [amount, to_id as f64],
-    )?;
-
-    tx.commit()?;
-    Ok(())
-}
-```
-
-### 4.4 Full-Text Search (FTS5)
-
-```rust
-// Create FTS5 virtual table with triggers
-pub fn setup_fts(&self) -> Result<()> {
-    self.conn.execute_batch("
-        CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(
-            title, content, tags, content=documents, content_rowid=id
-        );
-        CREATE TRIGGER IF NOT EXISTS docs_ai AFTER INSERT ON documents BEGIN
-            INSERT INTO docs_fts(rowid, title, content, tags)
-            VALUES (new.id, new.title, new.content, new.tags);
-        END;
-    ")?;
-    Ok(())
-}
-
-// Search with highlighting
-pub fn search_documents(&self, query: &str) -> Result<Vec<Document>> {
-    let mut stmt = self.conn.prepare(
-        "SELECT d.*, highlight(docs_fts, 1, '<mark>', '</mark>') as snippet
-         FROM documents d JOIN docs_fts ON d.id = docs_fts.rowid
-         WHERE docs_fts MATCH ?1 ORDER BY rank"
-    )?;
-    stmt.query_map([query], |row| Ok(Document { /* ... */ }))?.collect()
-}
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Security Standards
+## 5. Implementation Patterns
+
+## 5. Implementation Patterns
+
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---
+## 6. Security Standards
 
 ### 5.1 Key Vulnerabilities
 
@@ -277,7 +210,7 @@ pub fn get_user_fields(&self, user_id: i64, fields: &[&str]) -> Result<HashMap<S
 
 ---
 
-## 6. Testing Standards
+## 7. Testing Standards
 
 ### 6.1 Rust Testing Pattern
 
@@ -306,7 +239,7 @@ mod tests {
 
 ---
 
-## 7. Implementation Workflow (TDD)
+## 8. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -375,7 +308,7 @@ pytest tests/test_*_repository.py -v --cov=app/repositories
 
 ---
 
-## 7.1 Performance Patterns
+## 8.1 Performance Patterns
 
 ### Pattern 1: WAL Mode
 
@@ -434,53 +367,21 @@ conn.executescript("""
 ### Pattern 5: VACUUM Scheduling
 
 ```python
-# Good: Maintenance during idle time
-def nightly_maintenance(conn):
-    conn.execute("PRAGMA optimize")
-    freelist = conn.execute("PRAGMA freelist_count").fetchone()[0]
-    if freelist > 1000:
-        conn.execute("VACUUM")
+# Good: Maintenance du## 8. Implementation Workflow (TDD)
 
-# Bad: VACUUM during peak usage or never
-```
+@pytest.fixture
+def db():
+    """In-memory SQLite for fast testing."""
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    yield conn
+    conn.close()
 
----
-
-## 8. Common Mistakes
-
-| Mistake | Wrong | Correct |
-|---------|-------|---------|
-| SQL Injection | `format!("...WHERE name = '{}'", input)` | `"...WHERE name = ?1"` with params |
-| No Transaction | Separate execute calls | Wrap in `transaction()` + `commit()` |
-| No Foreign Keys | Default connection | `PRAGMA foreign_keys = ON` |
-| LIKE for Search | `LIKE '%term%'` | FTS5 `MATCH 'term'` |
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 13. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] **Tests written first** - Create failing tests for new database operations
-- [ ] **Schema designed** - Document table structure, constraints, indexes
-- [ ] **Security reviewed** - Identify all user inputs that reach database
-- [ ] **Performance targets set** - Define query time limits and batch sizes
-- [ ] **Reference files read** - Load `references/security-examples.md` if handling user input
-
-### Phase 2: During Implementation
-
-- [ ] **Parameterized queries only** - Never concatenate user input into SQL
-- [ ] **Dynamic names whitelisted** - Column/table names from approved list only
-- [ ] **Transactions for related ops** - Wrap multi-step operations in transactions
-- [ ] **Foreign keys enabled** - `PRAGMA foreign_keys = ON` at connection
-- [ ] **WAL mode configured** - For concurrent read/write access
-- [ ] **Indexes created** - On columns used in WHERE, JOIN, ORDER BY
-- [ ] **Batch operations used** - `executemany()` for multiple inserts
-- [ ] **Error handling secure** - No SQL details in user-facing errors
-
-### Phase 3: Before Committing
-
-- [ ] **All tests pass** - Run `pytest tests/test_*_repository.py -v`
+`pytest tests/test_*_repository.py -v`
 - [ ] **SQL injection test exists** - Verify malicious input is safely handled
 - [ ] **Performance verified** - EXPLAIN QUERY PLAN shows index usage
 - [ ] **Migrations tested** - Rollback works correctly
@@ -491,7 +392,7 @@ def nightly_maintenance(conn):
 
 ---
 
-## 14. Summary
+## 15. Summary
 
 Create SQLite implementations that are **Secure** (parameterized queries), **Reliable** (transactions, foreign keys), and **Performant** (WAL mode, indexing, FTS5).
 

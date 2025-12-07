@@ -11,6 +11,21 @@ tags: [protocol, mcp, ai-integration, tools, transport]
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM-RISK
@@ -45,233 +60,106 @@ You are an expert in the **Model Context Protocol (MCP)** - a standardized proto
 
 ## 2. Implementation Workflow (TDD)
 
-Follow this workflow for all MCP implementations:
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_mcp_server.py
-import pytest
-from unittest.mock import AsyncMock, patch
-from mcp.server import Server
-from myserver.tools import create_file_reader_tool
-
-class TestFileReaderTool:
-    """Test MCP tool before implementation."""
-
-    @pytest.fixture
-    def server(self):
-        return Server("test-server")
-
-    @pytest.mark.asyncio
-    async def test_read_file_returns_content(self, server, tmp_path):
-        """Tool should return file contents."""
-        test_file = tmp_path / "test.txt"
-        test_file.write_text("Hello, MCP!")
-
-        tool = create_file_reader_tool(allowed_dir=str(tmp_path))
-        result = await tool.execute({"path": str(test_file)})
-
-        assert result.content[0].text == "Hello, MCP!"
-
-    @pytest.mark.asyncio
-    async def test_rejects_path_traversal(self, server, tmp_path):
-        """Tool should reject path traversal attempts."""
-        tool = create_file_reader_tool(allowed_dir=str(tmp_path))
-
-        with pytest.raises(ValueError, match="Path traversal"):
-            await tool.execute({"path": "../../../etc/passwd"})
-
-    @pytest.mark.asyncio
-    async def test_rejects_unauthorized_directory(self, server, tmp_path):
-        """Tool should reject access outside allowed directory."""
-        tool = create_file_reader_tool(allowed_dir=str(tmp_path))
-
-        with pytest.raises(PermissionError, match="Access denied"):
-            await tool.execute({"path": "/etc/passwd"})
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# myserver/tools.py
-from pathlib import Path
-from mcp.types import TextContent
-
-def create_file_reader_tool(allowed_dir: str):
-    """Create a secure file reader tool."""
-    base_path = Path(allowed_dir).resolve()
-
-    async def execute(arguments: dict) -> dict:
-        path = arguments.get("path", "")
-
-        # Validate path traversal
-        if ".." in path:
-            raise ValueError("Path traversal not allowed")
-
-        file_path = Path(path).resolve()
-
-        # Validate directory access
-        if not str(file_path).startswith(str(base_path)):
-            raise PermissionError("Access denied")
-
-        content = file_path.read_text()
-        return {"content": [TextContent(type="text", text=content)]}
-
-    return type("Tool", (), {"execute": execute})()
-```
-
-### Step 3: Refactor if Needed
-
-Add caching, connection pooling, or additional validation while keeping tests passing.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all MCP tests
-pytest tests/test_mcp_server.py -v
-
-# Run with coverage
-pytest --cov=myserver --cov-report=term-missing
-
-# Run security-specific tests
-pytest tests/ -k "security or injection or traversal" -v
-```
-
----
+See `references/implementation-workflow.md` for complete details.
 
 ## 3. Performance Patterns
 
-### 3.1 Connection Reuse
+See `references/performance-patterns.md` for complete details.
 
-```python
-# Bad: Create new connection per request
-async def call_tool(name: str, args: dict):
-    client = MCPClient()  # New connection every time
-    await client.connect()
-    result = await client.call_tool(name, args)
-    await client.disconnect()
-    return result
+## 4. Quality Assurance Checklist
 
-# Good: Reuse connections with connection pool
-class MCPClientPool:
-    def __init__(self, max_connections: int = 10):
-        self._pool: asyncio.Queue = asyncio.Queue(maxsize=max_connections)
-        self._created = 0
-        self._max = max_connections
+**Before implementing this skill, ensure**:
 
-    async def acquire(self) -> MCPClient:
-        if self._pool.empty() and self._created < self._max:
-            client = MCPClient()
-            await client.connect()
-            self._created += 1
-            return client
-        return await self._pool.get()
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-    async def release(self, client: MCPClient):
-        await self._pool.put(client)
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### 3.2 Response Caching
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```python
-# Bad: No caching for repeated requests
-@app.call_tool()
-async def list_resources(arguments: dict):
-    return await fetch_resources()  # Always hits backend
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-# Good: Cache responses with TTL
-from functools import lru_cache
-from cachetools import TTLCache
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-class CachedMCPServer:
-    def __init__(self):
-        self._cache = TTLCache(maxsize=100, ttl=300)  # 5 min TTL
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-    async def list_resources(self, arguments: dict):
-        cache_key = f"resources:{arguments.get('type', 'all')}"
-
-        if cache_key in self._cache:
-            return self._cache[cache_key]
-
-        result = await self._fetch_resources(arguments)
-        self._cache[cache_key] = result
-        return result
-```
-
-### 3.3 Batch Operations
-
-```python
-# Bad: Process items one at a time
-async def process_files(file_paths: list[str]):
-    results = []
-    for path in file_paths:
-        result = await read_file(path)  # Sequential
-        results.append(result)
-    return results
-
-# Good: Batch process with concurrency control
-import asyncio
-
-async def process_files_batch(file_paths: list[str], max_concurrent: int = 5):
-    semaphore = asyncio.Semaphore(max_concurrent)
-
-    async def read_with_limit(path: str):
-        async with semaphore:
-            return await read_file(path)
-
-    return await asyncio.gather(*[read_with_limit(p) for p in file_paths])
-```
-
-### 3.4 Streaming Responses
-
-```python
-# Bad: Load entire response into memory
-async def read_large_file(path: str):
-    with open(path, 'r') as f:
-        return f.read()  # Memory spike for large files
-
-# Good: Stream response in chunks
-async def stream_large_file(path: str):
-    async def generate():
-        async with aiofiles.open(path, 'r') as f:
-            while chunk := await f.read(8192):
-                yield TextContent(type="text", text=chunk)
-
-    return StreamingResponse(generate())
-```
-
-### 3.5 Resource Cleanup
-
-```python
-# Bad: Resources may leak on error
-async def execute_tool(name: str, args: dict):
-    conn = await get_db_connection()
-    result = await conn.execute(args["query"])  # Error leaves conn open
-    return result
-
-# Good: Always cleanup with context managers
-async def execute_tool(name: str, args: dict):
-    async with get_db_connection() as conn:
-        result = await conn.execute(args["query"])
-        return result
-
-# Good: Explicit cleanup with try/finally
-async def execute_with_timeout(tool_func, timeout: int = 5000):
-    task = asyncio.create_task(tool_func())
-    try:
-        return await asyncio.wait_for(task, timeout=timeout/1000)
-    except asyncio.TimeoutError:
-        task.cancel()
-        raise TimeoutError(f"Tool execution exceeded {timeout}ms")
-    finally:
-        if not task.done():
-            task.cancel()
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Responsibilities
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Core Responsibilities
 
 ### Fundamental Duties
 1. **Secure Tool Implementation**: Expose tools with proper input validation and authorization
@@ -281,7 +169,7 @@ async def execute_with_timeout(tool_func, timeout: int = 5000):
 
 ---
 
-## 5. Technical Foundation
+## 6. Technical Foundation
 
 ### Version Recommendations
 | Component | LTS/Stable | Latest | Minimum |
@@ -302,7 +190,7 @@ import pytest
 
 ---
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### 6.1 Secure MCP Server Setup
 
@@ -356,7 +244,7 @@ async def call_tool(name: str, arguments: dict):
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### Vulnerability Landscape
 
@@ -393,7 +281,7 @@ class CommandArgs(BaseModel):
 
 ---
 
-## 8. Pre-Implementation Checklist
+## 9. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Identify all tools to be exposed
@@ -425,7 +313,7 @@ class CommandArgs(BaseModel):
 
 ---
 
-## 9. Testing & Validation
+## 10. Testing & Validation
 
 ### Security Testing
 
@@ -450,7 +338,7 @@ class TestToolSecurity:
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 Your goal is to implement MCP servers and clients that are:
 - **Test-Driven**: Write tests first, then implement

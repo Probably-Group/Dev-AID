@@ -11,6 +11,21 @@ tags: [design-system, tokens, theming, components, architecture]
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: LOW-RISK
@@ -76,178 +91,63 @@ You are an expert in **design system architecture**. You create scalable, mainta
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Token Architecture
+## 4. Quality Assurance Checklist
 
-```css
-/* tokens/core.css - Raw values */
-:root {
-  /* Colors - Gray scale */
-  --color-gray-50: #f9fafb;
-  --color-gray-500: #6b7280;
-  --color-gray-900: #111827;
-  /* ... gray-100 through gray-800 */
+**Before implementing this skill, ensure**:
 
-  /* Colors - Blue scale */
-  --color-blue-500: #3b82f6;
-  --color-blue-600: #2563eb;
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-  /* Spacing (8px base): --space-0 through --space-16 */
-  --space-4: 1rem;
-  --space-6: 1.5rem;
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-  /* Typography */
-  --font-size-base: 1rem;
-  --font-weight-medium: 500;
-  --line-height-normal: 1.5;
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-  /* Radii */
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-  /* Shadows */
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-```
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-```css
-/* tokens/semantic.css - Purpose-specific */
-:root {
-  /* Background */
-  --color-bg-primary: var(--color-white);
-  --color-bg-secondary: var(--color-gray-50);
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-  /* Text */
-  --color-text-primary: var(--color-gray-900);
-  --color-text-secondary: var(--color-gray-600);
-
-  /* Border & Interactive */
-  --color-border-default: var(--color-gray-200);
-  --color-interactive-primary: var(--color-blue-600);
-
-  /* Component spacing */
-  --spacing-component-md: var(--space-3);
-  --spacing-component-lg: var(--space-4);
-}
-```
-
-### 4.2 Theme Switching
-
-```css
-/* themes/light.css */
-:root,
-[data-theme="light"] {
-  --color-bg-primary: var(--color-white);
-  --color-text-primary: var(--color-gray-900);
-  --color-border-default: var(--color-gray-200);
-}
-
-/* themes/dark.css */
-[data-theme="dark"] {
-  --color-bg-primary: var(--color-gray-900);
-  --color-text-primary: var(--color-gray-50);
-  --color-border-default: var(--color-gray-700);
-}
-```
-
-```typescript
-// Theme switcher (condensed)
-function ThemeProvider({ children }: Props) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as "light" | "dark" | null;
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-    setTheme(saved || (prefersDark.matches ? "dark" : "light"));
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-  }, [theme]);
-
-  const toggle = () => {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    localStorage.setItem("theme", next);
-  };
-
-  return (
-    <ThemeContext.Provider value={{ theme, toggle }}>
-      {children}
-    </ThemeContext.Provider>
-  );
-}
-```
-
-### 4.3 Component API Design
-
-```typescript
-// Consistent prop patterns
-interface ButtonProps {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
-  disabled?: boolean;
-  loading?: boolean;
-  children: ReactNode;
-  onClick?: () => void;
-}
-
-function Button({ variant = "primary", size = "md", ...props }: ButtonProps) {
-  return (
-    <button
-      className={cn("button", `button--${variant}`, `button--${size}`)}
-      disabled={props.disabled || props.loading}
-      onClick={props.onClick}
-    >
-      {props.children}
-    </button>
-  );
-}
-```
-
-### 4.4 Composition Patterns
-
-```typescript
-// Compound components
-function Card({ children }: { children: ReactNode }) {
-  return <div className="card">{children}</div>;
-}
-Card.Header = ({ children }) => <div className="card-header">{children}</div>;
-Card.Body = ({ children }) => <div className="card-body">{children}</div>;
-Card.Footer = ({ children }) => <div className="card-footer">{children}</div>;
-
-// Usage: <Card><Card.Header>Title</Card.Header><Card.Body>...</Card.Body></Card>
-```
-
-### 4.5 Token Export Formats
-
-```typescript
-// Export tokens in multiple formats
-const tokens = {
-  colors: { primary: "#3b82f6", secondary: "#6b7280" },
-  spacing: { sm: "8px", md: "16px", lg: "24px" }
-};
-
-// CSS Custom Properties
-function toCSS(tokens: Tokens): string {
-  let css = ":root {\n";
-  for (const [category, values] of Object.entries(tokens)) {
-    for (const [key, value] of Object.entries(values))
-      css += `  --${category}-${key}: ${value};\n`;
-  }
-  return css + "}";
-}
-
-// Tailwind config
-function toTailwind(tokens: Tokens): TailwindConfig {
-  return { theme: { extend: { colors: tokens.colors, spacing: tokens.spacing } } };
-}
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Quality Standards
+## 5. Implementation Patterns
+
+/* Colors - Blue scale */
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---
+## 6. Quality Standards
 
 ### Naming Conventions
 
@@ -265,7 +165,7 @@ function toTailwind(tokens: Tokens): TailwindConfig {
 
 ---
 
-## 6. Implementation Workflow (TDD)
+## 7. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -347,7 +247,7 @@ npm run lint:css                     # Check CSS validity
 
 ---
 
-## 7. Performance Patterns
+## 8. Performance Patterns
 
 ### 7.1 CSS Custom Properties Optimization
 
@@ -431,64 +331,34 @@ async function loadTheme(theme: string) {
 
 ---
 
-## 8. Common Mistakes
+## 9. Commo## 7. Implementation Workflow (TDD)
 
-### ❌ Use Raw Values
-```css
-/* Bad */ .button { background: #3b82f6; padding: 12px; }
-/* Good */ .button { background: var(--color-interactive-primary); padding: var(--spacing-component-md); }
-```
+describe('Design Tokens', () => {
+  it('should have all required color scales', () => {
+    expect(tokens.colors.gray).toBeDefined()
+    expect(tokens.colors.blue).toBeDefined()
+    expect(Object.keys(tokens.colors.gray)).toHaveLength(10)
+  })
 
-### ❌ Inconsistent APIs
-```typescript
-/* Bad */ <Button size="large" /> <Input sizing="lg" />
-/* Good */ <Button size="lg" /> <Input size="lg" />
-```
-
-### ❌ Skip Semantic Layer
-```css
-/* Bad */ .card { background: var(--color-gray-50); }
-/* Good */ .card { background: var(--color-bg-secondary); }
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
+## 8. Performance Patterns
 
-## 13. Pre-Implementation Checklist
+**Bad** - Redundant property declarations:
+```css
+.button { background: var(--color-blue-500); }
+.button:hover { background: var(--color-blue-600); }
+.button:active { background: var(--color-blue-700); }
+```
 
-### Phase 1: Before Writing Code
-- [ ] Review existing token architecture
-- [ ] Plan token hierarchy (core -> semantic -> component)
-- [ ] Define naming conventions
-- [ ] Write tests for token validation
-- [ ] Write tests for component variants
-
-### Phase 2: During Implementation
-- [ ] Core tokens defined with consistent scales
-- [ ] Semantic tokens reference core tokens
-- [ ] Component tokens where needed
-- [ ] All values use tokens (no hardcoded)
-- [ ] Theme switching tested (light/dark)
-- [ ] System preference detection works
-- [ ] Consistent prop APIs across components
-
-### Phase 3: Before Committing
-- [ ] All tests pass (`npm test`)
-- [ ] CSS builds without errors
-- [ ] No hardcoded values in components
-- [ ] Accessibility tested (contrast, focus)
-- [ ] Documentation updated
-- [ ] Migration guide if breaking changes
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
+## 9. Common Mistakes
 
-## 14. Summary
+## 9. Common Mistakes
 
-Your goal is to create design systems that are:
-- **Scalable**: Grows without breaking
-- **Maintainable**: Changes are safe and predictable
-- **Consistent**: Same patterns everywhere
-- **Themeable**: Supports multiple themes
+📚 **For complete details**: See `references/common-mistakes.md`
 
-You understand that design systems are about creating a shared language. Tokens are words, components are sentences, and patterns are grammar. Build a system that makes it easy to write great interfaces.
-
-Create foundations that empower teams to build consistent, beautiful products.
+---

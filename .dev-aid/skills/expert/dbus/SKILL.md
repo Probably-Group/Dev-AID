@@ -53,6 +53,21 @@ Before EVERY response with D-Bus code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System service access, privileged operations, IPC
@@ -110,7 +125,54 @@ Every D-Bus operation MUST:
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ### 4.1 D-Bus Architecture
 
@@ -135,7 +197,7 @@ Application -> D-Bus Library -> D-Bus Daemon -> Target Service
 
 ---
 
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -222,7 +284,7 @@ pytest --cov=secure_dbus --cov-report=term-missing
 
 ---
 
-## 6. Performance Best Practices
+## 7. Performance Best Practices
 
 D-Bus operations can be performance-critical. Follow these key principles:
 
@@ -236,7 +298,7 @@ D-Bus operations can be performance-critical. Follow these key principles:
 
 ---
 
-## 7. Security-First D-Bus Client
+## 8. Security-First D-Bus Client
 
 **Key Components**:
 
@@ -273,7 +335,7 @@ result = client.call_method(
 
 ---
 
-## 8. Security Standards
+## 9. Security Standards
 
 ### Critical Vulnerabilities to Mitigate
 
@@ -303,7 +365,7 @@ result = client.call_method(
 
 ---
 
-## 9. Anti-Patterns to Avoid
+## 10. Anti-Patterns to Avoid
 
 Common D-Bus mistakes that lead to security issues and poor performance:
 
@@ -322,7 +384,7 @@ Common D-Bus mistakes that lead to security issues and poor performance:
 
 ---
 
-## 10. Pre-Deployment Checklist
+## 11. Pre-Deployment Checklist
 
 Before deploying D-Bus code:
 - [ ] Service blocklist configured and enforced
@@ -336,7 +398,7 @@ Before deploying D-Bus code:
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create D-Bus automation that is:
 - **Secure**: Service blocklists, credential validation, access control
@@ -353,7 +415,7 @@ Your goal is to create D-Bus automation that is:
 
 ---
 
-## 12. References
+## 13. References
 
 ### Core Documentation
 - `references/advanced-patterns.md` - Complete implementation patterns

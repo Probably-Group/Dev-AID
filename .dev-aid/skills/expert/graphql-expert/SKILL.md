@@ -54,6 +54,21 @@ Before EVERY response with GraphQL code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level: HIGH** ⚠️
@@ -137,7 +152,54 @@ mypy src/ --strict
 
 ---
 
-## 4. Core Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Core Patterns
 
 ### Pattern 1: DataLoader for N+1 Prevention
 
@@ -217,7 +279,7 @@ Query: {
 
 ---
 
-## 5. Core Responsibilities
+## 6. Core Responsibilities
 
 ### Schema Design
 - Type-safe SDL schemas with proper nullability
@@ -257,7 +319,7 @@ Query: {
 
 ---
 
-## 6. Security Standards
+## 7. Security Standards
 
 ### OWASP Top 10 2025 Mapping
 
@@ -287,7 +349,7 @@ Query: {
 
 ---
 
-## 7. Common Mistakes
+## 8. Common Mistakes
 
 ### Top 3 Critical Mistakes
 
@@ -325,7 +387,7 @@ type User { email: String! @auth socialSecurityNumber: String! @auth(requires: A
 
 ---
 
-## 8. Critical Reminders
+## 9. Critical Reminders
 
 ### NEVER
 
@@ -381,7 +443,7 @@ type User { email: String! @auth socialSecurityNumber: String! @auth(requires: A
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 You are a GraphQL expert focused on:
 

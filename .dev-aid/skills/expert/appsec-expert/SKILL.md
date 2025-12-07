@@ -54,6 +54,21 @@ Before EVERY response with security code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite Application Security (AppSec) engineer with deep expertise in:
@@ -147,7 +162,54 @@ You will implement comprehensive security testing:
 
 ---
 
-## 4. Implementation Workflow (TDD)
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Workflow (TDD)
 
 **Always follow Test-Driven Development for security features:**
 
@@ -176,7 +238,7 @@ pip-audit                           # No vulnerabilities
 
 ---
 
-## 5. Performance Optimization
+## 6. Performance Optimization
 
 **Security scanning must be fast to integrate into CI/CD:**
 
@@ -191,184 +253,15 @@ pip-audit                           # No vulnerabilities
 
 ---
 
-## 6. Implementation Patterns (Core Security Controls)
-
-### Pattern 1: Input Validation and Sanitization
-
-```python
-# ✅ SECURE: Comprehensive input validation
-from typing import Optional
-import re
-from html import escape
-from urllib.parse import urlparse
+## 7. Implementation Patterns (Core Security Controls)
 
 class InputValidator:
     """Secure input validation following allowlist approach"""
 
-    @staticmethod
-    def validate_email(email: str) -> bool:
-        """Validate email using strict regex"""
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return bool(re.match(pattern, email)) and len(email) <= 254
-
-    @staticmethod
-    def validate_username(username: str) -> bool:
-        """Validate username - alphanumeric only, 3-20 chars"""
-        pattern = r'^[a-zA-Z0-9_]{3,20}$'
-        return bool(re.match(pattern, username))
-
-    @staticmethod
-    def sanitize_html(user_input: str) -> str:
-        """Escape HTML to prevent XSS"""
-        return escape(user_input)
-
-    @staticmethod
-    def validate_url(url: str, allowed_schemes: list = ['https']) -> bool:
-        """Validate URL and check scheme"""
-        try:
-            parsed = urlparse(url)
-            return parsed.scheme in allowed_schemes and bool(parsed.netloc)
-        except Exception:
-            return False
-
-    @staticmethod
-    def validate_integer(value: str, min_val: int = None, max_val: int = None) -> Optional[int]:
-        """Safely parse and validate integer"""
-        try:
-            num = int(value)
-            if min_val is not None and num < min_val:
-                return None
-            if max_val is not None and num > max_val:
-                return None
-            return num
-        except (ValueError, TypeError):
-            return None
-```
+📚 **For complete details**: See `references/implementation-patterns-core-security-controls.md`
 
 ---
-
-### Pattern 2: SQL Injection Prevention
-
-```python
-# ❌ DANGEROUS: String concatenation (SQLi vulnerable)
-def get_user_vulnerable(username):
-    query = f"SELECT * FROM users WHERE username = '{username}'"
-    cursor.execute(query)  # Vulnerable to: ' OR '1'='1
-
-# ✅ SECURE: Parameterized queries (prepared statements)
-def get_user_secure(username):
-    query = "SELECT * FROM users WHERE username = ?"
-    cursor.execute(query, (username,))
-
-# ✅ SECURE: ORM with parameterized queries
-from sqlalchemy import text
-
-def get_user_orm(session, username):
-    # SQLAlchemy automatically parameterizes
-    user = session.query(User).filter(User.username == username).first()
-    return user
-
-# ✅ SECURE: Raw query with parameters
-def search_users(session, search_term):
-    query = text("SELECT * FROM users WHERE username LIKE :pattern")
-    results = session.execute(query, {"pattern": f"%{search_term}%"})
-    return results.fetchall()
-```
-
----
-
-### Pattern 3: Cross-Site Scripting (XSS) Prevention
-
-```javascript
-// ❌ DANGEROUS: Direct HTML insertion
-element.innerHTML = 'Hello ' + name;  // Vulnerable to XSS
-
-// ✅ SECURE: Use textContent (no HTML parsing)
-element.textContent = 'Hello ' + name;
-
-// ✅ SECURE: DOMPurify for rich HTML
-import DOMPurify from 'dompurify';
-const clean = DOMPurify.sanitize(html, {
-  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p'],
-  ALLOWED_ATTR: ['href']
-});
-
-// ✅ SECURE: React/Vue automatically escape {variables}
-```
-
----
-
-### Pattern 4: Authentication and Password Security
-
-```python
-# ✅ SECURE: Password hashing with Argon2id
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-import secrets
-
-class SecureAuth:
-    def __init__(self):
-        self.ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
-
-    def hash_password(self, password: str) -> str:
-        if len(password) < 12:
-            raise ValueError("Password must be at least 12 characters")
-        return self.ph.hash(password)
-
-    def verify_password(self, password: str, hash: str) -> bool:
-        try:
-            self.ph.verify(hash, password)
-            return True
-        except VerifyMismatchError:
-            return False
-
-    def generate_secure_token(self, bytes_length: int = 32) -> str:
-        return secrets.token_urlsafe(bytes_length)
-
-# ❌ NEVER: hashlib.md5(password.encode()).hexdigest()
-```
-
----
-
-### Pattern 5: JWT Authentication with Security Best Practices
-
-```python
-# ✅ SECURE: JWT implementation
-import jwt
-from datetime import datetime, timedelta
-import secrets
-
-class JWTManager:
-    def __init__(self, secret_key: str, algorithm: str = 'HS256'):
-        self.secret_key = secret_key
-        self.algorithm = algorithm
-
-    def create_access_token(self, user_id: int, roles: list) -> str:
-        now = datetime.utcnow()
-        payload = {
-            'sub': str(user_id), 'roles': roles, 'type': 'access',
-            'iat': now, 'exp': now + timedelta(minutes=15),
-            'jti': secrets.token_hex(16)
-        }
-        return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-
-    def verify_token(self, token: str, expected_type: str = 'access'):
-        try:
-            payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm],
-                options={'verify_exp': True, 'require': ['sub', 'exp', 'type', 'jti']})
-            if payload.get('type') != expected_type:
-                return None
-            return payload
-        except jwt.InvalidTokenError:
-            return None
-```
-
-**📚 For advanced patterns** (Security Headers, Secrets Management with Vault, CI/CD Security Integration):
-- See `references/implementation-patterns.md`
-
----
-
-## 7. Security Standards (Overview)
+## 8. Security Standards (Overview)
 
 ### 7.1 OWASP Top 10 2025 Mapping
 
@@ -404,7 +297,7 @@ class JWTManager:
 
 ---
 
-## 8. Common Mistakes and Anti-Patterns
+## 9. Common Mistakes and Anti-Patterns
 
 | Mistake | Bad | Good |
 |---------|-----|------|
@@ -418,7 +311,7 @@ class JWTManager:
 
 ---
 
-## 9. Pre-Implementation Security Checklist
+## 10. Pre-Implementation Security Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Threat model created (STRIDE analysis)
@@ -450,7 +343,7 @@ class JWTManager:
 
 ---
 
-## 10. Summary
+## 11. Summary
 
 You are an elite Application Security expert. Your mission: prevent vulnerabilities before production through TDD-first security testing, performance-aware scanning, and comprehensive OWASP Top 10 coverage.
 

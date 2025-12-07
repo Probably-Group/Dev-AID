@@ -9,6 +9,21 @@ version: 1.1.0
 
 > **File Organization**: This skill uses split structure. See `references/` for advanced shader patterns.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides GLSL shader expertise for creating holographic visual effects in the JARVIS AI Assistant HUD. It focuses on efficient GPU programming for real-time rendering.
@@ -36,108 +51,59 @@ This skill provides GLSL shader expertise for creating holographic visual effect
 
 ## 3. Implementation Workflow (TDD)
 
-### 3.1 Step 1: Write Failing Test First
-
-```typescript
-// tests/shaders/holographic-panel.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { WebGLTestContext, captureFramebuffer, compareImages } from '../utils/webgl-test'
-
 describe('HolographicPanelShader', () => {
   let ctx: WebGLTestContext
 
-  beforeEach(() => {
-    ctx = new WebGLTestContext(256, 256)
-  })
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-  // Unit test: Shader compiles
-  it('should compile without errors', () => {
-    const shader = ctx.compileShader(holoFragSource, ctx.gl.FRAGMENT_SHADER)
-    expect(shader).not.toBeNull()
-    expect(ctx.getShaderErrors()).toEqual([])
-  })
+---
+## 4. Quality Assurance Checklist
 
-  // Unit test: Uniforms are accessible
-  it('should have required uniforms', () => {
-    const program = ctx.createProgram(vertSource, holoFragSource)
-    expect(ctx.getUniformLocation(program, 'uTime')).not.toBeNull()
-    expect(ctx.getUniformLocation(program, 'uColor')).not.toBeNull()
-    expect(ctx.getUniformLocation(program, 'uOpacity')).not.toBeNull()
-  })
+**Before implementing this skill, ensure**:
 
-  // Visual regression test
-  it('should render scanlines correctly', async () => {
-    ctx.renderShader(holoFragSource, { uTime: 0, uColor: [0, 0.5, 1], uOpacity: 1 })
-    const result = captureFramebuffer(ctx)
-    const baseline = await loadBaseline('holographic-scanlines.png')
-    expect(compareImages(result, baseline, { threshold: 0.01 })).toBeLessThan(0.01)
-  })
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-  // Edge case test
-  it('should handle extreme UV values', () => {
-    const testCases = [
-      { uv: [0, 0], expected: 'no crash' },
-      { uv: [1, 1], expected: 'no crash' },
-      { uv: [0.5, 0.5], expected: 'no crash' }
-    ]
-    testCases.forEach(({ uv }) => {
-      expect(() => ctx.renderAtUV(holoFragSource, uv)).not.toThrow()
-    })
-  })
-})
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### 3.2 Step 2: Implement Minimum to Pass
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```glsl
-// Start with minimal shader that passes tests
-#version 300 es
-precision highp float;
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-uniform float uTime;
-uniform vec3 uColor;
-uniform float uOpacity;
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-in vec2 vUv;
-out vec4 fragColor;
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-void main() {
-  // Minimal implementation to pass compilation test
-  fragColor = vec4(uColor, uOpacity);
-}
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
-### 3.3 Step 3: Refactor with Full Implementation
+---
 
-```glsl
-// Expand to full implementation after tests pass
-void main() {
-  vec2 uv = vUv;
-  float scanline = sin(uv.y * 100.0) * 0.1 + 0.9;
-  float pulse = sin(uTime * 2.0) * 0.1 + 0.9;
-  vec3 color = uColor * scanline * pulse;
-  fragColor = vec4(color, uOpacity);
-}
-```
-
-### 3.4 Step 4: Run Full Verification
-
-```bash
-# Run all shader tests
-npm run test:shaders
-
-# Visual regression tests
-npm run test:visual -- --update-snapshots  # First time only
-npm run test:visual
-
-# Performance benchmark
-npm run bench:shaders
-
-# Cross-browser compilation check
-npm run test:webgl-compat
-```
-
-## 4. Technology Stack & Versions
+## 5. Technology Stack & Versions
 
 ### 4.1 GLSL Versions
 
@@ -156,7 +122,7 @@ precision highp int;
 // WebGL 2.0 shader header
 ```
 
-## 5. Performance Patterns
+## 6. Performance Patterns
 
 ### 5.1 Avoid Branching - Use Mix/Step
 
@@ -267,166 +233,22 @@ uniform mat4 uTransform;
 precision highp float;
 
 highp vec3 color;
-highp float alpha;
-highp vec2 uv;
+high## 6. Performance Patterns
 
-// ✅ GOOD - Match precision to data needs
-precision highp float;  // Default for calculations
+// ✅ GOOD - Branchless with mix/step
+vec3 getColor(float value) {
+  vec3 red = vec3(1.0, 0.0, 0.0);
+  vec3 yellow = vec3(1.0, 1.0, 0.0);
+  vec3 green = vec3(0.0, 1.0, 0.0);
 
-mediump vec3 color;     // 0-1 range, mediump sufficient
-mediump float alpha;    // 0-1 range
-highp vec2 uv;          // Need precision for texture coords
-lowp int flags;         // Boolean-like values
-```
+📚 **For complete details**: See `references/performance-patterns.md`
 
-### 5.6 Cache Texture Lookups
-
-```glsl
-// ❌ BAD - Redundant texture fetches
-void main() {
-  vec3 diffuse = texture(uTexture, vUv).rgb;
-  // ... some code ...
-  float alpha = texture(uTexture, vUv).a;  // Same lookup!
-  // ... more code ...
-  vec3 doubled = texture(uTexture, vUv).rgb * 2.0;  // Again!
-}
-
-// ✅ GOOD - Cache the result
-void main() {
-  vec4 texSample = texture(uTexture, vUv);
-  vec3 diffuse = texSample.rgb;
-  float alpha = texSample.a;
-  vec3 doubled = texSample.rgb * 2.0;
+---
+nt(uCount)) break;
 }
 ```
 
-## 6. Implementation Patterns
-
-### 6.1 Holographic Panel Shader
-
-```glsl
-// shaders/holographic-panel.frag
-#version 300 es
-precision highp float;
-
-uniform float uTime;
-uniform vec3 uColor;
-uniform float uOpacity;
-uniform vec2 uResolution;
-
-in vec2 vUv;
-out vec4 fragColor;
-
-const int SCANLINE_COUNT = 50;
-
-void main() {
-  vec2 uv = vUv;
-
-  // Scanline effect
-  float scanline = 0.0;
-  for (int i = 0; i < SCANLINE_COUNT; i++) {
-    float y = float(i) / float(SCANLINE_COUNT);
-    scanline += smoothstep(0.0, 0.002, abs(uv.y - y));
-  }
-  scanline = 1.0 - scanline * 0.3;
-
-  // Edge glow
-  float edge = 1.0 - smoothstep(0.0, 0.05, min(
-    min(uv.x, 1.0 - uv.x),
-    min(uv.y, 1.0 - uv.y)
-  ));
-
-  // Animated pulse
-  float pulse = sin(uTime * 2.0) * 0.1 + 0.9;
-
-  vec3 color = uColor * scanline * pulse;
-  color += vec3(0.0, 0.5, 1.0) * edge * 0.5;
-
-  fragColor = vec4(color, uOpacity);
-}
-```
-
-### 6.2 Energy Field Shader
-
-```glsl
-// shaders/energy-field.frag
-#version 300 es
-precision highp float;
-
-uniform float uTime;
-uniform vec3 uColor;
-
-in vec2 vUv;
-in vec3 vNormal;
-in vec3 vViewPosition;
-out vec4 fragColor;
-
-float snoise(vec3 v) {
-  return fract(sin(dot(v, vec3(12.9898, 78.233, 45.543))) * 43758.5453);
-}
-
-void main() {
-  vec3 viewDir = normalize(-vViewPosition);
-  float fresnel = pow(1.0 - abs(dot(viewDir, vNormal)), 3.0);
-  float noise = snoise(vec3(vUv * 5.0, uTime * 0.5));
-
-  vec3 color = uColor * fresnel;
-  color += uColor * noise * 0.2;
-  float alpha = fresnel * 0.8 + noise * 0.1;
-
-  fragColor = vec4(color, alpha);
-}
-```
-
-### 6.3 Data Visualization Shader
-
-```glsl
-// shaders/data-bar.frag
-#version 300 es
-precision highp float;
-
-uniform float uValue;
-uniform float uThreshold;
-uniform vec3 uColorLow;
-uniform vec3 uColorHigh;
-uniform vec3 uColorWarning;
-
-in vec2 vUv;
-out vec4 fragColor;
-
-void main() {
-  float fill = step(vUv.x, uValue);
-  vec3 color = mix(uColorLow, uColorHigh, uValue);
-  color = mix(color, uColorWarning, step(uThreshold, uValue));
-  float gradient = vUv.y * 0.3 + 0.7;
-  fragColor = vec4(color * gradient * fill, fill);
-}
-```
-
-## 7. Security & Performance Standards
-
-### 7.1 GPU Safety
-
-| Risk | Mitigation |
-|------|------------|
-| Infinite loops | Always use constant loop bounds |
-| GPU hangs | Test shaders with small datasets first |
-| Memory exhaustion | Limit texture sizes |
-
-### 7.2 Loop Safety Pattern
-
-```glsl
-// ❌ BAD - Dynamic loop bound
-for (int i = 0; i < int(uCount); i++) { }
-
-// ✅ GOOD - Constant loop bound
-const int MAX_ITERATIONS = 100;
-for (int i = 0; i < MAX_ITERATIONS; i++) {
-  if (i >= int(uCount)) break;
-}
-```
-
-## 8. Common Mistakes & Anti-Patterns
+## 9. Common Mistakes & Anti-Patterns
 
 ### 8.1 Never: Use Dynamic Loop Bounds
 
@@ -451,7 +273,7 @@ float result = value / divisor;
 float result = value / max(divisor, 0.0001);
 ```
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -479,7 +301,7 @@ float result = value / max(divisor, 0.0001);
 - [ ] No artifacts at edge cases (UV 0,0 and 1,1)
 - [ ] Smooth animation timing verified
 
-## 10. Summary
+## 11. Summary
 
 GLSL shaders power the visual effects in JARVIS HUD:
 
@@ -494,3 +316,13 @@ GLSL shaders power the visual effects in JARVIS HUD:
 
 **References**:
 - `references/advanced-patterns.md` - Complex shader techniques
+## 7. Implementation Patterns
+
+uniform float uTime;
+uniform vec3 uColor;
+uniform float uOpacity;
+uniform vec2 uResolution;
+
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---

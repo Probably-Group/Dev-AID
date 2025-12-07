@@ -23,6 +23,21 @@ risk_level: MEDIUM
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM
@@ -91,66 +106,61 @@ cargo-audit = "0.18"       # Vulnerability scanning
 
 ---
 
-## 4. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 4. Quality Assurance Checklist
 
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+**Before implementing this skill, ensure**:
 
-    #[test]
-    fn test_user_creation_valid_input() {
-        let input = UserInput { name: "Alice".to_string(), age: 30 };
-        let result = User::try_from(input);
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap().name, "Alice");
-    }
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-    #[test]
-    fn test_user_creation_rejects_empty_name() {
-        let input = UserInput { name: "".to_string(), age: 25 };
-        assert!(matches!(User::try_from(input), Err(AppError::Validation(_))));
-    }
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-    #[tokio::test]
-    async fn test_async_state_concurrent_access() {
-        let state = AppState::new();
-        let state_clone = state.clone();
-        let handle = tokio::spawn(async move {
-            state_clone.update_user("1", User::new("Bob")).await
-        });
-        state.update_user("2", User::new("Alice")).await.unwrap();
-        handle.await.unwrap().unwrap();
-        assert!(state.get_user("1").await.is_some());
-    }
-}
-```
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-### Step 2: Implement Minimum Code to Pass
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-```rust
-impl TryFrom<UserInput> for User {
-    type Error = AppError;
-    fn try_from(input: UserInput) -> Result<Self, Self::Error> {
-        if input.name.is_empty() {
-            return Err(AppError::Validation("Name cannot be empty".into()));
-        }
-        Ok(User { name: input.name, age: input.age })
-    }
-}
-```
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-### Step 3: Refactor and Verify
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-```bash
-cargo test && cargo clippy -- -D warnings && cargo audit
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Implementation Patterns
+## 5. Implementation Workflow (TDD)
+
+## 5. Implementation Workflow (TDD)
+
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+
+---
+## 6. Implementation Patterns
 
 ### Pattern 1: Secure Input Validation
 
@@ -203,114 +213,14 @@ impl serde::Serialize for AppError {
 ```
 
 ### Pattern 3: Secure File Operations
+## 6. Implementation Patterns
 
-Prevent path traversal by canonicalizing paths and verifying containment.
+Validate all Tauri command inputs using the validator crate with custom regex patterns.
 
-```rust
-pub fn safe_path_join(base: &Path, user_input: &str) -> Result<PathBuf, AppError> {
-    if user_input.contains("..") || user_input.contains("~") {
-        return Err(AppError::Validation("Invalid path characters".into()));
-    }
-    let canonical = dunce::canonicalize(base.join(user_input))
-        .map_err(|_| AppError::NotFound)?;
-    let base_canonical = dunce::canonicalize(base)
-        .map_err(|_| AppError::Internal(anyhow::anyhow!("Invalid base")))?;
-
-    if !canonical.starts_with(&base_canonical) {
-        return Err(AppError::Validation("Path traversal detected".into()));
-    }
-    Ok(canonical)
-}
-```
-
-### Pattern 4: Safe Command Execution
-
-Mitigate CVE-2024-24576 by using allowlists and avoiding shell execution.
-
-```rust
-pub fn safe_command(program: &str, args: &[&str]) -> Result<String, AppError> {
-    const ALLOWED: &[&str] = &["git", "cargo", "rustc"];
-    if !ALLOWED.contains(&program) {
-        return Err(AppError::Validation("Program not allowed".into()));
-    }
-
-    let output = Command::new(program).args(args).output()
-        .map_err(|e| AppError::Internal(e.into()))?;
-
-    if output.status.success() {
-        String::from_utf8(output.stdout).map_err(|e| AppError::Internal(e.into()))
-    } else {
-        Err(AppError::Internal(anyhow::anyhow!("Command failed")))
-    }
-}
-```
-
-### Pattern 5: Safe Async State Management
-
-Use Arc<RwLock<T>> for thread-safe shared state in Tauri applications.
-
-```rust
-pub struct AppState {
-    users: Arc<RwLock<HashMap<String, User>>>,
-    config: Arc<Config>,
-}
-
-impl AppState {
-    pub async fn get_user(&self, id: &str) -> Option<User> {
-        self.users.read().await.get(id).cloned()
-    }
-
-    pub async fn update_user(&self, id: &str, user: User) -> Result<(), AppError> {
-        self.users.write().await.insert(id.to_string(), user);
-        Ok(())
-    }
-}
-```
-
-> **See `references/advanced-patterns.md` for advanced state patterns and Tauri integration**
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 6. Security Standards
-
-### 5.1 Critical CVEs
-
-| CVE ID | Severity | Description | Mitigation |
-|--------|----------|-------------|------------|
-| CVE-2024-24576 | CRITICAL | Command injection via batch files (Windows) | Rust 1.77.2+, avoid shell |
-| CVE-2024-43402 | HIGH | Incomplete fix for above | Rust 1.81.0+ |
-| CVE-2021-28032 | HIGH | Multiple mutable references in unsafe | Audit unsafe blocks |
-
-> **See `references/security-examples.md` for complete CVE details and mitigation code**
-
-### 5.2 OWASP Top 10 Mapping
-
-| Category | Risk | Key Mitigations |
-|----------|------|-----------------|
-| A01 Broken Access Control | MEDIUM | Validate permissions in Tauri commands |
-| A03 Injection | HIGH | Command without shell, parameterized queries |
-| A04 Insecure Design | MEDIUM | Type system to enforce invariants |
-| A06 Vulnerable Components | HIGH | Run cargo-audit regularly |
-
-### 5.3 Input Validation Strategy
-
-**Four-layer approach**: Type system newtypes -> Schema validation (serde/validator) -> Business logic -> Output encoding
-
-```rust
-pub struct Email(String);  // Newtype for validated input
-
-impl Email {
-    pub fn new(s: &str) -> Result<Self, ValidationError> {
-        if validator::validate_email(s) { Ok(Self(s.to_string())) }
-        else { Err(ValidationError::InvalidEmail) }
-    }
-}
-```
-
-### 5.4 Secrets Management
-
-```rust
-// Load from environment or tauri-plugin-store with encryption
+om environment or tauri-plugin-store with encryption
 fn get_api_key() -> Result<String, AppError> {
     std::env::var("API_KEY")
         .map_err(|_| AppError::Configuration("API_KEY not set".into()))
@@ -321,7 +231,7 @@ fn get_api_key() -> Result<String, AppError> {
 
 ---
 
-## 7. Performance Patterns
+## 8. Performance Patterns
 
 ### Pattern 1: Zero-Copy Operations
 
@@ -379,7 +289,7 @@ fn log_metric(buffer: &mut Vec<u8>, name: &str, value: u64) {
 
 ---
 
-## 8. Testing & Validation
+## 9. Testing & Validation
 
 ### Security Testing Commands
 
@@ -415,7 +325,7 @@ mod tests {
 
 ---
 
-## 9. Common Mistakes & Anti-Patterns
+## 10. Common Mistakes & Anti-Patterns
 
 | Anti-Pattern | Problem | Solution |
 |--------------|---------|----------|
@@ -435,7 +345,7 @@ Command::new("echo").arg(user_input);
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -467,19 +377,20 @@ Command::new("echo").arg(user_input);
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create Rust code that is:
 - **Memory Safe**: Leverage the borrow checker, minimize unsafe
-- **Type Safe**: Use the type system to prevent invalid states
-- **Performant**: Zero-cost abstractions, profile before optimizing
-- **Secure**: Validate at boundaries, handle errors safely
+- **Typ## 8. Performance Patterns
 
-**Critical Security Reminders**:
-1. Upgrade to Rust 1.81.0+ to fix command injection CVEs
-2. Run cargo-audit in CI/CD pipeline
-3. Document SAFETY invariants for all unsafe blocks
-4. Never use shell execution with user input
-5. Canonicalize and validate all file paths
+**Bad**: `data.to_vec()` then iterate - **Good**: Return iterator with lifetime
+```rust
+// Bad: fn process(data: &[u8]) -> Vec<u8> { data.to_vec().iter().map(|b| b+1).collect() }
+fn process(data: &[u8]) -> impl Iterator<Item = u8> + '_ {
+    data.iter().map(|b| b + 1)  // No allocation
+}
+```
 
-> **For detailed examples and advanced patterns, see the `references/` directory**
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---

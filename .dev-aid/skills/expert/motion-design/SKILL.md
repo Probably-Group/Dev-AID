@@ -11,6 +11,21 @@ tags: [design, animation, motion, transitions, hud]
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: LOW-RISK
@@ -86,16 +101,54 @@ You are an expert in **motion design** for interfaces. You create purposeful ani
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Enter/Exit Animations
+## 4. Quality Assurance Checklist
 
-```css
-/* Slide up and fade */
-@keyframes slideUpFadeIn {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 /* Usage */
 .element-enter {
@@ -103,74 +156,10 @@ You are an expert in **motion design** for interfaces. You create purposeful ani
 }
 ```
 
-### 4.2 Spring Physics
-
-```typescript
-// Spring presets for natural motion
-const springPresets = {
-  gentle: { stiffness: 120, damping: 14 },
-  wobbly: { stiffness: 180, damping: 12 },
-  stiff: { stiffness: 400, damping: 30 },
-  default: { stiffness: 300, damping: 20 }
-};
-```
-
-### 4.3 Loading States
-
-```css
-/* Pulse animation */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-.loading-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-/* Spinner */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-.spinner {
-  animation: spin 1s linear infinite;
-}
-```
-
-### 4.4 HUD Effects
-
-```css
-/* Glow pulse */
-@keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 10px var(--color-primary-500); }
-  50% { box-shadow: 0 0 20px var(--color-primary-500), 0 0 30px var(--color-primary-500); }
-}
-.hud-glow {
-  animation: glowPulse 2s ease-in-out infinite;
-}
-```
-
-### 4.5 Staggered Animations
-
-```typescript
-// Stagger by 50ms per item
-const staggerDelay = (index: number) => index * 0.05
-```
-
-### 4.6 Reduced Motion Support
-
-```css
-/* Disable animations for reduced motion preference */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -224,121 +213,18 @@ describe('AnimatedModal', () => {
   <Transition name="modal">
     <div
       v-if="isOpen"
-      class="modal"
-      :class="{ 'reduced-motion': prefersReducedMotion }"
-    >
-      <slot />
-    </div>
-  </Transition>
-</template>
+   ## 6. Implementation Workflow (TDD)
 
-<script setup lang="ts">
-import { useReducedMotion } from '~/composables/useReducedMotion'
+describe('AnimatedModal', () => {
+  it('applies enter animation classes on mount', async () => {
+    const wrapper = mount(AnimatedModal, {
+      props: { isOpen: true }
+    })
 
-defineProps<{ isOpen: boolean }>()
-const prefersReducedMotion = useReducedMotion()
-</script>
-```
-
-### Step 3: Refactor Following Patterns
-
-- Extract animation timing to design tokens
-- Add GPU-accelerated properties only
-- Ensure proper cleanup on unmount
-
-### Step 4: Run Full Verification
-
-```bash
-# Run animation tests
-npm test -- --grep "animation"
-
-# Check for layout thrashing
-npm run lighthouse -- --only-categories=performance
-
-# Verify reduced motion support
-npm run test:a11y
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 6. Performance Patterns
-
-### Pattern 1: will-change Usage
-
-```css
-/* BAD: Always active will-change */
-.animated-element {
-  will-change: transform, opacity;
-}
-
-/* GOOD: Apply only when animating */
-.animated-element:hover,
-.animated-element:focus,
-.animated-element.is-animating {
-  will-change: transform, opacity;
-}
-
-/* GOOD: Remove after animation */
-.animated-element {
-  transition: transform 0.3s ease;
-}
-
-.animated-element.animate-complete {
-  will-change: auto;
-}
-```
-
-### Pattern 2: Transform vs Layout Properties
-
-```css
-/* BAD: Triggers layout recalculation */
-.sidebar-toggle {
-  width: 0;
-  transition: width 0.3s ease;
-}
-.sidebar-toggle.open {
-  width: 280px;
-}
-
-/* GOOD: GPU-accelerated transform */
-.sidebar-toggle {
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-}
-.sidebar-toggle.open {
-  transform: translateX(0);
-}
-```
-
-### Pattern 3: Hardware Acceleration
-
-```css
-/* BAD: No GPU acceleration hint */
-.card {
-  transition: transform 0.3s;
-}
-
-/* GOOD: Force GPU layer creation */
-.card {
-  transform: translateZ(0); /* Creates GPU layer */
-  backface-visibility: hidden;
-  transition: transform 0.3s;
-}
-
-/* GOOD: Modern approach */
-.card {
-  contain: layout style paint;
-  transition: transform 0.3s;
-}
-```
-
-### Pattern 4: Reduced Motion Handling
-
-```typescript
-/* BAD: Ignore user preference */
-function animateElement(el: HTMLElement) {
-  el.animate([
-    { transform: 'translateY(20px)', opacity: 0 },
+m: 'translateY(20px)', opacity: 0 },
     { transform: 'translateY(0)', opacity: 1 }
   ], { duration: 300 })
 }
@@ -405,7 +291,7 @@ function animateItems(items: HTMLElement[]) {
 
 ---
 
-## 7. Quality Standards
+## 8. Quality Standards
 
 ### Performance Requirements
 - Target 60fps (16.67ms per frame)
@@ -416,76 +302,15 @@ function animateItems(items: HTMLElement[]) {
 ```css
 /* ✅ GPU-accelerated properties */
 .animated {
-  transform: translateX(0);
-  opacity: 1;
-  transition: transform 0.3s, opacity 0.3s;
+  trans## 7. Performance Patterns
+
+/* GOOD: Apply only when animating */
+.animated-element:hover,
+.animated-element:focus,
+.animated-element.is-animating {
+  will-change: transform, opacity;
 }
 
-/* ❌ Causes layout thrashing */
-.animated-bad {
-  left: 0;
-  width: 100px;
-  transition: left 0.3s, width 0.3s;
-}
-```
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## 8. Common Mistakes
-
-```css
-/* ❌ Over-animated */
-* { transition: all 0.3s ease; }
-/* ✅ Intentional */
-.button { transition: background-color 0.2s ease, transform 0.1s ease; }
-
-/* ❌ Too slow */
-.modal { animation: fadeIn 1s ease; }
-/* ✅ Snappy */
-.modal { animation: fadeIn 0.2s ease; }
-
-/* ❌ Triggers layout */
-.sidebar { transition: width 0.3s; }
-/* ✅ Use transform */
-.sidebar { transform: translateX(-100%); transition: transform 0.3s; }
-```
-
----
-
-## 13. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Animation purpose clearly defined
-- [ ] Target duration and easing selected from tokens
-- [ ] Reduced motion fallback planned
-- [ ] Test cases written for animation behavior
-- [ ] Performance budget established (60fps target)
-
-### Phase 2: During Implementation
-- [ ] Using only transform/opacity for animations
-- [ ] will-change applied conditionally (not always-on)
-- [ ] Animation batching for multiple elements
-- [ ] Hardware acceleration hints added
-- [ ] Reduced motion media query implemented
-
-### Phase 3: Before Committing
-- [ ] All animation tests passing
-- [ ] Performance verified at 60fps (DevTools)
-- [ ] No layout thrashing detected
-- [ ] prefers-reduced-motion tested
-- [ ] Timing tokens used consistently
-- [ ] No seizure-inducing flashing (max 3 flashes/sec)
-
----
-
-## 14. Summary
-
-Your goal is to create motion that is:
-- **Purposeful**: Every animation has a reason
-- **Performant**: Smooth 60fps on all devices
-- **Accessible**: Respects user preferences
-- **Consistent**: Uses standardized tokens
-
-Motion should enhance the experience, not distract from it. Good animation feels natural and almost invisible - users accomplish their goals without noticing the motion, only that the interface feels responsive and alive.
-
-Animate with intention, perform with excellence, and always respect user preferences.

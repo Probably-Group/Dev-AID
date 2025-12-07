@@ -25,6 +25,21 @@ This skill uses a split structure for HIGH-RISK requirements:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH
@@ -238,14 +253,54 @@ dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "hypothesis>=6.0", "safety>=2.0", 
 
 ---
 
-## 4. Implementation Patterns
 
-### Pattern 1: Type-Safe Input Validation
+## 4. Quality Assurance Checklist
 
-```python
-from pydantic import BaseModel, Field, field_validator, EmailStr
-from typing import Annotated
-import re
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 class UserCreate(BaseModel):
     """Validated user creation request."""
@@ -253,96 +308,10 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: Annotated[str, Field(min_length=12)]
 
-    @field_validator('username')
-    @classmethod
-    def validate_username(cls, v: str) -> str:
-        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
-            raise ValueError('Username must be alphanumeric')
-        return v
-
-    @field_validator('password')
-    @classmethod
-    def validate_password_strength(cls, v: str) -> str:
-        if not all([re.search(r'[A-Z]', v), re.search(r'[a-z]', v), re.search(r'\d', v)]):
-            raise ValueError('Password needs uppercase, lowercase, and digit')
-        return v
-```
-
-### Pattern 2: Secure Password Hashing
-
-```python
-from argon2 import PasswordHasher
-from argon2.exceptions import VerifyMismatchError
-
-ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
-
-def hash_password(password: str) -> str:
-    return ph.hash(password)
-
-def verify_password(password: str, hash: str) -> bool:
-    try:
-        ph.verify(hash, password)
-        return True
-    except VerifyMismatchError:
-        return False
-```
-
-### Pattern 3: Safe Database Queries
-
-```python
-from sqlalchemy import select, text
-from sqlalchemy.ext.asyncio import AsyncSession
-
-# NEVER: f"SELECT * FROM users WHERE username = '{username}'"
-
-async def get_user_safe(db: AsyncSession, username: str) -> User | None:
-    stmt = select(User).where(User.username == username)
-    result = await db.execute(stmt)
-    return result.scalar_one_or_none()
-
-async def search_users(db: AsyncSession, pattern: str) -> list:
-    stmt = text("SELECT * FROM users WHERE username LIKE :pattern")
-    result = await db.execute(stmt, {"pattern": f"%{pattern}%"})
-    return result.fetchall()
-```
-
-### Pattern 4: Safe File Operations
-
-```python
-from pathlib import Path
-
-def safe_read_file(base_dir: Path, user_filename: str) -> str:
-    if '..' in user_filename or user_filename.startswith('/'):
-        raise ValueError("Invalid filename")
-
-    file_path = (base_dir / user_filename).resolve()
-    if not file_path.is_relative_to(base_dir.resolve()):
-        raise ValueError("Path traversal detected")
-
-    return file_path.read_text()
-```
-
-### Pattern 5: Safe Subprocess Execution
-
-```python
-import subprocess
-
-ALLOWED_PROGRAMS = {'git', 'python', 'pip'}
-
-def run_command_safe(program: str, args: list[str]) -> str:
-    if program not in ALLOWED_PROGRAMS:
-        raise ValueError(f"Program not allowed: {program}")
-
-    result = subprocess.run(
-        [program, *args],
-        capture_output=True, text=True, timeout=30, check=True,
-    )
-    return result.stdout
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Security Standards
+## 6. Security Standards
 
 ### 5.1 Domain Vulnerability Landscape
 
@@ -403,7 +372,7 @@ class AppError(Exception):
 
 ---
 
-## 6. Testing & Validation
+## 7. Testing & Validation
 
 ### Security Testing Commands
 
@@ -438,7 +407,7 @@ def test_command_injection_blocked():
 
 ---
 
-## 7. Common Mistakes & Anti-Patterns
+## 8. Common Mistakes & Anti-Patterns
 
 | Anti-Pattern | Bad | Good |
 |-------------|-----|------|
@@ -450,7 +419,7 @@ def test_command_injection_blocked():
 
 ---
 
-## 8. Pre-Deployment Checklist
+## 9. Pre-Deployment Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -484,7 +453,7 @@ def test_command_injection_blocked():
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 Create Python code that is **type safe**, **secure**, **testable**, and **maintainable**.
 

@@ -22,6 +22,21 @@ model: claude-sonnet-4-5-20250929
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level: HIGH**
@@ -85,105 +100,61 @@ You are an expert in auto-update system implementation, specializing in:
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Tauri Updater Configuration
+## 4. Quality Assurance Checklist
 
-```json
-// tauri.conf.json
-{
-  "tauri": {
-    "updater": {
-      "active": true,
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6...",
-      "endpoints": [
-        "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
-      ],
-      "windows": {
-        "installMode": "passive"
-      }
-    },
-    "bundle": {
-      "createUpdaterArtifacts": true
-    }
-  }
-}
-```
+**Before implementing this skill, ensure**:
 
-### 4.2 Update Manifest Format
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-```json
-{
-  "version": "1.2.0",
-  "notes": "Bug fixes and performance improvements",
-  "pub_date": "2024-01-15T12:00:00Z",
-  "platforms": {
-    "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6...",
-      "url": "https://releases.myapp.com/MyApp_1.2.0_x64.app.tar.gz"
-    },
-    "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6...",
-      "url": "https://releases.myapp.com/MyApp_1.2.0_x64-setup.nsis.zip"
-    }
-  }
-}
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### 4.3 Custom Update Logic
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```rust
-use tauri::updater::UpdateResponse;
-use tauri::{AppHandle, Manager};
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-#[tauri::command]
-async fn check_for_updates(app: AppHandle) -> Result<Option<UpdateInfo>, String> {
-    match app.updater().check().await {
-        Ok(update) => {
-            if update.is_update_available() {
-                Ok(Some(UpdateInfo {
-                    version: update.latest_version().to_string(),
-                    notes: update.body().map(|s| s.to_string()),
-                    date: update.date().map(|d| d.to_string()),
-                }))
-            } else {
-                Ok(None)
-            }
-        }
-        Err(e) => Err(format!("Failed to check for updates: {}", e)),
-    }
-}
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-#[tauri::command]
-async fn install_update(app: AppHandle) -> Result<(), String> {
-    let update = app.updater().check().await
-        .map_err(|e| format!("Check failed: {}", e))?;
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-    if update.is_update_available() {
-        // Download and verify signature
-        update.download_and_install()
-            .await
-            .map_err(|e| format!("Install failed: {}", e))?;
-
-        // Restart app to apply update
-        app.restart();
-    }
-
-    Ok(())
-}
-
-#[derive(serde::Serialize)]
-struct UpdateInfo {
-    version: String,
-    notes: Option<String>,
-    date: Option<String>,
-}
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Security Standards
+## 5. Implementation Patterns
+
+## 5. Implementation Patterns
+
+📚 **For complete details**: See `references/implementation-patterns.md`
+
+---
+## 6. Security Standards
 
 ### 5.1 Domain Vulnerability Landscape
 
@@ -221,7 +192,7 @@ struct UpdateInfo {
 
 ---
 
-## 6. Testing Standards
+## 7. Testing Standards
 
 ### 6.1 Update Testing
 
@@ -254,7 +225,7 @@ mod tests {
 
 ---
 
-## 7. Implementation Workflow (TDD)
+## 8. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -316,78 +287,17 @@ Add delta updates, caching, and bandwidth management after tests pass.
 ### Step 4: Verify
 
 ```bash
-pytest tests/test_update_system.py -v --tb=short
-pytest tests/test_update_system.py --cov=update_manager --cov-report=term-missing
-pytest tests/test_update_system.py -k "signature or rollback" -v
-```
+pytest tests/test_update_system.py## 8. Implementation Workflow (TDD)
+
+class TestUpdateManager:
+    @pytest.fixture
+    def manager(self):
+        return UpdateManager(current_version="1.0.0", update_endpoint="https://updates.example.com")
+
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 8. Performance Patterns
-
-### 8.1 Delta Updates
-
-```python
-# Good: Download only changed bytes
-class DeltaUpdateManager:
-    async def download_delta(self, from_version: str, to_version: str) -> bytes:
-        delta_url = f"{self.endpoint}/deltas/{from_version}-{to_version}.patch"
-        delta = await self._download(delta_url)
-        return self._apply_delta(self.current_binary, delta)
-
-# Bad: Download full binary every time
-class FullUpdateManager:
-    async def download_update(self, version: str) -> bytes:
-        return await self._download(f"{self.endpoint}/full/{version}.tar.gz")
-```
-
-### 8.2 Background Downloads
-
-```python
-# Good: Download in background without blocking UI
-class BackgroundDownloader:
-    async def download_in_background(self, url: str) -> None:
-        self._download_task = asyncio.create_task(self._download(url))
-        self._download_task.add_done_callback(self._on_download_complete)
-
-    def get_progress(self) -> float:
-        return self._bytes_downloaded / self._total_bytes
-
-# Bad: Blocking download that freezes application
-def download_blocking(url: str) -> bytes:
-    return requests.get(url).content  # Blocks entire app
-```
-
-### 8.3 Bandwidth Throttling
-
-```python
-# Good: Respect user's bandwidth limits
-class ThrottledDownloader:
-    def __init__(self, max_bytes_per_sec: int = 1_000_000):
-        self.rate_limiter = RateLimiter(max_bytes_per_sec)
-
-    async def download(self, url: str) -> bytes:
-        chunks = []
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                async for chunk in response.content.iter_chunked(8192):
-                    await self.rate_limiter.acquire(len(chunk))
-                    chunks.append(chunk)
-        return b''.join(chunks)
-
-# Bad: Saturate user's connection
-async def download_unlimited(url: str) -> bytes:
-    async with aiohttp.ClientSession() as session:
-        return await (await session.get(url)).read()
-```
-
-### 8.4 Rollback Optimization
-
-```python
-# Good: Keep only necessary backup data
-class SmartRollback:
-    def create_backup(self) -> BackupHandle:
-        # Only backup files that will be modified
+ files that will be modified
         modified_files = self._get_files_to_update()
         return self._backup_files(modified_files)
 
@@ -428,7 +338,7 @@ class UncachedVerifier:
 
 ---
 
-## 9. Common Mistakes & Anti-Patterns
+## 10. Common Mistakes & Anti-Patterns
 
 | Mistake | Wrong | Correct |
 |---------|-------|---------|
@@ -450,50 +360,10 @@ async fn update(&self) -> Result<(), UpdateError> {
 }
 ```
 
----
+--## 9. Performance Patterns
 
-## 10. Pre-Implementation Checklist
+## 9. Performance Patterns
 
-### Phase 1: Before Writing Code
-- [ ] Write failing tests for update check, signature verification, rollback
-- [ ] Review threat model in `references/threat-model.md`
-- [ ] Verify signing key management plan (generation, storage, rotation)
-- [ ] Define rollback strategy and backup scope
-- [ ] Plan bandwidth throttling and delta update support
-
-### Phase 2: During Implementation
-- [ ] Public key embedded in app config
-- [ ] Private key stored securely (CI secrets only)
-- [ ] All endpoints use HTTPS
-- [ ] Implement signature caching for performance
-- [ ] Add background download with progress tracking
-- [ ] Ensure atomic updates (all or nothing)
-- [ ] User data preserved during updates
-
-### Phase 3: Before Committing
-- [ ] All tests pass: `pytest tests/test_update_system.py -v`
-- [ ] Signature verification tested with invalid signatures
-- [ ] Downgrade attacks prevented
-- [ ] Rollback mechanism tested
-- [ ] Network failure scenarios tested
-- [ ] Updates tested on all platforms
-- [ ] No secrets in committed code
-- [ ] Key rotation procedure documented
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## 11. Summary
-
-Your goal is to create auto-update systems that are:
-
-- **Cryptographically Secure**: Ed25519 signatures verified on every update
-- **Reliable**: Atomic updates with rollback capability
-- **User-Friendly**: Clear communication, minimal disruption
-
-You understand that auto-update systems are high-value targets because they:
-1. Can push code to all users simultaneously
-2. Run with elevated privileges during installation
-3. Users trust updates from the app they installed
-4. Compromised updates affect the entire user base
-
-**Security Reminder**: NEVER skip signature verification. ALWAYS use HTTPS. ALWAYS protect the private signing key. ALWAYS implement rollback. When in doubt, consult `references/threat-model.md` for attack scenarios.

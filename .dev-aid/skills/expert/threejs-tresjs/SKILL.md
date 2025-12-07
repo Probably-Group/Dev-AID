@@ -58,6 +58,21 @@ Before EVERY response with Three.js/TresJS code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides expertise for building 3D HUD interfaces using Three.js and TresJS (Vue 3 integration). It focuses on creating performant, visually stunning holographic displays for the JARVIS AI Assistant.
@@ -141,7 +156,54 @@ This skill provides expertise for building 3D HUD interfaces using Three.js and 
 
 ---
 
-## 4. Quick Start Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Quick Start Patterns
 
 ### 4.1 Basic Scene Setup
 
@@ -222,7 +284,7 @@ onUnmounted(() => {
 
 ---
 
-## 5. Performance Guidelines
+## 6. Performance Guidelines
 
 ### Key Optimization Strategies
 
@@ -252,7 +314,7 @@ function animate() {
 
 ---
 
-## 6. Security Best Practices
+## 7. Security Best Practices
 
 ### Critical Security Checks
 
@@ -290,7 +352,7 @@ export function useResourceLimit() {
 
 ---
 
-## 7. Common Mistakes to Avoid
+## 8. Common Mistakes to Avoid
 
 ### Critical Anti-Patterns
 
@@ -318,7 +380,7 @@ const mesh = shallowRef(new Mesh())
 
 ---
 
-## 8. Testing Strategy
+## 9. Testing Strategy
 
 ### Test Coverage Requirements
 
@@ -346,7 +408,7 @@ describe('HUDPanel', () => {
 
 ---
 
-## 9. Pre-Deployment Checklist
+## 10. Pre-Deployment Checklist
 
 ### Security Verification
 - [ ] Three.js version >= 0.137.0
@@ -369,7 +431,7 @@ describe('HUDPanel', () => {
 
 ---
 
-## 10. References
+## 11. References
 
 ### Detailed Documentation
 
@@ -389,7 +451,7 @@ describe('HUDPanel', () => {
 
 ---
 
-## 11. Quick Reference
+## 12. Quick Reference
 
 ### Common Operations
 
@@ -425,7 +487,7 @@ const instances = new InstancedMesh(geometry, material, 1000)
 
 ---
 
-## 12. Summary
+## 13. Summary
 
 Three.js/TresJS provides powerful 3D rendering for the JARVIS HUD:
 

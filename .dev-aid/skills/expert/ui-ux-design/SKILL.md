@@ -61,6 +61,21 @@ Before EVERY response with UI/UX code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM
@@ -106,95 +121,61 @@ You are an expert in **UI/UX design** for AI assistants and futuristic interface
 
 ## 3. Technical Foundation
 
-### Color System
-
-```css
-/* JARVIS-inspired color palette */
-:root {
-  /* Primary - Cyan accent */
-  --color-primary-100: #e0f7fa;
-  --color-primary-500: #00bcd4;
-  --color-primary-900: #006064;
-
-  /* Surface - Glass effect base */
+/* Surface - Glass effect base */
   --surface-glass: rgba(255, 255, 255, 0.08);
   --surface-glass-hover: rgba(255, 255, 255, 0.12);
   --surface-glass-active: rgba(255, 255, 255, 0.16);
 
-  /* Status colors */
-  --color-success: #4caf50;
-  --color-warning: #ff9800;
-  --color-error: #f44336;
-  --color-info: #2196f3;
+📚 **For complete details**: See `references/technical-foundation.md`
 
-  /* Text - WCAG AA compliant */
-  --text-primary: rgba(255, 255, 255, 0.95);
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-disabled: rgba(255, 255, 255, 0.38);
-}
-```
+---
+## 4. Quality Assurance Checklist
 
-### Typography Scale
+**Before implementing this skill, ensure**:
 
-```css
-/* Modular type scale (1.25 ratio) */
-:root {
-  --font-size-xs: 0.64rem;    /* 10.24px */
-  --font-size-sm: 0.8rem;     /* 12.8px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.25rem;    /* 20px */
-  --font-size-xl: 1.563rem;   /* 25px */
-  --font-size-2xl: 1.953rem;  /* 31.25px */
-  --font-size-3xl: 2.441rem;  /* 39.06px */
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-  /* Line heights */
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
-}
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-/* Font families */
-body {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-}
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-code {
-  font-family: "JetBrains Mono", "Fira Code", monospace;
-}
-```
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-### Spacing System
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-```css
-/* 8px base grid */
-:root {
-  --space-1: 0.25rem;   /* 4px */
-  --space-2: 0.5rem;    /* 8px */
-  --space-3: 0.75rem;   /* 12px */
-  --space-4: 1rem;      /* 16px */
-  --space-5: 1.5rem;    /* 24px */
-  --space-6: 2rem;      /* 32px */
-  --space-8: 3rem;      /* 48px */
-  --space-10: 4rem;     /* 64px */
-}
-```
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-### Responsive Breakpoints
-
-```css
-/* Mobile-first breakpoints */
-:root {
-  --breakpoint-sm: 640px;
-  --breakpoint-md: 768px;
-  --breakpoint-lg: 1024px;
-  --breakpoint-xl: 1280px;
-  --breakpoint-2xl: 1536px;
-}
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Implementation Patterns
+## 5. Core Implementation Patterns
 
 ### 4.1 Glass-Morphism Card
 
@@ -247,7 +228,7 @@ code {
 
 ---
 
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -269,54 +250,16 @@ describe('GlassCard', () => {
     expect(wrapper.emitted('hover')).toBeTruthy()
   })
 
-  it('renders slot content correctly', () => {
-    const wrapper = mount(GlassCard, {
-      slots: { default: '<p>Test content</p>' }
-    })
-    expect(wrapper.text()).toContain('Test content')
-  })
+ ## 5. Core Implementation Patterns
 
-  it('meets accessibility requirements', () => {
-    const wrapper = mount(GlassCard, {
-      props: { role: 'region', ariaLabel: 'Card section' }
-    })
-    expect(wrapper.attributes('role')).toBe('region')
-    expect(wrapper.attributes('aria-label')).toBe('Card section')
-  })
-})
-```
+/* Border for definition */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
 
-### Step 2: Implement Minimum to Pass
+📚 **For complete details**: See `references/core-implementation-patterns.md`
 
-```vue
-<!-- components/ui/GlassCard.vue -->
-<template>
-  <div
-    class="glass-card"
-    :role="role"
-    :aria-label="ariaLabel"
-    @mouseenter="$emit('hover', true)"
-    @mouseleave="$emit('hover', false)"
-  >
-    <slot />
-  </div>
-</template>
-
-<script setup lang="ts">
-defineProps<{
-  role?: string
-  ariaLabel?: string
-}>()
-
-defineEmits<{
-  hover: [isHovered: boolean]
-}>()
-</script>
-```
-
-### Step 3: Refactor Following Design Patterns
-
-Apply glass-morphism styles, ensure spacing system compliance, add transitions.
+---
+tem compliance, add transitions.
 
 ### Step 4: Run Full Verification
 
@@ -336,7 +279,7 @@ npm run build
 
 ---
 
-## 6. Quality Standards
+## 7. Quality Standards
 
 ### Accessibility Requirements
 
@@ -349,68 +292,17 @@ npm run build
 
 ### Performance Standards
 
-- **First Contentful Paint (FCP)**: < 1.8s
-- **Largest Contentful Paint (LCP)**: < 2.5s
-- **Cumulative Layout Shift (CLS)**: < 0.1
-- **DOM Depth**: Keep under 15 levels
-- **Blur Effects**: Limit on low-end devices
-- **Lazy Loading**: Off-screen content loaded on demand
+- **First Contentful Paint (FCP)**:## 6. Implementation Workflow (TDD)
+
+describe('GlassCard', () => {
+  it('renders with default glass styling', () => {
+    const wrapper = mount(GlassCard)
+    expect(wrapper.classes()).toContain('glass-card')
+  })
+
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 7. References
-
-See `references/` directory for comprehensive guides:
-
-- **[advanced-patterns.md](references/advanced-patterns.md)** - HUD layouts, attention management, micro-interactions, drag-and-drop, data visualization
-- **[performance-optimization.md](references/performance-optimization.md)** - Lazy loading, image optimization, code splitting, virtual scrolling, progressive enhancement
-- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes to avoid: glass-morphism overuse, poor spacing, missing loading states
-- **[testing-guide.md](references/testing-guide.md)** - TDD workflow, component testing, accessibility testing, visual regression, performance testing
-- **[security-examples.md](references/security-examples.md)** - Accessibility compliance, privacy protection, secure form handling, ARIA best practices
-
----
-
-## 8. Quick Reference
-
-### Essential Checklist
-
-**Before Implementation**:
-- [ ] Component requirements documented
-- [ ] Write failing tests first
-- [ ] Design tokens identified
-
-**During Implementation**:
-- [ ] Tests passing incrementally
-- [ ] Color system applied consistently
-- [ ] Typography scale used correctly
-- [ ] Spacing follows 8px grid
-- [ ] Loading states include skeletons
-
-**Before Committing**:
-- [ ] All tests pass
-- [ ] Accessibility audit passes (WCAG AA)
-- [ ] Focus states visible
-- [ ] Touch targets ≥44px
-- [ ] Reduced motion supported
-- [ ] Mobile/tablet/desktop tested
-- [ ] Lighthouse score > 90
-
-### Common Commands
-
-```bash
-# Run tests
-npm run test
-npm run test:watch
-npm run test:coverage
-
-# Accessibility
-npm run test:a11y
-
-# Visual regression
-npm run test:visual
-
-# Performance
-npm run test:perf
 
 # Build
 npm run build
@@ -425,7 +317,7 @@ Always check modern CSS features on:
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 Your goal is to create interfaces that are:
 - **Intuitive**: Users understand immediately how to interact
@@ -439,3 +331,13 @@ You understand that great UI/UX design is invisible - users accomplish their goa
 **Remember**: Always verify CSS properties, framework APIs, and accessibility requirements against official documentation before implementing. When in doubt, use the verification tools available to you.
 
 Design interfaces that delight users while helping them succeed.
+## 9. Quick Reference
+
+**Before Implementation**:
+- [ ] Component requirements documented
+- [ ] Write failing tests first
+- [ ] Design tokens identified
+
+📚 **For complete details**: See `references/quick-reference.md`
+
+---

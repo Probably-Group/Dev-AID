@@ -9,6 +9,21 @@ version: 1.0.0
 
 > **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides TypeScript expertise for the JARVIS AI Assistant, ensuring type safety across the entire codebase including Vue components, API routes, 3D rendering, and state management.
@@ -64,159 +79,61 @@ This skill provides TypeScript expertise for the JARVIS AI Assistant, ensuring t
 }
 ```
 
-## 4. Implementation Patterns
 
-### 4.1 Branded Types for Security
+## 4. Quality Assurance Checklist
 
-```typescript
-// types/branded.ts
-declare const __brand: unique symbol
+**Before implementing this skill, ensure**:
 
-type Brand<T, B> = T & { [__brand]: B }
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-// ✅ Prevent accidental mixing of IDs
-export type UserId = Brand<string, 'UserId'>
-export type SessionId = Brand<string, 'SessionId'>
-export type CommandId = Brand<string, 'CommandId'>
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-// Factory functions with validation
-export function createUserId(id: string): UserId {
-  if (!/^usr_[a-zA-Z0-9]{16}$/.test(id)) {
-    throw new Error('Invalid user ID format')
-  }
-  return id as UserId
-}
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-// ✅ Type system prevents mixing IDs
-function getUser(id: UserId): User { /* ... */ }
-function getSession(id: SessionId): Session { /* ... */ }
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-// This won't compile:
-// getUser(sessionId) // Error: SessionId not assignable to UserId
-```
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-### 4.2 Discriminated Unions for State
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-```typescript
-// types/jarvis-state.ts
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
-// ✅ Type-safe state machine
-type JARVISState =
-  | { status: 'idle' }
-  | { status: 'listening'; startTime: number }
-  | { status: 'processing'; commandId: CommandId }
-  | { status: 'responding'; response: string; confidence: number }
-  | { status: 'error'; error: JARVISError; retryCount: number }
+---
 
-// ✅ Exhaustive handling
-function handleState(state: JARVISState): string {
-  switch (state.status) {
-    case 'idle':
-      return 'Ready'
-    case 'listening':
-      return `Listening for ${Date.now() - state.startTime}ms`
-    case 'processing':
-      return `Processing ${state.commandId}`
-    case 'responding':
-      return `${state.response} (${state.confidence}%)`
-    case 'error':
-      return `Error: ${state.error.message}`
-    default:
-      // ✅ Compile-time exhaustiveness check
-      const _exhaustive: never = state
-      return _exhaustive
-  }
-}
-```
+## 5. Implementation Patterns
 
-### 4.3 Runtime Validation with Zod
+## 5. Implementation Patterns
 
-```typescript
-// schemas/command.ts
-import { z } from 'zod'
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-// ✅ Schema-first approach
-export const commandSchema = z.object({
-  id: z.string().regex(/^cmd_[a-zA-Z0-9]{16}$/),
-  action: z.enum(['navigate', 'control', 'query', 'configure']),
-  target: z.string().min(1).max(100),
-  parameters: z.record(z.unknown()).optional(),
-  timestamp: z.number().int().positive(),
-  priority: z.number().min(0).max(10).default(5)
-})
-
-// ✅ Infer TypeScript type from schema
-export type Command = z.infer<typeof commandSchema>
-
-// ✅ Parse with full validation
-export function parseCommand(data: unknown): Command {
-  return commandSchema.parse(data)
-}
-
-// ✅ Safe parse for error handling
-export function tryParseCommand(data: unknown): Command | null {
-  const result = commandSchema.safeParse(data)
-  return result.success ? result.data : null
-}
-```
-
-### 4.4 Generic Patterns for HUD Components
-
-```typescript
-// ✅ Generic with constraints - ensures type safety for metrics
-interface MetricConfig<T extends Record<string, number>> {
-  metrics: T
-  thresholds: { [K in keyof T]: { warning: number; critical: number } }
-}
-
-type SystemMetrics = { cpu: number; memory: number }
-const config: MetricConfig<SystemMetrics> = {
-  metrics: { cpu: 45, memory: 72 },
-  thresholds: {
-    cpu: { warning: 70, critical: 90 },
-    memory: { warning: 80, critical: 95 }
-  }
-}
-```
-
-### 4.5 Type Guards for Narrowing
-
-```typescript
-// ✅ Type predicate for safe narrowing
-function isSuccessResponse<T>(
-  response: APIResponse<T>
-): response is APIResponse<T> & { success: true; data: T } {
-  return response.success && response.data !== undefined
-}
-
-// Usage - type automatically narrowed
-if (isSuccessResponse(response)) {
-  return response.data // ✅ Type is T, not T | undefined
-}
-```
-
-### 4.6 Utility Types for JARVIS
-
-```typescript
-// types/utilities.ts
-
-// ✅ Deep readonly for immutable state
-type DeepReadonly<T> = {
-  readonly [K in keyof T]: T[K] extends object ? DeepReadonly<T[K]> : T[K]
-}
-
-// ✅ Make specific keys required
-type RequireKeys<T, K extends keyof T> = T & Required<Pick<T, K>>
-
-// ✅ Extract event payloads
-type EventPayload<T> = T extends { payload: infer P } ? P : never
-
-// ✅ Async function return type
-type AsyncReturnType<T extends (...args: any[]) => Promise<any>> =
-  T extends (...args: any[]) => Promise<infer R> ? R : never
-```
-
-## 5. Implementation Workflow (TDD)
+---
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -260,7 +177,7 @@ npx eslint . --ext .ts,.tsx # Linting
 npx tsc --noEmit            # Type checking
 ```
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### 6.1 Memoization
 
@@ -324,7 +241,7 @@ const [user, metrics] = await Promise.all([fetchUser(), fetchMetrics()])
 const results = await Promise.allSettled([fetchUser(), fetchMetrics()])
 ```
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Known Vulnerabilities
 
@@ -363,7 +280,7 @@ function process(data: unknown) {
 }
 ```
 
-## 8. Testing & Quality
+## 9. Testing & Quality
 
 ```typescript
 // Type testing with vitest
@@ -388,7 +305,7 @@ describe('Command Schema', () => {
 })
 ```
 
-## 9. Common Mistakes & Anti-Patterns
+## 10. Common Mistakes & Anti-Patterns
 
 ### 9.1 Critical Security Anti-Patterns
 
@@ -407,72 +324,17 @@ const user = userSchema.parse(JSON.parse(data))
 ```typescript
 // ❌ DANGEROUS - Runtime crash if undefined
 function getConfig(key: string) {
-  return config[key].value  // May be undefined!
-}
+  return config[key]## 7. Performance Patterns
 
-// ✅ SECURE - Explicit null handling
-function getConfig(key: string): string | undefined {
-  return config[key]?.value
-}
+// ✅ GOOD - Memoized computation
+import { computed } from 'vue'
+const processed = computed(() => data.value.map(item => heavyTransform(item)))
 ```
 
-#### Never: Use Index Signatures Without Checks
+📚 **For complete details**: See `references/performance-patterns.md`
 
-```typescript
-// ❌ DANGEROUS - No type safety
-const handlers: Record<string, Handler> = {}
-handlers['cmd'].execute()  // May be undefined!
-
-// ✅ SECURE - Explicit lookup with check
-const handler = handlers['cmd']
-if (handler) {
-  handler.execute()
-}
-```
-
-### 9.2 Performance Anti-Patterns
-
-#### Avoid: Excessive Type Complexity
-
-```typescript
-// ❌ BAD - Unreadable, slow compilation
-type DeepPartialRecord<T> = T extends object
-  ? { [K in keyof T]?: DeepPartialRecord<T[K]> }
-  : T extends Array<infer U>
-  ? Array<DeepPartialRecord<U>>
-  : T
-
-// ✅ GOOD - Simple, clear types
-interface PartialConfig {
-  theme?: Partial<ThemeConfig>
-  metrics?: Partial<MetricsConfig>
-}
-```
-
-## 10. Pre-Deployment Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Write failing tests first (TDD)
-- [ ] Define types and interfaces for new features
-- [ ] Plan Zod schemas for external data
-- [ ] Identify performance-critical paths
-- [ ] Review existing patterns in codebase
-
-### Phase 2: During Implementation
-
-- [ ] `strict: true` enabled in tsconfig
-- [ ] `noUncheckedIndexedAccess: true` enabled
-- [ ] `noImplicitAny: true` enabled
-- [ ] No `any` types in production code
-- [ ] All external data validated with Zod
-- [ ] Branded types for sensitive IDs
-- [ ] Discriminated unions for state machines
-- [ ] Memoization applied to expensive computations
-- [ ] Lazy loading for heavy components
-- [ ] Efficient data structures (Map/Set) for lookups
-
-### Phase 3: Before Committing
+---
+ore Committing
 
 - [ ] All tests pass (`npx vitest run`)
 - [ ] No linting errors (`npx eslint .`)
@@ -481,7 +343,7 @@ interface PartialConfig {
 - [ ] No type assertions on external data
 - [ ] Performance patterns applied where needed
 
-## 11. Summary
+## 12. Summary
 
 TypeScript provides compile-time safety for JARVIS development:
 
@@ -497,3 +359,10 @@ TypeScript provides compile-time safety for JARVIS development:
 **References**:
 - `references/advanced-patterns.md` - Complex type patterns
 - `references/security-examples.md` - Secure typing practices
+## 10. Common Mistakes & Anti-Patterns
+
+## 10. Common Mistakes & Anti-Patterns
+
+📚 **For complete details**: See `references/common-mistakes-anti-patterns.md`
+
+---

@@ -11,6 +11,21 @@ tags: [api, rest, http, design, web-services]
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM-RISK
@@ -76,14 +91,54 @@ You are an expert in **RESTful API design**. You create well-structured, secure,
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Resource Design
+## 4. Quality Assurance Checklist
 
-```typescript
-// Collection operations
-GET    /api/v1/users              // List users
-POST   /api/v1/users              // Create user
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 // Instance operations
 GET    /api/v1/users/{id}         // Get user
@@ -91,75 +146,10 @@ PUT    /api/v1/users/{id}         // Replace user
 PATCH  /api/v1/users/{id}         // Update user
 DELETE /api/v1/users/{id}         // Delete user
 
-// Nested resources
-GET    /api/v1/users/{id}/orders  // Get user's orders
-POST   /api/v1/users/{id}/orders  // Create order for user
-
-// Actions (when necessary)
-POST   /api/v1/users/{id}/verify  // Trigger verification
-```
-
-### 4.2 Request/Response Format
-
-```typescript
-// Consistent response envelope
-interface APIResponse<T> {
-  data: T;
-  meta?: { pagination?: PaginationMeta; timestamp: string; requestId: string; };
-}
-
-interface APIError {
-  error: { code: string; message: string; details?: ValidationError[]; };
-}
-```
-
-### 4.3 Pagination
-
-```typescript
-// Cursor-based (recommended) - returns nextCursor in meta.pagination
-GET /api/v1/users?limit=20&cursor=eyJpZCI6MTAwfQ
-
-// Offset-based (simpler but O(n))
-GET /api/v1/users?limit=20&offset=40
-```
-
-### 4.4 Filtering, Sorting, and Versioning
-
-```typescript
-// Filtering and sorting
-GET /api/v1/users?status=active&role=admin&sort=created_at:desc
-GET /api/v1/users?fields=id,name,email  // Field selection
-
-// URL path versioning (recommended)
-GET /api/v1/users
-GET /api/v2/users
-
-// Deprecation headers for old versions
-res.set("Deprecation", "true");
-res.set("Sunset", "Sat, 01 Jun 2025 00:00:00 GMT");
-```
-
-### 4.5 Authentication
-
-```typescript
-// Bearer token authentication
-app.use("/api", (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith("Bearer ")) {
-    return res.status(401).json({ error: { code: "UNAUTHORIZED", message: "Bearer token required" }});
-  }
-  try {
-    req.user = jwt.verify(authHeader.substring(7), process.env.JWT_SECRET);
-    next();
-  } catch {
-    return res.status(401).json({ error: { code: "INVALID_TOKEN", message: "Invalid or expired token" }});
-  }
-});
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step-by-Step TDD Process
 
@@ -217,91 +207,14 @@ async def create_user(request: CreateUserRequest):
 ```python
 @pytest.mark.asyncio
 async def test_get_user_prevents_bola():
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.get("/api/v1/users/other-id", headers={"Authorization": f"Bearer {user_a_token}"})
-    assert response.status_code == 403
+    async with AsyncClient(app=app, base_url="http://test") as clien## 6. Implementation Workflow (TDD)
 
-@pytest.mark.asyncio
-async def test_list_users_pagination():
-    async with AsyncClient(app=app, base_url="http://test") as client:
-        response = await client.get("/api/v1/users?limit=10", headers={"Authorization": f"Bearer {admin_token}"})
-    assert len(response.json()["data"]) <= 10
-```
+## 6. Implementation Workflow (TDD)
 
-#### Step 4: Run Full Verification
-
-```bash
-# Run all tests
-pytest tests/test_users_api.py -v
-
-# Run with coverage
-pytest --cov=app --cov-report=term-missing
-
-# Run security-focused tests
-pytest -m security -v
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 6. Performance Patterns
-
-### 6.1 Pagination (Cursor-Based)
-
-```python
-# BAD: Offset pagination - O(n) scanning
-@router.get("/users")
-async def list_users(offset: int = 0, limit: int = 20):
-    return await db.execute(f"SELECT * FROM users LIMIT {limit} OFFSET {offset}")
-
-# GOOD: Cursor-based pagination - O(1) seek
-@router.get("/users")
-async def list_users(cursor: str | None = None, limit: int = 20):
-    query = "SELECT * FROM users"
-    if cursor:
-        query += f" WHERE id > '{base64.b64decode(cursor).decode()}'"
-    query += f" ORDER BY id LIMIT {limit + 1}"
-
-    results = await db.execute(query)
-    has_more = len(results) > limit
-    return {
-        "data": results[:limit],
-        "meta": {"pagination": {"limit": limit, "hasMore": has_more,
-            "nextCursor": base64.b64encode(results[-1]["id"].encode()).decode() if has_more else None}}
-    }
-```
-
-### 6.2 Caching Headers
-
-```python
-# BAD: No caching strategy
-@router.get("/products/{id}")
-async def get_product(id: str):
-    return await db.products.find_by_id(id)
-
-# GOOD: ETag and Cache-Control headers
-@router.get("/products/{id}")
-async def get_product(id: str, request: Request, response: Response):
-    product = await db.products.find_by_id(id)
-    etag = f'"{hashlib.md5(json.dumps(product).encode()).hexdigest()}"'
-
-    if request.headers.get("If-None-Match") == etag:
-        return Response(status_code=304)  # Not Modified
-
-    response.headers["ETag"] = etag
-    response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
-    return {"data": product}
-```
-
-### 6.3 Compression
-
-```python
-# BAD: No compression
-app = FastAPI()
-
-# GOOD: Enable gzip middleware
-from fastapi.middleware.gzip import GZipMiddleware
-app = FastAPI()
-app.add_middleware(GZipMiddleware, minimum_size=1000)  # Compress responses > 1KB
+press responses > 1KB
 ```
 
 ### 6.4 Rate Limiting
@@ -354,7 +267,7 @@ app = FastAPI(lifespan=lifespan)
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 > **See** `references/security-examples.md` for complete CVE details and mitigation patterns.
 
@@ -383,109 +296,21 @@ app.post("/api/v1/users", async (req, res) => {
   res.status(201).json({ data: await createUser(validation.data) });
 });
 
-// BOLA prevention - always check object ownership
-app.get("/api/v1/users/:id", async (req, res) => {
-  if (req.user.id !== req.params.id && !req.user.isAdmin) {
-    return res.status(403).json({ error: { code: "FORBIDDEN", message: "Access denied" }});
-  }
-  res.json({ data: await getUser(req.params.id) });
-});
-```
+// BOLA prevention - always check obje## 7. Performance Patterns
 
-### Rate Limiting & Security Headers
+## 7. Performance Patterns
 
-```typescript
-import rateLimit from "express-rate-limit";
-
-app.use("/api", rateLimit({ windowMs: 60000, max: 100 }));
-app.use("/api/v1/auth", rateLimit({ windowMs: 60000, max: 5 }));  // Stricter for auth
-
-// Security headers
-app.use((req, res, next) => {
-  res.set({ "Content-Type": "application/json", "X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY" });
-  next();
-});
-```
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## 8. Testing
-
-```typescript
-describe("API Security", () => {
-  it("requires auth", async () => {
-    expect((await request(app).get("/api/v1/users")).status).toBe(401);
-  });
-  it("prevents BOLA", async () => {
-    const res = await request(app).get("/api/v1/users/other-id").set("Authorization", `Bearer ${userAToken}`);
-    expect(res.status).toBe(403);
-  });
-  it("validates input", async () => {
-    expect((await request(app).post("/api/v1/users").send({ email: "bad" })).status).toBe(422);
-  });
-});
-```
-
----
-
-## 9. Common Mistakes
-
-```typescript
-// BAD: Return unfiltered data (exposes password_hash!)
-res.json({ data: await db.users.findById(id) });
-// GOOD: Select specific fields
-const user = await db.users.findById(id, { select: ["id", "name", "email"] });
-
-// BAD: No authorization check
-app.delete("/api/v1/users/:id", async (req, res) => {
-  await db.users.delete(req.params.id);  // Anyone can delete!
-});
-// GOOD: Check ownership
-if (req.user.id !== req.params.id && !req.user.isAdmin) {
-  return res.status(403).json({ error: { message: "Forbidden" } });
-}
-
-// BAD: Mass assignment vulnerability
-await db.users.update(id, req.body);  // User can set isAdmin!
-// GOOD: Whitelist allowed fields
-const ALLOWED = ["name", "email", "avatar"];
-const updates = Object.fromEntries(ALLOWED.filter(f => req.body[f]).map(f => [f, req.body[f]]));
-```
-
----
-
-## 10. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Write failing tests for all endpoints (TDD first)
-- [ ] Define API contract with request/response schemas
-- [ ] Plan resource URIs following REST conventions
-- [ ] Identify authentication and authorization requirements
-- [ ] Review performance requirements (pagination, caching needs)
-
-### Phase 2: During Implementation
-- [ ] Implement minimum code to pass each test
-- [ ] Resources are nouns, HTTP methods used correctly
-- [ ] Appropriate status codes and consistent response format
-- [ ] Authentication on all protected endpoints
-- [ ] Authorization checks (BOLA prevention)
-- [ ] Input validation with Pydantic/Zod schemas
-- [ ] Output filtering to only necessary fields
-- [ ] Rate limiting configured per endpoint tier
-- [ ] Caching headers set appropriately
-
-### Phase 3: Before Committing
-- [ ] All tests pass: `pytest -v`
-- [ ] Coverage meets threshold: `pytest --cov=app`
-- [ ] Security tests pass: `pytest -m security`
-- [ ] OpenAPI/Swagger spec complete with examples
+s
 - [ ] Authentication and error codes documented
 - [ ] CORS configured restrictively, HTTPS enforced
 - [ ] Performance tested with expected load
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Design REST APIs that are **Intuitive** (REST conventions, HTTP semantics), **Secure** (validate inputs, authorize access, filter outputs), and **Consistent** (uniform responses, errors, pagination).
 

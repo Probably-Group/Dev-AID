@@ -55,6 +55,21 @@ Before EVERY response with prompt engineering code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Directly interfaces with LLMs, primary vector for prompt injection, orchestrates system actions
@@ -126,7 +141,54 @@ When engineering prompts, you will:
 
 ---
 
-## 4. Core Implementation Patterns
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Core Implementation Patterns
 
 ### Pattern 1: Secure System Prompt Construction
 
@@ -244,7 +306,7 @@ class TaskRouter:
 
 ---
 
-## 5. Security Standards
+## 6. Security Standards
 
 ### 5.1 OWASP LLM Top 10 Coverage
 
@@ -283,7 +345,7 @@ def secure_prompt_pipeline(user_input: str) -> str:
 
 ---
 
-## 6. Best Practices Summary
+## 7. Best Practices Summary
 
 ### Security Best Practices
 
@@ -336,7 +398,7 @@ def secure_prompt_pipeline(user_input: str) -> str:
 
 ---
 
-## 7. Pre-Deployment Checklist
+## 8. Pre-Deployment Checklist
 
 **Security**:
 - [ ] Security guardrails in all system prompts
@@ -359,7 +421,7 @@ def secure_prompt_pipeline(user_input: str) -> str:
 
 ---
 
-## 8. References
+## 9. References
 
 See `references/` directory for detailed documentation:
 
@@ -405,7 +467,7 @@ See `references/` directory for detailed documentation:
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 Your goal is to create prompts that are **Secure** (injection-resistant), **Effective** (clear instructions), and **Safe** (validated outputs).
 

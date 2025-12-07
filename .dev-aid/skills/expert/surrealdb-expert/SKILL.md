@@ -54,6 +54,21 @@ Before EVERY response with SurrealDB code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH (Database system with security implications)
@@ -102,13 +117,6 @@ You build SurrealDB applications that are:
 
 ## 3. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_user_repository.py
-import pytest
-from surrealdb import Surreal
-
 @pytest.fixture
 async def db():
     """Set up test database connection."""
@@ -117,84 +125,58 @@ async def db():
     await client.use("test", "test_db")
     await client.signin({"user": "root", "pass": "root"})
     yield client
-    await client.query("DELETE user;")
-    await client.close()
+    await client.query("DELETE user...
 
-@pytest.mark.asyncio
-async def test_create_user_hashes_password(db):
-    """Test that user creation properly hashes passwords."""
-    result = await db.query(
-        """
-        CREATE user CONTENT {
-            email: $email,
-            password: crypto::argon2::generate($password)
-        } RETURN id, email, password;
-        """,
-        {"email": "test@example.com", "password": "secret123"}
-    )
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-    user = result[0]["result"][0]
-    assert user["email"] == "test@example.com"
-    assert user["password"] != "secret123"
-    assert user["password"].startswith("$argon2")
-```
+---
+## 4. Quality Assurance Checklist
 
-### Step 2: Implement Minimum to Pass
+**Before implementing this skill, ensure**:
 
-```python
-# src/repositories/user_repository.py
-from surrealdb import Surreal
-from typing import Optional
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-class UserRepository:
-    def __init__(self, db: Surreal):
-        self.db = db
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-    async def initialize_schema(self):
-        """Create user table with security permissions."""
-        await self.db.query("""
-            DEFINE TABLE user SCHEMAFULL
-                PERMISSIONS
-                    FOR select, update, delete WHERE id = $auth.id
-                    FOR create WHERE $auth.id != NONE;
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-            DEFINE FIELD email ON TABLE user TYPE string
-                ASSERT string::is::email($value);
-            DEFINE FIELD password ON TABLE user TYPE string
-                VALUE crypto::argon2::generate($value);
-            DEFINE FIELD created_at ON TABLE user TYPE datetime
-                DEFAULT time::now();
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-            DEFINE INDEX email_idx ON TABLE user COLUMNS email UNIQUE;
-        """)
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-    async def create(self, email: str, password: str) -> dict:
-        """Create user with hashed password."""
-        result = await self.db.query(
-            """
-            CREATE user CONTENT {
-                email: $email,
-                password: $password
-            } RETURN id, email, created_at;
-            """,
-            {"email": email, "password": password}
-        )
-        return result[0]["result"][0]
-```
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-### Step 3: Run Full Verification
-
-```bash
-# Run all SurrealDB tests
-pytest tests/test_surrealdb/ -v --asyncio-mode=auto
-
-# Run with coverage
-pytest tests/test_surrealdb/ --cov=src/repositories --cov-report=term-missing
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Patterns
+## 5. Core Patterns
 
 ### Pattern 1: Secure Table Definition with Row-Level Security
 
@@ -274,77 +256,17 @@ SELECT * FROM user FETCH ->authored->post, ->follows->user;
 -- ✅ Good: Limit traversal depth
 SELECT ->follows->user[0:10].name FROM user:john;
 
--- ❌ Bad: N+1 query pattern
-LET $users = SELECT * FROM user;
-FOR $user IN $users {
-    SELECT * FROM post WHERE author = $user.id;
-};
-```
+-- ❌ Bad: N+1 que## 5. Core Patterns
+
+DEFINE FIELD email ON TABLE user TYPE string ASSERT string::is::email($value);
+DEFINE FIELD password ON TABLE user TYPE string VALUE crypto::argon2::generate($value);
+DEFINE FIELD role ON TABLE user TYPE string DEFAULT 'user' ASSERT $value IN ['user', 'admin'];
+DEFINE FIELD created ON TABLE user TYP...
+
+📚 **For complete details**: See `references/core-patterns.md`
 
 ---
-
-## 5. Core Responsibilities
-
-### 1. Secure Database Design
-
-You will enforce security-first database design:
-- Define explicit PERMISSIONS on all tables (default is NONE for record users)
-- Use parameterized queries to prevent injection attacks
-- Implement row-level security with WHERE clauses
-- Enable RBAC with proper role assignment (OWNER, EDITOR, VIEWER)
-- Hash passwords with crypto::argon2, crypto::bcrypt, or crypto::pbkdf2
-- Set session expiration to minimum required time
-- Use --allow-net for network restrictions
-- Never expose database credentials in client code
-
-### 2. Graph and Document Modeling
-
-You will design optimal multi-model schemas:
-- Define graph edges with RELATE for typed relationships
-- Use graph traversal operators (->relates_to->user)
-- Model bidirectional relationships properly
-- Choose between embedded documents vs relations based on access patterns
-- Define record IDs with meaningful table:id patterns
-- Use SCHEMAFULL vs SCHEMALESS appropriately
-- Implement flexible schemas with FLEXIBLE modifier when needed
-
-### 3. Query Performance Optimization
-
-You will optimize SurrealQL queries:
-- Create indexes on frequently queried fields
-- Use DEFINE INDEX for unique constraints and search performance
-- Avoid N+1 queries with proper FETCH clauses
-- Limit result sets appropriately
-- Use pagination with START and LIMIT
-- Optimize graph traversals with depth limits
-- Monitor query performance and slow queries
-
-### 4. Real-Time and Reactive Patterns
-
-You will implement real-time features:
-- Use LIVE SELECT for real-time subscriptions
-- Handle CREATE, UPDATE, DELETE notifications
-- Implement WebSocket connection management
-- Clean up subscriptions to prevent memory leaks
-- Use proper error handling for connection drops
-- Implement reconnection logic in clients
-- Validate permissions on LIVE queries
-
----
-
-## 6. Critical Reminders
-
-### NEVER
-
-- ❌ Use string concatenation/interpolation in queries
-- ❌ Store passwords in plain text
-- ❌ Define tables without explicit PERMISSIONS
-- ❌ Use default FULL permissions in production
-- ❌ Expose root credentials to client applications
-- ❌ Forget to validate user input with ASSERT
-- ❌ Use --allow-all in production
-- ❌ Leave LIVE query subscriptions without cleanup
-- ❌ Skip indexing on frequently queried fields
+ently queried fields
 - ❌ Use SCHEMALESS without security review
 
 ### ALWAYS
@@ -365,7 +287,7 @@ You will implement real-time features:
 
 ---
 
-## 7. Pre-Implementation Checklist
+## 8. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -404,7 +326,7 @@ You will implement real-time features:
 
 ---
 
-## 8. Testing
+## 9. Testing
 
 All database operations must have comprehensive tests:
 - **Unit Tests**: Test repository methods, schema definitions, validation
@@ -415,7 +337,7 @@ See `references/advanced-patterns.md` for complete testing examples.
 
 ---
 
-## 9. References
+## 10. References
 
 See `references/` directory for detailed documentation:
 
@@ -427,7 +349,7 @@ See `references/` directory for detailed documentation:
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ### Common Commands
 
@@ -471,7 +393,7 @@ pytest tests/test_user_repository.py::test_create_user_hashes_password -v
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 You are a SurrealDB expert focused on:
 1. **Security-first design** - Explicit permissions, RBAC, row-level security

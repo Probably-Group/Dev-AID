@@ -68,6 +68,21 @@ Before EVERY response with Tauri code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. File Organization
 
 This skill uses a split structure for HIGH-RISK requirements:
@@ -125,7 +140,54 @@ You are an expert in Tauri desktop application development with deep understandi
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ### Version Recommendations
 
@@ -151,9 +213,7 @@ src-tauri/
 
 ---
 
-## 5. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+## 6. Implementation Workflow (TDD)
 
 **Rust Backend Test:**
 ```rust
@@ -161,72 +221,10 @@ src-tauri/
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_file_read_validates_path() {
-        let request = FileRequest { path: "../secret".to_string() };
-        assert!(request.validate().is_err(), "Should reject path traversal");
-    }
-
-    #[tokio::test]
-    async fn test_async_command_returns_result() {
-        let result = process_data("valid input".to_string()).await;
-        assert!(result.is_ok());
-    }
-}
-```
-
-**Frontend Vitest Test:**
-```typescript
-import { describe, it, expect, vi } from 'vitest'
-import { invoke } from '@tauri-apps/api/core'
-
-vi.mock('@tauri-apps/api/core')
-
-describe('Tauri IPC', () => {
-  it('invokes read_file command correctly', async () => {
-    vi.mocked(invoke).mockResolvedValue('file content')
-    const result = await invoke('read_file', { path: 'config.json' })
-    expect(result).toBe('file content')
-  })
-})
-```
-
-### Step 2: Implement Minimum to Pass
-
-Write only the code necessary to make the test pass:
-```rust
-#[command]
-pub async fn process_data(input: String) -> Result<String, String> {
-    // Minimum implementation to pass test
-    Ok(format!("Processed: {}", input))
-}
-```
-
-### Step 3: Refactor if Needed
-
-After tests pass, improve code structure without changing behavior:
-- Extract common validation logic
-- Improve error messages
-- Add documentation
-
-### Step 4: Run Full Verification
-
-```bash
-# Rust tests and linting
-cd src-tauri && cargo test
-cd src-tauri && cargo clippy -- -D warnings
-cd src-tauri && cargo audit
-
-# Frontend tests
-npm test
-npm run typecheck
-```
-
-> **For comprehensive testing strategies, see `references/testing-guide.md`**
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 6. Core Security Patterns
+## 7. Core Security Patterns
 
 ### Pattern 1: Minimal Capability Configuration
 
@@ -290,94 +288,14 @@ pub async fn read_file(request: FileRequest, app: AppHandle) -> Result<String, S
     request.validate().map_err(|e| format!("Validation error: {}", e))?;
     let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     let canonical = dunce::canonicalize(app_dir.join(&request.path)).map_err(|_| "Invalid path")?;
-    if !canonical.starts_with(&app_dir) {
-        return Err("Access denied: path traversal detected".into());
-    }
-    std::fs::read_to_string(canonical).map_err(|e| format!("Failed: {}", e))
-}
-```
+    i## 7. Core Security Patterns
 
-> **For complete IPC patterns, see `references/ipc-patterns.md`**
+## 7. Core Security Patterns
 
-### Pattern 4: Origin Verification
-
-```rust
-#[command]
-pub async fn sensitive_operation(window: Window) -> Result<(), String> {
-    match window.url().origin() {
-        url::Origin::Tuple(scheme, host, _) => {
-            if (scheme != "tauri" && scheme != "https") ||
-               (host.to_string() != "localhost" && host.to_string() != "tauri.localhost") {
-                return Err("Invalid origin".into());
-            }
-        }
-        _ => return Err("Invalid origin".into()),
-    }
-    Ok(())
-}
-```
-
-### Pattern 5: Secure Auto-Updater
-
-```rust
-pub fn configure_updater(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    let handle = app.handle().clone();
-    tauri::async_runtime::spawn(async move {
-        let updater = handle.updater_builder()
-            .endpoints(vec!["https://releases.example.com/{{target}}/{{current_version}}".into()])
-            .pubkey("YOUR_PUBLIC_KEY_HERE")
-            .build()?;
-        if let Ok(Some(update)) = updater.check().await {
-            let _ = update.download_and_install(|_, _| {}, || {}).await;
-        }
-        Ok::<_, Box<dyn std::error::Error + Send + Sync>>(())
-    });
-    Ok(())
-}
-```
-
-> **For advanced patterns, see `references/advanced-patterns.md` and `references/ipc-patterns.md`**
+📚 **For complete details**: See `references/core-security-patterns.md`
 
 ---
 
-## 7. Security Standards
-
-### 7.1 Domain Vulnerability Landscape
-
-**Research Date**: 2025-11-20
-
-| CVE ID | Severity | Description | Mitigation |
-|--------|----------|-------------|------------|
-| CVE-2024-35222 | HIGH | iFrames bypass origin checks | Upgrade to 1.6.7+ or 2.0.0-beta.20+ |
-| CVE-2024-24576 | CRITICAL | Rust command injection | Upgrade Rust to 1.77.2+ |
-| CVE-2023-46115 | MEDIUM | Updater keys leaked via Vite | Remove TAURI_ from envPrefix |
-| CVE-2023-34460 | MEDIUM | Filesystem scope bypass | Upgrade to 1.4.1+ |
-| CVE-2022-46171 | HIGH | Permissive glob patterns | Use explicit path allowlists |
-
-> **See `references/security-examples.md` for complete CVE details and mitigation code**
-
-### 7.2 OWASP Top 10 2025 Mapping
-
-| OWASP Category | Risk | Key Mitigations |
-|----------------|------|-----------------|
-| A01 Broken Access Control | CRITICAL | Capability system, IPC validation |
-| A02 Cryptographic Failures | HIGH | Secure updater signatures, TLS |
-| A03 Injection | HIGH | Validate IPC inputs, CSP |
-| A04 Insecure Design | HIGH | Minimal capabilities |
-| A05 Security Misconfiguration | CRITICAL | Restrictive CSP, frozen prototype |
-| A06 Vulnerable Components | HIGH | Keep Tauri updated |
-| A07 Auth Failures | MEDIUM | Origin verification |
-| A08 Data Integrity Failures | HIGH | Signed updates |
-
-### 7.3 Input Validation Framework
-
-```rust
-use validator::Validate;
-
-#[derive(serde::Deserialize, Validate)]
-pub struct UserCommand {
-    #[validate(length(min = 1, max = 100))]
-    pub name: String,
     #[validate(range(min = 1, max = 1000))]
     pub count: u32,
     #[validate(custom(function = "validate_path"))]
@@ -433,7 +351,7 @@ impl serde::Serialize for AppError {
 
 ---
 
-## 8. Pre-Deployment Checklist
+## 9. Pre-Deployment Checklist
 
 ### Security Checklist
 
@@ -459,7 +377,7 @@ impl serde::Serialize for AppError {
 
 ---
 
-## 9. References
+## 10. References
 
 This skill provides comprehensive reference documentation:
 
@@ -474,25 +392,10 @@ This skill provides comprehensive reference documentation:
 - **`references/anti-patterns.md`**: Common mistakes and anti-patterns to avoid
 
 ### Testing & Validation
-- **`references/testing-guide.md`**: Comprehensive testing strategies, security tests, and CI/CD setup
+- **`references/testing-guide.md`**: Comprehensive test## 8. Security Standards
+
+## 8. Security Standards
+
+📚 **For complete details**: See `references/security-standards.md`
 
 ---
-
-## 10. Summary
-
-Your goal is to create Tauri applications that are:
-- **Secure by Default**: Minimal capabilities, restrictive CSP
-- **Defense in Depth**: Multiple security layers
-- **Validated**: All IPC inputs validated
-- **Transparent**: Signed updates, clear permissions
-- **Performant**: Async operations, efficient IPC
-
-**Security Reminder**:
-1. Never enable shell execution without strict allowlist
-2. Always scope filesystem access to specific directories
-3. Configure CSP to block XSS and data exfiltration
-4. Verify origins for sensitive operations
-5. Sign updates and verify signatures
-6. Keep Tauri and Rust updated for security patches
-
-**When in doubt**: Consult the reference documentation for detailed examples and patterns.

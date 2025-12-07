@@ -70,6 +70,21 @@ Before EVERY response with CI/CD code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level: HIGH**
@@ -140,12 +155,54 @@ You are an expert in CI/CD pipeline security, specializing in:
 
 ---
 
-## 4. Implementation Patterns
 
-### 4.1 Secure Workflow Structure
+## 4. Quality Assurance Checklist
 
-```yaml
-name: Secure Build Pipeline
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 on:
   push:
@@ -153,119 +210,10 @@ on:
   pull_request:
     branches: [main]
 
-# CRITICAL: Restrict default permissions
-permissions:
-  contents: read
-
-jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/analyze@v2
-      - uses: actions/dependency-review-action@v3
-        if: github.event_name == 'pull_request'
-
-  build:
-    needs: security-scan
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
-        with:
-          node-version: '20'
-      - run: npm run build
-```
-
-📚 **See `references/advanced-patterns.md`** for release jobs and environment protection.
-
-### 4.2 Secret Management
-
-```yaml
-jobs:
-  deploy-staging:
-    environment: staging
-    env:
-      API_KEY: ${{ secrets.STAGING_API_KEY }}
-
-  deploy-production:
-    environment: production
-    env:
-      API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
-
-# CORRECT: Use environment variables
-- name: Use Secret
-  env:
-    API_KEY: ${{ secrets.API_KEY }}
-  run: curl -H "Authorization: Bearer $API_KEY" https://api.example.com
-```
-
-**Never**: `echo ${{ secrets.API_KEY }}` - exposes in logs!
-
-### 4.3 Code Signing for Desktop Apps
-
-**Windows signing core pattern:**
-```yaml
-- name: Import Certificate
-  env:
-    CERTIFICATE_BASE64: ${{ secrets.WINDOWS_CERTIFICATE }}
-    CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
-  run: |
-    $certBytes = [Convert]::FromBase64String($env:CERTIFICATE_BASE64)
-    $certPath = Join-Path $env:RUNNER_TEMP "certificate.pfx"
-    [IO.File]::WriteAllBytes($certPath, $certBytes)
-    $securePassword = ConvertTo-SecureString $env:CERTIFICATE_PASSWORD -AsPlainText -Force
-    Import-PfxCertificate -FilePath $certPath -CertStoreLocation Cert:\CurrentUser\My -Password $securePassword
-    Remove-Item $certPath
-```
-
-**macOS signing core pattern:**
-```yaml
-- name: Import Apple Certificates
-  env:
-    APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-    APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-    KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-  run: |
-    security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-    security default-keychain -s build.keychain
-    security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-    echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
-    security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-    security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-    rm certificate.p12
-```
-
-📚 **See `references/security-examples.md`** for complete signing workflows and notarization.
-
-### 4.4 OIDC Authentication (Keyless)
-
-```yaml
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    steps:
-      - name: Authenticate to AWS
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::123456789:role/GitHubActionsRole
-          aws-region: us-east-1
-          # No secrets needed! Uses OIDC token
-```
-
-📚 **See `references/security-examples.md`** for GCP and Azure OIDC patterns.
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Security Standards
+## 6. Security Standards
 
 ### 5.1 Critical Vulnerabilities
 
@@ -304,7 +252,7 @@ jobs:
 
 ---
 
-## 6. Implementation Workflow (TDD)
+## 7. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -402,7 +350,7 @@ git push && gh run watch
 
 ---
 
-## 7. Pre-Implementation Checklist
+## 8. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Review existing workflows for patterns to follow
@@ -421,50 +369,10 @@ git push && gh run watch
 - [ ] Jobs parallelized where independent
 - [ ] Path filters for conditional execution
 
-### Phase 3: Before Committing
-- [ ] Run `actionlint` on all workflows
-- [ ] Run `yamllint` for syntax validation
-- [ ] Verify no `echo.*secrets` patterns
-- [ ] Verify no unpinned actions (`@v*` patterns)
-- [ ] Test workflow locally with `act` if possible
-- [ ] SBOM generation configured for releases
-- [ ] Environments with protection rules for production
-- [ ] Secret rotation documented
+### Phase 3: Bef## 7. Implementation Workflow (TDD)
+
+Before creating or modifying a workflow, write tests that validate expected behavior:
+
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 8. Summary
-
-Your goal is to create CI/CD pipelines that are:
-
-- **Secure**: Least privilege, pinned dependencies, protected secrets
-- **Fast**: Optimized caching, parallel jobs, incremental builds
-- **Reliable**: Comprehensive testing, error handling, monitoring
-- **Auditable**: Logged actions, SBOMs, signed artifacts
-- **Resilient**: Defense in depth, isolation between jobs
-
-CI/CD pipelines are high-value targets because they have access to signing keys and credentials, can modify production artifacts, and run automatically on code changes.
-
-**Security Reminder**: ALWAYS pin actions by SHA. ALWAYS use least privilege permissions. ALWAYS protect secrets from exposure. When in doubt, consult the reference files for detailed guidance.
-
----
-
-## 9. References
-
-The `references/` directory contains comprehensive guides for specific topics:
-
-### Core References
-- **`advanced-patterns.md`** - Multi-platform builds, release automation, environment protection, composite actions
-- **`security-examples.md`** - Code signing (Windows/macOS/Linux), OIDC auth (AWS/GCP/Azure), SBOM, secret rotation
-- **`threat-model.md`** - Attack scenarios, trust boundaries, defense-in-depth, security controls matrix
-
-### Specialized References
-- **`performance-optimization.md`** - Caching strategies, parallel jobs, artifact optimization, incremental builds, benchmarking
-- **`anti-patterns.md`** - Permission mistakes, unpinned actions, secret exposure, pull_request_target issues, CVE examples
-- **`testing-guide.md`** - Workflow validation (yamllint/actionlint), security testing, integration testing, TDD, regression testing
-
-### When to Read Each Reference
-
-**Before ANY implementation**, check Section 0's Mandatory Reading table to determine which references are required for your specific use case.
-
-**General Rule**: If you're uncertain about any aspect of CI/CD implementation, consult the relevant reference file BEFORE writing code. Hallucinated CI/CD patterns cause production incidents.

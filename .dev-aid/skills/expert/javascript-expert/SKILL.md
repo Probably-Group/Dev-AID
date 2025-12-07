@@ -54,6 +54,21 @@ Before EVERY response with JavaScript code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite JavaScript developer with deep expertise in:
@@ -148,14 +163,54 @@ You will implement robust error handling:
 
 ---
 
-## 4. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 4. Quality Assurance Checklist
 
-```javascript
-// Using Vitest
-import { describe, it, expect } from 'vitest';
-import { calculateTotal, applyDiscount } from '../cart';
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Workflow (TDD)
 
 describe('Cart calculations', () => {
     it('should calculate total from items', () => {
@@ -164,97 +219,10 @@ describe('Cart calculations', () => {
             { price: 5, quantity: 3 }
         ];
 
-        expect(calculateTotal(items)).toBe(35);
-    });
-
-    it('should apply percentage discount', () => {
-        const total = 100;
-        const discount = 10; // 10%
-
-        expect(applyDiscount(total, discount)).toBe(90);
-    });
-
-    it('should handle empty cart', () => {
-        expect(calculateTotal([])).toBe(0);
-    });
-
-    it('should throw on invalid discount', () => {
-        expect(() => applyDiscount(100, -5)).toThrow('Invalid discount');
-    });
-});
-```
-
-### Step 2: Implement Minimum Code to Pass
-
-```javascript
-// cart.js - Minimum implementation
-export function calculateTotal(items) {
-    if (!items || items.length === 0) return 0;
-
-    return items.reduce((sum, item) => {
-        return sum + (item.price * item.quantity);
-    }, 0);
-}
-
-export function applyDiscount(total, discount) {
-    if (discount < 0 || discount > 100) {
-        throw new Error('Invalid discount');
-    }
-
-    return total - (total * discount / 100);
-}
-```
-
-### Step 3: Refactor if Needed
-
-```javascript
-// cart.js - Refactored with validation
-export function calculateTotal(items) {
-    if (!Array.isArray(items)) {
-        throw new TypeError('Items must be an array');
-    }
-
-    return items.reduce((sum, item) => {
-        const price = Number(item.price) || 0;
-        const quantity = Number(item.quantity) || 0;
-        return sum + (price * quantity);
-    }, 0);
-}
-
-export function applyDiscount(total, discount) {
-    if (typeof total !== 'number' || typeof discount !== 'number') {
-        throw new TypeError('Arguments must be numbers');
-    }
-
-    if (discount < 0 || discount > 100) {
-        throw new RangeError('Invalid discount: must be 0-100');
-    }
-
-    return total * (1 - discount / 100);
-}
-```
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm test -- --coverage
-
-# Run specific test file
-npm test -- cart.test.js
-
-# Run in watch mode during development
-npm test -- --watch
-```
-
-**See**: `references/testing-examples.md` for comprehensive testing patterns
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 5. Essential Patterns
+## 6. Essential Patterns
 
 ### Pattern 1: Async Error Handling
 
@@ -336,125 +304,16 @@ async function loadUserData(userId) {
 async function loadUserData(userId) {
     const results = await Promise.allSettled([
         fetchUser(userId),
-        fetchUserPosts(userId),
-        fetchUserComments(userId)
-    ]);
+## 6. Essential Patterns
 
-    return {
-        user: results[0].status === 'fulfilled' ? results[0].value : null,
-        posts: results[1].status === 'fulfilled' ? results[1].value : [],
-        comments: results[2].status === 'fulfilled' ? results[2].value : [],
-        errors: results.filter(r => r.status === 'rejected').map(r => r.reason)
-    };
-}
-```
-
-### Pattern 5: Event Delegation
-
-```javascript
-// EFFICIENT: Event delegation
-function setupItemListeners() {
-    const container = document.getElementById('item-container');
-
-    container.addEventListener('click', (e) => {
-        const item = e.target.closest('.item');
-        if (item) {
-            console.log('Clicked:', item.dataset.id);
+if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    });
-}
 
-// IMPORTANT: Clean up event listeners
-class ItemManager {
-    constructor(containerId) {
-        this.container = document.getElementById(containerId);
-        this.handleClick = this.handleClick.bind(this);
-        this.container.addEventListener('click', this.handleClick);
-    }
-
-    handleClick(e) {
-        const item = e.target.closest('.item');
-        if (item) {
-            this.processItem(item);
-        }
-    }
-
-    processItem(item) {
-        console.log('Processing:', item.dataset.id);
-    }
-
-    destroy() {
-        this.container.removeEventListener('click', this.handleClick);
-    }
-}
-```
+📚 **For complete details**: See `references/essential-patterns.md`
 
 ---
-
-## 6. Common Mistakes to Avoid
-
-**Critical mistakes**:
-1. Unhandled promise rejections - always use `.catch()` or try/catch
-2. Memory leaks from event listeners - always provide cleanup methods
-3. Using `var` instead of `const`/`let`
-4. Loose equality (`==`) instead of strict (`===`)
-5. Blocking the event loop with synchronous operations
-
-**See**: `references/anti-patterns.md` for detailed examples and solutions
-
----
-
-## 7. References
-
-Detailed documentation available in `references/` directory:
-
-- **`async-patterns.md`** - Comprehensive async/await patterns, Promise handling, retry logic, timeout patterns
-- **`security-examples.md`** - XSS prevention, prototype pollution, OWASP Top 10 mapping, secure authentication
-- **`performance-optimization.md`** - Memoization, debounce/throttle, lazy loading, Web Workers, DOM optimization
-- **`anti-patterns.md`** - Common mistakes and how to avoid them
-- **`testing-examples.md`** - Unit tests, integration tests, mocking, DOM testing
-
----
-
-## 8. Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Tests written for new functionality (TDD)
-- [ ] Security threat model reviewed
-- [ ] Performance requirements identified
-- [ ] Dependencies audited (`npm audit`)
-- [ ] API contracts defined
-
-### Phase 2: During Implementation
-
-- [ ] Using const/let (no var)
-- [ ] Strict equality (===) used
-- [ ] All async operations have error handling
-- [ ] User inputs validated and sanitized
-- [ ] No eval() or Function() with user input
-- [ ] Event listeners have cleanup methods
-- [ ] No innerHTML with user content
-- [ ] Prototype pollution prevented in object merging
-
-### Phase 3: Before Committing
-
-- [ ] All tests pass (`npm test`)
-- [ ] Test coverage meets threshold (>80%)
-- [ ] No console.log() in production code
-- [ ] ESLint/Prettier checks pass
-- [ ] Bundle size verified
-- [ ] Performance profiled
-- [ ] Security headers configured (CSP, etc.)
-- [ ] Environment variables for secrets
-- [ ] Dependencies up to date
-
-### NEVER
-
-- Use `eval()` or `Function()` constructor with user input
-- Store tokens/API keys in localStorage
-- Trust user input without validation
-- Use `innerHTML` with unsanitized content
+erHTML` with unsanitized content
 - Ignore promise rejections
 - Use `Math.random()` for security
 - Use `var` - always use `const` or `let`
@@ -473,7 +332,7 @@ Detailed documentation available in `references/` directory:
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 You are a JavaScript expert focused on:
 1. **TDD workflow** - Tests first, then implementation

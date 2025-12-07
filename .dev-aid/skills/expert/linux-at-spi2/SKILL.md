@@ -4,6 +4,21 @@ risk_level: MEDIUM
 description: "Expert in AT-SPI2 (Assistive Technology Service Provider Interface) for Linux desktop automation. Specializes in accessible automation of GTK/Qt applications via D-Bus accessibility interface. HIGH-RISK skill requiring security controls for system-wide access."
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - System-wide accessibility access, D-Bus IPC, input injection
@@ -55,7 +70,54 @@ Every automation operation MUST:
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ### 4.1 AT-SPI2 Architecture
 
@@ -79,169 +141,15 @@ Application -> ATK/QAccessible -> AT-SPI2 Registry -> D-Bus -> Client
 
 ---
 
-## 5. Implementation Patterns
-
-### Pattern 1: Secure AT-SPI2 Access
-
-```python
-import gi
-gi.require_version('Atspi', '2.0')
-from gi.repository import Atspi
-import logging
+## 6. Implementation Patterns
 
 class SecureATSPI:
     """Secure wrapper for AT-SPI2 operations."""
 
-    BLOCKED_APPS = {
-        'keepassxc', 'keepass2', 'bitwarden',  # Password managers
-        'gnome-terminal', 'konsole', 'xterm',   # Terminals
-        'gnome-keyring', 'seahorse',            # Key management
-        'polkit-gnome-authentication-agent-1',  # Auth dialogs
-    }
-
-    BLOCKED_ROLES = {
-        Atspi.Role.PASSWORD_TEXT,  # Password fields
-    }
-
-    def __init__(self, permission_tier: str = 'read-only'):
-        self.permission_tier = permission_tier
-        self.logger = logging.getLogger('atspi.security')
-        self.timeout = 5000  # ms for D-Bus calls
-
-        # Initialize AT-SPI2
-        Atspi.init()
-
-    def get_desktop(self) -> 'Atspi.Accessible':
-        """Get desktop root with timeout."""
-        return Atspi.get_desktop(0)
-
-    def get_application(self, name: str) -> 'Atspi.Accessible':
-        """Get application accessible with validation."""
-        name_lower = name.lower()
-
-        # Security check
-        if name_lower in self.BLOCKED_APPS:
-            self.logger.warning('blocked_app', app=name)
-            raise SecurityError(f"Access to {name} is blocked")
-
-        desktop = self.get_desktop()
-        for i in range(desktop.get_child_count()):
-            app = desktop.get_child_at_index(i)
-            if app.get_name().lower() == name_lower:
-                self._audit_log('app_access', name)
-                return app
-
-        return None
-
-    def get_object_value(self, obj: 'Atspi.Accessible') -> str:
-        """Get object value with security filtering."""
-        # Check for password fields
-        if obj.get_role() in self.BLOCKED_ROLES:
-            self.logger.warning('blocked_role', role=obj.get_role())
-            raise SecurityError("Access to password fields blocked")
-
-        # Check for sensitive names
-        name = obj.get_name().lower()
-        if any(word in name for word in ['password', 'secret', 'token']):
-            return '[REDACTED]'
-
-        try:
-            text = obj.get_text()
-            if text:
-                return text.get_text(0, text.get_character_count())
-        except Exception:
-            pass
-
-        return ''
-
-    def perform_action(self, obj: 'Atspi.Accessible', action_name: str):
-        """Perform action with permission check."""
-        if self.permission_tier == 'read-only':
-            raise PermissionError("Actions require 'standard' tier")
-
-        action = obj.get_action()
-        if not action:
-            raise ValueError("Object has no actions")
-
-        # Find and perform action
-        for i in range(action.get_n_actions()):
-            if action.get_action_name(i) == action_name:
-                self._audit_log('action', f"{obj.get_name()}.{action_name}")
-                return action.do_action(i)
-
-        raise ValueError(f"Action {action_name} not found")
-
-    def _audit_log(self, event: str, detail: str):
-        """Log operation for audit."""
-        self.logger.info(
-            f'atspi.{event}',
-            extra={
-                'detail': detail,
-                'permission_tier': self.permission_tier
-            }
-        )
-```
-
-### Pattern 2: Element Discovery with Timeout
-
-```python
-import time
-
-class ElementFinder:
-    def __init__(self, atspi: SecureATSPI, timeout: int = 30):
-        self.atspi = atspi
-        self.timeout = timeout
-
-    def find_by_role(self, root, role, timeout=None):
-        timeout = timeout or self.timeout
-        start = time.time()
-        results = []
-
-        def search(obj, depth=0):
-            if time.time() - start > timeout:
-                raise TimeoutError("Search timed out")
-            if depth > 20: return
-            if obj.get_role() == role:
-                results.append(obj)
-            for i in range(obj.get_child_count()):
-                if child := obj.get_child_at_index(i):
-                    search(child, depth + 1)
-
-        search(root)
-        return results
-```
-
-### Pattern 3: Event Monitoring
-
-```python
-class ATSPIEventMonitor:
-    """Monitor AT-SPI2 events safely."""
-    ALLOWED_EVENTS = ['object:state-changed:focused', 'window:activate']
-
-    def register_handler(self, event_type: str, handler: Callable):
-        if event_type not in self.ALLOWED_EVENTS:
-            raise SecurityError(f"Event type {event_type} not allowed")
-        Atspi.EventListener.register_full(handler, event_type, None)
-```
-
-### Pattern 4: Safe Text Input
-
-```python
-def set_text_safely(obj: 'Atspi.Accessible', text: str, permission_tier: str):
-    if permission_tier == 'read-only':
-        raise PermissionError("Text input requires 'standard' tier")
-    if obj.get_role() == Atspi.Role.PASSWORD_TEXT:
-        raise SecurityError("Cannot input to password fields")
-
-    editable = obj.get_editable_text()
-    text_iface = obj.get_text()
-    editable.delete_text(0, text_iface.get_character_count())
-    editable.insert_text(0, text, len(text))
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 6. Implementation Workflow (TDD)
+## 7. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -295,7 +203,7 @@ pytest tests/ -k "password" -v
 
 ---
 
-## 7. Performance Patterns
+## 8. Performance Patterns
 
 ### Pattern 1: Event Filtering (Reduce D-Bus Traffic)
 
@@ -379,7 +287,7 @@ result = search_with_role(app, name, role=Atspi.Role.PUSH_BUTTON)
 
 ---
 
-## 8. Security Standards
+## 9. Security Standards
 
 ### 8.1 Critical Vulnerabilities
 
@@ -415,7 +323,7 @@ PERMISSION_TIERS = {
 
 ---
 
-## 9. Common Mistakes
+## 10. Common Mistakes
 
 ### Never: Access Password Fields
 
@@ -442,7 +350,7 @@ if is_allowed_app(app.get_name()):
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -471,24 +379,15 @@ if is_allowed_app(app.get_name()):
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create AT-SPI2 automation that is:
 - **Secure**: Application validation, role blocking, audit logging
 - **Reliable**: Timeout enforcement, error handling
-- **Accessible**: Respects assistive technology boundaries
+- **Accessible**: Respects assistive te## 8. Performance Patterns
 
-**Security Reminders**:
-1. Always block access to PASSWORD_TEXT roles
-2. Validate applications before automation
-3. Enforce timeouts on all D-Bus calls
-4. Log all operations for audit
-5. Use appropriate permission tiers
+## 8. Performance Patterns
+
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-
-## References
-
-- See `references/security-examples.md`
-- See `references/threat-model.md`
-- See `references/advanced-patterns.md`

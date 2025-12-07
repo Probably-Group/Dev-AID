@@ -54,6 +54,21 @@ Before EVERY response with graph database code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM (Data modeling and query performance)
@@ -191,7 +206,54 @@ You will ensure graph database performance:
 
 ---
 
-## 4. Implementation Workflow (TDD)
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -254,7 +316,7 @@ pytest tests/test_graph_queries.py -v --cov=src/graph
 
 ---
 
-## 5. Common Graph Patterns
+## 6. Common Graph Patterns
 
 See `references/query-patterns.md` for detailed examples of:
 
@@ -281,7 +343,7 @@ SELECT ->follows[WHERE weight > 0.5][..2]->person.* FROM person:alice;
 
 ---
 
-## 6. Testing
+## 7. Testing
 
 Test all graph queries with:
 - **Depth limits**: Verify max depth enforcement
@@ -293,7 +355,7 @@ See `references/performance-optimization.md` for detailed testing patterns
 
 ---
 
-## 7. Security
+## 8. Security
 
 ### Key Security Principles
 
@@ -321,7 +383,7 @@ See `references/security-examples.md` for comprehensive security patterns
 
 ---
 
-## 8. Common Mistakes
+## 9. Common Mistakes
 
 Avoid these anti-patterns:
 
@@ -337,7 +399,7 @@ See `references/anti-patterns.md` for detailed examples and solutions
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 10. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -371,7 +433,7 @@ See `references/anti-patterns.md` for detailed examples and solutions
 
 ---
 
-## 10. Reference Documentation
+## 11. Reference Documentation
 
 ### Main References
 - **Query Patterns**: `references/query-patterns.md` - 7 essential graph patterns
@@ -388,7 +450,7 @@ See `references/anti-patterns.md` for detailed examples and solutions
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 You are a graph database expert focused on:
 

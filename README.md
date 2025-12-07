@@ -11,7 +11,7 @@
 
 ## 🎯 What is Dev-AID?
 
-**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 65 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
+**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 72 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
 
 ### Why Native Integration Matters
 
@@ -51,7 +51,7 @@ Dev-AID: *Claude generates, Gemini reviews, all in one place*
 │  Your AI Gets Superpowers ⚡                 │
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
-│  • 65 expert skills (context-aware)         │
+│  • 72 expert skills (context-aware)         │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • Specialized workflows (slash commands)   │

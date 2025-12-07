@@ -55,6 +55,21 @@ Before EVERY response with quantization code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM - Model manipulation, potential quality degradation, resource management
@@ -106,66 +121,62 @@ When quantizing models, you will:
 
 ---
 
-## 4. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 4. Quality Assurance Checklist
 
-```python
-# tests/test_quantization.py
-import pytest
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Workflow (TDD)
 
 class TestQuantizationQuality:
     """Test quantized model quality metrics."""
 
-    def test_perplexity_within_threshold(self, quantized_model, baseline_metrics):
-        """Quantized model perplexity within 10% of baseline."""
-        benchmark = QuantizationBenchmark(TEST_PROMPTS)
-        results = benchmark.benchmark(quantized_model)
-
-        max_perplexity = baseline_metrics["perplexity"] * 1.10
-        assert results["perplexity"] <= max_perplexity
-
-    def test_memory_under_limit(self, quantized_model, max_memory_mb):
-        """Model fits within memory constraint."""
-        import psutil
-        process = psutil.Process()
-        memory_mb = process.memory_info().rss / (1024 * 1024)
-        assert memory_mb <= max_memory_mb
-```
-
-**See `references/testing-guide.md` for comprehensive test suite**
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# Implement quantization to make tests pass
-quantizer = SecureQuantizer(models_dir, llama_cpp_dir)
-output = quantizer.quantize(
-    input_model="model-f16.gguf",
-    output_name="model-Q5_K_M.gguf",
-    quantization="Q5_K_M"
-)
-```
-
-### Step 3: Refactor Following Patterns
-
-- Apply calibration data selection for better quality
-- Implement layer-wise quantization for sensitive layers
-- Add comprehensive logging and metrics
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all quantization tests
-pytest tests/test_quantization.py -v
-
-# Run with coverage
-pytest tests/test_quantization.py --cov=quantization --cov-report=term-missing
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 5. Quantization Selection
+## 6. Quantization Selection
 
 ### Quick Reference
 
@@ -188,7 +199,7 @@ pytest tests/test_quantization.py --cov=quantization --cov-report=term-missing
 
 ---
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### Pattern 1: Secure Model Quantization Pipeline
 
@@ -228,139 +239,15 @@ class SecureQuantizer:
         if result.returncode != 0:
             raise QuantizationError(f"Quantization failed: {result.stderr}")
 
-        # Save checksum
-        checksum = self._calculate_checksum(output_path)
-        output_path.with_suffix(".sha256").write_text(f"{checksum}  {output_path.name}")
+        ## 7. Implementation Patterns
 
-        return str(output_path)
+class SecureQuantizer:
+    """Secure model quantization with validation."""
 
-    def _calculate_checksum(self, path: Path) -> str:
-        sha256 = hashlib.sha256()
-        with open(path, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
-                sha256.update(chunk)
-        return sha256.hexdigest()
-```
-
-### Pattern 2: Quality Benchmarking
-
-```python
-class QuantizationBenchmark:
-    """Benchmark quantization quality."""
-
-    def __init__(self, test_prompts: list[str]):
-        self.test_prompts = test_prompts
-
-    def benchmark(self, model_path: str) -> dict:
-        from llama_cpp import Llama
-        llm = Llama(model_path=model_path, n_ctx=512, verbose=False)
-
-        return {
-            "perplexity": self._measure_perplexity(llm),
-            "latency_ms": self._measure_latency(llm),
-            "memory_mb": self._measure_memory(llm)
-        }
-
-    def _measure_latency(self, llm) -> float:
-        import time, numpy as np
-        latencies = []
-        for prompt in self.test_prompts[:5]:
-            start = time.time()
-            llm(prompt, max_tokens=50)
-            latencies.append((time.time() - start) * 1000)
-        return np.mean(latencies)
-```
-
-### Pattern 3: Quantization Selection
-
-```python
-class QuantizationSelector:
-    """Select optimal quantization for hardware."""
-
-    def select(self, model_params_b: float, available_ram_gb: float,
-               quality_priority: str = "balanced") -> str:
-        """Select quantization level based on constraints."""
-
-        memory_per_param = {"Q4_K_M": 0.5, "Q5_K_M": 0.625, "Q6_K": 0.75, "Q8_0": 1.0}
-        quality_scores = {"Q4_K_M": 0.7, "Q5_K_M": 0.85, "Q6_K": 0.92, "Q8_0": 0.98}
-
-        usable_ram = available_ram_gb - 2
-        candidates = [q for q, mem in memory_per_param.items()
-                     if model_params_b * mem <= usable_ram]
-
-        if not candidates:
-            raise ValueError(f"No quantization fits in {available_ram_gb}GB RAM")
-
-        if quality_priority == "quality":
-            return max(candidates, key=lambda q: quality_scores[q])
-        elif quality_priority == "speed":
-            return min(candidates, key=lambda q: memory_per_param[q])
-        else:
-            return max(candidates, key=lambda q: quality_scores[q])
-```
-
-**See `references/advanced-patterns.md` for mixed quantization, calibration, and hardware-specific optimization**
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 7. Security Standards
-
-### Model Integrity Verification
-
-```python
-def verify_model_integrity(model_path: str) -> bool:
-    """Verify model file integrity."""
-    path = Path(model_path)
-    checksum_path = path.with_suffix(".sha256")
-
-    if not checksum_path.exists():
-        logger.warning("model.no_checksum", model=path.name)
-        return False
-
-    expected = checksum_path.read_text().split()[0]
-    actual = calculate_checksum(path)
-
-    if expected != actual:
-        logger.error("model.checksum_mismatch",
-                    model=path.name,
-                    expected=expected[:16],
-                    actual=actual[:16])
-        return False
-
-    return True
-```
-
-### Safe Model Loading
-
-```python
-def safe_load_quantized(model_path: str) -> Llama:
-    """Load quantized model with validation."""
-
-    # Verify integrity
-    if not verify_model_integrity(model_path):
-        raise SecurityError("Model integrity check failed")
-
-    # Validate path
-    path = Path(model_path).resolve()
-    allowed_dir = Path("/var/jarvis/models").resolve()
-
-    if not path.is_relative_to(allowed_dir):
-        raise SecurityError("Model outside allowed directory")
-
-    return Llama(model_path=str(path))
-```
-
-**See `references/security-examples.md` for comprehensive security patterns and testing**
-
----
-
-## 8. Common Mistakes
-
-### ❌ DON'T: Use Unverified Models
-
-```python
-# BAD - No verification
-llm = Llama(model_path=user_provided_path)
+vided_path)
 
 # GOOD - Verify first
 if not verify_model_integrity(path):
@@ -396,7 +283,7 @@ if available_ram >= required_ram:
 
 ---
 
-## 9. References
+## 10. References
 
 Detailed documentation is split into specialized files:
 
@@ -413,7 +300,7 @@ Detailed documentation is split into specialized files:
 
 ---
 
-## 10. Pre-Deployment Checklist
+## 11. Pre-Deployment Checklist
 
 - [ ] Model checksums generated and saved
 - [ ] Checksums verified before loading
@@ -427,7 +314,7 @@ Detailed documentation is split into specialized files:
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create quantized models that are:
 - **Efficient**: Optimized for target hardware constraints
@@ -445,3 +332,10 @@ You understand that quantization is a tradeoff between quality and resource usag
 5. Never load models without integrity verification
 6. Account for memory overhead (1.5x model size minimum)
 7. Use Q5_K_M as default for balanced quality/performance
+## 9. Common Mistakes
+
+## 9. Common Mistakes
+
+📚 **For complete details**: See `references/common-mistakes.md`
+
+---

@@ -53,6 +53,21 @@ Before EVERY response with TypeScript code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 You are an elite TypeScript developer with deep expertise in:
@@ -85,13 +100,6 @@ You build TypeScript applications that are:
 
 ## 3. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
-
-```typescript
-// tests/user-service.test.ts
-import { describe, it, expect } from 'vitest';
-import { createUser, type User, type CreateUserInput } from '../src/user-service';
-
 describe('createUser', () => {
     it('should create a user with valid input', () => {
         const input: CreateUserInput = {
@@ -99,110 +107,56 @@ describe('createUser', () => {
             email: 'john@example.com'
         };
 
-        const result = createUser(input);
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-        expect(result.success).toBe(true);
-        if (result.success) {
-            expect(result.data.id).toBeDefined();
-            expect(result.data.name).toBe('John Doe');
-            expect(result.data.email).toBe('john@example.com');
-        }
-    });
+---
+## 4. Quality Assurance Checklist
 
-    it('should fail with invalid email', () => {
-        const input: CreateUserInput = {
-            name: 'John',
-            email: 'invalid'
-        };
+**Before implementing this skill, ensure**:
 
-        const result = createUser(input);
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-        expect(result.success).toBe(false);
-    });
-});
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### Step 2: Implement Minimum to Pass
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```typescript
-// src/user-service.ts
-export interface User {
-    id: string;
-    name: string;
-    email: string;
-    createdAt: Date;
-}
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-export interface CreateUserInput {
-    name: string;
-    email: string;
-}
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-type Result<T, E = Error> =
-    | { success: true; data: T }
-    | { success: false; error: E };
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-function isValidEmail(email: string): boolean {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-export function createUser(input: CreateUserInput): Result<User> {
-    if (!isValidEmail(input.email)) {
-        return { success: false, error: new Error('Invalid email') };
-    }
-
-    const user: User = {
-        id: crypto.randomUUID(),
-        name: input.name,
-        email: input.email,
-        createdAt: new Date()
-    };
-
-    return { success: true, data: user };
-}
-```
-
-### Step 3: Refactor If Needed
-
-```typescript
-// Refactor to use branded types for better type safety
-type EmailAddress = string & { __brand: 'EmailAddress' };
-type UserId = string & { __brand: 'UserId' };
-
-export interface User {
-    id: UserId;
-    name: string;
-    email: EmailAddress;
-    createdAt: Date;
-}
-
-function validateEmail(email: string): EmailAddress | null {
-    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        return email as EmailAddress;
-    }
-    return null;
-}
-```
-
-### Step 4: Run Full Verification
-
-```bash
-# Type checking
-npx tsc --noEmit
-
-# Run tests with coverage
-npx vitest run --coverage
-
-# Lint checking
-npx eslint src --ext .ts
-
-# Build verification
-npm run build
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Responsibilities
+## 5. Core Responsibilities
 
 ### 1. Strict Type Safety
 
@@ -280,134 +234,19 @@ function getUser(id: string): Result<User> {
 
 ### 4. Configuration Excellence
 
-You will configure TypeScript optimally:
-- Use strict mode with all checks enabled
-- Configure path aliases for clean imports
-- Set up project references for monorepos
-- Optimize compiler options for performance
-- Configure source maps for debugging
-- Set up incremental compilation
+You will configure Typ## 5. Core Responsibilities
 
-**Example: Optimized tsconfig.json**
-```json
-{
-    "compilerOptions": {
-        "target": "ES2022",
-        "module": "ESNext",
-        "moduleResolution": "bundler",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "incremental": true,
-        "sourceMap": true,
-        "declaration": true,
-        "declarationMap": true,
-        "paths": {
-            "@/*": ["./src/*"]
-        }
-    },
-    "include": ["src/**/*"],
-    "exclude": ["node_modules", "dist"]
-}
-```
+You will enforce strict type checking:
+- Enable all strict mode flags in tsconfig.json
+- Avoid `any` type - use `unknown` or proper types
+- Use `strictNullChecks` to handle null/undefined explicitly
+- Implement discriminated unions for complex state management
+- Use type guards and type predicates f...
+
+📚 **For complete details**: See `references/core-responsibilities.md`
 
 ---
-
-## 5. Key Patterns Overview
-
-### Discriminated Unions
-```typescript
-type LoadingState<T> =
-    | { status: 'idle' }
-    | { status: 'loading' }
-    | { status: 'success'; data: T }
-    | { status: 'error'; error: Error };
-```
-
-### Type Guards
-```typescript
-function isUser(value: unknown): value is User {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        'id' in value &&
-        'name' in value
-    );
-}
-```
-
-### Branded Types
-```typescript
-type UserId = string & { __brand: 'UserId' };
-type EmailAddress = string & { __brand: 'EmailAddress' };
-```
-
-### Const Assertions
-```typescript
-const config = {
-    apiUrl: 'https://api.example.com',
-    timeout: 5000
-} as const;
-```
-
----
-
-## 6. References
-
-For detailed patterns, examples, and best practices, see the `references/` directory:
-
-- **[implementation-patterns.md](references/implementation-patterns.md)** - Comprehensive implementation patterns including:
-  - Strict null checking
-  - Discriminated unions
-  - Generic constraints
-  - Type guards
-  - Utility types
-  - Branded types
-  - Const assertions
-
-- **[performance-optimization.md](references/performance-optimization.md)** - Performance optimization patterns:
-  - Type inference optimization
-  - Efficient conditional types
-  - Memoization with types
-  - Tree-shaking friendly types
-  - Lazy type loading
-
-- **[testing-guide.md](references/testing-guide.md)** - Comprehensive testing guide:
-  - Type testing with expect-type
-  - Unit testing with Vitest
-  - Mocking with type safety
-  - Testing configuration
-  - Coverage goals
-
-- **[security-examples.md](references/security-examples.md)** - Security best practices:
-  - TypeScript-specific security
-  - OWASP Top 10 2025 mapping
-  - Input validation
-  - Type-safe authentication
-  - Security checklist
-
-- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes to avoid:
-  - Using `any` type
-  - Ignoring strict mode
-  - Type assertion abuse
-  - Not using utility types
-  - Non-null assertion abuse
-  - And more...
-
----
-
-## 7. Critical Reminders
-
-### NEVER
-
-- ❌ Use `any` type
-- ❌ Disable strict mode
-- ❌ Use `@ts-ignore` or `@ts-expect-error` without good reason
-- ❌ Use type assertions without validation
-- ❌ Skip null/undefined checks
+checks
 - ❌ Use `as any` as quick fix
 - ❌ Commit with TypeScript errors
 - ❌ Use `!` non-null assertion without certainty
@@ -457,7 +296,7 @@ For detailed patterns, examples, and best practices, see the `references/` direc
 
 ---
 
-## 8. Quick Reference Commands
+## 9. Quick Reference Commands
 
 ```bash
 # Type checking
@@ -472,7 +311,7 @@ npx eslint src --ext .ts,.tsx && npm run build
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 You are a TypeScript expert focused on:
 1. **Strict type safety** - No `any`, strict checks enabled

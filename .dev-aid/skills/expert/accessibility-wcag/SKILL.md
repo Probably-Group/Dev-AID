@@ -65,6 +65,21 @@ Before EVERY response with accessibility code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: LOW-RISK
@@ -99,102 +114,11 @@ You are an expert in **web accessibility** and WCAG compliance. You create inclu
 
 ## 2. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Accessibility Test First
+## 2. Implementation Workflow (TDD)
 
-```typescript
-// tests/components/button.a11y.test.ts
-import { describe, it, expect } from 'vitest'
-import { render } from '@testing-library/vue'
-import { axe, toHaveNoViolations } from 'jest-axe'
-import ActionButton from '@/components/ActionButton.vue'
-
-expect.extend(toHaveNoViolations)
-
-describe('ActionButton Accessibility', () => {
-  it('should have no accessibility violations', async () => {
-    const { container } = render(ActionButton, {
-      props: { label: 'Submit Form' }
-    })
-
-    const results = await axe(container)
-    expect(results).toHaveNoViolations()
-  })
-
-  it('should have accessible name', async () => {
-    const { getByRole } = render(ActionButton, {
-      props: { label: 'Submit Form' }
-    })
-
-    const button = getByRole('button', { name: 'Submit Form' })
-    expect(button).toBeTruthy()
-  })
-
-  it('should be keyboard focusable', async () => {
-    const { getByRole } = render(ActionButton, {
-      props: { label: 'Submit' }
-    })
-
-    const button = getByRole('button')
-    button.focus()
-    expect(document.activeElement).toBe(button)
-  })
-
-  it('should announce state changes to screen readers', async () => {
-    const { getByRole } = render(ActionButton, {
-      props: { label: 'Submit', loading: true }
-    })
-
-    const button = getByRole('button')
-    expect(button).toHaveAttribute('aria-busy', 'true')
-  })
-})
-```
-
-### Step 2: Implement Minimum to Pass
-
-```vue
-<template>
-  <button
-    :aria-busy="loading"
-    :disabled="disabled || loading"
-    class="action-button"
-  >
-    <span v-if="loading" aria-hidden="true" class="spinner" />
-    <span>{{ label }}</span>
-  </button>
-</template>
-
-<style scoped>
-.action-button:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
-</style>
-```
-
-### Step 3: Refactor Following WCAG Patterns
-
-Enhance with additional accessibility features:
-- Add proper color contrast (4.5:1 minimum for AA)
-- Implement focus trap for modals
-- Add live region announcements
-- Optimize for screen reader navigation
-
-### Step 4: Run Full Accessibility Verification
-
-```bash
-# Run accessibility tests
-npm run test -- --grep "a11y"
-
-# Run axe-core audit
-npx @axe-core/cli http://localhost:3000
-
-# Check with Lighthouse
-npx lighthouse http://localhost:3000 --only-categories=accessibility
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
 ## 3. Core Responsibilities
 
 ### Fundamental Duties
@@ -211,7 +135,54 @@ npx lighthouse http://localhost:3000 --only-categories=accessibility
 
 ---
 
-## 4. WCAG 2.2 Success Criteria Overview
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. WCAG 2.2 Success Criteria Overview
 
 ### Level A (Minimum)
 - 1.1.1: Non-text content has alternatives
@@ -244,7 +215,7 @@ npx lighthouse http://localhost:3000 --only-categories=accessibility
 
 ---
 
-## 5. Implementation Patterns
+## 6. Implementation Patterns
 
 ### 5.1 Semantic HTML
 
@@ -342,107 +313,26 @@ function trapFocus(element: HTMLElement) {
 ```css
 /* Use :focus-visible for better UX */
 :focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
+  outline: 2px solid var(--colo## 6. Implementation Patterns
 
-:focus:not(:focus-visible) {
-  outline: none;
-}
-```
+<main>
+  <article>
+    <h1>Page Title</h1>
+    <section aria-labelledby="section-heading">
+      <h2 id="section-heading">Section Title</h2>
+      <p>Content...</p>
+    </section>
+  </article>
+</main>
 
-### 5.6 Reduced Motion
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-```css
-/* Respect user motion preferences */
-.animated-element {
-  animation: slide-in 0.5s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animated-element {
-    animation: none;
-    transition: none;
-  }
-}
-```
+---
+testing-guide.md`** - Comprehensive testing guide (automated, manual, screen readers, CI)
 
 ---
 
-## 6. Common Component Patterns
-
-### Modal Dialog
-```html
-<div role="dialog" aria-modal="true" aria-labelledby="dialog-title">
-  <h2 id="dialog-title">Confirm Action</h2>
-  <button type="button">Confirm</button>
-  <button type="button">Cancel</button>
-</div>
-```
-
-### Accordion
-```html
-<button type="button" aria-expanded="false" aria-controls="panel-1">
-  Section 1
-</button>
-<div id="panel-1" role="region" hidden>Content...</div>
-```
-
-### Tabs
-```html
-<div role="tablist">
-  <button role="tab" aria-selected="true" aria-controls="panel-1">Tab 1</button>
-  <button role="tab" aria-selected="false" aria-controls="panel-2">Tab 2</button>
-</div>
-<div role="tabpanel" id="panel-1">Panel 1 content</div>
-<div role="tabpanel" id="panel-2" hidden>Panel 2 content</div>
-```
-
----
-
-## 7. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Write accessibility tests with jest-axe/vitest
-- [ ] Define keyboard navigation flow
-- [ ] Plan focus management strategy
-- [ ] Identify ARIA requirements (minimize usage)
-- [ ] Check color contrast ratios (4.5:1 minimum)
-- [ ] Verify touch target sizes (44x44px for AA)
-
-### Phase 2: During Implementation
-- [ ] Use semantic HTML elements (prefer over ARIA)
-- [ ] Add proper ARIA only when needed
-- [ ] Implement keyboard handlers (Tab, Enter, Space, Escape, Arrows)
-- [ ] Add visible focus styles (:focus-visible)
-- [ ] Support prefers-reduced-motion
-- [ ] Test with screen reader during development
-
-### Phase 3: Before Committing
-- [ ] All accessibility tests pass
-- [ ] Lighthouse accessibility score >= 90
-- [ ] axe-core passes with no errors
-- [ ] Keyboard-only navigation works
-- [ ] Screen reader announces correctly (test with NVDA/VoiceOver)
-- [ ] Color contrast verified (use DevTools)
-- [ ] Touch targets >= 44px (or 24px for AA minimum)
-- [ ] Works at 200% zoom
-- [ ] No horizontal scroll at 320px width
-
----
-
-## 8. References
-
-See `references/` directory for detailed guides:
-
-- **`wcag-criteria.md`** - Complete WCAG 2.2 success criteria reference with examples
-- **`performance-optimization.md`** - Performance patterns for accessibility (semantic HTML, efficient ARIA, focus management)
-- **`anti-patterns.md`** - Common accessibility mistakes and how to fix them
-- **`testing-guide.md`** - Comprehensive testing guide (automated, manual, screen readers, CI)
-
----
-
-## 9. Tools and Resources
+## 10. Tools and Resources
 
 ### Testing Tools
 - **jest-axe / vitest-axe**: Automated testing
@@ -458,7 +348,7 @@ See `references/` directory for detailed guides:
 
 ---
 
-## 10. Quick Reference
+## 11. Quick Reference
 
 ### Keyboard Shortcuts
 - **Tab/Shift+Tab**: Move focus
@@ -482,7 +372,7 @@ See `references/` directory for detailed guides:
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create interfaces that are:
 - **Perceivable**: Users can sense the content

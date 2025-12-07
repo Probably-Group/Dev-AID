@@ -4,6 +4,21 @@ risk_level: HIGH
 description: "Expert in browser automation using Chrome DevTools Protocol (CDP) and WebDriver. Specializes in secure web automation, testing, and scraping with proper credential handling, domain restrictions, and audit logging. HIGH-RISK skill due to web access and data handling."
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Web access, credential handling, data extraction, network requests
@@ -33,217 +48,106 @@ You are an expert in browser automation with deep expertise in:
 
 ## 2. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_browser_automation.py
-import pytest
-from playwright.sync_api import Page, expect
-
-class TestSecureBrowserAutomation:
-    """Test secure browser automation with pytest-playwright."""
-
-    def test_blocks_banking_domains(self, automation):
-        """Test that banking domains are blocked."""
-        with pytest.raises(SecurityError, match="URL blocked"):
-            automation.navigate("https://chase.com")
-
-    def test_allows_permitted_domains(self, automation):
-        """Test navigation to allowed domains."""
-        automation.navigate("https://example.com")
-        assert "Example" in automation.page.title()
-
-    def test_blocks_password_fields(self, automation):
-        """Test that password field filling is blocked."""
-        automation.navigate("https://example.com/form")
-        with pytest.raises(SecurityError, match="password"):
-            automation.fill('input[type="password"]', "secret")
-
-    def test_rate_limiting_enforced(self, automation):
-        """Test rate limiting prevents abuse."""
-        for _ in range(60):
-            automation.check_request()
-        with pytest.raises(RateLimitError):
-            automation.check_request()
-
-@pytest.fixture
-def automation():
-    """Provide configured SecureBrowserAutomation instance."""
-    auto = SecureBrowserAutomation(
-        domain_allowlist=['example.com'],
-        permission_tier='standard'
-    )
-    auto.start_session()
-    yield auto
-    auto.close()
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# Implement just enough to pass tests
-class SecureBrowserAutomation:
-    def navigate(self, url: str):
-        if not self._validate_url(url):
-            raise SecurityError(f"URL blocked: {url}")
-        self.page.goto(url)
-```
-
-### Step 3: Refactor Following Patterns
-
-After tests pass, refactor to add:
-- Proper error handling
-- Audit logging
-- Performance optimizations
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all browser automation tests
-pytest tests/test_browser_automation.py -v --headed
-
-# Run with coverage
-pytest tests/test_browser_automation.py --cov=src/automation --cov-report=term-missing
-
-# Run security-specific tests
-pytest tests/test_browser_automation.py -k "security" -v
-```
-
----
+See `references/implementation-workflow.md` for complete details.
 
 ## 3. Performance Patterns
 
-### Pattern 1: Browser Context Reuse
+See `references/performance-patterns.md` for complete details.
 
-```python
-# BAD - Creates new browser for each test
-def test_page_one():
-    browser = playwright.chromium.launch()
-    page = browser.new_page()
-    page.goto("https://example.com/one")
-    browser.close()
+## 4. Quality Assurance Checklist
 
-def test_page_two():
-    browser = playwright.chromium.launch()  # Slow startup again
-    page = browser.new_page()
-    page.goto("https://example.com/two")
-    browser.close()
+**Before implementing this skill, ensure**:
 
-# GOOD - Reuse browser context
-@pytest.fixture(scope="session")
-def browser():
-    """Share browser across all tests in session."""
-    pw = sync_playwright().start()
-    browser = pw.chromium.launch()
-    yield browser
-    browser.close()
-    pw.stop()
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-@pytest.fixture
-def page(browser):
-    """Create fresh context per test for isolation."""
-    context = browser.new_context()
-    page = context.new_page()
-    yield page
-    context.close()
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### Pattern 2: Parallel Execution
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```python
-# BAD - Sequential scraping
-def scrape_all(urls: list) -> list:
-    results = []
-    for url in urls:
-        page.goto(url)
-        results.append(page.content())
-    return results  # Very slow for many URLs
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-# GOOD - Parallel with multiple contexts
-def scrape_all_parallel(urls: list, browser, max_workers: int = 4) -> list:
-    """Scrape URLs in parallel using multiple contexts."""
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-    def scrape_url(url: str) -> str:
-        context = browser.new_context()
-        page = context.new_page()
-        try:
-            page.goto(url, wait_until='domcontentloaded')
-            return page.content()
-        finally:
-            context.close()
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(scrape_url, url): url for url in urls}
-        return [future.result() for future in as_completed(futures)]
-```
-
-### Pattern 3: Network Interception for Speed
-
-```python
-# BAD - Load all resources
-page.goto("https://example.com")  # Loads images, fonts, analytics
-
-# GOOD - Block unnecessary resources
-def setup_resource_blocking(page):
-    """Block resources that slow down automation."""
-    page.route("**/*", lambda route: (
-        route.abort() if route.request.resource_type in [
-            "image", "media", "font", "stylesheet"
-        ] else route.continue_()
-    ))
-
-# Usage
-setup_resource_blocking(page)
-page.goto("https://example.com")  # 2-3x faster
-```
-
-### Pattern 4: Request Blocking for Analytics
-
-```python
-# BAD - Allow all tracking requests
-page.goto(url)  # Slow due to analytics loading
-
-# GOOD - Block tracking domains
-BLOCKED_DOMAINS = [
-    '*google-analytics.com*',
-    '*googletagmanager.com*',
-    '*facebook.com/tr*',
-    '*doubleclick.net*',
-]
-
-def setup_tracking_blocker(page):
-    """Block tracking and analytics requests."""
-    for pattern in BLOCKED_DOMAINS:
-        page.route(pattern, lambda route: route.abort())
-
-# Apply before navigation
-setup_tracking_blocker(page)
-page.goto(url)  # Faster, no tracking overhead
-```
-
-### Pattern 5: Efficient Selectors
-
-```python
-# BAD - Slow selectors
-page.locator("//div[@class='container']//span[contains(text(), 'Submit')]").click()
-page.wait_for_selector(".dynamic-content", timeout=30000)
-
-# GOOD - Fast, specific selectors
-page.locator("[data-testid='submit-button']").click()  # Direct attribute
-page.locator("#unique-id").click()  # ID is fastest
-
-# GOOD - Use role selectors for accessibility
-page.get_by_role("button", name="Submit").click()
-page.get_by_label("Email").fill("test@example.com")
-
-# GOOD - Combine selectors for specificity without XPath
-page.locator("form.login >> button[type='submit']").click()
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 4. Core Responsibilities
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Core Responsibilities
 
 ### 4.1 Safe Automation Principles
 
@@ -272,7 +176,7 @@ Every browser operation MUST:
 
 ---
 
-## 5. Technical Foundation
+## 6. Technical Foundation
 
 ### 5.1 Automation Frameworks
 
@@ -300,7 +204,7 @@ Every browser operation MUST:
 
 ---
 
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### Pattern 1: Secure Browser Session
 
@@ -393,7 +297,7 @@ class BrowserRateLimiter:
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Critical Vulnerabilities
 
@@ -427,7 +331,7 @@ page.goto(user_url)
 
 ---
 
-## 8. Pre-Implementation Checklist
+## 9. Pre-Implementation Checklist
 
 ### Before Writing Code
 - [ ] Read security requirements from PRD Section 8
@@ -451,7 +355,7 @@ page.goto(user_url)
 
 ---
 
-## 9. Summary
+## 10. Summary
 
 Your goal is to create browser automation that is:
 - **Test-Driven**: Write tests first, implement to pass

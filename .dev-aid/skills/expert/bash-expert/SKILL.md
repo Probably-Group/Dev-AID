@@ -78,6 +78,21 @@ Before EVERY response with Bash code:
 
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH
@@ -211,65 +226,61 @@ validate_path_containment() {
 
 ---
 
-## 4. Best Practices
 
-### 4.1 Quoting Rules
+## 4. Quality Assurance Checklist
 
-```bash
-# Always quote variable expansions
-file_name="my file.txt"
-cat "$file_name"  # Correct: treats as single argument
+**Before implementing this skill, ensure**:
 
-# Quote command substitutions
-result="$(grep pattern file.txt)"  # Correct
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-# Use arrays for multiple arguments
-files=("file 1.txt" "file 2.txt")
-for file in "${files[@]}"; do  # Correct: preserves spaces
-    echo "$file"
-done
-```
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-### 4.2 Error Handling
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-```bash
-# Check command success
-command_that_might_fail || {
-    echo "Error: Command failed" >&2
-    exit 1
-}
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-# Use trap for cleanup
-cleanup() {
-    rm -f "$temp_file"
-    kill "$background_pid" 2>/dev/null || true
-}
-trap cleanup EXIT INT TERM
-```
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-### 4.3 Performance Guidelines
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-```bash
-# GOOD: Direct file input
-grep pattern file.txt
-
-# AVOID: Unnecessary cat
-cat file.txt | grep pattern
-
-# GOOD: Use built-ins
-count=${#string}
-
-# AVOID: External commands
-count=$(echo "$string" | wc -c)
-```
-
-**📖 See `references/advanced-patterns.md` for optimization patterns and parallel processing**
-
-**📖 See `references/anti-patterns.md` for common mistakes to avoid**
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-## 5. Common Patterns (Quick Reference)
+## 5. Best Practices
+
+## 5. Best Practices
+
+📚 **For complete details**: See `references/best-practices.md`
+
+---
+## 6. Common Patterns (Quick Reference)
 
 ### Pattern 1: Argument Parsing
 
@@ -308,81 +319,21 @@ log() {
     case "$level" in
         $LOG_ERROR) [[ $LOG_LEVEL -ge $LOG_ERROR ]] && echo "[$timestamp] ERROR: $message" >&2 ;;
         $LOG_WARN)  [[ $LOG_LEVEL -ge $LOG_WARN ]] && echo "[$timestamp] WARN:  $message" >&2 ;;
-        $LOG_INFO)  [[ $LOG_LEVEL -ge $LOG_INFO ]] && echo "[$timestamp] INFO:  $message" ;;
-    esac
-}
-```
+        $LOG_INFO)  [[ $LOG_LEVEL -## 6. Common Patterns (Quick Reference)
 
-### Pattern 3: Temporary Files
+## 6. Common Patterns (Quick Reference)
 
-```bash
-# Create secure temporary file
-temp_file=$(mktemp) || exit 1
-chmod 600 "$temp_file"
-trap 'rm -f "$temp_file"' EXIT
-
-# Use temp file
-echo "data" > "$temp_file"
-process_file "$temp_file"
-# Cleanup happens automatically
-```
-
-**📖 See `references/scripting-patterns.md` for complete implementation examples**
+📚 **For complete details**: See `references/common-patterns-quick-reference.md`
 
 ---
-
-## 6. Testing & Validation
-
-### 6.1 Validation Tools
-
-```bash
-# Static analysis
-shellcheck script.sh
-
-# Syntax check
-bash -n script.sh
-
-# Debug mode
-bash -x script.sh
-```
-
-### 6.2 Basic Testing
-
-```bash
-test_function() {
-    local result
-    result=$(my_function "input")
-
-    if [[ "$result" == "expected" ]]; then
-        echo "PASS: test_function"
-        return 0
-    else
-        echo "FAIL: test_function" >&2
-        return 1
-    fi
-}
-```
-
-**📖 See `references/testing-guide.md` for comprehensive testing strategies, BATS framework, and CI/CD integration**
-
----
-
-## 7. References
-
-### Quick Access Guide
-
-| Reference File | Content |
-|----------------|---------|
-| **advanced-patterns.md** | Parallel processing, retry logic, signal handling, lock files, structured logging |
-| **security-examples.md** | CVE examples, command injection prevention, path traversal, race conditions, privilege escalation |
-| **threat-model.md** | Complete threat analysis, attack scenarios, security controls matrix |
+ecurity controls matrix |
 | **anti-patterns.md** | 15 common mistakes to avoid with better alternatives |
 | **testing-guide.md** | ShellCheck, BATS framework, unit testing, integration testing, CI/CD |
 | **scripting-patterns.md** | Complete script templates, argument parsing, config loading, logging framework |
 
 ---
 
-## 8. Quick Reference
+## 9. Quick Reference
 
 ### Essential Commands
 
@@ -435,7 +386,7 @@ diff <(command1) <(command2)
 
 ---
 
-## 9. Skill Activation
+## 10. Skill Activation
 
 This skill activates when:
 - Creating or modifying `.sh` files
@@ -445,3 +396,10 @@ This skill activates when:
 - System administration scripts
 
 When activated, follow all security standards and reference the appropriate documentation files for detailed patterns and examples.
+## 9. Quick Reference
+
+## 9. Quick Reference
+
+📚 **For complete details**: See `references/quick-reference.md`
+
+---

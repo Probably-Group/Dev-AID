@@ -40,6 +40,21 @@ Before creating any skill:
 - [ ] Created skills-index.json entry with activation keywords
 - [ ] Validated skill follows Dev-AID template structure
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Expertise**: Interactive skill creation for Dev-AID with proper template structure, anti-hallucination protocols, and automatic registration
@@ -260,219 +275,57 @@ credit: |
   [Attribution if based on external source]
 ---
 
-# [Skill Name]
 
-## 0. Anti-Hallucination Protocol
+📚 **For complete skill template with all sections**: See `references/skill-template-example.md`
 
-### Critical Verification Requirements
-- **NEVER [X] without [Y]** - [Specific requirement]
-- **NEVER [A] without [B]** - [Specific requirement]
-[3-5 critical requirements]
 
-### Common Hallucination Traps
-1. **[Trap name]** - [Description of hallucination]
-2. **[Trap name]** - [Description]
-[3-5 domain-specific traps]
+## 4. Quality Assurance Checklist
 
-### Self-Check Checklist
-Before [delivering/executing/recommending]:
-- [ ] [Verification step 1]
-- [ ] [Verification step 2]
-[5-10 verification steps]
+**Before implementing this skill, ensure**:
 
-## 1. Overview
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-**Expertise**: [One-sentence description]
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-**Risk Level**: [Low/Medium/High/Critical] ([reason])
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-**Key Capabilities**:
-- [Capability 1]
-- [Capability 2]
-- [Capability 3-5]
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-**When to Use This Skill**:
-- [Use case 1]
-- [Use case 2]
-- [Use case 3-5]
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-## 2. Core Principles
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-### [Principle 1 Name]
-- **[Sub-principle]** - [Description]
-- **[Sub-principle]** - [Description]
-
-### [Principle 2 Name]
-- **[Sub-principle]** - [Description]
-
-### [Principle 3-4 Name]
-[3-4 core principles total]
-
-## 3. Implementation Workflow
-
-### Step 1: [Action Name]
-
-**Objective**: [What this step achieves]
-
-**Actions**:
-1. [Concrete action 1]
-2. [Concrete action 2]
-
-**Validation**: [How to verify this step is complete]
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
 ---
 
-### Step 2: [Action Name]
-
-[Same structure]
-
----
-
-[Continue for 3-8 major workflow steps]
-
-## 4. Quality Standards
-
-### [Standard Category 1]
-- **[Metric/requirement]**: [Description]
-
-### [Standard Category 2-3]
-[2-3 quality standard categories]
-
-## 5. Advanced Techniques (Optional)
-
-[Advanced patterns, optimizations, edge cases]
-
-## 6. Common Patterns & Solutions (Optional)
-
-### Pattern: [Common scenario]
-**Problem**: [Issue description]
-**Solution**: [Approach]
-
-[3-5 common patterns]
-
-## 7. Integration with Dev-AID
-
-**Related Skills**:
-- `[skill-name]` ([how it complements this skill])
-
-**Workflow Integration**:
-- Use BEFORE [scenario]
-- Use WHEN [scenario]
-
-## 8. References
-
-For detailed information, see:
-- `references/[topic].md` - [Description]
-
----
-
-**Remember**: [Key reminder about anti-hallucination or critical workflow step]
-```
-
-**Line Count Check**: Verify SKILL.md < 500 lines. If exceeds, extract to references/
-
-**Validation**: All 8 sections present, anti-hallucination protocol complete
-
----
-
-### Phase 4: Update skills-index.json
-
-**CRITICAL**: This step is MANDATORY for all new skills
-
-**Action**: Add entry to `/path/to/.dev-aid/skills/registry/skills-index.json`
-
-**JSON Entry Template**:
-```json
-{
-  "[skill-name]": {
-    "activation": {
-      "primary_keywords": ["keyword1", "keyword2", "keyword3"],
-      "secondary_keywords": ["keyword4", "keyword5", "keyword6"],
-      "file_patterns": ["*/pattern/*", "*.extension"],
-      "technologies": ["Framework1", "Framework2"],
-      "confidence_weights": {
-        "keyword1": 0.35,
-        "keyword2": 0.30,
-        "keyword3": 0.25
-      },
-      "requires": ["dependency-skill-1"],
-      "exclude_with": ["conflicting-skill-1"]
-    }
-  }
-}
-```
-
-**Scoring System**:
-- Primary keywords: 10 points each
-- Technologies: 8 points each
-- Secondary keywords: 5 points each
-- Confidence weights: Bonus multiplier (0.1-0.4)
-- Minimum threshold for auto-loading: 5 points
-
-**Validation**: JSON is valid, skill appears in registry
-
----
-
-### Phase 5: Create References (If Needed)
-
-**Action**: Extract detailed content if SKILL.md approaches 500 lines
-
-**Common Reference Files**:
-- `advanced-patterns.md` - Complex usage patterns
-- `anti-patterns.md` - What NOT to do
-- `examples.md` - Comprehensive code examples
-- `security-guide.md` - Security-specific details (for security skills)
-- `performance-guide.md` - Performance optimization details
-
-**Validation**: Main SKILL.md remains under 500 lines, references exist
-
----
-
-### Phase 6: Test Skill Activation
-
-**Action**: Verify skill can be auto-loaded
-
-**Test Method**:
-```bash
-# Run skill selection script with test context
-cd /path/to/.dev-aid/orchestration
-./select-skills.sh "Test context with [primary keyword]"
-```
-
-**Expected Result**: Skill appears in selected skills list
-
-**Validation**: Skill auto-loads when keywords match
-
----
-
-### Phase 7: Document Skill Creation
-
-**Action**: Create brief documentation
-
-**File**: `[skill-name]/README.md` (optional but recommended)
-
-```markdown
-# [Skill Name]
-
-**Purpose**: [One sentence]
-
-**Auto-Activation**: Triggers when project contains:
-- Keywords: [list]
-- File patterns: [list]
-- Technologies: [list]
-
-**Manual Activation**: Reference this skill by name when [scenario]
-
-**Examples**:
-- [Use case 1]
-- [Use case 2]
-
-**Credit**: [Attribution if applicable]
-```
-
-**Validation**: README exists and is clear
-
-## 4. Quality Standards
+## 5. Quality Standards
 
 ### Skill Quality Requirements
 
@@ -512,7 +365,7 @@ cd /path/to/.dev-aid/orchestration
 - references/ (lowercase, exactly this)
 - Reference files: `advanced-patterns.md` (kebab-case)
 
-## 5. Common Skill Patterns
+## 6. Common Skill Patterns
 
 ### Expert Skills (Most Common)
 **Purpose**: Domain expertise (security, performance, API design)
@@ -532,7 +385,7 @@ cd /path/to/.dev-aid/orchestration
 **Structure**: Interactive workflow, template generation
 **Examples**: `skill-creation-expert`, `prompt-engineering-expert`
 
-## 6. Integration with Dev-AID
+## 7. Integration with Dev-AID
 
 **CRITICAL REQUIREMENT**: Every new skill MUST be added to skills-index.json
 
@@ -552,7 +405,7 @@ After creating skill:
 - `prompt-engineering-expert` (for creating mega-prompts)
 - `plan-review-expert` (for reviewing skill design before implementation)
 
-## 7. Documentation Requirements
+## 8. Documentation Requirements
 
 **MANDATORY DOCUMENTATION**: Every Dev-AID skill creation guide MUST include:
 
@@ -588,7 +441,7 @@ After creating skill:
 **If you skip this step, your skill will NEVER auto-load.**
 ```
 
-## 8. References
+## 9. References
 
 For detailed information, see:
 - `references/dev-aid-template-spec.md` - Complete template specification

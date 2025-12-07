@@ -6,6 +6,21 @@ description: "Expert skill for implementing wake word detection with openWakeWor
 
 # Wake Word Detection Skill
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: MEDIUM - Continuous audio monitoring, privacy implications, resource constraints
@@ -47,7 +62,54 @@ You are an expert in wake word detection with deep expertise in openWakeWord, ke
 
 ---
 
-## 4. Technical Foundation
+
+## 4. Quality Assurance Checklist
+
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Technical Foundation
 
 ```python
 # requirements.txt
@@ -59,117 +121,15 @@ onnxruntime>=1.16.0
 
 ---
 
-## 5. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_wake_word.py
-import pytest
-import numpy as np
-from unittest.mock import Mock, patch
+## 6. Implementation Workflow (TDD)
 
 class TestWakeWordDetector:
     """TDD tests for wake word detection."""
 
-    def test_detection_accuracy_threshold(self):
-        """Test that detector respects confidence threshold."""
-        from wake_word import SecureWakeWordDetector
-
-        detector = SecureWakeWordDetector(threshold=0.7)
-        callback = Mock()
-        test_audio = np.random.randn(16000).astype(np.float32)
-
-        with patch.object(detector.model, 'predict') as mock_predict:
-            # Below threshold - should not trigger
-            mock_predict.return_value = {"hey_jarvis": np.array([0.5])}
-            detector._test_process(test_audio, callback)
-            callback.assert_not_called()
-
-            # Above threshold - should trigger
-            mock_predict.return_value = {"hey_jarvis": np.array([0.8])}
-            detector._test_process(test_audio, callback)
-            callback.assert_called_once()
-
-    def test_buffer_cleared_after_detection(self):
-        """Test privacy: buffer cleared immediately after detection."""
-        from wake_word import SecureWakeWordDetector
-
-        detector = SecureWakeWordDetector()
-        detector.audio_buffer.extend(np.zeros(16000))
-
-        with patch.object(detector.model, 'predict') as mock_predict:
-            mock_predict.return_value = {"hey_jarvis": np.array([0.9])}
-            detector._process_audio()
-
-        assert len(detector.audio_buffer) == 0, "Buffer must be cleared"
-
-    def test_cpu_usage_under_threshold(self):
-        """Test CPU usage stays under 5%."""
-        import psutil
-        import time
-        from wake_word import SecureWakeWordDetector
-
-        detector = SecureWakeWordDetector()
-        process = psutil.Process()
-        start_time = time.time()
-
-        while time.time() - start_time < 10:
-            audio = np.random.randn(1600).astype(np.float32)
-            detector.audio_buffer.extend(audio)
-            if len(detector.audio_buffer) >= 16000:
-                detector._process_audio()
-
-        avg_cpu = process.cpu_percent() / psutil.cpu_count()
-        assert avg_cpu < 5, f"CPU usage too high: {avg_cpu}%"
-
-    def test_memory_footprint(self):
-        """Test memory usage stays under 100MB."""
-        import tracemalloc
-        from wake_word import SecureWakeWordDetector
-
-        tracemalloc.start()
-        detector = SecureWakeWordDetector()
-
-        for _ in range(600):
-            audio = np.random.randn(1600).astype(np.float32)
-            detector.audio_buffer.extend(audio)
-
-        current, peak = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-
-        peak_mb = peak / 1024 / 1024
-        assert peak_mb < 100, f"Memory too high: {peak_mb}MB"
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-class SecureWakeWordDetector:
-    def __init__(self, threshold=0.5):
-        self.threshold = threshold
-        self.model = Model(wakeword_models=["hey_jarvis"])
-        self.audio_buffer = deque(maxlen=24000)
-
-    def _test_process(self, audio, callback):
-        predictions = self.model.predict(audio)
-        for model_name, scores in predictions.items():
-            if np.max(scores) > self.threshold:
-                self.audio_buffer.clear()
-                callback(model_name, np.max(scores))
-                break
-```
-
-### Step 3: Run Full Verification
-
-```bash
-pytest tests/test_wake_word.py -v
-pytest --cov=wake_word --cov-report=term-missing
-```
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 6. Implementation Patterns
+## 7. Implementation Patterns
 
 ### Pattern 1: Secure Wake Word Detector
 
@@ -265,7 +225,7 @@ class RobustDetector:
 
 ---
 
-## 7. Performance Patterns
+## 8. Performance Patterns
 
 ### Pattern 1: Model Quantization
 
@@ -276,113 +236,14 @@ import onnxruntime as ort
 class QuantizedDetector:
     def __init__(self, model_path: str):
         sess_options = ort.SessionOptions()
-        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.session = ort.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvider'])
+    ## 7. Implementation Patterns
 
-# Bad - Full precision model
-class SlowDetector:
-    def __init__(self, model_path: str):
-        self.session = ort.InferenceSession(model_path)  # No optimization
-```
+## 7. Implementation Patterns
 
-### Pattern 2: Efficient Audio Buffering
-
-```python
-# Good - Pre-allocated numpy buffer with circular indexing
-class EfficientBuffer:
-    def __init__(self, size: int):
-        self.buffer = np.zeros(size, dtype=np.float32)
-        self.write_idx = 0
-        self.size = size
-
-    def append(self, audio: np.ndarray):
-        n = len(audio)
-        end_idx = (self.write_idx + n) % self.size
-        if end_idx > self.write_idx:
-            self.buffer[self.write_idx:end_idx] = audio
-        else:
-            self.buffer[self.write_idx:] = audio[:self.size - self.write_idx]
-            self.buffer[:end_idx] = audio[self.size - self.write_idx:]
-        self.write_idx = end_idx
-
-# Bad - Individual appends
-class SlowBuffer:
-    def append(self, audio: np.ndarray):
-        for sample in audio:  # Slow!
-            self.buffer.append(sample)
-```
-
-### Pattern 3: VAD Preprocessing
-
-```python
-# Good - Skip inference on silence
-import webrtcvad
-
-class VADOptimizedDetector:
-    def __init__(self):
-        self.vad = webrtcvad.Vad(2)
-        self.detector = SecureWakeWordDetector()
-
-    def process(self, audio: np.ndarray):
-        audio_int16 = (audio * 32767).astype(np.int16)
-        if not self.vad.is_speech(audio_int16.tobytes(), 16000):
-            return None  # Skip expensive inference
-        return self.detector._process_audio()
-
-# Bad - Always run inference
-class WastefulDetector:
-    def process(self, audio: np.ndarray):
-        return self.detector._process_audio()  # Even on silence
-```
-
-### Pattern 4: Batch Inference
-
-```python
-# Good - Process multiple windows in single inference
-class BatchDetector:
-    def __init__(self, batch_size: int = 4):
-        self.batch_size = batch_size
-        self.pending_windows = []
-
-    def add_window(self, audio: np.ndarray):
-        self.pending_windows.append(audio)
-        if len(self.pending_windows) >= self.batch_size:
-            batch = np.stack(self.pending_windows)
-            results = self.model.predict_batch(batch)
-            self.pending_windows.clear()
-            return results
-        return None
-```
-
-### Pattern 5: Memory-Mapped Models
-
-```python
-# Good - Memory-map large model files
-import mmap
-
-class MmapModelLoader:
-    def __init__(self, model_path: str):
-        self.file = open(model_path, 'rb')
-        self.mmap = mmap.mmap(self.file.fileno(), 0, access=mmap.ACCESS_READ)
-
-# Bad - Load entire model into memory
-class EagerModelLoader:
-    def __init__(self, model_path: str):
-        with open(model_path, 'rb') as f:
-            self.model_data = f.read()  # Entire model in RAM
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 8. Security Standards
-
-```python
-class PrivacyController:
-    """Ensure privacy in always-listening system."""
-
-    def __init__(self):
-        self.is_enabled = True
-        self.last_activity = time.time()
+elf.last_activity = time.time()
 
     def check_privacy_mode(self) -> bool:
         if self._is_dnd_enabled():
@@ -399,7 +260,7 @@ def on_wake_detected():
 
 ---
 
-## 9. Common Mistakes
+## 10. Common Mistakes
 
 ```python
 # BAD - Stores all audio
@@ -421,7 +282,7 @@ buffer = deque(maxlen=sample_rate * 1.5)  # 1.5 seconds
 
 ---
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -450,7 +311,7 @@ buffer = deque(maxlen=sample_rate * 1.5)  # 1.5 seconds
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 Your goal is to create wake word detection that is:
 - **Private**: Audio processed locally, minimal retention
@@ -463,3 +324,14 @@ Your goal is to create wake word detection that is:
 2. Never store audio to disk
 3. Keep buffer minimal (<2 seconds)
 4. Apply performance patterns (VAD, quantization)
+## 8. Performance Patterns
+
+class QuantizedDetector:
+    def __init__(self, model_path: str):
+        sess_options = ort.SessionOptions()
+        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+        self.session = ort.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvid...
+
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---

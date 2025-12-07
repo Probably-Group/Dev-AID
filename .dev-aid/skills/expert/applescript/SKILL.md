@@ -4,6 +4,21 @@ risk_level: MEDIUM
 description: "Expert in AppleScript and JavaScript for Automation (JXA) for macOS system scripting. Specializes in secure script execution, application automation, and system integration. HIGH-RISK skill due to shell command execution and system-wide control capabilities."
 ---
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 **Risk Level**: HIGH - Shell command execution, application control, file system access
@@ -85,12 +100,54 @@ result = subprocess.run(['osascript', '-e', script], capture_output=True)
 
 ---
 
-## 4. Implementation Patterns
 
-### Pattern 1: Secure Script Execution
+## 4. Quality Assurance Checklist
 
-```python
-import subprocess, re, logging
+**Before implementing this skill, ensure**:
+
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
 
 class SecureAppleScriptRunner:
     BLOCKED_PATTERNS = [
@@ -100,129 +157,12 @@ class SecureAppleScriptRunner:
         r'do shell script.*curl.*\|.*sh',
         r'keystroke.*password',
     ]
-    BLOCKED_APPS = ['Keychain Access', '1Password', 'Terminal', 'System Preferences']
+    BLOCKED_APPS = ['Keychain Access',...
 
-    def __init__(self, permission_tier: str = 'standard'):
-        self.permission_tier = permission_tier
-        self.logger = logging.getLogger('applescript.security')
-
-    def execute(self, script: str, timeout: int = 30) -> tuple[str, str]:
-        self._check_blocked_patterns(script)
-        self._check_blocked_apps(script)
-        self.logger.info(f'applescript.execute', extra={'script': script[:100]})
-        try:
-            result = subprocess.run(['osascript', '-e', script],
-                capture_output=True, text=True, timeout=timeout)
-            return result.stdout.strip(), result.stderr.strip()
-        except subprocess.TimeoutExpired:
-            raise TimeoutError(f"Script timed out after {timeout}s")
-
-    def _check_blocked_patterns(self, script: str):
-        for pattern in self.BLOCKED_PATTERNS:
-            if re.search(pattern, script, re.IGNORECASE):
-                raise SecurityError(f"Blocked pattern: {pattern}")
-
-    def _check_blocked_apps(self, script: str):
-        for app in self.BLOCKED_APPS:
-            if app.lower() in script.lower():
-                raise SecurityError(f"Access to {app} blocked")
-```
-
-### Pattern 2: Safe Input Interpolation
-
-```python
-class SafeScriptBuilder:
-    """Build AppleScript with safe input interpolation."""
-
-    @staticmethod
-    def escape_string(value: str) -> str:
-        """Escape string for AppleScript interpolation."""
-        # Escape backslashes and quotes
-        escaped = value.replace('\\', '\\\\').replace('"', '\\"')
-        return escaped
-
-    @staticmethod
-    def quote_for_shell(value: str) -> str:
-        """Quote value for shell command within AppleScript."""
-        # Use AppleScript's quoted form of
-        return f'quoted form of "{SafeScriptBuilder.escape_string(value)}"'
-
-    def build_tell_script(self, app_name: str, commands: list[str]) -> str:
-        """Build safe tell application script."""
-        # Validate app name
-        if not re.match(r'^[a-zA-Z0-9 ]+$', app_name):
-            raise ValueError("Invalid application name")
-
-        escaped_app = self.escape_string(app_name)
-        escaped_commands = [self.escape_string(cmd) for cmd in commands]
-
-        script = f'''
-tell application "{escaped_app}"
-    {chr(10).join(escaped_commands)}
-end tell
-'''
-        return script.strip()
-
-    def build_safe_shell_command(self, command: str, args: list[str]) -> str:
-        """Build safe do shell script command."""
-        # Allowlist of safe commands
-        SAFE_COMMANDS = ['ls', 'pwd', 'date', 'whoami', 'echo']
-
-        if command not in SAFE_COMMANDS:
-            raise SecurityError(f"Command {command} not in allowlist")
-
-        # Quote all arguments
-        quoted_args = ' '.join(f'"{self.escape_string(arg)}"' for arg in args)
-
-        return f'do shell script "{command} {quoted_args}"'
-```
-
-### Pattern 3: JXA (JavaScript for Automation)
-
-```javascript
-class SecureJXARunner {
-    constructor() {
-        this.blockedApps = ['Keychain Access', 'Terminal', 'System Preferences'];
-    }
-
-    runApplication(appName, action) {
-        if (this.blockedApps.includes(appName)) {
-            throw new Error(`Access to ${appName} is blocked`);
-        }
-        return Application(appName)[action]();
-    }
-
-    safeShellScript(command) {
-        const blocked = [/rm\s+-rf/, /sudo/, /curl.*\|.*sh/];
-        for (const p of blocked) {
-            if (p.test(command)) throw new Error('Blocked command');
-        }
-        const app = Application.currentApplication();
-        app.includeStandardAdditions = true;
-        return app.doShellScript(command);
-    }
-}
-```
-
-### Pattern 4: Application Dictionary Validation
-
-```python
-class AppDictionaryValidator:
-    def get_app_dictionary(self, app_name: str) -> str:
-        result = subprocess.run(['sdef', f'/Applications/{app_name}.app'],
-            capture_output=True, text=True)
-        return result.stdout
-
-    def is_scriptable(self, app_name: str) -> bool:
-        try:
-            return bool(self.get_app_dictionary(app_name).strip())
-        except Exception:
-            return False
-```
+📚 **For complete details**: See `references/implementation-patterns.md`
 
 ---
-
-## 5. Implementation Workflow (TDD)
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -272,7 +212,7 @@ pytest tests/test_applescript.py -k "blocked or security" -v
 
 ---
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### Pattern 1: Script Caching
 
@@ -353,7 +293,7 @@ end tell'''
 
 ---
 
-## 7. Security Standards
+## 8. Security Standards
 
 ### 7.1 Critical Vulnerabilities
 
@@ -363,57 +303,18 @@ end tell'''
 - **Mitigation**: Always use `quoted form of`, validate inputs
 
 #### 2. Privilege Escalation (CWE-269)
-- **Severity**: CRITICAL
-- **Description**: `do shell script` with administrator privileges
-- **Mitigation**: Block admin privilege requests
+- **Severity## 6. Implementation Workflow (TDD)
 
-#### 3. Script Injection (CWE-94)
-- **Severity**: HIGH
-- **Description**: Injected AppleScript code
-- **Mitigation**: Never interpolate untrusted data into scripts
+class TestSecureAppleScriptRunner:
+    def test_simple_script_execution(self):
+        runner = SecureAppleScriptRunner()
+        stdout, stderr = runner.execute('return "hello"')
+        assert stdout == "hello"
 
-#### 4. Path Traversal (CWE-22)
-- **Severity**: HIGH
-- **Description**: File operations with unsanitized paths
-- **Mitigation**: Validate and canonicalize paths
-
-#### 5. Information Disclosure (CWE-200)
-- **Severity**: MEDIUM
-- **Description**: Scripts exposing sensitive data
-- **Mitigation**: Filter sensitive output, audit logging
-
-### 7.2 OWASP Mapping
-
-| OWASP ID | Category | Risk | Mitigation |
-|----------|----------|------|------------|
-| A05:2025 | Injection | CRITICAL | Input sanitization, command allowlists |
-| A01:2025 | Broken Access Control | HIGH | Application blocklists |
-| A02:2025 | Security Misconfiguration | MEDIUM | Secure defaults |
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-
-## 8. Common Mistakes
-
-### Never: Interpolate Untrusted Input Directly
-
-```applescript
--- BAD: Direct interpolation
-set userInput to "test; rm -rf /"
-do shell script "echo " & userInput
-
--- GOOD: Use quoted form of
-set userInput to "test; rm -rf /"
-do shell script "echo " & quoted form of userInput
-```
-
-### Never: Allow Administrator Privileges
-
-```python
-# BAD: Allow admin scripts
-script = 'do shell script "..." with administrator privileges'
-runner.execute(script)
-
-# GOOD: Block admin privilege requests
+ privilege requests
 if 'with administrator' in script:
     raise SecurityError("Administrator privileges blocked")
 ```
@@ -432,7 +333,7 @@ runner.execute(template)
 
 ---
 
-## 13. Pre-Implementation Checklist
+## 14. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 - [ ] Write failing tests for security controls
@@ -452,34 +353,20 @@ runner.execute(template)
 - [ ] Cache compiled scripts for reuse
 
 ### Phase 3: Before Committing
-- [ ] All tests pass: `pytest tests/test_applescript.py -v`
-- [ ] Security tests pass: `pytest -k "blocked or security"`
-- [ ] Injection attack tests verified
-- [ ] Timeout handling tests verified
-- [ ] Permission tier tests verified
-- [ ] No hardcoded credentials or paths
-- [ ] Audit logging verified functional
+- [ ] All tests pass: ## 7. Performance Patterns
+
+## 7. Performance Patterns
+
+📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
+## 9. Common Mistakes
 
-## 14. Summary
+-- GOOD: Use quoted form of
+set userInput to "test; rm -rf /"
+do shell script "echo " & quoted form of userInput
+```
 
-Your goal is to create AppleScript automation that is:
-- **Secure**: Input sanitization, command filtering, application blocklists
-- **Reliable**: Timeout enforcement, proper error handling
-- **Auditable**: Comprehensive logging of all executions
-
-**Security Reminders**:
-1. Always use `quoted form of` for shell arguments
-2. Never interpolate untrusted data into scripts
-3. Block administrator privilege requests
-4. Maintain strict command allowlists
-5. Log all script executions
+📚 **For complete details**: See `references/common-mistakes.md`
 
 ---
-
-## References
-
-- **Security Examples**: See `references/security-examples.md`
-- **Threat Model**: See `references/threat-model.md`
-- **Advanced Patterns**: See `references/advanced-patterns.md`

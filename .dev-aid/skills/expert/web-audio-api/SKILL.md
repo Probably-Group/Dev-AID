@@ -7,6 +7,21 @@ version: 1.0.0
 
 # Web Audio API Skill
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides Web Audio API expertise for creating audio feedback, voice processing, and sound effects in the JARVIS AI Assistant.
@@ -61,165 +76,66 @@ interface SpatialAudioPosition {
 }
 ```
 
-## 4. Implementation Patterns
 
-### 4.1 Audio Context Management
+## 4. Quality Assurance Checklist
 
-```typescript
-// composables/useAudioContext.ts
-export function useAudioContext() {
-  const audioContext = ref<AudioContext | null>(null)
-  const isInitialized = ref(false)
+**Before implementing this skill, ensure**:
 
-  async function initialize() {
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
+
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
+
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
+
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
+
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
+
+---
+
+## 5. Implementation Patterns
+
+async function initialize() {
     if (audioContext.value) return
     audioContext.value = new AudioContext()
     if (audioContext.value.state === 'suspended') await audioContext.value.resume()
     isInitialized.value = true
   }
 
-  onUnmounted(() => {
-    audioContext.value?.close()
-    audioContext.value = null
-  })
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-  return { audioContext: readonly(audioContext), isInitialized: readonly(isInitialized), initialize }
-}
-```
-
-### 4.2 HUD Beep Feedback
-
-```typescript
-// composables/useHUDSounds.ts
-export function useHUDSounds() {
-  const { audioContext, initialize } = useAudioContext()
-
-  async function playBeep(options: Partial<AudioFeedbackOptions> = {}) {
-    await initialize()
-    const ctx = audioContext.value
-    if (!ctx) return
-
-    const { frequency = 440, duration = 0.1, type = 'sine', volume = 0.3 } = options
-    const safeVolume = Math.max(0, Math.min(1, volume))
-
-    const oscillator = ctx.createOscillator()
-    const gainNode = ctx.createGain()
-    oscillator.type = type
-    oscillator.frequency.value = frequency
-    gainNode.gain.value = safeVolume
-    gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration)
-
-    oscillator.connect(gainNode).connect(ctx.destination)
-    oscillator.start()
-    oscillator.stop(ctx.currentTime + duration)
-  }
-
-  const sounds = {
-    confirm: () => playBeep({ frequency: 880, duration: 0.1, volume: 0.2 }),
-    alert: () => playBeep({ frequency: 440, duration: 0.3, type: 'square', volume: 0.4 }),
-    error: () => playBeep({ frequency: 220, duration: 0.5, type: 'sawtooth', volume: 0.3 }),
-    click: () => playBeep({ frequency: 1000, duration: 0.05, volume: 0.1 })
-  }
-  return { playBeep, sounds }
-}
-```
-
-### 4.3 Audio Visualization
-
-```typescript
-// composables/useAudioVisualization.ts
-export function useAudioVisualization() {
-  const { audioContext, initialize } = useAudioContext()
-  let analyser: AnalyserNode | null = null
-  let dataArray: Uint8Array | null = null
-
-  async function setupAnalyser(source: AudioNode) {
-    await initialize()
-    const ctx = audioContext.value
-    if (!ctx) return
-    analyser = ctx.createAnalyser()
-    analyser.fftSize = 256
-    dataArray = new Uint8Array(analyser.frequencyBinCount)
-    source.connect(analyser)
-  }
-
-  function getFrequencyData(): Uint8Array | null {
-    if (!analyser || !dataArray) return null
-    analyser.getByteFrequencyData(dataArray)
-    return dataArray
-  }
-
-  return { setupAnalyser, getFrequencyData }
-}
-```
-
-### 4.4 Spatial Audio for 3D HUD
-
-```typescript
-// composables/useSpatialAudio.ts
-export function useSpatialAudio() {
-  const { audioContext, initialize } = useAudioContext()
-  let panner: PannerNode | null = null
-
-  async function createSpatialSource(position: SpatialAudioPosition) {
-    await initialize()
-    const ctx = audioContext.value
-    if (!ctx) return null
-    panner = ctx.createPanner()
-    panner.panningModel = 'HRTF'
-    panner.distanceModel = 'inverse'
-    setPosition(position)
-    return panner
-  }
-
-  function setPosition(pos: SpatialAudioPosition) {
-    if (!panner) return
-    panner.positionX.value = pos.x
-    panner.positionY.value = pos.y
-    panner.positionZ.value = pos.z
-  }
-
-  return { createSpatialSource, setPosition }
-}
-```
-
-### 4.5 Microphone Input
-
-```typescript
-// composables/useMicrophone.ts
-export function useMicrophone() {
-  const { audioContext, initialize } = useAudioContext()
-  const stream = ref<MediaStream | null>(null)
-  const isListening = ref(false)
-  const error = ref<string | null>(null)
-
-  async function startListening() {
-    try {
-      await initialize()
-      stream.value = await navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-      })
-      isListening.value = true
-      return stream.value
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Microphone access denied'
-      return null
-    }
-  }
-
-  function stopListening() {
-    stream.value?.getTracks().forEach(track => track.stop())
-    stream.value = null
-    isListening.value = false
-  }
-
-  onUnmounted(() => stopListening())
-
-  return { stream: readonly(stream), isListening: readonly(isListening), error: readonly(error), startListening, stopListening }
-}
-```
-
-## 5. Implementation Workflow (TDD)
+---
+## 6. Implementation Workflow (TDD)
 
 ### Step 1: Write Failing Test First
 
@@ -293,7 +209,7 @@ npm run typecheck
 npm run dev  # Test manually with DevTools Memory tab
 ```
 
-## 6. Performance Patterns
+## 7. Performance Patterns
 
 ### 6.1 AudioWorklet for Processing
 
@@ -363,92 +279,18 @@ async function prerenderSound(): Promise<AudioBuffer> {
 // ✅ Good: Reuse master gain node
 const masterGain = ctx.createGain()
 masterGain.connect(ctx.destination)
-function playSound(buffer: AudioBuffer) {
-  const source = ctx.createBufferSource()
-  source.buffer = buffer
-  source.connect(masterGain)
-  source.start()
-}
+functio## 6. Implementation Workflow (TDD)
 
-// ❌ Bad: Create full chain for each sound (gain + compressor per play)
-```
+// Mock AudioContext nodes
+const mockOscillator = { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), frequency: { value: 440 } }
+const mockGainNode = { connect: vi.fn(), gain: { value: 1, exponentialRampToValueAtTime: vi.fn() } }
+const mockAudioContext = {
+  state: 'running', currentTime: 0, destina...
 
-### 6.5 Memory Management
+📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
-```typescript
-// ✅ Good: Disconnect and cleanup nodes
-function playOneShot(buffer: AudioBuffer) {
-  const source = ctx.createBufferSource()
-  source.buffer = buffer
-  source.connect(masterGain)
-  source.onended = () => source.disconnect()
-  source.start()
-}
-
-// ✅ Good: Limit concurrent sounds (max 8)
-class SoundManager {
-  private activeSources = new Set<AudioBufferSourceNode>()
-  play(buffer: AudioBuffer) {
-    if (this.activeSources.size >= 8) this.activeSources.values().next().value?.stop()
-    const source = ctx.createBufferSource()
-    source.buffer = buffer
-    source.connect(masterGain)
-    source.onended = () => { source.disconnect(); this.activeSources.delete(source) }
-    this.activeSources.add(source)
-    source.start()
-  }
-}
-
-// ❌ Bad: Never cleanup - nodes stay in memory after playback
-const source = ctx.createBufferSource()
-source.connect(ctx.destination)
-source.start()
-```
-
-## 7. Quality Standards
-
-```typescript
-// ✅ Always require user gesture
-button.addEventListener('click', async () => {
-  await audioContext.resume()
-  playSound()
-})
-
-// ✅ Respect user preferences
-if (usePreferencesStore().preferences.soundEnabled) playBeep()
-
-// ✅ Handle permission denial gracefully
-try {
-  await navigator.mediaDevices.getUserMedia({ audio: true })
-} catch (err) {
-  if (err.name === 'NotAllowedError') {
-    showVisualFeedback('Microphone access required')
-  }
-}
-```
-
-## 8. Testing & Quality
-
-```typescript
-describe('HUD Sounds', () => {
-  it('validates volume bounds', async () => {
-    const { playBeep } = useHUDSounds()
-    await playBeep({ volume: 2 })  // Clamped to 1
-    await playBeep({ volume: -1 }) // Clamped to 0
-  })
-})
-```
-
-## 9. Common Mistakes & Anti-Patterns
-
-### 9.1 Critical Anti-Patterns
-
-```typescript
-// ❌ Auto-play without user gesture - BLOCKED
-onMounted(() => playSound())
-
-// ✅ After user interaction
-const handleClick = async () => { await audioContext.resume(); playSound() }
+---
+ handleClick = async () => { await audioContext.resume(); playSound() }
 
 // ❌ Memory leak - no cleanup
 const audioContext = new AudioContext()
@@ -464,7 +306,7 @@ const ctx = new AudioContext()
 function playSound() { /* reuse ctx */ }
 ```
 
-## 10. Pre-Implementation Checklist
+## 11. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -493,6 +335,14 @@ function playSound() { /* reuse ctx */ }
 - [ ] Sound can be disabled via user preferences
 - [ ] Volume respects system preferences
 
-## 11. Summary
+## 12. Summary
 
 Web Audio API for JARVIS: Initialize after user gesture, cleanup on unmount, handle permission denials, provide visual alternatives. See `references/advanced-patterns.md`
+## 7. Performance Patterns
+
+// ❌ Bad: ScriptProcessorNode (deprecated, blocks main thread)
+```
+
+📚 **For complete details**: See `references/performance-patterns.md`
+
+---

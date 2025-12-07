@@ -9,6 +9,21 @@ version: 1.0.0
 
 > **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
 
+
+### 0.4 Progressive Disclosure (500-Line Limit)
+
+**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+
+**If this file is approaching 500 lines**:
+- Move detailed examples to `references/advanced-patterns.md`
+- Move security examples to `references/security-examples.md`
+- Move troubleshooting to `references/troubleshooting.md`
+- Keep only summaries and links in main file
+
+📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+
+---
+
 ## 1. Overview
 
 This skill provides Pinia expertise for managing application state in the JARVIS AI Assistant, including system metrics, user preferences, and HUD configuration.
@@ -37,108 +52,62 @@ This skill provides Pinia expertise for managing application state in the JARVIS
 
 ## 3. Technology Stack & Versions
 
-### 3.1 Recommended Versions
-
 | Package | Version | Notes |
 |---------|---------|-------|
 | pinia | ^2.1.0 | Latest stable |
 | @pinia/nuxt | ^0.5.0 | Nuxt integration |
 | pinia-plugin-persistedstate | ^3.0.0 | Optional persistence |
 
-### 3.2 Nuxt Configuration
+📚 **For complete details**: See `references/technology-stack-versions.md`
 
-```typescript
-// nuxt.config.ts
-export default defineNuxtConfig({
-  modules: ['@pinia/nuxt'],
-  pinia: {
-    storesDirs: ['./stores/**']
-  }
-})
-```
+---
+## 4. Quality Assurance Checklist
 
-### 3.3 Implementation Workflow (TDD)
+**Before implementing this skill, ensure**:
 
-Follow this workflow for every store:
+### 4.1 Pre-Implementation Setup
+- [ ] Virtual environment created and activated
+- [ ] Dependencies installed from requirements.txt
+- [ ] Pre-commit hooks installed (`pre-commit install`)
+- [ ] Linters installed (black, isort, flake8, mypy, bandit)
 
-**Step 1: Write Failing Test First**
+### 4.2 Dependency Management
+- [ ] All dependencies pinned with exact versions (==)
+- [ ] No manual transitive dependency pins
+- [ ] Dependencies tested in clean environment
 
-```typescript
-// tests/stores/metrics.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useMetricsStore } from '~/stores/metrics'
+### 4.3 Code Quality Gates (Run BEFORE committing)
+- [ ] `black .` - Code formatted
+- [ ] `isort .` - Imports sorted
+- [ ] `flake8 . --max-line-length=120` - No linting errors
+- [ ] `mypy . --ignore-missing-imports` - Type checking passes
+- [ ] `bandit -r .` - Security scan clean
 
-describe('MetricsStore', () => {
-  beforeEach(() => {
-    setActivePinia(createPinia())
-  })
+### 4.4 Security Validation
+- [ ] Input validation for ALL external inputs
+- [ ] Path traversal prevention implemented
+- [ ] Command injection prevention (no shell=True)
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] Secrets not in code or error messages
 
-  it('should initialize with default values', () => {
-    const store = useMetricsStore()
-    expect(store.cpu).toBe(0)
-    expect(store.memory).toBe(0)
-  })
+📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
 
-  it('should clamp values within valid range', () => {
-    const store = useMetricsStore()
-    store.updateCpu(150)
-    expect(store.cpu).toBe(100)
-    store.updateCpu(-50)
-    expect(store.cpu).toBe(0)
-  })
+### 4.5 Test Coverage Requirements
+- [ ] Tests written BEFORE implementation (TDD)
+- [ ] Unit tests for all public functions
+- [ ] Edge case tests (empty, null, max values)
+- [ ] Security tests (injection, traversal, overflow)
+- [ ] Code coverage >80%
 
-  it('should compute health status correctly', () => {
-    const store = useMetricsStore()
-    store.updateCpu(95)
-    store.updateMemory(90)
-    expect(store.healthStatus).toBe('critical')
-  })
-})
-```
+### 4.6 Documentation Requirements
+- [ ] Docstrings for all public functions/classes
+- [ ] Security considerations documented
+- [ ] Examples of correct usage
+- [ ] Known limitations documented
 
-**Step 2: Implement Minimum to Pass**
+---
 
-```typescript
-// stores/metrics.ts
-export const useMetricsStore = defineStore('metrics', () => {
-  const cpu = ref(0)
-  const memory = ref(0)
-
-  const healthStatus = computed(() => {
-    const avg = (cpu.value + memory.value) / 2
-    if (avg > 90) return 'critical'
-    if (avg > 70) return 'warning'
-    return 'healthy'
-  })
-
-  function updateCpu(value: number) {
-    cpu.value = Math.max(0, Math.min(100, value))
-  }
-
-  function updateMemory(value: number) {
-    memory.value = Math.max(0, Math.min(100, value))
-  }
-
-  return { cpu, memory, healthStatus, updateCpu, updateMemory }
-})
-```
-
-**Step 3: Refactor Following Patterns**
-
-- Extract validation logic
-- Add TypeScript interfaces
-- Optimize computed dependencies
-
-**Step 4: Run Full Verification**
-
-```bash
-npm run test -- --filter=stores
-npm run typecheck
-npm run build
-```
-
-## 4. Implementation Patterns
+## 5. Implementation Patterns
 
 ### 4.1 Setup Store with TypeScript
 
@@ -227,185 +196,19 @@ export const useJarvisStore = defineStore('jarvis', () => {
 
 ```typescript
 // stores/preferences.ts
-export const usePreferencesStore = defineStore('preferences', () => {
-  const preferences = ref({
-    theme: 'dark' as 'dark' | 'light',
-    hudOpacity: 0.8,
-    soundEnabled: true
-  })
+## 5. Implementation Patterns
 
-  function updatePreference<K extends keyof typeof preferences.value>(
-    key: K, value: typeof preferences.value[K]
-  ) {
-    if (key === 'hudOpacity' && (value < 0 || value > 1)) return
-    preferences.value[key] = value
-  }
-
-  return { preferences, updatePreference }
-}, {
-  persist: {
-    key: 'jarvis-preferences',
-    paths: ['preferences.theme', 'preferences.hudOpacity']
-    // ❌ Never persist: tokens, passwords, API keys
-  }
-})
-```
-
-### 4.3 Command Queue Store
-
-```typescript
-// stores/commands.ts
-interface Command {
-  id: string
-  action: string
-  status: 'pending' | 'executing' | 'completed' | 'failed'
+interface SystemMetrics {
+  cpu: number
+  memory: number
+  network: number
+  timestamp: number
 }
 
-export const useCommandStore = defineStore('commands', () => {
-  const queue = ref<Command[]>([])
-  const history = ref<Command[]>([])
-  const MAX_HISTORY = 100
+📚 **For complete details**: See `references/implementation-patterns.md`
 
-  const pendingCommands = computed(() =>
-    queue.value.filter(cmd => cmd.status === 'pending')
-  )
-
-  function addCommand(action: string) {
-    const cmd: Command = { id: crypto.randomUUID(), action, status: 'pending' }
-    queue.value.push(cmd)
-    return cmd.id
-  }
-
-  function completeCommand(id: string, status: 'completed' | 'failed') {
-    const idx = queue.value.findIndex(cmd => cmd.id === id)
-    if (idx !== -1) {
-      const [cmd] = queue.value.splice(idx, 1)
-      cmd.status = status
-      history.value = [cmd, ...history.value].slice(0, MAX_HISTORY)
-    }
-  }
-
-  return { queue, history, pendingCommands, addCommand, completeCommand }
-})
-```
-
-### 4.4 SSR-Safe Store Usage
-
-```vue
-<script setup lang="ts">
-// ✅ Safe for SSR - store initialized per-request
-const jarvisStore = useJarvisStore()
-
-// ✅ Fetch data on server
-const { data } = await useFetch('/api/metrics')
-
-// Update store with fetched data
-if (data.value) {
-  jarvisStore.updateMetrics(data.value)
-}
-</script>
-```
-
-### 4.5 Store Composition
-
-```typescript
-// stores/dashboard.ts
-export const useDashboardStore = defineStore('dashboard', () => {
-  // ✅ Compose from other stores
-  const jarvisStore = useJarvisStore()
-  const commandStore = useCommandStore()
-
-  const dashboardStatus = computed(() => ({
-    systemHealth: jarvisStore.systemHealth,
-    pendingCommands: commandStore.pendingCommands.length,
-    isActive: jarvisStore.isActive
-  }))
-
-  return {
-    dashboardStatus
-  }
-})
-```
-
-## 5. Security Standards
-
-### 5.1 OWASP Coverage
-
-| OWASP Category | Risk | Mitigation |
-|----------------|------|------------|
-| A01 Broken Access Control | MEDIUM | Validate actions, check permissions |
-| A04 Insecure Design | MEDIUM | SSR state isolation |
-| A07 Auth Failures | MEDIUM | Never persist tokens |
-
-### 5.3 Sensitive Data Handling
-
-```typescript
-// ❌ NEVER persist: tokens, API keys, passwords
-// ✅ Store sensitive data in memory only (no persist option)
-const authStore = defineStore('auth', () => {
-  const token = ref<string | null>(null)
-  return { token }
-})
-```
-
-## 5.5 Performance Patterns
-
-### Pattern 1: Selective Subscriptions
-
-```typescript
-// BAD - Subscribes to entire store
-const store = useJarvisStore()
-watch(() => store.state, () => { /* ... */ }, { deep: true })
-
-// GOOD - Subscribe to specific properties
-const store = useJarvisStore()
-watch(() => store.state.status, (newStatus) => {
-  console.log('Status changed:', newStatus)
-})
-```
-
-### Pattern 2: Computed Getters (Memoization)
-
-```typescript
-// BAD - Recalculates on every access
-function getFilteredItems() {
-  return items.value.filter(i => i.active)
-}
-
-// GOOD - Cached until dependencies change
-const filteredItems = computed(() =>
-  items.value.filter(i => i.active)
-)
-```
-
-### Pattern 3: Batch Updates
-
-```typescript
-// BAD - Multiple reactive triggers
-function updateAll(data: MetricsData) {
-  metrics.value.cpu = data.cpu
-  metrics.value.memory = data.memory
-  metrics.value.network = data.network
-}
-
-// GOOD - Single reactive trigger
-function updateAll(data: MetricsData) {
-  metrics.value = { ...metrics.value, ...data, timestamp: Date.now() }
-}
-```
-
-### Pattern 4: Lazy Store Initialization
-
-```typescript
-// BAD - Store initializes immediately
-const heavyStore = useHeavyDataStore()
-
-// GOOD - Initialize only when needed
-const heavyStore = ref<ReturnType<typeof useHeavyDataStore> | null>(null)
-
-function loadHeavyData() {
-  if (!heavyStore.value) {
-    heavyStore.value = useHeavyDataStore()
+---
+tore()
   }
   return heavyStore.value
 }
@@ -434,11 +237,11 @@ async function deleteItem(id: string) {
 }
 ```
 
-## 6. Testing & Quality
+## 7. Testing & Quality
 
 See **Section 3.3** for complete TDD workflow with vitest examples.
 
-## 8. Common Anti-Patterns
+## 9. Common Anti-Patterns
 
 ### Security Anti-Patterns
 
@@ -462,7 +265,7 @@ persist: { paths: ['authToken'] }
 
 See **Section 5.5** for detailed performance patterns with Good/Bad examples.
 
-## 13. Pre-Implementation Checklist
+## 14. Pre-Implementation Checklist
 
 ### Phase 1: Before Writing Code
 
@@ -487,7 +290,7 @@ See **Section 5.5** for detailed performance patterns with Good/Bad examples.
 - [ ] No global state outside Pinia
 - [ ] State shape documented in types
 
-## 14. Summary
+## 15. Summary
 
 Pinia provides type-safe state management for JARVIS:
 

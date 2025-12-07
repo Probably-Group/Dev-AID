@@ -21,12 +21,13 @@ NC='\033[0m' # No Color
 FAILURES=0
 
 # Function to run a check
+# SECURITY: Uses direct command execution instead of eval to prevent injection
 run_check() {
     local name="$1"
-    local command="$2"
+    shift  # Remove first argument, rest are command components
 
     echo -e "${YELLOW}Running: ${name}${NC}"
-    if eval "$command"; then
+    if "$@"; then
         echo -e "${GREEN}✓ ${name} PASSED${NC}"
         echo ""
     else
@@ -48,9 +49,9 @@ echo "Phase 1: Testing"
 echo "========================================="
 echo ""
 
-run_check "Unit Tests" "pytest tests/ -v --tb=short"
-run_check "Test Coverage (80%+)" "pytest tests/ --cov=router --cov-fail-under=80 --cov-report=term-missing"
-run_check "Security Tests" "pytest tests/test_security.py -v"
+run_check "Unit Tests" pytest tests/ -v --tb=short
+run_check "Test Coverage (80%+)" pytest tests/ --cov=router --cov-fail-under=80 --cov-report=term-missing
+run_check "Security Tests" pytest tests/test_security.py -v
 
 echo ""
 echo "========================================="
@@ -58,8 +59,8 @@ echo "Phase 2: Static Analysis"
 echo "========================================="
 echo ""
 
-run_check "Bandit Security Scan" "bandit -r router/ -ll"
-run_check "MyPy Type Checking" "mypy router/ --strict --ignore-missing-imports"
+run_check "Bandit Security Scan" bandit -r router/ -ll
+run_check "MyPy Type Checking" mypy router/ --strict --ignore-missing-imports
 
 echo ""
 echo "========================================="
@@ -67,8 +68,18 @@ echo "Phase 3: Dependency Security"
 echo "========================================="
 echo ""
 
-run_check "Pip Audit" "pip-audit --desc"
-run_check "Safety Check" "safety check --json || safety check"
+run_check "Pip Audit" pip-audit --desc
+
+# Safety check with fallback (run JSON format, if fails run plain format)
+echo -e "${YELLOW}Running: Safety Check${NC}"
+if safety check --json > /dev/null 2>&1 || safety check; then
+    echo -e "${GREEN}✓ Safety Check PASSED${NC}"
+    echo ""
+else
+    echo -e "${RED}✗ Safety Check FAILED${NC}"
+    echo ""
+    FAILURES=$((FAILURES + 1))
+fi
 
 echo ""
 echo "========================================="
@@ -76,9 +87,9 @@ echo "Phase 4: Code Quality"
 echo "========================================="
 echo ""
 
-run_check "Black Formatting Check" "black --check router/ tests/"
-run_check "Isort Import Order" "isort --check router/ tests/"
-run_check "Flake8 Linting" "flake8 router/ --max-line-length=100 --extend-ignore=E203,W503"
+run_check "Black Formatting Check" black --check router/ tests/
+run_check "Isort Import Order" isort --check router/ tests/
+run_check "Flake8 Linting" flake8 router/ --max-line-length=100 --extend-ignore=E203,W503
 
 echo ""
 echo "========================================="

@@ -112,12 +112,14 @@ jobs:
               body += `**Suggested Labels:** ${suggestedLabels.join(', ')}\n\n`;
             }
 
+            const issueNumber = context.issue.number || ${{ inputs.issue_number || 0 }};
+
             body += `---\n`;
             body += `*This analysis was generated automatically by Dev-AID.*\n`;
-            body += `*You can run \`dev-aid-resolve-issue --issue ${{ github.event.issue.number || inputs.issue_number }}\` to attempt automated resolution.*`;
+            body += `*You can run \`dev-aid-resolve-issue --issue ${issueNumber}\` to attempt automated resolution.*`;
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body
@@ -132,10 +134,11 @@ jobs:
               .split(',')
               .filter(l => l.trim())
               .map(l => l.trim());
+            const issueNumber = context.issue.number || ${{ inputs.issue_number || 0 }};
 
             if (labels.length > 0) {
               await github.rest.issues.addLabels({
-                issue_number: context.issue.number || ${{ inputs.issue_number }},
+                issue_number: issueNumber,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 labels: labels
@@ -166,14 +169,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const issueNumber = context.issue.number || ${{ inputs.issue_number || 0 }};
             const body = `💡 **Auto-Fix Available**\n\n` +
               `This issue appears to be auto-fixable. You can:\n` +
-              `1. Run \`dev-aid-resolve-issue --issue ${{ github.event.issue.number || inputs.issue_number }}\` locally\n` +
+              `1. Run \`dev-aid-resolve-issue --issue ${issueNumber}\` locally\n` +
               `2. Wait for a maintainer to trigger automated resolution\n\n` +
               `The automated fix will create a draft PR for review.`;
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number || ${{ inputs.issue_number }},
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body

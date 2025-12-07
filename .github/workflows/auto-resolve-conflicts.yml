@@ -83,6 +83,9 @@ jobs:
           script: |
             const conflictCount = '${{ steps.conflicts.outputs.conflict_count }}';
             const conflictedFiles = '${{ steps.conflicts.outputs.conflicted_files }}'.split(',');
+            const headRef = '${{ github.event.pull_request.head.ref }}' || 'pr-${{ inputs.pr_number }}';
+            const baseRef = '${{ github.event.pull_request.base.ref }}' || 'main';
+            const issueNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
 
             let body = `🔍 **Merge Conflicts Detected**\n\n`;
             body += `This PR has **${conflictCount}** conflicted file(s):\n\n`;
@@ -95,13 +98,13 @@ jobs:
             body += `**Resolution Options:**\n\n`;
             body += `1. **Local Resolution:**\n`;
             body += `   \`\`\`bash\n`;
-            body += `   git checkout ${{ github.event.pull_request.head.ref || format('pr-{0}', inputs.pr_number) }}\n`;
+            body += `   git checkout ${headRef}\n`;
             body += `   dev-aid-fix-conflicts\n`;
             body += `   \`\`\`\n\n`;
             body += `2. **Manual Resolution:**\n`;
             body += `   \`\`\`bash\n`;
-            body += `   git checkout ${{ github.event.pull_request.head.ref || format('pr-{0}', inputs.pr_number) }}\n`;
-            body += `   git merge origin/${{ github.event.pull_request.base.ref || 'main' }}\n`;
+            body += `   git checkout ${headRef}\n`;
+            body += `   git merge origin/${baseRef}\n`;
             body += `   # Resolve conflicts manually\n`;
             body += `   git commit\n`;
             body += `   git push\n`;
@@ -110,7 +113,7 @@ jobs:
             body += `*Conflict detection by Dev-AID*`;
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body
@@ -121,8 +124,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const issueNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
             await github.rest.issues.addLabels({
-              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: ['conflicts']
@@ -134,10 +138,11 @@ jobs:
         continue-on-error: true
         with:
           script: |
+            const issueNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
             // Try to remove conflict label if it exists
             try {
               await github.rest.issues.removeLabel({
-                issue_number: context.issue.number || ${{ inputs.pr_number }},
+                issue_number: issueNumber,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 name: 'conflicts'
@@ -148,6 +153,7 @@ jobs:
             }
 
       - name: Attempt auto-resolution (if enabled)
+        id: auto_resolve
         if: steps.conflicts.outputs.has_conflicts == 'true' && vars.DEV_AID_AUTO_RESOLVE_CONFLICTS == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -191,6 +197,7 @@ Co-Authored-By: dev-aid-bot <dev-aid-bot@users.noreply.github.com>"
         with:
           script: |
             const success = process.env.RESOLUTION_SUCCESS === 'true';
+            const issueNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
 
             let body;
             if (success) {
@@ -204,7 +211,7 @@ Co-Authored-By: dev-aid-bot <dev-aid-bot@users.noreply.github.com>"
             }
 
             await github.rest.issues.createComment({
-              issue_number: context.issue.number || ${{ inputs.pr_number }},
+              issue_number: issueNumber,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: body

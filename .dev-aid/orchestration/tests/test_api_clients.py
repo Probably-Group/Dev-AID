@@ -2,8 +2,9 @@
 Tests for API clients
 """
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from router.api_clients import AnthropicClient, APIClientError, APIResponse, Message, create_client
 

@@ -142,6 +142,24 @@ class TestRouterExecutor:
         assert "error" in result
         assert "API error" in result["error"]
 
+    def test_execute_challenger_mode(self, executor_no_mcp):
+        """Test executing in challenger mode"""
+        executor_no_mcp.modes["challenger"].execute = Mock(
+            return_value={
+                "success": True,
+                "mode": "challenger",
+                "challenged": False,
+                "primary_model": "claude-sonnet-4",
+                "response": "Response",
+                "cost": 0.05,
+            }
+        )
+
+        result = executor_no_mcp.execute("Test request", mode="challenger")
+
+        assert result["success"] is True
+        assert result["mode"] == "challenger"
+
     def test_log_decision(self, executor_no_mcp):
         """Test logging successful decisions"""
         executor_no_mcp.modes["solo"].execute = Mock(

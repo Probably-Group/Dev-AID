@@ -95,6 +95,15 @@ class TestSoloMode:
             # Should still build context even with large context size
             mock_context_builder.build_context.assert_called()
 
+    def test_get_info(self, solo_mode):
+        """Test getting solo mode information"""
+        info = solo_mode.get_info()
+
+        assert info["mode"] == "solo"
+        assert "description" in info
+        assert "default_model" in info
+        assert "enabled" in info
+
 
 class TestEnsembleMode:
     """Test EnsembleMode"""
@@ -191,6 +200,14 @@ class TestEnsembleMode:
             assert result["mode"] == "ensemble"
             # Should aggregate responses
             assert "responses" in result or "response" in result
+
+    def test_get_info(self, ensemble_mode):
+        """Test getting ensemble mode information"""
+        info = ensemble_mode.get_info()
+
+        assert info["mode"] == "ensemble"
+        assert "description" in info
+        assert "enabled" in info
 
 
 class TestChallengerMode:
@@ -307,3 +324,11 @@ class TestChallengerMode:
             # Should succeed - challenger mode doesn't have fallback logic in primary-only path
             assert result["success"] is True
             assert result["mode"] == "challenger"
+
+    def test_get_info(self, challenger_mode):
+        """Test getting challenger mode information"""
+        info = challenger_mode.get_info()
+
+        assert info["mode"] == "challenger"
+        assert "description" in info
+        assert "enabled" in info

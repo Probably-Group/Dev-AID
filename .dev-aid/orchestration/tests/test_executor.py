@@ -103,9 +103,7 @@ class TestRouterExecutor:
     def test_execute_with_default_mode(self, executor_no_mcp):
         """Test executing with default mode from config"""
         executor_no_mcp.config.get_orchestration_mode = Mock(return_value="solo")
-        executor_no_mcp.modes["solo"].execute = Mock(
-            return_value={"success": True, "mode": "solo"}
-        )
+        executor_no_mcp.modes["solo"].execute = Mock(return_value={"success": True, "mode": "solo"})
 
         result = executor_no_mcp.execute("Test request")
 
@@ -132,9 +130,7 @@ class TestRouterExecutor:
 
     def test_execute_mode_error_handling(self, executor_no_mcp):
         """Test error handling when mode execution fails"""
-        executor_no_mcp.modes["solo"].execute = Mock(
-            side_effect=Exception("API error")
-        )
+        executor_no_mcp.modes["solo"].execute = Mock(side_effect=Exception("API error"))
 
         result = executor_no_mcp.execute("Test request", mode="solo")
 
@@ -180,9 +176,7 @@ class TestRouterExecutor:
     @pytest.mark.asyncio
     async def test_execute_async_basic(self, executor_no_mcp):
         """Test async execution"""
-        executor_no_mcp.modes["solo"].execute = Mock(
-            return_value={"success": True, "mode": "solo"}
-        )
+        executor_no_mcp.modes["solo"].execute = Mock(return_value={"success": True, "mode": "solo"})
 
         result = await executor_no_mcp._execute_async("Test request", "solo")
 
@@ -202,9 +196,7 @@ class TestRouterExecutor:
                     executor.context_builder.gather_mcp_context = AsyncMock(
                         return_value={"code_search": {"results": ["test.py"]}}
                     )
-                    executor.modes["solo"].execute = Mock(
-                        return_value={"success": True}
-                    )
+                    executor.modes["solo"].execute = Mock(return_value={"success": True})
 
                     result = await executor._execute_async("Test request", "solo")
 
@@ -225,9 +217,7 @@ class TestRouterExecutor:
                     executor.context_builder.gather_mcp_context = AsyncMock(
                         side_effect=Exception("MCP error")
                     )
-                    executor.modes["solo"].execute = Mock(
-                        return_value={"success": True}
-                    )
+                    executor.modes["solo"].execute = Mock(return_value={"success": True})
 
                     result = await executor._execute_async("Test request", "solo")
 

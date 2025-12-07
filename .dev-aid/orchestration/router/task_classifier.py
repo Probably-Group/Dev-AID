@@ -137,7 +137,7 @@ class TaskClassifier:
 
         return best_task, matched_keywords[best_task], confidence
 
-    def get_model_for_task(self, task_type: str, routing_config: dict) -> str:
+    def get_model_for_task(self, task_type: TaskType, routing_config: dict) -> str:
         """
         Get recommended model for task type
 
@@ -163,7 +163,7 @@ class TaskClassifier:
         return task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet"))
 
     def explain_classification(
-        self, task_type: str, matched_keywords: List[str], confidence: float
+        self, task_type: TaskType, matched_keywords: List[str], confidence: float
     ) -> str:
         """
         Generate human-readable explanation of classification

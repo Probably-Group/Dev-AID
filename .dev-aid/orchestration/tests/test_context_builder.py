@@ -4,11 +4,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from router.context_builder import (
-    ContextBuilder,
-    DevAIDContext,
-    build_system_prompt,
-)
+from router.context_builder import ContextBuilder, DevAIDContext, build_system_prompt
 
 
 class TestDevAIDContext:
@@ -162,9 +158,7 @@ class TestContextBuilder:
         """Test git context with timeout"""
         builder.root = tmp_path
 
-        with patch(
-            "subprocess.check_output", side_effect=subprocess.TimeoutExpired("git", 5)
-        ):
+        with patch("subprocess.check_output", side_effect=subprocess.TimeoutExpired("git", 5)):
             context = builder._get_git_context()
             assert context is None
 
@@ -286,9 +280,7 @@ class TestContextBuilder:
     async def test_query_code_search(self, builder):
         """Test querying code search MCP"""
         builder.mcp_pool = AsyncMock()
-        builder.mcp_pool.call_tool.return_value = {
-            "content": ["file1.py", "file2.py"]
-        }
+        builder.mcp_pool.call_tool.return_value = {"content": ["file1.py", "file2.py"]}
 
         result = await builder._query_code_search("find login")
 

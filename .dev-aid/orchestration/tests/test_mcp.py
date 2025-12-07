@@ -8,12 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from router.mcp_client import (
-    MCPClient,
-    MCPClientPool,
-    MCPServerConfig,
-    MCPTool,
-)
+from router.mcp_client import MCPClient, MCPClientPool, MCPServerConfig, MCPTool
 from router.mcp_registry import MCPRegistry, MCPServerInfo
 
 
@@ -38,9 +33,7 @@ class TestMCPServerConfig:
 
     def test_create_config(self):
         """Test creating server config"""
-        config = MCPServerConfig(
-            name="test-server", command="npx", args=["-y", "test-mcp-server"]
-        )
+        config = MCPServerConfig(name="test-server", command="npx", args=["-y", "test-mcp-server"])
         assert config.name == "test-server"
         assert config.command == "npx"
         assert config.args == ["-y", "test-mcp-server"]
@@ -114,9 +107,7 @@ class TestMCPClient:
             ]
         )
 
-        with patch(
-            "asyncio.create_subprocess_exec", return_value=mock_process
-        ) as mock_exec:
+        with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
             result = await mcp_client.connect()
 
             assert result is True
@@ -128,9 +119,7 @@ class TestMCPClient:
     @pytest.mark.asyncio
     async def test_connect_failure(self, mcp_client):
         """Test connection failure"""
-        with patch(
-            "asyncio.create_subprocess_exec", side_effect=Exception("Failed to start")
-        ):
+        with patch("asyncio.create_subprocess_exec", side_effect=Exception("Failed to start")):
             result = await mcp_client.connect()
             assert result is False
             assert mcp_client.process is None
@@ -320,9 +309,7 @@ class TestMCPClientPool:
             await pool.add_server(config)
 
         mock_result = {"status": "success"}
-        with patch.object(
-            MCPClient, "call_tool", return_value=mock_result
-        ) as mock_call:
+        with patch.object(MCPClient, "call_tool", return_value=mock_result) as mock_call:
             result = await pool.call_tool("test-server", "test_tool", {"arg": "val"})
 
             assert result == mock_result
@@ -338,14 +325,10 @@ class TestMCPClientPool:
         """Test getting all tools from all servers"""
         # Create mock clients with tools
         mock_client1 = Mock()
-        mock_client1.get_tools = Mock(
-            return_value=[MCPTool("tool1", "Test", {}, "server1")]
-        )
+        mock_client1.get_tools = Mock(return_value=[MCPTool("tool1", "Test", {}, "server1")])
 
         mock_client2 = Mock()
-        mock_client2.get_tools = Mock(
-            return_value=[MCPTool("tool2", "Test", {}, "server2")]
-        )
+        mock_client2.get_tools = Mock(return_value=[MCPTool("tool2", "Test", {}, "server2")])
 
         pool.clients = {"server1": mock_client1, "server2": mock_client2}
 
@@ -468,9 +451,7 @@ class TestMCPRegistry:
 
     def test_disable_server(self, registry):
         """Test disabling a server"""
-        server = MCPServerInfo(
-            name="test-server", command="test", args=[], enabled_for_router=True
-        )
+        server = MCPServerInfo(name="test-server", command="test", args=[], enabled_for_router=True)
         registry.servers["test-server"] = server
 
         result = registry.disable_server("test-server")
@@ -485,12 +466,8 @@ class TestMCPRegistry:
 
     def test_get_enabled_servers(self, registry):
         """Test getting enabled servers"""
-        server1 = MCPServerInfo(
-            name="enabled", command="test", args=[], enabled_for_router=True
-        )
-        server2 = MCPServerInfo(
-            name="disabled", command="test", args=[], enabled_for_router=False
-        )
+        server1 = MCPServerInfo(name="enabled", command="test", args=[], enabled_for_router=True)
+        server2 = MCPServerInfo(name="disabled", command="test", args=[], enabled_for_router=False)
 
         registry.servers = {"enabled": server1, "disabled": server2}
 
@@ -603,9 +580,7 @@ class TestMCPRegistry:
         with open(gemini_config_path, "w") as f:
             json.dump(gemini_config, f)
 
-        with patch(
-            "os.path.expanduser", return_value=str(gemini_config_path.parent / "mcp.json")
-        ):
+        with patch("os.path.expanduser", return_value=str(gemini_config_path.parent / "mcp.json")):
             servers = registry._discover_gemini()
 
             assert "gemini-server" in servers
@@ -627,14 +602,14 @@ class TestMCPRegistry:
             "gemini-server": MCPServerInfo("gemini-server", "test", [], source="gemini")
         }
 
-        with patch.object(
-            registry, "_discover_claude", return_value=claude_servers
-        ), patch.object(registry, "_discover_gemini", return_value=gemini_servers):
-            all_servers = registry.discover_all()
+        # Use nested with statements to avoid Black AST bug
+        with patch.object(registry, "_discover_claude", return_value=claude_servers):
+            with patch.object(registry, "_discover_gemini", return_value=gemini_servers):
+                all_servers = registry.discover_all()
 
-            assert len(all_servers) == 2
-            assert "claude-server" in all_servers
-            assert "gemini-server" in all_servers
+                assert len(all_servers) == 2
+                assert "claude-server" in all_servers
+                assert "gemini-server" in all_servers
 
     def test_sync(self, registry):
         """Test syncing with CLI configurations"""

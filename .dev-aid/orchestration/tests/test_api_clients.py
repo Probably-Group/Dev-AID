@@ -6,13 +6,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from router.api_clients import (
-    AnthropicClient,
-    APIClientError,
-    APIResponse,
-    Message,
-    create_client,
-)
+from router.api_clients import AnthropicClient, APIClientError, APIResponse, Message, create_client
 
 
 class TestMessage:
@@ -124,9 +118,7 @@ class TestAnthropicClient:
         assert cost == 0.0
 
     @patch("anthropic.Anthropic")
-    def test_send_request_success(
-        self, mock_anthropic_class, mock_api_key, mock_model_config
-    ):
+    def test_send_request_success(self, mock_anthropic_class, mock_api_key, mock_model_config):
         """Test successful API request"""
         # Mock successful response
         mock_response = Mock()
@@ -206,9 +198,7 @@ class TestAnthropicClient:
         """Test that errors don't leak API details"""
         # Mock anthropic client to raise an exception
         mock_client = mock_anthropic_class.return_value
-        mock_client.messages.create.side_effect = Exception(
-            "API key invalid: sk-ant-secret-key"
-        )
+        mock_client.messages.create.side_effect = Exception("API key invalid: sk-ant-secret-key")
 
         client = AnthropicClient(mock_api_key, mock_model_config)
         messages = [Message(role="user", content="test")]
@@ -218,9 +208,7 @@ class TestAnthropicClient:
             client.send_request(messages, "claude-sonnet-4")
 
     @patch("anthropic.Anthropic")
-    def test_send_request_api_error(
-        self, mock_anthropic_class, mock_api_key, mock_model_config
-    ):
+    def test_send_request_api_error(self, mock_anthropic_class, mock_api_key, mock_model_config):
         """Test handling Anthropic API errors"""
         mock_client = mock_anthropic_class.return_value
         mock_client.messages.create.side_effect = Exception("Rate limit exceeded")
@@ -277,9 +265,7 @@ class TestCreateClient:
         client = create_client("ANTHROPIC", mock_api_key, mock_model_config)
         assert isinstance(client, AnthropicClient)
 
-    def test_create_client_with_different_cases(
-        self, mock_api_key, mock_model_config
-    ):
+    def test_create_client_with_different_cases(self, mock_api_key, mock_model_config):
         """Test that provider name is case-insensitive"""
         # Different cases should all work
         client1 = create_client("anthropic", mock_api_key, mock_model_config)

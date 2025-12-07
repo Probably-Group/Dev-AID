@@ -32,6 +32,24 @@ Complete guide to all available slash commands in Dev-AID.
 /dev-aid-status
 ```
 
+#### `/generate-ci` (Script)
+**Category:** Automation
+**Purpose:** Auto-generate production-ready CI/CD workflows
+**When to use:** Setting up CI/CD, migrating projects, adding automation
+**Output:** `.github/workflows/ci.yml`
+**Supported:** Python, Node.js, Java, Go, Rust, C#, PHP, Ruby, C++
+
+**Example:**
+```bash
+# Auto-detect and generate
+./.dev-aid/scripts/generate-ci.sh
+
+# Custom output location
+./.dev-aid/scripts/generate-ci.sh -o .github/workflows/custom.yml
+```
+
+**Documentation:** See [CI-GENERATOR-GUIDE.md](./CI-GENERATOR-GUIDE.md)
+
 ---
 
 ## 🎓 Recommended Commands from Other Repos

@@ -127,7 +127,7 @@ echo ""
 echo "Requirements:"
 echo "  • Python 3.9+"
 echo "  • Virtual environment (recommended)"
-echo "  • At least one AI API key"
+echo "  • Authentication: Session auth (claude login/gcloud auth) OR API keys"
 echo ""
 read -p "Setup router with virtual environment? (Y/n) " -n 1 -r
 echo

@@ -196,7 +196,7 @@
 
 - Python 3.9+
 - pip (Python package manager)
-- At least one AI API key (Anthropic, Google, or OpenAI)
+- **Authentication**: Session-based auth (via `claude login` or `gcloud auth`) OR API keys (Anthropic, Google, or OpenAI)
 
 ### Python Packages
 

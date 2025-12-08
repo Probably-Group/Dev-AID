@@ -19,6 +19,8 @@ jobs:
   check-conflicts:
     runs-on: ubuntu-latest
     name: Check and Resolve Conflicts
+    # Only run for pull_request events or workflow_dispatch
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Checkout PR
@@ -175,12 +177,15 @@ jobs:
 
             # Commit resolution
             git add .
-            git commit -m "chore: auto-resolve merge conflicts
+            git commit -m "$(cat <<'EOF'
+          chore: auto-resolve merge conflicts
 
-Conflicts resolved automatically using Dev-AID orchestration.
+          Conflicts resolved automatically using Dev-AID orchestration.
 
-🤖 Generated with Dev-AID
-Co-Authored-By: dev-aid-bot <dev-aid-bot@users.noreply.github.com>"
+          🤖 Generated with Dev-AID
+          Co-Authored-By: dev-aid-bot <dev-aid-bot@users.noreply.github.com>
+          EOF
+          )"
 
             # Push resolution
             git push origin HEAD

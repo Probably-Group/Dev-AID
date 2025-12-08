@@ -66,11 +66,29 @@ class EnsembleMode:
             selected_model, model_config, provider = self._get_fallback_model()
             used_fallback = True
 
-        # Get API key
-        api_key = self.config.get_api_key(provider)
+        # Get authentication credentials
+        auth = self.config.get_auth_credentials(provider)
+        if not auth:
+            # Try fallback chain if no auth for selected model
+            selected_model, model_config, provider = self._get_fallback_model()
+            auth = self.config.get_auth_credentials(provider)
+            used_fallback = True
+
+            if not auth:
+                return {
+                    "success": False,
+                    "mode": "ensemble",
+                    "task_type": task_type,
+                    "error": (
+                        "No authentication found for any provider. "
+                        "Please configure at least one provider by either: "
+                        "(1) Signing in to a provider CLI, or "
+                        "(2) Setting API keys in .env"
+                    ),
+                }
 
         # Create client
-        client = create_client(provider, api_key, model_config)
+        client = create_client(provider, auth, model_config)
 
         # Build context
         context = self.context_builder.build_context()

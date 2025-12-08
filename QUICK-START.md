@@ -6,7 +6,9 @@ Get Dev-AID running in 5 minutes!
 
 - Git
 - Bash shell
-- At least one AI API key (Claude, Gemini, or OpenAI)
+- **Authentication**: Choose one method per provider:
+  - **Session-based** (Recommended): Logged into Claude Code/Gemini CLI (`claude login`, `gcloud auth`)
+  - **API keys**: ANTHROPIC_API_KEY, GOOGLE_API_KEY, or OPENAI_API_KEY
 
 ## Installation
 
@@ -36,7 +38,7 @@ Follow the 6-step wizard:
 3. **Providers**: Select your AI providers
 4. **Orchestration**: Choose mode (Solo for single AI, Ensemble for multi-AI)
 5. **Model Assignment**: Assign models to tasks (if multi-AI)
-6. **API Keys**: Enter keys (only for selected providers)
+6. **Authentication**: Session auth auto-detected, or enter API keys if needed
 
 ### 3. Start Developing
 
@@ -55,6 +57,14 @@ claude code
 ### Single AI User (Claude only)
 
 ```bash
+# Option A: With Claude Pro/Max (no API key needed)
+claude login  # One-time setup
+# During installation:
+- Providers: Enable Claude only
+- Orchestration: Choose "Solo" or "None"
+- Authentication: Auto-detected from Claude Code session
+
+# Option B: With API key
 # During installation:
 - Providers: Enable Claude only
 - Orchestration: Choose "Solo" or "None"
@@ -66,6 +76,10 @@ claude code
 ### Multi-AI Team (Claude + Gemini + OpenAI)
 
 ```bash
+# Option A: With consumer subscriptions (Claude Pro/Gemini CLI)
+claude login          # One-time setup for Claude
+gcloud auth application-default login  # One-time setup for Gemini
+
 # During installation:
 - Providers: Enable all three
 - Orchestration: Choose "Ensemble"
@@ -73,7 +87,11 @@ claude code
   - Code generation: claude-sonnet-4.5
   - Massive context: gemini-2.0-flash
   - Documentation: gpt-4o
-- API Keys: Enter all three keys
+- Authentication: Claude/Gemini auto-detected, enter OPENAI_API_KEY if using GPT
+
+# Option B: With API keys
+# During installation:
+- API Keys: Enter ANTHROPIC_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY
 
 # Result: Automatic routing, cost optimization
 ```
@@ -117,9 +135,17 @@ ls -la .dev-aid/scripts/install.sh
 chmod +x .dev-aid/scripts/install.sh
 ```
 
-**Issue**: API keys not working
+**Issue**: Authentication not working
 ```bash
-# Check .env file
+# Check authentication status (for Dev-AID Router)
+cd .dev-aid/orchestration
+python -m router.cli auth-status
+
+# Option A: Use session auth (recommended)
+claude login  # For Claude Pro/Max
+gcloud auth application-default login  # For Gemini
+
+# Option B: Check API keys in .env
 cat .dev-aid/config/.env
 # Or reconfigure
 ./.dev-aid/scripts/reconfigure.sh

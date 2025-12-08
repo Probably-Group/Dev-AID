@@ -41,7 +41,35 @@ pip install -r requirements.txt
 - `pydantic` - Data validation
 - `rich`, `typer` - CLI interface
 
-### Step 2: Configure API Keys
+### Step 2: Configure Authentication
+
+**Dev-AID Router supports two authentication methods:**
+
+#### Option A: Session-Based Authentication (Recommended)
+
+If you have consumer AI subscriptions (Claude Pro/Max, Gemini CLI):
+
+```bash
+# For Claude (Pro/Max subscriptions)
+claude login  # One-time setup - stores session token in system keychain
+
+# For Gemini (via gcloud)
+gcloud auth application-default login  # One-time setup - stores ADC credentials
+
+# Check authentication status
+cd .dev-aid/orchestration
+python -m router.cli auth-status
+```
+
+**Benefits:**
+- ✅ No API keys needed for Claude Pro/Max users (API keys not available anyway!)
+- ✅ Automatically detected from CLI sessions
+- ✅ Stored securely in system keychain
+- ✅ Works immediately after login
+
+#### Option B: API Keys (Traditional Method)
+
+If you have API access:
 
 Create or edit `.dev-aid/config/.env`:
 
@@ -56,20 +84,22 @@ nano .env
 Add your API keys:
 
 ```bash
-# Anthropic (Claude) - Required
+# Anthropic (Claude) - If you have API access
 ANTHROPIC_API_KEY=sk-ant-api03-...
 
-# Google (Gemini) - Optional but recommended for ensemble mode
+# Google (Gemini) - If not using gcloud ADC
 GOOGLE_API_KEY=AIza...
 
-# OpenAI (GPT) - Optional
+# OpenAI (GPT) - API key required (ChatGPT Plus ≠ API access)
 OPENAI_API_KEY=sk-...
 ```
 
 **Where to get keys:**
-- Anthropic: https://console.anthropic.com/
+- Anthropic: https://console.anthropic.com/ (Note: Claude Pro/Max users don't have API access)
 - Google: https://aistudio.google.com/app/apikey
 - OpenAI: https://platform.openai.com/api-keys
+
+**Priority**: The router tries session auth first, then falls back to API keys.
 
 ### Step 3: Enable Providers
 
@@ -529,16 +559,29 @@ pip install -r requirements.txt
 # Warning: Installs to system Python
 ```
 
-### Problem: API key not found
+### Problem: Authentication not found
 
 ```
-Error: API key not set for 'anthropic' (expected ANTHROPIC_API_KEY in .env)
+Error: No authentication found for anthropic
 ```
 
-**Solution**:
+**Solution (Option A - Recommended for Claude Pro/Max users)**:
+```bash
+# Use session-based authentication
+claude login  # For Claude
+gcloud auth application-default login  # For Gemini
+
+# Verify
+cd .dev-aid/orchestration
+python -m router.cli auth-status
+```
+
+**Solution (Option B - API Keys)**:
 1. Create `.dev-aid/config/.env`
-2. Add: `ANTHROPIC_API_KEY=sk-ant-...`
+2. Add: `ANTHROPIC_API_KEY=sk-ant-...` (or `GOOGLE_API_KEY` or `OPENAI_API_KEY`)
 3. Test: `python -m router.cli test`
+
+**Note**: Claude Pro/Max subscriptions don't include API keys - use session auth (Option A)
 
 ### Problem: Provider not enabled
 
@@ -673,7 +716,8 @@ python -m router.cli execute "Implement OAuth2" --mode challenger
 - [ ] Python 3.9+ installed (`python3 --version`)
 - [ ] Virtual environment created (`./setup-venv.sh`)
 - [ ] Dependencies installed (done by setup-venv.sh)
-- [ ] API keys added to `.dev-aid/config/.env`
+- [ ] Authentication configured (session auth via `claude login`/`gcloud auth` OR API keys in `.dev-aid/config/.env`)
+- [ ] Check auth status: `python -m router.cli auth-status` (should show ✅ for at least one provider)
 - [ ] Providers enabled in `.dev-aid/config/models.json`
 - [ ] Configuration test passes (`./router-cli.sh test`)
 - [ ] Test request works (`./router-cli.sh execute "test"`)

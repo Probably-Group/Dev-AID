@@ -5,6 +5,8 @@ Multi-AI orchestration engine that routes requests to different AI providers bas
 ## Features
 
 ✅ **Multi-Provider Support**: Anthropic (Claude), Google (Gemini), OpenAI (GPT)
+✅ **Session-Based Auth**: Works with Claude Pro/Max, Gemini CLI (no API keys needed!)
+✅ **Keyring Integration**: Secure access to system keychain (macOS/Windows/Linux)
 ✅ **Three Orchestration Modes**: Solo, Ensemble, Challenger
 ✅ **Task Classification**: Automatic routing based on task type
 ✅ **Cost Tracking**: Real-time cost monitoring and budgets
@@ -33,7 +35,28 @@ pip install -r requirements.txt
 - Prevents supply chain attacks via malicious 'latest' versions
 - See requirements.txt for version details and update instructions
 
-### 2. Configure API Keys
+### 2. Configure Authentication
+
+Dev-AID Router supports **two authentication methods**:
+
+#### Option A: Session-Based Auth (Recommended for Consumer Subscriptions)
+
+If you have Claude Pro/Max, Gemini CLI, or other consumer subscriptions:
+
+```bash
+# Anthropic (Claude Pro/Max)
+claude login  # Stores session token locally
+
+# Google (Gemini CLI, ADC)
+gcloud auth application-default login  # Stores ADC credentials
+
+# OpenAI
+# Note: OpenAI only supports API keys (ChatGPT Plus ≠ API access)
+```
+
+**No additional configuration needed!** The router automatically detects and uses your CLI sessions.
+
+#### Option B: API Keys (Traditional Method)
 
 Add your API keys to `.dev-aid/config/.env`:
 
@@ -47,6 +70,8 @@ GOOGLE_API_KEY=...
 # OpenAI (GPT)
 OPENAI_API_KEY=sk-...
 ```
+
+**Priority**: Session auth is tried first, then falls back to API keys.
 
 ### 3. Test Configuration
 
@@ -64,6 +89,9 @@ python -m router.cli execute "Implement user authentication"
 
 # Execute with specific mode
 python -m router.cli execute "Analyze codebase" --mode ensemble
+
+# Check authentication status
+python -m router.cli auth-status
 
 # Show router status
 python -m router.cli status
@@ -308,18 +336,36 @@ Error: anthropic package not installed
 pip install -r .dev-aid/orchestration/requirements.txt
 ```
 
-### API Key Not Set
+### No Authentication Found
 
 ```
-Error: API key not set for 'anthropic' (expected ANTHROPIC_API_KEY in .env)
+Error: No authentication found for anthropic
 ```
 
-**Fix**:
+**Fix** (choose one method):
+
+**Option 1: Session-Based Auth (Recommended)**
+```bash
+# For Claude (Pro/Max subscriptions)
+claude login
+
+# For Gemini
+gcloud auth application-default login
+
+# Check status
+python -m router.cli auth-status
+```
+
+**Option 2: API Keys**
 1. Add to `.dev-aid/config/.env`:
    ```
    ANTHROPIC_API_KEY=sk-ant-...
+   GOOGLE_API_KEY=...
+   OPENAI_API_KEY=sk-...
    ```
 2. Run test: `python -m router.cli test`
+
+**Note**: Claude Pro/Max users cannot get API keys - use session auth (Option 1)
 
 ### Provider Not Enabled
 
@@ -383,9 +429,11 @@ python -m router.task_classifier
 
 **Status**: ✅ Core Implementation Complete
 - ✅ API clients for all 3 providers (Anthropic, Google, OpenAI)
+- ✅ Session-based authentication (Claude Pro/Max, Gemini CLI, ADC)
+- ✅ System keychain integration (macOS Keychain, Windows Credential Manager, Linux Secret Service)
 - ✅ All three orchestration modes (Solo, Ensemble, Challenger)
 - ✅ Cost tracking and logging
-- ✅ CLI interface
+- ✅ CLI interface with auth-status command
 - ✅ Task classification and routing
 - ✅ Context building with memory bank and skills
 - ✅ MCP integration (see `ROUTER-MCP-INTEGRATION.md`)

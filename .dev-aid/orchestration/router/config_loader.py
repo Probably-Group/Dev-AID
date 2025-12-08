@@ -6,14 +6,21 @@ Loads and validates configuration from:
 - .dev-aid/config/routing.json
 - .dev-aid/config/models.json
 - .dev-aid/config/.env (API keys)
+
+Supports both API key and session-based authentication.
 """
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
+
+from .auth_detector import AuthCredentials, AuthDetector
+
+logger = logging.getLogger(__name__)
 
 
 class ConfigLoader:
@@ -43,6 +50,10 @@ class ConfigLoader:
         self.routing = self._load_json("routing.json")
         self.models = self._load_json("models.json")
         self.orchestration = self._load_json("orchestration.json")
+
+        # Initialize auth detector (lazy-loaded on first use)
+        self.auth_detector = AuthDetector()
+        self._detected_auth: Optional[Dict[str, Optional[AuthCredentials]]] = None
 
     def _find_dev_aid_root(self) -> Path:
         """Find Dev-AID root by looking for .dev-aid directory"""
@@ -169,7 +180,9 @@ class ConfigLoader:
 
     def get_api_key(self, provider: str) -> Optional[str]:
         """
-        Get API key for a provider from environment
+        DEPRECATED: Use get_auth_credentials() instead
+
+        Get API key for a provider from environment (legacy method)
 
         Args:
             provider: Provider name (claude, gemini, openai)
@@ -184,6 +197,41 @@ class ConfigLoader:
             return None
 
         return os.getenv(env_var)
+
+    def get_auth_credentials(self, provider: str) -> Optional[AuthCredentials]:
+        """
+        Get authentication credentials for a provider
+
+        Tries in order:
+        1. Session-based auth (if CLI is authenticated)
+        2. API key (from environment)
+        3. None (provider unavailable)
+
+        Args:
+            provider: Provider name (claude, gemini, openai)
+
+        Returns:
+            AuthCredentials or None
+        """
+        # Lazy-load auth detection (runs once per session)
+        if self._detected_auth is None:
+            logger.info("Detecting authentication for all providers...")
+            self._detected_auth = self.auth_detector.detect_all()
+
+        auth = self._detected_auth.get(provider)
+
+        if auth:
+            logger.info(
+                f"Using {provider} authentication: " f"{auth.auth_type.upper()} from {auth.source}"
+            )
+        else:
+            logger.warning(
+                f"No authentication found for {provider}. "
+                f"Please either: (1) Sign in to {provider} CLI, or "
+                f"(2) Set {provider.upper()}_API_KEY in .env"
+            )
+
+        return auth
 
     def validate_provider(self, provider: str) -> Tuple[bool, str]:
         """

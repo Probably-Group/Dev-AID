@@ -88,6 +88,19 @@ def mock_api_key():
 
 
 @pytest.fixture
+def mock_auth_credentials():
+    """Mock AuthCredentials for testing"""
+    from router.auth_detector import AuthCredentials
+
+    return AuthCredentials(
+        provider="anthropic",
+        auth_type="api_key",
+        credentials={"api_key": "test-api-key-1234567890"},
+        source="test fixture",
+    )
+
+
+@pytest.fixture
 def mock_model_config() -> Dict[str, Any]:
     """Mock model configuration"""
     return {

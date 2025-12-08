@@ -187,5 +187,3 @@ All skills must be registered in `registry/skills-index.json` with:
 
 - [Skill Quick-Start Guide](./SKILL_QUICKSTART.md)
 - [Skill Template](./SKILL_TEMPLATE.md)
-- [Template Comparison](../../temp/TEMPLATE_COMPARISON.md)
-- [Migration Plan](../../temp/SKILL_MIGRATION_PLAN.md)

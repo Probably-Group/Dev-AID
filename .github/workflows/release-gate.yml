@@ -28,6 +28,8 @@ jobs:
           fetch-depth: 0  # Full history for Gitleaks
 
       - name: Run Gitleaks (Full History)
+        # Gitleaks doesn't support 'release' event, skip for releases
+        if: github.event_name != 'release'
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

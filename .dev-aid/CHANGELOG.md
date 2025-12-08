@@ -286,7 +286,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **DEPENDENCY-ISOLATION.md**: Complete three-layer isolation architecture guide
 - **STORAGE-LOCATIONS.md**: Where files are stored and why (5MB vs 2.7GB breakdown)
 - **ROUTER-INSTALL.md**: Step-by-step router installation with isolation benefits
-- **ROUTER-IMPLEMENTATION-PLAN.md**: Full implementation roadmap
+- **router/README.md**: Full implementation roadmap
 - **VENV-INFO.md**: Virtual environment deep-dive (venv vs Anaconda)
 - **Enhanced README**: Native integration positioning, benefits comparison tables
 

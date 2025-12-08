@@ -71,7 +71,7 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 │
 └── docs/                      # ✅ Commit (documentation)
     ├── DEPENDENCY-ISOLATION.md
-    └── ROUTER-IMPLEMENTATION-PLAN.md
+    └── router/README.md
 ```
 
 **Git behavior**:

@@ -6,7 +6,10 @@
 
 > The only AI development framework that works natively inside the tools you already use—no new CLIs to learn, no context switching, just enhanced capabilities where you code.
 
+> 📊 **For Stakeholders & Decision Makers:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for data-driven ROI analysis, industry benchmarks, and cost savings breakdown. Features 5 compelling infographics showing $1.2M+ annual value for 100-developer teams.
+
 *Built for developers who want AI superpowers without the workflow disruption.*
+
 ---
 
 ## 🎯 What is Dev-AID?

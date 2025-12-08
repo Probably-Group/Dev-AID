@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 try:
-    from google import genai
     import openai
     from dotenv import load_dotenv
+    from google import genai
 except ImportError as e:
     print(f"Error: Missing required package: {e}")
     print("Run: pip install -r .dev-aid/orchestration/requirements.txt")

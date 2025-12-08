@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from router.api_clients import GoogleClient, Message
 
+
 def test_google_client():
     """Test Google client with new google-genai SDK"""
 
@@ -28,20 +29,19 @@ def test_google_client():
             api_key=api_key,
             model_config={
                 "provider": "google",
-                "cost_per_1m_tokens": {"input": 0.35, "output": 1.05}
-            }
+                "cost_per_1m_tokens": {"input": 0.35, "output": 1.05},
+            },
         )
         print("✅ Client created successfully")
 
         # Test simple generation
         print("\n🧪 Testing single-turn generation...")
-        messages = [Message(role="user", content="Say 'Hello from Google Gemini!' and nothing else.")]
+        messages = [
+            Message(role="user", content="Say 'Hello from Google Gemini!' and nothing else.")
+        ]
 
         response = client.send_request(
-            messages=messages,
-            model="gemini-2.0-flash-exp",
-            max_tokens=50,
-            temperature=0.0
+            messages=messages, model="gemini-2.0-flash-exp", max_tokens=50, temperature=0.0
         )
 
         print(f"✅ Response received: {response.content[:100]}")
@@ -64,8 +64,10 @@ def test_google_client():
     except Exception as e:
         print(f"\n❌ Test failed: {type(e).__name__}: {str(e)}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     print("=" * 60)

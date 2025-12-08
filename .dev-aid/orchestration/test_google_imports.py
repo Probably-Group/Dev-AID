@@ -8,6 +8,7 @@ from pathlib import Path
 # Add router to path
 sys.path.insert(0, str(Path(__file__).parent))
 
+
 def test_imports():
     """Test that new google-genai imports work"""
     print("🔧 Testing imports...")
@@ -15,6 +16,7 @@ def test_imports():
     try:
         from google import genai
         from google.genai import types
+
         print("✅ google.genai imports successful")
 
         # Verify client can be instantiated
@@ -22,10 +24,7 @@ def test_imports():
         print(f"✅ Client instantiated: {type(client)}")
 
         # Verify types are available
-        config = types.GenerateContentConfig(
-            temperature=0.7,
-            max_output_tokens=100
-        )
+        config = types.GenerateContentConfig(temperature=0.7, max_output_tokens=100)
         print(f"✅ GenerateContentConfig created: {type(config)}")
 
         return True
@@ -36,6 +35,7 @@ def test_imports():
     except Exception as e:
         print(f"❌ Error: {type(e).__name__}: {e}")
         return False
+
 
 def test_client_class():
     """Test that GoogleClient class works with new SDK"""
@@ -49,8 +49,8 @@ def test_client_class():
             api_key="dummy-key-for-testing",
             model_config={
                 "provider": "google",
-                "cost_per_1m_tokens": {"input": 0.35, "output": 1.05}
-            }
+                "cost_per_1m_tokens": {"input": 0.35, "output": 1.05},
+            },
         )
 
         print(f"✅ GoogleClient instantiated: {type(client)}")
@@ -63,8 +63,10 @@ def test_client_class():
     except Exception as e:
         print(f"❌ Error: {type(e).__name__}: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     print("=" * 60)

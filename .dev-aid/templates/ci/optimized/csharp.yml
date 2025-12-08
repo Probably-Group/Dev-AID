@@ -1,0 +1,90 @@
+name: CI (Optimized)
+
+# Optimized for speed:
+# - Concurrency groups (cancel outdated runs)
+# - NuGet cache (faster package restoration)
+# - Parallel builds (--parallel flag)
+# - Explicit ubuntu-22.04 (2-5s savings per job)
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+# Cancel outdated workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy.sarif'
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        dotnet-version: ['6.0', '7.0', '8.0']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet-version }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore dependencies
+        run: {{INSTALL_COMMAND}}
+
+      - name: Build with parallel compilation
+        run: dotnet build --configuration Release --no-restore --parallel
+
+      - name: Format check
+        run: {{LINT_COMMAND}}
+        continue-on-error: true
+
+      - name: Test
+        run: {{TEST_COMMAND}} --no-build
+
+      - name: Generate coverage
+        run: {{COVERAGE_COMMAND}}
+        if: matrix.dotnet-version == '8.0'

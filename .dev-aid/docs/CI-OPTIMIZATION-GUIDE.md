@@ -307,6 +307,186 @@ Total: ~1.5 minutes (parallel execution)
 - ❌ **Windows/macOS runners** - 2-3x more expensive, only if needed
 - ❌ **Self-hosted runners** - Maintenance overhead unless at scale
 
+## 🤖 Automated CI Generation with `--optimize` Flag
+
+Dev-AID includes a smart CI generator that can automatically create optimized workflows for your project—applying all the optimizations described in this guide with a single command!
+
+### Quick Start
+
+```bash
+# Navigate to Dev-AID orchestration directory
+cd .dev-aid/orchestration
+
+# Generate optimized workflow (recommended)
+python ci-generator.py /path/to/your/project --optimize
+
+# Or for current directory
+python ci-generator.py . --optimize
+```
+
+### What Gets Generated
+
+The CI generator:
+1. **Detects your tech stack** - Python, Node.js, Go, Rust, Java, C#, PHP, Ruby, C++
+2. **Identifies package manager** - pip/poetry/uv, npm/pnpm/yarn/bun, cargo, etc.
+3. **Applies tech-stack-specific optimizations** - Different caching strategies per language
+4. **Includes security scanning** - Gitleaks + Trivy by default
+5. **Creates production-ready workflow** - `.github/workflows/ci.yml`
+
+### Optimization Features by Language
+
+**Python:**
+```yaml
+✅ Concurrency groups (cancel outdated runs)
+✅ Virtual environment caching (full .venv cache)
+✅ Shared setup job (install once, reuse 3x)
+✅ Parallel linting (black & isort & flake8 & wait)
+✅ Explicit ubuntu-22.04 (faster startup)
+```
+
+**Node.js:**
+```yaml
+✅ Concurrency groups
+✅ node_modules caching (faster installs)
+✅ Package manager cache (npm/pnpm/yarn/bun)
+✅ Parallel linting (eslint & prettier & tsc & wait)
+✅ Explicit ubuntu-22.04
+```
+
+**Go:**
+```yaml
+✅ Concurrency groups
+✅ Go module cache (automatic)
+✅ Build artifact cache (~/.cache/go-build)
+✅ Parallel checks (gofmt & go vet & wait)
+✅ Explicit ubuntu-22.04
+```
+
+**Rust:**
+```yaml
+✅ Concurrency groups
+✅ Cargo registry cache
+✅ Cargo git index cache
+✅ Build target cache (incremental compilation)
+✅ Parallel checks (cargo fmt & cargo clippy & wait)
+✅ Explicit ubuntu-22.04
+```
+
+**Java (Maven/Gradle):**
+```yaml
+✅ Concurrency groups
+✅ Maven .m2/repository cache
+✅ Parallel builds (mvn -T 1C)
+✅ Explicit ubuntu-22.04
+```
+
+**C#/.NET:**
+```yaml
+✅ Concurrency groups
+✅ NuGet package cache
+✅ Parallel builds (--parallel flag)
+✅ Explicit ubuntu-22.04
+```
+
+### Standard vs Optimized Templates
+
+| Feature | Standard Template | Optimized Template |
+|---------|------------------|-------------------|
+| **Security scanning** | ✅ Gitleaks + Trivy | ✅ Gitleaks + Trivy |
+| **Concurrency groups** | ❌ | ✅ Cancel outdated runs |
+| **Advanced caching** | Basic (package manager) | ✅ Full (venv/node_modules/cargo) |
+| **Parallel execution** | ❌ Sequential | ✅ Parallel linting/checks |
+| **Shared setup job** | ❌ Each job installs | ✅ Install once, reuse |
+| **Runner** | ubuntu-latest | ubuntu-22.04 (faster) |
+| **Expected CI time** | 5 minutes | 1.5-2 minutes |
+
+### Example Output
+
+```bash
+$ python ci-generator.py . --optimize
+
+🔍 Detecting project context...
+✅ Detected: python
+   Package Manager: pip
+   Docker: Yes
+
+⚡ Using optimized template with:
+   - Concurrency groups (cancel outdated runs)
+   - Advanced caching (dependencies + build artifacts)
+   - Parallel execution (linting, testing)
+   - Explicit ubuntu-22.04 (faster startup)
+   - Expected speedup: 40-70% faster CI runs
+
+🛠️  Generating CI workflow...
+✅ Generated: .github/workflows/ci.yml
+   Lines: 183
+
+📋 Commands configured:
+   install: pip install -r requirements.txt
+   test: pytest
+   lint: flake8 .
+   type_check: mypy .
+
+✅ Done! Workflow includes:
+   - Security scanning (Gitleaks + Trivy)
+   - Linting and type checking
+   - Testing across multiple versions
+
+⚡ Optimization features:
+   - Concurrency control for faster iteration
+   - Comprehensive caching for reduced build times
+   - Parallel execution where possible
+   📖 See .dev-aid/docs/CI-OPTIMIZATION-GUIDE.md for details
+```
+
+### When to Use Standard vs Optimized
+
+**Use Standard Template When:**
+- ⚡ Simple project with fast CI already (< 2 min)
+- 🧪 Testing the generator for the first time
+- 📚 Learning GitHub Actions basics
+- 🔒 Strict organizational policies on workflow structure
+
+**Use Optimized Template When:**
+- 🚀 CI is slow (> 3 min) and you want faster feedback
+- 💰 Reducing GitHub Actions costs (for teams/orgs)
+- 🔁 Frequent commits trigger many workflow runs
+- ✅ Ready for production-grade CI/CD
+- 👥 Team project with multiple contributors
+
+### Manual Application
+
+If you prefer to manually apply optimizations to an existing workflow:
+
+1. **Review this guide** - Understand each optimization
+2. **Start with quick wins** - Concurrency groups + explicit ubuntu-22.04
+3. **Add caching** - Tech-stack specific (venv, node_modules, cargo, etc.)
+4. **Enable parallelization** - Linting, testing where applicable
+5. **Test thoroughly** - Ensure caching works correctly
+
+### Troubleshooting
+
+**Issue: Cache not working**
+```bash
+# Check cache key matches file hashes
+# For Python: hashFiles('requirements.txt', 'pyproject.toml')
+# For Node.js: hashFiles('package-lock.json', 'yarn.lock', 'pnpm-lock.yaml')
+# For Rust: hashFiles('**/Cargo.lock')
+```
+
+**Issue: Parallel execution fails**
+```bash
+# Some linters don't support parallel execution
+# Use sequential fallback:
+black --check . && isort --check . && flake8 .
+```
+
+**Issue: ubuntu-22.04 not available**
+```bash
+# Fallback to ubuntu-latest if 22.04 is deprecated
+runs-on: ubuntu-latest  # GitHub will provide latest stable
+```
+
 ## 🔗 References
 
 - [GitHub Actions: Caching dependencies](https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows)

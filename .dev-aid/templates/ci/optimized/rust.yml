@@ -1,0 +1,115 @@
+name: CI (Optimized)
+
+# Optimized for speed:
+# - Concurrency groups (cancel outdated runs)
+# - Comprehensive cargo caching (registry, git, build)
+# - Parallel linting execution (cargo fmt + clippy)
+# - Explicit ubuntu-22.04 (2-5s savings per job)
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+# Cancel outdated workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy.sarif'
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        rust-version: [stable, beta]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust-version }}
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
+
+      - name: Cache cargo index
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-git-
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-${{ matrix.rust-version }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-${{ matrix.rust-version }}-
+
+      - name: Format check & Clippy (parallel)
+        run: |
+          # Run format check
+          cargo fmt -- --check &
+          FMT_PID=$!
+
+          # Run clippy
+          cargo clippy --all-targets --all-features -- -D warnings &
+          CLIPPY_PID=$!
+
+          # Wait for both
+          wait $FMT_PID $CLIPPY_PID
+
+      - name: Build
+        run: cargo build --verbose --release
+
+      - name: Test
+        run: cargo test --verbose
+
+      - name: Security audit
+        if: matrix.rust-version == 'stable'
+        run: |
+          cargo install cargo-audit
+          cargo audit

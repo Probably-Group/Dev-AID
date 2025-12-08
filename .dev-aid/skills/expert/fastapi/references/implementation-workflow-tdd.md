@@ -9,7 +9,7 @@ from app.main import app
 
 @pytest.mark.asyncio
 async def test_create_item_success():
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
         response = await client.post(
             "/items",
             json={"name": "Test Item", "price": 29.99},

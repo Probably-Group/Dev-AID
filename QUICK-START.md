@@ -117,7 +117,7 @@ gcloud auth application-default login  # One-time setup for Gemini
 # ✓ Formatting ✓ Linting ✓ Tests ✓ Coverage
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for full development guide.
+See the repository's documentation for full development guides.
 
 ## Verification
 

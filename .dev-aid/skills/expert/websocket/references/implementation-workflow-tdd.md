@@ -13,7 +13,7 @@ async def test_origin_validation_rejects_invalid():
     """CSWSH prevention - must reject invalid origins."""
     async with AsyncClient(
         transport=ASGITransport(app=app),
-        base_url="http://test"
+        base_url="http://testserver"
     ) as client:
         # This should fail until origin validation is implemented
         with pytest.raises(Exception):

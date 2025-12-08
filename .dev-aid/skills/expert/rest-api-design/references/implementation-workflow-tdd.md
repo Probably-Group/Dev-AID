@@ -14,20 +14,20 @@ from app.main import app
 
 @pytest.mark.asyncio
 async def test_create_user_returns_201():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.post("/api/v1/users", json={"name": "John", "email": "john@example.com"})
     assert response.status_code == 201
     assert "id" in response.json()["data"]
 
 @pytest.mark.asyncio
 async def test_create_user_validates_email():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.post("/api/v1/users", json={"name": "John", "email": "invalid"})
     assert response.status_code == 422
 
 @pytest.mark.asyncio
 async def test_get_user_requires_auth():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get("/api/v1/users/123")
     assert response.status_code == 401
 ```
@@ -56,13 +56,13 @@ async def create_user(request: CreateUserRequest):
 ```python
 @pytest.mark.asyncio
 async def test_get_user_prevents_bola():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get("/api/v1/users/other-id", headers={"Authorization": f"Bearer {user_a_token}"})
     assert response.status_code == 403
 
 @pytest.mark.asyncio
 async def test_list_users_pagination():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         response = await client.get("/api/v1/users?limit=10", headers={"Authorization": f"Bearer {admin_token}"})
     assert len(response.json()["data"]) <= 10
 ```

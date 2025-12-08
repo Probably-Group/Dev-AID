@@ -35,7 +35,7 @@ pip install -r requirements.txt
 
 **Required packages**:
 - `anthropic` - Claude API
-- `google-generativeai` - Gemini API
+- `google-genai` - Gemini API (unified SDK)
 - `openai` - GPT API
 - `python-dotenv` - Environment variables
 - `pydantic` - Data validation

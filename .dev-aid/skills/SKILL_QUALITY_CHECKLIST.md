@@ -24,8 +24,8 @@ brew install shellcheck  # or apt-get install shellcheck
 **Example:**
 ```python
 # ✅ Good - Direct dependencies only
-anthropic==0.39.0  # Requires httpx <0.27
-httpx==0.26.0      # <0.27 for anthropic compatibility
+anthropic==0.75.0  # Compatible with httpx 0.28+
+httpx==0.28.1      # Modern HTTP client
 
 # ❌ Bad - Manually pinning transitive deps
 urllib3==2.2.3     # Let pip resolve this
@@ -197,7 +197,7 @@ urllib3==2.6.0  # manually pinning transitive dep
 
 ✅ **Do:**
 ```txt
-httpx==0.26.0  # exact pin with reason
+httpx==0.28.1  # exact pin with reason
 # Let pip resolve: urllib3, certifi, etc
 ```
 

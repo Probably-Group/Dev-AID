@@ -13,9 +13,9 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 try:
-    import google.generativeai as genai
     import openai
     from dotenv import load_dotenv
+    from google import genai
 except ImportError as e:
     print(f"Error: Missing required package: {e}")
     print("Run: pip install -r .dev-aid/orchestration/requirements.txt")
@@ -110,14 +110,16 @@ class ModelDiscovery:
             return []
 
         try:
-            genai.configure(api_key=api_key)
+            # Create client (new unified SDK)
+            client = genai.Client(api_key=api_key)
 
             # List available models
-            models = genai.list_models()
+            models = client.models.list()
 
             discovered = []
             for model in models:
-                model_id = model.name.replace("models/", "")
+                # model.name is already cleaned in new SDK (no "models/" prefix)
+                model_id = model.name
 
                 # Only process Gemini models
                 if not model_id.startswith("gemini"):

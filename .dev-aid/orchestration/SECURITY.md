@@ -147,8 +147,8 @@ All dependencies are pinned to **exact versions** in `requirements.txt`.
 # SECURITY: All dependencies are pinned to exact versions for reproducibility.
 # This prevents supply chain attacks and ensures deterministic builds.
 
-anthropic==0.39.0
-google-generativeai==0.1.0rc1
+anthropic==0.75.0
+google-genai==1.53.0
 openai==1.54.5
 pydantic==2.10.3
 ```

@@ -221,14 +221,15 @@ class GoogleClient(BaseAIClient):
         super().__init__(api_key, model_config)
 
         try:
-            import google.generativeai as genai
+            from google import genai
+            from google.genai import types
 
-            genai.configure(api_key=api_key)
-            self.genai = genai
+            # Create client instance (new unified SDK)
+            self.client = genai.Client(api_key=api_key)
+            self.types = types
         except ImportError:
             raise ImportError(
-                "google-generativeai package not installed. "
-                "Install with: pip install google-generativeai"
+                "google-genai package not installed. " "Install with: pip install google-genai"
             )
 
     @track_api_call
@@ -242,9 +243,6 @@ class GoogleClient(BaseAIClient):
     ) -> APIResponse:
         """Send request to Google Gemini API"""
 
-        # Create model instance
-        gemini_model = self.genai.GenerativeModel(model)
-
         # Convert messages to Gemini format
         # Gemini uses a different format - combine messages into conversation
         conversation_parts = []
@@ -254,32 +252,42 @@ class GoogleClient(BaseAIClient):
             if msg.role == "system":
                 system_instruction = msg.content
             elif msg.role == "user":
-                conversation_parts.append({"role": "user", "parts": [msg.content]})
+                conversation_parts.append({"role": "user", "parts": [{"text": msg.content}]})
             elif msg.role == "assistant":
-                conversation_parts.append({"role": "model", "parts": [msg.content]})
+                conversation_parts.append({"role": "model", "parts": [{"text": msg.content}]})
+
+        # Build generation config
+        config = self.types.GenerateContentConfig(
+            temperature=temperature,
+            max_output_tokens=max_tokens,
+            system_instruction=system_instruction if system_instruction else None,
+        )
 
         # For simple single-turn requests
         if len(conversation_parts) == 1 and conversation_parts[0]["role"] == "user":
-            prompt = conversation_parts[0]["parts"][0]
-            if system_instruction:
-                prompt = f"{system_instruction}\n\n{prompt}"
-
-            # Generation config
-            generation_config = {
-                "temperature": temperature,
-                "max_output_tokens": max_tokens,
-            }
+            prompt = conversation_parts[0]["parts"][0]["text"]
 
             # Make API call (timing and error handling via decorator)
-            response = gemini_model.generate_content(prompt, generation_config=generation_config)
+            response = self.client.models.generate_content(
+                model=model, contents=prompt, config=config
+            )
 
             # Extract response
             content = response.text
 
-            # Gemini doesn't return token counts in all responses
-            # We'll estimate or use default values
-            input_tokens = len(prompt.split()) * 1.3  # Rough estimate
-            output_tokens = len(content.split()) * 1.3
+            # Try to get token counts from response
+            input_tokens = getattr(
+                getattr(response, "usage_metadata", None), "prompt_token_count", 0
+            )
+            output_tokens = getattr(
+                getattr(response, "usage_metadata", None), "candidates_token_count", 0
+            )
+
+            # Fallback to estimation if not available
+            if input_tokens == 0:
+                input_tokens = int(len(prompt.split()) * 1.3)
+            if output_tokens == 0:
+                output_tokens = int(len(content.split()) * 1.3)
 
             # Calculate cost
             cost = self.calculate_cost(int(input_tokens), int(output_tokens))
@@ -294,23 +302,36 @@ class GoogleClient(BaseAIClient):
                 metadata={
                     "finish_reason": (
                         getattr(response.candidates[0], "finish_reason", None)
-                        if response.candidates
+                        if hasattr(response, "candidates") and response.candidates
                         else None
                     )
                 },
             )
 
         else:
-            # Multi-turn conversation
-            chat = gemini_model.start_chat(history=conversation_parts[:-1])
-            last_message = conversation_parts[-1]["parts"][0]
-
+            # Multi-turn conversation - send full history
             # Make API call (timing and error handling via decorator)
-            response = chat.send_message(last_message)
+            response = self.client.models.generate_content(
+                model=model, contents=conversation_parts, config=config
+            )
 
             content = response.text
-            input_tokens = len(last_message.split()) * 1.3
-            output_tokens = len(content.split()) * 1.3
+
+            # Try to get token counts
+            input_tokens = getattr(
+                getattr(response, "usage_metadata", None), "prompt_token_count", 0
+            )
+            output_tokens = getattr(
+                getattr(response, "usage_metadata", None), "candidates_token_count", 0
+            )
+
+            # Fallback to estimation
+            if input_tokens == 0:
+                total_input = " ".join([p["parts"][0]["text"] for p in conversation_parts])
+                input_tokens = int(len(total_input.split()) * 1.3)
+            if output_tokens == 0:
+                output_tokens = int(len(content.split()) * 1.3)
+
             cost = self.calculate_cost(int(input_tokens), int(output_tokens))
 
             return APIResponse(
@@ -320,6 +341,13 @@ class GoogleClient(BaseAIClient):
                 tokens_used={"input": int(input_tokens), "output": int(output_tokens)},
                 cost=cost,
                 latency_ms=None,  # Set by decorator
+                metadata={
+                    "finish_reason": (
+                        getattr(response.candidates[0], "finish_reason", None)
+                        if hasattr(response, "candidates") and response.candidates
+                        else None
+                    )
+                },
             )
 
 

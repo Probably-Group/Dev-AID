@@ -11,8 +11,8 @@
 #   4. Test: pytest .dev-aid/orchestration/tests/
 
 # AI Provider SDKs
-anthropic==0.39.0            # Anthropic API (Claude)
-google-generativeai==0.1.0rc1  # Google Gemini API
+anthropic==0.75.0            # Anthropic API (Claude) - Updated for httpx 0.28+ compatibility
+google-genai==1.53.0         # Google Gemini API (Unified SDK)
 openai==1.54.5               # OpenAI API
 
 # Core utilities
@@ -22,11 +22,11 @@ pydantic==2.10.6            # Data validation and settings
 email-validator==2.3.0      # Email validation for Pydantic
 
 # CLI and formatting
-rich==13.9.4                # Pretty terminal output
-typer==0.15.1               # CLI framework
+rich==14.2.0                # Pretty terminal output
+typer==0.20.0               # CLI framework
 
 # HTTP client
-httpx==0.26.0                # Modern HTTP client (used by Anthropic SDK, <0.27 for proxies compatibility)
+httpx==0.28.1                # Modern HTTP client (used by Anthropic, Google, OpenAI SDKs)
 
 # Testing dependencies
 pytest==8.3.5               # Testing framework
@@ -38,7 +38,7 @@ hypothesis==6.113.0          # Property-based testing
 
 # Security & Quality
 bandit==1.7.10              # Security vulnerability scanner
-safety==3.2.11              # Dependency vulnerability scanner
+safety==3.6.2               # Dependency vulnerability scanner
 pip-audit==2.7.3             # Audit pip packages for vulnerabilities
 mypy==1.14.1                # Static type checker
 # types-requests temporarily removed due to urllib3 conflict with vcrpy on Python 3.8

@@ -28,10 +28,10 @@ All dependencies in `requirements.txt` are pinned to **exact versions** (using `
 ### Example
 ```txt
 # ✅ GOOD: Pinned version
-anthropic==0.39.0
+anthropic==0.75.0
 
 # ❌ BAD: Loose constraint (allows breaking changes)
-anthropic>=0.39.0
+anthropic>=0.75.0
 
 # ❌ BAD: Version range (unpredictable)
 anthropic>=0.39.0,<1.0.0
@@ -298,7 +298,7 @@ gh pr create --title "Security: Fix CVE-2025-XXXX" --body "Emergency security up
 pip install --upgrade --upgrade-strategy eager anthropic
 
 # Or specify compatible versions manually
-pip install anthropic==0.40.0 httpx==0.26.0
+pip install anthropic==0.75.0 httpx==0.28.1
 ```
 
 ### Breaking API Changes

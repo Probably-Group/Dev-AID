@@ -483,10 +483,9 @@ Dev-AID provides standalone utility scripts for common development tasks:
 ## 📖 Additional Resources
 
 - [Dev-AID Style Guide](./DEV-AID-STYLE-GUIDE.md)
-- [Claude Code Tresor Commands](../../../../../../claude-code-tresor/commands/)
-- [Creating Custom Commands Guide](./CUSTOM-COMMANDS.md)
+- [Automation Guide](./AUTOMATION-GUIDE.md)
 
 ---
 
-**Last Updated:** 2025-12-06
-**Version:** 1.2.0
+**Last Updated:** 2025-12-08
+**Version:** 1.2.1

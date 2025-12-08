@@ -406,9 +406,9 @@ Claude should:
 
 ## 📚 Related Documentation
 
-- [Orchestration Modes](ORCHESTRATION-MODES.md) - How different modes work
-- [Configuration Guide](CONFIGURATION.md) - All configuration options
-- [Provider Setup](PROVIDER-SETUP.md) - Setting up multiple AI providers
+- [Router MCP Integration](ROUTER-MCP-INTEGRATION.md) - MCP integration guide
+- [Automation Guide](AUTOMATION-GUIDE.md) - Automation workflows and examples
+- [Skills Architecture](SKILLS-ARCHITECTURE.md) - Expert skills system architecture
 
 ---
 

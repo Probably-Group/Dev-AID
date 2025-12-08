@@ -55,7 +55,7 @@ class CostTracker:
         """Load existing cost data from JSON"""
         if self.costs_file.exists():
             try:
-                with open(self.costs_file, "r") as f:
+                with open(self.costs_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except (json.JSONDecodeError, IOError):
                 pass
@@ -66,7 +66,7 @@ class CostTracker:
     def _save_costs(self):
         """Save cost data to JSON"""
         try:
-            with open(self.costs_file, "w") as f:
+            with open(self.costs_file, "w", encoding="utf-8") as f:
                 json.dump(self.costs, f, indent=2)
         except IOError as e:
             print(f"Warning: Could not save costs: {e}")
@@ -120,7 +120,7 @@ class CostTracker:
     def _write_routing_log(self, decision: RoutingDecision):
         """Write routing decision to log file"""
         try:
-            with open(self.routing_log_file, "a") as f:
+            with open(self.routing_log_file, "a", encoding="utf-8") as f:
                 # Format: ISO_timestamp [MODE] Task: task_type | Model: model |
                 # Cost: $X.XXXX | Tokens: I→O | Latency: Xms
                 log_line = (
@@ -235,7 +235,7 @@ class CostTracker:
             return decisions
 
         try:
-            with open(self.routing_log_file, "r") as f:
+            with open(self.routing_log_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Get last N lines

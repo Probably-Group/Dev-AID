@@ -1,6 +1,6 @@
 # Not Implemented Features
 
-**Last Updated**: 2025-12-08
+**Last Updated**: 2025-12-08 (Added TOON Format Integration)
 **Status**: Focused roadmap of pending features
 
 ---
@@ -128,9 +128,119 @@
 
 ---
 
+## ⚡ Performance & Cost Optimization
+
+### 4. TOON Format Integration
+**Status**: 🔴 Not implemented (planned for v1.3.0)
+
+**What is TOON**:
+- **TOON** = Token-Oriented Object Notation
+- Combines YAML (objects) + CSV (arrays) for 40-60% token reduction vs JSON
+- Better accuracy: 73.9% vs 69.7% for JSON
+- TypeScript SDK available: `@toon-format/toon`
+
+**What exists**:
+- ✅ JSON-based prompts and responses (current implementation)
+- ✅ Skills generating structured data (issue analysis, architecture mapping)
+- ✅ Config files in JSON format
+
+**What's planned**:
+Transform high-volume AI interactions to TOON format:
+
+1. **Issue Analysis Output** (`.dev-aid/skills/expert/devsecops-expert/`)
+   - Security findings, vulnerability reports
+   - Estimated savings: 40-50% tokens per analysis
+
+2. **Architecture Mapper** (`.dev-aid/skills/expert/architecture-mapper/`)
+   - Component lists, dependency trees, API endpoint maps
+   - Estimated savings: 50-60% tokens per map
+
+3. **Test Data Factory** (`.dev-aid/skills/expert/test-data-factory/`)
+   - Test fixtures, mock data, test case matrices
+   - Estimated savings: 45-55% tokens per dataset
+
+4. **Skill System Prompts** (structured config sections)
+   - Model lists, routing rules, cost tables
+   - Estimated savings: 40-50% tokens per config
+
+**Example Comparison**:
+
+```json
+// JSON (65 tokens)
+{
+  "models": [
+    {"name": "gpt-4", "cost": 0.03, "speed": "fast"},
+    {"name": "claude-3", "cost": 0.015, "speed": "medium"}
+  ]
+}
+```
+
+```yaml
+# TOON (35 tokens - 46% reduction)
+models:
+name,cost,speed
+gpt-4,0.03,fast
+claude-3,0.015,medium
+```
+
+**Implementation Approach**:
+
+1. **Phase 1: SDK Integration** (2-3 days)
+   - Install `@toon-format/toon` TypeScript SDK
+   - Create Python wrapper for skill prompts
+   - Add TOON encoder/decoder utilities
+
+2. **Phase 2: Skill Conversion** (3-4 days)
+   - Convert high-volume skills to TOON output
+   - Update skill templates with TOON examples
+   - Add TOON format documentation
+
+3. **Phase 3: Config Migration** (2-3 days)
+   - Migrate `.dev-aid/config/models.json` → `models.toon`
+   - Migrate `.dev-aid/config/routing.json` → `routing.toon`
+   - Update config loaders
+
+4. **Phase 4: Testing & Rollout** (2-3 days)
+   - Test token reduction (compare before/after)
+   - Validate accuracy (should improve to 73.9%+)
+   - Monitor cost savings in production
+
+**Target Use Cases** (by token volume):
+| Use Case | Current Tokens/Call | With TOON | Savings | Annual Impact* |
+|----------|---------------------|-----------|---------|----------------|
+| Architecture mapping | 8,000 | 3,500 | 56% | $15,000 |
+| Issue analysis | 5,000 | 2,500 | 50% | $12,000 |
+| Test data generation | 3,000 | 1,500 | 50% | $8,000 |
+| Config prompts | 2,000 | 1,100 | 45% | $5,000 |
+| **TOTAL** | - | - | **48% avg** | **$40,000** |
+
+*Based on 100-developer team, 20 calls/day/developer
+
+**Effort estimate**: 1-2 weeks (10-12 days total)
+
+**Priority**: **High** - Immediate cost savings with minimal implementation risk
+
+**Expected ROI**:
+- Investment: 1-2 weeks developer time (~$4,000-8,000)
+- Annual savings: $30,000-$50,000 (conservative estimate)
+- **Payback period**: 2-3 months
+- 5-year value: $150,000-$250,000
+
+**Dependencies**:
+- TypeScript/Node.js (for SDK)
+- Python wrapper for skill system
+- No breaking changes to existing functionality
+
+**Risks**:
+- ⚠️ Low: TOON SDK actively maintained, proven in production
+- ⚠️ Low: Can roll out incrementally (skill by skill)
+- ⚠️ Low: JSON fallback always available
+
+---
+
 ## 🔐 Enterprise Security Features
 
-### 4. Supply Chain Security & Compliance
+### 5. Supply Chain Security & Compliance
 **Status**: 🟡 Basic security exists, enterprise features missing
 
 **What exists**:
@@ -212,6 +322,7 @@
 
 | Feature | Status | Priority | Effort | Target Users |
 |---------|--------|----------|--------|--------------|
+| TOON Format Integration | 🔴 Not implemented | **High** | 1-2 weeks | All ($30-50K/year savings) |
 | Router E2E Tests | 🟡 Missing | High | 1-2 weeks | All (validates core) |
 | TUI Dashboard | 🔴 Missing | Medium | 1 week | All (better UX) |
 | Windows Testing | 🟡 Untested | Low | 1 week | Windows users only |
@@ -222,29 +333,35 @@
 ## 🎯 Recommended Implementation Order
 
 ### For Individual Developers (Current Focus):
-1. **TUI Dashboard** (1 week) - Quick win, improves daily UX
-2. **Router E2E Tests** (1-2 weeks) - Critical path validation only
-3. Skip Windows testing unless users request it
-4. Skip enterprise security
+1. **TOON Format Integration** (1-2 weeks) - Immediate $30-50K/year savings, 2-3 month payback
+2. **TUI Dashboard** (1 week) - Quick win, improves daily UX
+3. **Router E2E Tests** (1-2 weeks) - Critical path validation only
+4. Skip Windows testing unless users request it
+5. Skip enterprise security
 
 ### For Small Teams (2-5 people):
-1. **Router E2E Tests** (1-2 weeks) - Build confidence
-2. **CI Security Scanning** (2-3 weeks) - Bandit, safety, pip-audit
-3. **TUI Dashboard** (1 week) - Team cost visibility
-4. **SBOM Generation** (1 week) - Compliance documentation
+1. **TOON Format Integration** (1-2 weeks) - Immediate cost savings ($30-50K/year)
+2. **Router E2E Tests** (1-2 weeks) - Build confidence
+3. **CI Security Scanning** (2-3 weeks) - Bandit, safety, pip-audit
+4. **TUI Dashboard** (1 week) - Team cost visibility
+5. **SBOM Generation** (1 week) - Compliance documentation
 
 ### For Enterprises (10+ people):
-1. **CI Security Scanning** (2-3 weeks) - Mandatory
-2. **Router E2E Tests** (1-2 weeks) - Validate before deployment
-3. **SBOM Generation** (1 week) - Compliance requirement
-4. **Supply Chain Security** (2-3 weeks) - Full provenance tracking
-5. **TUI Dashboard** (1 week) - Cost accountability
+1. **TOON Format Integration** (1-2 weeks) - Immediate cost savings ($30-50K/year)
+2. **CI Security Scanning** (2-3 weeks) - Mandatory
+3. **Router E2E Tests** (1-2 weeks) - Validate before deployment
+4. **SBOM Generation** (1 week) - Compliance requirement
+5. **Supply Chain Security** (2-3 weeks) - Full provenance tracking
+6. **TUI Dashboard** (1 week) - Cost accountability
 
 ---
 
 ## 📝 Decision Log
 
-### Why only these 4 items?
+### Why these 5 items?
+
+**Added (December 2025)**:
+- 🆕 TOON Format Integration → Immediate $30-50K/year cost savings, proven technology
 
 **Removed**:
 - ✅ RAG Integration → Already implemented (`.dev-aid/local-search/`)
@@ -257,6 +374,7 @@
 - ❌ 35 Agents → Obsolete, skills paradigm covers this
 
 **Kept**:
+- TOON Format Integration → High ROI, minimal risk, immediate cost impact
 - Router E2E Tests → Validates core functionality
 - TUI Dashboard → Low effort, high value
 - Windows Testing → Depends on user base

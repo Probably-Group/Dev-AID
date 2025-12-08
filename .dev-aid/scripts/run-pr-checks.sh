@@ -38,15 +38,17 @@ if [ -d "$ORCH_DIR" ]; then
     cd "$ORCH_DIR"
 
     # Activate venv if it exists
-    if [ -d "venv/bin/activate" ]; then
+    if [ -f "venv/bin/activate" ]; then
         source venv/bin/activate
+    elif [ -f ".venv/bin/activate" ]; then
+        source .venv/bin/activate
     fi
 
     echo "📦 Running Python checks in orchestration..."
     echo ""
 
     run_check "Black (formatting)" "black --check --diff ."
-    run_check "Flake8 (linting)" "flake8 . --max-line-length=120 --extend-ignore=E203,W503"
+    run_check "Flake8 (linting)" "flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__,.git"
     run_check "MyPy (type checking)" "mypy router --ignore-missing-imports --no-strict-optional"
     run_check "Pytest (tests)" "pytest tests/ -v --tb=short"
     run_check "Coverage (59%+)" "pytest tests/ --cov=router --cov-report=term-missing --cov-fail-under=59"

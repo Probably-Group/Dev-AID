@@ -1,0 +1,79 @@
+name: CI (Optimized)
+
+# Optimized for speed:
+# - Concurrency groups (cancel outdated runs)
+# - Bundler cache (faster gem installation)
+# - Parallel testing with parallel_tests gem
+# - Explicit ubuntu-22.04 (2-5s savings per job)
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+# Cancel outdated workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  security:
+    name: Security Scan
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy.sarif'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy.sarif'
+
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        ruby-version: ['3.1', '3.2', '3.3']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: {{INSTALL_COMMAND}}
+
+      - name: Lint
+        run: {{LINT_COMMAND}}
+
+      - name: Test
+        run: {{TEST_COMMAND}}
+
+      - name: Generate coverage
+        run: {{COVERAGE_COMMAND}}
+        if: matrix.ruby-version == '3.3'

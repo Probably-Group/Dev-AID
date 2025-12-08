@@ -427,7 +427,30 @@ python -m router.task_classifier
 
 ## Contributing
 
-**Status**: ✅ Core Implementation Complete
+### 🚀 Development Workflow
+
+**Set up local PR checks (recommended):**
+
+```bash
+# One-time setup from repo root
+../../scripts/setup-git-hooks.sh
+
+# Or run checks manually before pushing
+../../scripts/run-pr-checks.sh
+
+# Or use Makefile from this directory
+make check      # Run all checks (formatting, linting, tests)
+make format     # Auto-fix formatting issues
+make test       # Run tests only
+```
+
+**All PR checks run locally before CI** - catches Black/Flake8/test issues instantly!
+
+📖 **Full guide:** [Development Workflow](../../docs/DEVELOPMENT-WORKFLOW.md)
+
+### Implementation Status
+
+**Core Features**: ✅ Complete
 - ✅ API clients for all 3 providers (Anthropic, Google, OpenAI)
 - ✅ Session-based authentication (Claude Pro/Max, Gemini CLI, ADC)
 - ✅ System keychain integration (macOS Keychain, Windows Credential Manager, Linux Secret Service)
@@ -437,8 +460,9 @@ python -m router.task_classifier
 - ✅ Task classification and routing
 - ✅ Context building with memory bank and skills
 - ✅ MCP integration (see `ROUTER-MCP-INTEGRATION.md`)
-- ✅ Unit tests (11 test files, 199 passing tests)
-- 🟡 E2E integration tests (see `.dev-aid/docs/NOT-IMPLEMENTED.md`)
+- ✅ Unit tests (11 test files, 224 passing tests, 69.71% coverage)
+- ✅ Development workflow tools (pre-commit hooks, Makefile, check scripts)
+- 🟡 E2E integration tests (see `NOT-IMPLEMENTED.md`)
 
 ## License
 

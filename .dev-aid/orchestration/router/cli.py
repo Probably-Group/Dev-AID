@@ -207,9 +207,6 @@ def cmd_auth_status(args):
         print("🔐 Authentication Status for Dev-AID Router\n")
         print("=" * 90)
 
-        # Load config
-        config = load_config(Path(args.root) if args.root else None)
-
         # Detect authentication for all providers
         from .auth_detector import AuthDetector
 

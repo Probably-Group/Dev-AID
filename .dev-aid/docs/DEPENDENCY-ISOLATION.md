@@ -446,7 +446,7 @@ pip install torch transformers  # Wrong approach
 - [Router Installation Guide](../.dev-aid/orchestration/ROUTER-INSTALL.md)
 - [Virtual Environment Setup](../.dev-aid/orchestration/VENV-INFO.md)
 - [RAG Setup Guide](../.dev-aid/scripts/setup-rag.sh)
-- [Dev-AID Architecture](./DEV-AID-IMPLEMENTATION-PLAN.md)
+- [Dev-AID Architecture](./.dev-aid/docs/SKILLS-ARCHITECTURE.md)
 
 ---
 

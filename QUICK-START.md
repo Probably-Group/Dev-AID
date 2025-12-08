@@ -105,7 +105,7 @@ cat .dev-aid/memory-bank/activeContext.md
 ## Next Steps
 
 - Read [README.md](README.md) for full features
-- Check [DEV-AID-IMPLEMENTATION-PLAN.md](DEV-AID-IMPLEMENTATION-PLAN.md) for architecture
+- Check [.dev-aid/docs/SKILLS-ARCHITECTURE.md](.dev-aid/docs/SKILLS-ARCHITECTURE.md) for architecture
 - See [.dev-aid/docs/CONTEXT-SHARING.md](.dev-aid/docs/CONTEXT-SHARING.md) for multi-model details
 
 ## Troubleshooting

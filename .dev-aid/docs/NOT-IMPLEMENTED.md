@@ -221,20 +221,32 @@ devaid-code-search search "authentication functions"
 
 ## 🧪 Testing Gaps (Need Resources)
 
-### 1. API Integration Tests
-**Status**: 🟡 ZERO COVERAGE
+### 1. Router End-to-End Integration Tests
+**Status**: 🟡 ZERO COVERAGE (Unit tests exist, E2E tests missing)
 
-**What's missing**:
-- Tests with real API keys
-- End-to-end routing tests
-- Error handling with API failures
-- Rate limiting behavior
+**What exists**:
+- ✅ Unit tests with mocks (11 test files, 199 passing tests)
+- ✅ test_modes.py (solo, ensemble, challenger)
+- ✅ test_api_clients.py, test_cost_tracker.py, test_executor.py
+
+**What's missing** - Manual Testing Checklist:
+- [ ] Install Python dependencies in fresh environment
+- [ ] Configure API keys for all 3 providers
+- [ ] Run `/dev-aid-router-ensemble "test request"` and verify correct model selected
+- [ ] Run `/dev-aid-router-challenger "test request"` and verify two-model workflow
+- [ ] Run `/dev-aid-router-solo "test request"` with each provider (Claude, Gemini, OpenAI)
+- [ ] Verify logs created in `.dev-aid/logs/routing.log`
+- [ ] Verify cost tracking written to `.dev-aid/logs/costs.json`
+- [ ] Test fallback behavior when primary model fails
+- [ ] Test with massive context (>100K tokens) routes to Gemini
+- [ ] Test error handling with invalid API keys
+- [ ] Test rate limiting behavior
 
 **Why not implemented**:
 - Costs real API credits
-- Requires test API keys
+- Requires test API keys for 3 providers
 - Risk of key leakage in CI
-- Slow test execution
+- Slow test execution (~30-60s per full suite)
 
 **Questions needing clarification**:
 1. **Where to get test API keys?**

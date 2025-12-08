@@ -286,7 +286,7 @@ python -m router.cli execute "What is 2+2?" --verbose
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| `ROUTER-IMPLEMENTATION-PLAN.md` | Full implementation plan | ✅ Complete |
+| `router/README.md` | Full implementation plan | ✅ Complete |
 | `ROUTER-INSTALL.md` | Installation & setup guide | ✅ Complete |
 | `router/README.md` | Package documentation | ✅ Complete |
 | This file (`ROUTER-STATUS.md`) | Implementation status | ✅ You're reading it |

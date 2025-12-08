@@ -662,7 +662,7 @@ python -m router.cli execute "Implement OAuth2" --mode challenger
 ## 📚 Additional Resources
 
 - **Full Documentation**: `.dev-aid/orchestration/router/README.md`
-- **Implementation Plan**: `.dev-aid/docs/ROUTER-IMPLEMENTATION-PLAN.md`
+- **Implementation Plan**: `.dev-aid/docs/router/README.md`
 - **Architecture Details**: `.dev-aid/orchestration/router/` (source code)
 - **Configuration Reference**: `.dev-aid/config/*.json` files
 

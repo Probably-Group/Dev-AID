@@ -229,8 +229,7 @@ class GoogleClient(BaseAIClient):
             self.types = types
         except ImportError:
             raise ImportError(
-                "google-genai package not installed. "
-                "Install with: pip install google-genai"
+                "google-genai package not installed. " "Install with: pip install google-genai"
             )
 
     @track_api_call
@@ -270,17 +269,19 @@ class GoogleClient(BaseAIClient):
 
             # Make API call (timing and error handling via decorator)
             response = self.client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config=config
+                model=model, contents=prompt, config=config
             )
 
             # Extract response
             content = response.text
 
             # Try to get token counts from response
-            input_tokens = getattr(getattr(response, 'usage_metadata', None), 'prompt_token_count', 0)
-            output_tokens = getattr(getattr(response, 'usage_metadata', None), 'candidates_token_count', 0)
+            input_tokens = getattr(
+                getattr(response, "usage_metadata", None), "prompt_token_count", 0
+            )
+            output_tokens = getattr(
+                getattr(response, "usage_metadata", None), "candidates_token_count", 0
+            )
 
             # Fallback to estimation if not available
             if input_tokens == 0:
@@ -301,7 +302,7 @@ class GoogleClient(BaseAIClient):
                 metadata={
                     "finish_reason": (
                         getattr(response.candidates[0], "finish_reason", None)
-                        if hasattr(response, 'candidates') and response.candidates
+                        if hasattr(response, "candidates") and response.candidates
                         else None
                     )
                 },
@@ -311,16 +312,18 @@ class GoogleClient(BaseAIClient):
             # Multi-turn conversation - send full history
             # Make API call (timing and error handling via decorator)
             response = self.client.models.generate_content(
-                model=model,
-                contents=conversation_parts,
-                config=config
+                model=model, contents=conversation_parts, config=config
             )
 
             content = response.text
 
             # Try to get token counts
-            input_tokens = getattr(getattr(response, 'usage_metadata', None), 'prompt_token_count', 0)
-            output_tokens = getattr(getattr(response, 'usage_metadata', None), 'candidates_token_count', 0)
+            input_tokens = getattr(
+                getattr(response, "usage_metadata", None), "prompt_token_count", 0
+            )
+            output_tokens = getattr(
+                getattr(response, "usage_metadata", None), "candidates_token_count", 0
+            )
 
             # Fallback to estimation
             if input_tokens == 0:
@@ -341,7 +344,7 @@ class GoogleClient(BaseAIClient):
                 metadata={
                     "finish_reason": (
                         getattr(response.candidates[0], "finish_reason", None)
-                        if hasattr(response, 'candidates') and response.candidates
+                        if hasattr(response, "candidates") and response.candidates
                         else None
                     )
                 },

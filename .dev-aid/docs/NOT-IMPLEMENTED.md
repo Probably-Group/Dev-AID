@@ -1,240 +1,26 @@
-# Not Implemented Features - Analysis & Roadmap
+# Not Implemented Features
 
-**Date**: 2025-12-05
-**Version**: 1.1.0
-**Status**: Comprehensive analysis of incomplete features
-
----
-
-## Executive Summary
-
-This document catalogues features that are **documented but not yet implemented** in Dev-AID, explains **why they're not implemented**, and proposes **paths forward** where clarification is needed.
+**Last Updated**: 2025-12-08
+**Status**: Focused roadmap of pending features
 
 ---
 
-## ✅ Recently Completed (2025-12-05)
-
-### 1. Active Skill Detection in Router
-**Status**: ✅ IMPLEMENTED
-
-**What was done**:
-- Added `_detect_active_skills()` method to `context_builder.py`
-- Integrates with `detect-context-enhanced.sh` and `select-skills.sh`
-- Skills now included in AI system prompts
-
-**Location**: `.dev-aid/orchestration/router/context_builder.py:176-234`
-
-### 2. Automated Tests Structure
-**Status**: ✅ IMPLEMENTED
-
-**What was done**:
-- Created 3 comprehensive test files:
-  - `test_context_builder.py` - 15+ test cases
-  - `test_task_classifier.py` - 15+ test cases
-  - `test_cost_tracker.py` - 15+ test cases
-- Added `run_tests.sh` test runner
-- Updated test documentation
-
-**Location**: `.dev-aid/orchestration/tests/`
-
----
-
-## 🚫 Dropped Items
-
-### 1. Interactive Installation Wizard
-**Status**: ❌ DROPPED (per user request)
-
-**Reason**: Manual JSON configuration is sufficient for technical users. Interactive wizard would add complexity without significant benefit.
-
-**Alternative**: Keep current manual configuration with good documentation.
-
----
-
-## 📦 External Dependencies (Cannot Implement Without Source Repos)
-
-### 1. ~~Agent Integration~~ → Skills Migration (COMPLETED 2025-12-05)
-**Status**: ✅ COMPLETED & DEPRECATED
-
-**What was done**:
-- Analyzed 10 agents from external repositories
-- **Deleted 6 redundant agents** (test-engineer, refactor-planner, docs-writer, documentation-architect, performance-tuner, code-architecture-reviewer)
-- **Converted 4 unique agents to skills** using Dev-AID template:
-  - `prompt-engineering-expert` (was prompts-guide) - 69 professional presets
-  - `plan-review-expert` (was plan-reviewer) - Pre-implementation review
-  - `web-research-expert` (was web-research-specialist) - Multi-platform research
-  - `skill-creation-expert` (was agents-guide) - Skill creation wizard
-
-**Why agents were deprecated**:
-- ❌ Weaker than skills (no anti-hallucination protocols)
-- ❌ Manual invocation only (no auto-injection)
-- ❌ Claude-only (not cross-provider)
-- ❌ Inconsistent quality
-
-**New approach - Skills**:
-- ✅ Anti-hallucination protocol (Section 0, mandatory)
-- ✅ Auto-injection via skills-index.json
-- ✅ Cross-provider compatible
-- ✅ 500-line limit with references/ extraction
-- ✅ All 4 new skills registered in skills-index.json
-
-**Location**: `.dev-aid/skills/expert/` (4 new skills)
-**Documentation**: `.dev-aid/documentation/TERMINOLOGY-NOTE.md`
-
-**Source repositories** (credited in skill frontmatter):
-- https://github.com/diet103/claude-code-infrastructure-showcase
-- https://github.com/alirezarezvani/claude-code-tresor
-- https://github.com/alirezarezvani/claude-code-skill-factory
-
-### 2. Additional Commands
-**Status**: 🔴 BLOCKED - Source repositories don't exist
-
-**Missing commands** (from COMPONENTS-MANIFEST.md):
-- Workflow commands: prompt-create, prompt-run, todo-add, todo-check, handoff-create
-- Memory commands: update-memory-bank, cleanup-context
-- Development commands: ~~build-agent~~ (deprecated - use `/dev-aid-build-skill`), validate-output
-
-**Note**: `build-agent` is deprecated. Use `/dev-aid-build-skill` to create skills instead.
-
-**Options**:
-1. **Create from scratch** - Define and implement each command
-2. **Use existing workarounds** - Current system has sufficient commands
-3. **Wait for source repos**
-
-**Recommendation**: **Option 2 - Use existing**. Current 12 commands cover essential functionality.
-
----
-
-## 🔮 Future Features (Need Architectural Decisions)
-
-### 1. RAG Integration / Local Search (COMPLETED 2025-12-06)
-**Status**: ✅ FULLY IMPLEMENTED (Self-Contained)
-
-**What was implemented**:
-- ✅ `router/mcp_client.py` - MCP protocol client (255 lines)
-- ✅ `router/mcp_registry.py` - MCP server discovery (354 lines)
-- ✅ **Self-contained local search** in `.dev-aid/local-search/`:
-  - `embeddings/embedder.py` - EmbeddingGemma integration
-  - `chunking/chunker.py` - Multi-language code parsing
-  - `search/index.py` - FAISS vector search
-  - `mcp_server/server.py` - MCP protocol server
-  - `mcp_server/cli.py` - CLI interface
-- ✅ `setup-rag.sh` - Installs embedded implementation (NO external GitHub dependencies)
-- ✅ Integration with Claude Code and Gemini CLI via MCP
-
-**Key Achievement**:
-Originally depended on external `claude-context-local` GitHub repository. Now **fully embedded and self-contained** in Dev-AID. No external dependencies - all code owned and maintained by Dev-AID project.
-
-**Location**: `.dev-aid/local-search/` (complete implementation)
-**Setup**: `.dev-aid/scripts/setup-rag.sh`
-**Credits**: Inspired by claude-context-local by FarhanAliRaza (MIT License), reimplemented for independence
-
-**Usage**:
-```bash
-# Setup (installs all dependencies locally)
-./.dev-aid/scripts/setup-rag.sh
-
-# CLI usage
-devaid-code-search index .
-devaid-code-search search "authentication functions"
-
-# MCP usage (automatic in Claude Code/Gemini)
-# Just ask questions - AI uses code-search tool automatically
-```
-
-### 2. MCP Integration Infrastructure
-**Status**: 🟡 400+ lines of docs written, zero code
-
-**What's missing**:
-- MCP client implementation
-- MCP registry auto-discovery
-- CLI commands: `mcp discover`, `mcp enable`, `mcp list`
-- Context injection from MCP servers
-
-**Why not implemented**:
-- Waiting for MCP ecosystem to stabilize
-- Claude Code's MCP support is recent
-- Risk of building on moving foundation
-
-**Questions needing clarification**:
-1. **Should we implement custom MCP client or use library?**
-   - A. Custom implementation (full control)
-   - B. Use `mcp` Python package (if exists)
-   - C. Wait for official Anthropic MCP SDK
-
-2. **Which MCP servers to prioritize?**
-   - A. Database (postgres, mysql, sqlite)
-   - B. GitHub (issues, PRs)
-   - C. Code search (dev-aid local)
-   - D. All of the above
-
-3. **How to handle MCP timeouts?**
-   - A. Hard timeout (5s, fail fast)
-   - B. Configurable per-server timeout
-   - C. Async with cancellation
-
-**Proposed approach**:
-- Wait for option 1C (official SDK) - safest bet
-- Implement option 2C (code search) first - highest value
-- Use option 3A (hard timeout) - simplest
-
-**Effort estimate**: 3-4 weeks (after SDK available)
-
-### 3. Web Dashboard for Cost Analytics
-**Status**: 🔴 PLANNED FOR v1.2.0 (Q2 2025)
-
-**What's planned**:
-- Visual cost breakdown by model
-- Performance benchmarking charts
-- Custom routing rules UI
-- Multi-repository RAG dashboard
-
-**Why not implemented**:
-- Current CLI interface works well
-- Web UI adds significant complexity
-- Limited user demand (assumption)
-
-**Questions needing clarification**:
-1. **Is a web dashboard actually needed?**
-   - User feedback: Do technical users prefer CLI or web UI?
-   - Use case: Is this for teams or individuals?
-
-2. **Which framework to use?**
-   - A. Next.js (React)
-   - B. Svelte/SvelteKit
-   - C. Simple Flask + HTML/CSS
-   - D. TUI (terminal UI) with textual/rich
-
-3. **Where should dashboard run?**
-   - A. Local web server (localhost:3000)
-   - B. Static HTML generated on demand
-   - C. Terminal UI (no web server)
-
-**Proposed approach**:
-- **Option D (TUI)** - best fit for CLI-first tool
-- Build with `rich` or `textual` library
-- Reads same `costs.json` and `routing.log`
-- Runs as: `python -m router.dashboard`
-
-**Effort estimate**: 1 week (TUI), 3-4 weeks (web)
-
----
-
-## 🧪 Testing Gaps (Need Resources)
+## 🧪 Testing & Quality Assurance
 
 ### 1. Router End-to-End Integration Tests
-**Status**: 🟡 ZERO COVERAGE (Unit tests exist, E2E tests missing)
+**Status**: 🟡 Unit tests exist (199 passing), E2E tests missing
 
 **What exists**:
-- ✅ Unit tests with mocks (11 test files, 199 passing tests)
+- ✅ Unit tests with mocks (11 test files)
 - ✅ test_modes.py (solo, ensemble, challenger)
 - ✅ test_api_clients.py, test_cost_tracker.py, test_executor.py
 
-**What's missing** - Manual Testing Checklist:
+**What's missing** - E2E Manual Testing Checklist:
 - [ ] Install Python dependencies in fresh environment
-- [ ] Configure API keys for all 3 providers
+- [ ] Configure API keys for all 3 providers (Anthropic, Google, OpenAI)
 - [ ] Run `/dev-aid-router-ensemble "test request"` and verify correct model selected
 - [ ] Run `/dev-aid-router-challenger "test request"` and verify two-model workflow
-- [ ] Run `/dev-aid-router-solo "test request"` with each provider (Claude, Gemini, OpenAI)
+- [ ] Run `/dev-aid-router-solo "test request"` with each provider
 - [ ] Verify logs created in `.dev-aid/logs/routing.log`
 - [ ] Verify cost tracking written to `.dev-aid/logs/costs.json`
 - [ ] Test fallback behavior when primary model fails
@@ -243,231 +29,244 @@ devaid-code-search search "authentication functions"
 - [ ] Test rate limiting behavior
 
 **Why not implemented**:
-- Costs real API credits
+- Costs real API credits (~$5-10 per full test suite run)
 - Requires test API keys for 3 providers
 - Risk of key leakage in CI
 - Slow test execution (~30-60s per full suite)
 
-**Questions needing clarification**:
-1. **Where to get test API keys?**
-   - A. Separate test accounts
-   - B. Sandbox/test mode (if available)
-   - C. Mock servers instead
-
-2. **How to prevent cost runaway?**
-   - A. Strict token limits per test
-   - B. Mock most calls, test few critical paths
-   - C. Run only on release, not every commit
-
-3. **How to secure keys in CI?**
-   - A. GitHub Secrets
-   - B. Environment variables (manual run only)
-   - C. Don't run in CI at all
-
 **Proposed approach**:
-- Use option 1B (sandbox if available) or 1A (separate accounts)
-- Use option 2B (mock most, test critical)
-- Use option 3A (GitHub Secrets) for CI
+- Use separate test accounts with low budget limits
+- Mock most calls, test only critical paths (5-10 scenarios)
+- Use GitHub Secrets for CI
+- Run on release only, not every commit
 
 **Effort estimate**: 1-2 weeks
 
-### 2. Cross-Platform Compatibility
-**Status**: 🟡 TESTED ON LINUX ONLY
+**Priority**: High - validates core router functionality
+
+---
+
+### 2. Cross-Platform Testing - Windows
+**Status**: 🟡 Works on macOS and Linux, Windows untested
+
+**Current support**:
+- ✅ macOS (Darwin) - tested and working
+- ✅ Linux - developed and tested on Linux
+- ❓ Windows - untested, likely requires WSL
 
 **What's missing**:
-- Windows testing
-- macOS testing
-- Path separator handling
-- Shell script compatibility
+- [ ] Windows WSL testing
+- [ ] PowerShell compatibility (if needed)
+- [ ] Path separator handling verification
+- [ ] Windows-specific installation guide
 
 **Why not implemented**:
-- Development on Linux only
-- No access to Windows/macOS environments
-- Bash scripts may not work on Windows
-
-**Questions needing clarification**:
-1. **Should we support Windows?**
-   - User base: Is Windows support required?
-   - If yes, use WSL or native PowerShell?
-
-2. **How to test cross-platform?**
-   - A. GitHub Actions matrix (ubuntu, macos, windows)
-   - B. Docker containers
-   - C. Manual testing
+- No access to Windows environment
+- Bash scripts require WSL on Windows
+- Unknown Windows user base
 
 **Proposed approach**:
-- Support macOS (similar to Linux)
-- Support Windows via WSL (not native)
+- Support Windows via WSL only (not native PowerShell)
 - Document Windows requirements clearly
-- Use GitHub Actions for macOS testing
+- Use GitHub Actions matrix (ubuntu, macos, windows-wsl)
+- Manual testing with Windows users
 
 **Effort estimate**: 1 week
 
-### 3. Load Testing
-**Status**: 🔴 ZERO COVERAGE
+**Priority**: Low - only if Windows users exist
+
+---
+
+## 🎨 User Experience
+
+### 3. TUI Dashboard for Cost Analytics
+**Status**: 🔴 Not implemented (CLI interface works, TUI would be better)
+
+**What exists**:
+- ✅ `python -m router.cli status` - shows costs in plain text
+- ✅ `.dev-aid/logs/routing.log` - human-readable log
+- ✅ `.dev-aid/logs/costs.json` - structured cost data
+
+**What's planned**:
+- Visual cost breakdown by model (bar charts)
+- Performance benchmarking charts
+- Routing decision history
+- Budget tracking with alerts
+- Interactive log viewer
+
+**Why TUI instead of Web**:
+- Fits CLI-first tool philosophy
+- No web server required
+- Faster to implement (1 week vs 3-4 weeks)
+- Uses existing `rich` library (already a dependency)
+
+**Implementation approach**:
+- Build with `textual` or `rich` library
+- Reads same `costs.json` and `routing.log`
+- Runs as: `python -m router.dashboard`
+- Real-time updates (optional)
+
+**Features**:
+```
+┌─ Dev-AID Router Dashboard ─────────────────────────┐
+│ Today's Costs: $2.45 / $100.00 budget (2.45%)      │
+├─────────────────────────────────────────────────────┤
+│ Cost by Model:                                      │
+│ claude-sonnet  ████████████░░░░ $1.20 (49%)       │
+│ gemini-flash   ████░░░░░░░░░░░░ $0.50 (20%)       │
+│ gpt-4o         ██████░░░░░░░░░░ $0.75 (31%)       │
+├─────────────────────────────────────────────────────┤
+│ Requests: 45 total                                  │
+│ Avg Latency: 3.2s                                   │
+│ Tokens: 280K in, 12K out                           │
+└─────────────────────────────────────────────────────┘
+```
+
+**Effort estimate**: 1 week
+
+**Priority**: Medium - nice UX improvement, low effort
+
+---
+
+## 🔐 Enterprise Security Features
+
+### 4. Supply Chain Security & Compliance
+**Status**: 🟡 Basic security exists, enterprise features missing
+
+**What exists**:
+- ✅ Exact version pinning (all 63 dependencies use `==`)
+- ✅ Virtual environment isolation
+- ✅ Gitignored secrets (`.env`, API keys)
+- ✅ Local git hooks (pre-commit security scans)
+- ✅ Security tools: Gitleaks, Trivy, Opengrep, Hadolint, Checkov
 
 **What's missing**:
-- Performance under 100+ requests
-- Memory usage patterns
-- Concurrent request handling
-- Rate limit handling
+- [ ] **SCA (Software Composition Analysis)** in CI/CD
+  - Automated dependency vulnerability scanning
+  - CVE detection and alerting
+  - License compliance checking
+
+- [ ] **SBOM (Software Bill of Materials)** generation
+  - CycloneDX or SPDX format
+  - Dependency tree documentation
+  - Provenance tracking
+
+- [ ] **Supply Chain Security**
+  - Dependency provenance verification
+  - Signature verification for packages
+  - Private PyPI mirror support
+  - Dependency update policies
+
+- [ ] **CI Security Scanning**
+  - Bandit (Python security linting)
+  - Safety (dependency vulnerability DB)
+  - pip-audit (PyPI vulnerability scanner)
+  - Automated security reports
 
 **Why not implemented**:
-- Not critical for MVP
-- Requires load testing infrastructure
-- Costs API credits
+- Primarily built for individual developers
+- Enterprise features require infrastructure investment
+- Unknown demand from teams/enterprises
 
-**Recommended approach**:
-- Use `locust` or `k6` for load testing
-- Test locally with mock responses
-- Measure: latency, memory, throughput
-- Document performance characteristics
+**Target audience question**:
+- Individual developers? → Current security is sufficient
+- Small teams (2-5)? → Add CI scanning
+- Enterprises (10+)? → Full SCA/SBOM/supply chain
 
-**Effort estimate**: 1 week
+**Proposed approach for teams**:
+1. **Phase 1: CI Security Scanning** (2-3 weeks)
+   - Add Bandit, safety, pip-audit to GitHub Actions
+   - Run on every PR and push to main
+   - Fail CI on HIGH/CRITICAL vulnerabilities
+   - Generate security reports
 
----
+2. **Phase 2: SBOM Generation** (1 week)
+   - Use `cyclonedx-bom` or `pip-licenses`
+   - Generate SBOM on release
+   - Publish as artifact
 
-## 🔐 Security Enhancements (Enterprise Features)
+3. **Phase 3: Supply Chain Verification** (2-3 weeks)
+   - Verify package signatures
+   - Pin dependencies with hash verification
+   - Document dependency update policy
+   - Private PyPI mirror support (optional)
 
-### Supply Chain Security Features
-**Status**: 🟡 TODOS in security.md
+**Tools to integrate**:
+- **Bandit**: Python security linting
+- **Safety**: Known vulnerability database
+- **pip-audit**: OSV/PyPI vulnerability scanner
+- **cyclonedx-bom**: SBOM generator (CycloneDX format)
+- **Dependabot**: Automated dependency updates (GitHub)
+- **Snyk**: Commercial SCA (optional)
 
-**Missing features**:
-- Fine-grained permissions
-- Security scanning in CI
-- SCA (Software Composition Analysis) in CI/CD
-- Supply chain security
-- SIEM integration
+**Effort estimate**:
+- CI Scanning: 2-3 weeks
+- SBOM: 1 week
+- Full supply chain: 4-6 weeks total
 
-**Why not implemented**:
-- Enterprise-grade features
-- Target users are individual developers, not enterprises
-- Significant infrastructure investment required
-
-**Questions needing clarification**:
-1. **What is the target user profile?**
-   - A. Individual developers (current focus)
-   - B. Small teams (2-5 people)
-   - C. Enterprises (10+ people)
-
-2. **Which security features are highest priority?**
-   - Rank: CI scanning, SIEM, fine-grained perms, SCA
-
-**Proposed approach**:
-- **For individuals**: Keep current security model
-- **For small teams**: Add CI scanning (Bandit, safety)
-- **For enterprises**: Provide integration guides, not implementations
-
-**Effort estimate**: 2-3 weeks for CI scanning
+**Priority**: Medium-High - depends on target user base (individuals vs teams)
 
 ---
 
-## 📊 Summary Table
+## 📊 Summary
 
-| Feature | Status | Blocking Issue | Recommendation | Effort |
-|---------|--------|----------------|----------------|--------|
-| ✅ Active Skill Detection | Done | - | - | Done |
-| ✅ Automated Tests | Done | - | - | Done |
-| ❌ 35 Agents | Blocked | No source repos | Skip for now | N/A |
-| ❌ 8 Commands | Blocked | No source repos | Skip for now | N/A |
-| 🟡 RAG Integration | Design needed | Architecture decisions | Start with claude-context-local | 2-3 weeks |
-| 🟡 MCP Integration | Waiting | MCP SDK maturity | Wait for official SDK | 3-4 weeks |
-| 🟡 Web Dashboard | User feedback needed | Unclear value | TUI instead of web | 1 week |
-| 🟡 API Integration Tests | Resources needed | API keys, cost | Mock most, test critical paths | 1-2 weeks |
-| 🟡 Cross-Platform | Testing needed | No macOS/Windows access | GitHub Actions for macOS | 1 week |
-| 🔴 Load Testing | Low priority | Not critical | Use locust with mocks | 1 week |
-| 🔐 Supply Chain Security | Target unclear | Enterprise vs individual | CI scanning only | 2-3 weeks |
+| Feature | Status | Priority | Effort | Target Users |
+|---------|--------|----------|--------|--------------|
+| Router E2E Tests | 🟡 Missing | High | 1-2 weeks | All (validates core) |
+| TUI Dashboard | 🔴 Missing | Medium | 1 week | All (better UX) |
+| Windows Testing | 🟡 Untested | Low | 1 week | Windows users only |
+| Enterprise Security (SCA/SBOM) | 🟡 Basic only | Med-High | 4-6 weeks | Teams/Enterprises |
 
 ---
 
-## 🎯 Proposed Implementation Priorities
+## 🎯 Recommended Implementation Order
 
-### High Priority (Next Sprint)
-1. **RAG Integration** - High value, clear approach
-   - Start with `claude-context-local`
-   - Trigger for massive_context tasks only
-   - Fall back gracefully
+### For Individual Developers (Current Focus):
+1. **TUI Dashboard** (1 week) - Quick win, improves daily UX
+2. **Router E2E Tests** (1-2 weeks) - Critical path validation only
+3. Skip Windows testing unless users request it
+4. Skip enterprise security
 
-2. **API Integration Tests** - Critical for confidence
-   - Set up test API keys
-   - Mock most, test critical paths
-   - Add to CI pipeline
+### For Small Teams (2-5 people):
+1. **Router E2E Tests** (1-2 weeks) - Build confidence
+2. **CI Security Scanning** (2-3 weeks) - Bandit, safety, pip-audit
+3. **TUI Dashboard** (1 week) - Team cost visibility
+4. **SBOM Generation** (1 week) - Compliance documentation
 
-### Medium Priority (Next Month)
-3. **Cross-Platform Testing** - Expand user base
-   - Set up GitHub Actions matrix
-   - Test on macOS (similar to Linux)
-   - Document Windows/WSL requirements
-
-4. **TUI Dashboard** - Better UX than web
-   - Build with `rich` or `textual`
-   - Show costs, performance, routing decisions
-   - Runs as `python -m router.dashboard`
-
-### Low Priority (Backlog)
-5. **MCP Integration** - Wait for SDK
-   - Monitor MCP ecosystem
-   - Implement once official SDK available
-
-6. **Load Testing** - Performance validation
-   - Use locust with mocks
-   - Measure latency, memory, throughput
-
-7. **CI Security Scanning** - If targeting teams
-   - Add Bandit, safety, pip-audit
-   - Run on every PR
-
-### Not Recommended
-- ❌ Web Dashboard (TUI is better fit)
-- ❌ 35 Agents from missing repos (no source)
-- ❌ Enterprise SIEM integration (wrong target)
+### For Enterprises (10+ people):
+1. **CI Security Scanning** (2-3 weeks) - Mandatory
+2. **Router E2E Tests** (1-2 weeks) - Validate before deployment
+3. **SBOM Generation** (1 week) - Compliance requirement
+4. **Supply Chain Security** (2-3 weeks) - Full provenance tracking
+5. **TUI Dashboard** (1 week) - Cost accountability
 
 ---
 
-## ✅ Decisions Made (2025-12-05)
+## 📝 Decision Log
 
-### RAG Integration
-- **Backend**: claude-context-local (Option A) ✅
-- **Trigger**: Only for massive_context tasks (Option B) ✅
-- **Failure Handling**: Fall back to memory bank + **notify user with error/explanation** ✅
+### Why only these 4 items?
 
-### MCP Integration
-- **Client**: Use existing `mcp` Python package (not custom) ✅
-- **Priority Servers**: GitHub + Code Search ✅
-- **New Feature**: Build MCP search/install function for https://github.com/modelcontextprotocol/servers ✅
+**Removed**:
+- ✅ RAG Integration → Already implemented (`.dev-aid/local-search/`)
+- ✅ MCP Integration → Already implemented (598 lines of code)
+- ✅ Interactive Installer → Already implemented (install.sh with 6 steps)
+- ✅ Cross-Platform (macOS/Linux) → Already working
+- ❌ Load Testing → Premature optimization, not critical
+- ❌ Web Dashboard → TUI is better fit
+- ❌ Additional Commands → Current 13 commands sufficient
+- ❌ 35 Agents → Obsolete, skills paradigm covers this
 
-### Dashboard
-- **Type**: TUI with rich/textual (Option B) ✅
-
-### API Integration Tests
-- **Approach**: Set up test accounts, mock most calls, test critical paths (Option B) ✅
-
-### Cross-Platform Testing
-- **Windows**: WSL only (Option B) ✅
-- **Testing**: GitHub Actions matrix (ubuntu, macos, windows-wsl) ✅
-
-### Agent Integration (NEW)
-- **Source Repos**: All 4 repositories located ✅
-- **Challenge**: Different quality/approaches, need unification strategy
-- **Repos**:
-  - claude-code-tresor (15 agents)
-  - claude-code-infrastructure-showcase (4 agents)
-  - my-claude-code-setup (4 agents)
-  - claude-code-skill-factory (4 agents)
+**Kept**:
+- Router E2E Tests → Validates core functionality
+- TUI Dashboard → Low effort, high value
+- Windows Testing → Depends on user base
+- Enterprise Security → Depends on target audience (SCA/SBOM specifically requested)
 
 ---
 
-## 📝 Next Steps
+**Next Steps**:
+1. Confirm target user base (individuals, teams, or enterprises)
+2. Prioritize based on user feedback
+3. Implement in order of recommendation
+4. Update this document as features are completed
 
-1. **Review this document** with stakeholders
-2. **Get answers** to critical questions (1-2)
-3. **Prioritize** based on user feedback
-4. **Start with RAG integration** (highest value)
-5. **Add API tests** (build confidence)
-6. **Iterate** based on usage data
-
----
-
-**Last Updated**: 2025-12-05
-**Maintainer**: Dev-AID Team
-**Status**: Living document - update as implementation progresses

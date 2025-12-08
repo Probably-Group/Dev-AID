@@ -103,9 +103,7 @@ class BaseAIClient(ABC):
         self.provider = model_config.get("provider", "unknown")
 
         # Backward compatibility: expose api_key if auth_type is api_key
-        self.api_key = (
-            auth.credentials.get("api_key") if auth.auth_type == "api_key" else None
-        )
+        self.api_key = auth.credentials.get("api_key") if auth.auth_type == "api_key" else None
 
     @abstractmethod
     def send_request(
@@ -455,7 +453,9 @@ class OpenAIClient(BaseAIClient):
         )
 
 
-def create_client(provider: str, auth: AuthCredentials, model_config: Dict[str, Any]) -> BaseAIClient:
+def create_client(
+    provider: str, auth: AuthCredentials, model_config: Dict[str, Any]
+) -> BaseAIClient:
     """
     Factory function to create appropriate AI client
 

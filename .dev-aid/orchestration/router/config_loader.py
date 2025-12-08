@@ -222,8 +222,7 @@ class ConfigLoader:
 
         if auth:
             logger.info(
-                f"Using {provider} authentication: "
-                f"{auth.auth_type.upper()} from {auth.source}"
+                f"Using {provider} authentication: " f"{auth.auth_type.upper()} from {auth.source}"
             )
         else:
             logger.warning(

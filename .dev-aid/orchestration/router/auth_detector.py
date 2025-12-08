@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional
 
 try:
     import keyring
+
     KEYRING_AVAILABLE = True
 except ImportError:
     KEYRING_AVAILABLE = False
@@ -235,7 +236,9 @@ class AuthDetector:
             try:
                 token = keyring.get_password(service, username)
                 if token and len(token) > 10:  # Basic sanity check
-                    logger.debug(f"Found potential Claude token in keychain: service={service}, username={username}")
+                    logger.debug(
+                        f"Found potential Claude token in keychain: service={service}, username={username}"
+                    )
                     return token
             except Exception as e:
                 # Keyring errors are common and not critical

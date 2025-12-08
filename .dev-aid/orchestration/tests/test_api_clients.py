@@ -118,7 +118,9 @@ class TestAnthropicClient:
         assert cost == 0.0
 
     @patch("anthropic.Anthropic")
-    def test_send_request_success(self, mock_anthropic_class, mock_auth_credentials, mock_model_config):
+    def test_send_request_success(
+        self, mock_anthropic_class, mock_auth_credentials, mock_model_config
+    ):
         """Test successful API request"""
         # Mock successful response
         mock_response = Mock()
@@ -208,7 +210,9 @@ class TestAnthropicClient:
             client.send_request(messages, "claude-sonnet-4")
 
     @patch("anthropic.Anthropic")
-    def test_send_request_api_error(self, mock_anthropic_class, mock_auth_credentials, mock_model_config):
+    def test_send_request_api_error(
+        self, mock_anthropic_class, mock_auth_credentials, mock_model_config
+    ):
         """Test handling Anthropic API errors"""
         mock_client = mock_anthropic_class.return_value
         mock_client.messages.create.side_effect = Exception("Rate limit exceeded")

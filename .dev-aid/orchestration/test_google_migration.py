@@ -9,7 +9,7 @@ from pathlib import Path
 # Add router to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from router.api_clients import GoogleClient, Message
+from router.api_clients import GoogleClient, Message  # noqa: E402
 
 
 def test_google_client():

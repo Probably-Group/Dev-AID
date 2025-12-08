@@ -43,13 +43,14 @@ Dev-AID implements a **multi-layer isolation strategy** to ensure your developme
 
 **Dependencies**:
 ```
-anthropic==0.40.0
-google-generativeai==0.8.3
-openai==1.58.1
+anthropic==0.75.0
+google-genai==1.53.0
+openai==1.54.5
 python-dotenv==1.0.1
-pydantic==2.10.3
-rich==13.9.4
-typer==0.15.1
+pydantic==2.10.6
+rich==14.2.0
+typer==0.20.0
+httpx==0.28.1
 ```
 
 **How it works**:

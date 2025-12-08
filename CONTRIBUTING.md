@@ -41,19 +41,83 @@ cd dev-aid
 ./.dev-aid/scripts/reconfigure.sh
 ```
 
+### 🚀 Set Up Development Workflow (Recommended)
+
+**Prevent CI failures by running checks locally:**
+
+```bash
+# One-time setup - Install pre-commit hooks
+./.dev-aid/scripts/setup-git-hooks.sh
+
+# Hooks now run automatically on every commit:
+# ✓ Black formatting   ✓ Flake8 linting
+# ✓ MyPy type checking ✓ Pytest + coverage
+# ✓ Shellcheck         (for bash scripts)
+```
+
+**Manual checks before pushing:**
+```bash
+# Run all PR checks (same as CI)
+./.dev-aid/scripts/run-pr-checks.sh
+
+# Or use Makefile
+cd .dev-aid/orchestration
+make check      # Run all checks
+make format     # Auto-fix formatting issues
+make test       # Run tests only
+make fix        # Auto-fix everything possible
+```
+
+**Why use these tools?**
+- ✅ Catch issues in seconds (not minutes waiting for CI)
+- ✅ Fast feedback loop while you have full context
+- ✅ Prevent wasted CI minutes and broken PRs
+- ✅ Better developer experience
+
+📖 **Full guide:** [Development Workflow](.dev-aid/docs/DEVELOPMENT-WORKFLOW.md)
+
 ## Code Style
 
-- Shell scripts: Follow existing style, use shellcheck
-- Documentation: Clear, concise, with examples
-- Configuration: JSON with comments where helpful
+### Python Code (Router/Orchestration)
+
+- **Formatter:** Black (100 char line length)
+- **Linter:** Flake8 with `--max-line-length=120 --extend-ignore=E203,W503`
+- **Type checking:** MyPy with strict mode
+- **Testing:** Pytest with 59%+ coverage required
+
+**Quick fixes:**
+```bash
+cd .dev-aid/orchestration
+make format     # Auto-fix formatting
+make lint       # Check linting
+```
+
+### Shell Scripts
+
+- Follow existing style, use shellcheck
+- Executable scripts should have `#!/bin/bash` shebang
+- Use `set -e` for error handling
+- Document complex functions
+
+### Documentation
+
+- Clear, concise, with examples
+- Update README.md for user-facing changes
+- Add inline comments for complex logic only
 
 ## Testing Checklist
 
+Before submitting a PR:
+
+- [ ] Pre-commit hooks installed (`./.dev-aid/scripts/setup-git-hooks.sh`)
+- [ ] All local checks pass (`make check` or `./run-pr-checks.sh`)
 - [ ] Install script works from scratch
 - [ ] All orchestration modes work
 - [ ] Reconfiguration preserves memory bank
 - [ ] Documentation is updated
 - [ ] No secrets in commits
+- [ ] Python code: Black formatted, Flake8 clean, MyPy passes, tests pass
+- [ ] Bash scripts: Shellcheck clean
 
 ## Questions?
 

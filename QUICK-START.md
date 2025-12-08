@@ -105,6 +105,20 @@ gcloud auth application-default login  # One-time setup for Gemini
 # Your memory bank and context are preserved!
 ```
 
+## 🛠️ For Contributors
+
+**Set up development workflow to prevent CI failures:**
+
+```bash
+# One-time setup
+./.dev-aid/scripts/setup-git-hooks.sh
+
+# Now all PR checks run automatically on every commit!
+# ✓ Formatting ✓ Linting ✓ Tests ✓ Coverage
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full development guide.
+
 ## Verification
 
 Check your setup:

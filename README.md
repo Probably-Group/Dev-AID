@@ -937,6 +937,32 @@ Skills auto-activate based on file patterns:
 
 ## 🤝 Contributing
 
+### 🚀 Quick Start for Contributors
+
+**Before making changes, set up local PR checks (one-time setup):**
+
+```bash
+# Install pre-commit hooks (runs all CI checks automatically)
+./.dev-aid/scripts/setup-git-hooks.sh
+
+# Now every commit automatically checks:
+# ✓ Black formatting ✓ Flake8 linting ✓ MyPy types ✓ Tests ✓ Coverage
+```
+
+**Or run checks manually before pushing:**
+```bash
+# Run all PR checks locally (same as CI)
+./.dev-aid/scripts/run-pr-checks.sh
+
+# Or use Makefile commands
+cd .dev-aid/orchestration
+make check      # Run all checks
+make format     # Auto-fix formatting
+make test       # Run tests
+```
+
+📖 **Full guide:** [Development Workflow](.dev-aid/docs/DEVELOPMENT-WORKFLOW.md)
+
 ### Adding New Skills
 
 ```bash

@@ -11,8 +11,8 @@
 #   4. Test: pytest .dev-aid/orchestration/tests/
 
 # AI Provider SDKs
-anthropic==0.39.0            # Anthropic API (Claude)
-google-generativeai==0.1.0rc1  # Google Gemini API
+anthropic==0.75.0            # Anthropic API (Claude) - Updated for httpx 0.28+ compatibility
+google-genai==1.53.0         # Google Gemini API (Unified SDK)
 openai==1.54.5               # OpenAI API
 
 # Core utilities
@@ -26,7 +26,7 @@ rich==13.9.4                # Pretty terminal output
 typer==0.15.1               # CLI framework
 
 # HTTP client
-httpx==0.26.0                # Modern HTTP client (used by Anthropic SDK, <0.27 for proxies compatibility)
+httpx==0.28.1                # Modern HTTP client (used by Anthropic, Google, OpenAI SDKs)
 
 # Testing dependencies
 pytest==8.3.5               # Testing framework

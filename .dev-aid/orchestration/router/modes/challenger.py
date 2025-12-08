@@ -83,9 +83,20 @@ class ChallengerMode:
         if not is_valid:
             raise RuntimeError(error)
 
-        # Get API key and create client
-        api_key = self.config.get_api_key(provider)
-        client = create_client(provider, api_key, model_config)
+        # Get authentication credentials and create client
+        auth = self.config.get_auth_credentials(provider)
+        if not auth:
+            return {
+                "success": False,
+                "mode": "challenger",
+                "challenged": False,
+                "error": (
+                    f"No authentication found for {provider}. "
+                    f"Please either: (1) Sign in to {provider} CLI, or "
+                    f"(2) Set {provider.upper()}_API_KEY in .env"
+                ),
+            }
+        client = create_client(provider, auth, model_config)
 
         # Build context
         context = self.context_builder.build_context()
@@ -235,9 +246,18 @@ class ChallengerMode:
         if not is_valid:
             return {"success": False, "error": error}
 
-        # Get API key and create client
-        api_key = self.config.get_api_key(provider)
-        client = create_client(provider, api_key, model_config)
+        # Get authentication credentials and create client
+        auth = self.config.get_auth_credentials(provider)
+        if not auth:
+            return {
+                "success": False,
+                "error": (
+                    f"No authentication found for {provider}. "
+                    f"Please either: (1) Sign in to {provider} CLI, or "
+                    f"(2) Set {provider.upper()}_API_KEY in .env"
+                ),
+            }
+        client = create_client(provider, auth, model_config)
 
         # Build context
         context = self.context_builder.build_context()

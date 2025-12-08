@@ -17,6 +17,7 @@ openai==1.54.5               # OpenAI API
 
 # Core utilities
 python-dotenv==1.0.1        # Load .env files for API keys
+keyring==25.7.0             # Access system keychain for session tokens (Claude Code, etc.)
 requests==2.32.4            # HTTP requests (fallback)
 pydantic==2.10.6            # Data validation and settings
 email-validator==2.3.0      # Email validation for Pydantic

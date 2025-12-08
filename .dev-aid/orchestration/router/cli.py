@@ -201,6 +201,67 @@ def cmd_test(args):
         return 1
 
 
+def cmd_auth_status(args):
+    """Show authentication status for all providers"""
+    try:
+        print("🔐 Authentication Status for Dev-AID Router\n")
+        print("=" * 90)
+
+        # Load config
+        config = load_config(Path(args.root) if args.root else None)
+
+        # Detect authentication for all providers
+        from .auth_detector import AuthDetector
+
+        auth_detector = AuthDetector()
+        detected_auth = auth_detector.detect_all()
+
+        # Get all configured providers
+        all_providers = ["claude", "gemini", "openai"]
+
+        print(f"{'Provider':<15} {'Status':<15} {'Auth Type':<15} {'Source':<45}")
+        print("=" * 90)
+
+        for provider in all_providers:
+            auth = detected_auth.get(provider)
+
+            if auth:
+                status = "✅ Authenticated"
+                auth_type = auth.auth_type.upper()
+                source = auth.source
+
+                # Truncate long source paths
+                if len(source) > 43:
+                    source = "..." + source[-40:]
+
+                print(f"{provider:<15} {status:<15} {auth_type:<15} {source:<45}")
+            else:
+                status = "❌ No Auth"
+                auth_type = "-"
+                source = "Not configured"
+                print(f"{provider:<15} {status:<15} {auth_type:<15} {source:<45}")
+
+        print()
+        print("🔑 Authentication Types:")
+        print("   SESSION  - Authenticated via CLI (claude login, gcloud auth)")
+        print("   API_KEY  - Using API key from environment variable")
+        print("   ADC      - Using Google Application Default Credentials")
+        print()
+        print("💡 Tips:")
+        print("   - Claude: Run 'claude login' or set ANTHROPIC_API_KEY")
+        print("   - Gemini: Run 'gcloud auth application-default login' or set GOOGLE_API_KEY")
+        print("   - OpenAI: Set OPENAI_API_KEY (API key only)")
+        print()
+        print("   Note: ChatGPT Plus does NOT include API access!")
+        print()
+
+        return 0
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
 def cmd_mcp_discover(args):
     """Discover available MCP servers"""
     try:
@@ -343,6 +404,9 @@ Examples:
 
   # Test configuration
   python -m router.cli test
+
+  # Check authentication status
+  python -m router.cli auth-status
         """,
     )
 
@@ -379,6 +443,12 @@ Examples:
     # Test command
     test_parser = subparsers.add_parser("test", help="Test configuration")
     test_parser.set_defaults(func=cmd_test)
+
+    # Auth status command
+    auth_status_parser = subparsers.add_parser(
+        "auth-status", help="Show authentication status for all providers"
+    )
+    auth_status_parser.set_defaults(func=cmd_auth_status)
 
     # MCP commands
     mcp_parser = subparsers.add_parser("mcp", help="Manage MCP server integration")

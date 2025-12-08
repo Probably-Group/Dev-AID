@@ -47,11 +47,23 @@ class SoloMode:
         if not is_valid:
             raise RuntimeError(error)
 
-        # Get API key
-        api_key = self.config.get_api_key(provider)
+        # Get authentication credentials
+        auth = self.config.get_auth_credentials(provider)
+        if not auth:
+            return {
+                "success": False,
+                "mode": "solo",
+                "model": model_name,
+                "provider": provider,
+                "error": (
+                    f"No authentication found for {provider}. "
+                    f"Please either: (1) Sign in to {provider} CLI, or "
+                    f"(2) Set {provider.upper()}_API_KEY in .env"
+                ),
+            }
 
         # Create client
-        client = create_client(provider, api_key, model_config)
+        client = create_client(provider, auth, model_config)
 
         # Build context
         context = self.context_builder.build_context()

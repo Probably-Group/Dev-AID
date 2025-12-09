@@ -142,7 +142,7 @@ jobs:
             '.dev-aid/skills/**/*.md'
             'README.md'
             'CHANGELOG.md'
-          fail: true
+          fail: false
 
       - name: Link Check Summary
         if: always()

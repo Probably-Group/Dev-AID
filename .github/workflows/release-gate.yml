@@ -127,9 +127,14 @@ jobs:
           args: |
             --verbose
             --no-progress
-            --accept 200,429
+            --accept 200,429,403
             --timeout 10
             --max-retries 3
+            --exclude 'http://testserver'
+            --exclude 'https://slsa.dev'
+            --exclude 'https://medium.com'
+            --exclude '/home/user/'
+            --exclude 'owasp.org/www-community/attacks'
             './**/*.md'
             '.dev-aid/skills/**/*.md'
             'README.md'

@@ -299,7 +299,7 @@ cat .dev-aid/CHANGELOG.md
 
 ```bash
 # READ MIGRATION GUIDE FIRST!
-cat .dev-aid/docs/MIGRATION-v2.md
+# Check CHANGELOG.md for breaking changes
 
 # Create backup
 cp -r .dev-aid .dev-aid-v1-backup
@@ -473,10 +473,10 @@ jobs:
 
 ## 🔗 Related Documentation
 
-- [CHANGELOG.md](../CHANGELOG.md) - What's new in each version
-- [MIGRATION-v2.md](./MIGRATION-v2.md) - Major version upgrade guide (when available)
+- [CHANGELOG.md](../../CHANGELOG.md) - What's new in each version
 - [STORAGE-LOCATIONS.md](./STORAGE-LOCATIONS.md) - Where files are stored
 - [DEPENDENCY-ISOLATION.md](./DEPENDENCY-ISOLATION.md) - Virtual environment updates
+- [Skills Architecture](./SKILLS-ARCHITECTURE.md) - Skills system updates
 
 ---
 

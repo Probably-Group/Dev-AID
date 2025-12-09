@@ -1147,9 +1147,9 @@ npm run dev
 [Basic usage examples]
 
 ## Documentation
-- [API Documentation](./docs/API.md)
-- [Architecture](./docs/ARCHITECTURE.md)
-- [Contributing](./CONTRIBUTING.md)
+- [Skills Architecture](./SKILLS-ARCHITECTURE.md)
+- [Automation Guide](./AUTOMATION-GUIDE.md)
+- [CI Optimization Guide](./CI-OPTIMIZATION-GUIDE.md)
 
 ## Tech Stack
 - Frontend: React + TypeScript + TailwindCSS
@@ -1171,7 +1171,7 @@ npm run type-check
 ```
 
 ## Contributing
-See [CONTRIBUTING.md](./CONTRIBUTING.md)
+Contributions are welcome! Please see the main repository README for guidelines.
 
 ## License
 MIT
@@ -1456,12 +1456,12 @@ jobs:
 
 ## Additional Resources
 
-- [Dev-AID Installation Guide](./INSTALLATION.md)
-- [Dev-AID API Reference](./API-REFERENCE.md)
-- [Troubleshooting Guide](./TROUBLESHOOTING.md)
+- [Automation Guide](./AUTOMATION-GUIDE.md)
+- [CI Optimization Guide](./CI-OPTIMIZATION-GUIDE.md)
+- [Development Workflow](./DEVELOPMENT-WORKFLOW.md)
 - [FAQ](./FAQ.md)
 
 ---
 
-**Last Updated:** 2025-11-26
+**Last Updated:** 2025-12-08
 **Version:** 2.1.0

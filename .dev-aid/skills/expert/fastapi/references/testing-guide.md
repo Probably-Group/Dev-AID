@@ -14,7 +14,7 @@ from app.main import app
 @pytest.mark.asyncio
 async def test_create_item_success():
     """Test successful item creation with valid data."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
         response = await client.post(
             "/items",
             json={"name": "Test Item", "price": 29.99},
@@ -28,7 +28,7 @@ async def test_create_item_success():
 @pytest.mark.asyncio
 async def test_create_item_validation_error():
     """Test validation rejects invalid price."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
         response = await client.post(
             "/items",
             json={"name": "Test", "price": -10},
@@ -39,7 +39,7 @@ async def test_create_item_validation_error():
 @pytest.mark.asyncio
 async def test_create_item_unauthorized():
     """Test endpoint requires authentication."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as client:
         response = await client.post("/items", json={"name": "Test", "price": 10})
         assert response.status_code == 401
 ```
@@ -138,7 +138,7 @@ async def client(test_db):
 
     app.dependency_overrides[get_db] = override_get_db
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://testserver") as ac:
         yield ac
 
     app.dependency_overrides.clear()

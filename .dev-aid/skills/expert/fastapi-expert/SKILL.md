@@ -193,7 +193,7 @@ from app.main import app
 async def async_client():
     """Async test client using httpx."""
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         yield client
 
 @pytest.mark.asyncio
@@ -356,7 +356,7 @@ async def test_db():
 async def async_client(test_db):
     """Async client with test database."""
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         yield client
 ```
 

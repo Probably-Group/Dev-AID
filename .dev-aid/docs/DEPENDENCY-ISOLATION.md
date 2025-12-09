@@ -443,12 +443,12 @@ pip install torch transformers  # Wrong approach
 
 ## 🔗 Related Documentation
 
-- [Router Installation Guide](../.dev-aid/orchestration/ROUTER-INSTALL.md)
-- [Virtual Environment Setup](../.dev-aid/orchestration/VENV-INFO.md)
-- [RAG Setup Guide](../.dev-aid/scripts/setup-rag.sh)
-- [Dev-AID Architecture](./.dev-aid/docs/SKILLS-ARCHITECTURE.md)
+- [Router Installation Guide](../orchestration/ROUTER-INSTALL.md)
+- [Virtual Environment Setup](../orchestration/VENV-INFO.md)
+- [RAG Setup Guide](../scripts/setup-rag.sh)
+- [Dev-AID Architecture](./SKILLS-ARCHITECTURE.md)
 
 ---
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2025-12-08
 **Status**: ✅ Production-ready isolation strategy

@@ -352,7 +352,7 @@ This is the first production-ready release of Dev-AID with complete multi-AI orc
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for how to propose changes.
+See the repository documentation for how to propose changes.
 
 ---
 

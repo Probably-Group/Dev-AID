@@ -244,6 +244,6 @@ If you want to use Python directly (for better performance):
 
 ## See Also
 
-- [Skills Registry](../.dev-aid/skills/registry/skills-index.json)
-- [CHANGELOG](../.dev-aid/CHANGELOG.md) - Version 1.2.0 details
-- [Refactoring Expert Skill](../.dev-aid/skills/expert/refactoring-expert/SKILL.md)
+- [Skills Registry](../skills/registry/skills-index.json)
+- [CHANGELOG](../../CHANGELOG.md) - Version 1.2.0 details
+- [Refactoring Expert Skill](../skills/expert/refactoring-expert/SKILL.md)

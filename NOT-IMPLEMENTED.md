@@ -186,7 +186,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - Google ADC already supported by `google-genai` SDK
 - Claude session token format needs investigation
 
-**Full Design Document**: [SESSION-AUTH-DESIGN.md](../.dev-aid/docs/SESSION-AUTH-DESIGN.md)
+**Full Design Document**: [SESSION-AUTH-DESIGN.md](.dev-aid/docs/SESSION-AUTH-DESIGN.md)
 
 ---
 

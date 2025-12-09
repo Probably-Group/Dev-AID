@@ -258,7 +258,7 @@ rm -rf .dev-aid/orchestration/.venv
 
 ### Complete Isolation Documentation
 
-See [DEPENDENCY-ISOLATION.md](../../docs/DEPENDENCY-ISOLATION.md) for:
+See [DEPENDENCY-ISOLATION.md](../docs/DEPENDENCY-ISOLATION.md) for:
 - Complete architecture breakdown
 - venv vs Anaconda comparison
 - Troubleshooting dependency issues

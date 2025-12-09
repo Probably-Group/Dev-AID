@@ -308,7 +308,7 @@ from src.main import app
 
 @pytest.fixture
 async def client():
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
         yield client
 
 class TestGraphQLEndpoint:

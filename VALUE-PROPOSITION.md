@@ -1378,7 +1378,7 @@ Savings: 66% cheaper + 10× better
 ## Documentation
 
 **Core Guides:**
-- [Quick Start](.dev-aid/docs/QUICK-START.md) - 5-minute setup
+- [Quick Start](QUICK-START.md) - 5-minute setup
 - [Automation Guide](.dev-aid/docs/AUTOMATION-README.md) - Issues, conflicts, GitHub Actions
 - [RAG Setup](.dev-aid/RAG-SETUP.md) - Local semantic search
 - [Router Installation](.dev-aid/orchestration/ROUTER-INSTALL.md) - Multi-AI routing

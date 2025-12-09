@@ -27,7 +27,7 @@ from app.main import app
 @pytest.fixture
 async def client():
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
 
 @pytest.mark.asyncio
@@ -167,7 +167,7 @@ async def test_db():
 async def client(test_db):
     """Create test client for each test."""
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as ac:
         yield ac
 
 @pytest.fixture

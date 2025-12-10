@@ -34,15 +34,17 @@ from typing import Dict, Optional, List
 
 class Color:
     """ANSI color codes"""
-    GREEN = '\033[0;32m'
-    BLUE = '\033[0;34m'
-    YELLOW = '\033[1;33m'
-    RED = '\033[0;31m'
-    NC = '\033[0m'
+
+    GREEN = "\033[0;32m"
+    BLUE = "\033[0;34m"
+    YELLOW = "\033[1;33m"
+    RED = "\033[0;31m"
+    NC = "\033[0m"
 
 
 class GitHubRateLimitError(Exception):
     """Raised when GitHub API rate limit is exceeded"""
+
     pass
 
 
@@ -73,11 +75,9 @@ class GitHubClient:
         """
         try:
             import subprocess
+
             result = subprocess.run(
-                ["git", "remote", "get-url", "origin"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5
             )
 
             if result.returncode == 0:
@@ -103,7 +103,10 @@ class GitHubClient:
         repo = os.getenv("DEV_AID_REPO")
         if not repo:
             print(f"{Color.RED}❌ Could not detect repository{Color.NC}", file=sys.stderr)
-            print("   Set DEV_AID_REPO environment variable or run from git repository", file=sys.stderr)
+            print(
+                "   Set DEV_AID_REPO environment variable or run from git repository",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         return repo
@@ -154,7 +157,10 @@ class GitHubClient:
                 print("   Check DEV_AID_REPO environment variable", file=sys.stderr)
                 sys.exit(1)
             else:
-                print(f"{Color.RED}❌ GitHub API error: {e.code} {e.reason}{Color.NC}", file=sys.stderr)
+                print(
+                    f"{Color.RED}❌ GitHub API error: {e.code} {e.reason}{Color.NC}",
+                    file=sys.stderr,
+                )
                 raise
 
         except URLError as e:
@@ -197,7 +203,7 @@ class GitHubClient:
             Version string (e.g., "1.4.0")
         """
         release = self.get_latest_release()
-        return release["tag_name"].lstrip('v')
+        return release["tag_name"].lstrip("v")
 
     def list_releases(self, limit: int = 10) -> List[dict]:
         """
@@ -212,7 +218,9 @@ class GitHubClient:
         url = f"{self.api_base}/releases?per_page={limit}"
         return self._make_request(url)
 
-    def download_asset(self, asset_name: str, output_path: Path, show_progress: bool = True) -> None:
+    def download_asset(
+        self, asset_name: str, output_path: Path, show_progress: bool = True
+    ) -> None:
         """
         Download a specific release asset
 
@@ -227,10 +235,7 @@ class GitHubClient:
         release = self.get_latest_release()
 
         # Find asset
-        asset = next(
-            (a for a in release["assets"] if a["name"] == asset_name),
-            None
-        )
+        asset = next((a for a in release["assets"] if a["name"] == asset_name), None)
 
         if not asset:
             available = [a["name"] for a in release["assets"]]
@@ -242,7 +247,9 @@ class GitHubClient:
         size = asset["size"]
 
         if show_progress:
-            print(f"{Color.BLUE}📥 Downloading {asset_name} ({self._format_size(size)})...{Color.NC}")
+            print(
+                f"{Color.BLUE}📥 Downloading {asset_name} ({self._format_size(size)})...{Color.NC}"
+            )
 
         # Download with progress
         req = Request(url)
@@ -258,7 +265,7 @@ class GitHubClient:
                 chunk_size = 8192
                 downloaded = 0
 
-                with open(output_path, 'wb') as f:
+                with open(output_path, "wb") as f:
                     while True:
                         chunk = response.read(chunk_size)
                         if not chunk:
@@ -299,10 +306,7 @@ class GitHubClient:
         checksum_asset = None
 
         for name in checksum_names:
-            checksum_asset = next(
-                (a for a in release["assets"] if a["name"] == name),
-                None
-            )
+            checksum_asset = next((a for a in release["assets"] if a["name"] == name), None)
             if checksum_asset:
                 break
 
@@ -315,7 +319,7 @@ class GitHubClient:
 
         try:
             with urlopen(url, timeout=10) as response:
-                content = response.read().decode('utf-8')
+                content = response.read().decode("utf-8")
         except Exception as e:
             print(f"{Color.YELLOW}⚠️  Could not fetch checksums: {e}{Color.NC}", file=sys.stderr)
             return {}
@@ -331,7 +335,7 @@ class GitHubClient:
             parts = line.split(None, 1)
             if len(parts) == 2:
                 hash_val = parts[0]
-                filename = parts[1].lstrip('*')  # Remove * from binary mode indicator
+                filename = parts[1].lstrip("*")  # Remove * from binary mode indicator
                 checksums[filename] = hash_val
 
         return checksums
@@ -368,13 +372,13 @@ class GitHubClient:
             "limit": core["limit"],
             "remaining": core["remaining"],
             "reset": core["reset"],
-            "reset_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(core["reset"]))
+            "reset_time": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(core["reset"])),
         }
 
     @staticmethod
     def _format_size(bytes: int) -> str:
         """Format byte size as human-readable string"""
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if bytes < 1024.0:
                 return f"{bytes:.1f} {unit}"
             bytes /= 1024.0
@@ -385,9 +389,13 @@ class GitHubClient:
         """Show download progress bar"""
         bar_length = 50
         filled = int(bar_length * percent / 100)
-        bar = '=' * filled + ' ' * (bar_length - filled)
+        bar = "=" * filled + " " * (bar_length - filled)
 
-        print(f"\r[{bar}] {percent:.1f}% ({GitHubClient._format_size(downloaded)}/{GitHubClient._format_size(total)})", end='', flush=True)
+        print(
+            f"\r[{bar}] {percent:.1f}% ({GitHubClient._format_size(downloaded)}/{GitHubClient._format_size(total)})",
+            end="",
+            flush=True,
+        )
 
 
 def main():

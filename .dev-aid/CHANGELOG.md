@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.1] - 2025-12-10
+
+### Added
+- **Optimized CI Workflow**: New `CI (Optimized)` template with advanced caching, concurrency groups, and parallel execution support
+  - 40-70% faster execution times
+  - Automated dependency caching for Python and Node.js
+  - Smart concurrency to cancel outdated builds
+- **Parallel Testing Support**: Integrated `pytest-xdist` into optimized CI templates
+  - Auto-detection of CPU cores for parallel test execution
+  - Significant reduction in test suite runtime
+- **Enhanced Linting Configuration**: Updated `flake8` configuration in CI generator
+  - Automatically excludes `.venv`, `venv`, and `.env` directories
+  - Prevents false positive linting errors from virtual environment files
+
+### Fixed
+- **CI Workflow Bugs**: Resolved issue where `pytest-xdist` was missing in optimized workflows
+- **Cache Invalidation**: Fixed persistent cache issues by implementing versioned cache keys
+- **Linting Noise**: Eliminated thousands of linting errors by properly excluding virtual environments
+
 ## [1.2.0] - 2025-12-06
 
 ### Added

@@ -211,6 +211,30 @@ jobs:
             fi
           fi
 
+          # Check Hadolint for ERROR severity issues
+          if [ -f "hadolint-report.json" ]; then
+            # Hadolint JSON format: array of issues with "level" field
+            ERRORS=$(jq -r '[.[] | select(.level == "error")] | length' hadolint-report.json 2>/dev/null || echo "0")
+            if [ "$ERRORS" -gt 0 ]; then
+              echo "❌ $ERRORS critical Dockerfile issue(s)!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+          fi
+
+          # Check Checkov for CRITICAL/HIGH severity failures
+          if [ -f "checkov-report.json" ]; then
+            # Checkov can output array or object format, handle both
+            CHECKOV_TYPE=$(jq -r 'type' checkov-report.json)
+            if [ "$CHECKOV_TYPE" = "object" ]; then
+              # Object format: check summary.failed and results for severity
+              CRITICAL_IaC=$(jq -r '[.results.failed_checks[]? | select(.severity == "CRITICAL" or .severity == "HIGH")] | length' checkov-report.json 2>/dev/null || echo "0")
+              if [ "$CRITICAL_IaC" -gt 0 ]; then
+                echo "❌ $CRITICAL_IaC critical/high IaC issue(s)!"
+                CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+              fi
+            fi
+          fi
+
           if [ $CRITICAL_ISSUES -gt 0 ]; then
             echo ""
             echo "🚨 $CRITICAL_ISSUES critical security issue(s) found!"

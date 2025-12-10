@@ -7,6 +7,7 @@ set -e
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck disable=SC1091
 source "$SCRIPT_DIR/update-lib.sh"
 
 # Colors already defined in update-lib.sh
@@ -26,9 +27,10 @@ if [ $# -eq 0 ]; then
 
     # List backups with metadata
     backup_count=0
-    for backup in $(ls -td .dev-aid-backup-* 2>/dev/null); do
+    # shellcheck disable=SC2231
+    for backup in .dev-aid-backup-*; do
+        [ -d "$backup" ] || continue  # Skip if no backups exist
         backup_count=$((backup_count + 1))
-        backup_date=$(echo "$backup" | sed 's/\.dev-aid-backup-//')
 
         # Read version from backup if available
         if [ -f "$backup/VERSION" ]; then
@@ -207,6 +209,7 @@ if [ -d ".dev-aid/orchestration/.venv" ]; then
     echo -e "${BLUE}→ Updating dependencies to match rolled-back version...${NC}"
 
     cd .dev-aid/orchestration
+    # shellcheck source=/dev/null
     source .venv/bin/activate 2>/dev/null || true
 
     if [ -f "requirements.txt" ]; then

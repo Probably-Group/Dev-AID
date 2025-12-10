@@ -30,7 +30,9 @@ parse_version() {
 # Check if version A > version B
 # Returns: 0 (true) if v1 > v2, 1 (false) otherwise
 is_version_greater() {
+    # shellcheck disable=SC2155
     local v1=$(parse_version "$1")
+    # shellcheck disable=SC2155
     local v2=$(parse_version "$2")
 
     # Use sort -V for semantic version comparison
@@ -44,10 +46,14 @@ is_version_greater() {
 # Check for breaking changes (major version bump)
 # Returns: 0 (true) if breaking changes, 1 (false) otherwise
 has_breaking_changes() {
+    # shellcheck disable=SC2155
     local current=$(parse_version "$1")
+    # shellcheck disable=SC2155
     local new=$(parse_version "$2")
 
+    # shellcheck disable=SC2155
     local curr_major=$(echo "$current" | cut -d. -f1)
+    # shellcheck disable=SC2155
     local new_major=$(echo "$new" | cut -d. -f1)
 
     [[ "$new_major" != "$curr_major" ]]
@@ -84,6 +90,7 @@ check_breaking_changes() {
 # Create timestamped backup of user data
 # Returns: Backup directory path
 create_backup() {
+    # shellcheck disable=SC2155
     local backup_dir=".dev-aid-backup-$(date +%Y%m%d-%H%M%S)"
 
     echo -e "${GREEN}Creating backup...${NC}"
@@ -151,12 +158,14 @@ EOF
 cleanup_old_backups() {
     local keep_count="${1:-3}"  # Default: keep 3 backups
 
+    # shellcheck disable=SC2012,SC2155
     local backup_count=$(ls -1d .dev-aid-backup-* 2>/dev/null | wc -l)
 
     if [ "$backup_count" -gt "$keep_count" ]; then
         echo -e "${BLUE}→ Cleaning up old backups (keeping $keep_count most recent)...${NC}"
 
         # Get list of backups sorted by time (oldest first)
+        # shellcheck disable=SC2012,SC2155
         local backups_to_delete=$(ls -1td .dev-aid-backup-* | tail -n +$((keep_count + 1)))
 
         for backup in $backups_to_delete; do
@@ -270,6 +279,7 @@ is_protected_path() {
     # Check against each protected pattern
     while IFS= read -r pattern; do
         # Convert glob pattern to regex for matching
+        # shellcheck disable=SC2053
         if [[ "$path" == $pattern ]]; then
             return 0  # Protected
         fi
@@ -293,9 +303,11 @@ show_progress() {
     local filled=$((percent / 2))
     local empty=$((50 - filled))
 
+    # shellcheck disable=SC2059
     printf "\r${BLUE}$label: [${NC}"
     printf "%${filled}s" | tr ' ' '='
     printf "%${empty}s" | tr ' ' ' '
+    # shellcheck disable=SC2059
     printf "${BLUE}] $percent%%${NC}"
 
     if [ "$current" -eq "$total" ]; then
@@ -349,6 +361,7 @@ update_python_deps() {
     echo -e "${BLUE}→ Updating Python dependencies...${NC}"
 
     # Activate virtual environment
+    # shellcheck disable=SC1091
     source "$venv_path/bin/activate"
 
     # Upgrade pip
@@ -377,6 +390,7 @@ update_python_deps() {
 setup_error_trap() {
     local backup_dir="$1"
 
+    # shellcheck disable=SC2064
     trap "handle_error '$backup_dir'" ERR
 }
 

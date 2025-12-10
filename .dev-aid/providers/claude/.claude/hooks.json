@@ -1,0 +1,8 @@
+{
+  "on_session_start": [
+    {
+      "command": "./.dev-aid/scripts/check-updates.sh --silent",
+      "description": "Check for Dev-AID updates (weekly, cached)"
+    }
+  ]
+}

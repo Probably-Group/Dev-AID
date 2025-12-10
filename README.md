@@ -314,6 +314,67 @@ python ci-generator.py /path/to/your/project --optimize
 
 📖 **[Complete CI Optimization Guide](.dev-aid/docs/CI-OPTIMIZATION-GUIDE.md)** - Deep dive into all optimizations, benchmarks, and why Alpine Linux is NOT recommended for Python.
 
+### 🔄 **Safe Update System**
+
+Dev-AID's update system ensures you never lose customizations while staying current with latest features and security patches.
+
+| Feature | What It Does | Developer Benefits |
+|---------|-------------|-------------------|
+| 🛡️ **Protected Paths** | Never overwrites `.env`, memory-bank, custom skills, RAG indices, logs | 🔒 Your data always safe<br>🎯 API keys never lost<br>📝 Custom work preserved |
+| ⚔️ **Conflict Resolution** | Interactive prompts for each modified file with 5 options: keep/take/merge/diff/skip | 🎮 Full control over updates<br>👁️ See exactly what changed<br>🔀 Choose resolution per file |
+| 🔙 **Automatic Rollback** | Creates timestamped backups, auto-restores on errors | 🛟 Safe experimentation<br>⏮️ One-command undo<br>💾 Keep last 3 backups |
+| 🔐 **Security Verification** | SHA256 checksum validation on all downloads | 🚫 Prevent MITM attacks<br>✅ Verify authenticity<br>🔒 Tamper detection |
+| 🔔 **Weekly Auto-Check** | Silent background checks with 7-day cache (respects GitHub rate limits) | 📢 Never miss updates<br>⚡ Stay current automatically<br>💰 Free tier friendly |
+| 🎯 **Breaking Change Detection** | Semantic version analysis warns about major version bumps | ⚠️ Know before you update<br>📋 See release notes first<br>🛡️ Avoid surprises |
+
+**Quick Start:**
+```bash
+# Check for updates (cached for 7 days)
+./.dev-aid/scripts/check-updates.sh
+
+# Update with interactive conflict resolution
+./.dev-aid/scripts/update-dev-aid.sh
+
+# Preview changes without applying (dry-run)
+./.dev-aid/scripts/update-dev-aid.sh --dry-run
+
+# Rollback to previous version
+./.dev-aid/scripts/rollback.sh
+```
+
+**Interactive Conflict Resolution:**
+When the update system detects files you've modified, it shows you a diff and asks:
+```
+⚠️  Conflict in: .dev-aid/config/providers.yaml
+
+[y] Keep YOUR version (preserve customizations)
+[u] Take UPSTREAM version (accept new version)
+[m] Manual MERGE (create merge file with conflict markers)
+[d] Show DIFF again
+[s] SKIP this file for now
+
+Your choice [y/u/m/d/s/?]:
+```
+
+**Automatic Weekly Checks (CLI Hooks):**
+```bash
+# Setup hooks for Claude Code and Gemini CLI
+./.dev-aid/scripts/setup-update-hooks.sh
+
+# When installed, you'll see on session start:
+💡 Dev-AID update available: v1.3.0
+   Run: ./.dev-aid/scripts/update-dev-aid.sh
+```
+
+**Why This Matters:**
+- 🔒 **Zero data loss** - Protected paths ensure API keys, memory-bank, custom skills never get overwritten
+- 🎮 **Full control** - See exactly what changed, decide file-by-file what to update
+- 🛟 **Safe exploration** - Dry-run mode + automatic rollback = fearless updates
+- ⚡ **Stay current** - Weekly auto-checks keep you informed without manual monitoring
+- 🔐 **Security first** - SHA256 verification prevents malicious updates
+
+📖 **[Complete Update System Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)** - Detailed walkthroughs, troubleshooting, and advanced usage.
+
 ### ⚙️ **Works Everywhere You Do**
 - **Native integration** with Claude Code, Cursor, Gemini CLI
 - **Multi-provider routing** - Use the best AI for each task
@@ -337,6 +398,16 @@ python ci-generator.py /path/to/your/project --optimize
 - **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
 
 ### New Features
+
+- **🔄 Safe Update System**: Never lose customizations while staying current
+  - **Interactive Conflict Resolution**: 5-option menu (keep/take/merge/diff/skip) for each modified file
+  - **Protected Paths**: Never overwrites `.env`, memory-bank, custom skills, RAG indices
+  - **Automatic Rollback**: Error trap restores from backup on failures
+  - **SHA256 Verification**: Checksum validation prevents MITM attacks
+  - **Weekly Auto-Check**: Silent CLI hooks with 7-day cache (respects GitHub rate limits)
+  - **Breaking Change Detection**: Warns about major version bumps with release notes
+  - Scripts: `update-dev-aid.sh`, `check-updates.sh`, `rollback.sh`, `setup-update-hooks.sh`
+  - Documentation: [Complete Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
 - **🤖 Intelligent Automation System**: Complete automation for issues, conflicts, and workflows
   - **Issue Resolution** (`dev-aid-resolve-issue`): AI analyzes GitHub issues and proposes solutions

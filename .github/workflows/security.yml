@@ -51,7 +51,9 @@ jobs:
 
       - name: Install Security Tools
         run: |
-          pip install checkov semgrep
+          pip install checkov
+          # Install Opengrep (open-source fork of Semgrep OSS)
+          pip install opengrep
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
@@ -61,14 +63,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Semgrep (SAST)
-        id: semgrep
+      - name: Run Opengrep (SAST)
+        id: opengrep
         continue-on-error: true
         run: |
           # Use explicit, strict rulesets instead of --config=auto
           # This ensures high-value security and quality checks specific to our stack
           # Note: SARIF format excluded (requires GitHub Advanced Security license)
-          semgrep scan \
+          # Opengrep is the open-source fork of Semgrep OSS, maintaining compatibility with existing rules
+          opengrep \
             --config=p/security-audit \
             --config=p/python \
             --config=p/bash \
@@ -149,10 +152,10 @@ jobs:
             fi
           fi
 
-          # Semgrep
+          # Opengrep
           if [ -f "semgrep.json" ]; then
             FINDINGS=$(jq '.results | length' semgrep.json)
-            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Trivy
@@ -178,13 +181,19 @@ jobs:
         run: |
           CRITICAL_ISSUES=0
 
-          # Check Gitleaks
-          if [ "$GITLEAKS_FAILED" = "true" ]; then
-            echo "❌ Secrets found!"
+          # Check Gitleaks - check if results file exists and contains findings
+          if [ -f "gitleaks-report.json" ]; then
+            LEAKS=$(jq 'length' gitleaks-report.json)
+            if [ "$LEAKS" -gt 0 ]; then
+              echo "❌ $LEAKS secret(s) found!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+          elif [ "${{ steps.gitleaks.outcome }}" = "failure" ]; then
+            echo "❌ Gitleaks scan failed!"
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Semgrep for ERROR severity
+          # Check Opengrep for ERROR severity
           if [ -f "semgrep.json" ]; then
             CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
             if [ "$CRITICAL" -gt 0 ]; then

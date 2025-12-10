@@ -29,6 +29,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           version: latest
+          scanners: 'vuln,config,secret'
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
@@ -110,6 +111,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           version: latest
+          scanners: 'vuln,config,secret'
           scan-type: 'image'
           image-ref: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'
           format: 'sarif'

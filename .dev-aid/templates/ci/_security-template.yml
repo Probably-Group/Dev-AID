@@ -64,6 +64,7 @@
           version: latest
           scan-type: 'fs'
           scan-ref: '.'
+          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
           format: 'json'
           output: 'trivy-fs.json'
           severity: 'HIGH,CRITICAL'
@@ -81,6 +82,7 @@
           version: latest
           scan-type: 'image'
           image-ref: 'temp-image:latest'
+          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
           format: 'json'
           output: 'trivy-image.json'
           severity: 'HIGH,CRITICAL'
@@ -94,12 +96,13 @@
           dockerfile: Dockerfile
           format: json
           no-fail: true
+          failure-threshold: warning  # Catch warnings + errors (not just errors)
 
       - name: Run Checkov (IaC Scanning)
         id: checkov
         continue-on-error: true
         run: |
-          checkov -d . --quiet --compact --output json > checkov-report.json || true
+          checkov -d . --download-external-modules --quiet --compact --output json > checkov-report.json || true
 
       - name: Upload security reports as artifacts
         uses: actions/upload-artifact@v4

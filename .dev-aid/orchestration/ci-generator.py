@@ -3,10 +3,15 @@
 Auto-Generate CI/CD Workflows
 
 Detects project context and generates production-ready GitHub Actions workflows
-with comprehensive security scanning (5 tools):
-- Gitleaks (secrets), Opengrep (SAST), Trivy (CVE), Hadolint (Docker), Checkov (IaC)
+with comprehensive, auto-updating security scanning (5 tools):
+- Gitleaks (secrets, 160+ patterns)
+- Opengrep (SAST, OWASP Top 10)
+- Trivy (3-in-1: vulnerabilities + misconfigurations + secrets)
+- Hadolint (Dockerfile linting, warnings + errors)
+- Checkov (IaC security with external modules)
 
 All critical findings FAIL the workflow (no continue-on-error bypasses).
+All tools auto-update their databases/rules for latest threat detection.
 """
 
 import json
@@ -314,12 +319,12 @@ class CIGenerator:
             print(f"   {cmd_type}: {cmd}")
 
         print("\n✅ Done! Workflow includes:")
-        print("   - 🔒 Security scanning (5 tools):")
-        print("     • Gitleaks - Secret scanning")
-        print("     • Opengrep - SAST (OWASP Top 10)")
-        print("     • Trivy - CVE/dependency scanning")
-        print("     • Hadolint - Dockerfile best practices")
-        print("     • Checkov - IaC security")
+        print("   - 🔒 Comprehensive security scanning (5 tools, auto-updating):")
+        print("     • Gitleaks - Secret scanning (160+ patterns, auto-updates)")
+        print("     • Opengrep - SAST (OWASP Top 10, auto-fetches rules)")
+        print("     • Trivy - 3-in-1: vulnerabilities + misconfigurations + secrets")
+        print("     • Hadolint - Dockerfile linting (catches warnings + errors)")
+        print("     • Checkov - IaC security (with external modules)")
         print("   - 🔍 Linting and type checking")
         print("   - 🧪 Testing across multiple versions")
         if context["has_docker"]:

@@ -90,6 +90,7 @@ jobs:
           version: latest
           scan-type: 'fs'
           scan-ref: '.'
+          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
           format: 'json'
           output: 'trivy-fs.json'
           severity: 'HIGH,CRITICAL'
@@ -107,6 +108,7 @@ jobs:
           version: latest
           scan-type: 'image'
           image-ref: 'temp-image:latest'
+          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
           format: 'json'
           output: 'trivy-image.json'
           severity: 'HIGH,CRITICAL'
@@ -120,12 +122,13 @@ jobs:
           dockerfile: Dockerfile
           format: json
           no-fail: true
+          failure-threshold: warning  # Catch warnings + errors (not just errors)
 
       - name: Run Checkov (IaC Scanning)
         id: checkov
         continue-on-error: true
         run: |
-          checkov -d . --quiet --compact --output json > checkov-report.json || true
+          checkov -d . --download-external-modules --quiet --compact --output json > checkov-report.json || true
 
       # Disabled SARIF upload for private repo compatibility
       # - name: Upload SARIF results

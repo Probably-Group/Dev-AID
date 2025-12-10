@@ -41,6 +41,7 @@ jobs:
           version: latest
           scan-type: 'fs'
           scan-ref: '.'
+          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
           format: 'json'
           output: 'trivy-release-fs.json'
           severity: 'UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL'

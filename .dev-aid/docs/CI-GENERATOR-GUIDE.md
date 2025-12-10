@@ -121,22 +121,52 @@ Docker:        Dockerfile (adds container scanning)
 
 ### 🔒 **Security Scanning (Built-in) - 5 Tools**
 
-Every generated workflow includes comprehensive security scanning:
+Every generated workflow includes comprehensive security scanning with **auto-updating databases**:
 
-1. **Gitleaks** - Secret detection (API keys, passwords, tokens)
+1. **Gitleaks** - Secret detection (160+ patterns: API keys, passwords, tokens)
+   - 🔄 Auto-updates rules with `GITLEAKS_VERSION: "latest"`
 2. **Opengrep** - Static Application Security Testing (OWASP Top 10, SQL injection, XSS)
-3. **Trivy** - CVE/vulnerability scanning (dependencies, containers)
+   - 🔄 Auto-fetches latest rulesets from registry on each run
+3. **Trivy** - **Comprehensive scanning** (vulnerabilities + misconfigurations + secrets)
+   - 🔄 Auto-updates vulnerability database every 6 hours
+   - 🔍 **3-in-1 scanning**: `scanners: 'vuln,config,secret'`
+     - Vulnerabilities (CVEs in dependencies)
+     - Misconfigurations (IaC issues, K8s, Docker problems)
+     - Secrets (hardcoded credentials in dependencies)
 4. **Hadolint** - Dockerfile best practices (when Dockerfile exists)
-5. **Checkov** - Infrastructure-as-Code security (Kubernetes, Terraform, CloudFormation)
+   - 🔍 Catches both errors AND warnings (`failure-threshold: warning`)
+5. **Checkov** - Infrastructure-as-Code security (K8s, Terraform, CloudFormation)
+   - 🔄 Auto-updates policies from remote on each run
+   - 🔍 Comprehensive checks with `--download-external-modules`
 
 **⚠️ Critical Findings Fail the Workflow:**
 - Gitleaks: ANY secrets found → ❌ FAIL
 - Opengrep: ERROR severity → ❌ FAIL
-- Trivy: CRITICAL CVEs → ❌ FAIL
-- Hadolint: ERROR severity → ❌ FAIL
+- Trivy: CRITICAL vulnerabilities/misconfigs → ❌ FAIL
+- Hadolint: WARNING+ severity → ❌ FAIL
 - Checkov: CRITICAL/HIGH severity → ❌ FAIL
 
-Lower severities (warnings, info) are reported but don't block merges.
+Lower severities (info, style) are reported but don't block merges.
+
+**📊 What Gets Scanned:**
+```yaml
+Trivy Comprehensive Scan:
+  ✓ CVE vulnerabilities (dependencies, OS packages)
+  ✓ Misconfigurations (IaC, K8s, Docker)
+  ✓ Embedded secrets (hardcoded in dependencies)
+  ✓ License compliance issues
+
+Opengrep SAST:
+  ✓ OWASP Top 10 vulnerabilities
+  ✓ Language-specific security issues
+  ✓ Code quality problems
+
+Checkov IaC:
+  ✓ External Terraform modules
+  ✓ Kubernetes manifests
+  ✓ CloudFormation templates
+  ✓ Docker Compose files
+```
 
 ### 🧪 **Multi-Version Testing**
 

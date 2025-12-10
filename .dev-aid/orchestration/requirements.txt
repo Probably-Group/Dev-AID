@@ -34,6 +34,7 @@ pytest==8.3.5               # Testing framework
 pytest-asyncio==0.24.0      # Async test support
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
+pytest-xdist==3.5.0         # Parallel testing support
 vcrpy==6.0.2                # Record/replay HTTP interactions for testing
 hypothesis==6.113.0          # Property-based testing
 

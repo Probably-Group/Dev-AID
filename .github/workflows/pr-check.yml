@@ -50,7 +50,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}
+          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
           restore-keys: |
             venv-${{ runner.os }}-py3.11-
 
@@ -84,7 +84,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}
+          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
       - name: Run linting checks
         run: |
@@ -122,7 +122,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}
+          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
       - name: Run tests
         run: |
@@ -148,7 +148,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}
+          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
       - name: Run MyPy
         run: |

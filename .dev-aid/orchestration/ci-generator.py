@@ -116,7 +116,7 @@ class CIGenerator:
             ).read_text():
                 context["commands"]["lint"] = "ruff check ."
             else:
-                context["commands"]["lint"] = "flake8 ."
+                context["commands"]["lint"] = "flake8 . --exclude .venv,venv,.env"
 
             # Detect type checker
             if (self.project_dir / "mypy.ini").exists() or "[tool.mypy]" in (

@@ -87,6 +87,8 @@ jobs:
           source .venv/bin/activate
           pip install --upgrade pip
           {{INSTALL_COMMAND}}
+          # Install parallel testing support
+          pip install pytest-xdist
 
   lint:
     name: Lint

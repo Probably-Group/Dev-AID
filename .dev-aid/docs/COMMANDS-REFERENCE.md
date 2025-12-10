@@ -44,6 +44,9 @@ Complete guide to all available slash commands in Dev-AID.
 # Auto-detect and generate
 ./.dev-aid/scripts/generate-ci.sh
 
+# Generate with optimizations (recommended)
+./.dev-aid/scripts/generate-ci.sh --optimize
+
 # Custom output location
 ./.dev-aid/scripts/generate-ci.sh -o .github/workflows/custom.yml
 ```
@@ -375,9 +378,11 @@ Dev-AID provides standalone utility scripts for common development tasks:
 - Auto-detects package managers (npm/yarn/pnpm/bun, pip/poetry/uv, cargo)
 - Security by default (Gitleaks + Trivy included)
 - Docker support with image scanning
+- Optional `--optimize` flag for 40-70% faster CI runs
 **Usage:**
 ```bash
 .dev-aid/scripts/generate-ci.sh
+.dev-aid/scripts/generate-ci.sh --optimize  # Recommended: faster CI with caching
 .dev-aid/scripts/generate-ci.sh -o custom-workflow.yml
 ```
 
@@ -487,5 +492,5 @@ Dev-AID provides standalone utility scripts for common development tasks:
 
 ---
 
-**Last Updated:** 2025-12-08
-**Version:** 1.2.1
+**Last Updated:** 2025-12-10
+**Version:** 1.3.0-beta.1

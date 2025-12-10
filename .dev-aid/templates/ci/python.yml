@@ -12,31 +12,156 @@ permissions:
 
 jobs:
   security:
-    name: Security Scan
+    name: Security Scan (5 tools)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Run Gitleaks
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Security Tools
+        run: |
+          pip install opengrep checkov
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run Gitleaks (Secret Scanning)
+        id: gitleaks
         uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Trivy
+      - name: Run Opengrep (SAST)
+        id: opengrep
+        continue-on-error: true
+        run: |
+          opengrep \
+            --config=p/security-audit \
+            --config=p/python \
+            --config=p/owasp-top-10 \
+            --config=p/secrets \
+            --json --output=semgrep.json .
+
+      - name: Run Trivy (Dependency Scanning)
         uses: aquasecurity/trivy-action@master
+        continue-on-error: true
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy.sarif'
+          format: 'json'
+          output: 'trivy-fs.json'
+          severity: 'HIGH,CRITICAL'
 
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+      {{#DOCKER}}
+      - name: Build Docker Image
+        continue-on-error: true
+        run: docker build -t temp-image:latest .
+
+      - name: Run Trivy (Container Scanning)
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          scan-type: 'image'
+          image-ref: 'temp-image:latest'
+          format: 'json'
+          output: 'trivy-image.json'
+          severity: 'HIGH,CRITICAL'
+
+      - name: Run Hadolint (Dockerfile Linting)
+        uses: hadolint/hadolint-action@v3.1.0
+        continue-on-error: true
+        with:
+          dockerfile: Dockerfile
+          format: json
+          no-fail: true
+      {{/DOCKER}}
+
+      - name: Run Checkov (IaC Scanning)
+        continue-on-error: true
+        run: |
+          checkov -d . --quiet --compact --output json > checkov-report.json || true
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          sarif_file: 'trivy.sarif'
+          name: security-reports
+          path: |
+            *-report.json
+            *.json
+
+      - name: Generate Security Summary
+        if: always()
+        run: |
+          echo "# 🔒 Security Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "gitleaks-report.json" ]; then
+            LEAKS=$(jq 'length' gitleaks-report.json)
+            [ "$LEAKS" -gt 0 ] && echo "## ❌ Gitleaks: $LEAKS secret(s)" >> $GITHUB_STEP_SUMMARY || echo "## ✅ Gitleaks: Clean" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f "semgrep.json" ]; then
+            FINDINGS=$(jq '.results | length' semgrep.json)
+            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f "trivy-fs.json" ]; then
+            VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy-fs.json)
+            echo "## 🛡️ Trivy: $VULNS vulnerability(ies)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for critical issues
+        if: always()
+        run: |
+          CRITICAL=0
+
+          # Gitleaks
+          if [ -f "gitleaks-report.json" ]; then
+            LEAKS=$(jq 'length' gitleaks-report.json)
+            [ "$LEAKS" -gt 0 ] && echo "❌ $LEAKS secret(s) found!" && CRITICAL=$((CRITICAL + 1))
+          elif [ "${{ steps.gitleaks.outcome }}" = "failure" ]; then
+            echo "❌ Gitleaks failed!" && CRITICAL=$((CRITICAL + 1))
+          fi
+
+          # Opengrep ERROR severity
+          if [ -f "semgrep.json" ]; then
+            ERRORS=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
+            [ "$ERRORS" -gt 0 ] && echo "❌ $ERRORS critical code issues!" && CRITICAL=$((CRITICAL + 1))
+          fi
+
+          # Trivy CRITICAL CVEs
+          if [ -f "trivy-fs.json" ]; then
+            CRIT_CVE=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            [ "$CRIT_CVE" -gt 0 ] && echo "❌ $CRIT_CVE critical CVEs!" && CRITICAL=$((CRITICAL + 1))
+          fi
+
+          # Hadolint ERROR severity
+          if [ -f "hadolint-report.json" ]; then
+            ERRORS=$(jq -r '[.[] | select(.level == "error")] | length' hadolint-report.json 2>/dev/null || echo "0")
+            [ "$ERRORS" -gt 0 ] && echo "❌ $ERRORS Dockerfile errors!" && CRITICAL=$((CRITICAL + 1))
+          fi
+
+          # Checkov CRITICAL/HIGH
+          if [ -f "checkov-report.json" ]; then
+            TYPE=$(jq -r 'type' checkov-report.json)
+            if [ "$TYPE" = "object" ]; then
+              CRIT_IaC=$(jq -r '[.results.failed_checks[]? | select(.severity == "CRITICAL" or .severity == "HIGH")] | length' checkov-report.json 2>/dev/null || echo "0")
+              [ "$CRIT_IaC" -gt 0 ] && echo "❌ $CRIT_IaC critical IaC issues!" && CRITICAL=$((CRITICAL + 1))
+            fi
+          fi
+
+          if [ $CRITICAL -gt 0 ]; then
+            echo "🚨 $CRITICAL critical security issue(s) found!"
+            exit 1
+          else
+            echo "✅ No critical security issues found!"
+          fi
 
   lint-and-test:
     name: Lint & Test

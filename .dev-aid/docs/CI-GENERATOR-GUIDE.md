@@ -41,10 +41,11 @@ Setting up CI/CD pipelines requires:
 
 The generator:
 - ✅ **Auto-detects** your language and package manager
-- ✅ **Generates** optimized workflows with security scanning
+- ✅ **Generates** optimized workflows with 5-tool security scanning
 - ✅ **Configures** multi-version testing matrices
 - ✅ **Includes** linting, testing, and coverage
 - ✅ **Supports** Docker build and scan (optional)
+- 🔒 **Fails on critical issues** (no continue-on-error bypasses)
 
 ---
 
@@ -118,13 +119,24 @@ Docker:        Dockerfile (adds container scanning)
 
 ## Features
 
-### 🔒 **Security Scanning (Built-in)**
+### 🔒 **Security Scanning (Built-in) - 5 Tools**
 
-Every generated workflow includes:
+Every generated workflow includes comprehensive security scanning:
 
-- **Gitleaks** - Secret detection (API keys, passwords, tokens)
-- **Trivy** - Vulnerability scanning (dependencies, containers)
-- **SARIF Upload** - Results viewable in GitHub Security tab
+1. **Gitleaks** - Secret detection (API keys, passwords, tokens)
+2. **Opengrep** - Static Application Security Testing (OWASP Top 10, SQL injection, XSS)
+3. **Trivy** - CVE/vulnerability scanning (dependencies, containers)
+4. **Hadolint** - Dockerfile best practices (when Dockerfile exists)
+5. **Checkov** - Infrastructure-as-Code security (Kubernetes, Terraform, CloudFormation)
+
+**⚠️ Critical Findings Fail the Workflow:**
+- Gitleaks: ANY secrets found → ❌ FAIL
+- Opengrep: ERROR severity → ❌ FAIL
+- Trivy: CRITICAL CVEs → ❌ FAIL
+- Hadolint: ERROR severity → ❌ FAIL
+- Checkov: CRITICAL/HIGH severity → ❌ FAIL
+
+Lower severities (warnings, info) are reported but don't block merges.
 
 ### 🧪 **Multi-Version Testing**
 

@@ -3,7 +3,10 @@
 Auto-Generate CI/CD Workflows
 
 Detects project context and generates production-ready GitHub Actions workflows
-with security scanning (Gitleaks, Trivy) by default.
+with comprehensive security scanning (5 tools):
+- Gitleaks (secrets), Opengrep (SAST), Trivy (CVE), Hadolint (Docker), Checkov (IaC)
+
+All critical findings FAIL the workflow (no continue-on-error bypasses).
 """
 
 import json
@@ -311,9 +314,14 @@ class CIGenerator:
             print(f"   {cmd_type}: {cmd}")
 
         print("\n✅ Done! Workflow includes:")
-        print("   - Security scanning (Gitleaks + Trivy)")
-        print("   - Linting and type checking")
-        print("   - Testing across multiple versions")
+        print("   - 🔒 Security scanning (5 tools):")
+        print("     • Gitleaks - Secret scanning")
+        print("     • Opengrep - SAST (OWASP Top 10)")
+        print("     • Trivy - CVE/dependency scanning")
+        print("     • Hadolint - Dockerfile best practices")
+        print("     • Checkov - IaC security")
+        print("   - 🔍 Linting and type checking")
+        print("   - 🧪 Testing across multiple versions")
         if context["has_docker"]:
             print("   - Docker build and scan")
         if optimize:

@@ -15,19 +15,24 @@ jobs:
     name: Security Scan (5 tools)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
       - name: Install Security Tools
         run: |
-          pip install opengrep checkov
+          # Install Checkov (pinned to latest stable)
+          pip install checkov==3.2.494
+          # Install Opengrep via official method
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.11.4/install.sh | bash
+          # Add to PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.opengrep/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
         id: gitleaks
@@ -48,9 +53,10 @@ jobs:
             --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: v0.68.1  # Trivy scanner version (Dec 2025)
           scan-type: 'fs'
           scan-ref: '.'
           format: 'json'
@@ -63,9 +69,10 @@ jobs:
         run: docker build -t temp-image:latest .
 
       - name: Run Trivy (Container Scanning)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: v0.68.1  # Trivy scanner version (Dec 2025)
           scan-type: 'image'
           image-ref: 'temp-image:latest'
           format: 'json'
@@ -73,7 +80,7 @@ jobs:
           severity: 'HIGH,CRITICAL'
 
       - name: Run Hadolint (Dockerfile Linting)
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         continue-on-error: true
         with:
           dockerfile: Dockerfile
@@ -171,10 +178,10 @@ jobs:
         python-version: ['3.9', '3.10', '3.11', '3.12']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: '{{PACKAGE_MANAGER}}'
@@ -200,7 +207,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

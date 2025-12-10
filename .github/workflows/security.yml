@@ -40,21 +40,24 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
 
       - name: Install Security Tools
         run: |
-          pip install checkov
-          # Install Opengrep (open-source fork of Semgrep OSS)
-          pip install opengrep
+          # Install Checkov (pinned to latest stable)
+          pip install checkov==3.2.494
+          # Install Opengrep (open-source fork of Semgrep OSS) via official method
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/v1.11.4/install.sh | bash
+          # Add to PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.opengrep/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
         id: gitleaks
@@ -80,9 +83,10 @@ jobs:
             --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning - JSON)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: v0.68.1  # Trivy scanner version (Dec 2025)
           scan-type: 'fs'
           scan-ref: '.'
           format: 'json'
@@ -96,9 +100,10 @@ jobs:
 
       - name: Run Trivy (Container Scanning - JSON)
         if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: v0.68.1  # Trivy scanner version (Dec 2025)
           scan-type: 'image'
           image-ref: 'temp-image:latest'
           format: 'json'
@@ -107,7 +112,7 @@ jobs:
 
       - name: Run Hadolint (Dockerfile Linting)
         id: hadolint
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         continue-on-error: true
         if: hashFiles('Dockerfile') != ''
         with:

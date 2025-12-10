@@ -23,10 +23,12 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "latest"
 
       - name: Run Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
+          version: latest
           scan-type: 'fs'
           scan-ref: '.'
           format: 'sarif'
@@ -103,8 +105,9 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan Docker image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         with:
+          version: latest
           scan-type: 'image'
           image-ref: 'ghcr.io/${{ github.repository }}:${{ github.sha }}'
           format: 'sarif'

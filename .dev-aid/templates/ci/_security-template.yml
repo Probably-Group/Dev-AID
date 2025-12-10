@@ -31,9 +31,12 @@
 
       - name: Install Security Tools
         run: |
-          # Install Opengrep (open-source Semgrep fork) and Checkov
-          pip install opengrep checkov
+          # Install Checkov (latest stable)
+          pip install checkov
+          # Install Opengrep (open-source Semgrep fork) via official method - latest
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.opengrep/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
         id: gitleaks
@@ -41,6 +44,7 @@
         continue-on-error: true  # We check results manually below
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "latest"
 
       - name: Run Opengrep (SAST)
         id: opengrep
@@ -54,9 +58,10 @@
             --json --output=semgrep.json .
 
       - name: Run Trivy (Dependency Scanning)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true  # We check results manually below
         with:
+          version: latest
           scan-type: 'fs'
           scan-ref: '.'
           format: 'json'
@@ -70,9 +75,10 @@
 
       - name: Run Trivy (Container Scanning)
         if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: latest
           scan-type: 'image'
           image-ref: 'temp-image:latest'
           format: 'json'
@@ -81,7 +87,7 @@
 
       - name: Run Hadolint (Dockerfile Linting)
         id: hadolint
-        uses: hadolint/hadolint-action@v3.1.0
+        uses: hadolint/hadolint-action@v3.3.0
         continue-on-error: true
         if: hashFiles('Dockerfile') != ''
         with:

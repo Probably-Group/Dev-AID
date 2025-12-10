@@ -33,11 +33,12 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "latest"
 
       - name: Run Trivy (Filesystem - JSON)
         uses: aquasecurity/trivy-action@0.33.1
         with:
-          version: v0.68.1  # Trivy scanner version (Dec 2025)
+          version: latest
           scan-type: 'fs'
           scan-ref: '.'
           format: 'json'

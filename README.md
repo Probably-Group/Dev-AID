@@ -235,11 +235,10 @@ Generate production-ready GitHub Actions workflows tailored to your tech stackâ€
 **Quick Start:**
 ```bash
 # Generate standard workflow
-cd .dev-aid/orchestration
-python ci-generator.py /path/to/your/project
+./.dev-aid/scripts/generate-ci.sh /path/to/your/project
 
 # Generate optimized workflow (recommended)
-python ci-generator.py /path/to/your/project --optimize
+./.dev-aid/scripts/generate-ci.sh /path/to/your/project --optimize
 
 # Example output for Python project:
 # âœ… Detected: python

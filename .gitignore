@@ -13,6 +13,10 @@
 # Temporary files
 .dev-aid/temp/*
 !.dev-aid/temp/.gitkeep
+temp/
+*.backup
+*.backup-*
+*.backup-condense
 
 # OS files
 .DS_Store

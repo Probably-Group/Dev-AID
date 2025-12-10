@@ -41,10 +41,11 @@ Setting up CI/CD pipelines requires:
 
 The generator:
 - ✅ **Auto-detects** your language and package manager
-- ✅ **Generates** optimized workflows with security scanning
+- ✅ **Generates** optimized workflows with 5-tool security scanning
 - ✅ **Configures** multi-version testing matrices
 - ✅ **Includes** linting, testing, and coverage
 - ✅ **Supports** Docker build and scan (optional)
+- 🔒 **Fails on critical issues** (no continue-on-error bypasses)
 
 ---
 
@@ -118,13 +119,54 @@ Docker:        Dockerfile (adds container scanning)
 
 ## Features
 
-### 🔒 **Security Scanning (Built-in)**
+### 🔒 **Security Scanning (Built-in) - 5 Tools**
 
-Every generated workflow includes:
+Every generated workflow includes comprehensive security scanning with **auto-updating databases**:
 
-- **Gitleaks** - Secret detection (API keys, passwords, tokens)
-- **Trivy** - Vulnerability scanning (dependencies, containers)
-- **SARIF Upload** - Results viewable in GitHub Security tab
+1. **Gitleaks** - Secret detection (160+ patterns: API keys, passwords, tokens)
+   - 🔄 Auto-updates rules with `GITLEAKS_VERSION: "latest"`
+2. **Opengrep** - Static Application Security Testing (OWASP Top 10, SQL injection, XSS)
+   - 🔄 Auto-fetches latest rulesets from registry on each run
+3. **Trivy** - **Comprehensive scanning** (vulnerabilities + misconfigurations + secrets)
+   - 🔄 Auto-updates vulnerability database every 6 hours
+   - 🔍 **3-in-1 scanning**: `scanners: 'vuln,config,secret'`
+     - Vulnerabilities (CVEs in dependencies)
+     - Misconfigurations (IaC issues, K8s, Docker problems)
+     - Secrets (hardcoded credentials in dependencies)
+4. **Hadolint** - Dockerfile best practices (when Dockerfile exists)
+   - 🔍 Catches both errors AND warnings (`failure-threshold: warning`)
+5. **Checkov** - Infrastructure-as-Code security (K8s, Terraform, CloudFormation)
+   - 🔄 Auto-updates policies from remote on each run
+   - 🔍 Comprehensive checks with `--download-external-modules`
+
+**⚠️ Critical Findings Fail the Workflow:**
+- Gitleaks: ANY secrets found → ❌ FAIL
+- Opengrep: ERROR severity → ❌ FAIL
+- Trivy: CRITICAL vulnerabilities/misconfigs → ❌ FAIL
+- Hadolint: WARNING+ severity → ❌ FAIL
+- Checkov: CRITICAL/HIGH severity → ❌ FAIL
+
+Lower severities (info, style) are reported but don't block merges.
+
+**📊 What Gets Scanned:**
+```yaml
+Trivy Comprehensive Scan:
+  ✓ CVE vulnerabilities (dependencies, OS packages)
+  ✓ Misconfigurations (IaC, K8s, Docker)
+  ✓ Embedded secrets (hardcoded in dependencies)
+  ✓ License compliance issues
+
+Opengrep SAST:
+  ✓ OWASP Top 10 vulnerabilities
+  ✓ Language-specific security issues
+  ✓ Code quality problems
+
+Checkov IaC:
+  ✓ External Terraform modules
+  ✓ Kubernetes manifests
+  ✓ CloudFormation templates
+  ✓ Docker Compose files
+```
 
 ### 🧪 **Multi-Version Testing**
 

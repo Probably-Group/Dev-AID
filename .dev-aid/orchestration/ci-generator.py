@@ -3,7 +3,15 @@
 Auto-Generate CI/CD Workflows
 
 Detects project context and generates production-ready GitHub Actions workflows
-with security scanning (Gitleaks, Trivy) by default.
+with comprehensive, auto-updating security scanning (5 tools):
+- Gitleaks (secrets, 160+ patterns)
+- Opengrep (SAST, OWASP Top 10)
+- Trivy (3-in-1: vulnerabilities + misconfigurations + secrets)
+- Hadolint (Dockerfile linting, warnings + errors)
+- Checkov (IaC security with external modules)
+
+All critical findings FAIL the workflow (no continue-on-error bypasses).
+All tools auto-update their databases/rules for latest threat detection.
 """
 
 import json
@@ -108,7 +116,7 @@ class CIGenerator:
             ).read_text():
                 context["commands"]["lint"] = "ruff check ."
             else:
-                context["commands"]["lint"] = "flake8 ."
+                context["commands"]["lint"] = "flake8 . --exclude .venv,venv,.env"
 
             # Detect type checker
             if (self.project_dir / "mypy.ini").exists() or "[tool.mypy]" in (
@@ -311,9 +319,14 @@ class CIGenerator:
             print(f"   {cmd_type}: {cmd}")
 
         print("\n✅ Done! Workflow includes:")
-        print("   - Security scanning (Gitleaks + Trivy)")
-        print("   - Linting and type checking")
-        print("   - Testing across multiple versions")
+        print("   - 🔒 Comprehensive security scanning (5 tools, auto-updating):")
+        print("     • Gitleaks - Secret scanning (160+ patterns, auto-updates)")
+        print("     • Opengrep - SAST (OWASP Top 10, auto-fetches rules)")
+        print("     • Trivy - 3-in-1: vulnerabilities + misconfigurations + secrets")
+        print("     • Hadolint - Dockerfile linting (catches warnings + errors)")
+        print("     • Checkov - IaC security (with external modules)")
+        print("   - 🔍 Linting and type checking")
+        print("   - 🧪 Testing across multiple versions")
         if context["has_docker"]:
             print("   - Docker build and scan")
         if optimize:

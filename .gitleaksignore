@@ -1,0 +1,136 @@
+# .gitleaksignore - Gitleaks exclusion patterns for Dev-AID
+#
+# This file excludes known false positives from secret scanning.
+# All excluded patterns contain FAKE/EXAMPLE credentials for:
+# - Educational purposes (anti-pattern documentation)
+# - Test fixtures (pytest conftest, test files)
+# - Code examples in skills/documentation
+#
+# IMPORTANT: These are NOT real secrets. They are intentionally included
+# in the codebase to teach security best practices and enable testing.
+#
+# Last reviewed: 2025-12-10
+# Review frequency: Quarterly (or when new skills/tests are added)
+
+# ============================================================================
+# TEST FILES - Fake credentials for pytest fixtures
+# ============================================================================
+# Why excluded: Test files use hardcoded fake API keys like
+# "test-api-key-1234567890" to simulate real API interactions in tests.
+# These are never used in production and are clearly marked as test data.
+
+.dev-aid/orchestration/tests/**
+**/test_*.py
+**/conftest.py
+**/tests/*.py
+
+# ============================================================================
+# ANTI-PATTERN DOCUMENTATION - Educational examples of BAD security practices
+# ============================================================================
+# Why excluded: These files intentionally show INSECURE code examples to teach
+# developers what NOT to do. Examples include:
+# - Hardcoded Stripe keys (sk_live_xxx) - demonstrating secret exposure
+# - Plaintext passwords in YAML - demonstrating config vulnerabilities
+# - Curl commands with auth headers - demonstrating credential leakage
+#
+# These are pedagogical tools, not actual credentials.
+
+**/anti-patterns.md
+**/references/anti-patterns.md
+.dev-aid/providers/claude/.claude/skills/expert/*/references/anti-patterns.md
+
+# ============================================================================
+# SKILL DOCUMENTATION - Code examples and implementation patterns
+# ============================================================================
+# Why excluded: Skill files (SKILL.md) contain example code snippets showing
+# both secure and insecure patterns. These may include:
+# - API integration examples with placeholder keys
+# - Security implementation examples with fake tokens
+# - Configuration examples with example credentials
+#
+# All examples use obviously fake values (e.g., "example-key", "test-token").
+
+**/SKILL.md
+.dev-aid/providers/claude/.claude/skills/expert/*/SKILL.md
+.dev-aid/skills/expert/*/SKILL.md
+
+# ============================================================================
+# BACKUP FILES - Temporary documentation backups during skill development
+# ============================================================================
+# Why excluded: Backup files (.backup, .backup-condense) are temporary copies
+# created during skill refactoring. They contain the same example code as the
+# original SKILL.md files and should be excluded for the same reasons.
+#
+# Note: These should be gitignored in the future (see .gitignore update).
+
+**/SKILL.md.backup
+**/SKILL.md.backup-*
+*.backup
+*.backup-condense
+
+# ============================================================================
+# SECURITY EXAMPLES - Demonstration of secure/insecure patterns
+# ============================================================================
+# Why excluded: These files show side-by-side comparisons of secure vs insecure
+# code. The "insecure" examples necessarily include fake secrets to demonstrate
+# vulnerabilities like:
+# - Hardcoded credentials (to show why they're bad)
+# - Weak encryption keys (to demonstrate key management issues)
+# - Exposed tokens (to illustrate token handling best practices)
+
+**/security-examples.md
+**/references/security-examples.md
+
+# ============================================================================
+# CORE IMPLEMENTATION PATTERNS - Framework-specific examples
+# ============================================================================
+# Why excluded: These files provide copy-paste ready code snippets for common
+# patterns. Some may include placeholder API keys in example configurations
+# (e.g., FastAPI settings with EXAMPLE_API_KEY="changeme").
+
+**/core-implementation-patterns.md
+**/references/core-implementation-patterns.md
+
+# ============================================================================
+# TEMPORARY DEVELOPMENT FILES - Work-in-progress skill templates
+# ============================================================================
+# Why excluded: The temp/ directory contains drafts and templates during skill
+# development. These aggregate multiple examples and may contain duplicated
+# fake credentials from various sources.
+#
+# Note: temp/ should not be committed to git (recommend adding to .gitignore).
+
+temp/**
+temp/*.md
+**/SKILL_AGENT_TEMPLATE.md
+
+# ============================================================================
+# DOCUMENTATION ARCHITECT COMMANDS - Example curl commands with fake tokens
+# ============================================================================
+# Why excluded: Documentation generation commands include example API calls
+# with fake Bearer tokens (e.g., curl -H "Authorization: Bearer example-token").
+# These demonstrate API authentication patterns for documentation purposes.
+
+.dev-aid/providers/claude/.claude/commands/documentation/*.md
+.dev-aid/providers/claude/.claude/agents/documentation/*.md
+
+# ============================================================================
+# REVIEW PROCESS
+# ============================================================================
+# To verify exclusions are still valid:
+# 1. Run: grep -r "api.key\|api_key\|sk_live\|Bearer" <excluded-path>
+# 2. Manually inspect flagged secrets
+# 3. Confirm they are clearly fake (e.g., "test-", "example-", "1234567890")
+# 4. Update this file if new patterns emerge
+#
+# To test Gitleaks still catches real secrets:
+# 1. Temporarily add a real-looking secret to a non-excluded file
+# 2. Run: gitleaks detect --source . --verbose
+# 3. Verify detection works
+# 4. Remove test secret
+#
+# Quarterly review checklist:
+# [ ] Verify excluded paths still contain only fake/example credentials
+# [ ] Check for new test files or documentation that should be excluded
+# [ ] Ensure temp/ and *.backup files are not committed to git
+# [ ] Test Gitleaks with a real-looking secret in a non-excluded path

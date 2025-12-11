@@ -621,11 +621,10 @@ git clone <repo> my-project
 cd my-project
 
 # Copy Dev-AID configuration
-cp -r devaid-standalone/.dev-aid .
+cp -r /path/to/dev-aid/.dev-aid .
 
-# Initialize (with optional Local Search)
+# Initialize
 ./.dev-aid/scripts/init-repo.sh
-# Answer "Y" to install Dev-AID Local Search
 
 # Done! Start using
 claude
@@ -638,7 +637,7 @@ gemini
 ```bash
 # Copy Dev-AID to your project
 cd ~/my-existing-project
-cp -r /path/to/devaid-standalone/.dev-aid .
+cp -r /path/to/dev-aid/.dev-aid .
 
 # Initialize
 ./.dev-aid/scripts/init-repo.sh

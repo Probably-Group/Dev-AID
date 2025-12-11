@@ -163,7 +163,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 |---------|-------------|--------------|--------|
 | **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
-| **🎓 65 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **🎓 72 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team knowledge repository<br>• Consistent patterns | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
 | **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
@@ -196,7 +196,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Fast** - 0.15s queries with FAISS vector search
 - **Smart** - AST parsing for 9+ languages
 - **MCP native** - Works with Claude Code, Gemini CLI & Cursor
-- **Powered by** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local)
+- **Based on** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local) (embedded fork)
 
 ### 🔀 **Multi-AI Router** (NEW!)
 - **Challenger mode** - Claude generates, Gemini reviews
@@ -205,7 +205,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
 
-### 🎓 **65 Expert Skills** (🆕 Hook-Based Auto-Loading)
+### 🎓 **72 Expert Skills** (🆕 Hook-Based Auto-Loading)
 - **Intelligent auto-loading** - Detects project context (tech stack, files) at session start
 - **Scoring algorithm** - Ranks skills by relevance (keywords, technologies, file patterns)
 - **Zero configuration** - Works automatically for Claude Code and Gemini CLI
@@ -930,7 +930,7 @@ Runs all tests with coverage
 - ❌ Code sent to API (privacy concern)
 - ❌ Requires internet
 
-**Local RAG (claude-context-local):**
+**Local RAG (Dev-AID Local Search):**
 - ✅ $0 forever
 - ✅ 100% private (code never leaves machine)
 - ✅ Works offline
@@ -944,9 +944,9 @@ Runs all tests with coverage
 ```
 
 **What it does:**
-1. Installs claude-context-local
+1. Installs Dev-AID Local Search (embedded semantic search engine)
 2. Downloads EmbeddingGemma model (1.2GB)
-3. Registers MCP with Claude Code or Gemini CLI
+3. Registers MCP server with Claude Code or Gemini CLI
 4. Indexes your codebase
 5. Creates helper scripts
 
@@ -1072,7 +1072,7 @@ Savings: $23.25/month (52% reduction)
 100 requests × 150k tokens = 15M tokens
 Embeddings (OpenAI): $1.95
 
-# With claude-context-local
+# With Dev-AID Local Search
 100 requests × 50k tokens = 5M tokens (67% reduction)
 Embeddings: $0 (local)
 
@@ -1328,8 +1328,8 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 - **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 
 ### Core Technologies
-- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers Dev-AID Local Search with 100% local semantic code search using EmbeddingGemma
-- **[EmbeddingGemma](https://huggingface.co/google/gemma-2b-it)** by Google - State-of-the-art embedding model for semantic search
+- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Inspiration and foundation for Dev-AID Local Search (embedded fork with enhancements)
+- **[EmbeddingGemma](https://huggingface.co/google/embeddinggemma-300m)** by Google - State-of-the-art embedding model (300M parameters) for semantic code search
 - **[FAISS](https://github.com/facebookresearch/faiss)** by Meta AI - High-performance vector search
 
 ### AI Platforms

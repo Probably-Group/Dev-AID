@@ -735,7 +735,7 @@ Setup cost: 5 minutes per developer
 | **🔧 Conflict Auto-Resolution** | **$156,000** | 10-30 min/conflict | • 4 conflicts/dev/month automated<br>• $1,560/dev/year productivity<br>• Prevents "redo" work | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | **$520,000** | 2-4 hrs/breach prevented | • Prevents 1 breach/year ($500K avg cost)<br>• $20K pre-commit time saved<br>• Compliance audit readiness | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | **$208,000** | 15-30 min/onboard | • New dev onboarding: 2 weeks → 3 days<br>• $2,080/dev/year (context retention)<br>• Consistent patterns across team | ⭐⭐⭐⭐⭐ |
-| **🎓 65 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
+| **🎓 72 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | **$78,000** | 5-15 min/data query | • Database/API context auto-gathered<br>• $780/dev/year (no manual queries)<br>• Fewer context switches | ⭐⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator** | **$172,800** | One-time: 4-8 hrs | • 40-70% faster CI (5 min → 1.5 min)<br>• $288/year GitHub Actions savings<br>• $1,728/dev/year waiting time | ⭐⭐⭐⭐ |
 | **📊 Code Health Analysis** | **$104,000** | 2-4 hrs/quarter | • Early tech debt detection<br>• Prevents $100K/year accumulation<br>• $4K/year manual analysis time | ⭐⭐⭐⭐ |
@@ -1268,7 +1268,7 @@ dev-aid-fix-conflicts --strategy smart
 
 **Isolated dependencies:**
 - Router: `.dev-aid/orchestration/.venv/`
-- RAG: `~/.local/share/claude-context-local/`
+- RAG: `~/.devaid-search/`
 - System Python: Untouched (zero pollution)
 
 [Dependency Isolation Architecture →](.dev-aid/docs/DEPENDENCY-ISOLATION.md)
@@ -1876,8 +1876,8 @@ Savings: 66% cheaper + 10× better
 Built on excellent open-source foundations:
 
 **Core Technologies:**
-- [claude-context-local](https://github.com/FarhanAliRaza/claude-context-local) by FarhanAliRaza - Powers 100% local RAG
-- [EmbeddingGemma](https://huggingface.co/google/gemma-2b-it) by Google - State-of-the-art embeddings
+- [claude-context-local](https://github.com/FarhanAliRaza/claude-context-local) by FarhanAliRaza - Inspiration for Dev-AID Local Search (embedded fork)
+- [EmbeddingGemma](https://huggingface.co/google/embeddinggemma-300m) by Google - State-of-the-art embeddings (300M params)
 - [FAISS](https://github.com/facebookresearch/faiss) by Meta AI - Vector search
 
 **Security Tools:**

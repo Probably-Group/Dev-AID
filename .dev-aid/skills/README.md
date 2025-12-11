@@ -1,6 +1,48 @@
 # Dev-AID Skills System
 
-**72 expert skills** across domains, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **72 expert skills** for domain expertise, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+
+## 🔄 Core vs Expert Skills
+
+### Core Skills (5 available, 2 enabled by default)
+**Purpose**: Automated tool execution on file save
+**Loading**: Always loaded at session start (configurable)
+**Token Cost**: ~250 tokens each
+
+**What they do:**
+- Actually RUN tools automatically (tests, linters, type checkers)
+- Provide real-time feedback on file save
+- Block or warn about issues immediately
+
+**Available:**
+- ✅ `code-reviewer` - Real-time code quality suggestions (enabled by default)
+- ✅ `secret-scanner` - Prevent credential leaks (enabled by default)
+- ⏸️ `test-runner` - Auto-run relevant tests (disabled by default)
+- ⏸️ `linter` - Auto-lint code (disabled by default)
+- ⏸️ `type-checker` - Auto-check types (disabled by default)
+
+**Configuration**: Run `/dev-aid-config-core-skills` to enable/disable
+
+### Expert Skills (72 available)
+**Purpose**: Domain-specific knowledge and guidance
+**Loading**: Context-aware (auto-loads based on files/keywords)
+**Token Cost**: ~200-500 tokens each (max 2-3 loaded per prompt)
+
+**What they do:**
+- Provide best practices, patterns, and architectural guidance
+- Include checklists (e.g., "Run npm test")
+- Give advice on HOW to write code correctly
+- Do NOT execute tools automatically
+
+**Example**: `typescript-expert` tells you "Use strict types", but doesn't run `tsc`
+
+### Key Difference
+| | Core Skills | Expert Skills |
+|---|---|---|
+| **Role** | Automated checking | Knowledge & guidance |
+| **Execution** | Runs tools (tsc, eslint) | Provides advice only |
+| **Loading** | Always at start | Context-aware |
+| **Example** | "❌ Type error at line 45" | "Use strict mode for safety" |
 
 ## 📁 Directory Structure
 
@@ -15,9 +57,12 @@
 │   ├── threat-modeling.md       # STRIDE methodology (241 lines)
 │   ├── compliance-guide.md      # GDPR/HIPAA/PCI-DSS (301 lines)
 │   └── progressive-disclosure.md # 500-line limit guidance (200 lines)
-├── core/                        # Core system skills (2)
-│   ├── code-reviewer/
-│   └── secret-scanner/
+├── core/                        # Core system skills (5 available)
+│   ├── code-reviewer/           # Enabled by default
+│   ├── secret-scanner/          # Enabled by default
+│   ├── test-runner/             # Disabled by default (configurable)
+│   ├── linter/                  # Disabled by default (configurable)
+│   └── type-checker/            # Disabled by default (configurable)
 ├── expert/                      # Expert domain skills (72)
 │   ├── [skill-name]/
 │   │   ├── SKILL.md            # Main skill file (<500 lines)
@@ -67,9 +112,22 @@ All skills follow a unified two-tier template structure:
 
 ## 📊 Current Skills Inventory
 
-### Core Skills (2)
-- code-reviewer
-- secret-scanner
+### Core Skills (5 available, 2 enabled by default)
+
+**Enabled by default:**
+- `code-reviewer` (~250 tokens) - Real-time code quality checks
+- `secret-scanner` (~250 tokens) - Prevent credential leaks
+
+**Available (opt-in):**
+- `test-runner` (~250 tokens) - Auto-run tests on file save
+- `linter` (~250 tokens) - Auto-lint code on file save
+- `type-checker` (~250 tokens) - Auto-check types on file save
+
+**Total token cost:**
+- Minimal (default): 500 tokens (0.25% of 200k budget)
+- Maximum (all enabled): 1,250 tokens (0.625% of 200k budget)
+
+**Configure**: Run `/dev-aid-config-core-skills` to choose which core skills to enable
 
 ### Expert Skills (72)
 

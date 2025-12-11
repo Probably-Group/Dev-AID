@@ -139,8 +139,38 @@
   },
 
   "alwaysLoaded": {
-    "description": "These load at SessionStart, not via rules",
-    "skills": ["code-reviewer", "secret-scanner"],
-    "totalTokens": 500
+    "description": "Core skills loaded at SessionStart (configured in .dev-aid/config/core-skills.json)",
+    "configFile": "../../config/core-skills.json",
+    "availableSkills": {
+      "code-reviewer": {
+        "description": "Real-time code quality checks",
+        "tokenBudget": 250,
+        "recommendedFor": "all"
+      },
+      "secret-scanner": {
+        "description": "Prevent credential leaks",
+        "tokenBudget": 250,
+        "recommendedFor": "all"
+      },
+      "test-runner": {
+        "description": "Auto-run tests on file save",
+        "tokenBudget": 250,
+        "recommendedFor": "no-ide-setup"
+      },
+      "linter": {
+        "description": "Auto-lint on file save",
+        "tokenBudget": 250,
+        "recommendedFor": "no-ide-setup"
+      },
+      "type-checker": {
+        "description": "Auto-check types on file save",
+        "tokenBudget": 250,
+        "recommendedFor": "no-ide-setup"
+      }
+    },
+    "defaultEnabled": ["code-reviewer", "secret-scanner"],
+    "defaultTokenBudget": 500,
+    "maximumTokenBudget": 1250,
+    "configCommand": "/dev-aid-config-core-skills"
   }
 }

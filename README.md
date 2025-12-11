@@ -14,7 +14,7 @@
 
 ## 🎯 What is Dev-AID?
 
-**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 72 expert skills, multi-AI orchestration, 100% local semantic search, and automated security scanning.
+**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 5 core skills (automated checking), 72 expert skills (domain expertise), multi-AI orchestration, 100% local semantic search, and automated security scanning.
 
 ### 🔬 Research-Backed Results
 
@@ -80,7 +80,7 @@ Dev-AID: *Claude generates, Gemini reviews, all in one place*
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
 │  • MCP integration (databases, GitHub, etc) │
-│  • 72 expert skills (context-aware)         │
+│  • 5 core + 72 expert skills                │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • Specialized workflows (slash commands)   │
@@ -163,6 +163,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 |---------|-------------|--------------|--------|
 | **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
+| **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 72 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team knowledge repository<br>• Consistent patterns | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
@@ -205,7 +206,28 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
 
-### 🎓 **72 Expert Skills** (🆕 Hook-Based Auto-Loading)
+### 🛡️ **5 Core Skills** - Automated Checking (NEW!)
+**Purpose**: Real-time automated tool execution on file save
+
+Core skills **actually run tools** automatically (tests, linters, type checkers) and provide immediate feedback:
+
+| Skill | What It Does | Token Cost | Default |
+|-------|-------------|------------|---------|
+| `code-reviewer` | Real-time code quality suggestions | 250 tokens | ✅ Enabled |
+| `secret-scanner` | Prevent credential leaks before commit | 250 tokens | ✅ Enabled |
+| `test-runner` | Auto-run relevant tests on file save | 250 tokens | ⏸️ Disabled |
+| `linter` | Auto-lint code (ESLint, Flake8, Clippy) | 250 tokens | ⏸️ Disabled |
+| `type-checker` | Auto-check types (TypeScript, mypy, cargo) | 250 tokens | ⏸️ Disabled |
+
+**Configure**: Run `/dev-aid-config-core-skills` to enable/disable
+- **Minimal** (default): code-reviewer + secret-scanner = 500 tokens (0.25%)
+- **Maximum** (all enabled): 1,250 tokens (0.625%)
+
+### 🎓 **72 Expert Skills** - Domain Expertise (🆕 Hook-Based Auto-Loading)
+**Purpose**: Provide knowledge, best practices, and architectural guidance
+
+Expert skills **give advice** (not automated execution) and auto-load based on context:
+
 - **Intelligent auto-loading** - Detects project context (tech stack, files) at session start
 - **Scoring algorithm** - Ranks skills by relevance (keywords, technologies, file patterns)
 - **Zero configuration** - Works automatically for Claude Code and Gemini CLI
@@ -213,6 +235,10 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Manual activation** - Still available via skill name when needed
 - **Custom skills** - Generate new skills with `/dev-aid-build-skill`
 - **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
+
+**Key Difference:**
+- **Core skills** → Execute tools: "❌ Type error at line 45"
+- **Expert skills** → Provide guidance: "Use strict mode for type safety"
 
 ### 💾 **Persistent Memory Bank**
 - Context survives across sessions

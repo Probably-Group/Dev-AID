@@ -32,6 +32,32 @@ Complete guide to all available slash commands in Dev-AID.
 /dev-aid-status
 ```
 
+#### `/dev-aid-config-core-skills` (NEW!)
+**Category:** Setup
+**Purpose:** Configure which core skills are auto-loaded at session start
+**When to use:** Initial setup, changing automated checking preferences
+**Output:** Updated `.dev-aid/config/core-skills.json`
+
+Core skills provide **automated tool execution** on file save:
+- `code-reviewer` - Real-time code quality suggestions (✅ enabled by default)
+- `secret-scanner` - Prevent credential leaks (✅ enabled by default)
+- `test-runner` - Auto-run tests on save (⏸️ disabled by default)
+- `linter` - Auto-lint code (⏸️ disabled by default)
+- `type-checker` - Auto-check types (⏸️ disabled by default)
+
+**Profiles:**
+- **minimal** (default): code-reviewer + secret-scanner = 500 tokens
+- **ide-user**: Same as minimal (for devs with IDE extensions)
+- **no-ide-setup**: All 5 enabled = 1,250 tokens (for command-line devs)
+- **ci-cd**: secret-scanner only = 250 tokens
+
+**Example:**
+```
+/dev-aid-config-core-skills
+```
+
+**Value:** Configurable real-time feedback saves 5-15 min/day per developer
+
 #### `/generate-ci` (Script)
 **Category:** Automation
 **Purpose:** Auto-generate production-ready CI/CD workflows

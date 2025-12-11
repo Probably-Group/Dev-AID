@@ -51,3 +51,7 @@ ENV/
 coverage.xml
 htmlcov/
 .pytest_cache/
+
+# Core skills local overrides (personal preferences)
+.dev-aid/config/core-skills.local.json
+

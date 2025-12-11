@@ -79,6 +79,7 @@ Dev-AID: *Claude generates, Gemini reviews, all in one place*
 │  Your AI Gets Superpowers ⚡                 │
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
+│  • MCP integration (databases, GitHub, etc) │
 │  • 72 expert skills (context-aware)         │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
@@ -91,6 +92,9 @@ Real-World Examples:
 
 • /dev-aid-router-challenger "Implement OAuth2"
   → Claude generates code, Gemini reviews security, all in one command
+
+• "Show me all users in database with open GitHub issues"
+  → MCP servers query Postgres + GitHub, combine results automatically
 
 • Start coding session
   → Auto-loads relevant skills based on your tech stack (Python, React, Docker...)
@@ -373,6 +377,73 @@ Your choice [y/u/m/d/s/?]:
 - 🔐 **Security first** - SHA256 verification prevents malicious updates
 
 📖 **[Complete Update System Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)** - Detailed walkthroughs, troubleshooting, and advanced usage.
+
+### 🔌 **MCP (Model Context Protocol) Integration**
+
+Connect your AI to external data sources and tools via the industry-standard Model Context Protocol. Dev-AID provides **two-layer MCP support** for maximum flexibility.
+
+| Feature | What It Does | Developer Benefits |
+|---------|-------------|-------------------|
+| 🔍 **Auto-Discovery** | Discovers MCP servers from Claude Code and Gemini CLI configurations | 🚀 Zero duplication needed<br>📦 Share servers across tools<br>🔄 One install, works everywhere |
+| 🎯 **Smart Context Gathering** | Router pre-fetches database schemas, GitHub issues, search results before sending to LLM | ⚡ Faster responses<br>🧠 Better context quality<br>💰 Fewer API roundtrips |
+| 🔒 **Security Hardened** | Environment variable isolation prevents API key leakage to MCP servers | 🛡️ LLM keys stay safe<br>🔐 Per-server credentials<br>✅ MITM protection |
+| 🎨 **Dual-Layer Architecture** | LLM CLIs use MCP natively + Router can enhance with additional context | 🔌 Works with/without router<br>⚙️ Optional enhancement<br>🎮 Full control |
+
+**Quick Start:**
+```bash
+# Install MCP servers via your LLM CLI
+claude mcp add github npx -y @modelcontextprotocol/server-github
+claude mcp add postgres npx -y @modelcontextprotocol/server-postgres
+claude mcp add brave-search npx -y @modelcontextprotocol/server-brave-search
+
+# Discover servers from CLI configs
+python -m router.cli mcp discover
+
+# Enable for Dev-AID router enhancement (optional)
+python -m router.cli mcp enable github
+python -m router.cli mcp enable postgres
+
+# Use with router (MCP context auto-gathered)
+python -m router.cli execute "Show database schema and related GitHub issues" --mode ensemble
+
+# Or use directly via LLM CLI (no router needed)
+claude code  # MCP servers work automatically
+```
+
+**How It Works:**
+
+**Layer 1: Native LLM CLI Usage**
+```
+Your LLM CLI (Claude Code, Gemini) → Uses MCP servers directly
+```
+- MCP servers configured via `claude mcp add` work automatically
+- No Dev-AID router needed for basic MCP usage
+- All major LLMs support MCP (Claude, OpenAI, Gemini, local LLMs)
+
+**Layer 2: Router Enhancement (Optional)**
+```
+Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM request
+```
+- Router discovers MCP servers from CLI configs
+- Connects to enabled servers for context gathering
+- Pre-fetches schemas, issues, search results
+- Sends enhanced context to LLM in system prompt
+- LLM can still use MCP servers directly during execution
+
+**Supported MCP Servers:**
+- **Databases**: PostgreSQL, MySQL, SQLite
+- **APIs**: GitHub, Jira, Slack, Linear, Google Drive
+- **Search**: Brave Search, Exa, code search
+- **Tools**: File system, browser automation (Puppeteer), AWS
+- **Custom**: Build your own MCP servers
+
+**Why This Matters:**
+- 🔌 **Plug-and-play** - Install once, works across all AI tools
+- 🔒 **Secure** - API key isolation prevents leakage to third-party servers
+- ⚡ **Efficient** - Pre-gathered context reduces LLM tool calls
+- 🌐 **Universal** - Works with Claude, OpenAI, Gemini, local LLMs (2025 industry standard)
+
+📖 **[Complete MCP Guide](.dev-aid/docs/MCP-GUIDE.md)** - Installation, security, troubleshooting, and advanced usage.
 
 ### ⚙️ **Works Everywhere You Do**
 - **Native integration** with Claude Code, Cursor, Gemini CLI

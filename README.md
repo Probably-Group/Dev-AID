@@ -155,16 +155,48 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 
 ---
 
-## ✨ Key Features
+## ✨ Complete Feature Overview
 
-### 🔍 **Dev-AID Local Search** (NEW!)
+**Quick Reference:** All Dev-AID capabilities ranked by developer impact.
+
+| Feature | What It Does | Key Benefits | Impact |
+|---------|-------------|--------------|--------|
+| **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
+| **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
+| **🎓 72 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team knowledge repository<br>• Consistent patterns | ⭐⭐⭐⭐⭐ |
+| **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
+| **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
+| **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
+| **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
+| **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware | ⭐⭐⭐⭐ |
+| **🔄 Safe Update System** | Update Dev-AID without losing customizations | • Interactive conflict resolution<br>• Auto-rollback on errors<br>• Protected paths (.env, memory) | ⭐⭐⭐⭐ |
+| **📊 Code Health Analysis** | Comprehensive quality metrics, test coverage, maintainability scoring | • Identify tech debt<br>• Track quality trends<br>• Actionable insights | ⭐⭐⭐⭐ |
+| **🛡️ Vulnerability Scanning** | Deep CVE scanning with auto-fix recommendations | • CVE database correlation<br>• Severity scoring<br>• Patch guidance | ⭐⭐⭐⭐ |
+| **🏷️ Auto-Triage (GitHub)** | Automatically label and categorize new issues | • Instant organization<br>• Complexity estimation<br>• Auto-fixable detection | ⭐⭐⭐ |
+| **📐 Architecture Mapping** | Generate Mermaid diagrams (class, dependency, C4) | • Visual codebase understanding<br>• Onboarding acceleration<br>• Documentation automation | ⭐⭐⭐ |
+| **🎭 Mock Data Generation** | Generate realistic test data from schemas | • JSON/CSV/SQL formats<br>• Schema-aware<br>• Pydantic/TypeScript support | ⭐⭐⭐ |
+| **📝 PR Description Generator** | Auto-generate PR descriptions from git diff | • Saves 5-10 min/PR<br>• Consistent format<br>• Detailed changelogs | ⭐⭐⭐ |
+| **👨‍💻 Developer Onboarding** | Automated onboarding for new team members | • Environment checks<br>• Project detection<br>• Setup guidance | ⭐⭐⭐ |
+| **⚙️ Reconfiguration Tool** | Change settings without breaking memory/context | • Safe config changes<br>• Backup automation<br>• No data loss | ⭐⭐ |
+| **📚 Documentation Sync** | Detect when docs drift from reality | • Package manager checks<br>• Script validation<br>• Port verification | ⭐⭐ |
+| **🔧 Skill Condensing** | Auto-condense skills >500 lines into references | • Keep skills concise<br>• Organized structure<br>• Better context usage | ⭐⭐ |
+| **🔄 Model Registry Updates** | Keep AI model catalog current with latest releases | • Latest model info<br>• Pricing updates<br>• Capability tracking | ⭐⭐ |
+
+**Legend:** ⭐⭐⭐⭐⭐ = Game-changer | ⭐⭐⭐⭐ = High impact | ⭐⭐⭐ = Solid value | ⭐⭐ = Nice to have
+
+---
+
+## 🎯 Core Features (Detailed)
+
+### 🔍 **Dev-AID Local Search** (⭐⭐⭐⭐⭐)
 - **100% local** - Code never leaves your machine
 - **$0 forever** - No API costs for embeddings
 - **EmbeddingGemma model** - Google's state-of-the-art embeddings
 - **Fast** - 0.15s queries with FAISS vector search
 - **Smart** - AST parsing for 9+ languages
 - **MCP native** - Works with Claude Code, Gemini CLI & Cursor
-- **Powered by** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local)
+- **Based on** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local) (embedded fork)
 
 ### 🔀 **Multi-AI Router** (NEW!)
 - **Challenger mode** - Claude generates, Gemini reviews
@@ -173,7 +205,7 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
 
-### 🎓 **65 Expert Skills** (🆕 Hook-Based Auto-Loading)
+### 🎓 **72 Expert Skills** (🆕 Hook-Based Auto-Loading)
 - **Intelligent auto-loading** - Detects project context (tech stack, files) at session start
 - **Scoring algorithm** - Ranks skills by relevance (keywords, technologies, file patterns)
 - **Zero configuration** - Works automatically for Claude Code and Gemini CLI
@@ -898,7 +930,7 @@ Runs all tests with coverage
 - ❌ Code sent to API (privacy concern)
 - ❌ Requires internet
 
-**Local RAG (claude-context-local):**
+**Local RAG (Dev-AID Local Search):**
 - ✅ $0 forever
 - ✅ 100% private (code never leaves machine)
 - ✅ Works offline
@@ -912,9 +944,9 @@ Runs all tests with coverage
 ```
 
 **What it does:**
-1. Installs claude-context-local
+1. Installs Dev-AID Local Search (embedded semantic search engine)
 2. Downloads EmbeddingGemma model (1.2GB)
-3. Registers MCP with Claude Code or Gemini CLI
+3. Registers MCP server with Claude Code or Gemini CLI
 4. Indexes your codebase
 5. Creates helper scripts
 
@@ -1040,7 +1072,7 @@ Savings: $23.25/month (52% reduction)
 100 requests × 150k tokens = 15M tokens
 Embeddings (OpenAI): $1.95
 
-# With claude-context-local
+# With Dev-AID Local Search
 100 requests × 50k tokens = 5M tokens (67% reduction)
 Embeddings: $0 (local)
 
@@ -1296,8 +1328,8 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 - **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 
 ### Core Technologies
-- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Powers Dev-AID Local Search with 100% local semantic code search using EmbeddingGemma
-- **[EmbeddingGemma](https://huggingface.co/google/gemma-2b-it)** by Google - State-of-the-art embedding model for semantic search
+- **[claude-context-local](https://github.com/FarhanAliRaza/claude-context-local)** by [FarhanAliRaza](https://github.com/FarhanAliRaza) - Inspiration and foundation for Dev-AID Local Search (embedded fork with enhancements)
+- **[EmbeddingGemma](https://huggingface.co/google/embeddinggemma-300m)** by Google - State-of-the-art embedding model (300M parameters) for semantic code search
 - **[FAISS](https://github.com/facebookresearch/faiss)** by Meta AI - High-performance vector search
 
 ### AI Platforms

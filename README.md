@@ -79,6 +79,7 @@ Dev-AID: *Claude generates, Gemini reviews, all in one place*
 │  Your AI Gets Superpowers ⚡                 │
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
+│  • MCP integration (databases, GitHub, etc) │
 │  • 72 expert skills (context-aware)         │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
@@ -91,6 +92,9 @@ Real-World Examples:
 
 • /dev-aid-router-challenger "Implement OAuth2"
   → Claude generates code, Gemini reviews security, all in one command
+
+• "Show me all users in database with open GitHub issues"
+  → MCP servers query Postgres + GitHub, combine results automatically
 
 • Start coding session
   → Auto-loads relevant skills based on your tech stack (Python, React, Docker...)
@@ -151,9 +155,41 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 
 ---
 
-## ✨ Key Features
+## ✨ Complete Feature Overview
 
-### 🔍 **Dev-AID Local Search** (NEW!)
+**Quick Reference:** All Dev-AID capabilities ranked by developer impact.
+
+| Feature | What It Does | Key Benefits | Impact |
+|---------|-------------|--------------|--------|
+| **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
+| **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
+| **🎓 65 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team knowledge repository<br>• Consistent patterns | ⭐⭐⭐⭐⭐ |
+| **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
+| **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
+| **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
+| **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
+| **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware | ⭐⭐⭐⭐ |
+| **🔄 Safe Update System** | Update Dev-AID without losing customizations | • Interactive conflict resolution<br>• Auto-rollback on errors<br>• Protected paths (.env, memory) | ⭐⭐⭐⭐ |
+| **📊 Code Health Analysis** | Comprehensive quality metrics, test coverage, maintainability scoring | • Identify tech debt<br>• Track quality trends<br>• Actionable insights | ⭐⭐⭐⭐ |
+| **🛡️ Vulnerability Scanning** | Deep CVE scanning with auto-fix recommendations | • CVE database correlation<br>• Severity scoring<br>• Patch guidance | ⭐⭐⭐⭐ |
+| **🏷️ Auto-Triage (GitHub)** | Automatically label and categorize new issues | • Instant organization<br>• Complexity estimation<br>• Auto-fixable detection | ⭐⭐⭐ |
+| **📐 Architecture Mapping** | Generate Mermaid diagrams (class, dependency, C4) | • Visual codebase understanding<br>• Onboarding acceleration<br>• Documentation automation | ⭐⭐⭐ |
+| **🎭 Mock Data Generation** | Generate realistic test data from schemas | • JSON/CSV/SQL formats<br>• Schema-aware<br>• Pydantic/TypeScript support | ⭐⭐⭐ |
+| **📝 PR Description Generator** | Auto-generate PR descriptions from git diff | • Saves 5-10 min/PR<br>• Consistent format<br>• Detailed changelogs | ⭐⭐⭐ |
+| **👨‍💻 Developer Onboarding** | Automated onboarding for new team members | • Environment checks<br>• Project detection<br>• Setup guidance | ⭐⭐⭐ |
+| **⚙️ Reconfiguration Tool** | Change settings without breaking memory/context | • Safe config changes<br>• Backup automation<br>• No data loss | ⭐⭐ |
+| **📚 Documentation Sync** | Detect when docs drift from reality | • Package manager checks<br>• Script validation<br>• Port verification | ⭐⭐ |
+| **🔧 Skill Condensing** | Auto-condense skills >500 lines into references | • Keep skills concise<br>• Organized structure<br>• Better context usage | ⭐⭐ |
+| **🔄 Model Registry Updates** | Keep AI model catalog current with latest releases | • Latest model info<br>• Pricing updates<br>• Capability tracking | ⭐⭐ |
+
+**Legend:** ⭐⭐⭐⭐⭐ = Game-changer | ⭐⭐⭐⭐ = High impact | ⭐⭐⭐ = Solid value | ⭐⭐ = Nice to have
+
+---
+
+## 🎯 Core Features (Detailed)
+
+### 🔍 **Dev-AID Local Search** (⭐⭐⭐⭐⭐)
 - **100% local** - Code never leaves your machine
 - **$0 forever** - No API costs for embeddings
 - **EmbeddingGemma model** - Google's state-of-the-art embeddings
@@ -373,6 +409,73 @@ Your choice [y/u/m/d/s/?]:
 - 🔐 **Security first** - SHA256 verification prevents malicious updates
 
 📖 **[Complete Update System Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)** - Detailed walkthroughs, troubleshooting, and advanced usage.
+
+### 🔌 **MCP (Model Context Protocol) Integration**
+
+Connect your AI to external data sources and tools via the industry-standard Model Context Protocol. Dev-AID provides **two-layer MCP support** for maximum flexibility.
+
+| Feature | What It Does | Developer Benefits |
+|---------|-------------|-------------------|
+| 🔍 **Auto-Discovery** | Discovers MCP servers from Claude Code and Gemini CLI configurations | 🚀 Zero duplication needed<br>📦 Share servers across tools<br>🔄 One install, works everywhere |
+| 🎯 **Smart Context Gathering** | Router pre-fetches database schemas, GitHub issues, search results before sending to LLM | ⚡ Faster responses<br>🧠 Better context quality<br>💰 Fewer API roundtrips |
+| 🔒 **Security Hardened** | Environment variable isolation prevents API key leakage to MCP servers | 🛡️ LLM keys stay safe<br>🔐 Per-server credentials<br>✅ MITM protection |
+| 🎨 **Dual-Layer Architecture** | LLM CLIs use MCP natively + Router can enhance with additional context | 🔌 Works with/without router<br>⚙️ Optional enhancement<br>🎮 Full control |
+
+**Quick Start:**
+```bash
+# Install MCP servers via your LLM CLI
+claude mcp add github npx -y @modelcontextprotocol/server-github
+claude mcp add postgres npx -y @modelcontextprotocol/server-postgres
+claude mcp add brave-search npx -y @modelcontextprotocol/server-brave-search
+
+# Discover servers from CLI configs
+python -m router.cli mcp discover
+
+# Enable for Dev-AID router enhancement (optional)
+python -m router.cli mcp enable github
+python -m router.cli mcp enable postgres
+
+# Use with router (MCP context auto-gathered)
+python -m router.cli execute "Show database schema and related GitHub issues" --mode ensemble
+
+# Or use directly via LLM CLI (no router needed)
+claude code  # MCP servers work automatically
+```
+
+**How It Works:**
+
+**Layer 1: Native LLM CLI Usage**
+```
+Your LLM CLI (Claude Code, Gemini) → Uses MCP servers directly
+```
+- MCP servers configured via `claude mcp add` work automatically
+- No Dev-AID router needed for basic MCP usage
+- All major LLMs support MCP (Claude, OpenAI, Gemini, local LLMs)
+
+**Layer 2: Router Enhancement (Optional)**
+```
+Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM request
+```
+- Router discovers MCP servers from CLI configs
+- Connects to enabled servers for context gathering
+- Pre-fetches schemas, issues, search results
+- Sends enhanced context to LLM in system prompt
+- LLM can still use MCP servers directly during execution
+
+**Supported MCP Servers:**
+- **Databases**: PostgreSQL, MySQL, SQLite
+- **APIs**: GitHub, Jira, Slack, Linear, Google Drive
+- **Search**: Brave Search, Exa, code search
+- **Tools**: File system, browser automation (Puppeteer), AWS
+- **Custom**: Build your own MCP servers
+
+**Why This Matters:**
+- 🔌 **Plug-and-play** - Install once, works across all AI tools
+- 🔒 **Secure** - API key isolation prevents leakage to third-party servers
+- ⚡ **Efficient** - Pre-gathered context reduces LLM tool calls
+- 🌐 **Universal** - Works with Claude, OpenAI, Gemini, local LLMs (2025 industry standard)
+
+📖 **[Complete MCP Guide](.dev-aid/docs/MCP-GUIDE.md)** - Installation, security, troubleshooting, and advanced usage.
 
 ### ⚙️ **Works Everywhere You Do**
 - **Native integration** with Claude Code, Cursor, Gemini CLI

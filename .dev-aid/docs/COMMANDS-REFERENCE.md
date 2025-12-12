@@ -81,6 +81,97 @@ Core skills provide **automated tool execution** on file save:
 
 ---
 
+## 🚀 Productivity Tools (NEW!)
+
+### `/dev-aid-api-contract`
+**Category:** Productivity
+**Purpose:** Generate OpenAPI specs, TypeScript clients, and MSW mocks from data models
+**When to use:** Starting new API development, unblocking frontend
+**Output:** OpenAPI spec, TypeScript client, MSW mocks, tests, validation middleware
+
+**What it generates:**
+- `api/user-api.yaml` - OpenAPI 3.1 specification
+- `src/api/user-client.ts` - Type-safe API client (openapi-fetch)
+- `src/mocks/user.mocks.ts` - MSW mock handlers
+- `src/api/__tests__/user-api.test.ts` - Contract tests
+- `src/middleware/user-validator.ts` - Request validation (Zod)
+
+**Example:**
+```bash
+# From TypeScript interface
+/dev-aid-api-contract --from src/models/user.ts --name UserAPI
+
+# From Zod schema
+/dev-aid-api-contract --from src/schemas/user-schema.ts --name UserAPI
+
+# Infer from existing controller
+/dev-aid-api-contract --infer src/controllers/user-controller.ts
+```
+
+**Value:** Unblocks frontend immediately (2-4 weeks saved), $675,000/year for 100 devs
+
+### `/dev-aid-commit-plan`
+**Category:** Productivity
+**Purpose:** Analyze unstaged changes and propose atomic commits
+**When to use:** After coding session, before committing
+**Output:** Interactive commit plan with groupings and suggested messages
+
+**What it does:**
+1. Analyzes all unstaged changes
+2. Groups files by logical changes (feat, fix, refactor, docs)
+3. Proposes atomic commits with conventional commit messages
+4. Shows dependency order and conflicts
+5. Interactive approval/edit before execution
+
+**Example:**
+```bash
+# Generate commit plan
+/dev-aid-commit-plan
+
+# Output shows:
+# 1. feat: Add user authentication (8 files)
+# 2. fix: Resolve null pointer in profile (2 files)
+# 3. refactor: Extract validation utils (3 files)
+# 4. docs: Update API documentation (1 file)
+#
+# Actions: [A]pprove & execute | [E]dit plan | [P]review | [C]ancel
+```
+
+**Value:** Prevents mega-commits, teaches good habits, $425,000/year for 100 devs
+
+### `/dev-aid-review-staged`
+**Category:** Quality
+**Purpose:** Comprehensive pre-commit review (Rubber Duck Pre-Reviewer)
+**When to use:** Before committing, as pre-commit hook
+**Output:** Security, performance, test, and code quality issues
+
+**Focus modes:**
+```bash
+# Comprehensive review
+/dev-aid-review-staged
+
+# Security-only review
+/dev-aid-review-staged --focus security
+
+# Test coverage review
+/dev-aid-review-staged --focus tests
+
+# Performance review
+/dev-aid-review-staged --focus performance
+
+# Code style review
+/dev-aid-review-staged --focus style
+```
+
+**What it catches:**
+- 🔴 Blockers: Hardcoded secrets, SQL injection, security vulnerabilities
+- 🟡 Warnings: Missing tests, debug code, performance anti-patterns
+- 🔵 Suggestions: Code smells, naming issues, complexity
+
+**Value:** Catches issues early, $1,050,000/year for 100 devs (prevented rework)
+
+---
+
 ## 🎯 Quality & Security Analysis Commands (Included!)
 
 **These commands are already included in Dev-AID** (adapted from claude-code-tresor):

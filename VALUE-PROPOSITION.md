@@ -768,6 +768,23 @@ Setup cost: 5 minutes per developer
 - API savings calculated from actual Claude/Gemini pricing (2025)
 - All figures assume 100-developer team; scale linearly
 
+**⚠️ Important Clarification: Implementation Cost vs. User Value**
+
+The dollar values in the table above represent **annual time savings for end users** when they use these features, NOT the cost to implement them.
+
+**Example breakdown (API Contract Generator):**
+- **Implementation cost**: Creating the slash command documentation, scripts, and logic = 1-2 days of development work
+- **User value delivered**: When developers use `/dev-aid-api-contract`, they save 2-4 weeks per project
+- **Annual value**: 100 developers × multiple projects/year = $675,000/year in time saved
+
+**Key points:**
+1. **Values are conservative**: Estimates assume human developers using the tools without AI assistance
+2. **Codebase variability**: Actual time savings vary by project size and complexity
+   - Small projects (< 10K lines): Lower end of time estimates
+   - Large projects (> 100K lines): Upper end of time estimates
+3. **AI-assisted implementation**: While AI (like Claude) can accelerate creating Dev-AID features, the value proposition measures time saved for developers who will use these features in their daily work
+4. **Compound value**: Many features work together (e.g., Pre-Commit Reviewer + Commit Planner + API Contract Generator) creating multiplicative benefits
+
 **ROI Breakdown:**
 - **Direct Cost Savings:** $697K/year (API, GitHub Actions, avoided incidents)
 - **Productivity Gains:** $2.5M/year (time saved × developer cost)

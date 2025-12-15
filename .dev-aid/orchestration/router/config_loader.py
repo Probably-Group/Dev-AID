@@ -147,11 +147,17 @@ class ConfigLoader:
 
             return data
 
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in {filename}: {e}")
+        except Exception as e:
+            raise ValueError(f"Failed to load configuration {filename}: {e}")
+
     def _load_toon(self, filepath: Path) -> Dict[str, Any]:
         """Load and parse TOON format configuration file"""
         try:
             # Import TOON decoder (lazy import to avoid dependency issues)
             import sys
+
             orchestration_path = filepath.parent.parent.parent / "orchestration"
             if str(orchestration_path) not in sys.path:
                 sys.path.insert(0, str(orchestration_path))

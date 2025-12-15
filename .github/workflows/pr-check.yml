@@ -48,6 +48,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: '.dev-aid/orchestration/requirements.txt'
 
+      - name: Set up Node.js (for TOON SDK)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Cache virtual environment
         id: cache-venv
         uses: actions/cache@v3
@@ -69,6 +74,12 @@ jobs:
           pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
           pip install mypy==1.13.0 types-requests==2.32.0.20241016
 
+      - name: Install TOON SDK (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          npm install
+
       - name: Install dependencies (Windows)
         if: steps.cache-venv.outputs.cache-hit != 'true' && runner.os == 'Windows'
         run: |
@@ -80,6 +91,13 @@ jobs:
           pip install pytest==8.3.4 pytest-cov==5.0.0 pytest-xdist
           pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
           pip install mypy==1.13.0 types-requests==2.32.0.20241016
+        shell: pwsh
+
+      - name: Install TOON SDK (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          npm install
         shell: pwsh
 
   python-lint:

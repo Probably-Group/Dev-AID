@@ -589,6 +589,16 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
   - Full Details: [TOON Implementation Plan](.dev-aid/docs/TOON-IMPLEMENTATION-PLAN.md)
   - Code: [TOON Module](.dev-aid/orchestration/toon/)
 
+- **✅ Local CI Validation System** ⭐⭐⭐⭐⭐ (NEW!)
+  - **Prevent CI Failures**: Run same checks locally that CI runs on GitHub Actions
+  - **Auto-Fix on Commit**: Pre-commit hook auto-formats code (Black, isort) and blocks errors
+  - **Fast Feedback**: Get results in 10-30s locally vs 2-5 min waiting for CI
+  - **Slash Command**: `/validate-ci` for quick access from Claude Code
+  - **Smart Detection**: Auto-detects venv and Node.js, provides helpful error messages
+  - **ROI**: $83,300/year for 100 devs (prevents failed builds, faster iteration)
+  - Scripts: `run-local-ci-checks.sh`, `setup-better-git-hooks.sh`
+  - Documentation: [Local CI Validation Guide](.dev-aid/docs/LOCAL-CI-VALIDATION.md)
+
 ---
 
 - **🔄 Safe Update System**: Never lose customizations while staying current

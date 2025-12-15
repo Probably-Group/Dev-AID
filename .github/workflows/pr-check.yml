@@ -32,7 +32,10 @@ jobs:
   # Setup job: Install dependencies once, cache for all jobs
   setup:
     name: Setup Dependencies
-    runs-on: ubuntu-22.04  # Explicit version, slightly faster than 'latest'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -54,8 +57,8 @@ jobs:
           restore-keys: |
             venv-${{ runner.os }}-py3.11-
 
-      - name: Install dependencies
-        if: steps.cache-venv.outputs.cache-hit != 'true'
+      - name: Install dependencies (Unix)
+        if: steps.cache-venv.outputs.cache-hit != 'true' && runner.os != 'Windows'
         run: |
           cd .dev-aid/orchestration
           python -m venv .venv
@@ -66,10 +69,26 @@ jobs:
           pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
           pip install mypy==1.13.0 types-requests==2.32.0.20241016
 
+      - name: Install dependencies (Windows)
+        if: steps.cache-venv.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          python -m venv .venv
+          .\.venv\Scripts\Activate.ps1
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest==8.3.4 pytest-cov==5.0.0 pytest-xdist
+          pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
+          pip install mypy==1.13.0 types-requests==2.32.0.20241016
+        shell: pwsh
+
   python-lint:
-    name: Python Lint
-    runs-on: ubuntu-22.04
+    name: Python Lint (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: setup
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -86,7 +105,8 @@ jobs:
           path: .dev-aid/orchestration/.venv
           key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run linting checks
+      - name: Run linting checks (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
@@ -104,10 +124,23 @@ jobs:
           # Wait for all to complete
           wait $ISORT_PID $FLAKE8_PID $BLACK_PID
 
+      - name: Run linting checks (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          .\.venv\Scripts\Activate.ps1
+          black --check --diff .
+          isort --check-only --diff .
+          flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv
+        shell: pwsh
+
   python-test:
-    name: Python Unit Tests
-    runs-on: ubuntu-22.04
+    name: Python Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: setup
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -124,16 +157,28 @@ jobs:
           path: .dev-aid/orchestration/.venv
           key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run tests
+      - name: Run tests (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
           pytest tests/ -v -n auto  # Use pytest-xdist for parallel test execution
 
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          .\.venv\Scripts\Activate.ps1
+          pytest tests/ -v -n auto
+        shell: pwsh
+
   type-check:
-    name: Type Check
-    runs-on: ubuntu-22.04
+    name: Type Check (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     needs: setup
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -150,12 +195,60 @@ jobs:
           path: .dev-aid/orchestration/.venv
           key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run MyPy
+      - name: Run MyPy (Unix)
+        if: runner.os != 'Windows'
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
           mypy router --ignore-missing-imports --no-strict-optional
         continue-on-error: true
+
+      - name: Run MyPy (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          .\.venv\Scripts\Activate.ps1
+          mypy router --ignore-missing-imports --no-strict-optional
+        continue-on-error: true
+        shell: pwsh
+
+  e2e-test:
+    name: E2E Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    needs: setup
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Restore cached venv
+        uses: actions/cache@v3
+        with:
+          path: .dev-aid/orchestration/.venv
+          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+
+      - name: Run E2E tests (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          source .venv/bin/activate
+          pytest tests/test_e2e.py -v -m "not slow"
+
+      - name: Run E2E tests (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .dev-aid/orchestration
+          .\.venv\Scripts\Activate.ps1
+          pytest tests/test_e2e.py -v -m "not slow"
+        shell: pwsh
 
   bash-lint:
     name: Bash Lint
@@ -177,19 +270,34 @@ jobs:
   pr-check-summary:
     name: PR Check Summary
     runs-on: ubuntu-22.04
-    needs: [python-lint, python-test, type-check, bash-lint]
+    needs: [python-lint, python-test, type-check, e2e-test, bash-lint]
     if: always()
 
     steps:
       - name: Check results
         run: |
+          echo "Checking test results across all platforms..."
+
+          # Check if any critical job failed
           if [[ "${{ needs.python-lint.result }}" == "failure" || \
-                "${{ needs.python-test.result }}" == "failure" ]]; then
-            echo "❌ PR checks failed!"
+                "${{ needs.python-test.result }}" == "failure" || \
+                "${{ needs.e2e-test.result }}" == "failure" ]]; then
+            echo "❌ PR checks failed on one or more platforms!"
+            echo "Python Lint: ${{ needs.python-lint.result }}"
+            echo "Python Test: ${{ needs.python-test.result }}"
+            echo "E2E Test: ${{ needs.e2e-test.result }}"
+            echo "Type Check: ${{ needs.type-check.result }}"
+            echo "Bash Lint: ${{ needs.bash-lint.result }}"
             exit 1
           else
-            echo "✅ All PR checks passed!"
+            echo "✅ All critical PR checks passed across platforms!"
+            echo "✓ Python Lint: ${{ needs.python-lint.result }}"
+            echo "✓ Python Test: ${{ needs.python-test.result }}"
+            echo "✓ E2E Test: ${{ needs.e2e-test.result }}"
+            echo "✓ Type Check: ${{ needs.type-check.result }}"
             if [[ "${{ needs.bash-lint.result }}" == "failure" ]]; then
               echo "⚠️  Shellcheck warnings present (non-blocking)"
+            else
+              echo "✓ Bash Lint: ${{ needs.bash-lint.result }}"
             fi
           fi

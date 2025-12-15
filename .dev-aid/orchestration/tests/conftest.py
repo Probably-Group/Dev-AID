@@ -10,6 +10,14 @@ from typing import Any, Dict
 import pytest
 
 
+def pytest_configure(config):
+    """Register custom pytest markers"""
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
+    config.addinivalue_line("markers", "e2e: marks tests as end-to-end integration tests")
+
+
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for tests"""

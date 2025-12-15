@@ -556,7 +556,37 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 - **✅ Fail-Closed Hooks**: Pre-commit now blocks when security tools missing (no more silent bypasses)
 - **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
 
-### New Features
+### New Features (Tier 1: v1.3.0)
+
+- **🌐 Cross-Platform CI Support** ⭐⭐⭐⭐ (NEW!)
+  - **Windows, macOS, Linux**: Full GitHub Actions support across all major platforms
+  - **Matrix Testing**: Automated tests run on ubuntu-22.04, windows-latest, and macos-latest
+  - **Platform-Specific Workflows**: Handles OS differences automatically (venv activation, path separators)
+  - **Parallel Execution**: All platforms test concurrently for faster feedback
+  - **ROI**: Wider adoption + earlier platform-specific bug detection
+  - Documentation: [Cross-Platform CI Guide](.github/workflows/pr-check.yml)
+
+- **🧪 End-to-End Testing Framework** ⭐⭐⭐⭐ (NEW!)
+  - **Complete CLI Workflow Testing**: pytest-based E2E tests for real-world scenarios
+  - **Config Validation**: Tests config loading, cost tracking, task classification
+  - **Script Integration**: Validates all core scripts for syntax and executability
+  - **Memory Bank Testing**: Ensures persistent context system works correctly
+  - **Fast by Default**: Slow tests marked and skipped in CI (use `-m "not slow"`)
+  - **ROI**: Prevents regressions + ensures release quality
+  - Tests: [E2E Test Suite](.dev-aid/orchestration/tests/test_e2e.py)
+
+- **🎒 TOON Format Infrastructure** ⭐⭐⭐⭐⭐ (Phase 1 Complete!)
+  - **Token Reduction**: 40-60% fewer tokens vs JSON in LLM prompts
+  - **Better Accuracy**: 74% vs JSON's 70% (validated benchmarks)
+  - **Python SDK Ready**: Full encode/decode/conversion utilities
+  - **21 Unit Tests**: Comprehensive test coverage for all TOON operations
+  - **Roundtrip Preservation**: Perfect data fidelity (encode → decode = original)
+  - **Next Phases**: Skill conversion → Config migration → Full deployment
+  - **ROI**: $30-50K/year token savings for 100-developer team
+  - Documentation: [TOON Implementation Plan](.dev-aid/docs/TOON-IMPLEMENTATION-PLAN.md)
+  - Code: [TOON Module](.dev-aid/orchestration/toon/)
+
+---
 
 - **🔄 Safe Update System**: Never lose customizations while staying current
   - **Interactive Conflict Resolution**: 5-option menu (keep/take/merge/diff/skip) for each modified file

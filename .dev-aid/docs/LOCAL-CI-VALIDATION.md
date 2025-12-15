@@ -311,6 +311,25 @@ Potential improvements:
 - [Testing Guide](./TESTING.md)
 - [Contributing Guide](../../CONTRIBUTING.md)
 
+## Comparison: Local CI Validation vs CI Generator
+
+**Dev-AID has two CI-related systems with different purposes:**
+
+| Feature | Local CI Validation | CI Generator (`generate-ci.sh`) |
+|---------|---------------------|--------------------------------|
+| **Purpose** | Validate Dev-AID development | Generate CI for user projects |
+| **Target** | Dev-AID contributors | Dev-AID users |
+| **Checks** | Black, isort, Flake8, MyPy, Pytest, Shellcheck | Language-specific (Python/Node/Rust/Go/Java/etc.) |
+| **Usage** | `.dev-aid/scripts/run-local-ci-checks.sh` | `.dev-aid/scripts/generate-ci.sh /path/to/project` |
+| **Pre-commit Hook** | Auto-fixes formatting on commit | Not applicable |
+| **Optimization** | Fixed (Dev-AID specific) | Optional `--optimize` flag |
+
+**When to use each:**
+- **Local CI Validation**: When contributing to Dev-AID itself (fixing bugs, adding features)
+- **CI Generator**: When using Dev-AID in your own project and need to create GitHub Actions workflows
+
+Both systems include comprehensive security scanning (Gitleaks, Trivy, etc.), but Local CI Validation is specifically tuned for Dev-AID's Python + Bash codebase.
+
 ---
 
 **Status:** ✅ Production Ready

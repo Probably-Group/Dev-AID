@@ -100,11 +100,30 @@ class ConfigLoader:
             raise ValueError(f"Invalid path: {e}")
 
     def _load_json(self, filename: str) -> Dict[str, Any]:
-        """Load and parse JSON configuration file"""
+        """
+        Load and parse configuration file (supports JSON and TOON formats)
+
+        Tries TOON format first (.toon extension), falls back to JSON (.json)
+        """
         # Validate filename doesn't contain traversal
         if ".." in filename or filename.startswith("/"):
             raise ValueError(f"Invalid filename: {filename}")
 
+        # Try TOON format first
+        base_name = filename.replace(".json", "")
+        toon_filename = f"{base_name}.toon"
+        toon_filepath = self.config_dir / toon_filename
+
+        # Check if TOON version exists
+        try:
+            toon_safe_path = self._validate_safe_path(toon_filepath, self.config_dir)
+            if toon_safe_path.exists():
+                logger.info(f"Loading TOON config: {toon_filename}")
+                return self._load_toon(toon_safe_path)
+        except Exception as e:
+            logger.debug(f"TOON file not available ({toon_filename}): {e}")
+
+        # Fall back to JSON format
         filepath = self.config_dir / filename
 
         # Validate path is within config_dir
@@ -128,8 +147,35 @@ class ConfigLoader:
 
             return data
 
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid JSON in {filename}. Please check your configuration file.")
+    def _load_toon(self, filepath: Path) -> Dict[str, Any]:
+        """Load and parse TOON format configuration file"""
+        try:
+            # Import TOON decoder (lazy import to avoid dependency issues)
+            import sys
+            orchestration_path = filepath.parent.parent.parent / "orchestration"
+            if str(orchestration_path) not in sys.path:
+                sys.path.insert(0, str(orchestration_path))
+
+            from toon import decode
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            # Parse TOON
+            data = decode(content)
+
+            if not isinstance(data, dict):
+                raise ValueError(f"Configuration must be an object, got {type(data)}")
+
+            return data
+
+        except ImportError as e:
+            raise RuntimeError(
+                f"TOON format requires toon module. "
+                f"Please install dependencies or use JSON format. Error: {e}"
+            )
+        except Exception as e:
+            raise ValueError(f"Failed to parse TOON configuration: {e}")
 
     def get_orchestration_mode(self) -> str:
         """Get current orchestration mode (solo, ensemble, challenger)"""

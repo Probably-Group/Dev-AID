@@ -23,13 +23,13 @@ Environment Variables:
 """
 
 import json
-import sys
 import os
+import sys
 import time
 from pathlib import Path
-from urllib.request import urlopen, Request
-from urllib.error import URLError, HTTPError
-from typing import Dict, Optional, List
+from typing import Dict, List, Optional
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 
 class Color:

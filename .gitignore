@@ -55,3 +55,14 @@ htmlcov/
 # Core skills local overrides (personal preferences)
 .dev-aid/config/core-skills.local.json
 
+# Node.js (for TOON SDK)
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc logs
+talosboot.log
+*.log
+

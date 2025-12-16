@@ -16,11 +16,11 @@ Example:
     python3 conflict_resolver.py .dev-aid-backup-20251210 /tmp/dev-aid-update files.txt
 """
 
-import sys
 import difflib
+import sys
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional
-from enum import Enum
 
 
 class MergeChoice(Enum):

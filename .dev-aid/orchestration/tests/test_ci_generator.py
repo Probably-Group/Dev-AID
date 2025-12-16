@@ -10,10 +10,10 @@ Tests the CI/CD workflow generator including:
 - Optimization flag behavior
 """
 
+import sys
 import tempfile
 import unittest
 from pathlib import Path
-import sys
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

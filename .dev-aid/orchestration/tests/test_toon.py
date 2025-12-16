@@ -191,12 +191,7 @@ class TestTokenSavings:
 
         savings = converter.estimate_token_savings(data)
 
-        # Manual calculation based on actual sizes (not token estimates)
-        actual_savings_percent = (
-            (savings["json_size"] - savings["toon_size"]) / savings["json_size"] * 100
-        )
-
-        # The savings_percent uses token estimation, which may differ from size
+        # The savings_percent uses token estimation
         # Just verify it's a reasonable positive number
         assert savings["savings_percent"] >= 0
         assert isinstance(savings["savings_percent"], (int, float))

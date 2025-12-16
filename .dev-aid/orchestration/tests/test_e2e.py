@@ -8,7 +8,6 @@ import os
 import subprocess
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
 
 import pytest
 
@@ -74,9 +73,12 @@ class TestE2ECliWorkflows:
                 }
             }
 
+            orchestration = {"enabled": True}
+
             (config_dir / "settings.json").write_text(json.dumps(settings, indent=2))
             (config_dir / "routing.json").write_text(json.dumps(routing, indent=2))
             (config_dir / "models.json").write_text(json.dumps(models, indent=2))
+            (config_dir / "orchestration.json").write_text(json.dumps(orchestration, indent=2))
 
             # Try to load config using the config_loader module
             result = subprocess.run(
@@ -88,7 +90,7 @@ import sys
 sys.path.insert(0, '{Path(__file__).parent.parent}')
 from router.config_loader import ConfigLoader
 loader = ConfigLoader('{tmpdir}')
-config = loader.load_settings()
+mode = loader.get_orchestration_mode()
 print('OK')
 """,
                 ],

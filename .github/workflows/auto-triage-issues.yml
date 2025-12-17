@@ -1,9 +1,10 @@
 name: Auto-Triage Issues
 
 # Automatically analyze and label new issues using Dev-AID orchestration
+# NOTE: Only runs on 'opened' to save CI minutes (edited runs were rarely useful)
 on:
   issues:
-    types: [opened, edited]
+    types: [opened]  # Removed 'edited' to save ~10 runs/week
   workflow_dispatch:
     inputs:
       issue_number:

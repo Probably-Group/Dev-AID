@@ -1,9 +1,11 @@
 name: Auto-Resolve PR Conflicts
 
 # Automatically detect and optionally resolve merge conflicts in PRs
+# NOTE: Disabled auto-trigger to save CI minutes (runs 50+ times/week but rarely useful)
+# Use workflow_dispatch for manual conflict resolution when needed
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  # pull_request:  # Disabled to save CI minutes
+  #   types: [opened, synchronize, reopened]
   workflow_dispatch:
     inputs:
       pr_number:

@@ -173,7 +173,11 @@ Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
-| **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware | ⭐⭐⭐⭐ |
+| **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware<br>• Frequency profiles (up to 98% cost reduction) | ⭐⭐⭐⭐ |
+| **📦 SBOM Generation** (v1.3.1) | Software Bill of Materials in releases | • Supply chain transparency<br>• Compliance ready<br>• Dependency diff tool<br>• CycloneDX + SPDX | ⭐⭐⭐⭐ |
+| **🔍 Impact Analysis** (v1.4.0) | Find code that depends on a function/class | • Shows affected files<br>• Test suggestions<br>• JSON/Markdown output<br>• Saves 30-60 min pre-refactor | ⭐⭐⭐⭐ |
+| **🌳 Dependency Tree** (v1.4.0) | Visualize import relationships | • Forward/reverse deps<br>• Mermaid diagrams<br>• Circular detection<br>• Python/JS/TS support | ⭐⭐⭐⭐ |
+| **❤️ Health Check** (v1.4.0) | Quick status of Dev-AID components | • Exit 0/1 for scripts<br>• Checks RAG/Router/Skills<br>• Age warnings<br>• Pre-commit ready | ⭐⭐⭐ |
 | **🔄 Safe Update System** | Update Dev-AID without losing customizations | • Interactive conflict resolution<br>• Auto-rollback on errors<br>• Protected paths (.env, memory) | ⭐⭐⭐⭐ |
 | **📊 Code Health Analysis** | Comprehensive quality metrics, test coverage, maintainability scoring | • Identify tech debt<br>• Track quality trends<br>• Actionable insights | ⭐⭐⭐⭐ |
 | **🛡️ Vulnerability Scanning** | Deep CVE scanning with auto-fix recommendations | • CVE database correlation<br>• Severity scoring<br>• Patch guidance | ⭐⭐⭐⭐ |

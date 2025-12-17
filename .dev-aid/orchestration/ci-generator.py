@@ -216,8 +216,143 @@ class CIGenerator:
 
         return context
 
+    def get_frequency_config(self, frequency: str) -> Dict[str, any]:
+        """Get CI execution frequency configuration
+
+        Args:
+            frequency: 'aggressive', 'balanced', or 'minimal'
+
+        Returns:
+            Dictionary with frequency settings
+        """
+        configs = {
+            "aggressive": {
+                "description": "Run on every push/PR (most thorough, highest cost)",
+                "triggers": ["push", "pull_request"],
+                "branches": ["main", "master", "develop"],
+                "skip_draft_prs": False,
+                "cross_platform": ["ubuntu-22.04", "windows-latest", "macos-latest"],
+                "path_filters": None,  # Run on all changes
+                "concurrency_cancel": False,  # Don't cancel, run everything
+                "estimated_cost": "High (100% baseline)",
+            },
+            "balanced": {
+                "description": "Run on PRs with path filters (good balance, recommended)",
+                "triggers": ["pull_request"],
+                "branches": ["main", "master", "develop"],
+                "skip_draft_prs": True,
+                "cross_platform": ["ubuntu-22.04"],  # Single OS for PRs
+                "path_filters": ["**.py", "**.js", "**.ts", "**.go", "**.rs"],
+                "concurrency_cancel": True,  # Cancel outdated runs
+                "estimated_cost": "Medium (~15-30% of aggressive)",
+            },
+            "minimal": {
+                "description": "Run only on main branch pushes (lowest cost)",
+                "triggers": ["push"],
+                "branches": ["main", "master"],
+                "skip_draft_prs": True,
+                "cross_platform": ["ubuntu-22.04"],
+                "path_filters": ["**.py", "**.js", "**.ts", "**.go", "**.rs"],
+                "concurrency_cancel": True,
+                "estimated_cost": "Low (~5-10% of aggressive)",
+            },
+        }
+
+        if frequency not in configs:
+            raise ValueError(f"Invalid frequency: {frequency}. Choose from: {list(configs.keys())}")
+
+        return configs[frequency]
+
+    def _apply_frequency_config(self, workflow: str, freq_config: Dict[str, any]) -> str:
+        """Apply frequency configuration to workflow YAML
+
+        Args:
+            workflow: Original workflow content
+            freq_config: Frequency configuration dictionary
+
+        Returns:
+            Modified workflow with frequency settings applied
+        """
+        lines = workflow.splitlines()
+        result = []
+        i = 0
+
+        while i < len(lines):
+            line = lines[i]
+
+            # Add frequency comment at the top
+            if i == 0 and line.startswith("name:"):
+                result.append(line)
+                result.append("")
+                result.append(f"# CI Frequency: {freq_config['description']}")
+                result.append(f"# Estimated cost: {freq_config['estimated_cost']}")
+                i += 1
+                continue
+
+            # Modify 'on:' section
+            if line.strip() == "on:":
+                result.append(line)
+                i += 1
+
+                # Build trigger configuration
+                result.append("  # Triggers:")
+                for trigger in freq_config["triggers"]:
+                    result.append(f"  {trigger}:")
+                    if trigger == "pull_request":
+                        result.append(f"    branches: {freq_config['branches']}")
+                        if freq_config["path_filters"]:
+                            result.append("    paths:")
+                            for path in freq_config["path_filters"]:
+                                result.append(f"      - '{path}'")
+                    elif trigger == "push":
+                        result.append(f"    branches: {freq_config['branches']}")
+                        if freq_config["path_filters"]:
+                            result.append("    paths:")
+                            for path in freq_config["path_filters"]:
+                                result.append(f"      - '{path}'")
+
+                # Add concurrency group if enabled
+                if freq_config["concurrency_cancel"]:
+                    result.append("")
+                    result.append("# Cancel outdated workflow runs")
+                    result.append("concurrency:")
+                    result.append("  group: ${{ github.workflow }}-${{ github.ref }}")
+                    result.append("  cancel-in-progress: true")
+
+                # Skip existing 'on:' configuration
+                while i < len(lines) and not lines[i].strip().startswith("jobs:"):
+                    i += 1
+                continue
+
+            # Add draft PR skip and OS configuration to jobs
+            if line.strip().startswith("runs-on:") and "${{ matrix.os }}" in line:
+                # Add draft PR skip before runs-on
+                if freq_config["skip_draft_prs"]:
+                    result.append("    # Skip draft PRs to save CI minutes")
+                    result.append("    if: github.event.pull_request.draft == false")
+                result.append(line)
+                i += 1
+                continue
+
+            # Modify matrix OS configuration
+            if "os: [" in line and "matrix" in workflow[: workflow.find(line)]:
+                indent = len(line) - len(line.lstrip())
+                os_list = ", ".join(freq_config["cross_platform"])
+                result.append(" " * indent + f"os: [{os_list}]")
+                i += 1
+                continue
+
+            result.append(line)
+            i += 1
+
+        return "\n".join(result)
+
     def generate_workflow(
-        self, context: Dict[str, any], output_path: Optional[Path] = None, optimize: bool = False
+        self,
+        context: Dict[str, any],
+        output_path: Optional[Path] = None,
+        optimize: bool = False,
+        frequency: str = "balanced",
     ) -> str:
         """Generate GitHub Actions workflow from template
 
@@ -225,10 +360,14 @@ class CIGenerator:
             context: Project context dictionary
             output_path: Optional path to write workflow file
             optimize: If True, use optimized templates with caching, concurrency, parallel execution
+            frequency: CI execution frequency ('aggressive', 'balanced', or 'minimal')
         """
 
         if not context["language"]:
             raise ValueError("Could not detect project language")
+
+        # Get frequency configuration
+        freq_config = self.get_frequency_config(frequency)
 
         # Load template (optimized or standard)
         if optimize:
@@ -268,6 +407,9 @@ class CIGenerator:
         else:
             workflow = re.sub(r"\{\{#DOCKER\}\}.*?\{\{/DOCKER\}\}", "", workflow, flags=re.DOTALL)
 
+        # Apply frequency configuration
+        workflow = self._apply_frequency_config(workflow, freq_config)
+
         # Write to file if output path provided
         if output_path:
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -275,12 +417,15 @@ class CIGenerator:
 
         return workflow
 
-    def run(self, output_file: Optional[str] = None, optimize: bool = False):
+    def run(
+        self, output_file: Optional[str] = None, optimize: bool = False, frequency: str = "balanced"
+    ):
         """Main execution
 
         Args:
             output_file: Optional output file path
             optimize: If True, use optimized templates with performance enhancements
+            frequency: CI execution frequency ('aggressive', 'balanced', or 'minimal')
         """
         print("🔍 Detecting project context...")
         context = self.detect_project_type()
@@ -293,6 +438,12 @@ class CIGenerator:
         print(f"✅ Detected: {context['language']}")
         print(f"   Package Manager: {context['package_manager']}")
         print(f"   Docker: {'Yes' if context['has_docker'] else 'No'}")
+
+        # Get frequency configuration
+        freq_config = self.get_frequency_config(frequency)
+        print(f"\n📊 CI Frequency: {frequency.upper()}")
+        print(f"   {freq_config['description']}")
+        print(f"   Estimated cost: {freq_config['estimated_cost']}")
 
         if optimize:
             print("\n⚡ Using optimized template with:")
@@ -310,7 +461,9 @@ class CIGenerator:
         else:
             output_path = self.project_dir / ".github" / "workflows" / "ci.yml"
 
-        workflow = self.generate_workflow(context, output_path, optimize=optimize)
+        workflow = self.generate_workflow(
+            context, output_path, optimize=optimize, frequency=frequency
+        )
 
         print(f"✅ Generated: {output_path}")
         print(f"   Lines: {len(workflow.splitlines())}")
@@ -336,6 +489,20 @@ class CIGenerator:
             print("   - Parallel execution where possible")
             print("   📖 See .dev-aid/docs/CI-OPTIMIZATION-GUIDE.md for details")
 
+        # Show frequency configuration details
+        print(f"\n📊 CI Frequency Configuration ({frequency}):")
+        print(f"   Triggers: {', '.join(freq_config['triggers'])}")
+        print(f"   Branches: {', '.join(freq_config['branches'])}")
+        print(f"   Platforms: {', '.join(freq_config['cross_platform'])}")
+        print(f"   Draft PRs: {'Skipped' if freq_config['skip_draft_prs'] else 'Included'}")
+        print(
+            f"   Concurrency cancel: {'Enabled' if freq_config['concurrency_cancel'] else 'Disabled'}"
+        )
+        if freq_config["path_filters"]:
+            print(f"   Path filters: {', '.join(freq_config['path_filters'][:3])}...")
+        else:
+            print("   Path filters: None (runs on all changes)")
+
         return 0
 
 
@@ -358,11 +525,22 @@ def main():
         action="store_true",
         help="Use optimized template with caching, concurrency, and parallel execution (40-70%% faster)",
     )
+    parser.add_argument(
+        "--frequency",
+        choices=["aggressive", "balanced", "minimal"],
+        default="balanced",
+        help=(
+            "CI execution frequency (default: balanced). "
+            "aggressive: Run on every push/PR (100%% cost). "
+            "balanced: Run on PRs only, single OS (15-30%% cost). "
+            "minimal: Run on main branch only (5-10%% cost)."
+        ),
+    )
 
     args = parser.parse_args()
 
     generator = CIGenerator(Path(args.project_dir))
-    return generator.run(args.output, optimize=args.optimize)
+    return generator.run(args.output, optimize=args.optimize, frequency=args.frequency)
 
 
 if __name__ == "__main__":

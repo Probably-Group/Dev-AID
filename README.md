@@ -316,22 +316,34 @@ Essential tools for faster, higher-quality development workflows.
 [**📖 Complete Automation Guide**](.dev-aid/docs/AUTOMATION-README.md)
 
 ### ⚡ **Optimized CI/CD Generator** (NEW!)
-Generate production-ready GitHub Actions workflows tailored to your tech stack—with optional performance optimizations that make CI 40-70% faster.
+Generate production-ready GitHub Actions workflows tailored to your tech stack—with optional performance optimizations that make CI 40-70% faster and configurable frequency profiles to control GitHub Actions costs.
 
 | Feature | What It Does | Developer Benefits |
 |---------|-------------|-------------------|
 | 🔍 **Smart Detection** | Auto-detects Python, Node.js, Go, Rust, Java, C#, PHP, Ruby, C++ projects | 🚀 Zero configuration needed<br>📦 Right package manager detected<br>🎯 Tech-stack specific commands |
 | ⚡ **Optimization Mode** | Optional `--optimize` flag adds advanced caching, concurrency, parallel execution | ⏱️ 40-70% faster CI runs<br>💰 Reduced GitHub Actions costs<br>🔄 Cancels outdated runs automatically |
+| 📊 **Frequency Profiles** (NEW!) | Three configurable CI execution profiles: aggressive, balanced, minimal | 💰 Up to 95% cost reduction<br>🎯 Choose thoroughness vs. cost<br>⚙️ Automatic workflow configuration |
 | 🛡️ **Security Built-In** | All workflows include Gitleaks + Trivy scanning by default | 🔒 Catches secrets & CVEs early<br>✅ Production-ready security<br>📊 SARIF reports to GitHub |
 | 🎨 **Tech-Stack Aware** | Different optimizations per language (venv caching for Python, node_modules for Node.js, cargo for Rust) | 🧠 Smart caching strategies<br>⚡ Parallel linting/testing<br>🏗️ Build artifact caching |
+
+**CI Frequency Profiles:**
+
+Choose the right balance between CI thoroughness and GitHub Actions cost:
+
+- **Aggressive (100% cost)**: Maximum thoroughness - Runs on every push/PR, 3 OS platforms, no filters
+- **Balanced (15-30% cost)**: Recommended default - PR-only, single OS, code file filters, draft skip
+- **Minimal (5-10% cost)**: Lowest overhead - Main branch only, minimal triggers
 
 **Quick Start:**
 ```bash
 # Generate standard workflow
 ./.dev-aid/scripts/generate-ci.sh /path/to/your/project
 
-# Generate optimized workflow (recommended)
-./.dev-aid/scripts/generate-ci.sh /path/to/your/project --optimize
+# Generate optimized workflow with balanced frequency (recommended)
+./.dev-aid/scripts/generate-ci.sh /path/to/your/project --optimize --frequency balanced
+
+# Generate minimal cost workflow
+./.dev-aid/scripts/generate-ci.sh /path/to/your/project --optimize --frequency minimal
 
 # Example output for Python project:
 # ✅ Detected: python
@@ -404,7 +416,14 @@ Generate production-ready GitHub Actions workflows tailored to your tech stack�
 - 🔄 **Better DX** - Rapid iteration without waiting for CI
 - 🎯 **Best practices** - Concurrency control, proper caching, parallel execution
 
-📖 **[Complete CI Optimization Guide](.dev-aid/docs/CI-OPTIMIZATION-GUIDE.md)** - Deep dive into all optimizations, benchmarks, and why Alpine Linux is NOT recommended for Python.
+**Real-World Cost Example (5-developer team, 20 PRs/week):**
+- **Aggressive**: 900 min/week (46,800 min/year) - Maximum confidence
+- **Balanced**: 120 min/week (6,240 min/year) - **87% savings**
+- **Minimal**: 10 min/week (520 min/year) - **98% savings**
+
+📖 **Guides:**
+- **[CI Optimization Guide](.dev-aid/docs/CI-OPTIMIZATION-GUIDE.md)** - Deep dive into all optimizations, benchmarks, and why Alpine Linux is NOT recommended for Python
+- **[CI Frequency Guide](.dev-aid/docs/CI-FREQUENCY-GUIDE.md)** - Choose the right frequency profile, comparison tables, cost scenarios, and best practices
 
 ### 🔄 **Safe Update System**
 

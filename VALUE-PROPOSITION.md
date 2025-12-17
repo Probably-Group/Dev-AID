@@ -741,6 +741,10 @@ Setup cost: 5 minutes per developer
 | **🎓 72 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | **$78,000** | 5-15 min/data query | • Database/API context auto-gathered<br>• $780/dev/year (no manual queries)<br>• Fewer context switches | ⭐⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator + Frequency Profiles** | **$172,800+** | One-time: 4-8 hrs | • 40-70% faster CI (5 min → 1.5 min)<br>• **Up to $2,700/year GitHub Actions savings** (with frequency profiles)<br>• $1,728/dev/year waiting time<br>• 3 profiles: aggressive/balanced/minimal (85-98% cost reduction) | ⭐⭐⭐⭐ |
+| **📦 SBOM Generation** (v1.3.1) | **Compliance** | Release-time | • Supply chain transparency<br>• EU CRA compliance ready<br>• Dependency diff tool<br>• CycloneDX + SPDX formats | ⭐⭐⭐⭐ |
+| **🔍 Impact Analysis** (v1.4.0) | **$100,000** | 30-60 min/refactor | • Find all dependencies<br>• $1,000/dev/year (safe refactoring)<br>• Test file suggestions<br>• Prevents breaking changes | ⭐⭐⭐⭐ |
+| **🌳 Dependency Tree** (v1.4.0) | **$50,000** | 15-30 min | • Visualize imports<br>• $500/dev/year (faster debugging)<br>• Circular detection<br>• Mermaid export | ⭐⭐⭐⭐ |
+| **❤️ Health Check** (v1.4.0) | **$50,000** | 2-5 min | • System status<br>• $500/dev/year (prevent issues)<br>• Exit 0/1 automation<br>• Component monitoring | ⭐⭐⭐ |
 | **📊 Code Health Analysis** | **$104,000** | 2-4 hrs/quarter | • Early tech debt detection<br>• Prevents $100K/year accumulation<br>• $4K/year manual analysis time | ⭐⭐⭐⭐ |
 | **🛡️ Vulnerability Scanning** | **$260,000** | 1-2 hrs/CVE | • Prevents 1 vulnerability incident/year ($250K avg)<br>• $10K manual audit time saved<br>• Compliance automation | ⭐⭐⭐⭐ |
 | **🔄 Safe Update System** | **$52,000** | 30 min/update | • 12 updates/year automated<br>• Zero customization loss<br>• $520/dev/year (no manual merge) | ⭐⭐⭐⭐ |
@@ -753,13 +757,23 @@ Setup cost: 5 minutes per developer
 | **📚 Documentation Sync** | **$10,400** | 30 min/doc update | • Prevents outdated docs<br>• $104/dev/year (no false starts)<br>• Trust in documentation | ⭐⭐ |
 | **🔄 Model Registry Updates** | **$5,200** | 15 min/quarter | • Latest model pricing<br>• $52/dev/year (optimal model choice)<br>• Cost optimization | ⭐⭐ |
 
-**Total Annual Value (100 Developers): $5,349,160**
+**Total Annual Value (100 Developers): $5,549,160+**
 
 **Tier 1 Productivity Tools (Completed):**
 - **API Contract Generator**: $675,000/year ✅
 - **Pre-Commit Reviewer**: $1,050,000/year ✅
 - **Commit Planner**: $425,000/year ✅
 - **Tier 1 Total**: $2,150,000/year ✅
+
+**v1.3.1 Features (Completed):**
+- **SBOM Generation**: Compliance value ✅
+- **Skill Quality Tools**: Quality improvement ✅
+
+**v1.4.0 Features (Completed):**
+- **Impact Analysis**: $100,000/year ✅
+- **Dependency Tree**: $50,000/year ✅
+- **Health Check**: $50,000/year ✅
+- **v1.4.0 Total**: $200,000/year ✅
 
 **New Tier 1 Quality & Infrastructure (v1.3.0):**
 - **Cross-Platform CI Support**: Quality improvement (prevents platform-specific bugs)

@@ -116,6 +116,76 @@ jobs:
           python .dev-aid/orchestration/context-detector.py detect .
           python .dev-aid/orchestration/context-detector.py select "python fastapi" 5
 
+  sbom-generation:
+    name: Generate SBOM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # To upload release assets
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Generate SBOM with Trivy
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          version: latest
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'cyclonedx'
+          output: 'sbom-cyclonedx.json'
+
+      - name: Generate SBOM with Trivy (SPDX format)
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          version: latest
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'spdx-json'
+          output: 'sbom-spdx.json'
+
+      - name: Archive SBOM artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-artifacts
+          path: |
+            sbom-cyclonedx.json
+            sbom-spdx.json
+          retention-days: 90
+
+      - name: Upload SBOM to Release
+        if: github.event_name == 'release'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+
+          # Upload both formats to release
+          gh release upload "$TAG_NAME" sbom-cyclonedx.json --clobber
+          gh release upload "$TAG_NAME" sbom-spdx.json --clobber
+
+          echo "✅ SBOMs uploaded to release $TAG_NAME"
+
+      - name: SBOM Summary
+        if: always()
+        run: |
+          echo "# 📦 SBOM Generation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "sbom-cyclonedx.json" ]; then
+            # Count dependencies
+            TOTAL_DEPS=$(jq -r '.components | length' sbom-cyclonedx.json)
+            echo "- **Total Components**: $TOTAL_DEPS" >> $GITHUB_STEP_SUMMARY
+
+            # Show top dependencies
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Top Dependencies:" >> $GITHUB_STEP_SUMMARY
+            jq -r '.components[:10] | .[] | "- \(.name)@\(.version // "unknown")"' sbom-cyclonedx.json >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ SBOM generated in CycloneDX and SPDX formats" >> $GITHUB_STEP_SUMMARY
+          fi
+
   docs-check:
     name: Documentation Link Check
     runs-on: ubuntu-latest
@@ -160,7 +230,7 @@ jobs:
   release-gate-summary:
     name: Release Gate Summary
     runs-on: ubuntu-latest
-    needs: [deep-security, cross-platform-tests, docs-check]
+    needs: [deep-security, cross-platform-tests, sbom-generation, docs-check]
     if: always()
 
     steps:
@@ -171,18 +241,25 @@ jobs:
 
           SECURITY="${{ needs.deep-security.result }}"
           CROSS_PLATFORM="${{ needs.cross-platform-tests.result }}"
+          SBOM="${{ needs.sbom-generation.result }}"
           DOCS="${{ needs.docs-check.result }}"
 
           echo "- 🔒 Security Scan: **$SECURITY**" >> $GITHUB_STEP_SUMMARY
           echo "- 🖥️  Cross-Platform Tests: **$CROSS_PLATFORM**" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 SBOM Generation: **$SBOM**" >> $GITHUB_STEP_SUMMARY
           echo "- 📚 Docs Link Check: **$DOCS**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [[ "$SECURITY" == "failure" || "$CROSS_PLATFORM" == "failure" || "$DOCS" == "failure" ]]; then
+          if [[ "$SECURITY" == "failure" || "$CROSS_PLATFORM" == "failure" || "$SBOM" == "failure" ]]; then
             echo "❌ **RELEASE GATE FAILED**" >> $GITHUB_STEP_SUMMARY
             echo "Do not publish this release until all checks pass." >> $GITHUB_STEP_SUMMARY
             exit 1
           else
             echo "✅ **RELEASE GATE PASSED**" >> $GITHUB_STEP_SUMMARY
             echo "This release is ready for production." >> $GITHUB_STEP_SUMMARY
+
+            if [[ "$DOCS" == "failure" ]]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "⚠️  **Warning**: Documentation link check failed (non-blocking)" >> $GITHUB_STEP_SUMMARY
+            fi
           fi

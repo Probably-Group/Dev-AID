@@ -148,7 +148,32 @@ install_checkov() {
         return 0
     fi
 
+    # Prefer pipx for CLI tools (works with PEP 668 / externally-managed Python)
+    if command -v pipx &> /dev/null; then
+        pipx install checkov
+        log_success "Checkov installed successfully via pipx"
+        return 0
+    fi
+
+    # Try installing pipx first if on macOS with Homebrew
+    if [ "$OS_TYPE" = "darwin" ] && command -v brew &> /dev/null; then
+        log_info "Installing pipx via Homebrew (recommended for Python CLI tools)..."
+        brew install pipx
+        pipx ensurepath
+        pipx install checkov
+        log_success "Checkov installed successfully via pipx"
+        return 0
+    fi
+
+    # Fallback for Linux or non-Homebrew systems
     if command -v pip3 &> /dev/null; then
+        # Check if we're in an externally-managed environment (PEP 668)
+        if pip3 install --user --dry-run checkov 2>&1 | grep -q "externally-managed-environment"; then
+            log_warning "Python is externally managed (PEP 668)"
+            log_info "Please install pipx: brew install pipx && pipx install checkov"
+            log_info "Skipping Checkov installation (optional tool)"
+            return 0
+        fi
         pip3 install --user checkov
         log_success "Checkov installed successfully"
     elif command -v pip &> /dev/null; then

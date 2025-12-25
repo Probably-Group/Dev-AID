@@ -6,8 +6,7 @@
 set -euo pipefail
 
 # Source shared security library
-readonly INSTALL_SCRIPT_DIR
-INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly LIB_DIR="${INSTALL_SCRIPT_DIR}/../lib"
 
 # shellcheck source=/dev/null

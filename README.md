@@ -12,6 +12,53 @@
 
 ---
 
+## 📋 Table of Contents
+
+- [🎯 What is Dev-AID?](#-what-is-dev-aid)
+  - [🔬 Research-Backed Results](#-research-backed-results)
+  - [Why Native Integration Matters](#why-native-integration-matters)
+  - [How It Works](#how-it-works)
+- [🌟 Why Dev-AID's Native Integration is a Game-Changer](#-why-dev-aids-native-integration-is-a-game-changer)
+  - [🎯 Benefits You'll Feel Immediately](#-benefits-youll-feel-immediately)
+  - [💡 Real Developer Benefits](#-real-developer-benefits)
+  - [🚀 The Philosophy](#-the-philosophy)
+- [✨ Complete Feature Overview](#-complete-feature-overview)
+- [🎯 Core Features (Detailed)](#-core-features-detailed)
+  - [🔍 Dev-AID Local Search](#-dev-aid-local-search-)
+  - [🔀 Multi-AI Router (NEW!)](#-multi-ai-router-new)
+  - [🛡️ 5 Core Skills - Automated Checking (NEW!)](#️-5-core-skills---automated-checking-new)
+  - [🎓 72 Expert Skills - Domain Expertise](#-72-expert-skills---domain-expertise--hook-based-auto-loading)
+  - [💾 Persistent Memory Bank](#-persistent-memory-bank)
+  - [🔒 Automated Security](#-automated-security)
+  - [🤖 Intelligent Automation (NEW!)](#-intelligent-automation-new)
+  - [🚀 Productivity Tools (NEW!)](#-productivity-tools-new)
+  - [⚡ Optimized CI/CD Generator (NEW!)](#-optimized-cicd-generator-new)
+  - [🔄 Safe Update System](#-safe-update-system)
+  - [🔌 MCP Integration](#-mcp-model-context-protocol-integration)
+  - [⚙️ Works Everywhere You Do](#️-works-everywhere-you-do)
+- [🆕 What's New](#-whats-new-in-v120-2025-12-06)
+- [🚀 Quick Start](#-quick-start)
+- [📚 Available Slash Commands](#-available-slash-commands)
+  - [🔍 RAG Commands](#-rag-commands-local-semantic-search)
+  - [🔀 Router Commands](#-router-commands-multi-ai-orchestration)
+  - [🤖 Automation Commands](#-automation-commands)
+  - [🛠️ Development Commands](#️-development-commands)
+- [🔧 Configuration](#-configuration)
+- [🔍 RAG (Local Semantic Search)](#-rag-local-semantic-search)
+- [🏗️ Architecture](#️-architecture)
+- [💰 Cost Analysis](#-cost-analysis)
+- [🎓 Expert Skills](#-expert-skills-65-skills)
+- [🔒 Security Automation](#-security-automation)
+- [🆚 Comparison](#-comparison)
+- [📖 Documentation](#-documentation)
+- [🤝 Contributing](#-contributing)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [📝 License](#-license)
+- [🙏 Acknowledgments](#-acknowledgments)
+- [🔗 Links](#-links)
+
+---
+
 ## 🎯 What is Dev-AID?
 
 **Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 5 core skills (automated checking), 72 expert skills (domain expertise), multi-AI orchestration, 100% local semantic search, and automated security scanning.

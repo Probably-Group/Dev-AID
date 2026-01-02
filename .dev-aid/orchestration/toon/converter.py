@@ -69,7 +69,7 @@ def toon_to_json(toon_str: str, pretty: bool = False) -> str:
     return json.dumps(data, indent=indent)
 
 
-def estimate_token_savings(data: Any) -> dict:
+def estimate_token_savings(data: Any) -> dict[str, Any]:
     """
     Estimate token savings when using TOON vs JSON.
 

@@ -49,11 +49,14 @@ class TestToonEncoder:
         assert isinstance(toon_str, str)
         assert len(toon_str) > 0
 
-    def test_encode_invalid_data(self):
-        """Test that encoding invalid data raises ValueError"""
-        # Objects that can't be JSON serialized should raise ValueError
-        with pytest.raises(ValueError, match="Cannot serialize"):
-            encoder.encode(set([1, 2, 3]))  # sets aren't JSON serializable
+    def test_encode_set_converts_to_array(self):
+        """Test that sets are converted to arrays"""
+        # toon-format converts sets to arrays
+        result = encoder.encode(set([1, 2, 3]))
+        assert isinstance(result, str)
+        # Decode and verify it's a list with same elements
+        decoded = decoder.decode(result)
+        assert set(decoded) == {1, 2, 3}
 
 
 class TestToonDecoder:

@@ -12,6 +12,15 @@ from pathlib import Path
 import pytest
 
 
+def normalize_path(path) -> str:
+    """Normalize path for use in Python code strings (cross-platform).
+
+    Converts backslashes to forward slashes to avoid escape sequence issues
+    when embedding paths in Python code strings passed to subprocess.
+    """
+    return str(path).replace("\\", "/")
+
+
 class TestE2ECliWorkflows:
     """Test complete CLI workflows end-to-end"""
 
@@ -81,15 +90,17 @@ class TestE2ECliWorkflows:
             (config_dir / "orchestration.json").write_text(json.dumps(orchestration, indent=2))
 
             # Try to load config using the config_loader module
+            orchestration_path = normalize_path(Path(__file__).parent.parent)
+            tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.config_loader import ConfigLoader
-loader = ConfigLoader('{tmpdir}')
+loader = ConfigLoader('{tmpdir_path}')
 mode = loader.get_orchestration_mode()
 print('OK')
 """,
@@ -114,15 +125,17 @@ print('OK')
             routing = {"cost_limit_per_day": 100.0}
             (config_dir / "routing.json").write_text(json.dumps(routing, indent=2))
 
+            orchestration_path = normalize_path(Path(__file__).parent.parent)
+            logs_path = normalize_path(Path(tmpdir) / ".dev-aid")
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.cost_tracker import CostTracker
-tracker = CostTracker('{tmpdir}/.dev-aid')
+tracker = CostTracker('{logs_path}')
 # get_budget_status takes daily_limit as parameter
 status = tracker.get_budget_status(100.0)
 print(f"Limit: {{status['daily_limit']}}")
@@ -138,13 +151,14 @@ print(f"Limit: {{status['daily_limit']}}")
 
     def test_task_classifier_import(self):
         """Test that task classifier can be imported and initialized"""
+        orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
                 "python",
                 "-c",
                 f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.task_classifier import TaskClassifier
 classifier = TaskClassifier()
 print('Classifier initialized')
@@ -163,6 +177,7 @@ print('Classifier initialized')
         env = os.environ.copy()
         env["OPENAI_API_KEY"] = "test-key-12345"
 
+        orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
                 "python",
@@ -171,7 +186,7 @@ print('Classifier initialized')
 import sys
 import os
 os.environ['OPENAI_API_KEY'] = 'test-key-12345'
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.auth_detector import AuthDetector
 detector = AuthDetector()
 # detect_openai_auth checks OPENAI_API_KEY env var
@@ -222,6 +237,7 @@ print(f'Detected: {{creds is not None}}')
             # Create test memory file
             (memory_dir / "activeContext.md").write_text("# Test Context\n\nTest content")
 
+            tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
                     "python",
@@ -229,7 +245,7 @@ print(f'Detected: {{creds is not None}}')
                     f"""
 import sys
 from pathlib import Path
-memory_file = Path('{tmpdir}') / '.dev-aid' / 'memory-bank' / 'activeContext.md'
+memory_file = Path('{tmpdir_path}') / '.dev-aid' / 'memory-bank' / 'activeContext.md'
 content = memory_file.read_text()
 print(f'Memory loaded: {{len(content)}} chars')
 """,
@@ -357,13 +373,14 @@ OPENAI_API_KEY=test-key-789
             (config_dir / ".env").write_text(env_content)
 
             # Test loading with python-dotenv
+            config_dir_path = normalize_path(config_dir)
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 from pathlib import Path
-env_file = Path('{config_dir}') / '.env'
+env_file = Path('{config_dir_path}') / '.env'
 content = env_file.read_text()
 print(f'Env file lines: {{len(content.splitlines())}}')
 """,

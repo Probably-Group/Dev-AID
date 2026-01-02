@@ -1,0 +1,14 @@
+# Shellcheck configuration for Dev-AID
+
+# Disable SC2155 (declare and assign separately) for library files
+# This is a common pattern in our codebase and the risk is minimal
+# since most assignments are to getter functions that rarely fail
+#
+# Disable SC2034 (unused variables) as some are reserved for future use
+# or used externally
+disable=SC2155,SC2034
+
+# Keep important checks enabled
+# SC2086: Double quote to prevent globbing and word splitting
+# SC2046: Quote this to prevent word splitting
+# SC2001: See if you can use ${variable//search/replace} instead

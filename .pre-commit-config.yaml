@@ -1,0 +1,55 @@
+repos:
+  # Shellcheck for bash scripts (using system shellcheck)
+  - repo: local
+    hooks:
+      - id: shellcheck
+        name: shellcheck
+        entry: shellcheck
+        language: system
+        args: ['--severity=warning', '--shell=bash']
+        files: \.(sh|bash)$
+        exclude: '(\.venv|venv|node_modules)'
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '(\.md|\.txt)$'
+      - id: end-of-file-fixer
+        exclude: '(\.md|\.txt)$'
+      - id: check-yaml
+        args: ['--unsafe']  # Allow custom tags
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
+        exclude: '^\.dev-aid/templates/'
+
+  # Python linting (if modifying Python files)
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.11
+        files: \.py$
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black']
+        files: \.py$
+
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=120', '--extend-ignore=E203,W503']
+        files: \.py$
+        exclude: '(\.venv|venv|__pycache__|\.pyc)'
+
+# Global settings
+default_stages: [commit]
+fail_fast: false

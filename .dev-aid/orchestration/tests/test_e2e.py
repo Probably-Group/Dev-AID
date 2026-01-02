@@ -6,10 +6,16 @@ Tests complete user workflows using subprocess integration
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 import pytest
+
+# Skip marker for tests that require bash (Unix-only)
+skip_on_windows = pytest.mark.skipif(
+    sys.platform == "win32", reason="Bash scripts not available on Windows"
+)
 
 
 def normalize_path(path) -> str:
@@ -204,6 +210,7 @@ print(f'Detected: {{creds is not None}}')
         assert "Detected: True" in result.stdout
 
     @pytest.mark.slow
+    @skip_on_windows
     def test_script_execution_dry_run(self):
         """Test that core scripts can be executed in dry-run mode"""
         scripts_dir = Path(__file__).parent.parent.parent / "scripts"

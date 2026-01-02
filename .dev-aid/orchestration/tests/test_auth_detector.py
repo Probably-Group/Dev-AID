@@ -9,10 +9,18 @@ Tests session-based and API key authentication for all providers:
 
 import json
 import os
+import sys
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from router.auth_detector import AuthCredentials, AuthDetector
+
+# Skip marker for tests that use Unix-specific permissions
+skip_on_windows = pytest.mark.skipif(
+    sys.platform == "win32", reason="Unix file permissions not available on Windows"
+)
 
 
 class TestAuthCredentials:
@@ -438,6 +446,7 @@ class TestEdgeCases:
                 auth = detector.detect_claude_auth()
                 assert auth is None
 
+    @skip_on_windows
     def test_permission_denied_on_config(self, tmp_path):
         """Test handling permission denied errors"""
         claude_config_dir = tmp_path / ".config" / "claude"

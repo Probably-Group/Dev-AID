@@ -422,4 +422,100 @@ Claude should:
 
 ---
 
+## 🔧 Smart CLAUDE.md Initialization
+
+Dev-AID now features intelligent CLAUDE.md initialization that preserves your existing content while adding Dev-AID capabilities.
+
+### Features
+
+**Automatic Backup**:
+- Original CLAUDE.md backed up to `.dev-aid/backups/CLAUDE_original-backup_TIMESTAMP.md`
+- Easy-access symlink: `CLAUDE_original-backup.md` → latest backup
+- Never lose your existing instructions
+
+**Content Validation**:
+- Detects outdated technology versions
+- Finds conflicting instructions
+- Identifies invalid file paths
+- Flags security issues
+- Auto-fixes common problems
+
+**Progressive Disclosure (>500 lines)**:
+- Main file (CLAUDE.md): Core content ≤450 lines
+- Extended file: Detailed Dev-AID documentation
+- Custom file: Your original instructions preserved
+- Cross-referenced for easy navigation
+
+**Migration Report**:
+- Shows all issues found and fixed
+- Lists items needing manual review
+- Provides clear next steps
+- Saved to `.dev-aid/logs/` for reference
+
+### How It Works
+
+During `./install.sh` or `dev-aid reconfigure`:
+
+1. **Detection**: Checks for existing CLAUDE.md
+2. **Backup**: Creates timestamped backup
+3. **Validation**: Analyzes content for issues
+4. **Merge**: Combines with Dev-AID template
+5. **Split**: Applies progressive disclosure if needed
+6. **Report**: Shows validation results
+
+### Manual Operations
+
+**Validate existing CLAUDE.md**:
+```bash
+bash .dev-aid/scripts/lib/claude-md-init.sh validate /path/to/project
+```
+
+**Restore from backup**:
+```bash
+bash .dev-aid/scripts/lib/claude-md-init.sh restore /path/to/project
+```
+
+**List backups**:
+```bash
+bash .dev-aid/scripts/lib/claude-md-init.sh list-backups /path/to/project
+```
+
+**Re-run initialization**:
+```bash
+bash .dev-aid/scripts/lib/claude-md-init.sh init-interactive /path/to/project
+```
+
+### File Structure After Migration
+
+```
+project-root/
+├── CLAUDE.md (symlink → .dev-aid/providers/claude/CLAUDE.md)
+├── CLAUDE_original-backup.md (symlink → latest backup)
+│
+└── .dev-aid/
+    ├── providers/claude/
+    │   ├── CLAUDE.md (main, ≤450 lines)
+    │   ├── CLAUDE_extended.md (if content >500 lines)
+    │   └── CLAUDE_custom.md (your original content)
+    │
+    ├── backups/
+    │   ├── CLAUDE_original-backup_20260102_143022.md
+    │   └── .latest (tracks most recent)
+    │
+    └── logs/
+        └── claude-md-migration_TIMESTAMP.log
+```
+
+### Best Practices
+
+1. **Review migration report** after initialization
+2. **Check flagged items** in CLAUDE_custom.md
+3. **Test with your AI** to ensure context works
+4. **Keep backups** (auto-cleaned, keeping last 5)
+5. **Update custom content** as your project evolves
+
+For implementation details, see [CLAUDE-MD-INITIALIZATION-PLAN.md](CLAUDE-MD-INITIALIZATION-PLAN.md).
+
+---
+
 **Questions?** Check `.dev-aid/logs/context-sharing.log` for real-time insights into how your AI models are collaborating!

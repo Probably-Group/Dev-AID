@@ -602,6 +602,7 @@ auto_generate_provider_context() {
     local provider_dir="$DEV_AID_ROOT/.dev-aid/providers/$provider"
     local context_file="$provider_dir/${provider_upper}.md"
     local symlink_target="$DEV_AID_ROOT/../${provider_upper}.md"
+    local project_root="$DEV_AID_ROOT/.."
 
     # Skip if file already exists
     if [ -f "$context_file" ]; then
@@ -612,7 +613,28 @@ auto_generate_provider_context() {
     # Create provider directory if needed
     mkdir -p "$provider_dir"
 
-    # Generate template based on provider
+    # Special handling for Claude with smart initialization
+    if [ "$provider" = "claude" ]; then
+        local lib_dir="$DEV_AID_ROOT/.dev-aid/scripts/lib"
+        if [ -f "$lib_dir/claude-md-init.sh" ]; then
+            # Source the smart initialization library
+            source "$lib_dir/claude-md-init.sh"
+
+            # Use smart initialization
+            init_claude_md "$project_root" "$provider" || {
+                # Fallback to simple template generation
+                print_color "$YELLOW" "  ⚠ Smart initialization failed, using simple mode"
+                generate_claude_template "$context_file"
+                ln -sf "$context_file" "$symlink_target"
+            }
+
+            print_color "$GREEN" "  ✓ Created ${provider_upper}.md with smart initialization"
+            print_color "$CYAN" "    Auto-detected: $FRONTEND, $BACKEND, $DATABASE"
+            return 0
+        fi
+    fi
+
+    # Generate template based on provider (for non-Claude or fallback)
     case $provider in
         claude)
             generate_claude_template "$context_file"

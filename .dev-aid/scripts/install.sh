@@ -697,6 +697,12 @@ generate_task_mapping_json() {
 setup_provider_symlinks() {
     print_header "Setting Up Provider Context Files"
 
+    # Source the smart CLAUDE.md initialization library
+    local lib_dir="$DEV_AID_DIR/scripts/lib"
+    if [ -f "$lib_dir/claude-md-init.sh" ]; then
+        source "$lib_dir/claude-md-init.sh"
+    fi
+
     for provider in "${ENABLED_PROVIDERS[@]}"; do
         local context_file=""
         case $provider in
@@ -706,34 +712,55 @@ setup_provider_symlinks() {
             openrouter) context_file="OPENROUTER.md" ;;
         esac
 
-        if [[ -n "$context_file" ]] && [[ -f "$DEV_AID_DIR/providers/$provider/$context_file" ]]; then
-            print_color "$CYAN" "→ Creating symlink for $context_file..."
-
-            # Validate target path before removal
-            local target_file="$PROJECT_ROOT/$context_file"
-            if [[ -e "$target_file" ]] || [[ -L "$target_file" ]]; then
-                # Validate path containment (prevent deletion outside project)
-                local target_dir
-                target_dir="$(dirname "$target_file")"
-                local resolved_target_dir
-                resolved_target_dir="$(realpath -m "$target_dir")"
-                local resolved_project_root
-                resolved_project_root="$(realpath "$PROJECT_ROOT")"
-
-                if [[ "$resolved_target_dir" == "$resolved_project_root"* ]]; then
-                    rm -f "$target_file"
-                else
-                    print_color "$RED" "Error: Path traversal detected for $context_file"
-                    continue
-                fi
+        if [[ -n "$context_file" ]]; then
+            # Special handling for CLAUDE.md with smart initialization
+            if [[ "$provider" == "claude" ]] && [[ -f "$lib_dir/claude-md-init.sh" ]]; then
+                # Use smart initialization for CLAUDE.md
+                init_claude_md_interactive "$PROJECT_ROOT" "$provider" || {
+                    # Fallback to simple symlink on error
+                    print_color "$YELLOW" "⚠ Smart initialization failed, using simple mode"
+                    setup_simple_symlink "$provider" "$context_file"
+                }
+            else
+                # Use simple symlink for other providers
+                setup_simple_symlink "$provider" "$context_file"
             fi
-
-            # Create symlink
-            ln -s ".dev-aid/providers/$provider/$context_file" "$PROJECT_ROOT/$context_file"
-
-            print_color "$GREEN" "✓ $context_file → .dev-aid/providers/$provider/$context_file"
         fi
     done
+}
+
+# Simple symlink setup (for non-Claude providers or fallback)
+setup_simple_symlink() {
+    local provider="$1"
+    local context_file="$2"
+
+    if [[ -f "$DEV_AID_DIR/providers/$provider/$context_file" ]]; then
+        print_color "$CYAN" "→ Creating symlink for $context_file..."
+
+        # Validate target path before removal
+        local target_file="$PROJECT_ROOT/$context_file"
+        if [[ -e "$target_file" ]] || [[ -L "$target_file" ]]; then
+            # Validate path containment (prevent deletion outside project)
+            local target_dir
+            target_dir="$(dirname "$target_file")"
+            local resolved_target_dir
+            resolved_target_dir="$(realpath -m "$target_dir")"
+            local resolved_project_root
+            resolved_project_root="$(realpath "$PROJECT_ROOT")"
+
+            if [[ "$resolved_target_dir" == "$resolved_project_root"* ]]; then
+                rm -f "$target_file"
+            else
+                print_color "$RED" "Error: Path traversal detected for $context_file"
+                return 1
+            fi
+        fi
+
+        # Create symlink
+        ln -s ".dev-aid/providers/$provider/$context_file" "$PROJECT_ROOT/$context_file"
+
+        print_color "$GREEN" "✓ $context_file → .dev-aid/providers/$provider/$context_file"
+    fi
 }
 
 # Initialize memory bank

@@ -422,16 +422,22 @@ Claude should:
 
 ---
 
-## 🔧 Smart CLAUDE.md Initialization
+## 🔧 Smart Context File Initialization
 
-Dev-AID now features intelligent CLAUDE.md initialization that preserves your existing content while adding Dev-AID capabilities.
+Dev-AID features intelligent context file initialization for **all providers** that preserves your existing content while adding Dev-AID capabilities.
+
+**Supported Providers**:
+- ✅ **CLAUDE.md** - Claude-specific context
+- ✅ **GEMINI.md** - Gemini-specific context
+- ✅ **OPENAI.md** - OpenAI-specific context
 
 ### Features
 
 **Automatic Backup**:
-- Original CLAUDE.md backed up to `.dev-aid/backups/CLAUDE_original-backup_TIMESTAMP.md`
-- Easy-access symlink: `CLAUDE_original-backup.md` → latest backup
+- Original files backed up to `.dev-aid/backups/{PROVIDER}_original-backup_TIMESTAMP.md`
+- Easy-access symlinks: `{PROVIDER}_original-backup.md` → latest backup
 - Never lose your existing instructions
+- Per-provider backup tracking
 
 **Content Validation**:
 - Detects outdated technology versions
@@ -439,50 +445,81 @@ Dev-AID now features intelligent CLAUDE.md initialization that preserves your ex
 - Identifies invalid file paths
 - Flags security issues
 - Auto-fixes common problems
+- Works for all provider context files
 
 **Progressive Disclosure (>500 lines)**:
-- Main file (CLAUDE.md): Core content ≤450 lines
+- Main file: Core content ≤450 lines
 - Extended file: Detailed Dev-AID documentation
 - Custom file: Your original instructions preserved
 - Cross-referenced for easy navigation
+- Applied to any large context file
 
 **Migration Report**:
 - Shows all issues found and fixed
 - Lists items needing manual review
 - Provides clear next steps
-- Saved to `.dev-aid/logs/` for reference
+- Saved to `.dev-aid/logs/{provider}-context-migration_TIMESTAMP.log`
+- Provider-specific reporting
 
 ### How It Works
 
-During `./install.sh` or `dev-aid reconfigure`:
+During `./install.sh` or `dev-aid reconfigure` (for all enabled providers):
 
-1. **Detection**: Checks for existing CLAUDE.md
-2. **Backup**: Creates timestamped backup
+1. **Detection**: Checks for existing context files
+2. **Backup**: Creates timestamped backups
 3. **Validation**: Analyzes content for issues
-4. **Merge**: Combines with Dev-AID template
+4. **Merge**: Combines with provider-specific Dev-AID template
 5. **Split**: Applies progressive disclosure if needed
 6. **Report**: Shows validation results
 
 ### Manual Operations
 
-**Validate existing CLAUDE.md**:
+**Validate existing context file**:
 ```bash
-bash .dev-aid/scripts/lib/claude-md-init.sh validate /path/to/project
+# Claude
+bash .dev-aid/scripts/lib/provider-context-init.sh validate . claude
+
+# Gemini
+bash .dev-aid/scripts/lib/provider-context-init.sh validate . gemini
+
+# OpenAI
+bash .dev-aid/scripts/lib/provider-context-init.sh validate . openai
 ```
 
 **Restore from backup**:
 ```bash
-bash .dev-aid/scripts/lib/claude-md-init.sh restore /path/to/project
+# Claude
+bash .dev-aid/scripts/lib/provider-context-init.sh restore . claude
+
+# Gemini
+bash .dev-aid/scripts/lib/provider-context-init.sh restore . gemini
+
+# OpenAI
+bash .dev-aid/scripts/lib/provider-context-init.sh restore . openai
 ```
 
 **List backups**:
 ```bash
-bash .dev-aid/scripts/lib/claude-md-init.sh list-backups /path/to/project
+# Claude
+bash .dev-aid/scripts/lib/provider-context-init.sh list-backups . claude
+
+# Gemini
+bash .dev-aid/scripts/lib/provider-context-init.sh list-backups . gemini
+
+# OpenAI
+bash .dev-aid/scripts/lib/provider-context-init.sh list-backups . openai
 ```
 
 **Re-run initialization**:
 ```bash
-bash .dev-aid/scripts/lib/claude-md-init.sh init-interactive /path/to/project
+# Claude
+bash .dev-aid/scripts/lib/provider-context-init.sh init-interactive . claude
+
+# Gemini
+bash .dev-aid/scripts/lib/provider-context-init.sh init-interactive . gemini
+
+# OpenAI
+bash .dev-aid/scripts/lib/provider-context-init.sh init-interactive . openai
 ```
 
 ### File Structure After Migration
@@ -490,20 +527,41 @@ bash .dev-aid/scripts/lib/claude-md-init.sh init-interactive /path/to/project
 ```
 project-root/
 ├── CLAUDE.md (symlink → .dev-aid/providers/claude/CLAUDE.md)
-├── CLAUDE_original-backup.md (symlink → latest backup)
+├── GEMINI.md (symlink → .dev-aid/providers/gemini/GEMINI.md)
+├── OPENAI.md (symlink → .dev-aid/providers/openai/OPENAI.md)
+├── CLAUDE_original-backup.md (symlink → latest Claude backup)
+├── GEMINI_original-backup.md (symlink → latest Gemini backup)
+├── OPENAI_original-backup.md (symlink → latest OpenAI backup)
 │
 └── .dev-aid/
-    ├── providers/claude/
-    │   ├── CLAUDE.md (main, ≤450 lines)
-    │   ├── CLAUDE_extended.md (if content >500 lines)
-    │   └── CLAUDE_custom.md (your original content)
+    ├── providers/
+    │   ├── claude/
+    │   │   ├── CLAUDE.md (main, ≤450 lines)
+    │   │   ├── CLAUDE_extended.md (if content >500 lines)
+    │   │   └── CLAUDE_custom.md (your original content)
+    │   │
+    │   ├── gemini/
+    │   │   ├── GEMINI.md (main, ≤450 lines)
+    │   │   ├── GEMINI_extended.md (if content >500 lines)
+    │   │   └── GEMINI_custom.md (your original content)
+    │   │
+    │   └── openai/
+    │       ├── OPENAI.md (main, ≤450 lines)
+    │       ├── OPENAI_extended.md (if content >500 lines)
+    │       └── OPENAI_custom.md (your original content)
     │
     ├── backups/
     │   ├── CLAUDE_original-backup_20260102_143022.md
-    │   └── .latest (tracks most recent)
+    │   ├── GEMINI_original-backup_20260102_143022.md
+    │   ├── OPENAI_original-backup_20260102_143022.md
+    │   ├── .latest-claude (tracks most recent Claude backup)
+    │   ├── .latest-gemini (tracks most recent Gemini backup)
+    │   └── .latest-openai (tracks most recent OpenAI backup)
     │
     └── logs/
-        └── claude-md-migration_TIMESTAMP.log
+        ├── claude-context-migration_TIMESTAMP.log
+        ├── gemini-context-migration_TIMESTAMP.log
+        └── openai-context-migration_TIMESTAMP.log
 ```
 
 ### Best Practices

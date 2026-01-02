@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
-# CLAUDE.md Backup Utilities
-# Handles backing up existing CLAUDE.md files with clear naming
+# Provider Context File Backup Utilities
+# Handles backing up existing context files (CLAUDE.md, GEMINI.md, OPENAI.md) with clear naming
 
 set -euo pipefail
 
-# Backup existing CLAUDE.md with timestamp
+# Backup existing context file with timestamp
 # Args:
-#   $1: Source CLAUDE.md file path
+#   $1: Source context file path
 #   $2: Project root directory
+#   $3: Provider name (claude, gemini, openai)
 # Returns:
 #   Path to backup file
-backup_claude_md() {
+backup_context_file() {
     local source_file="$1"
     local project_root="$2"
+    local provider="${3:-claude}"
+    local provider_upper="${provider^^}"
     local timestamp=$(date +%Y%m%d_%H%M%S)
 
     # Ensure backup directory exists
@@ -20,33 +23,41 @@ backup_claude_md() {
     mkdir -p "$backup_dir"
 
     # Create backup with timestamp
-    local backup_file="${backup_dir}/CLAUDE_original-backup_${timestamp}.md"
+    local backup_file="${backup_dir}/${provider_upper}_original-backup_${timestamp}.md"
     cp "$source_file" "$backup_file"
 
-    # Update .latest tracker
-    echo "$backup_file" > "${backup_dir}/.latest"
+    # Update .latest tracker for this provider
+    echo "$backup_file" > "${backup_dir}/.latest-${provider}"
 
     # Create/update symlink in project root for easy access
-    local symlink="${project_root}/CLAUDE_original-backup.md"
+    local symlink="${project_root}/${provider_upper}_original-backup.md"
     rm -f "$symlink"
-    ln -s ".dev-aid/backups/CLAUDE_original-backup_${timestamp}.md" "$symlink"
+    ln -s ".dev-aid/backups/${provider_upper}_original-backup_${timestamp}.md" "$symlink"
 
     echo "$backup_file"
+}
+
+# Legacy wrapper for backward compatibility
+backup_claude_md() {
+    backup_context_file "$1" "$2" "claude"
 }
 
 # Restore from backup
 # Args:
 #   $1: Project root directory
-#   $2: Backup file path (optional, uses latest if not provided)
-restore_claude_md_backup() {
+#   $2: Provider name (claude, gemini, openai)
+#   $3: Backup file path (optional, uses latest if not provided)
+restore_context_backup() {
     local project_root="$1"
-    local backup_file="${2:-}"
+    local provider="${2:-claude}"
+    local backup_file="${3:-}"
+    local provider_upper="${provider^^}"
 
     # Use latest backup if not specified
     if [ -z "$backup_file" ]; then
-        local latest_file="${project_root}/.dev-aid/backups/.latest"
+        local latest_file="${project_root}/.dev-aid/backups/.latest-${provider}"
         if [ ! -f "$latest_file" ]; then
-            echo "Error: No backup found to restore" >&2
+            echo "Error: No backup found for $provider" >&2
             return 1
         fi
         backup_file=$(cat "$latest_file")
@@ -57,21 +68,29 @@ restore_claude_md_backup() {
         return 1
     fi
 
-    # Remove existing CLAUDE.md (might be symlink)
-    local target="${project_root}/CLAUDE.md"
+    # Remove existing context file (might be symlink)
+    local target="${project_root}/${provider_upper}.md"
     rm -f "$target"
 
     # Restore from backup
     cp "$backup_file" "$target"
 
-    echo "✓ Restored CLAUDE.md from backup: $(basename "$backup_file")"
+    echo "✓ Restored ${provider_upper}.md from backup: $(basename "$backup_file")"
+}
+
+# Legacy wrapper for backward compatibility
+restore_claude_md_backup() {
+    restore_context_backup "$1" "claude" "${2:-}"
 }
 
 # List all backups
 # Args:
 #   $1: Project root directory
-list_claude_md_backups() {
+#   $2: Provider name (claude, gemini, openai)
+list_context_backups() {
     local project_root="$1"
+    local provider="${2:-claude}"
+    local provider_upper="${provider^^}"
     local backup_dir="${project_root}/.dev-aid/backups"
 
     if [ ! -d "$backup_dir" ]; then
@@ -79,21 +98,21 @@ list_claude_md_backups() {
         return 0
     fi
 
-    local backups=$(find "$backup_dir" -name "CLAUDE_original-backup_*.md" -type f | sort -r)
+    local backups=$(find "$backup_dir" -name "${provider_upper}_original-backup_*.md" -type f | sort -r)
 
     if [ -z "$backups" ]; then
-        echo "No backups found"
+        echo "No backups found for $provider"
         return 0
     fi
 
-    echo "Available CLAUDE.md backups:"
+    echo "Available ${provider_upper}.md backups:"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-    local latest=$(cat "${backup_dir}/.latest" 2>/dev/null || echo "")
+    local latest=$(cat "${backup_dir}/.latest-${provider}" 2>/dev/null || echo "")
 
     while IFS= read -r backup; do
         local basename=$(basename "$backup")
-        local timestamp=$(echo "$basename" | sed 's/CLAUDE_original-backup_\(.*\)\.md/\1/')
+        local timestamp=$(echo "$basename" | sed "s/${provider_upper}_original-backup_\(.*\)\.md/\1/")
         local size=$(wc -l < "$backup" | tr -d ' ')
         local marker=""
 
@@ -103,6 +122,11 @@ list_claude_md_backups() {
 
         printf "  %s (%s lines)%s\n" "$basename" "$size" "$marker"
     done <<< "$backups"
+}
+
+# Legacy wrapper for backward compatibility
+list_claude_md_backups() {
+    list_context_backups "$1" "claude"
 }
 
 # Get latest backup path

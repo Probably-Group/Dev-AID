@@ -28,14 +28,34 @@ extract_custom_content() {
     fi
 }
 
-# Generate Dev-AID template (simplified version)
-# Args: $1: project_root
+# Generate Dev-AID template (provider-specific)
+# Args: $1: project_root, $2: provider (claude, gemini, openai)
 generate_devaid_template() {
     local project_root="$1"
+    local provider="${2:-claude}"
     local project_name=$(basename "$project_root")
 
     # Detect tech stack (reuse from reconfigure.sh logic)
     local tech_stack=$(detect_project_tech_stack "$project_root")
+
+    # Generate provider-specific template
+    case "$provider" in
+        gemini)
+            generate_gemini_specific_template "$project_name" "$tech_stack"
+            ;;
+        openai)
+            generate_openai_specific_template "$project_name" "$tech_stack"
+            ;;
+        *)
+            generate_claude_specific_template "$project_name" "$tech_stack"
+            ;;
+    esac
+}
+
+# Claude-specific template
+generate_claude_specific_template() {
+    local project_name="$1"
+    local tech_stack="$2"
 
     cat <<EOF
 # ${project_name} - AI Assistant Context
@@ -92,6 +112,138 @@ ${tech_stack}
 3. **Update memory**: Keep memory bank files current
 4. **Test thoroughly**: Verify changes work as expected
 5. **Document learnings**: Record insights for future reference
+
+---
+
+*This file is managed by Dev-AID. See .dev-aid/docs/CONTEXT-SHARING.md for details.*
+EOF
+}
+
+# Gemini-specific template
+generate_gemini_specific_template() {
+    local project_name="$1"
+    local tech_stack="$2"
+
+    cat <<EOF
+# ${project_name} - Gemini Context
+
+## Role & Capabilities
+
+You are Gemini assisting with the **${project_name}** project. Leverage your strengths:
+
+- **Large context window**: Process entire codebases and comprehensive documentation
+- **Multimodal analysis**: Understand diagrams, screenshots, and visual assets
+- **Advanced reasoning**: Analyze complex architectural patterns and dependencies
+- **Code understanding**: Deep comprehension of code structure and intent
+
+## Memory Bank System
+
+This project uses Dev-AID's shared memory bank for context persistence:
+
+- **activeContext.md**: Current session state and objectives
+- **progress.md**: Development milestones and achievements
+- **learnings.md**: Patterns and insights discovered
+- **challenges.md**: Problems encountered and solutions
+
+Always check memory bank before starting new work to maintain continuity.
+
+## Tech Stack
+
+${tech_stack}
+
+## Best Practices
+
+### Code Development
+- Leverage your large context to understand full project scope
+- Provide detailed architectural analysis
+- Suggest optimizations based on codebase-wide patterns
+- Write comprehensive documentation
+
+### Collaboration
+- Share insights across Dev-AID's multi-model ensemble
+- Document architectural decisions in memory bank
+- Highlight complex patterns for team awareness
+- Maintain consistency with project conventions
+
+### Communication
+- Provide detailed explanations with context
+- Use visual descriptions when relevant
+- Explain reasoning behind suggestions
+- Balance thoroughness with clarity
+
+## Guidelines
+
+1. **Holistic analysis**: Use large context to understand full scope
+2. **Document thoroughly**: Record architectural insights
+3. **Test comprehensively**: Verify changes across codebase
+4. **Share knowledge**: Update memory bank for team benefit
+5. **Maintain consistency**: Follow established patterns
+
+---
+
+*This file is managed by Dev-AID. See .dev-aid/docs/CONTEXT-SHARING.md for details.*
+EOF
+}
+
+# OpenAI-specific template
+generate_openai_specific_template() {
+    local project_name="$1"
+    local tech_stack="$2"
+
+    cat <<EOF
+# ${project_name} - OpenAI Context
+
+## Role & Capabilities
+
+You are an OpenAI assistant for the **${project_name}** project. Your strengths include:
+
+- **Versatile problem-solving**: Adaptable to various development tasks
+- **Code generation**: Efficient code writing and refactoring
+- **Clear communication**: Concise explanations and documentation
+- **Rapid iteration**: Quick responses for fast development cycles
+
+## Memory Bank Integration
+
+This project uses Dev-AID's memory bank for persistent context:
+
+- **activeContext.md**: Current session context
+- **progress.md**: Development progress tracking
+- **learnings.md**: Knowledge and patterns
+- **challenges.md**: Issues and resolutions
+
+Review memory bank files before starting tasks to maintain context continuity.
+
+## Tech Stack
+
+${tech_stack}
+
+## Best Practices
+
+### Development
+- Write clean, idiomatic code
+- Follow project conventions and patterns
+- Test changes thoroughly
+- Document complex logic
+
+### Workflow
+- Check memory bank for historical context
+- Update progress.md after significant changes
+- Record insights in learnings.md
+- Document challenges and solutions
+
+### Communication
+- Be concise and actionable
+- Explain reasoning clearly
+- Suggest alternatives when appropriate
+- Ask clarifying questions
+
+## Guidelines
+
+1. **Review first**: Check existing code before making changes
+2. **Follow conventions**: Maintain consistency with project style
+3. **Update memory**: Keep memory bank current
+4. **Test thoroughly**: Verify all changes
+5. **Document insights**: Share learnings for team benefit
 
 ---
 
@@ -265,18 +417,19 @@ remove_duplicates() {
     echo -e "$result"
 }
 
-# Create merged CLAUDE.md
-# Args: $1: original_file, $2: project_root, $3: validation_issues_json
-create_merged_claude_md() {
+# Create merged context file
+# Args: $1: original_file, $2: project_root, $3: provider, $4: validation_issues_json
+create_merged_context() {
     local original_file="$1"
     local project_root="$2"
-    local validation_issues="${3:-[]}"
+    local provider="${3:-claude}"
+    local validation_issues="${4:-[]}"
 
     # Extract custom content
     local custom_content=$(extract_custom_content "$original_file")
 
     # Generate Dev-AID template
-    local devaid_template=$(generate_devaid_template "$project_root")
+    local devaid_template=$(generate_devaid_template "$project_root" "$provider")
 
     # Merge content
     local merged=$(merge_content "$devaid_template" "$custom_content")
@@ -291,6 +444,11 @@ create_merged_claude_md() {
 
     # Return merged content
     echo "$merged"
+}
+
+# Legacy wrapper for backward compatibility
+create_merged_claude_md() {
+    create_merged_context "$1" "$2" "claude" "${3:-[]}"
 }
 
 # Split content by line count

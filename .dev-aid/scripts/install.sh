@@ -697,10 +697,10 @@ generate_task_mapping_json() {
 setup_provider_symlinks() {
     print_header "Setting Up Provider Context Files"
 
-    # Source the smart CLAUDE.md initialization library
+    # Source the smart provider context initialization library
     local lib_dir="$DEV_AID_DIR/scripts/lib"
-    if [ -f "$lib_dir/claude-md-init.sh" ]; then
-        source "$lib_dir/claude-md-init.sh"
+    if [ -f "$lib_dir/provider-context-init.sh" ]; then
+        source "$lib_dir/provider-context-init.sh"
     fi
 
     for provider in "${ENABLED_PROVIDERS[@]}"; do
@@ -709,20 +709,20 @@ setup_provider_symlinks() {
             claude) context_file="CLAUDE.md" ;;
             gemini) context_file="GEMINI.md" ;;
             openai) context_file="OPENAI.md" ;;
-            openrouter) context_file="OPENROUTER.md" ;;
+            openrouter) continue ;;  # OpenRouter has no context file
         esac
 
         if [[ -n "$context_file" ]]; then
-            # Special handling for CLAUDE.md with smart initialization
-            if [[ "$provider" == "claude" ]] && [[ -f "$lib_dir/claude-md-init.sh" ]]; then
-                # Use smart initialization for CLAUDE.md
-                init_claude_md_interactive "$PROJECT_ROOT" "$provider" || {
+            # Use smart initialization for all providers with context files
+            if [[ -f "$lib_dir/provider-context-init.sh" ]]; then
+                # Smart initialization: backup, validate, merge, progressive disclosure
+                init_context_file_interactive "$PROJECT_ROOT" "$provider" || {
                     # Fallback to simple symlink on error
-                    print_color "$YELLOW" "⚠ Smart initialization failed, using simple mode"
+                    print_color "$YELLOW" "⚠ Smart initialization failed for $provider, using simple mode"
                     setup_simple_symlink "$provider" "$context_file"
                 }
             else
-                # Use simple symlink for other providers
+                # Fallback to simple symlink if library not available
                 setup_simple_symlink "$provider" "$context_file"
             fi
         fi

@@ -602,6 +602,7 @@ auto_generate_provider_context() {
     local provider_dir="$DEV_AID_ROOT/.dev-aid/providers/$provider"
     local context_file="$provider_dir/${provider_upper}.md"
     local symlink_target="$DEV_AID_ROOT/../${provider_upper}.md"
+    local project_root="$DEV_AID_ROOT/.."
 
     # Skip if file already exists
     if [ -f "$context_file" ]; then
@@ -612,7 +613,46 @@ auto_generate_provider_context() {
     # Create provider directory if needed
     mkdir -p "$provider_dir"
 
-    # Generate template based on provider
+    # Use smart initialization for all providers
+    local lib_dir="$DEV_AID_ROOT/.dev-aid/scripts/lib"
+    if [ -f "$lib_dir/provider-context-init.sh" ]; then
+        # Source the smart initialization library
+        source "$lib_dir/provider-context-init.sh"
+
+        # Use smart initialization for all providers
+        init_context_file "$project_root" "$provider" || {
+            # Fallback to simple template generation
+            print_color "$YELLOW" "  ⚠ Smart initialization failed for $provider, using simple mode"
+            generate_fallback_template "$provider" "$context_file"
+            ln -sf "$context_file" "$symlink_target"
+        }
+
+        print_color "$GREEN" "  ✓ Created ${provider_upper}.md with smart initialization"
+        print_color "$CYAN" "    Auto-detected: $FRONTEND, $BACKEND, $DATABASE"
+        return 0
+    fi
+
+    # Fallback to simple template generation if library not available
+    generate_fallback_template "$provider" "$context_file"
+
+    # Create symlink at project root
+    if [ ! -e "$symlink_target" ]; then
+        ln -sf "$context_file" "$symlink_target"
+        print_color "$GREEN" "  ✓ Created ${provider_upper}.md with auto-detected project info"
+    else
+        print_color "$GREEN" "  ✓ Created ${provider_upper}.md with auto-detected project info"
+    fi
+
+    # Show what was detected
+    print_color "$CYAN" "    Auto-detected: $FRONTEND, $BACKEND, $DATABASE"
+    print_color "$CYAN" "    Review and customize: $context_file"
+}
+
+# Fallback template generation
+generate_fallback_template() {
+    local provider="$1"
+    local context_file="$2"
+
     case $provider in
         claude)
             generate_claude_template "$context_file"
@@ -628,18 +668,6 @@ auto_generate_provider_context() {
             return 1
             ;;
     esac
-
-    # Create symlink at project root
-    if [ ! -e "$symlink_target" ]; then
-        ln -sf "$context_file" "$symlink_target"
-        print_color "$GREEN" "  ✓ Created ${provider_upper}.md with auto-detected project info"
-    else
-        print_color "$GREEN" "  ✓ Created ${provider_upper}.md with auto-detected project info"
-    fi
-
-    # Show what was detected
-    print_color "$CYAN" "    Auto-detected: $FRONTEND, $BACKEND, $DATABASE"
-    print_color "$CYAN" "    Review and customize: $context_file"
 }
 
 change_providers() {

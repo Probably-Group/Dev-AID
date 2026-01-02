@@ -123,7 +123,9 @@ import sys
 sys.path.insert(0, '{Path(__file__).parent.parent}')
 from router.cost_tracker import CostTracker
 tracker = CostTracker('{tmpdir}/.dev-aid')
-print(f'Limit: {{tracker.daily_limit}}')
+# get_budget_status takes daily_limit as parameter
+status = tracker.get_budget_status(100.0)
+print(f"Limit: {{status['daily_limit']}}")
 """,
                 ],
                 capture_output=True,
@@ -159,7 +161,7 @@ print('Classifier initialized')
     def test_auth_detector_env_detection(self):
         """Test that auth detector can detect environment variables"""
         env = os.environ.copy()
-        env["ANTHROPIC_API_KEY"] = "test-key-12345"
+        env["OPENAI_API_KEY"] = "test-key-12345"
 
         result = subprocess.run(
             [
@@ -168,11 +170,12 @@ print('Classifier initialized')
                 f"""
 import sys
 import os
-os.environ['ANTHROPIC_API_KEY'] = 'test-key-12345'
+os.environ['OPENAI_API_KEY'] = 'test-key-12345'
 sys.path.insert(0, '{Path(__file__).parent.parent}')
 from router.auth_detector import AuthDetector
 detector = AuthDetector()
-creds = detector.detect_anthropic()
+# detect_openai_auth checks OPENAI_API_KEY env var
+creds = detector.detect_openai_auth()
 print(f'Detected: {{creds is not None}}')
 """,
             ],

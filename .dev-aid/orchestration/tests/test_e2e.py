@@ -280,7 +280,7 @@ print(f'Memory loaded: {{len(content)}} chars')
 
         # Test that we can read a skill file
         sample_skill = skills[0]
-        content = sample_skill.read_text()
+        content = sample_skill.read_text(encoding="utf-8")
 
         assert len(content) > 0
         assert "SKILL.md" in str(sample_skill)

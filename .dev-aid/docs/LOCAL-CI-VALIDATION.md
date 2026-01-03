@@ -308,7 +308,6 @@ Potential improvements:
 ## Related
 
 - [GitHub Actions Workflow](../../.github/workflows/pr-check.yml)
-- [Testing Guide](./TESTING.md)
 - [Contributing Guide](../../CONTRIBUTING.md)
 
 ## Comparison: Local CI Validation vs CI Generator

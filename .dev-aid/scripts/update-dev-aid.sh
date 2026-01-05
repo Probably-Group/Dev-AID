@@ -139,7 +139,7 @@ fi
 
 # Temporary directory for download/extraction
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
 # Update based on chosen method
 case $UPDATE_SOURCE in

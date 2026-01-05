@@ -89,7 +89,7 @@ esac
 
 # Search for usage
 TEMP_FILE=$(mktemp)
-trap "rm -f $TEMP_FILE" EXIT
+trap 'rm -f "$TEMP_FILE"' EXIT
 
 if [ -n "$SCOPE" ]; then
     rg --line-number --color never "$PATTERN" "$SCOPE" > "$TEMP_FILE" || true

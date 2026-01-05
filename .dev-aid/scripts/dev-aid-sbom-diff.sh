@@ -100,7 +100,7 @@ fi
 
 # Create temp directory
 TEMP_DIR=$(mktemp -d)
-trap "rm -rf $TEMP_DIR" EXIT
+trap 'rm -rf "$TEMP_DIR"' EXIT
 
 OLD_SBOM="$TEMP_DIR/old-sbom.json"
 NEW_SBOM="$TEMP_DIR/new-sbom.json"

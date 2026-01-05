@@ -1,7 +1,6 @@
-"""Bidirectional TOON ↔ JSON converter."""
+"""Bidirectional TOON ↔ JSON converter (Pure Python implementation)."""
 
 import json
-from typing import Any
 
 from .decoder import decode
 from .encoder import encode
@@ -12,26 +11,25 @@ def json_to_toon(json_str: str) -> str:
     Convert JSON string to TOON format.
 
     Args:
-        json_str: Valid JSON string
+        json_str: JSON-formatted string
 
     Returns:
         str: TOON-formatted string
 
     Raises:
-        ValueError: If JSON string is invalid
-        RuntimeError: If conversion fails
+        ValueError: If JSON is invalid
 
     Example:
-        >>> json_str = '{"name": "Bob", "age": 25}'
+        >>> json_str = '{"name": "Alice", "age": 30}'
         >>> toon_str = json_to_toon(json_str)
         >>> print(toon_str)
-        name: Bob
-        age: 25
+        name: Alice
+        age: 30
     """
     try:
         data = json.loads(json_str)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON input: {e}")
+        raise ValueError(f"Invalid JSON: {e}")
 
     return encode(data)
 
@@ -45,55 +43,47 @@ def toon_to_json(toon_str: str, pretty: bool = False) -> str:
         pretty: If True, format JSON with indentation
 
     Returns:
-        str: JSON string
+        str: JSON-formatted string
 
     Raises:
-        ValueError: If TOON string is invalid
-        RuntimeError: If conversion fails
+        ValueError: If TOON is invalid
 
     Example:
         >>> toon_str = '''
-        ... name: Carol
-        ... age: 35
+        ... name: Alice
+        ... age: 30
         ... '''
         >>> json_str = toon_to_json(toon_str, pretty=True)
         >>> print(json_str)
         {
-          "name": "Carol",
-          "age": 35
+          "name": "Alice",
+          "age": 30
         }
     """
     data = decode(toon_str)
-
     indent = 2 if pretty else None
     return json.dumps(data, indent=indent)
 
 
-def estimate_token_savings(data: Any) -> dict:
+def estimate_token_savings(data: dict) -> dict:
     """
-    Estimate token savings when using TOON vs JSON.
+    Estimate token savings from using TOON vs JSON.
 
     Args:
-        data: Python object to analyze
+        data: Python dict to analyze
 
     Returns:
-        dict: {
-            'json_tokens': estimated tokens for JSON,
-            'toon_tokens': estimated tokens for TOON,
-            'savings_tokens': tokens saved,
-            'savings_percent': percentage saved
-        }
+        dict: Savings report with token counts and percentages
 
     Example:
-        >>> data = {"items": [{"id": i, "value": i*10} for i in range(20)]}
+        >>> data = {"items": [{"id": 1, "name": "foo"}, {"id": 2, "name": "bar"}]}
         >>> savings = estimate_token_savings(data)
-        >>> print(f"Saves {savings['savings_percent']:.1f}% tokens")
+        >>> print(f"Savings: {savings['savings_percent']}%")
     """
-    # Generate both formats
     json_str = json.dumps(data)
     toon_str = encode(data)
 
-    # Approximate token count (1 token ≈ 4 characters is a rough estimate)
+    # Approximate token count (1 token ≈ 4 characters for English text)
     json_tokens = len(json_str) / 4
     toon_tokens = len(toon_str) / 4
 

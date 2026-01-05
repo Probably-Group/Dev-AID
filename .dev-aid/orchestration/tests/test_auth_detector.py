@@ -12,6 +12,8 @@ import os
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 from router.auth_detector import AuthCredentials, AuthDetector
 
 
@@ -440,6 +442,10 @@ class TestEdgeCases:
 
     def test_permission_denied_on_config(self, tmp_path):
         """Test handling permission denied errors"""
+        # Skip this test if running as root (root can read files with 000 permissions)
+        if os.geteuid() == 0:
+            pytest.skip("Cannot test permission denied when running as root")
+
         claude_config_dir = tmp_path / ".config" / "claude"
         claude_config_dir.mkdir(parents=True)
         config_file = claude_config_dir / "config.json"

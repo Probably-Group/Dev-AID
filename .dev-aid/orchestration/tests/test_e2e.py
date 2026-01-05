@@ -123,7 +123,8 @@ import sys
 sys.path.insert(0, '{Path(__file__).parent.parent}')
 from router.cost_tracker import CostTracker
 tracker = CostTracker('{tmpdir}/.dev-aid')
-print(f'Limit: {{tracker.daily_limit}}')
+budget = tracker.get_budget_status(100.0)
+print(f'Limit: {{budget["daily_limit"]}}')
 """,
                 ],
                 capture_output=True,
@@ -172,7 +173,7 @@ os.environ['ANTHROPIC_API_KEY'] = 'test-key-12345'
 sys.path.insert(0, '{Path(__file__).parent.parent}')
 from router.auth_detector import AuthDetector
 detector = AuthDetector()
-creds = detector.detect_anthropic()
+creds = detector.detect_claude_auth()
 print(f'Detected: {{creds is not None}}')
 """,
             ],

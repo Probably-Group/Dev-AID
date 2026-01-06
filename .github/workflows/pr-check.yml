@@ -68,10 +68,12 @@ jobs:
             venv-${{ runner.os }}-py3.11-
 
       - name: Install dependencies (Unix)
-        if: steps.cache-venv.outputs.cache-hit != 'true' && runner.os != 'Windows'
+        if: runner.os != 'Windows'
         run: |
           cd .dev-aid/orchestration
-          python -m venv .venv
+          if [ ! -d ".venv" ]; then
+            python -m venv .venv
+          fi
           source .venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
@@ -86,10 +88,12 @@ jobs:
           npm install
 
       - name: Install dependencies (Windows)
-        if: steps.cache-venv.outputs.cache-hit != 'true' && runner.os == 'Windows'
+        if: runner.os == 'Windows'
         run: |
           cd .dev-aid/orchestration
-          python -m venv .venv
+          if (-not (Test-Path ".venv")) {
+            python -m venv .venv
+          }
           .\.venv\Scripts\Activate.ps1
           pip install --upgrade pip
           pip install -r requirements.txt

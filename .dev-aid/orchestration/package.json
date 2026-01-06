@@ -1,19 +1,21 @@
 {
   "name": "orchestration",
   "version": "1.0.0",
-  "description": "",
+  "description": "Dev-AID orchestration utilities",
   "main": "index.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "pytest tests/"
   },
-  "keywords": [],
+  "keywords": ["dev-aid", "ai", "orchestration"],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {
-    "@toon-format/toon": "^2.1.0"
+  "dependencies": {},
+  "devDependencies": {},
+  "notes": {
+    "toon_format": "TOON format support is now implemented in pure Python (toon/ directory). No Node.js dependencies required."
   }
 }

@@ -12,11 +12,11 @@
 
 ## Installation Status
 
-✅ **Phase 1 Complete** - Core SDK and Python utilities ready
-- TOON SDK installed (@toon-format/toon v2.0.1)
-- Python encoder/decoder working
+✅ **Phase 1 Complete** - Pure Python implementation ready
+- Native Python encoder/decoder (no Node.js required)
 - JSON ↔ TOON conversion utilities
-- 21 unit tests passing
+- 21 unit tests passing (100% pass rate)
+- Zero external dependencies
 
 🔄 **Phase 2-4 In Progress** - Skill/config conversion coming soon
 

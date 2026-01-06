@@ -173,15 +173,15 @@ find_reverse_deps() {
 if [ "$REVERSE" = true ]; then
     find_reverse_deps "$FILE"
 else
-    if [ "$FORMAT" = "mermaid" ]; then
-        echo "```mermaid"
+    if [ "$FORMAT" = mermaid ]; then
+        printf '%s\n' '```mermaid'
         echo "graph LR"
     fi
 
     find_deps "$FILE" 1 ""
 
-    if [ "$FORMAT" = "mermaid" ]; then
-        echo "```"
+    if [ "$FORMAT" = mermaid ]; then
+        printf '%s\n' '```'
     fi
 fi
 

@@ -695,7 +695,8 @@ change_providers() {
     # Validate providers
     local valid_providers=("claude" "gemini" "openai" "openrouter")
     for provider in "${new_providers[@]}"; do
-        if [[ ! " ${valid_providers[*]} " =~ " ${provider} " ]]; then
+        local pattern=" $provider "
+        if [[ ! " ${valid_providers[*]} " =~ $pattern ]]; then
             print_color "$RED" "✗ Invalid provider: $provider"
             return 1
         fi

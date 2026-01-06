@@ -24,6 +24,7 @@ from conflict_resolver import ConflictResolver, MergeChoice  # noqa: E402
 from github_client import GitHubClient, GitHubRateLimitError  # noqa: E402
 
 
+@unittest.skipIf(sys.platform == "win32", "Bash scripts not available on Windows")
 class TestVersionComparison(unittest.TestCase):
     """Test semantic version comparison functions"""
 
@@ -334,6 +335,7 @@ class TestGitHubClient(unittest.TestCase):
         self.assertEqual(GitHubClient._format_size(1024 * 1024 * 1024), "1.0 GB")
 
 
+@unittest.skipIf(sys.platform == "win32", "Bash scripts not available on Windows")
 class TestBackupRestore(unittest.TestCase):
     """Test backup and restore functionality"""
 
@@ -402,6 +404,7 @@ class TestBackupRestore(unittest.TestCase):
         self.assertIn(".dev-aid/logs/", paths)
 
 
+@unittest.skipIf(sys.platform == "win32", "Bash scripts not available on Windows")
 class TestChecksumVerification(unittest.TestCase):
     """Test checksum verification"""
 

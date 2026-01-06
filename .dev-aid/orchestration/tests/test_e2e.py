@@ -6,10 +6,25 @@ Tests complete user workflows using subprocess integration
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 import pytest
+
+# Skip marker for tests that require bash (Unix-only)
+skip_on_windows = pytest.mark.skipif(
+    sys.platform == "win32", reason="Bash scripts not available on Windows"
+)
+
+
+def normalize_path(path) -> str:
+    """Normalize path for use in Python code strings (cross-platform).
+
+    Converts backslashes to forward slashes to avoid escape sequence issues
+    when embedding paths in Python code strings passed to subprocess.
+    """
+    return str(path).replace("\\", "/")
 
 
 class TestE2ECliWorkflows:
@@ -81,15 +96,17 @@ class TestE2ECliWorkflows:
             (config_dir / "orchestration.json").write_text(json.dumps(orchestration, indent=2))
 
             # Try to load config using the config_loader module
+            orchestration_path = normalize_path(Path(__file__).parent.parent)
+            tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.config_loader import ConfigLoader
-loader = ConfigLoader('{tmpdir}')
+loader = ConfigLoader('{tmpdir_path}')
 mode = loader.get_orchestration_mode()
 print('OK')
 """,
@@ -114,17 +131,20 @@ print('OK')
             routing = {"cost_limit_per_day": 100.0}
             (config_dir / "routing.json").write_text(json.dumps(routing, indent=2))
 
+            orchestration_path = normalize_path(Path(__file__).parent.parent)
+            logs_path = normalize_path(Path(tmpdir) / ".dev-aid")
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.cost_tracker import CostTracker
-tracker = CostTracker('{tmpdir}/.dev-aid')
-budget = tracker.get_budget_status(100.0)
-print(f'Limit: {{budget["daily_limit"]}}')
+tracker = CostTracker('{logs_path}')
+# get_budget_status takes daily_limit as parameter
+status = tracker.get_budget_status(100.0)
+print(f"Limit: {{status['daily_limit']}}")
 """,
                 ],
                 capture_output=True,
@@ -137,13 +157,14 @@ print(f'Limit: {{budget["daily_limit"]}}')
 
     def test_task_classifier_import(self):
         """Test that task classifier can be imported and initialized"""
+        orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
                 "python",
                 "-c",
                 f"""
 import sys
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+sys.path.insert(0, '{orchestration_path}')
 from router.task_classifier import TaskClassifier
 classifier = TaskClassifier()
 print('Classifier initialized')
@@ -160,8 +181,9 @@ print('Classifier initialized')
     def test_auth_detector_env_detection(self):
         """Test that auth detector can detect environment variables"""
         env = os.environ.copy()
-        env["ANTHROPIC_API_KEY"] = "test-key-12345"
+        env["OPENAI_API_KEY"] = "test-key-12345"
 
+        orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
                 "python",
@@ -169,11 +191,12 @@ print('Classifier initialized')
                 f"""
 import sys
 import os
-os.environ['ANTHROPIC_API_KEY'] = 'test-key-12345'
-sys.path.insert(0, '{Path(__file__).parent.parent}')
+os.environ['OPENAI_API_KEY'] = 'test-key-12345'
+sys.path.insert(0, '{orchestration_path}')
 from router.auth_detector import AuthDetector
 detector = AuthDetector()
-creds = detector.detect_claude_auth()
+# detect_openai_auth checks OPENAI_API_KEY env var
+creds = detector.detect_openai_auth()
 print(f'Detected: {{creds is not None}}')
 """,
             ],
@@ -187,6 +210,7 @@ print(f'Detected: {{creds is not None}}')
         assert "Detected: True" in result.stdout
 
     @pytest.mark.slow
+    @skip_on_windows
     def test_script_execution_dry_run(self):
         """Test that core scripts can be executed in dry-run mode"""
         scripts_dir = Path(__file__).parent.parent.parent / "scripts"
@@ -220,6 +244,7 @@ print(f'Detected: {{creds is not None}}')
             # Create test memory file
             (memory_dir / "activeContext.md").write_text("# Test Context\n\nTest content")
 
+            tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
                     "python",
@@ -227,7 +252,7 @@ print(f'Detected: {{creds is not None}}')
                     f"""
 import sys
 from pathlib import Path
-memory_file = Path('{tmpdir}') / '.dev-aid' / 'memory-bank' / 'activeContext.md'
+memory_file = Path('{tmpdir_path}') / '.dev-aid' / 'memory-bank' / 'activeContext.md'
 content = memory_file.read_text()
 print(f'Memory loaded: {{len(content)}} chars')
 """,
@@ -255,7 +280,7 @@ print(f'Memory loaded: {{len(content)}} chars')
 
         # Test that we can read a skill file
         sample_skill = skills[0]
-        content = sample_skill.read_text()
+        content = sample_skill.read_text(encoding="utf-8")
 
         assert len(content) > 0
         assert "SKILL.md" in str(sample_skill)
@@ -355,13 +380,14 @@ OPENAI_API_KEY=test-key-789
             (config_dir / ".env").write_text(env_content)
 
             # Test loading with python-dotenv
+            config_dir_path = normalize_path(config_dir)
             result = subprocess.run(
                 [
                     "python",
                     "-c",
                     f"""
 from pathlib import Path
-env_file = Path('{config_dir}') / '.env'
+env_file = Path('{config_dir_path}') / '.env'
 content = env_file.read_text()
 print(f'Env file lines: {{len(content.splitlines())}}')
 """,

@@ -36,7 +36,7 @@
   - [🔄 Safe Update System](#-safe-update-system)
   - [🔌 MCP Integration](#-mcp-model-context-protocol-integration)
   - [⚙️ Works Everywhere You Do](#️-works-everywhere-you-do)
-- [🆕 What's New](#-whats-new-in-v120-2025-12-06)
+- [🆕 What's New](#-whats-new-in-v130)
 - [🚀 Quick Start](#-quick-start)
 - [📚 Available Slash Commands](#-available-slash-commands)
   - [🔍 RAG Commands](#-rag-commands-local-semantic-search)
@@ -612,7 +612,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ---
 
-## 🆕 What's New in v1.2.0 (2025-12-06)
+## 🆕 What's New in v1.3.0
 
 ### Performance & Architecture
 - **⚡ 10x Faster Context Detection**: Optimized from 2s+ to <200ms with new Python implementation
@@ -626,7 +626,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 - **✅ Fail-Closed Hooks**: Pre-commit now blocks when security tools missing (no more silent bypasses)
 - **🔑 Checksum Verification**: RAG installer now verifies SHA256 before execution
 
-### New Features (Tier 1: v1.3.0)
+### New Features
 
 - **🌐 Cross-Platform CI Support** ⭐⭐⭐⭐ (NEW!)
   - **Windows, macOS, Linux**: Full GitHub Actions support across all major platforms
@@ -648,6 +648,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 - **🎒 TOON Format Integration** ⭐⭐⭐⭐⭐ (FULLY IMPLEMENTED!)
   - **Token Reduction**: 40-60% fewer tokens vs JSON in LLM prompts
   - **Better Accuracy**: 74% vs JSON's 70% (validated benchmarks)
+  - **Pure Python**: Uses `toon-format` package (no Node.js dependency)
   - **Complete SDK**: Full encode/decode/conversion utilities
   - **Config Loader Support**: Automatic .toon file detection and parsing
   - **Migration Tool**: One-command JSON → TOON conversion (`migrate-to-toon.sh`)

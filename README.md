@@ -2,6 +2,8 @@
 
 # 🚀 Dev-AID (Development AI Driver)
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/martinholovsky/Dev-AID/badge)](https://scorecard.dev/viewer/?uri=github.com/martinholovsky/Dev-AID)
+
 **Stop doing the work you hate. Let AI handle it.**
 
 > 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($1.2M+ annual value for 100-dev teams).

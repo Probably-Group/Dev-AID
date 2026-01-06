@@ -1,13 +1,12 @@
 name: OpenSSF Scorecard
 
+# For private repos, scorecard has limitations with GITHUB_TOKEN
+# Only run manually or when repo becomes public
 on:
-  schedule:
-    - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
-  push:
-    branches: [main]
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   analysis:
@@ -16,19 +15,20 @@ jobs:
     permissions:
       security-events: write
       contents: read
+      actions: read
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0  # Full history for better analysis
 
       - name: Run analysis
         uses: ossf/scorecard-action@v2.4.0
         with:
           results_file: results.sarif
           results_format: sarif
-          # Private repo - don't publish to external scorecard.dev
           publish_results: false
 
       - name: Upload artifact

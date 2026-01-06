@@ -33,15 +33,14 @@ jobs:
   # Note: PR checks run on Ubuntu only to save CI minutes
   # Full cross-platform testing happens in release-gate.yml
   setup:
-    name: Setup Dependencies
+    name: Setup Dependencies (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     # Skip draft PRs to save CI minutes
     if: github.event.pull_request.draft == false
     strategy:
       matrix:
-        # PR checks: Ubuntu only (saves 67% of CI minutes)
-        # Release checks: All platforms (see release-gate.yml)
-        os: [ubuntu-22.04]
+        # Run setup on all platforms so cache is available
+        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code

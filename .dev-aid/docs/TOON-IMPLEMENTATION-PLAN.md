@@ -155,49 +155,54 @@ Dev-AID Repository Structure:
 
 ## 📋 Implementation Phases
 
-### Phase 1: Pure Python Implementation (2-3 days)
+### Phase 1: TOON Library Integration (2-3 days)
 
-**Goal**: Implement native Python TOON encoder/decoder with no external dependencies.
+**Goal**: Integrate `toon-format` Python package for encoding/decoding.
+
+**Status**: ✅ COMPLETE (2026-01-06)
 
 #### Tasks
 
-1. **Create Pure Python TOON Encoder** (1 day) ✅ COMPLETE
+1. **Create TOON Encoder Wrapper** (1 day) ✅ COMPLETE
 
    **File**: `.dev-aid/orchestration/toon/encoder.py`
    ```python
-   """TOON encoder - converts Python objects to TOON format (Pure Python)."""
+   """TOON encoder - converts Python objects to TOON format."""
    from typing import Any
+   from toon_format import encode as toon_encode
 
    def encode(data: Any) -> str:
-       """Encode Python object to TOON format using pure Python."""
-       # Native Python implementation
-       # - YAML-like syntax for objects
-       # - CSV format for tabular data (lists of dicts)
-       # - Proper escaping for special characters
-       ...
+       """Encode Python object to TOON format using toon-format package."""
+       try:
+           return toon_encode(data)
+       except (TypeError, ValueError) as e:
+           raise ValueError(f"Cannot serialize data to TOON: {e}")
    ```
 
-   **Benefits over Node.js approach**:
-   - No subprocess overhead (10-50ms savings per call)
-   - No Node.js runtime dependency
-   - Simpler debugging with Python stack traces
-   - Cross-platform without npm install
+   **Benefits**:
+   - Uses battle-tested `toon-format==0.9.0b1` package
+   - No Node.js required (pure Python package)
+   - Simple, maintainable wrapper code
+   - Cross-platform (works anywhere Python works)
 
-2. **Create Pure Python TOON Decoder** (1 day) ✅ COMPLETE
+2. **Create TOON Decoder Wrapper** (1 day) ✅ COMPLETE
 
    **File**: `.dev-aid/orchestration/toon/decoder.py`
    ```python
-   """TOON decoder - converts TOON format to Python objects (Pure Python)."""
-   import csv
+   """TOON decoder - converts TOON format to Python objects."""
    from typing import Any
+   from toon_format import decode as toon_decode
 
    def decode(toon_str: str) -> Any:
-       """Decode TOON format to Python object using pure Python."""
-       # Native Python parser
-       # - Handles YAML-like key-value pairs
-       # - Parses CSV tables using standard library
-       # - Supports nested objects and lists
-       ...
+       """Decode TOON format to Python object using toon-format package."""
+       if not isinstance(toon_str, str):
+           raise ValueError("TOON input must be a string")
+       if not toon_str.strip():
+           raise ValueError("TOON input cannot be empty")
+       try:
+           return toon_decode(toon_str)
+       except Exception as e:
+           raise ValueError(f"TOON decoding failed: {e}")
    ```
 
 3. **Create TOON ↔ JSON converter** (1 day)
@@ -257,11 +262,11 @@ Dev-AID Repository Structure:
    ```
 
 **Acceptance Criteria**:
-- ✅ Pure Python encoder/decoder implemented (no Node.js)
+- ✅ TOON encoder/decoder using `toon-format` package (no Node.js)
 - ✅ Converter handles JSON ↔ TOON bidirectionally
 - ✅ All 21 unit tests passing (100% pass rate)
 - ✅ Token reduction verified (40-60% in benchmarks)
-- ✅ Zero external dependencies beyond Python stdlib
+- ✅ Single Python dependency: `toon-format==0.9.0b1`
 
 ---
 

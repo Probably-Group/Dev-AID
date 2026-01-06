@@ -1,6 +1,6 @@
 # Not Implemented Features
 
-**Last Updated**: 2025-12-08 (Session-Based Authentication **IMPLEMENTED** ✅)
+**Last Updated**: 2026-01-06 (TOON Format Integration Phase 1 **IMPLEMENTED** ✅)
 **Status**: Focused roadmap of pending features
 
 ---
@@ -193,26 +193,26 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 ## ⚡ Performance & Cost Optimization
 
 ### 5. TOON Format Integration
-**Status**: ✅ **IMPLEMENTED** (2025-01-06) - Pure Python implementation complete
+**Status**: ✅ **IMPLEMENTED** (2026-01-06) - Using `toon-format` package
 
-**Implementation completed**: Phase 1 delivered with pure Python encoder/decoder
+**Implementation completed**: Phase 1 delivered with toon-format library wrapper
 
 **What was delivered**:
-- ✅ Pure Python TOON encoder (no Node.js required)
-- ✅ Pure Python TOON decoder with full format support
+- ✅ TOON encoder using `toon-format==0.9.0b1` package
+- ✅ TOON decoder with full format support
 - ✅ JSON ↔ TOON converter with token savings estimation
 - ✅ 21 comprehensive unit tests (100% pass rate)
-- ✅ Zero external dependencies (stdlib only)
+- ✅ No Node.js required (pure Python package)
 - ✅ 40-60% token reduction validated in tests
 - ✅ Documentation updated (TOON-QUICK-START.md, TOON-IMPLEMENTATION-PLAN.md)
 
 **Technical implementation**:
-- ✅ `.dev-aid/orchestration/toon/encoder.py` - Pure Python YAML+CSV encoder
-- ✅ `.dev-aid/orchestration/toon/decoder.py` - Pure Python parser with CSV support
+- ✅ `.dev-aid/orchestration/toon/encoder.py` - Wrapper around toon_format.encode
+- ✅ `.dev-aid/orchestration/toon/decoder.py` - Wrapper around toon_format.decode
 - ✅ `.dev-aid/orchestration/toon/converter.py` - Bidirectional JSON↔TOON conversion
 - ✅ `.dev-aid/orchestration/tests/test_toon.py` - Complete test coverage
 
-**Files**: 3 new files, 450+ lines of code
+**Files**: 3 new files, ~100 lines of wrapper code
 **Documentation**: `.dev-aid/docs/TOON-IMPLEMENTATION-PLAN.md`, `.dev-aid/docs/TOON-QUICK-START.md`
 **Branch**: `claude/claude-md-initialization-plan-blJSY`
 
@@ -223,8 +223,8 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - [ ] Roll out to production usage
 
 **Benefits delivered**:
-- ✅ No Node.js dependency (pure Python implementation)
-- ✅ No subprocess overhead (<1ms vs 10-50ms with Node.js)
+- ✅ No Node.js dependency (uses Python `toon-format` package)
+- ✅ Fast encoding/decoding (native Python, no subprocess overhead)
 - ✅ Simpler debugging (Python stack traces)
 - ✅ Cross-platform (works anywhere Python works)
 - ✅ Ready for skill and config integration
@@ -269,10 +269,10 @@ $ python -m router.cli execute "Refactor this code" --mode solo
   - CVE detection and alerting
   - License compliance checking
 
-- [ ] **SBOM (Software Bill of Materials)** generation
-  - CycloneDX or SPDX format
-  - Dependency tree documentation
-  - Provenance tracking
+- [x] **SBOM (Software Bill of Materials)** generation ✅ IMPLEMENTED
+  - CycloneDX and SPDX formats via Trivy
+  - See `.github/workflows/release-gate.yml` and `dev-aid-sbom-diff.sh`
+  - Auto-uploads to GitHub releases
 
 - [ ] **Supply Chain Security**
   - Dependency provenance verification

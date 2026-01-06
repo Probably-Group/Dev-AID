@@ -12,11 +12,11 @@
 
 ## Installation Status
 
-✅ **Phase 1 Complete** - Pure Python implementation ready
-- Native Python encoder/decoder (no Node.js required)
+✅ **Phase 1 Complete** - TOON integration ready (2026-01-06)
+- Uses `toon-format==0.9.0b1` Python package (no Node.js required)
 - JSON ↔ TOON conversion utilities
 - 21 unit tests passing (100% pass rate)
-- Zero external dependencies
+- Single Python dependency
 
 🔄 **Phase 2-4 In Progress** - Skill/config conversion coming soon
 

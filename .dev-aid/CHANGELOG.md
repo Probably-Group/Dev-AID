@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.3.0-beta.9] - 2026-01-06
 
 ### Added
 - **TOON Format Integration (Phase 1)**: Pure Python implementation for 40-60% token reduction

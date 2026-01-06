@@ -1,8 +1,11 @@
 name: OpenSSF Scorecard
 
-# For private repos, scorecard has limitations with GITHUB_TOKEN
-# Only run manually or when repo becomes public
+# Run on releases, monthly, or manually
 on:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 6 1 * *'  # 1st of every month at 6 AM UTC
   workflow_dispatch:
 
 permissions:

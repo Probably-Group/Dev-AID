@@ -1,0 +1,83 @@
+# PR Labeler Configuration
+# Labels are applied based on file paths modified in the PR
+
+# Documentation changes
+documentation:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.md'
+      - 'docs/**'
+      - '.dev-aid/docs/**'
+
+# CI/CD changes
+ci:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.github/**'
+
+# Python code changes
+python:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.py'
+
+# Shell script changes
+shell:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/*.sh'
+
+# Router/orchestration changes
+router:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.dev-aid/orchestration/router/**'
+
+# Skills changes
+skills:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.dev-aid/skills/**'
+      - '.dev-aid/providers/**/skills/**'
+
+# Security related changes
+security:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.dev-aid/security/**'
+      - '.dev-aid/automation/**'
+      - '**/security*.py'
+      - '**/auth*.py'
+
+# Configuration changes
+config:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.dev-aid/config/**'
+      - '**/*.json'
+      - '**/*.yml'
+      - '**/*.yaml'
+
+# Test changes
+tests:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '**/test_*.py'
+      - '**/tests/**'
+      - '**/*_test.py'
+
+# RAG/Search changes
+rag:
+  - changed-files:
+    - any-glob-to-any-file:
+      - '.dev-aid/orchestration/rag/**'
+      - '**/embeddings/**'
+      - '**/search/**'
+
+# Dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file:
+      - 'requirements*.txt'
+      - 'package*.json'
+      - 'pyproject.toml'

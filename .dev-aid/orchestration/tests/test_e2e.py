@@ -33,7 +33,7 @@ class TestE2ECliWorkflows:
     def test_router_help_command(self):
         """Test that the router help command works"""
         result = subprocess.run(
-            ["python", "-m", "router", "--help"],
+            [sys.executable, "-m", "router", "--help"],
             cwd=Path(__file__).parent.parent,
             capture_output=True,
             text=True,
@@ -46,7 +46,7 @@ class TestE2ECliWorkflows:
     def test_router_version_command(self):
         """Test that the router version command works"""
         result = subprocess.run(
-            ["python", "-m", "router", "--version"],
+            [sys.executable, "-m", "router", "--version"],
             cwd=Path(__file__).parent.parent,
             capture_output=True,
             text=True,
@@ -100,7 +100,7 @@ class TestE2ECliWorkflows:
             tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "-c",
                     f"""
 import sys
@@ -135,7 +135,7 @@ print('OK')
             logs_path = normalize_path(Path(tmpdir) / ".dev-aid")
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "-c",
                     f"""
 import sys
@@ -160,7 +160,7 @@ print(f"Limit: {{status['daily_limit']}}")
         orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
-                "python",
+                sys.executable,
                 "-c",
                 f"""
 import sys
@@ -186,7 +186,7 @@ print('Classifier initialized')
         orchestration_path = normalize_path(Path(__file__).parent.parent)
         result = subprocess.run(
             [
-                "python",
+                sys.executable,
                 "-c",
                 f"""
 import sys
@@ -247,7 +247,7 @@ print(f'Detected: {{creds is not None}}')
             tmpdir_path = normalize_path(tmpdir)
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "-c",
                     f"""
 import sys
@@ -305,7 +305,7 @@ class TestE2EScriptIntegration:
                 continue
 
             result = subprocess.run(
-                ["python", "-m", "py_compile", str(script)],
+                [sys.executable, "-m", "py_compile", str(script)],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -334,7 +334,7 @@ class TestE2EScriptIntegration:
 
             # Verify it's valid Python
             result = subprocess.run(
-                ["python", "-m", "py_compile", str(module_path)],
+                [sys.executable, "-m", "py_compile", str(module_path)],
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -383,7 +383,7 @@ OPENAI_API_KEY=test-key-789
             config_dir_path = normalize_path(config_dir)
             result = subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "-c",
                     f"""
 from pathlib import Path

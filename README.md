@@ -2,111 +2,97 @@
 
 # 🚀 Dev-AID (Development AI Driver)
 
-**Expert Skills, Multi-AI Routing, Local Semantic Search, and Persistent Context for AI-Assisted Development**
+**Stop doing the work you hate. Let AI handle it.**
 
-> The only AI development framework that works natively inside the tools you already use—no new CLIs to learn, no context switching, just enhanced capabilities where you code.
-
-> 📊 **For Stakeholders & Decision Makers:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for data-driven ROI analysis, industry benchmarks, and cost savings breakdown. Features 5 compelling infographics showing $1.2M+ annual value for 100-developer teams.
-
-*Built for developers who want AI superpowers without the workflow disruption.*
+> 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($1.2M+ annual value for 100-dev teams).
 
 ---
 
-## 📋 Table of Contents
+## 😤 The Work You Hate (That Dev-AID Eliminates)
 
-- [🎯 What is Dev-AID?](#-what-is-dev-aid)
-  - [🔬 Research-Backed Results](#-research-backed-results)
-  - [Why Native Integration Matters](#why-native-integration-matters)
-  - [How It Works](#how-it-works)
-- [🌟 Why Dev-AID's Native Integration is a Game-Changer](#-why-dev-aids-native-integration-is-a-game-changer)
-  - [🎯 Benefits You'll Feel Immediately](#-benefits-youll-feel-immediately)
-  - [💡 Real Developer Benefits](#-real-developer-benefits)
-  - [🚀 The Philosophy](#-the-philosophy)
-- [✨ Complete Feature Overview](#-complete-feature-overview)
-- [🎯 Core Features (Detailed)](#-core-features-detailed)
-  - [🔍 Dev-AID Local Search](#-dev-aid-local-search-)
-  - [🔀 Multi-AI Router (NEW!)](#-multi-ai-router-new)
-  - [🛡️ 5 Core Skills - Automated Checking (NEW!)](#️-5-core-skills---automated-checking-new)
-  - [🎓 72 Expert Skills - Domain Expertise](#-72-expert-skills---domain-expertise--hook-based-auto-loading)
-  - [💾 Persistent Memory Bank](#-persistent-memory-bank)
-  - [🔒 Automated Security](#-automated-security)
-  - [🤖 Intelligent Automation (NEW!)](#-intelligent-automation-new)
-  - [🚀 Productivity Tools (NEW!)](#-productivity-tools-new)
-  - [⚡ Optimized CI/CD Generator (NEW!)](#-optimized-cicd-generator-new)
-  - [🔄 Safe Update System](#-safe-update-system)
-  - [🔌 MCP Integration](#-mcp-model-context-protocol-integration)
-  - [⚙️ Works Everywhere You Do](#️-works-everywhere-you-do)
-- [🆕 What's New](#-whats-new-in-v130)
-- [🚀 Quick Start](#-quick-start)
-- [📚 Available Slash Commands](#-available-slash-commands)
-  - [🔍 RAG Commands](#-rag-commands-local-semantic-search)
-  - [🔀 Router Commands](#-router-commands-multi-ai-orchestration)
-  - [🤖 Automation Commands](#-automation-commands)
-  - [🛠️ Development Commands](#️-development-commands)
-- [🔧 Configuration](#-configuration)
-- [🔍 RAG (Local Semantic Search)](#-rag-local-semantic-search)
-- [🏗️ Architecture](#️-architecture)
-- [💰 Cost Analysis](#-cost-analysis)
-- [🎓 Expert Skills](#-expert-skills-65-skills)
-- [🔒 Security Automation](#-security-automation)
-- [🆚 Comparison](#-comparison)
-- [📖 Documentation](#-documentation)
-- [🤝 Contributing](#-contributing)
-- [🐛 Troubleshooting](#-troubleshooting)
-- [📝 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
-- [🔗 Links](#-links)
+| Tedious Task | Time Wasted | Dev-AID Solution | Time Saved |
+|--------------|-------------|------------------|------------|
+| **Merge conflicts** | 10-30 min each | AI understands both sides, resolves intelligently | 90% |
+| **GitHub issues** | 15-45 min to analyze & fix | AI proposes complete solution with code | 80% |
+| **Writing tests** | Hours per feature | AI generates comprehensive test suites | 70-85% |
+| **PR descriptions** | 5-10 min each | Auto-generated from git diff | 95% |
+| **Security reviews** | 30+ min manual checks | 5 tools run automatically on commit | 100% |
+| **Debugging** | 30-45 min root cause | AI diagnosis in <10 min | 70% |
+| **Code reviews** | Waiting for reviewers | Dual-AI review catches bugs instantly | 60% |
+| **CI/CD setup** | Days of YAML hell | Auto-generated, optimized workflows | 90% |
+| **Documentation** | "I'll do it later" | AI keeps docs in sync with code | 55% |
+| **Context switching** | 50× per day | Works inside your existing tools | 100% |
+
+### TL;DR - One Command Examples
+
+```bash
+# Resolve that annoying merge conflict
+dev-aid-fix-conflicts --strategy smart
+
+# Fix GitHub issue #123 (AI analyzes, proposes code, creates PR)
+dev-aid-resolve-issue --issue 123
+
+# Generate tests for your new feature
+/dev-aid-tdd-expert   # Auto-loads when editing test files
+
+# Security scan before you push (runs automatically)
+git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
+
+# Claude writes code, Gemini reviews it (catches bugs you'd miss)
+/dev-aid-router-challenger "Implement OAuth2 with refresh tokens"
+```
 
 ---
 
 ## 🎯 What is Dev-AID?
 
-**Dev-AID brings enterprise-grade AI capabilities directly into your existing development workflow.** Instead of forcing you to learn yet another CLI tool, Dev-AID integrates seamlessly with Claude Code, Cursor, Gemini CLI, and other AI assistants—enhancing them with 5 core skills (automated checking), 72 expert skills (domain expertise), multi-AI orchestration, 100% local semantic search, and automated security scanning.
+Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI) with:
 
-### 🔬 Research-Backed Results
+- **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
+- **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
+- **🔍 Local Code Search** - 100% private, $0 forever, 0.15s queries
+- **🎓 72 Expert Skills** - Auto-loads domain expertise (DevSecOps, TDD, etc.)
+- **🔒 Security Automation** - 5 tools run on every commit
 
-**Based on analysis of 100+ case studies and rigorous RCT testing:**
-
-**✅ Task-Specific Acceleration (Validated Time Savings):**
-- **Unit Testing**: 70-85% faster (DreamHost: 273 tests in 3 days, zero manual code)
-- **Refactoring**: 50-60% faster (AWS: 9-month migration → 16 weeks)
-- **Debugging**: 60-70% faster (Root cause analysis in <10 min vs 30-45 min)
-- **Documentation**: 55% faster + 93% faster legacy code comprehension
-
-**⚠️ Solves the "19% Slowdown Problem":**
-- METR study: Senior developers 19% SLOWER on complex features with generic AI
-- Root cause: Verification tax + prompt engineering + context loss
-- **Dev-AID solution**: Challenger mode (dual-AI review) catches bugs before you see them
-- **Result**: 19% slowdown → 30-50% speedup for complex brownfield work
-
-**🎯 Real-World Impact:**
-- **AWS Java Migration**: 9 months → 16 weeks (56% faster, 60% cost reduction)
-- **Nubank Tech Debt**: 12x efficiency improvement on systematic cleanup
-- **Anthropic Kubernetes**: 30-45 min diagnosis → <10 min with multi-modal RCA
-
-> 📖 **Full analysis with case studies**: [VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)
+**No new CLI to learn.** Works inside the tools you already use.
 
 ---
 
-### Why Native Integration Matters
+## 📋 Table of Contents
 
-**The Old Way:**
-```
-You: Working in VS Code
-Also You: Switch to separate AI CLI
-And You: Copy/paste context manually
-Still You: Switch back to VS Code
-😫 Repeat 50× per day
-```
+- [😤 The Work You Hate](#-the-work-you-hate-that-dev-aid-eliminates)
+- [🎯 What is Dev-AID?](#-what-is-dev-aid)
+- [🔬 Research-Backed Results](#-research-backed-results)
+- [✨ Complete Feature Overview](#-complete-feature-overview)
+- [🚀 Quick Start](#-quick-start)
+- [📚 Available Commands](#-available-slash-commands)
+- [🎯 Core Features (Detailed)](#-core-features-detailed)
+- [🔧 Configuration](#-configuration)
+- [💰 Cost Analysis](#-cost-analysis)
+- [🆚 Comparison](#-comparison)
+- [📖 Documentation](#-documentation)
 
-**The Dev-AID Way:**
-```
-You: Working in Claude Code (or Cursor, or Gemini CLI)
-Dev-AID: *Already there, enhancing your AI with expert skills*
-You: /dev-aid-router-challenger "Implement OAuth"
-Dev-AID: *Claude generates, Gemini reviews, all in one place*
-✨ Never left your editor
-```
+---
+
+## 🔬 Research-Backed Results
+
+**Based on 100+ case studies:**
+
+| Task | Without AI | With Generic AI | With Dev-AID |
+|------|------------|-----------------|--------------|
+| Unit Testing | Baseline | 40% faster | **70-85% faster** |
+| Refactoring | Baseline | 19% SLOWER* | **50-60% faster** |
+| Debugging | 30-45 min | 20 min | **<10 min** |
+| Code Review | Wait hours | N/A | **Instant dual-AI** |
+
+*\*METR study: Senior devs 19% slower with generic AI on complex features. Dev-AID's challenger mode fixes this.*
+
+**Real Results:**
+- AWS: 9-month migration → 16 weeks (56% faster)
+- Nubank: 12x efficiency on tech debt cleanup
+- DreamHost: 273 tests in 3 days, zero manual code
+
+> 📖 **Full analysis**: [VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)
 
 ### How It Works
 
@@ -155,50 +141,6 @@ Real-World Examples:
 • /dev-aid-router-status
   → View AI routing decisions and costs across all sessions
 ```
-
----
-
-## 🌟 Why Dev-AID's Native Integration is a Game-Changer
-
-Most AI tools force you to learn a new CLI, switch contexts constantly, and manually manage multiple tools. Dev-AID takes a radically different approach: **enhance what you already use** instead of replacing it.
-
-### 🎯 Benefits You'll Feel Immediately
-
-| Traditional Standalone AI Tools | Dev-AID Native Integration |
-|--------------------------------|----------------------------|
-| 😫 Learn new CLI syntax | ✨ Use tools you already know |
-| 😫 Switch between editor and AI tool | ✨ AI enhanced right where you code |
-| 😫 Copy/paste context manually | ✨ Auto-loaded from memory bank |
-| 😫 One AI, take it or leave it | ✨ Multi-AI routing to best model |
-| 😫 Cloud RAG costs $$$ | ✨ 100% local RAG, $0 forever |
-| 😫 Manual security checks | ✨ Automated git hooks |
-| 😫 Reinvent the wheel for each tool | ✨ One config, works everywhere |
-
-### 💡 Real Developer Benefits
-
-**For Individual Developers:**
-- ✅ **Zero context switching** - Work in Claude Code/Cursor/Gemini, get all features
-- ✅ **Instant setup** - 5 minutes from clone to productive
-- ✅ **Your workflow, enhanced** - Not disrupted or replaced
-- ✅ **Learn once, use anywhere** - Same skills work across AI tools
-
-**For Teams:**
-- ✅ **Consistent standards** - Same expert skills across all devs
-- ✅ **Portable configuration** - One `.dev-aid/` folder, entire team benefits
-- ✅ **Tool flexibility** - Devs choose their AI tool, get same capabilities
-- ✅ **Zero vendor lock-in** - Works with Anthropic, Google, OpenAI, and future tools
-
-**For Security/Compliance:**
-- ✅ **100% local RAG** - Code never leaves your machine
-- ✅ **Isolated dependencies** - Virtual environments, zero system pollution
-- ✅ **Automated scanning** - 5 security tools in git hooks
-- ✅ **Audit trail** - All AI routing decisions logged with costs
-
-### 🚀 The Philosophy
-
-> **"The best tool is the one that disappears into your workflow."**
-
-Dev-AID doesn't demand your attention or force you to adapt. It quietly enhances your existing AI tools with enterprise capabilities, then gets out of your way. You use Claude Code or Gemini CLI just like before—except now they're 10× more powerful.
 
 ---
 

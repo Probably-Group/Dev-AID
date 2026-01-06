@@ -2,7 +2,7 @@
 
 # 🚀 Dev-AID (Development AI Driver)
 
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/martinholovsky/Dev-AID/badge)](https://scorecard.dev/viewer/?uri=github.com/martinholovsky/Dev-AID)
+![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-Active-green?logo=opensourcesecurity)
 
 **Stop doing the work you hate. Let AI handle it.**
 

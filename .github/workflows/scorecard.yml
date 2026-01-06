@@ -1,8 +1,6 @@
 name: OpenSSF Scorecard
 
 on:
-  # Run on branch protection changes or weekly
-  branch_protection_rule:
   schedule:
     - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
   push:
@@ -17,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       security-events: write
-      id-token: write  # For publishing results
+      contents: read
 
     steps:
       - name: Checkout code
@@ -30,7 +28,8 @@ jobs:
         with:
           results_file: results.sarif
           results_format: sarif
-          publish_results: true  # Required for badge
+          # Private repo - don't publish to external scorecard.dev
+          publish_results: false
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

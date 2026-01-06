@@ -1,0 +1,26 @@
+# Dev-AID Code Owners
+# These owners will be requested for review on PRs that modify matching paths
+
+# Default owner for everything
+* @martinholovsky
+
+# Core orchestration (Router, Skills, RAG)
+/.dev-aid/orchestration/ @martinholovsky
+
+# Skills
+/.dev-aid/providers/ @martinholovsky
+/.dev-aid/skills/ @martinholovsky
+
+# Security tools and hooks
+/.dev-aid/security/ @martinholovsky
+/.dev-aid/automation/ @martinholovsky
+
+# CI/CD and GitHub workflows
+/.github/ @martinholovsky
+
+# Documentation
+/*.md @martinholovsky
+/.dev-aid/docs/ @martinholovsky
+
+# Configuration
+/.dev-aid/config/ @martinholovsky

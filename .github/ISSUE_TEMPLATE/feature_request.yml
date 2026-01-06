@@ -1,0 +1,71 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature]: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Help us understand what you need.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point or workflow gap
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How do you think this should work?
+      placeholder: "It would be great if Dev-AID could..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any workarounds you've tried or other approaches?
+      placeholder: "I've tried using... but it doesn't work because..."
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which area would this feature belong to?
+      options:
+        - Router (Multi-AI orchestration)
+        - RAG (Local semantic search)
+        - Skills (New skill or skill improvement)
+        - Security (Scanning, hooks)
+        - Automation (Issue/Conflict resolution)
+        - CI/CD Generator
+        - New Component
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: impact
+    attributes:
+      label: Expected impact
+      description: How much would this help your workflow?
+      options:
+        - "High - Saves significant time daily"
+        - "Medium - Nice improvement"
+        - "Low - Small quality of life"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I'm willing to help implement this feature
+          required: false

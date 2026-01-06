@@ -1,0 +1,78 @@
+name: Skill Request
+description: Request a new expert skill for Dev-AID
+title: "[Skill]: "
+labels: ["skill-request", "enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Request a new expert skill! Dev-AID has 72 skills and we're always adding more.
+
+  - type: input
+    id: skill-name
+    attributes:
+      label: Skill name
+      description: What should this skill be called?
+      placeholder: "kubernetes-expert, graphql-expert, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should this skill do?
+      description: Describe the expertise this skill should provide
+      placeholder: "This skill should help with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-cases
+    attributes:
+      label: Example use cases
+      description: When would you activate this skill?
+      placeholder: |
+        - When writing GraphQL resolvers
+        - When debugging query performance
+        - When designing API schemas
+    validations:
+      required: true
+
+  - type: textarea
+    id: technologies
+    attributes:
+      label: Technologies/frameworks covered
+      description: What specific tools or frameworks should this skill know about?
+      placeholder: "Apollo Server, GraphQL Yoga, type-graphql, Prisma, etc."
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Skill category
+      options:
+        - Backend/API
+        - Frontend/UI
+        - DevOps/Infrastructure
+        - Security
+        - Testing
+        - Database
+        - Mobile
+        - AI/ML
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: resources
+    attributes:
+      label: Reference resources
+      description: Any docs, guides, or best practices we should incorporate?
+      placeholder: "Official docs: https://..., Best practices guide: https://..."
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      options:
+        - label: I'm willing to help create this skill
+          required: false

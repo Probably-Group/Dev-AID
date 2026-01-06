@@ -2,7 +2,12 @@
 
 # 🚀 Dev-AID (Development AI Driver)
 
-![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-Active-green?logo=opensourcesecurity)
+[![CI](https://github.com/martinholovsky/Dev-AID/actions/workflows/pr-check.yml/badge.svg)](https://github.com/martinholovsky/Dev-AID/actions/workflows/pr-check.yml)
+[![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-Active-green?logo=opensourcesecurity)](https://github.com/martinholovsky/Dev-AID/security/code-scanning)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Version](https://img.shields.io/badge/version-1.3.0--beta.9-brightgreen.svg)](.dev-aid/VERSION)
 
 **Stop doing the work you hate. Let AI handle it.**
 

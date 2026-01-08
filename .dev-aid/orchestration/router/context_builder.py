@@ -280,6 +280,12 @@ class ContextBuilder:
                         if result:
                             mcp_context["code_search"] = result
 
+                    elif server_name == "deep-research":
+                        # Dev-AID Deep Research
+                        result = await self._query_deep_research(prompt)
+                        if result:
+                            mcp_context["external_research"] = result
+
                     elif "postgres" in server_name or "database" in server_name:
                         # Database schema
                         result = await self._query_database_schema(server_name)
@@ -296,10 +302,154 @@ class ContextBuilder:
                     print(f"Warning: Failed to gather context from {server_name}: {e}")
                     continue
 
+            # Check if external research is needed as fallback
+            if self._needs_external_research(prompt, mcp_context):
+                research_result = await self._trigger_research_fallback(prompt)
+                if research_result:
+                    mcp_context["external_research"] = research_result
+
         except Exception as e:
             print(f"Error gathering MCP context: {e}")
 
         return mcp_context
+
+    def _needs_external_research(self, prompt: str, context: Dict[str, Any]) -> bool:
+        """
+        Determine if external research is needed based on context.
+
+        Triggers research when:
+        1. Local code search returned empty or insufficient results
+        2. Query contains research-indicating keywords
+        3. Explicit external knowledge request
+
+        Args:
+            prompt: User's prompt
+            context: Currently gathered MCP context
+
+        Returns:
+            True if external research should be triggered
+        """
+        # Skip if research already gathered
+        if "external_research" in context:
+            return False
+
+        # Check if deep-research MCP is available
+        if not self.mcp_pool or "deep-research" not in self.mcp_pool.clients:
+            return False
+
+        prompt_lower = prompt.lower()
+
+        # Keywords that indicate need for external research
+        research_keywords = [
+            "latest",
+            "current version",
+            "best practice",
+            "best practices",
+            "compare",
+            "comparison",
+            "alternatives",
+            "documentation",
+            "how to",
+            "tutorial",
+            "library",
+            "framework",
+            "2024",
+            "2025",
+            "2026",
+            "new feature",
+            "recently",
+            "updated",
+        ]
+
+        # Check for research keywords
+        has_research_keywords = any(kw in prompt_lower for kw in research_keywords)
+
+        # Check if local search returned empty
+        code_search = context.get("code_search", {})
+        search_results = code_search.get("search_results", [])
+        local_search_empty = len(search_results) == 0
+
+        # Explicit research request
+        explicit_research = "research" in prompt_lower or "external" in prompt_lower
+
+        return (local_search_empty and has_research_keywords) or explicit_research
+
+    async def _trigger_research_fallback(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """
+        Trigger external research via deep-research MCP server.
+
+        Args:
+            prompt: User's prompt to research
+
+        Returns:
+            Research result dictionary or None if failed
+        """
+        try:
+            if not self.mcp_pool or "deep-research" not in self.mcp_pool.clients:
+                return None
+
+            result = await self.mcp_pool.call_tool(
+                "deep-research",
+                "research",
+                {
+                    "query": prompt,
+                    "depth": "auto",
+                    "use_cache": True,
+                    "prefer_speed": True,  # Prefer faster results for context gathering
+                },
+            )
+
+            if result:
+                return {
+                    "source": "deep-research",
+                    "content": result.get("content", ""),
+                    "citations": result.get("citations", []),
+                    "provider": result.get("provider", ""),
+                    "cached": result.get("cached", False),
+                    "routing_reasoning": result.get("routing_reasoning", ""),
+                }
+
+            return None
+
+        except Exception as e:
+            print(f"Warning: Research fallback failed: {e}")
+            return None
+
+    async def _query_deep_research(self, prompt: str) -> Optional[Dict[str, Any]]:
+        """
+        Query Deep Research MCP for external knowledge.
+
+        Args:
+            prompt: Research query
+
+        Returns:
+            Research result or None
+        """
+        try:
+            result = await self.mcp_pool.call_tool(
+                "deep-research",
+                "research",
+                {
+                    "query": prompt,
+                    "depth": "auto",
+                    "use_cache": True,
+                },
+            )
+
+            if result:
+                return {
+                    "source": "deep-research",
+                    "content": result.get("content", ""),
+                    "citations": result.get("citations", []),
+                    "provider": result.get("provider", ""),
+                    "cached": result.get("cached", False),
+                }
+
+            return None
+
+        except Exception as e:
+            print(f"Deep research query failed: {e}")
+            return None
 
     def _auto_select_mcps(self, prompt: str, task_type: Optional[str]) -> List[str]:
         """
@@ -345,6 +495,19 @@ class ContextBuilder:
                 if "filesystem" in server_name or "fs" in server_name:
                     selected.append(server_name)
                     break
+
+        # Research-related (explicit request)
+        research_keywords = [
+            "research",
+            "latest version",
+            "best practice",
+            "compare",
+            "alternatives",
+            "documentation",
+        ]
+        if task_type == "research" or any(kw in prompt_lower for kw in research_keywords):
+            if self.mcp_pool and "deep-research" in self.mcp_pool.clients:
+                selected.append("deep-research")
 
         return selected
 
@@ -487,6 +650,21 @@ class ContextBuilder:
                 sections.append("Related issues:")
                 for issue in gh.get("issues", [])[:3]:
                     sections.append(f"  - {issue}")
+
+            if "external_research" in context.mcp_context:
+                sections.append("\n### External Research")
+                research = context.mcp_context["external_research"]
+                sections.append(f"Provider: {research.get('provider', 'unknown')}")
+                if research.get("cached"):
+                    sections.append("(Cached result)")
+                sections.append("\nResearch findings:")
+                content = research.get("content", "")
+                # Limit content size for context
+                sections.append(content[:2000] if len(content) > 2000 else content)
+                if research.get("citations"):
+                    sections.append("\nSources:")
+                    for citation in research.get("citations", [])[:5]:
+                        sections.append(f"  - {citation}")
 
         return "\n".join(sections)
 

@@ -221,6 +221,13 @@ class MCPRegistry:
         if any(cloud in name_lower for cloud in ["aws", "gcp", "azure", "cloud"]):
             capabilities.append("cloud")
 
+        # Research (NEW)
+        if any(
+            research in name_lower
+            for research in ["research", "deep-research", "tavily", "perplexity"]
+        ):
+            capabilities.append("research")
+
         return capabilities
 
     def enable_server(self, name: str) -> bool:

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.10] - 2026-01-09
+
+### Fixed
+- **Smart Context Initialization**: Fixed handling of existing CLAUDE.md files that already use progressive disclosure
+  - Detects `.claude/rules/` directory with markdown files (Claude Code's native auto-load feature)
+  - Detects `@` file references in existing CLAUDE.md (e.g., `@docs/guidelines.md`, `@.claude/rules/security.md`)
+  - Skips redundant splitting when user has already organized content across multiple files
+  - Respects user's existing structure - `.claude/rules/` and `@` references remain untouched
+  - Prevents double-splitting that could break existing file reference chains
+  - New step in initialization: "Checking for existing progressive disclosure..."
+
+---
+
 ## [1.3.0-beta.9] - 2026-01-06
 
 ### Added

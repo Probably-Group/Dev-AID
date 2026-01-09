@@ -108,26 +108,80 @@ CLAUDE.md (Main File - ≤500 lines)
    - Team conventions
    - Historical context
 
-### 4. Content Merging Process
+### 4. Progressive Disclosure Detection (NEW in v1.3.0-beta.10)
+
+Before applying any changes, detect if user already uses progressive disclosure:
+
+#### Detection Checks
+1. **Rules Directory**: Check for `.<provider>/rules/` with `.md` files
+   - `.claude/rules/*.md` for Claude
+   - `.gemini/rules/*.md` for Gemini
+   - `.openai/rules/*.md` for OpenAI
+
+2. **@ File References**: Scan existing context file for `@path/to/file.md` patterns
+   - `@.claude/rules/security.md`
+   - `@./custom-instructions.md`
+   - `@~/shared/team-conventions.md`
+
+#### Behavior When Detected
+- **Skip redundant splitting**: Don't apply progressive disclosure if already in use
+- **Preserve structure**: Leave `.claude/rules/` and `@` references untouched
+- **Enhance only**: Add Dev-AID template content to main file without restructuring
+
+### 5. Quality Assessment (NEW in v1.3.0-beta.10)
+
+Assess content quality to determine merge strategy:
+
+#### Quality Thresholds
+- **Minimum Lines**: 20 lines (below = `poor`)
+- **Minimum Sections**: 3 sections (below = `draft`)
+- **Minimum Section Lines**: 3 lines per section (below = `incomplete`)
+
+#### Placeholder Detection
+Patterns that indicate incomplete content:
+- `TODO`, `FIXME`, `XXX`, `TBD`
+- `ADD.*HERE`, `INSERT.*HERE`, `DESCRIBE.*HERE`
+- `PLACEHOLDER`, `YOUR.*HERE`, `LOREM.*IPSUM`
+- `FILL IN`, `REPLACE THIS`, `UPDATE THIS`
+
+#### Recommended Sections
+Check for presence of:
+- Role/Responsibilities/Purpose
+- Tech Stack/Technologies/Framework
+- Guidelines/Rules/Conventions/Standards
+- Workflow/Process/Development
+- Testing/Quality/Lint
+
+#### Quality Levels
+- **`good`**: Meets all thresholds, no placeholders, has recommended sections
+- **`incomplete`**: Missing some recommended sections or minimal section content
+- **`draft`**: Below minimum sections or significant placeholders
+- **`poor`**: Below minimum lines or mostly placeholders
+
+### 6. Content Merging Process (8-Step Flow)
 
 ```
 ┌─────────────────────────────────────┐
-│ 1. Detect existing CLAUDE.md        │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ 2. Backup to CLAUDE_original-backup │
+│ 1. Backup existing context file     │
 │    .dev-aid/backups/CLAUDE_original │
 │    -backup_20260102_143022.md       │
 └──────────────┬──────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────┐
-│ 3. Parse existing content           │
-│    - Extract sections               │
-│    - Identify custom vs standard    │
-│    - Count lines                    │
+│ 2. Detect progressive disclosure    │
+│    - Check .<provider>/rules/       │
+│    - Scan for @ file references     │
+│    - Record existing structure      │
+└──────────────┬──────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────┐
+│ 3. Assess content quality           │
+│    - Count lines and sections       │
+│    - Detect placeholders            │
+│    - Check recommended sections     │
+│    - Determine quality level        │
 └──────────────┬──────────────────────┘
                │
                ▼
@@ -141,55 +195,49 @@ CLAUDE.md (Main File - ≤500 lines)
                │
                ▼
 ┌─────────────────────────────────────┐
-│ 5. Generate Dev-AID template        │
-│    - Auto-detect project info       │
-│    - Create structured sections     │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│ 6. Merge content intelligently      │
+│ 5. Merge with Dev-AID template      │
 │    - Combine validated sections     │
+│    - Enhance low-quality content    │
 │    - Remove duplicates              │
-│    - Resolve conflicts (ask user)   │
 └──────────────┬──────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────┐
-│ 7. Check line count                 │
-│    Total lines > 500?               │
+│ 6. Apply progressive disclosure     │
+│    (or skip if already in use)      │
 └──────────────┬──────────────────────┘
                │
        ┌───────┴───────┐
        │               │
-      Yes              No
+   Already          New to PD
+   using PD            │
        │               │
        ▼               ▼
 ┌─────────────┐  ┌──────────────┐
-│ 8a. Apply   │  │ 8b. Use      │
-│ progressive │  │ single file  │
-│ disclosure  │  │              │
+│ Skip split  │  │ >500 lines?  │
+│ Keep user's │  │ Apply split  │
+│ structure   │  │ if needed    │
 └──────┬──────┘  └──────┬───────┘
        │                │
        └────────┬───────┘
                 ▼
 ┌─────────────────────────────────────┐
-│ 9. Generate validation report       │
-│    - Issues found                   │
-│    - Suggestions                    │
-│    - Actions taken                  │
+│ 7. Create symlink                   │
+│    CLAUDE.md → .dev-aid/providers/  │
+│    claude/CLAUDE.md                 │
 └──────────────┬──────────────────────┘
                │
                ▼
 ┌─────────────────────────────────────┐
-│ 10. Present to user                 │
-│     - Show report                   │
-│     - Offer to review/edit          │
-│     - Apply changes on approval     │
+│ 8. Generate migration report        │
+│    - Issues found & resolutions     │
+│    - Quality assessment results     │
+│    - Progressive disclosure status  │
+│    - Actions taken                  │
 └─────────────────────────────────────┘
 ```
 
-### 5. Validation Report Format
+### 7. Validation Report Format
 
 ```markdown
 # 📋 CLAUDE.md Migration Report

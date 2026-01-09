@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.3.0-beta.10] - 2026-01-09
 
 ### Added
+- **Deep Research / External Brain MCP** (Issue #94): Multi-provider research system for Dev-AID
+  - 3 Research Providers: Gemini Deep Research, Perplexity Sonar, Tavily
+  - Smart Query Routing: Auto-classifies queries (factual/exploratory/technical) and selects optimal provider
+  - Semantic Caching: SQLite-based cache with 70% similarity threshold, 24-48h TTL
+  - MCP Server: Full Model Context Protocol implementation with 6 research tools
+  - CLI Tool: `dev-aid-research search|quick|deep "query"` for direct access
+  - Router Integration: Auto-fallback to external research when local context insufficient
+  - Expert Skill: `deep-research-expert` auto-activates on research keywords
+  - Module location: `.dev-aid/deep-research/`
+
 - **Quality Detection for Context Files**: New comprehensive quality assessment during initialization
   - Detects low-quality content (< 20 lines, < 3 sections)
   - Identifies placeholder text (TODO, FIXME, TBD, etc.)

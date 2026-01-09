@@ -168,6 +168,7 @@ Real-World Examples:
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
+| **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware<br>• Frequency profiles (up to 98% cost reduction) | ⭐⭐⭐⭐ |
@@ -630,6 +631,17 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
   - **8-Step Smart Migration**: Backup → PD Detection → Quality → Validate → Merge → Split/Skip → Symlink → Report
   - **ROI**: Prevents context duplication, preserves team customizations, ensures consistent AI guidance
   - Scripts: `.dev-aid/scripts/lib/claude-md-init.sh`, `provider-context-init.sh`
+
+- **🔬 Deep Research / External Brain MCP** ⭐⭐⭐⭐⭐ (NEW!)
+  - **Multi-Provider Research**: Gemini Deep Research, Perplexity Sonar, and Tavily integration
+  - **Smart Query Routing**: Auto-classifies queries (factual/exploratory/technical) and selects optimal provider
+  - **Semantic Caching**: SQLite-based cache with 70% similarity threshold, 24-48h TTL
+  - **MCP Server**: Full Model Context Protocol implementation with 6 research tools
+  - **CLI Tool**: `dev-aid-research search|quick|deep "query"` for direct access
+  - **Router Integration**: Auto-fallback to external research when local context insufficient
+  - **ROI**: Access to real-time information, reduces hallucinations, improves research accuracy
+  - Module: `.dev-aid/deep-research/`
+  - Skill: `deep-research-expert` (auto-activates on research keywords)
 
 ---
 

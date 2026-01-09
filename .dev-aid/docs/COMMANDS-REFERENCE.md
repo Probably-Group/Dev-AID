@@ -170,6 +170,50 @@ Core skills provide **automated tool execution** on file save:
 
 **Value:** Catches issues early, $1,050,000/year for 100 devs (prevented rework)
 
+### `dev-aid-research` (CLI Tool)
+**Category:** Research & Knowledge
+**Purpose:** Multi-provider deep research with smart routing and caching
+**When to use:** External research, fact-checking, exploring new technologies
+**Output:** Research results with sources and citations
+
+**Providers:**
+- **Tavily**: Fast factual queries (free tier: 1000 credits/month)
+- **Perplexity Sonar**: Balanced depth and speed
+- **Gemini Deep Research**: Complex exploratory research
+
+**Commands:**
+```bash
+# Auto-route to best provider
+dev-aid-research search "Compare React vs Vue 2026"
+
+# Quick factual lookup (Tavily)
+dev-aid-research quick "Latest Node.js LTS version"
+
+# Deep exploratory research (Gemini)
+dev-aid-research deep "Kubernetes security best practices"
+
+# Force specific provider
+dev-aid-research search "topic" --provider perplexity-sonar
+
+# Skip cache for fresh results
+dev-aid-research search "topic" --no-cache
+```
+
+**Features:**
+- Smart query classification (factual/exploratory/technical)
+- Semantic caching with 70% similarity threshold (24-48h TTL)
+- MCP server integration for Claude Code/Gemini CLI
+- Auto-fallback when local context insufficient
+
+**Environment Variables:**
+```bash
+TAVILY_API_KEY=...       # Free tier available
+PERPLEXITY_API_KEY=...   # Token-based pricing
+GOOGLE_API_KEY=...       # For Gemini Deep Research
+```
+
+**Value:** Access to real-time information, reduces AI hallucinations, improves research accuracy
+
 ---
 
 ## 🎯 Quality & Security Analysis Commands (Included!)

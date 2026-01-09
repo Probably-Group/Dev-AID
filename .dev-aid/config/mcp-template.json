@@ -18,6 +18,38 @@
         "local_only": true,
         "zero_cost": true
       }
+    },
+    "deep-research": {
+      "description": "Multi-provider deep research using Gemini, Tavily, and Perplexity",
+      "command": "python",
+      "args": [
+        "-m",
+        "deep_research.mcp_server.server"
+      ],
+      "env": {
+        "PYTHONPATH": "${DEV_AID_ROOT}/.dev-aid/deep-research"
+      },
+      "enabled": true,
+      "features": {
+        "web_research": true,
+        "multi_provider": true,
+        "auto_routing": true,
+        "caching": true
+      },
+      "providers": {
+        "tavily": {
+          "api_key_env": "TAVILY_API_KEY",
+          "capabilities": ["quick", "standard"]
+        },
+        "perplexity": {
+          "api_key_env": "PERPLEXITY_API_KEY",
+          "capabilities": ["standard", "deep"]
+        },
+        "gemini": {
+          "api_key_env": "GOOGLE_API_KEY",
+          "capabilities": ["deep"]
+        }
+      }
     }
   },
   "settings": {

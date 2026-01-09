@@ -2542,5 +2542,40 @@
       "requires": ["appsec-expert"],
       "exclude_with": []
     }
+  },
+  "deep-research-expert": {
+    "activation": {
+      "primary_keywords": [
+        "deep research",
+        "external research",
+        "research topic",
+        "find information",
+        "lookup documentation",
+        "latest version",
+        "compare technologies"
+      ],
+      "secondary_keywords": [
+        "best practices",
+        "alternatives",
+        "technology comparison",
+        "current documentation",
+        "breaking changes",
+        "migration guide"
+      ],
+      "file_patterns": [],
+      "technologies": [
+        "Gemini Deep Research",
+        "Tavily",
+        "Perplexity Sonar"
+      ],
+      "confidence_weights": {
+        "deep research": 0.4,
+        "external research": 0.35,
+        "latest version": 0.25,
+        "compare": 0.3
+      },
+      "requires": [],
+      "exclude_with": []
+    }
   }
 }

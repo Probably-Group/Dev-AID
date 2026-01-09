@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.3.0--beta.9-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.3.0--beta.10-brightgreen.svg)](.dev-aid/VERSION)
 
 **Stop doing the work you hate. Let AI handle it.**
 
@@ -167,6 +167,7 @@ Real-World Examples:
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
+| **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware<br>• Frequency profiles (up to 98% cost reduction) | ⭐⭐⭐⭐ |
@@ -618,6 +619,17 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
   - **ROI**: $83,300/year for 100 devs (prevents failed builds, faster iteration)
   - Scripts: `run-local-ci-checks.sh`, `setup-better-git-hooks.sh`
   - Documentation: [Local CI Validation Guide](.dev-aid/docs/LOCAL-CI-VALIDATION.md)
+
+- **🧠 Smart Context Initialization** ⭐⭐⭐⭐⭐ (NEW!)
+  - **Progressive Disclosure Detection**: Automatically detects existing `.claude/rules/` directories and `@` file references
+  - **Preserves Your Structure**: If you already use progressive disclosure, Dev-AID enhances without overwriting
+  - **Quality Assessment**: Analyzes existing CLAUDE.md for completeness, placeholders, and structure
+  - **Quality Levels**: Classifies files as `good`, `incomplete`, `draft`, or `poor` with actionable feedback
+  - **Enhanced Templates**: Provider templates now include Code Quality Standards, Security (OWASP Top 10), and Testing Requirements
+  - **Multi-Provider Support**: Works with Claude, Gemini, and OpenAI context files
+  - **8-Step Smart Migration**: Backup → PD Detection → Quality → Validate → Merge → Split/Skip → Symlink → Report
+  - **ROI**: Prevents context duplication, preserves team customizations, ensures consistent AI guidance
+  - Scripts: `.dev-aid/scripts/lib/claude-md-init.sh`, `provider-context-init.sh`
 
 ---
 

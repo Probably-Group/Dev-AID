@@ -9,14 +9,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.3.0-beta.10] - 2026-01-09
 
+### Added
+- **Quality Detection for Context Files**: New comprehensive quality assessment during initialization
+  - Detects low-quality content (< 20 lines, < 3 sections)
+  - Identifies placeholder text (TODO, FIXME, TBD, etc.)
+  - Checks for recommended sections (Role/Purpose, Tech Stack, Guidelines, Workflow, Testing)
+  - Detects empty or minimal sections (< 3 lines of content)
+  - Quality levels: `good`, `incomplete`, `draft`, `poor`
+  - Clear feedback on what will be enhanced during merge
+
+- **Enhanced Provider Templates**: All provider templates now include robust guidance
+  - Code Quality Standards (Style, Error Handling, Security)
+  - Testing Requirements (unit, integration, e2e)
+  - OWASP Top 10 security awareness
+  - Consistent structure across Claude, Gemini, and OpenAI templates
+  - Provider-specific strengths highlighted (e.g., Gemini's large context window)
+
 ### Fixed
-- **Smart Context Initialization**: Fixed handling of existing CLAUDE.md files that already use progressive disclosure
-  - Detects `.claude/rules/` directory with markdown files (Claude Code's native auto-load feature)
-  - Detects `@` file references in existing CLAUDE.md (e.g., `@docs/guidelines.md`, `@.claude/rules/security.md`)
+- **Smart Context Initialization**: Fixed handling of existing context files that already use progressive disclosure
+  - Detects `.<provider>/rules/` directory with markdown files (e.g., `.claude/rules/`, `.gemini/rules/`)
+  - Detects `@` file references in existing context files
   - Skips redundant splitting when user has already organized content across multiple files
-  - Respects user's existing structure - `.claude/rules/` and `@` references remain untouched
+  - Respects user's existing structure - rules directories and `@` references remain untouched
   - Prevents double-splitting that could break existing file reference chains
-  - New step in initialization: "Checking for existing progressive disclosure..."
+
+### Changed
+- **Multi-Provider Support**: All initialization features now work for Claude, Gemini, and OpenAI
+  - Progressive disclosure detection is provider-agnostic
+  - Quality detection works for CLAUDE.md, GEMINI.md, and OPENAI.md
+  - Provider selection happens in Step 3 of install wizard (`ask_providers()`)
+  - Templates automatically adapt to detected tech stack
+
+- **Initialization Flow**: Updated to 8 steps (was 6)
+  1. Backup existing context file
+  2. Detect existing progressive disclosure
+  3. Assess content quality
+  4. Validate content for issues
+  5. Merge with Dev-AID template
+  6. Apply progressive disclosure (or skip if already in use)
+  7. Create symlink
+  8. Generate migration report
 
 ---
 

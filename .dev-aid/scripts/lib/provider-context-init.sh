@@ -17,6 +17,88 @@ source "$SCRIPT_DIR/migration-report.sh"
 # Configuration
 PROGRESSIVE_DISCLOSURE_THRESHOLD=500
 
+# Source claude-md-init.sh for progressive disclosure detection functions
+# (they work for any provider's rules directory pattern)
+source "$SCRIPT_DIR/claude-md-init.sh" 2>/dev/null || true
+
+# Detect existing progressive disclosure patterns (provider-agnostic)
+# Checks for .<provider>/rules/ directory and @ file references
+# Args: $1: project_root, $2: context_file_path, $3: provider
+detect_provider_progressive_disclosure() {
+    local project_root="$1"
+    local context_file="$2"
+    local provider="$3"
+
+    local has_rules_dir="false"
+    local rules_file_count=0
+    local rules_total_lines=0
+    local has_at_references="false"
+    local at_reference_count=0
+
+    # Check for .<provider>/rules/ directory (e.g., .claude/rules/, .gemini/rules/)
+    local rules_dir="$project_root/.$provider/rules"
+    if [ -d "$rules_dir" ]; then
+        rules_file_count=$(find "$rules_dir" -maxdepth 1 -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        if [ "$rules_file_count" -gt 0 ]; then
+            has_rules_dir="true"
+            rules_total_lines=$(find "$rules_dir" -maxdepth 1 -name "*.md" -type f -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}' || echo "0")
+        fi
+    fi
+
+    # Check for @ file references in context file
+    if [ -f "$context_file" ]; then
+        local at_references=$(grep -oE '@[A-Za-z0-9_.~/-]+\.md|@\.[a-z]+/[A-Za-z0-9_/-]+' "$context_file" 2>/dev/null || true)
+        at_reference_count=$(echo "$at_references" | grep -c '^@' || echo "0")
+        if [ "$at_reference_count" -gt 0 ]; then
+            has_at_references="true"
+        fi
+    fi
+
+    local already_using_pd="false"
+    if [ "$has_rules_dir" = "true" ] || [ "$has_at_references" = "true" ]; then
+        already_using_pd="true"
+    fi
+
+    cat <<EOF
+{
+  "already_using_progressive_disclosure": $already_using_pd,
+  "has_rules_dir": $has_rules_dir,
+  "rules_dir": "$rules_dir",
+  "rules_file_count": $rules_file_count,
+  "rules_total_lines": $rules_total_lines,
+  "has_at_references": $has_at_references,
+  "at_reference_count": $at_reference_count
+}
+EOF
+}
+
+# Display provider progressive disclosure detection results
+# Args: $1: detection_json, $2: provider
+display_provider_pd_detection() {
+    local detection_json="$1"
+    local provider="$2"
+
+    local already_using=$(echo "$detection_json" | grep -o '"already_using_progressive_disclosure": *[a-z]*' | grep -o 'true\|false')
+    local has_rules=$(echo "$detection_json" | grep -o '"has_rules_dir": *[a-z]*' | grep -o 'true\|false')
+    local rules_count=$(echo "$detection_json" | grep -o '"rules_file_count": *[0-9]*' | grep -o '[0-9]*')
+    local rules_lines=$(echo "$detection_json" | grep -o '"rules_total_lines": *[0-9]*' | grep -o '[0-9]*')
+    local has_refs=$(echo "$detection_json" | grep -o '"has_at_references": *[a-z]*' | grep -o 'true\|false')
+    local refs_count=$(echo "$detection_json" | grep -o '"at_reference_count": *[0-9]*' | grep -o '[0-9]*')
+
+    if [ "$already_using" = "true" ]; then
+        echo "   ✓ Existing progressive disclosure detected:"
+        if [ "$has_rules" = "true" ]; then
+            echo "     • .$provider/rules/: $rules_count files ($rules_lines lines total)"
+        fi
+        if [ "$has_refs" = "true" ]; then
+            echo "     • @ file references: $refs_count found"
+        fi
+        echo "     → Skipping redundant splitting (your structure is preserved)"
+    else
+        echo "   • No existing progressive disclosure detected"
+    fi
+}
+
 # Get context file name for provider
 # Args: $1: provider (claude, gemini, openai)
 get_context_filename() {
@@ -73,40 +155,79 @@ handle_existing_context_file() {
     echo "   ✓ Backed up to: $(basename "$backup_file")"
     echo ""
 
-    # Step 2: Validate
-    echo "2️⃣  Validating content..."
+    # Step 2: Detect existing progressive disclosure
+    echo "2️⃣  Checking for existing progressive disclosure..."
+    local pd_detection=$(detect_provider_progressive_disclosure "$project_root" "$context_file" "$provider")
+    local already_using_pd=$(echo "$pd_detection" | grep -o '"already_using_progressive_disclosure": *[a-z]*' | grep -o 'true\|false')
+    display_provider_pd_detection "$pd_detection" "$provider"
+    echo ""
+
+    # Step 3: Assess quality
+    echo "3️⃣  Assessing content quality..."
+    local quality_json=$(get_quality_assessment "$context_file")
+    display_quality_assessment "$quality_json"
+    echo ""
+
+    # Step 4: Validate content
+    echo "4️⃣  Validating content..."
     local issue_count=$(run_all_validations "$context_file" "$project_root")
     local validation_json=$(get_validation_issues_json)
     echo "   $(get_validation_summary | head -1)"
     echo ""
 
-    # Step 3: Merge
-    echo "3️⃣  Merging with Dev-AID template..."
+    # Step 5: Merge
+    echo "5️⃣  Merging with Dev-AID template..."
     local merged_content=$(create_merged_context "$context_file" "$project_root" "$provider" "$validation_json")
     local merged_lines=$(echo "$merged_content" | grep -c '^' || echo "0")
     echo "   ✓ Merged content: $merged_lines lines"
     echo ""
 
-    # Step 4: Check if progressive disclosure needed
-    local needs_split=$(needs_splitting "$merged_content")
+    # Step 6: Check if progressive disclosure needed (skip if already using)
+    local needs_split="false"
+    local split_stats=""
 
-    if [ "$needs_split" = "true" ]; then
-        echo "4️⃣  Applying progressive disclosure (content exceeds $PROGRESSIVE_DISCLOSURE_THRESHOLD lines)..."
-
-        local custom_content=$(extract_custom_content "$context_file")
-        local provider_dir="$project_root/.dev-aid/providers/$provider"
-
-        local split_stats=$(apply_progressive_disclosure "$merged_content" "$custom_content" "$provider_dir")
-        echo ""
-    else
-        echo "4️⃣  Creating single $context_filename file..."
+    if [ "$already_using_pd" = "true" ]; then
+        # User already has progressive disclosure - don't apply redundant splitting
+        echo "6️⃣  Preserving existing structure (progressive disclosure already in use)..."
         local provider_dir="$project_root/.dev-aid/providers/$provider"
         mkdir -p "$provider_dir"
         echo "$merged_content" > "$provider_dir/$context_filename"
         echo "   ✓ Created: $provider_dir/$context_filename ($merged_lines lines)"
+        echo "   ✓ Your .$provider/rules/ and @ references remain untouched"
         echo ""
 
         split_stats=$(cat <<EOF
+{
+  "main_lines": $merged_lines,
+  "extended_lines": 0,
+  "has_extended": false,
+  "has_custom": false,
+  "split": false,
+  "skipped_reason": "existing_progressive_disclosure"
+}
+EOF
+)
+    else
+        # Check if content needs splitting
+        needs_split=$(needs_splitting "$merged_content")
+
+        if [ "$needs_split" = "true" ]; then
+            echo "6️⃣  Applying progressive disclosure (content exceeds $PROGRESSIVE_DISCLOSURE_THRESHOLD lines)..."
+
+            local custom_content=$(extract_custom_content "$context_file")
+            local provider_dir="$project_root/.dev-aid/providers/$provider"
+
+            split_stats=$(apply_progressive_disclosure "$merged_content" "$custom_content" "$provider_dir")
+            echo ""
+        else
+            echo "6️⃣  Creating single $context_filename file..."
+            local provider_dir="$project_root/.dev-aid/providers/$provider"
+            mkdir -p "$provider_dir"
+            echo "$merged_content" > "$provider_dir/$context_filename"
+            echo "   ✓ Created: $provider_dir/$context_filename ($merged_lines lines)"
+            echo ""
+
+            split_stats=$(cat <<EOF
 {
   "main_lines": $merged_lines,
   "extended_lines": 0,
@@ -116,15 +237,16 @@ handle_existing_context_file() {
 }
 EOF
 )
+        fi
     fi
 
-    # Step 5: Create symlink
-    echo "5️⃣  Creating symlink..."
+    # Step 7: Create symlink
+    echo "7️⃣  Creating symlink..."
     create_symlink "$project_root" "$provider"
     echo ""
 
-    # Step 6: Generate and display report
-    echo "6️⃣  Generating migration report..."
+    # Step 8: Generate and display report
+    echo "8️⃣  Generating migration report..."
     echo ""
 
     local original_lines=$(wc -l < "$context_file" | tr -d ' ')
@@ -217,10 +339,12 @@ init_context_file_interactive() {
         echo ""
         echo "Dev-AID will:"
         echo "  1. Backup your existing $context_filename"
-        echo "  2. Validate content for outdated/conflicting statements"
-        echo "  3. Merge with Dev-AID template"
-        echo "  4. Apply progressive disclosure if needed (>500 lines)"
-        echo "  5. Show you a detailed migration report"
+        echo "  2. Detect existing progressive disclosure (.$provider/rules/, @ references)"
+        echo "  3. Assess content quality (completeness, placeholders, structure)"
+        echo "  4. Validate content for outdated/conflicting statements"
+        echo "  5. Merge with Dev-AID template (enhancing low-quality content)"
+        echo "  6. Apply progressive disclosure if needed (>500 lines) - skipped if already in use"
+        echo "  7. Show you a detailed migration report"
         echo ""
 
         read -p "Proceed with smart migration? [Y/n]: " confirm

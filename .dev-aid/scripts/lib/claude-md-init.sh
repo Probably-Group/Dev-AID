@@ -150,27 +150,33 @@ handle_existing_claude_md() {
     display_pd_detection "$pd_detection"
     echo ""
 
-    # Step 3: Validate
-    echo "3️⃣  Validating content..."
+    # Step 3: Assess quality
+    echo "3️⃣  Assessing content quality..."
+    local quality_json=$(get_quality_assessment "$claude_md")
+    display_quality_assessment "$quality_json"
+    echo ""
+
+    # Step 4: Validate content
+    echo "4️⃣  Validating content..."
     local issue_count=$(run_all_validations "$claude_md" "$project_root")
     local validation_json=$(get_validation_issues_json)
     echo "   $(get_validation_summary | head -1)"
     echo ""
 
-    # Step 4: Merge
-    echo "4️⃣  Merging with Dev-AID template..."
+    # Step 5: Merge
+    echo "5️⃣  Merging with Dev-AID template..."
     local merged_content=$(create_merged_claude_md "$claude_md" "$project_root" "$validation_json")
     local merged_lines=$(echo "$merged_content" | grep -c '^' || echo "0")
     echo "   ✓ Merged content: $merged_lines lines"
     echo ""
 
-    # Step 5: Check if progressive disclosure needed (skip if already using)
+    # Step 6: Check if progressive disclosure needed (skip if already using)
     local needs_split="false"
     local split_stats=""
 
     if [ "$already_using_pd" = "true" ]; then
         # User already has progressive disclosure - don't apply redundant splitting
-        echo "5️⃣  Preserving existing structure (progressive disclosure already in use)..."
+        echo "6️⃣  Preserving existing structure (progressive disclosure already in use)..."
         local provider_dir="$project_root/.dev-aid/providers/$provider"
         mkdir -p "$provider_dir"
         echo "$merged_content" > "$provider_dir/CLAUDE.md"
@@ -194,7 +200,7 @@ EOF
         needs_split=$(needs_splitting "$merged_content")
 
         if [ "$needs_split" = "true" ]; then
-            echo "5️⃣  Applying progressive disclosure (content exceeds $PROGRESSIVE_DISCLOSURE_THRESHOLD lines)..."
+            echo "6️⃣  Applying progressive disclosure (content exceeds $PROGRESSIVE_DISCLOSURE_THRESHOLD lines)..."
 
             local custom_content=$(extract_custom_content "$claude_md")
             local provider_dir="$project_root/.dev-aid/providers/$provider"
@@ -202,7 +208,7 @@ EOF
             split_stats=$(apply_progressive_disclosure "$merged_content" "$custom_content" "$provider_dir")
             echo ""
         else
-            echo "5️⃣  Creating single CLAUDE.md file..."
+            echo "6️⃣  Creating single CLAUDE.md file..."
             local provider_dir="$project_root/.dev-aid/providers/$provider"
             mkdir -p "$provider_dir"
             echo "$merged_content" > "$provider_dir/CLAUDE.md"
@@ -222,13 +228,13 @@ EOF
         fi
     fi
 
-    # Step 6: Create symlink
-    echo "6️⃣  Creating symlink..."
+    # Step 7: Create symlink
+    echo "7️⃣  Creating symlink..."
     create_symlink "$project_root" "$provider"
     echo ""
 
-    # Step 7: Generate and display report
-    echo "7️⃣  Generating migration report..."
+    # Step 8: Generate and display report
+    echo "8️⃣  Generating migration report..."
     echo ""
 
     local original_lines=$(wc -l < "$claude_md" | tr -d ' ')
@@ -319,10 +325,11 @@ init_claude_md_interactive() {
         echo "Dev-AID will:"
         echo "  1. Backup your existing CLAUDE.md"
         echo "  2. Detect existing progressive disclosure (.claude/rules/, @ references)"
-        echo "  3. Validate content for outdated/conflicting statements"
-        echo "  4. Merge with Dev-AID template"
-        echo "  5. Apply progressive disclosure if needed (>500 lines) - skipped if already in use"
-        echo "  6. Show you a detailed migration report"
+        echo "  3. Assess content quality (completeness, placeholders, structure)"
+        echo "  4. Validate content for outdated/conflicting statements"
+        echo "  5. Merge with Dev-AID template (enhancing low-quality content)"
+        echo "  6. Apply progressive disclosure if needed (>500 lines) - skipped if already in use"
+        echo "  7. Show you a detailed migration report"
         echo ""
 
         read -p "Proceed with smart migration? [Y/n]: " confirm

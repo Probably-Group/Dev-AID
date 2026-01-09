@@ -161,7 +161,7 @@ Real-World Examples:
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 72 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
-| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team knowledge repository<br>• Consistent patterns | ⭐⭐⭐⭐⭐ |
+| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
 | **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
@@ -250,6 +250,7 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - Architecture decisions (ADRs)
 - Code patterns & anti-patterns
 - Security guidelines
+- **Team-shared via git** — no cloud sync needed, new devs get full context on clone
 
 ### 🔒 **Automated Security**
 - **Pre-commit hooks**: Secrets scan, SAST, Critical CVEs (~10s)

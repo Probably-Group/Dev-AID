@@ -63,6 +63,19 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI) with:
 
 **No new CLI to learn.** Works inside the tools you already use.
 
+### 🔓 Provider-Agnostic & Future-Proof
+
+Dev-AID is **not a wrapper or harness** — it's a configuration layer that works with official tools:
+
+| What Dev-AID Does | What Dev-AID Doesn't Do |
+|-------------------|------------------------|
+| ✅ Provides `CLAUDE.md`, `.claude/skills/` config | ❌ Spoof or impersonate any AI tool |
+| ✅ Works inside your existing Claude Code/Gemini/Cursor | ❌ Make API calls on your behalf |
+| ✅ Enhances with skills, memory, patterns | ❌ Bypass subscription limits |
+| ✅ Supports multiple providers (switch anytime) | ❌ Lock you into any single vendor |
+
+> **Re: Anthropic's Jan 2026 third-party restrictions** — Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.claude/` directory) that are the official, documented way to customize Claude Code. Dev-AID enhances your tools; it doesn't replace or compete with them.
+
 ---
 
 ## 📋 Table of Contents

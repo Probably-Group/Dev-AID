@@ -1,0 +1,203 @@
+{
+  "version": "1.0.0",
+  "description": "Process skills configuration - behavioral protocols for disciplined workflows",
+  "lastUpdated": "2026-02-02T00:00:00Z",
+
+  "enforcement": {
+    "verification-gate": {
+      "level": "strict",
+      "autoTrigger": true,
+      "description": "No completion claims without evidence",
+      "tokenBudget": 300
+    },
+    "tdd-protocol": {
+      "level": "warning",
+      "autoTrigger": false,
+      "description": "Enforce RED-GREEN-REFACTOR cycle",
+      "tokenBudget": 400
+    },
+    "systematic-debugging": {
+      "level": "warning",
+      "autoTrigger": true,
+      "description": "Root cause first, fix second",
+      "tokenBudget": 450
+    },
+    "isolated-development": {
+      "level": "off",
+      "autoTrigger": false,
+      "description": "Git worktree per feature/issue",
+      "tokenBudget": 300
+    },
+    "design-first": {
+      "level": "warning",
+      "autoTrigger": false,
+      "description": "Think before coding",
+      "tokenBudget": 350
+    },
+    "staged-review": {
+      "level": "warning",
+      "autoTrigger": true,
+      "description": "Two-stage review (spec → quality)",
+      "tokenBudget": 400
+    },
+    "plan-execution": {
+      "level": "warning",
+      "autoTrigger": false,
+      "description": "Batch execution with checkpoints",
+      "tokenBudget": 350
+    }
+  },
+
+  "integration": {
+    "useRouterChallenger": true,
+    "useLocalSearch": true,
+    "useSecurityTools": true,
+    "useMemoryBank": true,
+    "useTaskList": true
+  },
+
+  "triggers": {
+    "verification-gate": {
+      "events": ["completion_claim"],
+      "keywords": ["done", "fixed", "implemented", "finished", "complete", "working now"],
+      "forbiddenPhrases": [
+        "should pass",
+        "should work",
+        "probably works",
+        "likely fixed",
+        "Done!",
+        "Finished!",
+        "Complete!",
+        "I believe this fixes",
+        "This should resolve"
+      ]
+    },
+    "tdd-protocol": {
+      "events": ["new_feature", "bug_fix", "implementation_request"],
+      "keywords": ["implement", "add feature", "fix bug", "new function", "create"]
+    },
+    "systematic-debugging": {
+      "events": ["error_message", "stack_trace"],
+      "keywords": ["bug", "broken", "not working", "fails", "error", "crash", "exception"]
+    },
+    "isolated-development": {
+      "events": ["new_feature", "issue_resolution"],
+      "keywords": ["start work on", "work on issue", "begin feature", "new branch"]
+    },
+    "design-first": {
+      "events": ["new_feature", "architecture_change"],
+      "keywords": ["implement", "add feature", "design", "architect", "plan"]
+    },
+    "staged-review": {
+      "events": ["pr_review", "code_complete"],
+      "keywords": ["review", "check code", "code review", "pr ready", "merge request"]
+    },
+    "plan-execution": {
+      "events": ["plan_file"],
+      "keywords": ["execute plan", "implement plan", "run plan", "follow plan"]
+    }
+  },
+
+  "languageDetection": {
+    "priority": [
+      { "file": "package.json", "type": "nodejs" },
+      { "file": "Cargo.toml", "type": "rust" },
+      { "file": "go.mod", "type": "go" },
+      { "file": "pyproject.toml", "type": "python" },
+      { "file": "setup.py", "type": "python" },
+      { "file": "requirements.txt", "type": "python" }
+    ],
+    "commands": {
+      "nodejs": {
+        "test": "npm test",
+        "build": "npm run build",
+        "lint": "npm run lint",
+        "typeCheck": "npx tsc --noEmit"
+      },
+      "python": {
+        "test": "pytest -v",
+        "build": "python -m py_compile",
+        "lint": "flake8 . && mypy .",
+        "typeCheck": "mypy ."
+      },
+      "rust": {
+        "test": "cargo test",
+        "build": "cargo build",
+        "lint": "cargo clippy",
+        "typeCheck": "cargo check"
+      },
+      "go": {
+        "test": "go test ./...",
+        "build": "go build ./...",
+        "lint": "golangci-lint run",
+        "typeCheck": "go vet ./..."
+      }
+    }
+  },
+
+  "metrics": {
+    "enabled": true,
+    "track": [
+      "false_completion_attempts_blocked",
+      "verification_success_rate",
+      "tests_before_code_percentage",
+      "fix_attempts_per_bug",
+      "worktree_usage_rate",
+      "design_options_presented",
+      "issues_caught_per_review_stage",
+      "batch_completion_rate"
+    ],
+    "targets": {
+      "false_completion_rate": { "max": 0.05, "description": "< 5% false completion claims" },
+      "fix_attempts_per_bug": { "max": 3, "description": "< 3 attempts per bug" },
+      "tests_before_code": { "min": 0.8, "description": "> 80% tests written first" }
+    }
+  },
+
+  "profiles": {
+    "strict": {
+      "description": "Maximum enforcement - all skills strict, all auto-triggers enabled",
+      "settings": {
+        "verification-gate": { "level": "strict", "autoTrigger": true },
+        "tdd-protocol": { "level": "strict", "autoTrigger": true },
+        "systematic-debugging": { "level": "strict", "autoTrigger": true },
+        "isolated-development": { "level": "warning", "autoTrigger": true },
+        "design-first": { "level": "strict", "autoTrigger": true },
+        "staged-review": { "level": "strict", "autoTrigger": true },
+        "plan-execution": { "level": "strict", "autoTrigger": true }
+      }
+    },
+    "balanced": {
+      "description": "Recommended default - critical skills strict, others warning",
+      "settings": {
+        "verification-gate": { "level": "strict", "autoTrigger": true },
+        "tdd-protocol": { "level": "warning", "autoTrigger": false },
+        "systematic-debugging": { "level": "warning", "autoTrigger": true },
+        "isolated-development": { "level": "off", "autoTrigger": false },
+        "design-first": { "level": "warning", "autoTrigger": false },
+        "staged-review": { "level": "warning", "autoTrigger": true },
+        "plan-execution": { "level": "warning", "autoTrigger": false }
+      }
+    },
+    "minimal": {
+      "description": "Lightweight - only verification-gate strict",
+      "settings": {
+        "verification-gate": { "level": "strict", "autoTrigger": true },
+        "tdd-protocol": { "level": "off", "autoTrigger": false },
+        "systematic-debugging": { "level": "warning", "autoTrigger": false },
+        "isolated-development": { "level": "off", "autoTrigger": false },
+        "design-first": { "level": "off", "autoTrigger": false },
+        "staged-review": { "level": "off", "autoTrigger": false },
+        "plan-execution": { "level": "off", "autoTrigger": false }
+      }
+    }
+  },
+
+  "currentProfile": "balanced",
+
+  "comments": {
+    "configuration": "Modify this file or use /dev-aid-config-process-skills command",
+    "team_settings": "Commit this file to share team defaults",
+    "personal_overrides": "Use .dev-aid/config/process-skills.local.json for personal settings (gitignored)"
+  }
+}

@@ -1,8 +1,8 @@
 # Dev-AID Skills System
 
-**5 core skills** for automated checking + **72 expert skills** for domain expertise, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **72 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
 
-## 🔄 Core vs Expert Skills
+## 🔄 Core vs Expert vs Process Skills
 
 ### Core Skills (5 available, 2 enabled by default)
 **Purpose**: Automated tool execution on file save
@@ -36,13 +36,36 @@
 
 **Example**: `typescript-expert` tells you "Use strict types", but doesn't run `tsc`
 
+### Process Skills (7 available) 🆕
+**Purpose**: Behavioral protocols that enforce disciplined workflows
+**Loading**: Auto-triggers on specific events/keywords (configurable)
+**Token Cost**: ~300-450 tokens each
+
+**What they do:**
+- Enforce workflow discipline (TDD, verification, systematic debugging)
+- Block actions until protocols are followed (when strict)
+- Integrate with Dev-AID infrastructure (router, local search, security tools)
+
+**Available:**
+- ✅ `verification-gate` - No completion claims without evidence (strict by default)
+- ⚠️ `tdd-protocol` - Enforce RED-GREEN-REFACTOR cycle
+- ⚠️ `systematic-debugging` - Root cause first, fix second
+- ⏸️ `isolated-development` - Git worktree per feature/issue
+- ⚠️ `design-first` - Think before coding
+- ⚠️ `staged-review` - Two-stage review (spec → quality)
+- ⚠️ `plan-execution` - Batch execution with checkpoints
+
+**Legend**: ✅ = strict, ⚠️ = warning, ⏸️ = off
+
+**Configuration**: Edit `.dev-aid/config/process-skills.json` or use `/dev-aid-config-process-skills`
+
 ### Key Difference
-| | Core Skills | Expert Skills |
-|---|---|---|
-| **Role** | Automated checking | Knowledge & guidance |
-| **Execution** | Runs tools (tsc, eslint) | Provides advice only |
-| **Loading** | Always at start | Context-aware |
-| **Example** | "❌ Type error at line 45" | "Use strict mode for safety" |
+| | Core Skills | Expert Skills | Process Skills |
+|---|---|---|---|
+| **Role** | Automated checking | Knowledge & guidance | Workflow enforcement |
+| **Execution** | Runs tools (tsc, eslint) | Provides advice only | Enforces protocols |
+| **Loading** | Always at start | Context-aware | Event-triggered |
+| **Example** | "❌ Type error at line 45" | "Use strict types" | "Show test evidence before claiming done" |
 
 ## 📁 Directory Structure
 
@@ -71,6 +94,15 @@
 │   │       ├── implementation-patterns.md
 │   │       ├── performance-patterns.md
 │   │       └── ...
+├── process/                     # Process workflow skills (7) 🆕
+│   ├── README.md               # Process skills overview
+│   ├── verification-gate/      # No completion claims without evidence
+│   ├── tdd-protocol/           # RED-GREEN-REFACTOR enforcement
+│   ├── systematic-debugging/   # Root cause investigation
+│   ├── isolated-development/   # Git worktree per feature
+│   ├── design-first/           # Think before coding
+│   ├── staged-review/          # Two-stage code review
+│   └── plan-execution/         # Batch execution with checkpoints
 └── registry/
     └── skills-index.json        # Skill metadata and activation triggers
 ```
@@ -177,6 +209,25 @@ All skills follow a unified two-tier template structure:
 - model-quantization, plan-review-expert
 - refactoring-expert, web-research-expert
 
+### Process Skills (7) 🆕
+
+**Quality Enforcement:**
+- `verification-gate` (~300 tokens) - No completion claims without evidence
+- `tdd-protocol` (~400 tokens) - Enforce RED-GREEN-REFACTOR cycle
+- `systematic-debugging` (~450 tokens) - Root cause first, fix second
+- `staged-review` (~400 tokens) - Two-stage review (spec → quality)
+
+**Workflow Management:**
+- `isolated-development` (~300 tokens) - Git worktree per feature/issue
+- `design-first` (~350 tokens) - Think before coding
+- `plan-execution` (~350 tokens) - Batch execution with checkpoints
+
+**Total token cost:**
+- Balanced profile (default): ~1,500 tokens
+- Strict profile (all enabled): ~2,550 tokens
+
+**Configure**: Edit `.dev-aid/config/process-skills.json`
+
 ## 🚀 Creating New Skills
 
 See [SKILL_QUICKSTART.md](./SKILL_QUICKSTART.md) for a comprehensive guide.
@@ -245,3 +296,4 @@ All skills must be registered in `registry/skills-index.json` with:
 
 - [Skill Quick-Start Guide](./SKILL_QUICKSTART.md)
 - [Skill Template](./SKILL_TEMPLATE.md)
+- [Process Skills Overview](./process/README.md) 🆕

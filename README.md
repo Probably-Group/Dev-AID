@@ -258,6 +258,35 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - **Core skills** → Execute tools: "❌ Type error at line 45"
 - **Expert skills** → Provide guidance: "Use strict mode for type safety"
 
+### 📋 **7 Process Skills** - Workflow Enforcement (🆕 NEW!)
+**Purpose**: Behavioral protocols that enforce disciplined workflows
+
+Process skills **enforce how you work**, not just what you know:
+
+| Skill | What It Does | Enforcement | Default |
+|-------|-------------|-------------|---------|
+| `verification-gate` | No completion claims without test evidence | Strict | ✅ On |
+| `tdd-protocol` | Enforce RED-GREEN-REFACTOR cycle | Warning | ⚠️ On |
+| `systematic-debugging` | Root cause first, fix second (4-phase) | Warning | ⚠️ On |
+| `isolated-development` | Git worktree per feature/issue | Off | ⏸️ Off |
+| `design-first` | Think before coding (YAGNI enforcement) | Warning | ⚠️ On |
+| `staged-review` | Two-stage review (spec → quality) | Warning | ⚠️ On |
+| `plan-execution` | Batch execution with checkpoints | Warning | ⚠️ On |
+
+**Key enhancements over traditional process patterns:**
+- **Language-aware commands** - Auto-detects Python/Node/Rust/Go for verification
+- **Router integration** - Challenger mode for cross-model verification
+- **Local search** - FAISS integration for finding similar tests/patterns
+- **Security tools** - Correlates with Trivy/Gitleaks findings
+- **Configurable** - strict/warning/off per skill
+
+**Configure**: Edit `.dev-aid/config/process-skills.json`
+
+**Key Difference:**
+- **Core skills** → Execute tools automatically
+- **Expert skills** → Provide knowledge and guidance
+- **Process skills** → Enforce workflow discipline
+
 ### 💾 **Persistent Memory Bank**
 - Context survives across sessions
 - Architecture decisions (ADRs)

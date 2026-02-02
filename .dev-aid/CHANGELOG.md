@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.11] - 2026-02-02
+
+### Added
+- **Process Skills System** (7 new skills): Behavioral protocols for disciplined workflows
+  - `verification-gate` - No completion claims without evidence (strict enforcement)
+  - `tdd-protocol` - Enforce RED-GREEN-REFACTOR cycle
+  - `systematic-debugging` - Root cause first, fix second (4-phase protocol)
+  - `isolated-development` - Git worktree per feature/issue with auto-setup
+  - `design-first` - Think before coding (YAGNI enforcement)
+  - `staged-review` - Two-stage review (spec compliance → code quality)
+  - `plan-execution` - Batch execution with checkpoints and blocker protocol
+
+  Key enhancements over traditional process patterns:
+  - Language-aware verification commands (auto-detects Python/Node/Rust/Go)
+  - Router integration for challenger mode cross-model verification
+  - FAISS local search integration for pattern matching
+  - Security tool correlation (Trivy/Gitleaks findings)
+  - Task list integration for progress tracking
+  - Memory bank persistence for design decisions
+  - Configurable enforcement levels (strict/warning/off)
+
+  Configuration: `.dev-aid/config/process-skills.json`
+  Documentation: `.dev-aid/skills/process/README.md`
+
+### Changed
+- Updated skills README to include process skills category
+- Skills system now has three tiers: core (5), expert (72), process (7)
+
+---
+
 ## [1.3.0-beta.10] - 2026-01-09
 
 ### Added

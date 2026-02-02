@@ -1511,6 +1511,7 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 
 ### Inspiration & Structure
 - **[claude-skills-generator](https://github.com/martinholovsky/claude-skills-generator)** by [Martin Holovsky - Dev-AID author](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
+- **[Superpowers](https://github.com/obra/superpowers)** by [Jesse Vincent](https://github.com/obra) - Inspiration for process skills architecture, TDD enforcement, and verification-gate patterns. Dev-AID's process skills adopt Superpowers' behavioral protocols while adding language-aware verification, multi-AI challenger mode, and FAISS local search integration
 - **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 
 ### Core Technologies

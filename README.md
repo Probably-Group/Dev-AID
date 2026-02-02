@@ -7,11 +7,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.3.0--beta.10-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.3.0--beta.11-brightgreen.svg)](.dev-aid/VERSION)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with context-aware expertise that auto-loads based on your work, dual-AI review that catches what you'd miss, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
-> 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($1.2M+ annual value for 100-dev teams).
+> 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($5.9M+ annual value for 100-dev teams).
 
 ---
 
@@ -58,7 +58,8 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI) with:
 - **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
 - **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
 - **🔍 Local Code Search** - 100% private, $0 forever, 0.15s queries
-- **🎓 72 Expert Skills** - Auto-loads domain expertise (DevSecOps, TDD, etc.)
+- **🎓 72 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
+- **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging 🆕
 - **🔒 Security Automation** - 5 tools run on every commit
 
 **No new CLI to learn.** Works inside the tools you already use.
@@ -170,7 +171,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
 │  • MCP integration (databases, GitHub, etc) │
-│  • 5 core + 72 expert skills                │
+│  • 5 core + 72 expert + 7 process skills    │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • Specialized workflows (slash commands)   │
@@ -219,6 +220,8 @@ Real-World Examples:
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐⭐ |
+| **⚡ 7 Process Skills** 🆕 | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
+| **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator** | Auto-generate optimized GitHub Actions workflows | • 40-70% faster CI<br>• Security built-in<br>• Tech-stack aware<br>• Frequency profiles (up to 98% cost reduction) | ⭐⭐⭐⭐ |
@@ -1392,7 +1395,8 @@ Skills auto-activate based on file patterns:
 
 | Feature | Manual | Dev-AID |
 |---------|--------|---------|
-| Expert skills | Write yourself | 65 pre-built ✅ |
+| Expert skills | Write yourself | 72 pre-built ✅ |
+| Process skills | None | 7 behavioral protocols (TDD, verification) ✅ |
 | Security scans | Remember to run | Automated (git hooks) ✅ |
 | Memory bank | Manual notes | Persistent, auto-loaded ✅ |
 | Multi-AI routing | Manual switching | Automatic routing ✅ |

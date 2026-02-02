@@ -114,6 +114,43 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 > 📖 **Full analysis**: [VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)
 
+### 🆚 How Dev-AID Compares to Other AI Coding Tools
+
+**Dev-AID is not a replacement — it's an enhancement layer that works WITH your existing tools.**
+
+| Capability | Dev-AID | [Superpowers](https://github.com/obra/superpowers) | [Cursor](https://cursor.sh) | [GitHub Copilot](https://github.com/features/copilot) | [Aider](https://aider.chat) | [Windsurf](https://windsurf.com) |
+|------------|---------|-------------|--------|----------------|-------|----------|
+| **Type** | Enhancement layer | Skills framework | Full IDE | IDE extension | CLI tool | Full IDE |
+| **Works with existing tools** | ✅ Claude Code, Cursor, Gemini | ⚠️ Claude Code only | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
+| **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ❌ | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
+| **Dual-AI review (Challenger)** | ✅ Claude generates → Gemini reviews | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ❌ | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
+| **Expert skills (72)** | ✅ Auto-loading | ⚠️ ~15 skills | ❌ | ❌ | ❌ | ❌ |
+| **Process skills (TDD, verification)** | ✅ 7 behavioral protocols | ✅ Core strength | ❌ | ❌ | ❌ | ❌ |
+| **Automated security (5 tools)** | ✅ Pre-commit hooks | ❌ | ❌ | ⚠️ Basic | ❌ | ❌ |
+| **Git worktrees** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
+| **Persistent memory** | ✅ Git-synced, team-shared | ⚠️ Memory notes | ❌ | ❌ | ❌ | ❌ |
+| **MCP integration** | ✅ Databases, GitHub, APIs | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Issue auto-resolution** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Conflict auto-resolution** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Cost** | **Free** (open source) | Free | $20/mo | $10-19/mo | Free (BYOK) | $15-60/mo |
+| **Privacy** | ✅ 100% local option | ⚠️ API-dependent | ❌ Cloud | ❌ Cloud | ✅ Local option | ❌ Cloud |
+
+**Legend:** ✅ = Full support | ⚠️ = Partial/Limited | ❌ = Not available
+
+**Key Differentiators:**
+
+| What Makes Dev-AID Unique | Why It Matters |
+|---------------------------|----------------|
+| **Enhancement layer, not replacement** | Keep using Claude Code, Cursor, or Gemini CLI — Dev-AID makes them all smarter |
+| **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → 23% fewer bugs reach production |
+| **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. |
+| **72 expert + 7 process skills** | Auto-loads domain expertise (FastAPI, TDD, DevSecOps) based on your project |
+| **5-tool security automation** | Gitleaks, Trivy, Opengrep, Hadolint, Checkov — runs automatically on every commit |
+| **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
+
+> 💡 **Bottom line:** Other tools make you choose. Dev-AID lets you use the best of everything.
+
 ### How It Works
 
 ```

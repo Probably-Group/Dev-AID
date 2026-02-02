@@ -1,415 +1,878 @@
 ---
 name: harbor-expert
-description: "Expert Harbor container registry administrator specializing in registry operations, vulnerability scanning with Trivy, artifact signing with Notary, RBAC, and multi-region replication. Use when managing container registries, implementing security policies, configuring image scanning, or setting up disaster recovery."
+version: 2.0.0
+description: "Harbor container registry with vulnerability scanning, Trivy integration, Notary signing, and RBAC."
+risk_level: HIGH
 ---
 
-# Harbor Container Registry Expert
+# Harbor Container Registry Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Auth bypass, Image tampering, Registry DoS
-- Requires continuous monitoring of security advisories
+**CWE-639: BOLA Vulnerability (CVE-2024-22278)**
+- NEVER: Grant Maintainer role to untrusted users (can manipulate cross-project)
+- ALWAYS: Upgrade to v2.9.5+/v2.10.3+/v2.11.0+, apply least privilege
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-269: Privilege Escalation (CVE-2019-16097)**
+- NEVER: Expose Harbor with default settings to internet
+- ALWAYS: Change default admin creds, disable self-registration, network controls
 
-### 0.2 Vulnerability Research Protocol
+**CWE-862: Missing Authorization (CVE-2022-46463)**
+- NEVER: Assume private repos are inaccessible to unauthenticated users
+- ALWAYS: Penetration test access controls, implement network segmentation
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-345: Missing Signature Verification**
+- NEVER: Pull images without content trust/signature verification
+- ALWAYS: Enable Notary/Cosign, configure "Prevent Vulnerable Images" policy
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Image Signing with Cosign (CWE-494)
+
+**Principle:** Sign all images. Verify signatures before deployment.
+
+```yaml
+# ❌ WRONG - No signature verification
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+    - image: harbor.example.com/myapp:latest
+
+# ✅ CORRECT - Policy requires signed images (with Kyverno)
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-harbor-signatures
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: verify-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+        - imageReferences:
+            - "harbor.example.com/*"
+          attestors:
+            - entries:
+                - keys:
+                    publicKeys: |-
+                      -----BEGIN PUBLIC KEY-----
+                      MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE...
+                      -----END PUBLIC KEY-----
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Vulnerability Scanning (CWE-1395)
 
-   - **HARBOR-AUTH-BYPASS** (CVSS 8.8): Harbor authentication bypass
-     Source: https://github.com/goharbor/harbor/security
-   - **IMAGE-TAMPERING** (CVSS 9.0): Container image tampering
-     Source: https://github.com/goharbor/harbor/security
-   - **REGISTRY-DOS** (CVSS 7.5): Registry DoS attacks
-     Source: https://nvd.nist.gov/
+**Principle:** Scan all images. Block deployment of critical vulnerabilities.
 
-**Step 3: Common Attack Patterns**
+### 1.3 RBAC and Project Isolation (CWE-284)
 
-   - Auth bypass
-   - Image tampering
-   - Registry DoS
-   - Vulnerability scan bypass
+**Principle:** Use projects for tenant isolation. Apply least privilege.
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.4 Robot Accounts (CWE-798)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Use robot accounts for CI/CD. Never hardcode credentials.
 
-### 0.3 Hallucination Prevention Checklist
+### 1.5 Replication Security (CWE-319)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Use TLS for replication. Verify remote registry certificates.
 
-**Domain-Specific Security Rules**:
+### 1.6 Webhook Security (CWE-352)
 
-- ❌ NEVER skip image scanning
-- ❌ NEVER allow unsigned images
-- ❌ ALWAYS verify image signatures
-- ❌ ALWAYS enforce RBAC
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Harbor configurations**
-
-### Verification Requirements
-
-When using this skill to implement Harbor registry features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Harbor documentation (https://goharbor.io/docs/)
-   - ✅ Confirm API endpoints match Harbor version (v2.10+)
-   - ✅ Validate Trivy scanner configuration options
-   - ❌ Never guess Harbor API paths or parameters
-   - ❌ Never invent Notary/Cosign configuration options
-   - ❌ Never assume replication policy compatibility
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing Harbor configurations
-   - 🔍 Grep: Search for similar project setups
-   - 🔍 WebSearch: Verify Harbor API specifications
-   - 🔍 WebFetch: Read official Harbor documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Harbor API endpoint, configuration, or policy
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Harbor configs can cause: production registry outages, vulnerable images deployed, data loss
-
-4. **Common Harbor Hallucination Traps** (AVOID)
-   - ❌ Invented Harbor API endpoints (always verify against v2.0 API docs)
-   - ❌ Made-up Trivy scanner configuration options
-   - ❌ Non-existent replication policy triggers
-   - ❌ Incorrect robot account permission structures
-   - ❌ Invalid retention policy templates
-
-### Self-Check Checklist
-
-Before EVERY response with Harbor code:
-- [ ] All API endpoints verified against Harbor v2.0 API documentation
-- [ ] Configuration options verified against current Harbor version
-- [ ] Security policies verified against official guides
-- [ ] Can cite official Harbor documentation sources
-
-**⚠️ CRITICAL**: Harbor configurations with hallucinated API calls cause registry failures, security policy bypasses, and production incidents. Always verify.
+**Principle:** Authenticate webhooks. Validate payload signatures.
 
 ---
 
+## 2. Version Requirements
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+**ALWAYS use these minimum versions:**
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite Harbor registry administrator with deep expertise in:
-
-- **Registry Operations**: Harbor 2.10+, OCI artifact management, quota management, garbage collection
-- **Security Scanning**: Trivy integration, CVE database management, vulnerability policies, scan automation
-- **Artifact Signing**: Notary v2, Cosign integration, content trust, signature verification
-- **Access Control**: Project-based RBAC, robot accounts, OIDC/LDAP integration, webhook automation
-- **Replication**: Multi-region pull/push replication, disaster recovery, registry federation
-- **Enterprise Features**: Audit logging, retention policies, tag immutability, proxy cache
-- **OCI Artifacts**: Helm charts, CNAB bundles, Singularity images, WASM modules
-
-You build registry infrastructure that is:
-- **Secure**: Image signing, vulnerability scanning, CVE policies enforced
-- **Reliable**: Multi-region replication, backup/restore, high availability
-- **Compliant**: Audit trails, retention policies, immutable artifacts
-- **Performant**: Cache strategies, garbage collection, resource optimization
-
-**RISK LEVEL: HIGH** - You are responsible for supply chain security, artifact integrity, and protecting organizations from vulnerable container images in production.
-
----
-
-## 3. Core Principles
-
-1. **TDD First** - Write tests before implementation for all Harbor configurations
-2. **Performance Aware** - Optimize garbage collection, replication, and storage operations
-3. **Security First** - All production images signed and scanned
-4. **Zero Trust** - Verify signatures, enforce CVE policies
-5. **High Availability** - Multi-region replication, tested DR
-6. **Compliance** - Audit trails, retention, immutability
-7. **Automation** - Scan on push, webhook notifications
-8. **Least Privilege** - Scoped robot accounts, RBAC
-9. **Continuous Improvement** - Track metrics, reduce MTTR
-
----
-
-## 2. Core Responsibilities
-
-### 1. Registry Administration and Operations
-
-You will manage Harbor infrastructure:
-- Deploy Harbor 2.10+ with PostgreSQL/Redis and cloud storage backends (S3/GCS/Azure)
-- Configure garbage collection, project quotas, and storage management
-- Monitor registry health, performance metrics, and implement backup/DR strategies
-
-### 2. Vulnerability Scanning and CVE Management
-
-You will protect against vulnerable images:
-- Integrate Trivy scanner with scan-on-push and CVE severity policies (block HIGH/CRITICAL)
-- Manage vulnerability exemptions, allowlists, and schedule periodic rescans
-- Configure webhook notifications and generate compliance reports tracking MTTR metrics
-
-### 3. Artifact Signing and Content Trust
-
-You will enforce artifact integrity:
-- Deploy Notary v2 and integrate Cosign for keyless signing with OIDC
-- Enable content trust policies and configure deployment policy to require signatures
-- Verify signature provenance in admission controllers and manage key rotation
-- Implement SBOM attachment and track signed vs unsigned artifact ratios
-
-### 4. RBAC and Access Control
-
-You will secure registry access:
-- Design project-based permission models and create robot accounts for CI/CD with scoped tokens
-- Integrate OIDC providers (Keycloak, Okta, Azure AD) and configure LDAP/AD group sync
-- Implement webhook automation, audit access patterns, and enforce least privilege
-- Manage service account lifecycle and rotation
-
-### 5. Multi-Region Replication
-
-You will ensure global availability:
-- Configure pull/push replication rules with TLS mutual auth and filtering (name, tag, label)
-- Design disaster recovery with primary/secondary registries and monitor replication lag
-- Optimize bandwidth with scheduled replication and handle conflicts/reconciliation
-- Test failover procedures regularly
-
-### 6. Compliance and Retention
-
-You will meet regulatory requirements:
-- Configure tag immutability and implement retention policies (keep last N, age-based)
-- Enable audit logging and generate compliance reports (signed, scanned, vulnerabilities)
-- Set up legal hold for forensic investigations and track artifact lineage
-- Archive artifacts for long-term retention with deletion protection
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Top 7 Implementation Patterns
-
-**Docker Compose Setup**:
 ```yaml
-# docker-compose.yml - Production Harbor with external database
-services:
-  registry:
-    image: goharbor/registry-photon:v2.10.0
-    restart: always
-    volumes:
-      - /data/registry:/storage
-
-📚 **For complete details**: See `references/top-7-implementation-patterns.md`
-
----
-## 14. Critical Reminders
-
-### Pre-Implementation Checklist
-
-#### Phase 1: Before Writing Code
-
-- [ ] Read existing Harbor configuration and version
-- [ ] Identify affected projects and replication policies
-- [ ] Review current security policies (CVE blocking, content trust)
-- [ ] Check existing robot accounts and their permissions
-- [ ] Document current garbage collection schedule
-- [ ] Write failing tests for new functionality
-- [ ] Review Harbor API documentation for changes
-
-#### Phase 2: During Implementation
-
-- [ ] Follow TDD workflow (test first, implement, refactor)
-- [ ] Apply security defaults to all new projects
-- [ ] Use least privilege for robot accounts
-- [ ] Configure filters for replication policies
-- [ ] Enable scan-on-push for all artifacts
-- [ ] Set appropriate retention policies
-- [ ] Test all API calls return expected results
-
-#### Phase 3: Before Committing
-
-- [ ] Run full test suite (unit, integration, E2E)
-- [ ] Verify all security policies are enforced
-- [ ] Check garbage collection is scheduled
-- [ ] Validate replication endpoints are healthy
-- [ ] Confirm scanner is operational
-- [ ] Review audit logs for anomalies
-- [ ] Update documentation if needed
+harbor: v2.10.0+
+trivy: v0.50.0+
+cosign: v2.2.0+
+notation: v1.1.0+
+```
 
 ---
 
-### Pre-Production Deployment Checklist
+## 3. Code Patterns
 
-**Registry Configuration**:
-- [ ] PostgreSQL and Redis externalized (not embedded)
-- [ ] Storage backend configured (S3/GCS/Azure, not filesystem)
-- [ ] TLS certificates valid and auto-renewing
-- [ ] Backup strategy configured and tested
-- [ ] Resource limits set (CPU, memory, storage quota)
+### 3.1 WHEN configuring Harbor with Helm
 
-**Security Hardening**:
-- [ ] Trivy scanner integrated and set as default
-- [ ] Scan-on-push enabled for all projects
-- [ ] CVE blocking policy configured (HIGH/CRITICAL)
-- [ ] Content trust enabled for production projects
-- [ ] Tag immutability enabled for release tags
-- [ ] Robot accounts follow least privilege
-- [ ] OIDC/LDAP authentication configured
-- [ ] Audit logging enabled
+```yaml
+# ❌ WRONG - Insecure defaults
+# No TLS, default admin password, no scanning
 
-**Replication and DR**:
-- [ ] Multi-region replication configured
-- [ ] Replication monitoring and alerting active
-- [ ] Disaster recovery runbook documented
-- [ ] Failover tested within last 90 days
-- [ ] RTO/RPO requirements met
+# ✅ CORRECT - Production Harbor configuration
+# values.yaml
+expose:
+  type: ingress
+  tls:
+    enabled: true
+    certSource: secret
+    secret:
+      secretName: harbor-tls
+      notarySecretName: notary-tls
+  ingress:
+    hosts:
+      core: harbor.example.com
+      notary: notary.example.com
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/proxy-body-size: "0"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
 
-**Compliance**:
-- [ ] Retention policies configured
-- [ ] Webhook notifications for security events
-- [ ] Compliance reports generated weekly
-- [ ] Signature coverage >95% for production
-- [ ] CVE MTTR <7 days for critical
+externalURL: https://harbor.example.com
 
-**Operational Readiness**:
-- [ ] Garbage collection scheduled weekly
-- [ ] Database vacuum scheduled monthly
-- [ ] Monitoring dashboards configured
-- [ ] Runbooks for common incidents
-- [ ] On-call team trained on Harbor administration
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      storageClass: fast-ssd
+      size: 500Gi
+    database:
+      storageClass: fast-ssd
+      size: 50Gi
+    redis:
+      storageClass: fast-ssd
+      size: 10Gi
+    trivy:
+      storageClass: fast-ssd
+      size: 50Gi
+
+# Security settings
+harborAdminPassword: "${HARBOR_ADMIN_PASSWORD}"  # From secret
+
+database:
+  type: external
+  external:
+    host: postgres.example.com
+    port: 5432
+    username: harbor
+    password: "${DATABASE_PASSWORD}"
+    sslmode: require
+    coreDatabase: harbor_core
+    notaryServerDatabase: harbor_notary_server
+    notarySignerDatabase: harbor_notary_signer
+
+redis:
+  type: external
+  external:
+    addr: redis.example.com:6379
+    password: "${REDIS_PASSWORD}"
+    sentinelMasterSet: harbor-master
+
+# Trivy scanner
+trivy:
+  enabled: true
+  gitHubToken: "${GITHUB_TOKEN}"  # For advisory DB updates
+  skipUpdate: false
+  offlineScan: false
+  timeout: 10m0s
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+# Notary (image signing)
+notary:
+  enabled: true
+
+# Core settings
+core:
+  secretName: harbor-core-secret
+  xsrfKey: "${XSRF_KEY}"
+  configOverwriteJson: |
+    {
+      "auth_mode": "oidc_auth",
+      "oidc_name": "Keycloak",
+      "oidc_endpoint": "https://keycloak.example.com/realms/harbor",
+      "oidc_client_id": "harbor",
+      "oidc_client_secret": "${OIDC_CLIENT_SECRET}",
+      "oidc_scope": "openid,profile,email,groups",
+      "oidc_groups_claim": "groups",
+      "oidc_admin_group": "harbor-admins",
+      "oidc_auto_onboard": true,
+      "oidc_user_claim": "preferred_username"
+    }
+
+# Security contexts
+containerSecurityContext:
+  runAsUser: 10000
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  seccompProfile:
+    type: RuntimeDefault
+  capabilities:
+    drop:
+      - ALL
+
+podSecurityContext:
+  runAsUser: 10000
+  runAsGroup: 10000
+  fsGroup: 10000
+
+# Network policies
+networkPolicies:
+  enabled: true
+```
+
+### 3.2 WHEN creating projects and RBAC
+
+```yaml
+# ❌ WRONG - Single project, everyone has access
+# All images in library, all users admin
+
+# ✅ CORRECT - Project structure with RBAC via API
+# Python script to configure Harbor projects
+import requests
+from typing import Optional
+from dataclasses import dataclass
+from enum import Enum
+
+class Role(Enum):
+    PROJECT_ADMIN = 1
+    DEVELOPER = 2
+    GUEST = 3
+    MAINTAINER = 4
+    LIMITED_GUEST = 5
+
+@dataclass
+class HarborConfig:
+    url: str
+    username: str
+    password: str
+    verify_ssl: bool = True
+
+class HarborClient:
+    def __init__(self, config: HarborConfig):
+        self.config = config
+        self.session = requests.Session()
+        self.session.auth = (config.username, config.password)
+        self.session.verify = config.verify_ssl
+        self.base_url = f"{config.url}/api/v2.0"
+
+    def create_project(
+        self,
+        name: str,
+        public: bool = False,
+        storage_limit: int = -1,
+        enable_content_trust: bool = True,
+        auto_scan: bool = True,
+        severity: str = "high",
+        prevent_vulnerable: bool = True,
+    ) -> dict:
+        """Create project with security policies."""
+
+        payload = {
+            "project_name": name,
+            "public": public,
+            "storage_limit": storage_limit,
+            "metadata": {
+                "enable_content_trust": str(enable_content_trust).lower(),
+                "auto_scan": str(auto_scan).lower(),
+                "severity": severity,
+                "prevent_vul": str(prevent_vulnerable).lower(),
+                "reuse_sys_cve_allowlist": "true",
+            },
+        }
+
+        response = self.session.post(
+            f"{self.base_url}/projects",
+            json=payload,
+        )
+        response.raise_for_status()
+
+        # Get created project
+        return self.get_project(name)
+
+    def get_project(self, name: str) -> dict:
+        response = self.session.get(f"{self.base_url}/projects?name={name}")
+        response.raise_for_status()
+        projects = response.json()
+        return projects[0] if projects else None
+
+    def add_project_member(
+        self,
+        project_name: str,
+        username: str,
+        role: Role,
+    ) -> None:
+        """Add user to project with specific role."""
+
+        project = self.get_project(project_name)
+        if not project:
+            raise ValueError(f"Project not found: {project_name}")
+
+        payload = {
+            "role_id": role.value,
+            "member_user": {"username": username},
+        }
+
+        response = self.session.post(
+            f"{self.base_url}/projects/{project['project_id']}/members",
+            json=payload,
+        )
+        response.raise_for_status()
+
+    def add_project_group(
+        self,
+        project_name: str,
+        group_name: str,
+        role: Role,
+        group_type: int = 1,  # 1=LDAP/OIDC group
+    ) -> None:
+        """Add OIDC/LDAP group to project."""
+
+        project = self.get_project(project_name)
+
+        payload = {
+            "role_id": role.value,
+            "member_group": {
+                "group_name": group_name,
+                "group_type": group_type,
+            },
+        }
+
+        response = self.session.post(
+            f"{self.base_url}/projects/{project['project_id']}/members",
+            json=payload,
+        )
+        response.raise_for_status()
+
+    def create_robot_account(
+        self,
+        name: str,
+        project_name: str,
+        permissions: list[str],
+        expires_at: int = -1,  # -1 = never
+    ) -> dict:
+        """Create robot account for CI/CD."""
+
+        project = self.get_project(project_name)
+
+        payload = {
+            "name": name,
+            "duration": expires_at,
+            "level": "project",
+            "permissions": [
+                {
+                    "kind": "project",
+                    "namespace": project_name,
+                    "access": [
+                        {"resource": perm.split(":")[0], "action": perm.split(":")[1]}
+                        for perm in permissions
+                    ],
+                }
+            ],
+        }
+
+        response = self.session.post(
+            f"{self.base_url}/robots",
+            json=payload,
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+# Example: Setup projects
+def setup_harbor_projects():
+    config = HarborConfig(
+        url="https://harbor.example.com",
+        username=os.environ["HARBOR_ADMIN_USER"],
+        password=os.environ["HARBOR_ADMIN_PASSWORD"],
+    )
+
+    client = HarborClient(config)
+
+    # Create production project (strict security)
+    client.create_project(
+        name="production",
+        public=False,
+        enable_content_trust=True,
+        auto_scan=True,
+        prevent_vulnerable=True,
+        severity="high",
+    )
+
+    # Add OIDC groups
+    client.add_project_group("production", "platform-team", Role.PROJECT_ADMIN)
+    client.add_project_group("production", "developers", Role.DEVELOPER)
+
+    # Create robot for CI/CD
+    robot = client.create_robot_account(
+        name="ci-push",
+        project_name="production",
+        permissions=[
+            "repository:push",
+            "repository:pull",
+            "artifact:read",
+            "tag:create",
+            "tag:list",
+        ],
+    )
+    print(f"Robot token: {robot['secret']}")  # Store securely!
+```
+
+### 3.3 WHEN implementing CI/CD image push with signing
+
+```yaml
+# ❌ WRONG - No scanning, no signing
+- docker push harbor.example.com/myapp:latest
+
+# ✅ CORRECT - GitHub Actions with scanning and signing
+name: Build and Push to Harbor
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+env:
+  REGISTRY: harbor.example.com
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # For OIDC
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Harbor
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.HARBOR_ROBOT_NAME }}
+          password: ${{ secrets.HARBOR_ROBOT_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=tag
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Scan before push
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      # Push after scan passes
+      - name: Push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: true
+
+      # Sign with Cosign
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign image with Cosign
+        env:
+          COSIGN_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        run: |
+          cosign sign --key env://COSIGN_KEY \
+            --yes \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+
+      - name: Verify signature
+        run: |
+          cosign verify --key ${{ secrets.COSIGN_PUBLIC_KEY }} \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+```
+
+### 3.4 WHEN configuring replication
+
+```yaml
+# ❌ WRONG - Unencrypted replication, no filters
+# Replicate everything without verification
+
+# ✅ CORRECT - Secure replication policy via API
+import requests
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class ReplicationPolicy:
+    name: str
+    src_registry_id: int
+    dest_registry_id: int
+    src_namespaces: list[str]
+    dest_namespace: Optional[str] = None
+    trigger_type: str = "manual"  # manual, scheduled, event_based
+    cron: Optional[str] = None  # For scheduled
+    filters: Optional[list[dict]] = None
+    override: bool = True
+    enabled: bool = True
+    speed: int = -1  # -1 = unlimited
+
+class HarborReplication:
+    def __init__(self, client: HarborClient):
+        self.client = client
+
+    def create_registry_endpoint(
+        self,
+        name: str,
+        url: str,
+        credential_type: str = "basic",
+        access_key: str = "",
+        access_secret: str = "",
+        insecure: bool = False,
+    ) -> int:
+        """Register remote registry for replication."""
+
+        payload = {
+            "name": name,
+            "url": url,
+            "credential": {
+                "type": credential_type,
+                "access_key": access_key,
+                "access_secret": access_secret,
+            },
+            "insecure": insecure,
+        }
+
+        response = self.client.session.post(
+            f"{self.client.base_url}/registries",
+            json=payload,
+        )
+        response.raise_for_status()
+
+        # Get registry ID
+        registries = self.client.session.get(
+            f"{self.client.base_url}/registries?name={name}"
+        ).json()
+        return registries[0]["id"]
+
+    def create_replication_policy(self, policy: ReplicationPolicy) -> int:
+        """Create replication policy with filters."""
+
+        filters = policy.filters or []
+
+        # Add default filters for security
+        filters.extend([
+            # Only replicate signed images
+            {"type": "label", "value": "signed=true"},
+            # Exclude images with critical vulnerabilities
+            {"type": "label", "value": "vulnerability!=critical"},
+        ])
+
+        trigger = {"type": policy.trigger_type}
+        if policy.trigger_type == "scheduled":
+            trigger["trigger_settings"] = {"cron": policy.cron}
+
+        payload = {
+            "name": policy.name,
+            "src_registry": {"id": policy.src_registry_id},
+            "dest_registry": {"id": policy.dest_registry_id},
+            "dest_namespace": policy.dest_namespace,
+            "trigger": trigger,
+            "filters": filters,
+            "replicate_deletion": False,  # Don't sync deletes
+            "override": policy.override,
+            "enabled": policy.enabled,
+            "speed": policy.speed,
+        }
+
+        response = self.client.session.post(
+            f"{self.client.base_url}/replication/policies",
+            json=payload,
+        )
+        response.raise_for_status()
+
+        # Get policy ID
+        policies = self.client.session.get(
+            f"{self.client.base_url}/replication/policies?name={policy.name}"
+        ).json()
+        return policies[0]["id"]
+
+
+# Example: Setup cross-region replication
+def setup_replication():
+    client = HarborClient(config)
+    replication = HarborReplication(client)
+
+    # Register DR site
+    dr_registry_id = replication.create_registry_endpoint(
+        name="dr-harbor",
+        url="https://harbor-dr.example.com",
+        access_key=os.environ["DR_ROBOT_NAME"],
+        access_secret=os.environ["DR_ROBOT_TOKEN"],
+        insecure=False,
+    )
+
+    # Create replication policy
+    replication.create_replication_policy(ReplicationPolicy(
+        name="production-to-dr",
+        src_registry_id=0,  # 0 = local Harbor
+        dest_registry_id=dr_registry_id,
+        src_namespaces=["production"],
+        dest_namespace="production-replica",
+        trigger_type="event_based",  # Replicate on push
+        filters=[
+            {"type": "name", "value": "production/**"},
+            {"type": "tag", "value": "v*"},  # Only version tags
+        ],
+    ))
+```
+
+### 3.5 WHEN setting up vulnerability scanning policies
+
+```python
+# ✅ CORRECT - Configure scanning and blocking
+class HarborScanning:
+    def __init__(self, client: HarborClient):
+        self.client = client
+
+    def configure_project_scanning(
+        self,
+        project_name: str,
+        auto_scan: bool = True,
+        prevent_vulnerable: bool = True,
+        severity_threshold: str = "high",  # low, medium, high, critical
+    ) -> None:
+        """Configure vulnerability scanning for project."""
+
+        project = self.client.get_project(project_name)
+
+        payload = {
+            "metadata": {
+                "auto_scan": str(auto_scan).lower(),
+                "prevent_vul": str(prevent_vulnerable).lower(),
+                "severity": severity_threshold,
+            },
+        }
+
+        self.client.session.put(
+            f"{self.client.base_url}/projects/{project['project_id']}",
+            json=payload,
+        )
+
+    def configure_system_cve_allowlist(
+        self,
+        cve_ids: list[str],
+        expires_at: Optional[int] = None,
+    ) -> None:
+        """Configure system-wide CVE allowlist."""
+
+        payload = {
+            "items": [{"cve_id": cve_id} for cve_id in cve_ids],
+        }
+
+        if expires_at:
+            payload["expires_at"] = expires_at
+
+        self.client.session.put(
+            f"{self.client.base_url}/system/CVEAllowlist",
+            json=payload,
+        )
+
+    def scan_artifact(
+        self,
+        project_name: str,
+        repository: str,
+        reference: str,  # tag or digest
+    ) -> dict:
+        """Trigger scan and wait for results."""
+
+        # Trigger scan
+        self.client.session.post(
+            f"{self.client.base_url}/projects/{project_name}/repositories/{repository}/artifacts/{reference}/scan"
+        )
+
+        # Poll for results
+        import time
+        for _ in range(60):  # 5 minute timeout
+            response = self.client.session.get(
+                f"{self.client.base_url}/projects/{project_name}/repositories/{repository}/artifacts/{reference}"
+            )
+            artifact = response.json()
+
+            scan_overview = artifact.get("scan_overview", {})
+            if scan_overview:
+                report = list(scan_overview.values())[0]
+                if report.get("scan_status") == "Success":
+                    return report
+
+            time.sleep(5)
+
+        raise TimeoutError("Scan did not complete in time")
+
+    def get_vulnerability_report(
+        self,
+        project_name: str,
+        repository: str,
+        reference: str,
+    ) -> list[dict]:
+        """Get detailed vulnerability report."""
+
+        response = self.client.session.get(
+            f"{self.client.base_url}/projects/{project_name}/repositories/{repository}/artifacts/{reference}/additions/vulnerabilities"
+        )
+        response.raise_for_status()
+        return response.json()
+```
 
 ---
 
-### Critical Security Controls
+## 4. Anti-Patterns
 
-**NEVER**:
-- Deploy unsigned images to production
-- Allow scan-failing images with CRITICAL CVEs
-- Use user credentials in CI/CD (use robot accounts)
-- Share robot account tokens across services
-- Disable content trust for production projects
-- Skip replication testing before DR events
-- Allow public access to private registries
-
-**ALWAYS**:
-- Scan all images before deployment
-- Sign production images with provenance
-- Rotate robot account tokens every 90 days
-- Monitor replication lag and failures
-- Test backup/restore procedures quarterly
-- Update Trivy vulnerability database daily
-- Audit unusual access patterns weekly
-- Document CVE exemptions with expiration
+**NEVER:**
+- Use `latest` tag in production
+- Deploy unsigned images
+- Skip vulnerability scanning
+- Use admin credentials in CI/CD
+- Replicate without filters
+- Allow public projects for sensitive images
+- Ignore critical vulnerabilities
+- Store robot tokens in code
+- Use insecure registry connections
 
 ---
 
-## 15. Summary
+## 5. Testing
 
-You are a Harbor expert who manages **secure container registries** with comprehensive vulnerability scanning, artifact signing, and multi-region replication. You implement **defense-in-depth security** with Trivy CVE scanning, Cosign image signing, RBAC controls, and deployment policies that block vulnerable or unsigned images.
+**ALWAYS test Harbor configurations:**
 
-You design **highly available registry infrastructure** with PostgreSQL/Redis backends, S3 storage, and pull-based replication to secondary regions for disaster recovery. You implement **compliance automation** with retention policies, tag immutability, audit logging, and webhook notifications for security events.
+```bash
+#!/bin/bash
+set -euo pipefail
 
-You protect the **software supply chain** by requiring signed artifacts, enforcing CVE policies, generating compliance reports, and integrating signature verification in Kubernetes admission controllers. You optimize registry operations with garbage collection, quota management, and performance monitoring.
+HARBOR_URL="${HARBOR_URL:-https://harbor.example.com}"
+PROJECT="${PROJECT:-test-project}"
 
-**Your mission**: Provide secure, reliable container registry infrastructure that protects organizations from supply chain attacks while enabling developer velocity.
+echo "=== Harbor Security Tests ==="
+
+# Test 1: Verify TLS
+echo "Test 1: TLS verification..."
+curl -sI "$HARBOR_URL" | grep -q "HTTP/2 200" || {
+    echo "FAIL: TLS not working"
+    exit 1
+}
+echo "PASS: TLS verified"
+
+# Test 2: Anonymous access blocked
+echo "Test 2: Anonymous access..."
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HARBOR_URL/api/v2.0/projects")
+if [ "$STATUS" == "401" ]; then
+    echo "PASS: Anonymous access blocked"
+else
+    echo "FAIL: Anonymous access allowed"
+    exit 1
+fi
+
+# Test 3: Robot account works
+echo "Test 3: Robot account..."
+curl -sf -u "robot\$ci-push:$ROBOT_TOKEN" \
+    "$HARBOR_URL/api/v2.0/projects/$PROJECT" > /dev/null || {
+    echo "FAIL: Robot account not working"
+    exit 1
+}
+echo "PASS: Robot account works"
+
+# Test 4: Image signing required
+echo "Test 4: Content trust..."
+PROJECT_META=$(curl -sf -u "admin:$ADMIN_PASS" \
+    "$HARBOR_URL/api/v2.0/projects/$PROJECT")
+if echo "$PROJECT_META" | jq -e '.metadata.enable_content_trust == "true"' > /dev/null; then
+    echo "PASS: Content trust enabled"
+else
+    echo "FAIL: Content trust not enabled"
+    exit 1
+fi
+
+# Test 5: Auto-scan enabled
+echo "Test 5: Auto-scan..."
+if echo "$PROJECT_META" | jq -e '.metadata.auto_scan == "true"' > /dev/null; then
+    echo "PASS: Auto-scan enabled"
+else
+    echo "FAIL: Auto-scan not enabled"
+    exit 1
+fi
+
+echo "=== All Harbor Security Tests Passed ==="
+```
 
 ---
 
-## References
+## 6. Pre-Generation Checklist
 
-**Reference Materials**:
-- **Security Scanning**: `references/security-scanning.md` - Complete Trivy integration, webhook automation, and CVE policy patterns
-- **Replication Guide**: `references/replication-guide.md` - Multi-region replication and disaster recovery strategies
-- **Security Standards**: `references/security-standards.md` - Image signing requirements, vulnerability management, RBAC, supply chain security
-- **TDD Workflow**: `references/tdd-workflow.md` - Test-driven development workflow for Harbor configurations
-- **Performance Optimization**: `references/performance-optimization.md` - Garbage collection, replication, caching, storag## 14. Critical Reminders
+**BEFORE generating any Harbor code:**
 
-## 14. Critical Reminders
-
-📚 **For complete details**: See `references/critical-reminders.md`
-
----
+- [ ] TLS enabled for all connections
+- [ ] OIDC/LDAP configured (not local auth)
+- [ ] Projects created with auto-scan enabled
+- [ ] Robot accounts used for CI/CD
+- [ ] Image signing (Cosign/Notary) configured
+- [ ] Vulnerability blocking enabled
+- [ ] Replication uses filters
+- [ ] Network policies restrict access
+- [ ] Admin credentials from secrets
+- [ ] Webhook authentication configured

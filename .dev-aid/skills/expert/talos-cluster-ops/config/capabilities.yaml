@@ -1,0 +1,304 @@
+# Capabilities Configuration
+# Defines which operations are autonomous (investigation) vs require approval (remediation)
+
+autonomous_investigation:
+  description: "Read-only operations that gather data without modifying cluster state"
+  approval_required: false
+  audit_level: "info"
+  
+  talos:
+    - "talosctl get *"
+    - "talosctl health"
+    - "talosctl version"
+    - "talosctl logs *"
+    - "talosctl read /proc/*"
+    - "talosctl read /sys/*"
+    - "talosctl dashboard"
+    - "talosctl dmesg"
+    - "talosctl etcd status"
+    - "talosctl etcd members"
+  
+  kubernetes:
+    - "kubectl get *"
+    - "kubectl describe *"
+    - "kubectl logs *"
+    - "kubectl top *"
+    - "kubectl explain *"
+    - "kubectl diff *"
+    - "kubectl debug * (read-only exec)"
+    - "kubectl get --raw /metrics"
+    - "kubectl get --raw /healthz"
+  
+  cilium:
+    - "cilium status"
+    - "cilium connectivity test --output json"
+    - "cilium endpoint list"
+    - "cilium service list"
+    - "cilium bpf *"
+    - "cilium policy get *"
+    - "cilium metrics *"
+    - "cilium encrypt status"
+  
+  hubble:
+    - "hubble observe *"
+    - "hubble status"
+    - "hubble list *"
+  
+  tetragon:
+    - "tetra getevents *"
+    - "kubectl get tracingpolicy *"
+    - "kubectl describe tracingpolicy *"
+  
+  argocd:
+    - "argocd app list"
+    - "argocd app get *"
+    - "argocd app diff *"
+    - "argocd app manifests *"
+    - "argocd app resources *"
+    - "argocd app history *"
+    - "argocd cluster list"
+  
+  kustomize:
+    - "kustomize build *"
+    - "kustomize build * | kubectl diff -f -"
+  
+  longhorn:
+    - "kubectl get * -n longhorn-system"
+    - "kubectl describe * -n longhorn-system"
+    - "curl http://longhorn-frontend.longhorn-system/* (GET only)"
+  
+  spire:
+    - "kubectl exec -n spire spire-server-0 -- spire-server agent list"
+    - "kubectl exec -n spire spire-server-0 -- spire-server entry show"
+  
+  observability:
+    - "curl http://victoriametrics:8428/api/v1/query?query=*"
+    - "curl http://victorialogs:9428/select/logsql/query"
+    - Any VictoriaMetrics/VictoriaLogs read queries
+  
+  general_tools:
+    - "cat *"
+    - "grep *"
+    - "awk *"
+    - "sed *"
+    - "jq *"
+    - "yq *"
+    - "curl * (GET requests only)"
+    - "ping *"
+    - "nslookup *"
+    - "dig *"
+
+remediation_low_risk:
+  description: "Single resource changes with easy rollback"
+  approval_required: true
+  snapshot_required: false
+  audit_level: "warn"
+  
+  operations:
+    - command: "kubectl delete pod"
+      risk: "low"
+      rollback: "Pod recreated by controller"
+    
+    - command: "kubectl rollout restart deployment"
+      risk: "low"
+      rollback: "kubectl rollout undo"
+    
+    - command: "kubectl scale"
+      risk: "low"
+      rollback: "kubectl scale to original count"
+    
+    - command: "talosctl reboot (worker nodes only)"
+      risk: "low"
+      rollback: "Node auto-recovers after reboot"
+    
+    - command: "argocd app sync (no --prune)"
+      risk: "low"
+      rollback: "argocd app rollback"
+    
+    - command: "cilium endpoint regenerate"
+      risk: "low"
+      rollback: "Automatic on agent restart"
+
+remediation_medium_risk:
+  description: "Resource modifications requiring snapshot"
+  approval_required: true
+  snapshot_required: true
+  audit_level: "error"
+  
+  operations:
+    - command: "kubectl apply"
+      risk: "medium"
+      snapshot_components: ["resource-state"]
+      rollback: "kubectl apply previous manifest"
+    
+    - command: "kubectl patch"
+      risk: "medium"
+      snapshot_components: ["resource-state"]
+      rollback: "kubectl patch with reverse patch"
+    
+    - command: "talosctl apply-config (worker nodes)"
+      risk: "medium"
+      snapshot_components: ["machine-config"]
+      rollback: "talosctl apply-config with previous config"
+    
+    - command: "kubectl create configmap/secret"
+      risk: "medium"
+      snapshot_components: ["configmap/secret"]
+      rollback: "Restore from snapshot"
+    
+    - command: "argocd app sync --prune"
+      risk: "medium"
+      snapshot_components: ["namespace-state"]
+      rollback: "kubectl apply snapshot"
+    
+    - command: "kubectl patch pvc (resize)"
+      risk: "medium"
+      snapshot_components: ["pvc-state", "longhorn-volume"]
+      rollback: "Manual intervention may be needed"
+
+remediation_high_risk:
+  description: "Control plane or cluster-wide operations"
+  approval_required: true
+  snapshot_required: true
+  snapshot_components: ["etcd", "machine-configs", "cluster-state"]
+  audit_level: "critical"
+  
+  operations:
+    - command: "talosctl upgrade"
+      risk: "high"
+      requires: ["comprehensive-snapshot"]
+      rollback: "talosctl reset + restore from snapshot"
+    
+    - command: "talosctl upgrade-k8s"
+      risk: "high"
+      requires: ["etcd-snapshot", "machine-config-snapshot"]
+      rollback: "Downgrade via talosctl apply-config"
+    
+    - command: "kubectl drain"
+      risk: "high"
+      requires: ["node-state-snapshot"]
+      rollback: "kubectl uncordon"
+    
+    - command: "talosctl apply-config (control plane)"
+      risk: "high"
+      requires: ["etcd-snapshot", "control-plane-config"]
+      rollback: "talosctl apply-config with backup"
+    
+    - command: "kustomize build | kubectl apply (cluster-wide)"
+      risk: "high"
+      requires: ["full-namespace-snapshot"]
+      rollback: "kubectl delete + apply snapshot"
+    
+    - command: "kubectl apply (RBAC/admission controllers)"
+      risk: "high"
+      requires: ["rbac-snapshot"]
+      rollback: "kubectl apply previous manifest"
+
+remediation_emergency:
+  description: "Disaster recovery operations"
+  approval_required: true
+  explicit_confirmation: true
+  snapshot_required: true
+  snapshot_components: ["full-cluster"]
+  audit_level: "critical"
+  human_in_loop: "mandatory"
+  
+  operations:
+    - command: "talosctl etcd snapshot restore"
+      risk: "emergency"
+      requires: ["multi-factor-confirmation"]
+      rollback: "None (point-of-no-return)"
+    
+    - command: "talosctl bootstrap"
+      risk: "emergency"
+      requires: ["multi-factor-confirmation"]
+      rollback: "None (destructive)"
+    
+    - command: "talosctl reset"
+      risk: "emergency"
+      requires: ["multi-factor-confirmation"]
+      rollback: "None (wipes node)"
+    
+    - command: "kubectl delete namespace (production namespaces)"
+      risk: "emergency"
+      requires: ["multi-factor-confirmation"]
+      rollback: "Manual restore from full snapshot"
+
+snapshot_policy:
+  s3_endpoint: "https://storage.googleapis.com"
+  s3_bucket: "martin-talos-snapshots"
+  compression: true
+  encryption: "AES256"
+  
+  components:
+    etcd:
+      command: "talosctl etcd snapshot"
+      retention_days: 30
+      
+    machine_config:
+      command: "talosctl get machineconfig -o yaml"
+      retention_days: 90
+      
+    kubernetes_resources:
+      command: "kubectl get all,cm,secret,pvc,pv -A -o yaml"
+      retention_days: 7
+      
+    longhorn_volumes:
+      command: "kubectl get volumes -n longhorn-system -o yaml"
+      retention_days: 14
+      
+    application_data:
+      rabbitmq:
+        command: "kubectl exec rabbitmq-0 -- rabbitmqctl export_definitions /tmp/defs.json"
+        retention_days: 30
+      surrealdb:
+        command: "kubectl exec surrealdb-0 -- surreal export"
+        retention_days: 30
+      spire:
+        command: "kubectl exec -n spire spire-server-0 -- spire-server entry show -output json"
+        retention_days: 30
+
+special_patterns:
+  # Commands that might look dangerous but are safe in certain contexts
+  safe_when:
+    - pattern: "kubectl exec .* cat|grep|tail|head"
+      description: "Read-only exec commands are safe"
+      approval: false
+    
+    - pattern: "kubectl run .* --rm"
+      description: "Ephemeral debug pods auto-delete"
+      approval: false
+    
+    - pattern: "talosctl read .*"
+      description: "Talos read operations are always safe"
+      approval: false
+  
+  # Always require approval even if looks safe
+  always_dangerous:
+    - pattern: "kubectl delete"
+      description: "Deletion always requires approval"
+    
+    - pattern: "kubectl scale .* --replicas=0"
+      description: "Scaling to zero requires approval"
+    
+    - pattern: "talosctl reset"
+      description: "Reset is always destructive"
+    
+    - pattern: ".*production.*"
+      description: "Any operation mentioning production needs approval"
+
+error_handling:
+  connection_loss:
+    action: "abort_operation"
+    preserve_state: true
+    log_location: "/tmp/talos-ops-recovery.log"
+  
+  operation_failure:
+    attempt_rollback: true
+    escalate_to_human: true
+    preserve_evidence: true
+  
+  approval_timeout:
+    timeout_seconds: 900  # 15 minutes
+    action: "auto_deny"
+    notify: true

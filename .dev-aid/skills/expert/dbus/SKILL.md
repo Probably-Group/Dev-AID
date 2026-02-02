@@ -1,501 +1,658 @@
 ---
 name: dbus
+version: 2.0.0
+description: "D-Bus IPC on Linux for system service integration, signal handling, and inter-process communication."
 risk_level: MEDIUM
-description: "Expert in D-Bus IPC (Inter-Process Communication) on Linux systems. Specializes in secure service communication, method calls, signal handling, and system integration. HIGH-RISK skill due to system service access and privileged operations."
 ---
+
+# D-Bus Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Message injection, Privilege escalation, Unauthorized method invocation
-- Requires security awareness and best practices
+**CWE-306: Missing Authentication**
+- NEVER: System bus services without authentication
+- ALWAYS: PolicyKit integration, verify caller credentials
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-78: Method Injection**
+- NEVER: Dynamic method names from untrusted input
+- ALWAYS: Whitelist allowed methods, validate all parameters
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+---
+
+## 1. Security Principles
+
+### 1.1 Policy Configuration (CWE-284)
+
+**Principle:** Define explicit D-Bus policies. Default deny, allow specific methods.
+
+```xml
+<!-- ❌ WRONG - Overly permissive policy -->
+<policy context="default">
+  <allow send_destination="*"/>
+  <allow receive_sender="*"/>
+</policy>
+
+<!-- ✅ CORRECT - Restrictive policy -->
+<policy user="myapp">
+  <allow own="com.company.MyApp"/>
+  <allow send_destination="com.company.MyApp"/>
+</policy>
+
+<policy context="default">
+  <deny own="com.company.MyApp"/>
+  <deny send_destination="com.company.MyApp"/>
+</policy>
+
+<policy at_console="true">
+  <allow send_destination="com.company.MyApp"
+         send_interface="com.company.MyApp.Public"/>
+</policy>
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Input Validation (CWE-20)
 
-   - **DBUS-MESSAGE-INJECTION** (CVSS N/A): D-Bus message injection
-     Source: https://www.freedesktop.org/wiki/Software/dbus/
-   - **DBUS-PRIV-ESC** (CVSS 7.5): Privilege escalation via D-Bus
-     Source: https://dbus.freedesktop.org/doc/dbus-security.txt
-   - **METHOD-CALL-ABUSE** (CVSS N/A): Unauthorized method calls
-     Source: https://www.freedesktop.org/software/systemd/man/dbus.html
+**Principle:** Validate all method arguments. Never trust client input.
 
-**Step 3: Common Attack Patterns**
+```rust
+// ❌ WRONG - No validation
+fn set_value(&self, value: &str) -> Result<(), Error> {
+    self.config.set(value);  // Unchecked input!
+    Ok(())
+}
 
-   - Message injection
-   - Privilege escalation
-   - Unauthorized method invocation
-   - Service impersonation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow unauthenticated D-Bus access
-- ❌ NEVER trust message sender identity without validation
-- ❌ ALWAYS validate method call permissions
-- ❌ ALWAYS use PolicyKit for authorization
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any D-Bus code**
-
-### Verification Requirements
-
-When using this skill to implement D-Bus features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official D-Bus specification documentation
-   - ✅ Confirm bus types (session/system) and security policies
-   - ✅ Validate service names against current system
-   - ❌ Never guess interface names or method signatures
-   - ❌ Never invent D-Bus service names
-   - ❌ Never assume security policies without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing D-Bus code patterns in codebase
-   - 🔍 Grep: Search for similar D-Bus implementations
-   - 🔍 Bash: Use `dbus-send`, `gdbus`, `qdbus` to verify services
-   - 🔍 WebSearch: Verify D-Bus specs in official documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY D-Bus service/interface/method
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in D-Bus can cause privilege escalation, system compromise, or data loss
-
-4. **Common D-Bus Hallucination Traps** (AVOID)
-   - ❌ Inventing service names (e.g., org.freedesktop.CustomService)
-   - ❌ Guessing method signatures without introspection
-   - ❌ Assuming all services are on session bus
-   - ❌ Making up object paths that don't exist
-   - ❌ Inventing interface methods or properties
-   - ❌ Assuming PolicyKit access is safe
-
-### Self-Check Checklist
-
-Before EVERY response with D-Bus code:
-- [ ] All service names verified (use `busctl list` or `gdbus list`)
-- [ ] Interface methods verified (use introspection or documentation)
-- [ ] Bus type (session/system) verified for target service
-- [ ] Security implications considered (blocked services list)
-- [ ] Can cite official D-Bus documentation or introspection output
-
-**⚠️ CRITICAL**: D-Bus code with hallucinated services/methods causes security vulnerabilities and system instability. Always verify.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level**: HIGH - System service access, privileged operations, IPC
-
-You are an expert in D-Bus communication with deep expertise in:
-
-- **D-Bus Protocol**: Message bus system, object paths, interfaces
-- **Bus Types**: Session bus (user), System bus (privileged)
-- **Service Interaction**: Method calls, signals, properties
-- **Security**: Policy enforcement, peer credentials
-
-### Core Expertise Areas
-
-1. **Bus Communication**: Session/system bus, message routing
-2. **Object Model**: Paths, interfaces, methods, signals
-3. **Policy Enforcement**: D-Bus security policies, access control
-4. **Security Controls**: Credential validation, service allowlists
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write tests before implementation
-2. **Performance Aware** - Optimize connections, caching, async calls
-3. **Security First** - Validate targets, block privileged services
-4. **Minimal Privilege** - Session bus by default, least access
-
----
-
-## 3. Core Responsibilities
-
-### 3.1 Safe IPC Principles
-
-When using D-Bus:
-- **Validate service targets** before method calls
-- **Use session bus** unless system access required
-- **Block privileged services** (PolicyKit, systemd)
-- **Log all method invocations**
-- **Enforce call timeouts**
-
-### 3.2 Security-First Approach
-
-Every D-Bus operation MUST:
-1. Validate target service/interface
-2. Check against blocked service list
-3. Use appropriate bus type
-4. Log operation details
-5. Enforce timeout limits
-
-### 3.3 Bus Type Policy
-
-- **Session Bus**: User applications, non-privileged
-- **System Bus**: System services, requires elevated permissions
-- **Default**: Always prefer session bus
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Technical Foundation
-
-### 4.1 D-Bus Architecture
-
-```
-Application -> D-Bus Library -> D-Bus Daemon -> Target Service
+// ✅ CORRECT - Validate all inputs
+fn set_value(&self, value: &str) -> Result<(), Error> {
+    if value.len() > MAX_VALUE_LENGTH {
+        return Err(Error::InvalidArgument("Value too long"));
+    }
+    if !value.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        return Err(Error::InvalidArgument("Invalid characters"));
+    }
+    self.config.set(value);
+    Ok(())
+}
 ```
 
-**Key Concepts**:
-- **Bus Name**: Service identifier (e.g., `org.freedesktop.Notifications`)
-- **Object Path**: Object location (e.g., `/org/freedesktop/Notifications`)
-- **Interface**: Method grouping (e.g., `org.freedesktop.Notifications`)
-- **Member**: Method or signal name
+### 1.3 Caller Verification (CWE-863)
 
-### 4.2 Libraries
+**Principle:** Verify caller identity for privileged operations.
 
-| Library | Purpose | Security Notes |
-|---------|---------|----------------|
-| `dbus-python` | Python bindings | Validate peer credentials |
-| `pydbus` | Modern Python D-Bus | Use with service filtering |
-| `dasbus` | Async D-Bus | Enforce timeouts |
-| `gi.repository.Gio` | GIO D-Bus bindings | Built-in security |
+### 1.4 Secret Handling (CWE-798)
+
+**Principle:** Never send secrets over D-Bus without encryption.
+
+### 1.5 Resource Limits (CWE-400)
+
+**Principle:** Set message size limits. Implement rate limiting.
+
+### 1.6 Error Disclosure (CWE-209)
+
+**Principle:** Return generic errors. Don't leak internal details.
 
 ---
 
-## 6. Implementation Workflow (TDD)
+## 2. Version Requirements
 
-### Step 1: Write Failing Test First
+**ALWAYS use these minimum versions:**
 
-```python
-# tests/test_dbus_client.py
-import pytest
-from unittest.mock import MagicMock, patch
+```toml
+# Rust
+[dependencies]
+zbus = "4.0"
+zvariant = "4.0"
+tokio = { version = "1.35", features = ["rt-multi-thread", "macros"] }
 
-class TestSecureDBusClient:
-    """Test D-Bus client with mocked bus."""
+# Python
+dbus-next>=0.2.3
+```
 
-    @pytest.fixture
-    def mock_bus(self):
-        with patch('dbus.SessionBus') as mock:
-            yield mock.return_value
+---
 
-    def test_blocks_privileged_services(self, mock_bus):
-        """Should reject access to blocked services."""
-        from secure_dbus import SecureDBusClient
+## 3. Code Patterns
 
-        client = SecureDBusClient()
+### 3.1 WHEN creating a D-Bus service in Rust
 
-        with pytest.raises(SecurityError) as exc:
-            client.get_object('org.freedesktop.PolicyKit1', '/')
+```rust
+// ❌ WRONG - No access control
+use zbus::{interface, Connection};
 
-        assert 'blocked' in str(exc.value).lower()
+struct MyService;
 
-    def test_validates_bus_name_format(self, mock_bus):
-        """Should reject malformed bus names."""
-        from secure_dbus import SecureDBusClient
+#[interface(name = "com.company.MyService")]
+impl MyService {
+    fn dangerous_operation(&self) -> String {
+        // Anyone can call this!
+        do_dangerous_thing()
+    }
+}
 
-        client = SecureDBusClient()
+// ✅ CORRECT - D-Bus service with access control
+use zbus::{interface, Connection, MessageHeader, fdo};
+use std::sync::Arc;
+use tokio::sync::RwLock;
 
-        with pytest.raises(ValueError):
-            client.get_object('invalid..name', '/')
+const MAX_MESSAGE_SIZE: usize = 1024 * 1024;  // 1MB
+const MAX_CALLS_PER_MINUTE: u32 = 60;
 
-    def test_enforces_timeout(self, mock_bus):
-        """Should timeout long-running calls."""
-        from secure_dbus import SecureDBusClient
+struct ServiceState {
+    config: Config,
+    call_counts: std::collections::HashMap<String, (u32, std::time::Instant)>,
+}
 
-        client = SecureDBusClient()
-        client.timeout = 1
+struct MyService {
+    state: Arc<RwLock<ServiceState>>,
+    connection: Connection,
+}
 
-        mock_bus.get_object.return_value.SomeMethod.side_effect = \
-            Exception('Timeout')
+#[interface(name = "com.company.MyService")]
+impl MyService {
+    /// Public method - available to all
+    async fn get_version(&self) -> fdo::Result<String> {
+        Ok(env!("CARGO_PKG_VERSION").to_string())
+    }
 
-        with pytest.raises(TimeoutError):
-            client.call_method(
-                'org.test.Service', '/', 'org.test.Interface', 'SomeMethod'
+    /// Protected method - requires caller verification
+    async fn get_config(
+        &self,
+        #[zbus(header)] header: MessageHeader<'_>,
+        key: &str,
+    ) -> fdo::Result<String> {
+        // Rate limiting
+        self.check_rate_limit(&header).await?;
+
+        // Input validation
+        if key.len() > 256 {
+            return Err(fdo::Error::InvalidArgs("Key too long".into()));
+        }
+        if !key.chars().all(|c| c.is_alphanumeric() || c == '.') {
+            return Err(fdo::Error::InvalidArgs("Invalid key format".into()));
+        }
+
+        // Verify caller is authorized
+        self.verify_caller(&header, Permission::ReadConfig).await?;
+
+        let state = self.state.read().await;
+        state.config.get(key)
+            .map(|v| v.to_string())
+            .ok_or_else(|| fdo::Error::Failed("Key not found".into()))
+    }
+
+    /// Privileged method - requires elevated permissions
+    async fn set_config(
+        &self,
+        #[zbus(header)] header: MessageHeader<'_>,
+        key: &str,
+        value: &str,
+    ) -> fdo::Result<()> {
+        // Rate limiting
+        self.check_rate_limit(&header).await?;
+
+        // Input validation
+        if key.len() > 256 || value.len() > 4096 {
+            return Err(fdo::Error::InvalidArgs("Input too long".into()));
+        }
+
+        // Require elevated permissions
+        self.verify_caller(&header, Permission::WriteConfig).await?;
+
+        let mut state = self.state.write().await;
+        state.config.set(key, value);
+        Ok(())
+    }
+}
+
+impl MyService {
+    async fn verify_caller(
+        &self,
+        header: &MessageHeader<'_>,
+        permission: Permission,
+    ) -> fdo::Result<()> {
+        let sender = header.sender()
+            .ok_or_else(|| fdo::Error::Failed("No sender".into()))?;
+
+        // Get caller's UID via D-Bus daemon
+        let creds = self.connection
+            .call_method(
+                Some("org.freedesktop.DBus"),
+                "/org/freedesktop/DBus",
+                Some("org.freedesktop.DBus"),
+                "GetConnectionUnixUser",
+                &(sender.as_str(),),
             )
+            .await?;
+
+        let uid: u32 = creds.body().deserialize()?;
+
+        // Check permission
+        match permission {
+            Permission::ReadConfig => {
+                // Allow any local user
+                Ok(())
+            }
+            Permission::WriteConfig => {
+                // Only allow root or app user
+                if uid == 0 || uid == APP_UID {
+                    Ok(())
+                } else {
+                    Err(fdo::Error::AccessDenied("Elevated permissions required".into()))
+                }
+            }
+        }
+    }
+
+    async fn check_rate_limit(&self, header: &MessageHeader<'_>) -> fdo::Result<()> {
+        let sender = header.sender()
+            .map(|s| s.to_string())
+            .unwrap_or_default();
+
+        let mut state = self.state.write().await;
+        let now = std::time::Instant::now();
+
+        let (count, last_reset) = state.call_counts
+            .entry(sender.clone())
+            .or_insert((0, now));
+
+        if now.duration_since(*last_reset) > std::time::Duration::from_secs(60) {
+            *count = 0;
+            *last_reset = now;
+        }
+
+        *count += 1;
+
+        if *count > MAX_CALLS_PER_MINUTE {
+            return Err(fdo::Error::LimitsExceeded("Rate limit exceeded".into()));
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Permission {
+    ReadConfig,
+    WriteConfig,
+}
 ```
 
-### Step 2: Implement Minimum to Pass
+### 3.2 WHEN creating a D-Bus client
+
+```rust
+// ❌ WRONG - No error handling, blocking
+let connection = Connection::session().unwrap();
+let proxy = Proxy::new(&connection, "com.company.MyService", "/", "com.company.MyService").unwrap();
+let result: String = proxy.call("GetConfig", &("key",)).unwrap();
+
+// ✅ CORRECT - Async client with proper error handling
+use zbus::{Connection, proxy};
+use std::time::Duration;
+
+#[proxy(
+    interface = "com.company.MyService",
+    default_service = "com.company.MyService",
+    default_path = "/com/company/MyService"
+)]
+trait MyService {
+    async fn get_version(&self) -> zbus::Result<String>;
+    async fn get_config(&self, key: &str) -> zbus::Result<String>;
+    async fn set_config(&self, key: &str, value: &str) -> zbus::Result<()>;
+
+    #[zbus(signal)]
+    async fn config_changed(&self, key: &str, value: &str) -> zbus::Result<()>;
+}
+
+pub struct MyServiceClient {
+    proxy: MyServiceProxy<'static>,
+}
+
+impl MyServiceClient {
+    pub async fn connect() -> Result<Self, Error> {
+        let connection = Connection::session().await?;
+
+        // Verify service is available
+        let proxy = MyServiceProxy::new(&connection).await?;
+
+        // Set timeout
+        proxy.inner().set_property("Timeout", Duration::from_secs(30)).await?;
+
+        Ok(Self { proxy })
+    }
+
+    pub async fn get_config(&self, key: &str) -> Result<String, Error> {
+        // Validate input before sending
+        if key.len() > 256 {
+            return Err(Error::InvalidArgument("Key too long"));
+        }
+
+        self.proxy.get_config(key).await
+            .map_err(|e| match e {
+                zbus::Error::MethodError(name, _, _) if name == "org.freedesktop.DBus.Error.AccessDenied" => {
+                    Error::PermissionDenied
+                }
+                zbus::Error::MethodError(name, _, _) if name == "org.freedesktop.DBus.Error.LimitsExceeded" => {
+                    Error::RateLimited
+                }
+                _ => Error::Communication(e.to_string()),
+            })
+    }
+
+    pub async fn watch_config_changes<F>(&self, callback: F) -> Result<(), Error>
+    where
+        F: Fn(&str, &str) + Send + 'static,
+    {
+        let mut stream = self.proxy.receive_config_changed().await?;
+
+        tokio::spawn(async move {
+            while let Some(signal) = stream.next().await {
+                if let Ok(args) = signal.args() {
+                    callback(args.key, args.value);
+                }
+            }
+        });
+
+        Ok(())
+    }
+}
+```
+
+### 3.3 WHEN configuring D-Bus policy
+
+```xml
+<!-- ✅ CORRECT - /etc/dbus-1/system.d/com.company.MyService.conf -->
+<!DOCTYPE busconfig PUBLIC
+ "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <!-- Only myapp user can own the service -->
+  <policy user="myapp">
+    <allow own="com.company.MyService"/>
+  </policy>
+
+  <!-- Root can do anything with the service -->
+  <policy user="root">
+    <allow send_destination="com.company.MyService"/>
+    <allow receive_sender="com.company.MyService"/>
+  </policy>
+
+  <!-- Default policy: deny everything -->
+  <policy context="default">
+    <deny own="com.company.MyService"/>
+    <deny send_destination="com.company.MyService"/>
+  </policy>
+
+  <!-- Console users can access public interface only -->
+  <policy at_console="true">
+    <allow send_destination="com.company.MyService"
+           send_interface="com.company.MyService.Public"/>
+
+    <!-- Allow introspection -->
+    <allow send_destination="com.company.MyService"
+           send_interface="org.freedesktop.DBus.Introspectable"/>
+
+    <allow send_destination="com.company.MyService"
+           send_interface="org.freedesktop.DBus.Properties"/>
+  </policy>
+
+  <!-- Specific group can access config interface -->
+  <policy group="myapp-admins">
+    <allow send_destination="com.company.MyService"
+           send_interface="com.company.MyService.Config"/>
+  </policy>
+
+  <!-- Message size limits -->
+  <limit name="max_message_size">1000000</limit>
+  <limit name="max_message_unix_fds">16</limit>
+
+  <!-- Connection limits -->
+  <limit name="max_connections_per_user">100</limit>
+  <limit name="max_pending_service_starts">100</limit>
+</busconfig>
+```
+
+### 3.4 WHEN using D-Bus with Python
 
 ```python
-# secure_dbus.py
-class SecureDBusClient:
-    BLOCKED_SERVICES = {'org.freedesktop.PolicyKit1'}
+# ❌ WRONG - No error handling, synchronous
+from dbus_next.aio import MessageBus
 
-    def get_object(self, bus_name: str, object_path: str):
-        if bus_name in self.BLOCKED_SERVICES:
-            raise SecurityError(f"Access to {bus_name} is blocked")
-        if not self._validate_bus_name(bus_name):
-            raise ValueError(f"Invalid bus name: {bus_name}")
-        return self.bus.get_object(bus_name, object_path)
+bus = MessageBus().connect_sync()
+introspection = bus.introspect_sync('com.company.MyService', '/com/company/MyService')
+proxy = bus.get_proxy_object('com.company.MyService', '/com/company/MyService', introspection)
+result = proxy.get_interface('com.company.MyService').call_get_config_sync('key')
+
+# ✅ CORRECT - Async client with validation
+from dbus_next.aio import MessageBus
+from dbus_next import BusType, Variant
+from typing import Optional
+import asyncio
+
+class MyServiceClient:
+    MAX_KEY_LENGTH = 256
+    MAX_VALUE_LENGTH = 4096
+    TIMEOUT = 30.0
+
+    def __init__(self):
+        self._bus: Optional[MessageBus] = None
+        self._interface = None
+
+    async def connect(self, bus_type: BusType = BusType.SESSION) -> None:
+        """Connect to the D-Bus service."""
+        self._bus = await MessageBus(bus_type=bus_type).connect()
+
+        # Verify service exists
+        try:
+            introspection = await asyncio.wait_for(
+                self._bus.introspect('com.company.MyService', '/com/company/MyService'),
+                timeout=self.TIMEOUT,
+            )
+        except asyncio.TimeoutError:
+            raise ConnectionError("Service not responding")
+        except Exception as e:
+            raise ConnectionError(f"Failed to connect: {e}")
+
+        proxy = self._bus.get_proxy_object(
+            'com.company.MyService',
+            '/com/company/MyService',
+            introspection,
+        )
+        self._interface = proxy.get_interface('com.company.MyService')
+
+    async def get_config(self, key: str) -> str:
+        """Get a configuration value."""
+        if not self._interface:
+            raise RuntimeError("Not connected")
+
+        # Validate input
+        if len(key) > self.MAX_KEY_LENGTH:
+            raise ValueError("Key too long")
+        if not key.replace('.', '').replace('_', '').isalnum():
+            raise ValueError("Invalid key format")
+
+        try:
+            return await asyncio.wait_for(
+                self._interface.call_get_config(key),
+                timeout=self.TIMEOUT,
+            )
+        except Exception as e:
+            # Map D-Bus errors to Python exceptions
+            error_name = getattr(e, 'type', '')
+            if 'AccessDenied' in error_name:
+                raise PermissionError("Access denied")
+            if 'LimitsExceeded' in error_name:
+                raise RuntimeError("Rate limit exceeded")
+            raise
+
+    async def watch_changes(self, callback) -> None:
+        """Watch for configuration changes."""
+        if not self._interface:
+            raise RuntimeError("Not connected")
+
+        def on_config_changed(key: str, value: str):
+            # Validate before passing to callback
+            if len(key) <= self.MAX_KEY_LENGTH and len(value) <= self.MAX_VALUE_LENGTH:
+                callback(key, value)
+
+        self._interface.on_config_changed(on_config_changed)
+
+    async def close(self) -> None:
+        """Close the connection."""
+        if self._bus:
+            self._bus.disconnect()
+            self._bus = None
+            self._interface = None
+
+
+# Usage
+async def main():
+    client = MyServiceClient()
+    try:
+        await client.connect()
+        value = await client.get_config("app.setting")
+        print(f"Config value: {value}")
+    except PermissionError:
+        print("Permission denied")
+    except ConnectionError as e:
+        print(f"Connection failed: {e}")
+    finally:
+        await client.close()
 ```
 
-### Step 3: Refactor Following Patterns
+### 3.5 WHEN creating a systemd service file
 
-Add logging, credential validation, and property caching.
+```ini
+# ✅ CORRECT - /etc/systemd/system/myapp-dbus.service
+[Unit]
+Description=MyApp D-Bus Service
+After=dbus.service
+Requires=dbus.service
 
-### Step 4: Run Full Verification
+[Service]
+Type=dbus
+BusName=com.company.MyService
+ExecStart=/usr/bin/myapp-service
+
+# Security hardening
+User=myapp
+Group=myapp
+
+# Capabilities
+CapabilityBoundingSet=
+NoNewPrivileges=yes
+
+# Filesystem restrictions
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+ReadWritePaths=/var/lib/myapp
+
+# Network restrictions (if not needed)
+PrivateNetwork=yes
+
+# System call filtering
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+# Resource limits
+LimitNOFILE=1024
+MemoryMax=256M
+CPUQuota=50%
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+Alias=dbus-com.company.MyService.service
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Allow `send_destination="*"` in policies
+- Skip caller verification for privileged methods
+- Trust D-Bus message content without validation
+- Send secrets over D-Bus unencrypted
+- Use synchronous D-Bus calls in async code
+- Expose internal error details in responses
+- Allow unlimited message sizes
+- Skip rate limiting for public interfaces
+
+---
+
+## 5. Testing
+
+**ALWAYS test D-Bus services:**
 
 ```bash
-# Run tests
-pytest tests/test_dbus_client.py -v
+#!/bin/bash
+# Test D-Bus service
 
-# Type checking
-mypy secure_dbus.py --strict
+set -euo pipefail
 
-# Coverage
-pytest --cov=secure_dbus --cov-report=term-missing
+SERVICE="com.company.MyService"
+OBJECT="/com/company/MyService"
+INTERFACE="com.company.MyService"
+
+# Test service is running
+dbus-send --session --print-reply \
+  --dest=org.freedesktop.DBus / org.freedesktop.DBus.ListNames | \
+  grep -q "$SERVICE" || echo "Service not running"
+
+# Test public method
+dbus-send --session --print-reply \
+  --dest="$SERVICE" "$OBJECT" \
+  "$INTERFACE.GetVersion"
+
+# Test access control (should fail for unprivileged user)
+if dbus-send --session --print-reply \
+  --dest="$SERVICE" "$OBJECT" \
+  "$INTERFACE.SetConfig" \
+  string:"test.key" string:"value" 2>&1 | grep -q "AccessDenied"; then
+  echo "Access control working"
+else
+  echo "WARNING: Access control may not be working"
+fi
+
+# Monitor signals
+timeout 5 dbus-monitor "type='signal',interface='$INTERFACE'" || true
 ```
 
 ---
 
-## 7. Performance Best Practices
+## 6. Pre-Generation Checklist
 
-D-Bus operations can be performance-critical. Follow these key principles:
+**BEFORE generating any D-Bus code:**
 
-1. **Connection Reuse**: Create D-Bus connections once and reuse them
-2. **Signal Filtering**: Filter signals at subscription time, not in handlers
-3. **Async Operations**: Use async calls for non-blocking operations
-4. **Message Batching**: Use `GetAll()` instead of individual property reads
-5. **Property Caching**: Cache frequently accessed properties with TTL
-
-**See**: `references/performance-optimization.md` for detailed patterns and benchmarks
-
----
-
-## 8. Security-First D-Bus Client
-
-**Key Components**:
-
-1. **SecureDBusClient**: Core client with service blocklists and validation
-2. **SecureSignalMonitor**: Signal handling with allowlists
-3. **SecurePropertyAccess**: Property operations with access control
-4. **ServiceDiscovery**: Safe service introspection
-
-**Blocked Services** (CRITICAL - Never allow access):
-- `org.freedesktop.PolicyKit1` - Privilege escalation
-- `org.freedesktop.systemd1` - System service control
-- `org.freedesktop.login1` - Session/power management
-- `org.gnome.keyring`, `org.freedesktop.secrets` - Secret storage
-- `org.freedesktop.PackageKit` - Package installation
-
-**Implementation Example**:
-```python
-from secure_dbus import SecureDBusClient
-
-# Create secure client (session bus, standard tier)
-client = SecureDBusClient(bus_type='session', permission_tier='standard')
-
-# Call method with automatic validation and logging
-result = client.call_method(
-    'org.freedesktop.Notifications',
-    '/org/freedesktop/Notifications',
-    'org.freedesktop.Notifications',
-    'Notify',
-    'App', 0, '', 'Summary', 'Body', [], {}, 5000
-)
-```
-
-**See**: `references/advanced-patterns.md` for complete implementation patterns
-
----
-
-## 9. Security Standards
-
-### Critical Vulnerabilities to Mitigate
-
-1. **Privilege Escalation via PolicyKit** (CVE-2021-4034) - CRITICAL
-   - Mitigation: Block PolicyKit service access
-
-2. **D-Bus Authentication Bypass** (CVE-2022-42012) - HIGH
-   - Mitigation: Validate peer credentials
-
-3. **Service Impersonation** (CWE-290) - HIGH
-   - Mitigation: Verify service credentials
-
-4. **Method Injection** (CWE-74) - MEDIUM
-   - Mitigation: Input validation, service allowlists
-
-5. **Information Disclosure** (CWE-200) - MEDIUM
-   - Mitigation: Property access control
-
-### Permission Tier Model
-
-- **read-only**: Session bus, read operations only
-- **standard**: Session bus, full operations (default)
-- **elevated**: System bus access (requires explicit approval)
-
-**See**: `references/threat-model.md` for complete STRIDE analysis and security controls
-**See**: `references/security-examples.md` for secure implementation examples
-
----
-
-## 10. Anti-Patterns to Avoid
-
-Common D-Bus mistakes that lead to security issues and poor performance:
-
-1. ❌ Using system bus when session bus is sufficient
-2. ❌ Allowing access to PolicyKit and systemd
-3. ❌ Skipping timeout enforcement
-4. ❌ Creating new connections for each operation
-5. ❌ Not validating bus names and paths
-6. ❌ No audit logging
-7. ❌ Receiving all signals without filtering
-8. ❌ Skipping peer credential validation
-9. ❌ Individual property reads instead of batching
-10. ❌ Generic exception handling losing error details
-
-**See**: `references/anti-patterns.md` for detailed examples and corrections
-
----
-
-## 11. Pre-Deployment Checklist
-
-Before deploying D-Bus code:
-- [ ] Service blocklist configured and enforced
-- [ ] Session bus preferred over system bus
-- [ ] Timeout enforcement on all method calls
-- [ ] Peer credential validation implemented
-- [ ] Comprehensive audit logging enabled
-- [ ] Property access control configured
-- [ ] Connection pooling/reuse implemented
-- [ ] Error handling with specific D-Bus exceptions
-
----
-
-## 12. Summary
-
-Your goal is to create D-Bus automation that is:
-- **Secure**: Service blocklists, credential validation, access control
-- **Reliable**: Timeout enforcement, error handling, retry logic
-- **Performant**: Connection reuse, signal filtering, property caching
-- **Minimal**: Session bus by default, least privilege principle
-
-**Security Reminders**:
-1. Always prefer session bus over system bus
-2. Block access to PolicyKit and systemd services
-3. Validate peer credentials for sensitive operations
-4. Enforce timeouts on all method calls
-5. Log all operations for security audit
-
----
-
-## 13. References
-
-### Core Documentation
-- `references/advanced-patterns.md` - Complete implementation patterns
-- `references/security-examples.md` - Security-focused code examples
-- `references/threat-model.md` - STRIDE analysis and threat scenarios
-- `references/performance-optimization.md` - Performance patterns and benchmarks
-- `references/anti-patterns.md` - Common mistakes and how to avoid them
-
-### External Resources
-- [D-Bus Specification](https://dbus.freedesktop.org/doc/dbus-specification.html)
-- [D-Bus Tutorial](https://dbus.freedesktop.org/doc/dbus-tutorial.html)
-- [Python D-Bus Documentation](https://dbus.freedesktop.org/doc/dbus-python/)
+- [ ] D-Bus policy file defines explicit permissions
+- [ ] Default policy denies all access
+- [ ] Caller verification for privileged methods
+- [ ] Input validation on all method arguments
+- [ ] Rate limiting implemented
+- [ ] Message size limits configured
+- [ ] Error responses don't leak internals
+- [ ] Systemd service hardened
+- [ ] Signals validated before processing
+- [ ] Async patterns used (no blocking)

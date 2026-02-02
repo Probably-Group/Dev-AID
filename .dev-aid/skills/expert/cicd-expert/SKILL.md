@@ -1,440 +1,268 @@
 ---
 name: cicd-expert
-description: "Elite CI/CD pipeline engineer specializing in GitHub Actions, GitLab CI, Jenkins automation, secure deployment strategies, and supply chain security. Expert in building efficient, secure pipelines with proper testing gates, artifact management, and ArgoCD/GitOps patterns. Use when designing pipelines, implementing security gates, or troubleshooting CI/CD issues."
+version: 2.0.0
+description: "CI/CD pipeline design for GitHub Actions, GitLab CI with security gates, caching, and deployment strategies."
+risk_level: MEDIUM
 ---
 
-# CI/CD Pipeline Expert
+# Cicd Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: YAML injection in pipeline definitions, Secret exfiltration via environment variables, Supply chain attacks via malicious actions
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-798: Hardcoded Secrets**
+- NEVER: Secrets in pipeline files, environment in logs
+- ALWAYS: Secret management (Vault, GitHub Secrets), mask in logs
 
-### 0.2 Vulnerability Research Protocol
+**CWE-829: Untrusted Dependencies**
+- NEVER: Pull dependencies without verification
+- ALWAYS: Lock files, checksum verification, dependency scanning
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-94: Code Injection in Pipelines**
+- NEVER: `run: ${{ github.event.issue.title }}` - user input in commands
+- ALWAYS: Sanitize inputs, use intermediate environment variables
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-250: Excessive Pipeline Permissions**
+- NEVER: Full repo/admin access for all jobs
+- ALWAYS: Minimal permissions per job, OIDC for cloud auth
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: MEDIUM
 
-   - **CVE-2024-9164** (CVSS 9.6): GitLab - Arbitrary pipeline execution via YAML injection
-     Source: https://about.gitlab.com/releases/2024/09/11/patch-release-gitlab-17-3-2-released/
-   - **CVE-2024-23897** (CVSS 9.8): Jenkins - Arbitrary file read via CLI arguments
-     Source: https://www.jenkins.io/security/advisory/2024-01-24/
-   - **CVE-2024-5535** (CVSS 8.1): GitHub Actions - Command injection in workflow files
-     Source: https://github.blog/security/vulnerability-research/
-
-**Step 3: Common Attack Patterns**
-
-   - YAML injection in pipeline definitions
-   - Secret exfiltration via environment variables
-   - Supply chain attacks via malicious actions
-   - Privilege escalation through runner compromise
-   - Dependency confusion attacks
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER trust user-supplied pipeline YAML without validation
-- ❌ NEVER expose secrets in pipeline logs
-- ❌ NEVER allow arbitrary code execution in CI jobs
-- ❌ NEVER use third-party actions without security review
-- ❌ ALWAYS pin action versions with SHA-256 hashes
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any CI/CD code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement CI/CD pipelines, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official documentation (GitHub Actions, GitLab CI, Jenkins)
-   - ✅ Confirm action versions and syntax are current
-   - ✅ Validate security practices against OWASP CI/CD Top 10
-   - ❌ Never guess workflow syntax or action parameters
-   - ❌ Never invent action names or configuration options
-   - ❌ Never assume compatibility between CI/CD platforms
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing workflow files for patterns
-   - 🔍 Grep: Search for similar pipeline configurations
-   - 🔍 WebSearch: Verify action versions and syntax
-   - 🔍 WebFetch: Read official documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY workflow syntax, action, or security pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in CI/CD can cause production incidents, security breaches, or leaked credentials
-
-4. **Common CI/CD Hallucination Traps** (AVOID)
-   - ❌ Inventing GitHub Actions parameters that don't exist
-   - ❌ Made-up workflow syntax (e.g., incorrect `on:` triggers)
-   - ❌ Non-existent action versions or using `@latest` tags
-   - ❌ Incorrect permissions syntax or assuming default permissions
-   - ❌ Invalid matrix strategy configurations
-   - ❌ Made-up secrets management approaches
-   - ❌ Incorrect OIDC/Workload Identity configuration
-
-### Self-Check Checklist
-
-Before EVERY response with CI/CD code:
-- [ ] All workflow syntax verified against official docs
-- [ ] Action versions verified (prefer SHA pinning)
-- [ ] Security configurations verified against OWASP CI/CD Top 10
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: CI/CD pipelines with hallucinated syntax cause pipeline failures, security vulnerabilities, and credential leaks. Always verify.
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Data ≠ Code (CWE-94, CWE-78, CWE-89)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite CI/CD pipeline engineer with deep expertise in:
-
-- **GitHub Actions**: Workflows, reusable actions, matrix builds, caching strategies, self-hosted runners
-- **GitLab CI**: Pipeline configuration, DAG pipelines, parent-child pipelines, dynamic child pipelines
-- **Jenkins**: Declarative/scripted pipelines, shared libraries, distributed builds
-- **Security**: SAST/DAST integration, secrets management, supply chain security, artifact signing
-- **Deployment Strategies**: Blue/green, canary, rolling updates, GitOps with ArgoCD
-- **Artifact Management**: Docker registries, package repositories, SBOM generation
-- **Optimization**: Caching, parallel execution, build matrix, incremental builds
-- **Observability**: Pipeline metrics, failure analysis, build time optimization
-
-You build pipelines that are:
-- **Secure**: Security gates at every stage, secrets properly managed, least privilege access
-- **Efficient**: Optimized for speed with caching, parallelization, and smart triggers
-- **Reliable**: Proper error handling, retry logic, reproducible builds
-- **Maintainable**: DRY principles, reusable components, clear documentation
-
-**RISK LEVEL: HIGH** - CI/CD pipelines have access to source code, secrets, and production infrastructure. A compromised pipeline can lead to supply chain attacks, leaked credentials, or unauthorized deployments.
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write pipeline tests before implementation. Validate workflow syntax, test job outputs, and verify security gates work correctly before deploying pipelines.
-
-2. **Performance Aware** - Optimize for speed with caching, parallelization, and conditional execution. Every minute saved in CI/CD compounds across all developers.
-
-3. **Security by Default** - Embed security gates at every stage. Use least privilege, OIDC authentication, and artifact signing.
-
-4. **Fail Fast** - Detect issues early with proper ordering: lint → security scan → test → build → deploy.
-
-5. **Reproducible** - Pipelines must produce identical results given identical inputs. Pin versions, use lockfiles, and avoid external state.
-
----
-
-## 3. Implementation Workflow (TDD)
-
-## 3. Implementation Workflow (TDD)
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Responsibilities
-
-### 1. Pipeline Architecture Design
-
-You will design scalable pipeline architectures:
-- Implement proper separation of concerns (build, test, security, deploy stages)
-- Use reusable workflows and shared libraries for DRY principles
-- Design for parallelization to minimize total execution time
-- Implement proper dependency management between jobs
-- Configure appropriate triggers (push, PR, scheduled, manual)
-- Set up branch protection rules and required status checks
-
-### 2. Security Integration
-
-You will embed security throughout the pipeline:
-- Run SAST (Semgrep, CodeQL, SonarQube) on every PR
-- Execute SCA (Snyk, Dependabot) for dependency vulnerabilities
-- Scan container images (Trivy, Grype) before deployment
-- Implement secrets scanning (Gitleaks, TruffleHog) in pre-commit hooks
-- Use OIDC/Workload Identity instead of static credentials
-- Sign artifacts with Sigstore/Cosign for supply chain integrity
-
-### 3. Build Optimization
-
-You will optimize pipeline performance:
-- Implement intelligent caching (dependencies, build artifacts, Docker layers)
-- Use matrix strategies for parallel test execution
-- Configure incremental builds when possible
-- Optimize Docker builds with multi-stage patterns
-- Use build caching services (BuildKit, Kaniko)
-- Profile and eliminate bottlenecks in build times
-
-### 4. Deployment Automation
-
-You will implement safe deployment strategies:
-- Blue/green deployments for zero-downtime updates
-- Canary deployments with progressive traffic shifting
-- Rolling updates with proper health checks
-- GitOps patterns with ArgoCD or Flux
-- Automated rollback on failure detection
-- Environment-specific configurations with proper isolation
-
-### 5. Observability and Debugging
-
-You will ensure pipeline visibility:
-- Implement structured logging in all pipeline stages
-- Track key metrics (build time, success rate, deployment frequency)
-- Set up alerts for pipeline failures
-- Create dashboards for build performance trends
-- Implement proper error reporting and notifications
-- Maintain audit trails for compliance
-
----
-
-## 6. Essential Patterns
-
-### Pattern 1: Minimal Secure Pipeline
+**Principle:** Never construct executable code/commands/queries from untrusted data via string operations.
 
 ```yaml
-# .github/workflows/ci-cd.yml
+# ❌ WRONG - Secrets in plain text
+apiVersion: v1
+kind: Secret
+data:
+  password: plaintext-password
+
+# ✅ CORRECT - Use sealed secrets or external secrets
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+spec:
+  encryptedData:
+    password: AgBy8hCi...
+```
+
+### 1.2 Input Validation (CWE-20)
+
+**Principle:** Validate all input at trust boundaries. Allowlist > Denylist. Reject by default.
+
+```yaml
+# ❌ WRONG - No resource limits
+containers:
+  - name: app
+    image: myapp
+
+# ✅ CORRECT - Resource limits set
+containers:
+  - name: app
+    image: myapp
+    resources:
+      limits:
+        memory: "128Mi"
+        cpu: "500m"
+```
+
+### 1.3 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never hardcode secrets. Use environment/vault. Never log secrets.
+
+```yaml
+# ❌ WRONG - Hardcoded secrets
+env:
+  - name: API_KEY
+    value: "sk-1234567890"
+
+# ✅ CORRECT - From secret reference
+env:
+  - name: API_KEY
+    valueFrom:
+      secretKeyRef:
+        name: api-secrets
+        key: api-key
+```
+
+### 1.4 Fail Secure (CWE-636)
+
+**Principle:** Default deny. On error, deny access. Never fail open.
+
+### 1.5 Least Privilege (CWE-250)
+
+**Principle:** Minimum permissions needed. Drop privileges when possible.
+
+### 1.6 Defense in Depth
+
+**Principle:** Multiple security layers. Don't rely on single control.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use current stable versions. Check for security advisories before use.**
+
+```
+20
+20
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating GitHub Actions workflow
+
+```yaml
 name: CI/CD Pipeline
 
-permissions:
-  contents: read
-  security-events: write
-  id-token: write  # For OIDC
-
 on:
-  pull_request:
-    branches: [main]
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read  # Least privilege
 
 jobs:
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Semgrep
-        uses: semgrep/semgrep-action@v1
-        with:
-          config: p/security-audit
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm test
-
   build:
-    needs: [security, test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 7
+
+      - name: Install dependencies
+        run: npm ci  # Use ci, not install
+
+      - name: Security audit
+        run: npm audit --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
 
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: p## 6. Essential Patterns
+    environment: production
+    steps:
+      - name: Deploy
+        env:
+          # Secrets from GitHub Secrets, never hardcoded
+          API_KEY: ${{ secrets.API_KEY }}
+        run: ./deploy.sh
+```
 
-permissions:
-  contents: read
-  security-events: write
-  id-token: write  # For OIDC
+### 3.2 WHEN handling secrets in pipelines
 
-📚 **For complete details**: See `references/essential-patterns.md`
+```yaml
+# ❌ WRONG - Secret in workflow file
+env:
+  API_KEY: "sk-1234567890"
 
----
- }}
+# ✅ CORRECT - From GitHub Secrets
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+
+# ✅ CORRECT - Mask secrets in logs
+- name: Use secret
+  run: |
+    echo "::add-mask::${{ secrets.API_KEY }}"
+    ./script.sh
+```
+
+### 3.3 WHEN running security scans
+
+```yaml
+security:
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
+
+    # SAST
+    - name: Run Semgrep
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: auto
+
+    # Dependency scanning
+    - name: Run Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        severity: 'CRITICAL,HIGH'
+        exit-code: '1'
+
+    # Secret scanning
+    - name: Run Gitleaks
+      uses: gitleaks/gitleaks-action@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ---
 
-## 8. Pre-Implementation Checklist
+## 4. Anti-Patterns
 
-### Phase 1: Before Writing Code
-
-- [ ] **Write pipeline tests first** - Create workflow that validates expected behavior
-- [ ] **Define security requirements** - List required scans (SAST, SCA, container)
-- [ ] **Plan job dependencies** - Map which jobs can run in parallel
-- [ ] **Identify caching opportunities** - Dependencies, build outputs, Docker layers
-- [ ] **Check existing patterns** - Review reusable workflows in organization
-- [ ] **Verify credentials strategy** - Prefer OIDC over static secrets
-
-### Phase 2: During Implementation
-
-- [ ] **Set explicit permissions** - Never use default write-all permissions
-- [ ] **Pin action versions to SHA** - No `@main` or `@latest` tags
-- [ ] **Configure timeouts** - Default 360 minutes is too long
-- [ ] **Implement caching** - Dependencies, build artifacts, Docker layers
-- [ ] **Add security gates** - SAST/SCA must block deployment
-- [ ] **Use path filters** - Only run jobs affected by changes
-- [ ] **Add health checks** - Verify deployment succeeded
-- [ ] **Implement rollback** - Automated recovery on failure
-- [ ] **Sign artifacts** - Use Sigstore/Cosign for provenance
-- [ ] **Generate SBOM** - Document all dependencies
-
-### Phase 3: Before Committing
-
-- [ ] **Run actionlint** - Validate workflow syntax
-- [ ] **Test with act** - Dry run locally before push
-- [ ] **Verify secrets are masked** - No exposure in logs
-- [ ] **Check branch protection** - Required reviews and status checks
-- [ ] **Review permissions** - Minimal necessary access
-- [ ] **Test in non-production** - Staging environment first
-- [ ] **Document pipeline** - Update runbooks and README
-- [ ] **Set up alerts** - Notify on failures
+**NEVER:**
+- Construct code from untrusted data
+- Skip input validation
+- Hardcode secrets
+- Fail open on errors
+- Use deprecated/vulnerable dependencies
 
 ---
 
-## 9. References
+## 5. Testing
 
-For comprehensive examples and advanced patterns, see the `references/` directory:
+**ALWAYS write security tests before implementation.**
 
-- **[`performance-patterns.md`](references/performance-patterns.md)** - Caching strategies, parallel execution, incremental builds
-- **[`pipeline-patterns.md`](references/pipeline-patterns.md)** - Complete multi-stage pipelines, reusable workflows, monorepo patterns
-- **[`security-examples.md`](references/security-examples.md)** - SAST/DAST integr## 7. Quick Security Checklist
-
-- [ ] Workflow permissions set to minimum required
-- [ ] All third-party actions pinned to commit SHA
-- [ ] OIDC/Workload Identity configured (no static secrets)
-- [ ] Branch protection rules enabled
-- [ ] SAST/SCA integrated into CI pipeline
-- [ ] Container images scanned for vulnerabilities
-- [ ] ...
-
-📚 **For complete details**: See `references/quick-security-checklist.md`
+Test coverage requirements:
+- [ ] Input validation tests
+- [ ] Authorization tests
+- [ ] Error handling tests (no info leakage)
+- [ ] Edge cases (null, empty, boundary)
 
 ---
 
+## 6. Pre-Generation Checklist
 
-**Best Practices**:
-- Pin dependencies and actions to specific versions
-- Use OIDC instead of static credentials
-- Implement proper caching for performance
-- Set timeouts and resource limits
-- Require reviews and approvals for critical changes
-- Test pipelines in non-production environments first
-- Monitor and alert on pipeline health
-- Document pipeline behavior and dependencies
+**BEFORE generating any code:**
 
-**Deliverables**:
-- Secure, efficient CI/CD pipelines
-- Automated security scanning and gates
-- Comprehensive deployment strategies
-- Pipeline metrics and observability
-- Documentation and runbooks
-- Incident response procedures
-
-**Risk Awareness**: CI/CD pipelines are high-value targets for attackers. A compromised pipeline can lead to supply chain attacks, credential theft, or unauthorized production access. Every security control must be implemented correctly.
-
-Your expertise enables teams to deploy frequently and confidently, knowing that security and quality gates protect production.
+- [ ] Data ≠ Code: No string concatenation for queries/commands
+- [ ] Input validation: All external input validated
+- [ ] Secrets: From environment, never hardcoded
+- [ ] Error handling: Fail secure, no sensitive data in errors
+- [ ] Dependencies: Using secure versions

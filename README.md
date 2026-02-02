@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.3.0--beta.11-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.3.0--beta.12-brightgreen.svg)](.dev-aid/VERSION)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with context-aware expertise that auto-loads based on your work, dual-AI review that catches what you'd miss, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
@@ -58,7 +58,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI) with:
 - **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
 - **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
 - **🔍 Local Code Search** - 100% private, $0 forever, 0.15s queries
-- **🎓 72 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
+- **🎓 73 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
 - **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging 🆕
 - **🔒 Security Automation** - 5 tools run on every commit
 
@@ -146,7 +146,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Enhancement layer, not replacement** | Keep using Claude Code, Cursor, or Gemini CLI — Dev-AID makes them all smarter |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → 23% fewer bugs reach production |
 | **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. |
-| **72 expert + 7 process skills** | Auto-loads domain expertise (FastAPI, TDD, DevSecOps) based on your project |
+| **73 expert + 7 process skills** | Auto-loads domain expertise (FastAPI, TDD, DevSecOps) based on your project |
 | **5-tool security automation** | Gitleaks, Trivy, Opengrep, Hadolint, Checkov — runs automatically on every commit |
 | **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
 
@@ -171,7 +171,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
 │  • MCP integration (databases, GitHub, etc) │
-│  • 5 core + 72 expert + 7 process skills    │
+│  • 5 core + 73 expert + 7 process skills    │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • Specialized workflows (slash commands)   │
@@ -211,7 +211,7 @@ Real-World Examples:
 | **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
-| **🎓 72 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
 | **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |

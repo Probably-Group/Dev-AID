@@ -1,426 +1,807 @@
-# Model Context Protocol (MCP) Skill
-
-```yaml
-name: mcp-protocol-expert
+---
+name: mcp
+version: 2.0.0
+description: "Model Context Protocol server implementation for extending Claude with custom tools and resources."
 risk_level: HIGH
-description: Expert in Model Context Protocol server/client implementation, tool registration, transport layers, and secure MCP integrations
-version: 1.1.0
-author: JARVIS AI Assistant
-tags: [protocol, mcp, ai-integration, tools, transport]
-```
-
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Model Context Protocol (MCP) - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: RCE via malicious MCP servers, OAuth token theft, Indirect prompt injection
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-78: Tool Command Injection**
+- NEVER: Pass user input directly to shell tools
+- ALWAYS: Validate/sanitize all tool parameters
 
-### 0.2 Vulnerability Research Protocol
+**CWE-285: Resource Authorization**
+- NEVER: Expose resources without access control
+- ALWAYS: Scope resources to user context, validate permissions
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-200: Context Exposure**
+- NEVER: Include secrets in tool responses
+- ALWAYS: Filter sensitive data from responses
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Tool Execution Safety (CWE-78)
+
+**Principle:** Never execute arbitrary commands from tool arguments. Validate and allowlist.
+
+```typescript
+// ❌ WRONG - Command injection
+server.tool("execute", async ({ command }) => {
+  return exec(command);  // User controls command!
+});
+
+// ✅ CORRECT - Allowlisted commands only
+const ALLOWED_COMMANDS = ['ls', 'pwd', 'whoami'] as const;
+
+server.tool("execute", async ({ command }) => {
+  if (!ALLOWED_COMMANDS.includes(command as any)) {
+    throw new Error(`Command not allowed: ${command}`);
+  }
+  return exec(command);
+});
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Input Validation (CWE-20)
 
-   - **CVE-2025-6514** (CVSS 9.6): Critical RCE in mcp-remote project
-     Source: https://jfrog.com/blog/2025-6514-critical-mcp-remote-rce-vulnerability/
-   - **MCP-COMMAND-INJECTION** (CVSS 8.8): Command injection in 43% of MCP servers
-     Source: https://strobes.co/blog/mcp-model-context-protocol-and-its-critical-vulnerabilities/
-   - **MCP-TOOL-POISONING** (CVSS 7.5): Tool poisoning in 5.5% of MCP servers
-     Source: https://arxiv.org/html/2504.03767v2
+**Principle:** Validate all tool inputs with strict schemas. Reject malformed requests.
 
-**Step 3: Common Attack Patterns**
+```typescript
+// ❌ WRONG - No validation
+server.tool("read_file", async ({ path }) => {
+  return fs.readFileSync(path, 'utf-8');
+});
 
-   - RCE via malicious MCP servers
-   - OAuth token theft
-   - Indirect prompt injection
-   - Tool poisoning
-   - Full system compromise
+// ✅ CORRECT - Validated with path restrictions
+import { z } from 'zod';
+import path from 'path';
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+const ReadFileSchema = z.object({
+  path: z.string()
+    .refine(p => !p.includes('..'), 'Path traversal not allowed')
+    .refine(p => p.startsWith('/allowed/'), 'Path outside allowed directory'),
+});
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+server.tool("read_file", ReadFileSchema, async ({ path: filePath }) => {
+  const resolved = path.resolve('/allowed', filePath);
+  if (!resolved.startsWith('/allowed/')) {
+    throw new Error('Path traversal detected');
+  }
+  return fs.readFileSync(resolved, 'utf-8');
+});
+```
 
-### 0.3 Hallucination Prevention Checklist
+### 1.3 Secrets Protection (CWE-798)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Never expose secrets through tool responses or errors.
 
-**Domain-Specific Security Rules**:
+```typescript
+// ❌ WRONG - Leaks secrets in error
+server.tool("connect", async ({ url }) => {
+  const apiKey = process.env.API_KEY;
+  throw new Error(`Failed to connect to ${url} with key ${apiKey}`);
+});
 
-- ❌ NEVER connect to untrusted MCP servers
-- ❌ NEVER store OAuth tokens insecurely
-- ❌ NEVER skip human approval for MCP tools
-- ❌ ALWAYS validate server certificates
-- ❌ ALWAYS implement strict tool permissions
+// ✅ CORRECT - Sanitized errors
+server.tool("connect", async ({ url }) => {
+  try {
+    return await connectToService(url);
+  } catch (e) {
+    throw new Error(`Failed to connect to ${url}`);
+  }
+});
+```
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+### 1.4 Resource Access Control (CWE-862)
 
-**If uncertain**: STOP and research. Never guess on security.
+**Principle:** Implement capability-based access. Don't give tools more access than needed.
 
+### 1.5 Rate Limiting (CWE-770)
 
-## 1. Overview
+**Principle:** Rate limit expensive operations. Prevent resource exhaustion.
 
-**Risk Level**: MEDIUM-RISK
+### 1.6 Prompt Injection Defense (CWE-74)
 
-**Justification**: MCP implementations handle AI tool execution, inter-process communication, and can access sensitive system resources. Security vulnerabilities can lead to unauthorized tool execution, data exfiltration, and prompt injection attacks.
-
-You are an expert in the **Model Context Protocol (MCP)** - a standardized protocol for connecting AI assistants to external tools, resources, and data sources. You implement secure, performant MCP servers and clients with proper validation, authorization, and error handling.
-
-### Core Principles
-
-1. **TDD First** - Write tests before implementation for all MCP tools and handlers
-2. **Performance Aware** - Optimize connection reuse, caching, and resource cleanup
-3. **Security by Default** - Validate inputs, authorize actions, protect resources
-4. **Principle of Least Privilege** - Tools only access what they need
-
-### Core Expertise
-- MCP server and client implementation
-- Tool registration and capability exposure
-- Transport layer configuration (stdio, HTTP, WebSocket)
-- Resource and prompt management
-- Security hardening for tool execution
-
-### Primary Use Cases
-- Building MCP servers to expose tools to AI assistants
-- Implementing MCP clients for tool consumption
-- Secure tool execution and authorization
-- Transport layer selection and configuration
-
-**File Organization**: Main concepts here; see `references/advanced-patterns.md` for complex implementations and `references/security-examples.md` for CVE mitigations.
+**Principle:** Sanitize all data before including in prompts. Mark user content clearly.
 
 ---
 
-## 2. Implementation Workflow (TDD)
+## 2. Version Requirements
 
-See `references/implementation-workflow.md` for complete details.
+**ALWAYS use these minimum versions:**
 
-## 3. Performance Patterns
-
-See `references/performance-patterns.md` for complete details.
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Responsibilities
-
-### Fundamental Duties
-1. **Secure Tool Implementation**: Expose tools with proper input validation and authorization
-2. **Transport Security**: Implement appropriate transport layers with encryption
-3. **Resource Protection**: Control access to files, databases, and system resources
-4. **Error Containment**: Handle errors without exposing sensitive information
-
----
-
-## 6. Technical Foundation
-
-### Version Recommendations
-| Component | LTS/Stable | Latest | Minimum |
-|-----------|------------|--------|---------|
-| MCP Protocol | 1.0.x | 1.1.x | 0.9.x |
-| TypeScript SDK | 0.6.x | 0.7.x | 0.5.x |
-| Python SDK | 1.1.x | 1.2.x | 1.0.x |
-
-### Essential Imports
-```python
-# Python
-from mcp.server import Server
-from mcp.server.stdio import stdio_server
-from pydantic import BaseModel, validator
-import asyncio
-import pytest
+```json
+{
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.0"
+  }
+}
 ```
 
 ---
 
-## 7. Implementation Patterns
+## 3. Code Patterns
 
-### 6.1 Secure MCP Server Setup
+### 3.1 WHEN creating an MCP server
 
-```python
-app = Server("secure-server")
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  CallToolRequestSchema,
+  ListToolsRequestSchema,
+  ListResourcesRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 
-class FileReadArgs(BaseModel):
-    path: str
+// Create server with metadata
+const server = new Server(
+  {
+    name: "my-mcp-server",
+    version: "1.0.0",
+  },
+  {
+    capabilities: {
+      tools: {},
+      resources: {},
+      prompts: {},
+    },
+  }
+);
 
-    @validator("path")
-    def validate_path(cls, v):
-        if ".." in v:
-            raise ValueError("Path traversal not allowed")
-        if not v.startswith("/allowed/"):
-            raise ValueError("Invalid directory")
-        return v
+// Define tool schemas
+const SearchSchema = z.object({
+  query: z.string().min(1).max(1000),
+  limit: z.number().int().min(1).max(100).default(10),
+});
 
-@app.call_tool()
-async def call_tool(name: str, arguments: dict):
-    if name != "read_file":
-        raise ValueError("Unknown tool")
+const ReadFileSchema = z.object({
+  path: z.string()
+    .refine(p => !p.includes('..'), 'No path traversal')
+    .refine(p => p.startsWith('/workspace/'), 'Must be in workspace'),
+});
 
-    args = FileReadArgs(**arguments)
-    content = await asyncio.wait_for(
-        read_file_secure(args.path), timeout=5.0
-    )
-    return [TextContent(type="text", text=content)]
+// List available tools
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  return {
+    tools: [
+      {
+        name: "search",
+        description: "Search for content in the knowledge base",
+        inputSchema: {
+          type: "object",
+          properties: {
+            query: { type: "string", description: "Search query" },
+            limit: { type: "number", description: "Max results (1-100)" },
+          },
+          required: ["query"],
+        },
+      },
+      {
+        name: "read_file",
+        description: "Read a file from the workspace",
+        inputSchema: {
+          type: "object",
+          properties: {
+            path: { type: "string", description: "File path within workspace" },
+          },
+          required: ["path"],
+        },
+      },
+    ],
+  };
+});
+
+// Handle tool calls
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  switch (name) {
+    case "search": {
+      const { query, limit } = SearchSchema.parse(args);
+      const results = await searchKnowledgeBase(query, limit);
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(results, null, 2),
+          },
+        ],
+      };
+    }
+
+    case "read_file": {
+      const { path: filePath } = ReadFileSchema.parse(args);
+      const content = await fs.promises.readFile(filePath, "utf-8");
+      return {
+        content: [
+          {
+            type: "text",
+            text: content,
+          },
+        ],
+      };
+    }
+
+    default:
+      throw new Error(`Unknown tool: ${name}`);
+  }
+});
+
+// Start server
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error("MCP server started");
+}
+
+main().catch(console.error);
 ```
 
-### 6.2 Tool Registration with Authorization
+### 3.2 WHEN implementing resources
 
-```python
-class DatabaseQueryArgs(BaseModel):
-    query: str
-    database: str
+```typescript
+import { ListResourcesRequestSchema, ReadResourceRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
-    @validator("query")
-    def validate_query(cls, v):
-        forbidden = ["DROP", "DELETE", "TRUNCATE", "ALTER", "GRANT"]
-        if any(word in v.upper() for word in forbidden):
-            raise ValueError("Forbidden SQL operation")
-        return v
+// Define resources
+interface ResourceDefinition {
+  uri: string;
+  name: string;
+  mimeType: string;
+  description?: string;
+}
 
-@app.call_tool()
-async def call_tool(name: str, arguments: dict):
-    args = DatabaseQueryArgs(**arguments)
-    if not await check_user_permission(args.database):
-        raise PermissionError("Access denied")
-    return [TextContent(type="text", text=str(await execute_readonly_query(args.database, args.query)))]
+const resources: Map<string, ResourceDefinition> = new Map([
+  ["config://app/settings", {
+    uri: "config://app/settings",
+    name: "Application Settings",
+    mimeType: "application/json",
+    description: "Current application configuration",
+  }],
+  ["file://workspace/readme", {
+    uri: "file://workspace/readme",
+    name: "README",
+    mimeType: "text/markdown",
+    description: "Project documentation",
+  }],
+]);
+
+// List resources
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: Array.from(resources.values()).map(r => ({
+      uri: r.uri,
+      name: r.name,
+      mimeType: r.mimeType,
+      description: r.description,
+    })),
+  };
+});
+
+// Read resource
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const { uri } = request.params;
+
+  // Validate URI format
+  const parsed = new URL(uri);
+
+  switch (parsed.protocol) {
+    case "config:": {
+      if (uri === "config://app/settings") {
+        const settings = await loadSettings();
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "application/json",
+              text: JSON.stringify(settings, null, 2),
+            },
+          ],
+        };
+      }
+      break;
+    }
+
+    case "file:": {
+      // Validate path is within workspace
+      const filePath = parsed.pathname;
+      const resolved = path.resolve("/workspace", filePath);
+
+      if (!resolved.startsWith("/workspace/")) {
+        throw new Error("Access denied: path outside workspace");
+      }
+
+      const content = await fs.promises.readFile(resolved, "utf-8");
+      const resource = resources.get(uri);
+
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: resource?.mimeType || "text/plain",
+            text: content,
+          },
+        ],
+      };
+    }
+  }
+
+  throw new Error(`Unknown resource: ${uri}`);
+});
+```
+
+### 3.3 WHEN implementing prompts
+
+```typescript
+import {
+  ListPromptsRequestSchema,
+  GetPromptRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+
+// Define prompt templates
+const prompts = new Map([
+  ["code-review", {
+    name: "code-review",
+    description: "Review code for quality and security issues",
+    arguments: [
+      {
+        name: "code",
+        description: "The code to review",
+        required: true,
+      },
+      {
+        name: "language",
+        description: "Programming language",
+        required: false,
+      },
+    ],
+  }],
+  ["explain", {
+    name: "explain",
+    description: "Explain code or concept in detail",
+    arguments: [
+      {
+        name: "topic",
+        description: "What to explain",
+        required: true,
+      },
+    ],
+  }],
+]);
+
+// List prompts
+server.setRequestHandler(ListPromptsRequestSchema, async () => {
+  return {
+    prompts: Array.from(prompts.values()),
+  };
+});
+
+// Get prompt
+server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+  const prompt = prompts.get(name);
+
+  if (!prompt) {
+    throw new Error(`Unknown prompt: ${name}`);
+  }
+
+  switch (name) {
+    case "code-review": {
+      const code = args?.code as string;
+      const language = args?.language as string || "unknown";
+
+      // Sanitize user input before including in prompt
+      const sanitizedCode = code.slice(0, 10000); // Limit size
+
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please review the following ${language} code for:
+1. Security vulnerabilities
+2. Performance issues
+3. Code quality and best practices
+4. Potential bugs
+
+<code language="${language}">
+${sanitizedCode}
+</code>
+
+Provide specific, actionable feedback.`,
+            },
+          },
+        ],
+      };
+    }
+
+    case "explain": {
+      const topic = args?.topic as string;
+      return {
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: `Please explain the following topic in detail:
+
+Topic: ${topic}
+
+Provide:
+1. A clear definition
+2. Key concepts
+3. Practical examples
+4. Common pitfalls to avoid`,
+            },
+          },
+        ],
+      };
+    }
+
+    default:
+      throw new Error(`Unknown prompt: ${name}`);
+  }
+});
+```
+
+### 3.4 WHEN implementing tool execution with timeouts
+
+```typescript
+import { setTimeout } from "timers/promises";
+
+// Timeout wrapper
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  message = "Operation timed out"
+): Promise<T> {
+  const timeout = setTimeout(ms).then(() => {
+    throw new Error(message);
+  });
+
+  return Promise.race([promise, timeout]);
+}
+
+// Rate limiter for expensive operations
+class RateLimiter {
+  private tokens: number;
+  private lastRefill: number;
+  private readonly maxTokens: number;
+  private readonly refillRate: number;
+
+  constructor(maxTokens: number, refillRatePerSecond: number) {
+    this.maxTokens = maxTokens;
+    this.tokens = maxTokens;
+    this.refillRate = refillRatePerSecond;
+    this.lastRefill = Date.now();
+  }
+
+  async acquire(): Promise<void> {
+    this.refill();
+
+    if (this.tokens < 1) {
+      const waitTime = (1 - this.tokens) / this.refillRate * 1000;
+      await setTimeout(waitTime);
+      this.refill();
+    }
+
+    this.tokens -= 1;
+  }
+
+  private refill(): void {
+    const now = Date.now();
+    const elapsed = (now - this.lastRefill) / 1000;
+    this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate);
+    this.lastRefill = now;
+  }
+}
+
+const searchRateLimiter = new RateLimiter(10, 1); // 10 burst, 1/sec refill
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  if (name === "search") {
+    // Rate limit
+    await searchRateLimiter.acquire();
+
+    // Execute with timeout
+    const result = await withTimeout(
+      searchKnowledgeBase(args.query as string),
+      30000,
+      "Search timed out after 30 seconds"
+    );
+
+    return {
+      content: [{ type: "text", text: JSON.stringify(result) }],
+    };
+  }
+
+  throw new Error(`Unknown tool: ${name}`);
+});
+```
+
+### 3.5 WHEN creating an MCP client
+
+```typescript
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { spawn } from "child_process";
+
+async function createMCPClient(serverCommand: string, serverArgs: string[]) {
+  // Spawn server process
+  const serverProcess = spawn(serverCommand, serverArgs, {
+    stdio: ["pipe", "pipe", "pipe"],
+  });
+
+  // Create transport
+  const transport = new StdioClientTransport({
+    reader: serverProcess.stdout,
+    writer: serverProcess.stdin,
+  });
+
+  // Create client
+  const client = new Client(
+    {
+      name: "my-client",
+      version: "1.0.0",
+    },
+    {
+      capabilities: {},
+    }
+  );
+
+  await client.connect(transport);
+
+  return { client, serverProcess };
+}
+
+// Use the client
+async function main() {
+  const { client, serverProcess } = await createMCPClient(
+    "node",
+    ["./my-mcp-server.js"]
+  );
+
+  try {
+    // List available tools
+    const tools = await client.listTools();
+    console.log("Available tools:", tools.tools.map(t => t.name));
+
+    // Call a tool
+    const result = await client.callTool({
+      name: "search",
+      arguments: { query: "MCP protocol", limit: 5 },
+    });
+
+    console.log("Search result:", result.content);
+
+    // List resources
+    const resources = await client.listResources();
+    console.log("Available resources:", resources.resources.map(r => r.uri));
+
+    // Read a resource
+    const content = await client.readResource({
+      uri: "config://app/settings",
+    });
+
+    console.log("Resource content:", content.contents);
+
+  } finally {
+    await client.close();
+    serverProcess.kill();
+  }
+}
+```
+
+### 3.6 WHEN handling errors properly
+
+```typescript
+import {
+  McpError,
+  ErrorCode,
+} from "@modelcontextprotocol/sdk/types.js";
+
+server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const { name, arguments: args } = request.params;
+
+  try {
+    // Validate arguments
+    if (!args || typeof args !== "object") {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        "Arguments must be an object"
+      );
+    }
+
+    switch (name) {
+      case "read_file": {
+        const schema = z.object({ path: z.string() });
+        const { path: filePath } = schema.parse(args);
+
+        try {
+          const content = await fs.promises.readFile(filePath, "utf-8");
+          return {
+            content: [{ type: "text", text: content }],
+          };
+        } catch (e) {
+          if ((e as NodeJS.ErrnoException).code === "ENOENT") {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `File not found: ${filePath}`
+            );
+          }
+          if ((e as NodeJS.ErrnoException).code === "EACCES") {
+            throw new McpError(
+              ErrorCode.InvalidParams,
+              `Permission denied: ${filePath}`
+            );
+          }
+          throw e;
+        }
+      }
+
+      default:
+        throw new McpError(
+          ErrorCode.MethodNotFound,
+          `Unknown tool: ${name}`
+        );
+    }
+  } catch (e) {
+    // Zod validation errors
+    if (e instanceof z.ZodError) {
+      throw new McpError(
+        ErrorCode.InvalidParams,
+        `Invalid arguments: ${e.errors.map(err => err.message).join(", ")}`
+      );
+    }
+
+    // Re-throw MCP errors
+    if (e instanceof McpError) {
+      throw e;
+    }
+
+    // Wrap unknown errors (don't leak internal details)
+    console.error("Tool error:", e);
+    throw new McpError(
+      ErrorCode.InternalError,
+      "An internal error occurred"
+    );
+  }
+});
 ```
 
 ---
 
-## 8. Security Standards
+## 4. Anti-Patterns
 
-### Vulnerability Landscape
+**NEVER:**
+- Execute arbitrary commands from tool arguments
+- Allow path traversal in file operations
+- Expose secrets in tool responses or errors
+- Skip input validation on any tool
+- Allow unlimited resource access
+- Include unsanitized user data in prompts
+- Ignore timeouts on long-running operations
 
-| Vulnerability | Severity | Mitigation |
-|--------------|----------|------------|
-| Prompt Injection | CRITICAL | Validate all inputs, sanitize outputs |
-| Tool Argument Injection | HIGH | Schema validation, allowlists |
-| Path Traversal | HIGH | Restrict to base directories |
+---
 
-### Input Validation Layers
+## 5. Testing
 
-```python
-from pydantic import BaseModel, validator, constr
-import re
+**ALWAYS write MCP server tests:**
 
-class CommandArgs(BaseModel):
-    command: constr(max_length=100)
-    args: list[constr(max_length=200)]
-    timeout: int
+```typescript
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
+import { createServer } from "./server.js";
 
-    @validator("command")
-    def validate_command(cls, v):
-        allowed = ["list", "read", "search"]
-        if v not in allowed:
-            raise ValueError("Invalid command")
-        return v
+describe("MCP Server", () => {
+  let client: Client;
+  let cleanup: () => Promise<void>;
 
-    @validator("timeout")
-    def validate_timeout(cls, v):
-        if not 100 <= v <= 30000:
-            raise ValueError("Timeout must be 100-30000ms")
-        return v
+  beforeAll(async () => {
+    const server = createServer();
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+
+    client = new Client({ name: "test", version: "1.0.0" }, {});
+    await Promise.all([
+      client.connect(clientTransport),
+      server.connect(serverTransport),
+    ]);
+
+    cleanup = async () => {
+      await client.close();
+    };
+  });
+
+  afterAll(async () => {
+    await cleanup();
+  });
+
+  it("lists available tools", async () => {
+    const result = await client.listTools();
+    expect(result.tools).toContainEqual(
+      expect.objectContaining({ name: "search" })
+    );
+  });
+
+  it("executes search tool", async () => {
+    const result = await client.callTool({
+      name: "search",
+      arguments: { query: "test", limit: 5 },
+    });
+
+    expect(result.content).toHaveLength(1);
+    expect(result.content[0].type).toBe("text");
+  });
+
+  it("rejects invalid tool arguments", async () => {
+    await expect(
+      client.callTool({
+        name: "search",
+        arguments: { query: "" }, // Empty query
+      })
+    ).rejects.toThrow(/invalid/i);
+  });
+
+  it("prevents path traversal", async () => {
+    await expect(
+      client.callTool({
+        name: "read_file",
+        arguments: { path: "../../../etc/passwd" },
+      })
+    ).rejects.toThrow(/traversal|denied/i);
+  });
+
+  it("handles unknown tools", async () => {
+    await expect(
+      client.callTool({
+        name: "unknown_tool",
+        arguments: {},
+      })
+    ).rejects.toThrow(/unknown/i);
+  });
+});
 ```
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Phase 1: Before Writing Code
-- [ ] Identify all tools to be exposed
-- [ ] Define input schemas with validation rules
-- [ ] Plan authorization model (who can use what)
-- [ ] Select transport layer (stdio/HTTP/WebSocket)
-- [ ] Write failing tests for each tool
-- [ ] Document expected security threats
+**BEFORE generating any MCP code:**
 
-### Phase 2: During Implementation
-- [ ] Implement tool handlers with Pydantic validation
-- [ ] Add path traversal and injection prevention
-- [ ] Implement authorization checks
-- [ ] Add timeouts to all async operations
-- [ ] Use connection pooling for external resources
-- [ ] Add response caching where appropriate
-- [ ] Implement proper resource cleanup
-- [ ] Keep tests passing after each change
-
-### Phase 3: Before Committing
-- [ ] All tests pass: `pytest tests/ -v`
-- [ ] Coverage meets threshold: `pytest --cov --cov-fail-under=80`
-- [ ] Security tests pass: `pytest -k "security or injection"`
-- [ ] No secrets in code (use environment variables)
-- [ ] Error messages don't expose internals
-- [ ] Audit logging enabled for tool executions
-- [ ] Rate limiting configured for HTTP transport
-- [ ] HTTPS configured for HTTP transport
-
----
-
-## 10. Testing & Validation
-
-### Security Testing
-
-```python
-class TestToolSecurity:
-    @pytest.mark.asyncio
-    async def test_rejects_path_traversal(self, server):
-        with pytest.raises(ValueError, match="Path traversal"):
-            await server.call_tool("read_file", {"path": "../../../etc/passwd"})
-
-    @pytest.mark.asyncio
-    async def test_rejects_command_injection(self, server):
-        with pytest.raises(ValueError, match="Invalid command"):
-            await server.call_tool("execute", {"command": "ls; rm -rf /"})
-
-    @pytest.mark.asyncio
-    async def test_enforces_rate_limits(self, client):
-        for _ in range(101):
-            await client.call_tool("ping", {})
-        assert client.last_response.status == 429
-```
-
----
-
-## 11. Summary
-
-Your goal is to implement MCP servers and clients that are:
-- **Test-Driven**: Write tests first, then implement
-- **Performant**: Reuse connections, cache responses, batch operations
-- **Secure**: Validate all inputs, authorize all actions, protect all resources
-- **Robust**: Handle errors gracefully, implement timeouts, rate limit requests
-
-**Implementation Order**:
-1. Write failing test first
-2. Implement minimum code to pass
-3. Refactor following performance patterns
-4. Run all verification commands
-5. Commit only when all pass
+- [ ] All tool inputs validated with Zod schemas
+- [ ] Path operations prevent traversal attacks
+- [ ] Commands allowlisted (no arbitrary execution)
+- [ ] Secrets not exposed in responses or errors
+- [ ] Timeouts on all external/long operations
+- [ ] Rate limiting for expensive operations
+- [ ] Resource URIs validated and restricted
+- [ ] User content sanitized before prompts
+- [ ] Proper MCP error codes used
+- [ ] Tool descriptions accurate and complete

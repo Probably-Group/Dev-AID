@@ -1,567 +1,589 @@
 ---
 name: windows-ui-automation
+version: 2.0.0
+description: "Windows UI Automation patterns with UIA, Win32 API, and accessibility tree navigation."
 risk_level: HIGH
-description: "Expert in Windows UI Automation (UIA) and Win32 APIs for desktop automation. Specializes in accessible, secure automation of Windows applications including element discovery, input simulation, and process interaction. HIGH-RISK skill requiring strict security controls for system access."
 ---
 
-> **File Organization**: This skill uses split structure. Main SKILL.md contains core decision-making context. See `references/` for detailed implementations.
+# Windows UI Automation - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Privilege escalation via UIA, Credential harvesting, Automated clickjacking
-- Requires security awareness and best practices
+**CWE-284: UIAutomation Permissions**
+- NEVER: Run automation with admin when not needed
+- ALWAYS: Minimum required privileges, UAC awareness
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: Sensitive Data Capture**
+- NEVER: Capture/log password fields
+- ALWAYS: Skip password controls, mask sensitive patterns
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: HIGH
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+---
+
+## 1. Security Principles
+
+### 1.1 Process Targeting Validation (CWE-284)
+
+**Principle:** Only automate explicitly targeted processes. Never interact with system processes.
+
+```rust
+// ❌ WRONG - Automating arbitrary processes
+fn click_button(window_title: &str) {
+    let hwnd = FindWindowW(None, window_title);
+    // Could match system dialogs, security prompts!
+    SendMessage(hwnd, WM_LBUTTONDOWN, 0, 0);
+}
+
+// ✅ CORRECT - Validate process before automation
+use windows::Win32::UI::WindowsAndMessaging::*;
+use windows::Win32::Foundation::*;
+use std::collections::HashSet;
+
+struct ProcessConfig {
+    allowed_exe_names: HashSet<String>,
+    blocked_window_classes: HashSet<String>,
+}
+
+impl Default for ProcessConfig {
+    fn default() -> Self {
+        Self {
+            allowed_exe_names: HashSet::new(),
+            blocked_window_classes: [
+                "Credential Dialog Xaml Host",
+                "Windows Security",
+                "UAC",
+                "#32770", // System dialogs
+            ].into_iter().map(String::from).collect(),
+        }
+    }
+}
+
+fn validate_target(hwnd: HWND, config: &ProcessConfig) -> Result<(), AutomationError> {
+    // Get window class
+    let mut class_name = [0u16; 256];
+    let len = unsafe { GetClassNameW(hwnd, &mut class_name) };
+    let class = String::from_utf16_lossy(&class_name[..len as usize]);
+
+    if config.blocked_window_classes.contains(&class) {
+        return Err(AutomationError::BlockedWindow(class));
+    }
+
+    // Get process ID
+    let mut pid = 0u32;
+    unsafe { GetWindowThreadProcessId(hwnd, Some(&mut pid)) };
+
+    // Verify it's in allowed list
+    let exe_name = get_process_exe_name(pid)?;
+    if !config.allowed_exe_names.is_empty() && !config.allowed_exe_names.contains(&exe_name) {
+        return Err(AutomationError::UnauthorizedProcess(exe_name));
+    }
+
+    Ok(())
+}
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Elevated Privilege Handling (CWE-250)
 
-   - **UIA-PRIV-ESC** (CVSS N/A): UI Automation privilege escalation
-     Source: https://docs.microsoft.com/en-us/windows/win32/winauto/
-   - **CREDENTIAL-THEFT** (CVSS N/A): Credential theft via UI Automation
-     Source: https://www.microsoft.com/security/
-   - **CLICKJACKING** (CVSS N/A): Automated clickjacking attacks
-     Source: https://docs.microsoft.com/security/
+**Principle:** Never request more privileges than needed. Check elevation status.
 
-**Step 3: Common Attack Patterns**
+```rust
+// ❌ WRONG - Running as admin by default
+fn main() {
+    if !is_elevated() {
+        run_as_admin(); // Unnecessary privilege escalation!
+    }
+    automate_app();
+}
 
-   - Privilege escalation via UIA
-   - Credential harvesting
-   - Automated clickjacking
-   - UI spoofing
+// ✅ CORRECT - Minimal privileges, explicit elevation only when needed
+use windows::Win32::Security::*;
+use windows::Win32::System::Threading::*;
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+fn is_elevated() -> bool {
+    unsafe {
+        let mut token: HANDLE = HANDLE::default();
+        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token).is_err() {
+            return false;
+        }
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+        let mut elevation = TOKEN_ELEVATION::default();
+        let mut size = 0u32;
+        let result = GetTokenInformation(
+            token,
+            TokenElevation,
+            Some(&mut elevation as *mut _ as *mut _),
+            std::mem::size_of::<TOKEN_ELEVATION>() as u32,
+            &mut size,
+        );
 
-### 0.3 Hallucination Prevention Checklist
+        CloseHandle(token);
+        result.is_ok() && elevation.TokenIsElevated != 0
+    }
+}
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+fn automate_app(config: &AutomationConfig) -> Result<(), AutomationError> {
+    let target = find_target_window(&config.window_title)?;
 
-**Domain-Specific Security Rules**:
+    // Check if target requires elevation
+    if requires_elevation(&target)? {
+        if !config.allow_elevation {
+            return Err(AutomationError::ElevationRequired);
+        }
 
-- ❌ NEVER grant UIA access without validation
-- ❌ NEVER automate credential inputs
-- ❌ ALWAYS validate automation requests
-- ❌ ALWAYS implement UIPI boundaries
+        // Log elevation request for audit
+        log::warn!("Elevation required for target: {:?}", target);
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
+        if !is_elevated() {
+            return Err(AutomationError::NotElevated);
+        }
+    }
 
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Windows UI Automation code**
-
-### Verification Requirements
-
-When using this skill to implement Windows UI Automation features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Microsoft UI Automation documentation
-   - ✅ Confirm UIA patterns and control types are current
-   - ✅ Validate security best practices against official guides
-   - ❌ Never guess UIA property IDs or control type constants
-   - ❌ Never invent automation patterns or element discovery methods
-   - ❌ Never assume Win32 API signatures without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for patterns
-   - 🔍 Grep: Search for similar UI automation implementations
-   - 🔍 WebSearch: Verify UIA specifications in official docs
-   - 🔍 WebFetch: Read Microsoft documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY UIA API, Win32 function, or security pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in UI automation can cause privilege escalation, credential theft, system instability
-
-4. **Common UI Automation Hallucination Traps** (AVOID)
-   - ❌ Invented UIA property ID constants (always use official IDs)
-   - ❌ Made-up control patterns (use documented patterns only)
-   - ❌ Non-existent Win32 API functions or incorrect signatures
-   - ❌ Assumed security boundaries without validation
-   - ❌ Incorrect COM interop code for UIA objects
-
-### Self-Check Checklist
-
-Before EVERY response with UI Automation code:
-- [ ] All UIA property IDs verified against official documentation
-- [ ] Control patterns verified as existing and current
-- [ ] Win32 API signatures verified against Windows SDK docs
-- [ ] Security controls verified against OWASP/CWE guidelines
-- [ ] Can cite official Microsoft documentation sources
-
-**⚠️ CRITICAL**: UI Automation code with hallucinated APIs causes privilege escalation vulnerabilities, system crashes, and security failures. Always verify.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level**: HIGH - System-level access, process manipulation, input injection capabilities
-
-You are an expert in Windows UI Automation with deep expertise in:
-
-- **UI Automation Framework**: UIA patterns, control patterns, automation elements
-- **Win32 API Integration**: Window management, message passing, input simulation
-- **Accessibility Services**: Screen readers, assistive technology interfaces
-- **Process Security**: Safe automation boundaries, privilege management
-
-You excel at:
-- Automating Windows desktop applications safely and reliably
-- Implementing robust element discovery and interaction patterns
-- Managing automation sessions with proper security controls
-- Building accessible automation that respects system boundaries
-
-### Core Expertise Areas
-
-1. **UI Automation APIs**: IUIAutomation, IUIAutomationElement, Control Patterns
-2. **Win32 Integration**: SendInput, SetForegroundWindow, EnumWindows
-3. **Security Controls**: Process validation, permission tiers, audit logging
-4. **Error Handling**: Timeout management, element state verification
-
-### Core Principles
-
-1. **TDD First** - Write tests before implementation code
-2. **Performance Aware** - Optimize element discovery and caching
-3. **Security First** - Validate processes, enforce permissions, audit all operations
-4. **Fail Safe** - Timeouts, graceful degradation, proper cleanup
-
----
-
-## 2. Core Responsibilities
-
-### 2.1 Safe Automation Principles
-
-When performing UI automation, you will:
-- **Validate target processes** before any interaction
-- **Enforce permission tiers** (read-only, standard, elevated)
-- **Block sensitive applications** (password managers, security tools, admin consoles)
-- **Log all operations** for audit trails
-- **Implement timeouts** to prevent runaway automation
-
-### 2.2 Security-First Approach
-
-Every automation operation MUST:
-1. Verify process identity and integrity
-2. Check against blocked application list
-3. Validate user authorization level
-4. Log operation with correlation ID
-5. Enforce timeout limits
-
-### 2.3 Accessibility Compliance
-
-All automation must:
-- Respect accessibility APIs and screen reader compatibility
-- Not interfere with assistive technologies
-- Maintain UI state consistency
-- Handle focus management properly
-
----
-
-## 3. Technical Foundation
-
-### 3.1 Core Technologies
-
-**Primary Framework**: Windows UI Automation (UIA)
-- **Recommended**: Windows 10/11 with UIA v3
-- **Minimum**: Windows 7 with UIA v2
-- **Avoid**: Legacy MSAA-only approaches
-
-**Key Dependencies**:
-```
-UIAutomationClient.dll    # Core UIA COM interfaces
-UIAutomationCore.dll      # UIA runtime
-user32.dll                # Win32 input/window APIs
-kernel32.dll              # Process management
+    perform_automation(&target)
+}
 ```
 
-### 3.2 Essential Libraries
+### 1.3 COM Initialization Safety (CWE-362)
 
-| Library | Purpose | Security Notes |
-|---------|---------|----------------|
-| `comtypes` / `pywinauto` | Python UIA bindings | Validate element access |
-| `UIAutomationClient` | .NET UIA wrapper | Use with restricted permissions |
-| `Win32 API` | Low-level control | Requires careful input validation |
+**Principle:** COM must be properly initialized per thread. Use RAII pattern.
 
----
+```rust
+// ❌ WRONG - Manual COM management
+fn automate() {
+    CoInitializeEx(None, COINIT_MULTITHREADED);
+    // If panic occurs, CoUninitialize never called!
+    do_automation();
+    CoUninitialize();
+}
 
+// ✅ CORRECT - RAII COM wrapper
+use windows::Win32::System::Com::*;
 
-## 4. Quality Assurance Checklist
+struct ComGuard;
 
-**Before implementing this skill, ensure**:
+impl ComGuard {
+    fn new(apartment: COINIT) -> Result<Self, windows::core::Error> {
+        unsafe { CoInitializeEx(None, apartment)? };
+        Ok(Self)
+    }
+}
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+impl Drop for ComGuard {
+    fn drop(&mut self) {
+        unsafe { CoUninitialize() };
+    }
+}
 
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
+fn automate() -> Result<(), AutomationError> {
+    let _com = ComGuard::new(COINIT_APARTMENTTHREADED)?;
 
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+    // COM is initialized, will be cleaned up even on panic
+    do_automation()
+}
+```
 
 ---
 
-## 5. Implementation Patterns (Overview)
+## 2. Version Requirements
 
-**For detailed implementations, see** `references/advanced-patterns.md`
-
-### Pattern 1: Secure Element Discovery
-**Purpose**: Finding UI elements with full security validation
-**Key Features**: Process blocklist, audit logging, permission tiers
-**See**: `references/advanced-patterns.md` - Pattern: Secure Element Discovery
-
-### Pattern 2: Safe Input Simulation
-**Purpose**: Sending keyboard/mouse input with security controls
-**Key Features**: Rate limiting, blocked key combinations, target validation
-**See**: `references/advanced-patterns.md` - Pattern: Safe Input Simulation
-
-### Pattern 3: Process Validation
-**Purpose**: Validate process identity before automation
-**Key Features**: Process name checks, executable integrity, owner verification
-**See**: `references/advanced-patterns.md` - Pattern: Process Validation
-
-### Pattern 4: Timeout Enforcement
-**Purpose**: Prevent hanging operations
-**Key Features**: Configurable timeouts, maximum limits, context manager
-**See**: `references/advanced-patterns.md` - Pattern: Timeout Enforcement
-
-### Additional Advanced Patterns
-
-See `references/advanced-patterns.md` for:
-- Secure Automation Session
-- Hierarchical Element Discovery
-- Robust Wait Conditions
-- Multi-Monitor Support
-- Clipboard Security
-- Screenshot Redaction
-- Automation Guard (Runaway Prevention)
-- Correlation ID Tracking
+```toml
+[dependencies]
+# Windows crate for safe Win32 bindings
+windows = { version = ">=0.52.0", features = [
+    "Win32_Foundation",
+    "Win32_UI_Accessibility",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Com",
+    "Win32_Security",
+]}
+# For UIAutomation specifically
+uiautomation = ">=0.1.0"
+```
 
 ---
 
-## 6. Security Standards (Overview)
+## 3. Code Patterns
 
-### 5.1 Critical Vulnerabilities
+### WHEN using UI Automation, implement proper element caching
 
-**For complete vulnerability analysis and mitigations**: See `references/security-examples.md`
+```rust
+// ❌ WRONG - Fetching properties repeatedly
+fn find_and_click(automation: &IUIAutomation, name: &str) {
+    let root = automation.GetRootElement()?;
+    let condition = automation.CreatePropertyCondition(UIA_NamePropertyId, name)?;
 
-**Top 5 Security Concerns**:
-1. **CVE-2023-28218**: UI Automation Privilege Escalation (HIGH)
-2. **CVE-2022-30190**: SendInput Injection (CRITICAL)
-3. **CWE-290**: Window Message Spoofing (HIGH)
-4. **CVE-2021-1732**: Process Token Theft (CRITICAL)
-5. **CWE-269**: Accessibility API Abuse (HIGH)
+    loop {
+        let element = root.FindFirst(TreeScope_Children, condition)?;
+        let current_name = element.GetCurrentPropertyValue(UIA_NamePropertyId)?;
+        // Each call crosses process boundary!
+    }
+}
 
-### 5.2 OWASP Top 10 2025 Mapping
+// ✅ CORRECT - Use caching for batch property fetching
+use windows::Win32::UI::Accessibility::*;
 
-| OWASP ID | Category | Risk for UIA | See Reference |
-|----------|----------|--------------|---------------|
-| A01:2025 | Broken Access Control | CRITICAL | security-examples.md |
-| A02:2025 | Security Misconfiguration | HIGH | security-examples.md |
-| A03:2025 | Supply Chain Failures | MEDIUM | threat-model.md |
-| A05:2025 | Injection | CRITICAL | security-examples.md |
-| A07:2025 | Authentication Failures | HIGH | security-examples.md |
+struct CachedElement {
+    element: IUIAutomationElement,
+    name: String,
+    control_type: i32,
+    bounding_rect: RECT,
+    is_enabled: bool,
+}
 
-### 5.3 Permission Tier Model
+fn create_cache_request(automation: &IUIAutomation) -> Result<IUIAutomationCacheRequest> {
+    let cache_request = unsafe { automation.CreateCacheRequest()? };
 
-```python
-PERMISSION_TIERS = {
-    'read-only': {
-        'allowed_operations': ['find_element', 'get_property', 'get_pattern'],
-        'blocked_operations': ['send_input', 'click', 'set_value'],
-        'timeout': 30,
-    },
-    'standard': {
-        'allowed_operations': ['find_element', 'get_property', 'send_input', 'click'],
-        'blocked_operations': ['elevated_process_access', 'system_keys'],
-        'timeout': 60,
-    },
-    'elevated': {
-        'allowed_operations': ['*'],
-        'blocked_operations': ['admin_tools', 'security_software'],
-        'timeout': 120,
-        'requires_approval': True,
+    // Add properties to cache
+    unsafe {
+        cache_request.AddProperty(UIA_NamePropertyId)?;
+        cache_request.AddProperty(UIA_ControlTypePropertyId)?;
+        cache_request.AddProperty(UIA_BoundingRectanglePropertyId)?;
+        cache_request.AddProperty(UIA_IsEnabledPropertyId)?;
+    }
+
+    Ok(cache_request)
+}
+
+fn find_element_cached(
+    parent: &IUIAutomationElement,
+    condition: &IUIAutomationCondition,
+    cache_request: &IUIAutomationCacheRequest,
+) -> Result<CachedElement> {
+    let element = unsafe {
+        parent.FindFirstBuildCache(TreeScope_Descendants, condition, cache_request)?
+    };
+
+    // Properties fetched from cache (no IPC)
+    Ok(CachedElement {
+        name: unsafe { element.GetCachedPropertyValue(UIA_NamePropertyId)?.to_string() },
+        control_type: unsafe { element.GetCachedPropertyValue(UIA_ControlTypePropertyId)?.as_raw() },
+        bounding_rect: unsafe { element.GetCachedPropertyValue(UIA_BoundingRectanglePropertyId)?.try_into()? },
+        is_enabled: unsafe { element.GetCachedPropertyValue(UIA_IsEnabledPropertyId)?.as_raw() != 0 },
+        element,
+    })
+}
+```
+
+### WHEN handling UI events, use proper event registration
+
+```rust
+// ❌ WRONG - Polling for state changes
+fn wait_for_window(title: &str) -> HWND {
+    loop {
+        if let Some(hwnd) = find_window(title) {
+            return hwnd;
+        }
+        std::thread::sleep(Duration::from_millis(100)); // Wasteful!
+    }
+}
+
+// ✅ CORRECT - Event-based detection
+use windows::Win32::UI::Accessibility::*;
+use std::sync::mpsc;
+
+struct WindowOpenHandler {
+    tx: mpsc::Sender<IUIAutomationElement>,
+    target_name: String,
+}
+
+impl IUIAutomationEventHandler_Impl for WindowOpenHandler {
+    fn HandleAutomationEvent(
+        &self,
+        sender: Option<&IUIAutomationElement>,
+        event_id: UIA_EVENT_ID,
+    ) -> windows::core::Result<()> {
+        if event_id == UIA_Window_WindowOpenedEventId {
+            if let Some(element) = sender {
+                let name = unsafe { element.CurrentName()?.to_string() };
+                if name.contains(&self.target_name) {
+                    let _ = self.tx.send(element.clone());
+                }
+            }
+        }
+        Ok(())
+    }
+}
+
+fn wait_for_window_event(
+    automation: &IUIAutomation,
+    target_name: &str,
+    timeout: Duration,
+) -> Result<IUIAutomationElement> {
+    let (tx, rx) = mpsc::channel();
+
+    let handler = WindowOpenHandler {
+        tx,
+        target_name: target_name.to_string(),
+    };
+
+    let root = unsafe { automation.GetRootElement()? };
+
+    // Register event handler
+    unsafe {
+        automation.AddAutomationEventHandler(
+            UIA_Window_WindowOpenedEventId,
+            &root,
+            TreeScope_Descendants,
+            None,
+            &handler.into(),
+        )?;
+    }
+
+    // Wait with timeout
+    rx.recv_timeout(timeout)
+        .map_err(|_| AutomationError::Timeout)
+}
+```
+
+### WHEN performing mouse/keyboard input, use SendInput
+
+```rust
+// ❌ WRONG - Using deprecated APIs
+fn click(x: i32, y: i32) {
+    unsafe {
+        SetCursorPos(x, y);
+        mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+        mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+    }
+}
+
+// ✅ CORRECT - Using SendInput with proper structure
+use windows::Win32::UI::Input::KeyboardAndMouse::*;
+
+fn click_at(x: i32, y: i32) -> Result<(), AutomationError> {
+    // Convert to normalized coordinates
+    let screen_width = unsafe { GetSystemMetrics(SM_CXSCREEN) };
+    let screen_height = unsafe { GetSystemMetrics(SM_CYSCREEN) };
+
+    let normalized_x = (x * 65535) / screen_width;
+    let normalized_y = (y * 65535) / screen_height;
+
+    let inputs = [
+        INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 {
+                mi: MOUSEINPUT {
+                    dx: normalized_x,
+                    dy: normalized_y,
+                    mouseData: 0,
+                    dwFlags: MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE,
+                    time: 0,
+                    dwExtraInfo: 0,
+                },
+            },
+        },
+        INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 {
+                mi: MOUSEINPUT {
+                    dwFlags: MOUSEEVENTF_LEFTDOWN,
+                    ..Default::default()
+                },
+            },
+        },
+        INPUT {
+            r#type: INPUT_MOUSE,
+            Anonymous: INPUT_0 {
+                mi: MOUSEINPUT {
+                    dwFlags: MOUSEEVENTF_LEFTUP,
+                    ..Default::default()
+                },
+            },
+        },
+    ];
+
+    let sent = unsafe {
+        SendInput(&inputs, std::mem::size_of::<INPUT>() as i32)
+    };
+
+    if sent != inputs.len() as u32 {
+        return Err(AutomationError::InputFailed);
+    }
+
+    Ok(())
+}
+```
+
+### WHEN traversing UI tree, implement depth limits
+
+```rust
+// ❌ WRONG - Unbounded recursion
+fn find_all_buttons(element: &IUIAutomationElement) -> Vec<IUIAutomationElement> {
+    let mut buttons = vec![];
+    visit_all(element, &mut buttons); // Could be infinite!
+    buttons
+}
+
+fn visit_all(element: &IUIAutomationElement, buttons: &mut Vec<IUIAutomationElement>) {
+    if is_button(element) {
+        buttons.push(element.clone());
+    }
+    for child in get_children(element) {
+        visit_all(&child, buttons); // No depth limit!
+    }
+}
+
+// ✅ CORRECT - Bounded traversal
+struct TraversalConfig {
+    max_depth: usize,
+    max_elements: usize,
+    timeout: Duration,
+}
+
+impl Default for TraversalConfig {
+    fn default() -> Self {
+        Self {
+            max_depth: 20,
+            max_elements: 1000,
+            timeout: Duration::from_secs(10),
+        }
+    }
+}
+
+fn find_elements(
+    root: &IUIAutomationElement,
+    condition: &IUIAutomationCondition,
+    config: &TraversalConfig,
+) -> Result<Vec<IUIAutomationElement>> {
+    let start = Instant::now();
+    let mut found = vec![];
+    let mut stack = vec![(root.clone(), 0usize)];
+
+    while let Some((element, depth)) = stack.pop() {
+        // Check timeout
+        if start.elapsed() > config.timeout {
+            log::warn!("Traversal timeout reached");
+            break;
+        }
+
+        // Check element limit
+        if found.len() >= config.max_elements {
+            log::warn!("Element limit reached");
+            break;
+        }
+
+        // Check depth limit
+        if depth >= config.max_depth {
+            continue;
+        }
+
+        // Check if matches
+        if matches_condition(&element, condition)? {
+            found.push(element.clone());
+        }
+
+        // Add children (reverse order for DFS)
+        if let Ok(children) = get_children(&element) {
+            for child in children.into_iter().rev() {
+                stack.push((child, depth + 1));
+            }
+        }
+    }
+
+    Ok(found)
+}
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Automate system security dialogs (UAC, credentials)
+- Skip process validation before sending input
+- Use deprecated mouse_event/keybd_event APIs
+- Traverse UI tree without depth/element limits
+- Forget to uninitialize COM (use RAII)
+- Request elevation when not strictly necessary
+- Poll for UI changes (use events)
+- Cross-process automate without explicit permission
+
+---
+
+## 5. Testing
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_blocked_window_classes() {
+        let config = ProcessConfig::default();
+
+        // Should block security dialogs
+        assert!(config.blocked_window_classes.contains("UAC"));
+        assert!(config.blocked_window_classes.contains("Windows Security"));
+    }
+
+    #[test]
+    fn test_validate_rejects_blocked_class() {
+        let config = ProcessConfig::default();
+
+        // Create mock HWND for testing
+        // In real tests, use a test window
+        let result = validate_target_class("#32770", &config);
+        assert!(matches!(result, Err(AutomationError::BlockedWindow(_))));
+    }
+
+    #[test]
+    fn test_com_guard_cleanup() {
+        // Verify COM is properly cleaned up
+        {
+            let _guard = ComGuard::new(COINIT_APARTMENTTHREADED).unwrap();
+            // COM initialized
+        }
+        // Guard dropped, COM uninitialized
+
+        // Can initialize again (would fail if not properly cleaned up)
+        let _guard = ComGuard::new(COINIT_APARTMENTTHREADED).unwrap();
+    }
+
+    #[test]
+    fn test_traversal_respects_limits() {
+        let config = TraversalConfig {
+            max_depth: 2,
+            max_elements: 5,
+            timeout: Duration::from_secs(1),
+        };
+
+        // Create deep mock tree
+        let root = create_mock_tree(depth: 10, width: 10);
+
+        let found = find_elements(&root, &any_condition(), &config).unwrap();
+
+        // Should respect limits
+        assert!(found.len() <= config.max_elements);
     }
 }
 ```
 
-**For detailed security examples and mitigation code**: See `references/security-examples.md`
-**For threat model and attack scenarios**: See `references/threat-model.md`
-
 ---
 
-## 7. TDD Implementation Workflow
+## 6. Pre-Generation Checklist
 
-**For complete TDD guide with examples**: See `references/testing-guide.md`
+**BEFORE generating Windows UI Automation code:**
 
-### Quick TDD Steps
-
-1. **Write Failing Tests First**
-   - Define security requirements as tests
-   - Test blocked process enforcement
-   - Test timeout enforcement
-   - Test rate limiting
-
-2. **Implement Minimum Code**
-   - Write only enough code to pass tests
-   - Focus on security checks first
-
-3. **Refactor with Patterns**
-   - Apply security patterns from Section 4
-   - Maintain test coverage
-
-4. **Verify**
-   - Run all tests: `pytest tests/ -v`
-   - Check coverage: `pytest --cov=automation --cov-fail-under=80`
-   - Type checking: `mypy src/automation --strict`
-
-**Complete testing guide with examples**: `references/testing-guide.md`
-
----
-
-## 8. Performance Optimization
-
-**For complete performance patterns and benchmarks**: See `references/performance-optimization.md`
-
-### Quick Performance Tips
-
-1. **Element Caching** - Cache elements for repeated operations (10-50x faster)
-2. **Scope Limiting** - Search from app window, not desktop root (5-20x faster)
-3. **COM Object Pooling** - Reuse COM objects (2-5x faster)
-4. **Condition Optimization** - Use combined conditions for single search (2x faster)
-5. **Async Operations** - Non-blocking waits for better resource utilization
-
-**Performance Targets**:
-- Element lookup: < 100ms (95th percentile)
-- Input operations: < 50ms (95th percentile)
-- Full workflow: < 5s (95th percentile)
-
-**Complete performance guide**: `references/performance-optimization.md`
-
----
-
-## 9. Common Mistakes to Avoid
-
-**For complete anti-patterns guide**: See `references/anti-patterns.md`
-
-### Critical Security Anti-Patterns
-
-❌ **Never**: Automate without process validation
-❌ **Never**: Skip timeout enforcement
-❌ **Never**: Allow system key combinations
-❌ **Never**: Ignore elevation boundaries
-❌ **Never**: Skip audit logging
-
-### Reliability Anti-Patterns
-
-❌ **Never**: Ignore element staleness
-❌ **Never**: Use hardcoded delays (use condition-based waits)
-❌ **Never**: Swallow exceptions silently
-
-### Performance Anti-Patterns
-
-❌ **Never**: Search from root every time
-❌ **Never**: Create COM objects in loops
-❌ **Never**: Re-find elements for every operation
-
-**Complete anti-patterns guide with examples**: `references/anti-patterns.md`
-
----
-
-## 10. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Read threat model in `references/threat-model.md`
-- [ ] Identify target processes and required permission tier
-- [ ] Write failing tests for security requirements
-- [ ] Write failing tests for expected functionality
-- [ ] Define timeout limits for all operations
-
-### Phase 2: During Implementation
-- [ ] Process validation for all target interactions
-- [ ] Blocked application list configured
-- [ ] Permission tier enforcement active
-- [ ] Input rate limiting implemented
-- [ ] Timeout enforcement on all operations
-- [ ] Audit logging for all actions
-
-### Phase 3: Before Committing
-- [ ] All tests pass: `pytest tests/ -v`
-- [ ] Security tests pass: `pytest tests/ -k security`
-- [ ] Type checking passes: `mypy src/automation --strict`
-- [ ] No hardcoded credentials or sensitive data
-- [ ] Audit logs properly configured
-- [ ] Performance targets met (element lookup <100ms)
-
----
-
-## 11. Summary
-
-Your goal is to create Windows UI automation that is:
-- **Secure**: Strict process validation, permission tiers, and audit logging
-- **Reliable**: Timeout enforcement, error handling, and state verification
-- **Accessible**: Respects accessibility APIs and assistive technologies
-
-You understand that UI automation carries significant security risks. You balance automation power with strict controls, ensuring operations are logged, validated, and bounded.
-
-**Security Reminders**:
-1. Always validate target process identity
-2. Never automate blocked security applications
-3. Enforce timeouts on all operations
-4. Log every operation with correlation IDs
-5. Implement permission tiers appropriate to risk
-
-Automation should enhance productivity while maintaining system security boundaries.
-
----
-
-## 12. References
-
-### Core Reference Documents
-
-- **Advanced Patterns**: `references/advanced-patterns.md`
-  - Secure Element Discovery
-  - Safe Input Simulation
-  - Process Validation
-  - Timeout Enforcement
-  - Automation Session Management
-  - Multi-Monitor Support
-  - Clipboard Security
-  - Screenshot Redaction
-
-- **Security Examples**: `references/security-examples.md`
-  - CVE Mitigations (2022-2025)
-  - OWASP Top 10 2025 Guidance
-  - Input Validation Patterns
-  - Audit Logging Examples
-  - Access Control Implementation
-
-- **Threat Model**: `references/threat-model.md`
-  - Attack Scenarios
-  - STRIDE Analysis
-  - Security Controls Matrix
-  - Mitigation Strategies
-
-- **Testing Guide**: `references/testing-guide.md`
-  - TDD Workflow
-  - Unit Testing Patterns
-  - Integration Testing
-  - Security Testing
-  - Mocking Strategies
-  - CI/CD Integration
-
-- **Performance Optimization**: `references/performance-optimization.md`
-  - Element Caching Patterns
-  - Scope Limiting
-  - COM Object Pooling
-  - Async Operations
-  - Benchmarking
-  - Performance Targets
-
-- **Anti-Patterns**: `references/anti-patterns.md`
-  - Security Anti-Patterns
-  - Reliability Anti-Patterns
-  - Performance Anti-Patterns
-  - Design Anti-Patterns
-  - Testing Anti-Patterns
-
-### Quick Reference Card
-
-**Blocked Processes**:
-```
-Password Managers: keepass.exe, 1password.exe, lastpass.exe
-Admin Tools: mmc.exe, secpol.msc, gpedit.msc, regedit.exe
-System Tools: cmd.exe, powershell.exe, taskmgr.exe
-```
-
-**Permission Tiers**: read-only → standard → elevated
-
-**Timeout Defaults**: 30s (default), 300s (max)
-
-**Rate Limits**: 100 inputs/second (default)
-
----
-
-## 13. Official Documentation Links
-
-- [Microsoft UI Automation Overview](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-overview)
-- [UI Automation Control Patterns](https://learn.microsoft.com/en-us/dotnet/framework/ui-automation/ui-automation-control-patterns-overview)
-- [Win32 API - SendInput](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendinput)
-- [OWASP Top 10 2025](https://owasp.org/Top10/)
-- [CWE - Common Weakness Enumeration](https://cwe.mitre.org/)
+- [ ] Process validation: Allowlist of target executables
+- [ ] Blocked windows: Security dialogs, UAC prompts excluded
+- [ ] COM initialization: RAII pattern for cleanup
+- [ ] Elevation: Minimal privileges, explicit elevation only
+- [ ] UI caching: Batch property fetching across process boundary
+- [ ] Event-based: Use events instead of polling
+- [ ] Input method: SendInput, not deprecated APIs
+- [ ] Tree traversal: Depth and element count limits

@@ -1,387 +1,544 @@
 ---
 name: web-audio-api
-description: Web Audio API for JARVIS audio feedback and voice processing
+version: 2.0.0
+description: "Web Audio API patterns for audio processing, synthesis, visualization, and real-time effects."
 risk_level: LOW
-version: 1.0.0
 ---
 
-# Web Audio API Skill
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Web Audio API - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Audio fingerprinting, Timing side-channels, XSS via worklets
-- Requires continuous monitoring of security advisories
+**CWE-200: Audio Fingerprinting**
+- NEVER: Use AudioContext for fingerprinting without consent
+- ALWAYS: Document audio usage in privacy policy
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-400: Audio Buffer Exhaustion**
+- NEVER: Unlimited audio buffer allocation from user input
+- ALWAYS: Limit buffer size, max nodes, sample rate
 
-### 0.3 Hallucination Prevention Checklist
+### 0.3 Risk Level: LOW
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Verification requirements for LOW risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
-**Domain-Specific Security Rules**:
+---
 
-- ❌ NEVER process untrusted audio without validation
-- ❌ NEVER allow unlimited audio processing
-- ❌ ALWAYS sanitize audio worklet code
-- ❌ ALWAYS implement privacy controls
+## 1. Security Principles
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+### 1.1 Audio Context Permission (CWE-862)
 
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-This skill provides Web Audio API expertise for creating audio feedback, voice processing, and sound effects in the JARVIS AI Assistant.
-
-**Risk Level**: LOW - Audio processing with minimal security surface
-
-**Primary Use Cases**:
-- HUD audio feedback (beeps, alerts)
-- Voice input processing
-- Spatial audio for 3D HUD elements
-- Real-time audio visualization
-- Text-to-speech integration
-
-## 2. Core Responsibilities
-
-### 2.1 Fundamental Principles
-
-1. **TDD First**: Write tests before implementation for all audio components
-2. **Performance Aware**: Optimize for 60fps with minimal audio latency
-3. **User Gesture Required**: Audio context must be started after user interaction
-4. **Resource Cleanup**: Close audio contexts and disconnect nodes on unmount
-5. **AudioWorklet for Processing**: Use AudioWorklet for heavy DSP operations
-6. **Accessibility**: Provide visual alternatives to audio feedback
-7. **Volume Control**: Respect system and user volume preferences
-8. **Error Handling**: Gracefully handle audio permission denials
-
-## 3. Technology Stack & Versions
-
-### 3.1 Browser Support
-
-| Browser | AudioContext | AudioWorklet |
-|---------|--------------|--------------|
-| Chrome | 35+ | 66+ |
-| Firefox | 25+ | 76+ |
-| Safari | 14.1+ | 14.1+ |
-
-### 3.2 TypeScript Types
+**Principle:** AudioContext requires user gesture to start. Never autoplay without interaction.
 
 ```typescript
-// types/audio.ts
-interface AudioFeedbackOptions {
-  frequency: number
-  duration: number
-  type: OscillatorType
-  volume: number
+// ❌ WRONG - Auto-creating context on page load
+const audioContext = new AudioContext(); // May be suspended!
+
+async function playSound() {
+  const source = audioContext.createBufferSource();
+  source.start(); // Fails silently if context suspended
 }
 
-interface SpatialAudioPosition {
-  x: number
-  y: number
-  z: number
-}
-```
+// ✅ CORRECT - Resume context on user interaction
+class AudioManager {
+  private context: AudioContext | null = null;
 
+  async getContext(): Promise<AudioContext> {
+    if (!this.context) {
+      this.context = new AudioContext();
+    }
 
-## 4. Quality Assurance Checklist
+    // Resume if suspended (browser autoplay policy)
+    if (this.context.state === 'suspended') {
+      await this.context.resume();
+    }
 
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-async function initialize() {
-    if (audioContext.value) return
-    audioContext.value = new AudioContext()
-    if (audioContext.value.state === 'suspended') await audioContext.value.resume()
-    isInitialized.value = true
+    return this.context;
   }
 
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```typescript
-// tests/composables/useHUDSounds.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useHUDSounds } from '~/composables/useHUDSounds'
-
-// Mock AudioContext nodes
-const mockOscillator = { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), frequency: { value: 440 } }
-const mockGainNode = { connect: vi.fn(), gain: { value: 1, exponentialRampToValueAtTime: vi.fn() } }
-const mockAudioContext = {
-  state: 'running', currentTime: 0, destination: {},
-  createOscillator: vi.fn(() => mockOscillator),
-  createGain: vi.fn(() => mockGainNode),
-  resume: vi.fn(), close: vi.fn()
+  async playSound(buffer: AudioBuffer): Promise<void> {
+    const ctx = await this.getContext();
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start();
+  }
 }
-vi.stubGlobal('AudioContext', vi.fn(() => mockAudioContext))
 
-describe('useHUDSounds', () => {
-  beforeEach(() => vi.clearAllMocks())
-
-  it('creates oscillator with correct frequency', async () => {
-    const { playBeep } = useHUDSounds()
-    await playBeep({ frequency: 880 })
-    expect(mockOscillator.frequency.value).toBe(880)
-  })
-
-  it('clamps volume to valid range', async () => {
-    const { playBeep } = useHUDSounds()
-    await playBeep({ volume: 2.5 })
-    expect(mockGainNode.gain.value).toBeLessThanOrEqual(1)
-  })
-
-  it('connects nodes in correct order', async () => {
-    const { playBeep } = useHUDSounds()
-    await playBeep()
-    expect(mockOscillator.connect).toHaveBeenCalledWith(mockGainNode)
-    expect(mockGainNode.connect).toHaveBeenCalledWith(mockAudioContext.destination)
-  })
-})
+// Initialize on first user interaction
+document.addEventListener('click', async () => {
+  const manager = new AudioManager();
+  await manager.getContext(); // Ensure context is running
+}, { once: true });
 ```
 
-### Step 2: Implement Minimum to Pass
+### 1.2 Audio Buffer Validation (CWE-20)
+
+**Principle:** Validate audio data before processing. Malformed audio can crash the page.
 
 ```typescript
-// composables/useHUDSounds.ts
-export function useHUDSounds() {
-  // Implementation from section 4.2
-  // Only add features that tests require
+// ❌ WRONG - Decoding arbitrary data
+async function loadAudio(url: string): Promise<AudioBuffer> {
+  const response = await fetch(url);
+  const data = await response.arrayBuffer();
+  return audioContext.decodeAudioData(data);
+}
+
+// ✅ CORRECT - Validate before decoding
+interface AudioConfig {
+  maxFileSizeMB: number;
+  maxDurationSeconds: number;
+  allowedMimeTypes: string[];
+}
+
+const DEFAULT_CONFIG: AudioConfig = {
+  maxFileSizeMB: 50,
+  maxDurationSeconds: 600, // 10 minutes
+  allowedMimeTypes: ['audio/wav', 'audio/mp3', 'audio/ogg', 'audio/webm'],
+};
+
+async function loadAudioSafe(
+  url: string,
+  config: AudioConfig = DEFAULT_CONFIG
+): Promise<AudioBuffer> {
+  // Check content type and size
+  const headResponse = await fetch(url, { method: 'HEAD' });
+  const contentType = headResponse.headers.get('content-type');
+  const contentLength = parseInt(headResponse.headers.get('content-length') || '0');
+
+  if (!config.allowedMimeTypes.some(type => contentType?.includes(type))) {
+    throw new Error(`Unsupported audio type: ${contentType}`);
+  }
+
+  if (contentLength > config.maxFileSizeMB * 1024 * 1024) {
+    throw new Error(`Audio file too large: ${contentLength} bytes`);
+  }
+
+  const response = await fetch(url);
+  const data = await response.arrayBuffer();
+
+  const buffer = await audioContext.decodeAudioData(data);
+
+  if (buffer.duration > config.maxDurationSeconds) {
+    throw new Error(`Audio too long: ${buffer.duration}s`);
+  }
+
+  return buffer;
 }
 ```
 
-### Step 3: Refactor Following Patterns
+### 1.3 Worklet Security (CWE-94)
 
-After tests pass, refactor to:
-- Extract shared audio context logic
-- Add proper TypeScript types
-- Implement cleanup on unmount
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all audio-related tests
-npm test -- --grep "audio|sound|HUD"
-
-# Check types
-npm run typecheck
-
-# Verify no memory leaks in browser
-npm run dev  # Test manually with DevTools Memory tab
-```
-
-## 7. Performance Patterns
-
-### 6.1 AudioWorklet for Processing
+**Principle:** AudioWorklet code runs in a separate thread. Validate inputs to worklets.
 
 ```typescript
-// ✅ Good: Use AudioWorklet for DSP (runs on audio thread)
-class NoiseGateProcessor extends AudioWorkletProcessor {
-  process(inputs: Float32Array[][], outputs: Float32Array[][]) {
-    for (let ch = 0; ch < inputs[0].length; ch++) {
-      for (let i = 0; i < inputs[0][ch].length; i++) {
-        outputs[0][ch][i] = Math.abs(inputs[0][ch][i]) > 0.01 ? inputs[0][ch][i] : 0
+// ❌ WRONG - Passing arbitrary data to worklet
+class CustomProcessor extends AudioWorkletProcessor {
+  process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>) {
+    // Processing arbitrary input without validation
+    const gain = parameters.gain[0];
+    // ...
+  }
+}
+
+// ✅ CORRECT - Validate worklet parameters
+class SafeGainProcessor extends AudioWorkletProcessor {
+  static get parameterDescriptors() {
+    return [{
+      name: 'gain',
+      defaultValue: 1.0,
+      minValue: 0.0,
+      maxValue: 2.0, // Prevent clipping/distortion attacks
+      automationRate: 'a-rate',
+    }];
+  }
+
+  process(
+    inputs: Float32Array[][],
+    outputs: Float32Array[][],
+    parameters: Record<string, Float32Array>
+  ): boolean {
+    const input = inputs[0];
+    const output = outputs[0];
+
+    if (!input || input.length === 0) return true;
+
+    // Clamp gain to safe range
+    const gain = Math.max(0, Math.min(2, parameters.gain[0]));
+
+    for (let channel = 0; channel < input.length; channel++) {
+      const inputChannel = input[channel];
+      const outputChannel = output[channel];
+
+      for (let i = 0; i < inputChannel.length; i++) {
+        // Clamp output to prevent extreme values
+        outputChannel[i] = Math.max(-1, Math.min(1, inputChannel[i] * gain));
       }
     }
-    return true
+
+    return true;
   }
 }
-registerProcessor('noise-gate', NoiseGateProcessor)
-
-// ❌ Bad: ScriptProcessorNode (deprecated, blocks main thread)
 ```
-
-### 6.2 Buffer Pooling
-
-```typescript
-// ✅ Good: Reuse audio buffers
-class AudioBufferPool {
-  private pool: AudioBuffer[] = []
-  constructor(ctx: AudioContext, size: number, length: number) {
-    for (let i = 0; i < size; i++) {
-      this.pool.push(ctx.createBuffer(2, length, ctx.sampleRate))
-    }
-  }
-  acquire(): AudioBuffer | undefined { return this.pool.pop() }
-  release(buffer: AudioBuffer) {
-    for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
-      buffer.getChannelData(ch).fill(0)
-    }
-    this.pool.push(buffer)
-  }
-}
-
-// ❌ Bad: Create new buffer each time
-const buffer = ctx.createBuffer(2, 44100, 44100) // Allocates memory each call
-```
-
-### 6.3 Offline Rendering
-
-```typescript
-// ✅ Good: Pre-render complex sounds
-async function prerenderSound(): Promise<AudioBuffer> {
-  const offlineCtx = new OfflineAudioContext(2, 44100, 44100)
-  const osc = offlineCtx.createOscillator()
-  const gain = offlineCtx.createGain()
-  osc.connect(gain).connect(offlineCtx.destination)
-  gain.gain.setValueAtTime(0, 0)
-  gain.gain.linearRampToValueAtTime(1, 0.01)
-  gain.gain.exponentialRampToValueAtTime(0.001, 1)
-  osc.start(); osc.stop(1)
-  return offlineCtx.startRendering()
-}
-
-// ❌ Bad: Generate complex sounds in real-time (multiple oscillators computed live)
-```
-
-### 6.4 Node Graph Optimization
-
-```typescript
-// ✅ Good: Reuse master gain node
-const masterGain = ctx.createGain()
-masterGain.connect(ctx.destination)
-functio## 6. Implementation Workflow (TDD)
-
-// Mock AudioContext nodes
-const mockOscillator = { connect: vi.fn(), start: vi.fn(), stop: vi.fn(), frequency: { value: 440 } }
-const mockGainNode = { connect: vi.fn(), gain: { value: 1, exponentialRampToValueAtTime: vi.fn() } }
-const mockAudioContext = {
-  state: 'running', currentTime: 0, destina...
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
- handleClick = async () => { await audioContext.resume(); playSound() }
 
-// ❌ Memory leak - no cleanup
-const audioContext = new AudioContext()
+## 2. Version Requirements
 
-// ✅ Proper cleanup
-onUnmounted(() => audioContext.close())
-
-// ❌ New context per sound - performance killer
-function playSound() { const ctx = new AudioContext() }
-
-// ✅ Reuse context
-const ctx = new AudioContext()
-function playSound() { /* reuse ctx */ }
 ```
+# Web Audio API is native - no npm packages required
+# For TypeScript types:
+@types/web-audio-api>=0.0.0 (deprecated, use lib.dom.d.ts)
 
-## 11. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Tests written for audio node creation and connections
-- [ ] Tests written for volume clamping and validation
-- [ ] Performance requirements identified (latency, concurrent sounds)
-- [ ] AudioWorklet needed for DSP? Worklet file created
-- [ ] Buffer pool size calculated for expected usage
-
-### Phase 2: During Implementation
-
-- [ ] User gesture required for AudioContext initialization
-- [ ] Audio context reused (not created per sound)
-- [ ] Nodes disconnected in onended callbacks
-- [ ] Volume bounds validated (0-1 range)
-- [ ] Microphone permissions handled gracefully
-- [ ] Error states provide visual feedback
-
-### Phase 3: Before Committing
-
-- [ ] All audio tests pass: `npm test -- --grep "audio"`
-- [ ] Type checking passes: `npm run typecheck`
-- [ ] No memory leaks (tested in DevTools Memory tab)
-- [ ] Audio context closed on component unmount
-- [ ] Visual alternatives provided for accessibility
-- [ ] Sound can be disabled via user preferences
-- [ ] Volume respects system preferences
-
-## 12. Summary
-
-Web Audio API for JARVIS: Initialize after user gesture, cleanup on unmount, handle permission denials, provide visual alternatives. See `references/advanced-patterns.md`
-## 7. Performance Patterns
-
-// ❌ Bad: ScriptProcessorNode (deprecated, blocks main thread)
+# Useful utilities:
+tone>=14.8.0
+standardized-audio-context>=25.3.0
 ```
-
-📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
+
+## 3. Code Patterns
+
+### WHEN creating audio graphs, use proper node cleanup
+
+```typescript
+// ❌ WRONG - Nodes not disconnected (memory leak)
+function createEffect() {
+  const gain = audioContext.createGain();
+  const filter = audioContext.createBiquadFilter();
+  gain.connect(filter);
+  filter.connect(audioContext.destination);
+  return { gain, filter };
+}
+
+// ✅ CORRECT - Managed audio graph with cleanup
+class AudioGraph {
+  private nodes: Set<AudioNode> = new Set();
+  private connections: Map<AudioNode, AudioNode[]> = new Map();
+
+  constructor(private context: AudioContext) {}
+
+  createGain(): GainNode {
+    const node = this.context.createGain();
+    this.nodes.add(node);
+    return node;
+  }
+
+  createFilter(type: BiquadFilterType): BiquadFilterNode {
+    const node = this.context.createBiquadFilter();
+    node.type = type;
+    this.nodes.add(node);
+    return node;
+  }
+
+  connect(source: AudioNode, destination: AudioNode): void {
+    source.connect(destination);
+    const existing = this.connections.get(source) || [];
+    existing.push(destination);
+    this.connections.set(source, existing);
+  }
+
+  disconnect(node: AudioNode): void {
+    node.disconnect();
+    this.connections.delete(node);
+  }
+
+  dispose(): void {
+    // Disconnect all nodes
+    for (const node of this.nodes) {
+      try {
+        node.disconnect();
+      } catch {
+        // Node may already be disconnected
+      }
+    }
+    this.nodes.clear();
+    this.connections.clear();
+  }
+}
+```
+
+### WHEN implementing real-time audio, use AudioWorklet
+
+```typescript
+// ❌ WRONG - Using deprecated ScriptProcessorNode
+const processor = audioContext.createScriptProcessor(4096, 1, 1);
+processor.onaudioprocess = (event) => {
+  // Runs on main thread, causes audio glitches!
+  const input = event.inputBuffer.getChannelData(0);
+  const output = event.outputBuffer.getChannelData(0);
+  // Process...
+};
+
+// ✅ CORRECT - AudioWorklet for real-time processing
+// worklet.ts (separate file)
+class VolumeProcessor extends AudioWorkletProcessor {
+  private volume = 0;
+
+  process(inputs: Float32Array[][]): boolean {
+    const input = inputs[0]?.[0];
+    if (!input) return true;
+
+    // Calculate RMS volume
+    let sum = 0;
+    for (let i = 0; i < input.length; i++) {
+      sum += input[i] * input[i];
+    }
+    this.volume = Math.sqrt(sum / input.length);
+
+    // Send to main thread (throttled)
+    this.port.postMessage({ volume: this.volume });
+
+    return true;
+  }
+}
+
+registerProcessor('volume-processor', VolumeProcessor);
+
+// main.ts
+async function setupVolumeMetering(context: AudioContext): Promise<AudioWorkletNode> {
+  await context.audioWorklet.addModule('/worklets/volume-processor.js');
+
+  const volumeNode = new AudioWorkletNode(context, 'volume-processor');
+
+  volumeNode.port.onmessage = (event) => {
+    const { volume } = event.data;
+    updateVolumeUI(volume);
+  };
+
+  return volumeNode;
+}
+```
+
+### WHEN handling microphone input, request permission properly
+
+```typescript
+// ❌ WRONG - No permission handling
+async function startMicrophone() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(audioContext.destination); // Feedback loop!
+}
+
+// ✅ CORRECT - Proper permission and feedback prevention
+class MicrophoneManager {
+  private stream: MediaStream | null = null;
+  private source: MediaStreamAudioSourceNode | null = null;
+
+  async requestAccess(): Promise<boolean> {
+    try {
+      // Check permission first
+      const permission = await navigator.permissions.query(
+        { name: 'microphone' as PermissionName }
+      );
+
+      if (permission.state === 'denied') {
+        throw new Error('Microphone permission denied');
+      }
+
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Microphone access failed:', error);
+      return false;
+    }
+  }
+
+  connect(context: AudioContext, destination: AudioNode): MediaStreamAudioSourceNode {
+    if (!this.stream) {
+      throw new Error('Call requestAccess() first');
+    }
+
+    this.source = context.createMediaStreamSource(this.stream);
+    // DON'T connect directly to destination (feedback!)
+    // Connect to processing chain instead
+    this.source.connect(destination);
+
+    return this.source;
+  }
+
+  stop(): void {
+    if (this.source) {
+      this.source.disconnect();
+      this.source = null;
+    }
+
+    if (this.stream) {
+      this.stream.getTracks().forEach(track => track.stop());
+      this.stream = null;
+    }
+  }
+}
+```
+
+### WHEN scheduling audio, use AudioContext time
+
+```typescript
+// ❌ WRONG - Using setTimeout for audio timing
+function playSequence(notes: number[]) {
+  notes.forEach((note, i) => {
+    setTimeout(() => {
+      playNote(note);
+    }, i * 500); // Imprecise!
+  });
+}
+
+// ✅ CORRECT - Use AudioContext currentTime
+class AudioScheduler {
+  private scheduleAheadTime = 0.1; // Schedule 100ms ahead
+  private lookahead = 25; // Check every 25ms
+
+  constructor(private context: AudioContext) {}
+
+  scheduleNote(
+    buffer: AudioBuffer,
+    startTime: number,
+    duration?: number
+  ): AudioBufferSourceNode {
+    const source = this.context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(this.context.destination);
+
+    source.start(startTime);
+    if (duration !== undefined) {
+      source.stop(startTime + duration);
+    }
+
+    return source;
+  }
+
+  scheduleSequence(
+    buffers: AudioBuffer[],
+    startTime: number,
+    noteDuration: number
+  ): void {
+    let time = startTime;
+
+    for (const buffer of buffers) {
+      this.scheduleNote(buffer, time, noteDuration);
+      time += noteDuration;
+    }
+  }
+
+  // Get precise current time
+  get now(): number {
+    return this.context.currentTime;
+  }
+}
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Create AudioContext before user interaction (will be suspended)
+- Connect microphone directly to destination (feedback loop)
+- Use ScriptProcessorNode (deprecated, use AudioWorklet)
+- Use setTimeout/setInterval for audio timing
+- Forget to disconnect nodes (memory leaks)
+- Decode untrusted audio without size/duration limits
+- Ignore context state (suspended/running/closed)
+
+---
+
+## 5. Testing
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+describe('AudioManager', () => {
+  let manager: AudioManager;
+
+  beforeEach(() => {
+    manager = new AudioManager();
+  });
+
+  afterEach(() => {
+    manager.dispose();
+  });
+
+  it('should resume suspended context on getContext', async () => {
+    // Mock suspended context
+    const mockContext = {
+      state: 'suspended',
+      resume: vi.fn().mockResolvedValue(undefined),
+    };
+
+    vi.spyOn(window, 'AudioContext').mockImplementation(
+      () => mockContext as unknown as AudioContext
+    );
+
+    await manager.getContext();
+
+    expect(mockContext.resume).toHaveBeenCalled();
+  });
+
+  it('should reject oversized audio files', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      headers: {
+        get: (name: string) => {
+          if (name === 'content-length') return '100000000'; // 100MB
+          if (name === 'content-type') return 'audio/wav';
+          return null;
+        },
+      },
+    });
+
+    await expect(
+      loadAudioSafe('https://example.com/huge.wav')
+    ).rejects.toThrow('Audio file too large');
+  });
+});
+
+describe('AudioGraph', () => {
+  it('should disconnect all nodes on dispose', () => {
+    const mockContext = new AudioContext();
+    const graph = new AudioGraph(mockContext);
+
+    const gain = graph.createGain();
+    const filter = graph.createFilter('lowpass');
+    graph.connect(gain, filter);
+
+    const disconnectSpy = vi.spyOn(gain, 'disconnect');
+
+    graph.dispose();
+
+    expect(disconnectSpy).toHaveBeenCalled();
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating Web Audio code:**
+
+- [ ] AudioContext: Created after user interaction, resume if suspended
+- [ ] Audio loading: Size and duration limits enforced
+- [ ] Node cleanup: All nodes tracked and disconnected on dispose
+- [ ] Microphone: Permission handled, no direct destination connection
+- [ ] Real-time: Using AudioWorklet, not ScriptProcessorNode
+- [ ] Timing: Using AudioContext.currentTime, not setTimeout
+- [ ] Worklet parameters: Min/max values defined and enforced
+- [ ] Output clamping: Values limited to [-1, 1] range

@@ -1,441 +1,548 @@
-# Encryption Skill
-
 ---
 name: encryption
-version: 1.0.0
-domain: security/cryptography
-risk_level: HIGH
-languages: [python, typescript, rust, go]
-frameworks: [sqlcipher, cryptography, libsodium]
-requires_security_review: true
-compliance: [GDPR, HIPAA, PCI-DSS, SOC2]
-last_updated: 2025-01-15
+version: 2.0.0
+description: "Cryptography patterns for encryption, key management, secure key derivation, and certificate handling."
+risk_level: CRITICAL
 ---
 
-> **MANDATORY READING PROTOCOL**: Before implementing ANY encryption, read `references/advanced-patterns.md` for key derivation and `references/security-examples.md` for implementation patterns.
-
+# Encryption Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Timing attacks for key recovery, Padding oracle attacks, Downgrade attacks to weak ciphers
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-327: Broken Crypto**
+- NEVER: MD5, SHA1 for security, DES, RC4, ECB mode
+- ALWAYS: SHA-256+, AES-256-GCM, ChaCha20-Poly1305
 
-### 0.2 Vulnerability Research Protocol
+**CWE-321: Hardcoded Keys**
+- NEVER: Encryption keys in source code
+- ALWAYS: Key management service, HSM, secure key derivation
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-328: Weak KDF**
+- NEVER: Single SHA256(password) for key derivation
+- ALWAYS: Argon2id, PBKDF2 (100k+ iterations), scrypt
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-329: Missing IV/Nonce**
+- NEVER: Reuse IV/nonce with same key
+- ALWAYS: Random IV per encryption, store IV with ciphertext
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+**CWE-347: Missing Signature Verification**
+- NEVER: Trust encrypted data without authentication
+- ALWAYS: Use AEAD (GCM, Poly1305) or encrypt-then-MAC
 
-   - **CVE-2025-9230** (CVSS 7.5): OpenSSL - DoS via malformed TLS handshake
-     Source: https://www.openssl.org/news/secadv/20250116.txt
-   - **CVE-2025-9231** (CVSS 5.9): OpenSSL - Private key recovery via timing attacks
-     Source: https://www.openssl.org/news/secadv/20250116.txt
-   - **CVE-2024-12797** (CVSS 7.5): OpenSSL - Certificate validation bypass
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-12797
+### 0.3 Risk Level: CRITICAL
 
-**Step 3: Common Attack Patterns**
-
-   - Timing attacks for key recovery
-   - Padding oracle attacks
-   - Downgrade attacks to weak ciphers
-   - Side-channel attacks via cache timing
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use ECB mode for encryption
-- ❌ NEVER implement custom cryptography
-- ❌ NEVER use hardcoded encryption keys
-- ❌ ALWAYS use authenticated encryption (GCM, ChaCha20-Poly1305)
-- ❌ ALWAYS validate certificates with proper chain verification
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+**Verification requirements for CRITICAL risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 1. Overview
+## 1. Security Principles
 
-### 1.1 Purpose and Scope
+### 1.1 Modern Cryptography Only (CWE-327, CWE-328)
 
-This skill provides secure-by-default patterns for implementing encryption in JARVIS AI Assistant, covering:
-
-- **SQLCipher**: Encrypted SQLite database with AES-256-GCM
-- **Argon2id**: Memory-hard key derivation function
-- **Key Management**: Secure generation, storage, rotation, and destruction
-- **Secure Memory**: Protection against memory disclosure attacks
-
-### 1.2 Risk Assessment
-
-**Risk Level**: HIGH
-
-**Justification**:
-- Cryptographic failures expose all protected data
-- Key compromise leads to complete confidentiality loss
-- Implementation errors are catastrophic and often undetectable
-- Regulatory violations (GDPR, HIPAA, PCI-DSS) carry severe penalties
-
-**Attack Surface**:
-- Key derivation weaknesses
-- Insecure random number generation
-- Timing side-channels
-- Memory disclosure (cold boot, crash dumps)
-- Key reuse across contexts
-
-## 2. Core Responsibilities
-
-### 2.1 Primary Functions
-
-1. **Encrypt data at rest** using AES-256-GCM with authenticated encryption
-2. **Derive keys securely** using Argon2id with appropriate parameters
-3. **Manage key lifecycle** including rotation, escrow, and destruction
-4. **Protect key material** in memory and during operations
-5. **Integrate with OS keychains** for master key storage
-
-### 2.2 Core Principles
-
-1. **TDD First** - Write tests before implementation; test encryption/decryption round-trips, authentication failures, and edge cases
-2. **Performance Aware** - Cache derived keys, use streaming for large data, leverage hardware acceleration
-3. **Security by Default** - Use authenticated encryption modes, memory-hard KDFs, secure random sources
-4. **Defense in Depth** - Multiple layers of protection, fail securely, minimize key exposure
-
-### 2.3 Security Principles
-
-- **NEVER** implement custom cryptographic algorithms
-- **NEVER** use ECB mode or unauthenticated encryption
-- **ALWAYS** use cryptographically secure random number generators
-- **ALWAYS** validate ciphertext authenticity before decryption
-- **ALWAYS** use constant-time comparison for authentication tags
-
-## 3. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Use modern, audited cryptography. Never roll your own.
 
 ```python
-import pytest
-from cryptography.exceptions import InvalidTag
+# ❌ WRONG - Weak/broken algorithms
+import hashlib
+password_hash = hashlib.md5(password.encode()).hexdigest()
+password_hash = hashlib.sha1(password.encode()).hexdigest()
+password_hash = hashlib.sha256(password.encode()).hexdigest()  # No salt!
 
-class TestEncryptionTDD:
-    """TDD tests for encryption implementation."""
+from Crypto.Cipher import DES  # DES is broken
+cipher = DES.new(key, DES.MODE_ECB)  # ECB mode is insecure
 
-    def test_encrypt_decrypt_roundtrip(self):
-        """Test that encryption followed by decryption returns original data."""
-        from jarvis.security.encryption import SecureEncryption
+# ✅ CORRECT - Argon2id for passwords
+from argon2 import PasswordHasher
+ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
+hash = ph.hash(password)
 
-        key = secrets.token_bytes(32)
-        encryptor = SecureEncryption(key)
-
-        plaintext = b"sensitive data for JARVIS"
-        ciphertext = encryptor.encrypt(plaintext)
-        decrypted = encryptor.decrypt(ciphertext)
-
-        assert decrypted == plaintext
-        assert ciphertext != plaintext  # Must be encrypted
-
-    def test_tampered_ciphertext_raises_error(self):
-        """Test that tampered ciphertext is rejected."""
-        from jarvis.security.encryption import SecureEncryption
-
-        key = secrets.token_bytes(32)
-        encryptor = SecureEncryption(key)
-
-        ciphertext = encryptor.encrypt(b"secret")
-        tampered = ciphertext[:-1] + bytes([ciphertext[-1] ^ 0xFF])
-
-        with pytest.raises(InvalidTag):
-            encryptor.decrypt(tampered)
-
-    def test_key_derivation_consistency(self):
-        """Same password + salt = same key; different salt = different key."""
-        from jarvis.security.encryption import SecureKeyDerivation
-        password = "strong_password_123"
-        salt = secrets.token_bytes(16)
-        key1, _ = SecureKeyDerivation.derive_key(password, salt)
-        key2, _ = SecureKeyDerivation.derive_key(password, salt)
-        assert key1 == key2 and len(key1) == 32
-
-        key3, salt3 = SecureKeyDerivation.derive_key(password)
-        assert key1 != key3  # Different salt = different key
+# ✅ CORRECT - AES-256-GCM for encryption
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+key = AESGCM.generate_key(bit_length=256)
+aesgcm = AESGCM(key)
+nonce = os.urandom(12)  # 96 bits for GCM
+ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data)
 ```
 
-### Step 2: Implement Minimum to Pass
+```rust
+// ❌ WRONG - Weak algorithms
+use md5::Md5;
+use sha1::Sha1;
 
-Implement only what's needed to pass the tests. Start with basic encryption/decryption, then add key derivation.
+// ✅ CORRECT - Argon2id for passwords
+use argon2::{Argon2, PasswordHasher, PasswordVerifier};
+use argon2::password_hash::SaltString;
 
-### Step 3: Refactor Following Patterns
+let salt = SaltString::generate(&mut OsRng);
+let argon2 = Argon2::default();
+let hash = argon2.hash_password(password.as_bytes(), &salt)?;
 
-After tests pass, add: memory protection, error handling, AAD support, key caching.
+// ✅ CORRECT - ChaCha20-Poly1305 for encryption
+use chacha20poly1305::{ChaCha20Poly1305, Key, Nonce, aead::Aead};
 
-### Step 4: Run Full Verification
-
-```bash
-# Run encryption tests with coverage
-pytest tests/security/test_encryption.py -v --cov=jarvis.security.encryption --cov-fail-under=90
-
-# Run security-specific tests
-pytest tests/security/ -k "encryption or crypto" -v
-
-# Check for timing vulnerabilities
-pytest tests/security/test_timing.py -v
-
-# Verify no secrets in output
-pytest --log-cli-level=DEBUG 2>&1 | grep -i "key\|secret\|password" && echo "WARNING: Secrets in logs!"
+let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+let cipher = ChaCha20Poly1305::new(&key);
+let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
+let ciphertext = cipher.encrypt(&nonce, plaintext)?;
 ```
 
+### 1.2 Secure Random Number Generation (CWE-330)
 
-## 4. Quality Assurance Checklist
+**Principle:** Always use cryptographically secure random sources.
 
-**Before implementing this skill, ensure**:
+```python
+# ❌ WRONG - Predictable random
+import random
+key = bytes([random.randint(0, 255) for _ in range(32)])
+token = ''.join(random.choices(string.ascii_letters, k=32))
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+# ✅ CORRECT - Cryptographically secure
+import secrets
+import os
 
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
+key = os.urandom(32)  # For keys
+token = secrets.token_urlsafe(32)  # For tokens
+nonce = secrets.token_bytes(12)  # For nonces
+```
 
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
+```rust
+// ❌ WRONG - Predictable random
+use rand::Rng;
+let key: [u8; 32] = rand::thread_rng().gen();
 
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
+// ✅ CORRECT - Cryptographically secure
+use rand::rngs::OsRng;
+let key: [u8; 32] = OsRng.gen();
+```
 
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+### 1.3 Key Management (CWE-321, CWE-798)
 
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
+**Principle:** Never hardcode keys. Use proper key derivation and storage.
 
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+```python
+# ❌ WRONG - Hardcoded key
+KEY = b"mysecretkey12345"
+
+# ❌ WRONG - Key from password without KDF
+key = password.encode()[:32]
+
+# ✅ CORRECT - Key derivation from password
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+
+salt = os.urandom(16)
+kdf = Scrypt(salt=salt, length=32, n=2**17, r=8, p=1)
+key = kdf.derive(password.encode())
+
+# ✅ CORRECT - Key from secure storage
+import keyring
+key = keyring.get_password("myapp", "encryption_key")
+```
+
+### 1.4 Authenticated Encryption (CWE-347)
+
+**Principle:** Always use authenticated encryption (AEAD). Never encrypt without MAC.
+
+```python
+# ❌ WRONG - Encryption without authentication
+from Crypto.Cipher import AES
+cipher = AES.new(key, AES.MODE_CBC, iv)
+ciphertext = cipher.encrypt(plaintext)  # No integrity check!
+
+# ✅ CORRECT - AEAD mode (GCM)
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+aesgcm = AESGCM(key)
+nonce = os.urandom(12)
+# tag is automatically appended
+ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data)
+```
+
+### 1.5 Constant-Time Comparison (CWE-208)
+
+**Principle:** Use constant-time comparison for secrets to prevent timing attacks.
+
+```python
+# ❌ WRONG - Vulnerable to timing attack
+if user_token == stored_token:
+    grant_access()
+
+# ✅ CORRECT - Constant-time comparison
+import hmac
+if hmac.compare_digest(user_token, stored_token):
+    grant_access()
+```
+
+### 1.6 Defense in Depth
+
+**Principle:** Multiple layers - encryption at rest + in transit + access control.
 
 ---
 
-## 5. Technology Stack
+## 2. Version Requirements
 
-### 4.1 Recommended Libraries
+**ALWAYS use these minimum versions:**
 
-| Language | Library | Version | Notes |
-|----------|---------|---------|-------|
-| Python | `cryptography` | >=42.0.0 | Uses OpenSSL 3.x backend |
-| Python | `argon2-cffi` | >=23.1.0 | Reference Argon2 implementation |
-| TypeScript | `@noble/ciphers` | >=0.5.0 | Audited pure-JS implementation |
-| Rust | `ring` | >=0.17.0 | BoringSSL-backed |
-| Go | `crypto/cipher` | stdlib | Use with `golang.org/x/crypto` |
+```
+# Python
+cryptography>=42.0.0
+argon2-cffi>=21.3.0
+PyNaCl>=1.5.0
 
-### 4.2 SQLCipher Configuration
+# Rust
+ring>=0.17
+chacha20poly1305>=0.10
+argon2>=0.5
+aes-gcm>=0.10
 
-**Minimum Version**: SQLCipher 4.5.6+ (includes SQLite 3.44.2)
+# Node.js
+Use built-in crypto module (Node 16+)
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN encrypting data at rest (Python)
 
 ```python
-# SQLCipher secure configuration
-SQLCIPHER_PRAGMAS = {
-    'key': None,  # Set via secure key injection
-    'cipher': 'aes-256-gcm',
-    'kdf_iter': 256000,  # PBKDF2 iterations
-    'cipher_page_size': 4096,
-    'cipher_kdf_algorithm': 'PBKDF2_HMAC_SHA512',
-    'cipher_hmac_algorithm': 'HMAC_SHA512',
-    'cipher_plaintext_header_size': 0,
+import os
+import json
+import base64
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
+
+class EncryptedStorage:
+    """Encrypt data at rest with AES-256-GCM."""
+
+    NONCE_SIZE = 12
+    KEY_SIZE = 32
+    SALT_SIZE = 16
+
+    def __init__(self, password: str, salt: bytes | None = None):
+        self.salt = salt or os.urandom(self.SALT_SIZE)
+        self.key = self._derive_key(password)
+        self.cipher = AESGCM(self.key)
+
+    def _derive_key(self, password: str) -> bytes:
+        """Derive encryption key from password using Scrypt."""
+        kdf = Scrypt(
+            salt=self.salt,
+            length=self.KEY_SIZE,
+            n=2**17,  # CPU/memory cost
+            r=8,
+            p=1,
+        )
+        return kdf.derive(password.encode())
+
+    def encrypt(self, plaintext: bytes) -> bytes:
+        """Encrypt with random nonce. Returns: nonce + ciphertext + tag."""
+        nonce = os.urandom(self.NONCE_SIZE)
+        ciphertext = self.cipher.encrypt(nonce, plaintext, None)
+        return nonce + ciphertext
+
+    def decrypt(self, data: bytes) -> bytes:
+        """Decrypt data encrypted by encrypt()."""
+        nonce = data[:self.NONCE_SIZE]
+        ciphertext = data[self.NONCE_SIZE:]
+        return self.cipher.decrypt(nonce, ciphertext, None)
+
+    def encrypt_json(self, obj: dict) -> str:
+        """Encrypt JSON object to base64 string."""
+        plaintext = json.dumps(obj).encode()
+        encrypted = self.encrypt(plaintext)
+        return base64.b64encode(encrypted).decode()
+
+    def decrypt_json(self, data: str) -> dict:
+        """Decrypt base64 string to JSON object."""
+        encrypted = base64.b64decode(data)
+        plaintext = self.decrypt(encrypted)
+        return json.loads(plaintext)
+```
+
+### 3.2 WHEN encrypting data at rest (Rust)
+
+```rust
+use aes_gcm::{
+    aead::{Aead, KeyInit, OsRng},
+    Aes256Gcm, Nonce,
+};
+use argon2::Argon2;
+use rand::RngCore;
+
+const NONCE_SIZE: usize = 12;
+const SALT_SIZE: usize = 16;
+const KEY_SIZE: usize = 32;
+
+pub struct EncryptedStorage {
+    cipher: Aes256Gcm,
+    salt: [u8; SALT_SIZE],
+}
+
+impl EncryptedStorage {
+    pub fn new(password: &str, salt: Option<[u8; SALT_SIZE]>) -> Result<Self, Box<dyn std::error::Error>> {
+        let salt = salt.unwrap_or_else(|| {
+            let mut s = [0u8; SALT_SIZE];
+            OsRng.fill_bytes(&mut s);
+            s
+        });
+
+        let key = Self::derive_key(password, &salt)?;
+        let cipher = Aes256Gcm::new_from_slice(&key)?;
+
+        Ok(Self { cipher, salt })
+    }
+
+    fn derive_key(password: &str, salt: &[u8]) -> Result<[u8; KEY_SIZE], argon2::Error> {
+        let mut key = [0u8; KEY_SIZE];
+        Argon2::default().hash_password_into(
+            password.as_bytes(),
+            salt,
+            &mut key,
+        )?;
+        Ok(key)
+    }
+
+    pub fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
+        let mut nonce_bytes = [0u8; NONCE_SIZE];
+        OsRng.fill_bytes(&mut nonce_bytes);
+        let nonce = Nonce::from_slice(&nonce_bytes);
+
+        let ciphertext = self.cipher.encrypt(nonce, plaintext)?;
+
+        // nonce + ciphertext
+        let mut result = nonce_bytes.to_vec();
+        result.extend(ciphertext);
+        Ok(result)
+    }
+
+    pub fn decrypt(&self, data: &[u8]) -> Result<Vec<u8>, aes_gcm::Error> {
+        let nonce = Nonce::from_slice(&data[..NONCE_SIZE]);
+        let ciphertext = &data[NONCE_SIZE..];
+        self.cipher.decrypt(nonce, ciphertext)
+    }
 }
 ```
 
-## 6. Performance Patterns
-
-**Bad:** Deriving key on every operation (~500ms per Argon2id call)
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
-## 7. Implementation Patterns
-
-### 6.1 Key Derivation with Argon2id
+### 3.3 WHEN hashing passwords
 
 ```python
-from argon2 import PasswordHasher
-from argon2.low_level import hash_secret_raw, Type
-import secrets
+from argon2 import PasswordHasher, Type
+from argon2.exceptions import VerifyMismatchError
 
-class SecureKeyDerivation:
-    """Derive encryption keys from passwords using Argon2id."""
+# Configure Argon2id with OWASP recommendations
+ph = PasswordHasher(
+    time_cost=3,        # Number of iterations
+    memory_cost=65536,  # 64 MB
+    parallelism=4,      # Number of threads
+    hash_len=32,
+    type=Type.ID,       # Argon2id (recommended)
+)
 
-    # OWASP recommended parameters for sensitive data
-    TIME_COST = 3        # Iterations
-    MEMORY_COST = 65536  # 64 MiB
-    PARALLELISM = 4      # Threads
-    HASH_LEN = 32        # 256 bits for AES-256
-    SALT_LEN = 16        # 128 bits minimum
+def hash_password(password: str) -> str:
+    """Hash password for storage."""
+    return ph.hash(password)
 
-    @classmethod
-    def derive_key(cls, password: str, salt: bytes = None) -> tuple[bytes, bytes]:
-        """
-        Derive a 256-bit key from password.
+def verify_password(hash: str, password: str) -> bool:
+    """Verify password against hash. Returns False on mismatch."""
+    try:
+        ph.verify(hash, password)
+        return True
+    except VerifyMismatchError:
+        return False
 
-        Returns:
-            tuple: (derived_key, salt) for storage
-        """
-        if salt is None:
-            salt = secrets.token_bytes(cls.SALT_LEN)
-
-        # Validate inputs
-        if not password or len(password) < 12:
-            raise ValueError("Password must be at least 12 characters")
-
-        key = hash_secret_raw(
-            secret=password.encode('utf-8'),
-            salt=salt,
-            time_cost=cls.TIME_COST,
-            memory_cost=cls.MEMORY_COST,
-            parallelism=cls.PARALLELISM,
-            hash_len=cls.HASH_LEN,
-            type=Type.ID  # Argon2id
-        )
-
-        return key, salt
+def needs_rehash(hash: str) -> bool:
+    """Check if hash needs to be upgraded."""
+    return ph.check_needs_rehash(hash)
 ```
 
-### 6.2 AES-256-GCM Encryption
+### 3.4 WHEN generating secure tokens
 
 ```python
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 import secrets
+import hashlib
+import hmac
 
-class SecureEncryption:
-    """AES-256-GCM authenticated encryption."""
+def generate_api_key() -> tuple[str, str]:
+    """Generate API key and its hash for storage.
 
-    NONCE_SIZE = 12  # 96 bits recommended for GCM
-    KEY_SIZE = 32    # 256 bits
+    Returns: (plaintext_key, hash_for_storage)
+    """
+    key = secrets.token_urlsafe(32)
+    # Store only the hash
+    key_hash = hashlib.sha256(key.encode()).hexdigest()
+    return key, key_hash
 
-    def __init__(self, key: bytes):
-        if len(key) != self.KEY_SIZE:
-            raise ValueError(f"Key must be {self.KEY_SIZE} bytes")
-        self._aesgcm = AESGCM(key)
+def verify_api_key(provided_key: str, stored_hash: str) -> bool:
+    """Verify API key using constant-time comparison."""
+    provided_hash = hashlib.sha256(provided_key.encode()).hexdigest()
+    return hmac.compare_digest(provided_hash, stored_hash)
 
-    def encrypt(self, plaintext: bytes, associated_data: bytes = None) -> bytes:
-        """
-        Encrypt with random nonce, prepended to ciphertext.
+def generate_session_token() -> str:
+    """Generate cryptographically secure session token."""
+    return secrets.token_urlsafe(32)
 
-        Returns:
-            bytes: nonce || ciphertext || tag
-        """
-        nonce = secrets.token_bytes(self.NONCE_SIZE)
-        ciphertext = self._aesgcm.encrypt(nonce, plaintext, associated_data)
-        return nonce + ciphertext
+def generate_csrf_token() -> str:
+    """Generate CSRF token."""
+    return secrets.token_hex(32)
+```
 
-    def decrypt(self, ciphertext: bytes, associated_data: bytes = None) -> bytes:
-        """
-        Decrypt ## 7. Implementation Patterns
+### 3.5 WHEN implementing key rotation
 
-class SecureKeyDerivation:
-    """Derive encryption keys from passwords using Argon2id."""
+```python
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Optional
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+@dataclass
+class EncryptedData:
+    key_id: str  # Which key was used
+    nonce: bytes
+    ciphertext: bytes
+    created_at: datetime
+
+class KeyRotatingEncryption:
+    """Encryption with key rotation support."""
+
+    def __init__(self, keys: dict[str, bytes], current_key_id: str):
+        self.keys = keys
+        self.current_key_id = current_key_id
+        self.ciphers = {
+            kid: AESGCM(key) for kid, key in keys.items()
+        }
+
+    def encrypt(self, plaintext: bytes) -> EncryptedData:
+        """Encrypt with current key."""
+        nonce = os.urandom(12)
+        cipher = self.ciphers[self.current_key_id]
+        ciphertext = cipher.encrypt(nonce, plaintext, None)
+
+        return EncryptedData(
+            key_id=self.current_key_id,
+            nonce=nonce,
+            ciphertext=ciphertext,
+            created_at=datetime.utcnow(),
+        )
+
+    def decrypt(self, data: EncryptedData) -> bytes:
+        """Decrypt using the key that was used for encryption."""
+        cipher = self.ciphers.get(data.key_id)
+        if not cipher:
+            raise ValueError(f"Unknown key: {data.key_id}")
+        return cipher.decrypt(data.nonce, data.ciphertext, None)
+
+    def needs_reencryption(self, data: EncryptedData) -> bool:
+        """Check if data should be re-encrypted with current key."""
+        return data.key_id != self.current_key_id
+```
 
 ---
-nces/threat-model.md`
-- [ ] Identify data classification (PII, PHI, credentials)
-- [ ] Choose appropriate algorithm (AES-256-GCM or ChaCha20-Poly1305)
-- [ ] Design key derivation strategy (Argon2id parameters)
-- [ ] Plan key storage (OS keychain integration)
-- [ ] Write failing tests for encrypt/decrypt round-trips
-- [ ] Write tests for authentication tag verification
-- [ ] Write tests for key derivation consistency
 
-### Phase 2: During Implementation
+## 4. Anti-Patterns
 
-- [ ] Use `cryptography` library (not custom implementations)
-- [ ] Generate nonces with `secrets.token_bytes(12)`
-- [ ] Implement key caching with TTL for performance
-- [ ] Use streaming for files >10MB
-- [ ] Zero key material after use (SecureKeyHolder pattern)
-- [ ] Add associated data (AAD) for context binding
-- [ ] Handle InvalidTag exceptions without leaking info
-- [ ] Run tests after each function implementation
-
-### Phase 3: Before Committing
-
-- [ ] All TDD tests pass with 90%+ coverage
-- [ ] Nonce uniqueness validated over 10,000+ operations
-- [ ] Key derivation timing variance <10%
-- [ ] No secrets in logs (`grep -i "key\|secret\|password"`)
-- [ ] Dependency scanning clean (no CVEs)
-- [ ] Performance benchmarks meet targets:
-  - Key derivation: <1s
-  - Encryption: >100MB/s
-  - Batch operations: Linear scaling
-- [ ] Security review requested for HIGH risk code
-
-## 12. Summary
-
-**Key Objectives**: AES-256-GCM with random nonces, Argon2id KDF, OS keychain integration, authenticated encryption, key rotation support.
-
-**Security Reminders**: No custom crypto, use audited libraries, test auth tags, rotate keys on schedule.
-
-**References**: `references/advanced-patterns.md`, `references/security-examples.md`, `references/threat-model.md`
+**NEVER:**
+- Use MD5, SHA1, or unsalted SHA256 for passwords
+- Use ECB mode for any encryption
+- Use DES, 3DES, RC4, or Blowfish
+- Generate keys from weak random sources
+- Hardcode encryption keys
+- Encrypt without authentication (use AEAD)
+- Compare secrets with == (use constant-time comparison)
+- Implement your own cryptographic algorithms
+- Reuse nonces/IVs with the same key
 
 ---
 
-**Encryption done wrong is worse than no encryption - it provides false confidence.**
+## 5. Testing
+
+**ALWAYS write security tests:**
+
+```python
+import pytest
+import os
+
+def test_encryption_roundtrip():
+    """Verify encrypt/decrypt returns original data."""
+    storage = EncryptedStorage("test-password")
+    plaintext = b"secret message"
+
+    encrypted = storage.encrypt(plaintext)
+    decrypted = storage.decrypt(encrypted)
+
+    assert decrypted == plaintext
+
+def test_different_ciphertext_each_time():
+    """Verify random nonce produces different ciphertext."""
+    storage = EncryptedStorage("test-password")
+    plaintext = b"same message"
+
+    ct1 = storage.encrypt(plaintext)
+    ct2 = storage.encrypt(plaintext)
+
+    assert ct1 != ct2  # Different nonces
+
+def test_tampered_ciphertext_rejected():
+    """Verify authentication detects tampering."""
+    storage = EncryptedStorage("test-password")
+    encrypted = storage.encrypt(b"secret")
+
+    # Tamper with ciphertext
+    tampered = bytearray(encrypted)
+    tampered[-1] ^= 0xFF
+
+    with pytest.raises(Exception):  # InvalidTag
+        storage.decrypt(bytes(tampered))
+
+def test_wrong_password_fails():
+    """Verify wrong password cannot decrypt."""
+    storage1 = EncryptedStorage("password1")
+    storage2 = EncryptedStorage("password2")
+
+    encrypted = storage1.encrypt(b"secret")
+
+    with pytest.raises(Exception):
+        storage2.decrypt(encrypted)
+
+def test_password_hash_not_reversible():
+    """Verify password hashes are one-way."""
+    from argon2 import PasswordHasher
+    ph = PasswordHasher()
+
+    hash1 = ph.hash("password123")
+    hash2 = ph.hash("password123")
+
+    # Same password, different hashes (random salt)
+    assert hash1 != hash2
+    # Both verify correctly
+    assert ph.verify(hash1, "password123")
+    assert ph.verify(hash2, "password123")
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any cryptographic code:**
+
+- [ ] Using AES-256-GCM or ChaCha20-Poly1305 (authenticated encryption)
+- [ ] Using Argon2id for password hashing
+- [ ] Keys generated from os.urandom() or OsRng
+- [ ] Nonces/IVs are random and never reused
+- [ ] Keys derived from passwords use Scrypt or Argon2
+- [ ] Secrets compared with constant-time functions
+- [ ] No hardcoded keys or secrets
+- [ ] Key rotation strategy implemented
+- [ ] Using cryptography library (Python) or ring/aes-gcm (Rust)
+- [ ] Minimum key sizes: AES-256, RSA-3072, Ed25519

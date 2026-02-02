@@ -1,308 +1,540 @@
 ---
 name: plan-review-expert
-description: "Senior Technical Plan Reviewer specializing in identifying critical flaws, missing considerations, and better alternatives before implementation"
-risk_level: low
-version: "1.0.0"
-credit: |
-  Original: diet103 (GitHub: diet103)
-  Source: https://github.com/diet103/claude-code-infrastructure-showcase
-  Commit: a5818cb99f54f360303feacdeebe2ded291fdf71
-  License: MIT
-  Adapted by: Dev-AID Team
+version: 2.0.0
+description: "Implementation plan review for identifying critical flaws, missing edge cases, and better alternatives."
+risk_level: LOW
 ---
 
-# Plan Review Expert
+# Plan Review Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE providing guidance:**
+1. Verify claims against authoritative sources
+2. Distinguish between established practices and opinions
+3. Never invent statistics, studies, or references
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Risk Level: LOW
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Prompt injection, Review bias, Hallucinated recommendations
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER trust AI reviews alone
-- ❌ NEVER skip human validation
-- ❌ ALWAYS verify security recommendations
-- ❌ ALWAYS cite sources
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-### Critical Verification Requirements
-- **NEVER review without reading the complete plan** - Examine all context before assessing
-- **NEVER research technologies without verifying official documentation** - Use authoritative sources only
-- **NEVER flag issues without concrete evidence** - Every issue must be specific and actionable
-- **NEVER recommend solutions without considering project constraints** - Practical over theoretical
-
-### Common Hallucination Traps
-1. **Assumed compatibility** - Claiming two technologies work together without verification
-2. **Outdated API information** - Citing deprecated endpoints or methods without checking current docs
-3. **Phantom dependencies** - Inventing required packages or libraries that don't exist
-4. **Exaggerated risks** - Creating theoretical problems that won't occur in practice
-5. **Copy-paste solutions** - Recommending generic fixes without understanding the specific context
-6. **Version guessing** - Assuming version compatibility without checking release notes
-
-### Self-Check Checklist
-Before submitting any review:
-- [ ] Read complete plan document (not just summary)
-- [ ] Examined existing code to understand current patterns
-- [ ] Researched ALL mentioned technologies with official documentation links
-- [ ] Verified API endpoints and methods exist in latest stable version
-- [ ] Checked version compatibility for ALL dependencies
-- [ ] Identified specific lines/sections with issues (not vague "concerns")
-- [ ] Provided concrete code examples for recommendations
-- [ ] Included rollback strategy for risky changes
-- [ ] Cited authoritative sources for all claims
-- [ ] Verified security concerns are real (not theoretical)
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
 
 ---
 
-## 1. Overview
+## 1. Review Principles
 
-**Expertise**: Pre-implementation technical plan review with focus on system integration, database design, API compatibility, and risk assessment
+### 1.1 Completeness Verification
 
-**Risk Level**: Low (review only, no code execution)
+**Principle:** Every plan must address all requirements. Missing steps cause implementation failures.
 
-**Key Capabilities**:
-- Deep research of technologies and API compatibility
-- Database migration and schema change analysis
-- Dependency mapping and version conflict detection
-- Risk assessment with concrete mitigation strategies
-- Alternative approach evaluation
+```markdown
+# ❌ WRONG - Incomplete plan review
+Plan looks good, proceed with implementation.
 
-**When to Use This Skill**:
-- Reviewing development plans before implementation
-- Validating architectural decisions for major features
-- Checking database migration strategies
-- Reviewing API integration plans
-- Assessing authentication/authorization implementations
-- Evaluating refactoring plans for risks
-- Identifying missing considerations in technical designs
+# ✅ CORRECT - Structured completeness check
+## Plan Review: User Authentication Feature
 
-## 2. Core Principles
+### Requirements Coverage
+| Requirement | Plan Section | Status |
+|-------------|--------------|--------|
+| User login | §2.1 | ✅ Covered |
+| Password reset | - | ❌ MISSING |
+| Session management | §2.3 | ⚠️ Partial |
+| Rate limiting | - | ❌ MISSING |
 
-### Evidence-Based Review
-- **Verify, never assume** - Check official documentation for every claim
-- **Specific over vague** - Point to exact lines, endpoints, or configurations
-- **Cite authoritative sources** - Official docs, RFCs, CVEs, not blog posts
-- **Test when possible** - Verify version compatibility, API availability
+### Critical Gaps
+1. **Password reset flow** - No mention of forgot password functionality
+2. **Rate limiting** - Login endpoint needs brute-force protection
+3. **Session expiry** - Plan mentions sessions but no expiry strategy
 
-### Practical Over Theoretical
-- **Consider project constraints** - Time, budget, team expertise, tech stack
-- **Flag real issues, not edge cases** - Focus on likely problems, not theoretical perfection
-- **Recommend implementable solutions** - Not "rewrite everything" unless critical
-- **Balance trade-offs** - Acknowledge pros/cons of recommendations
-
-### Comprehensive Coverage
-- **9 Critical Areas**: Authentication, Database, APIs, Types, Errors, Performance, Security, Testing, Rollback
-- **Research all technologies** - Compatibility, versions, known issues, limitations
-- **Map dependencies** - Direct and transitive, version conflicts, deprecations
-- **Impact analysis** - Performance, security, UX, operational
-
-### Structured Reporting
-- **Executive summary first** - Overall assessment (Ready/Needs Revisions/Critical Issues)
-- **Prioritize by severity** - Critical → High → Medium → Low
-- **Provide alternatives** - Not just criticism, offer better approaches
-- **Include rollback plan** - What to do if implementation fails
-
-## 3. Implementation Workflow
-
-**Objective**: Understand the existing system thoroughly before reviewing the plan
-
-📚 **For complete details**: See `references/implementation-workflow.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Quality Standards
-
-### Issue Identification
-- **Specific**: Point to exact file, line, endpoint, or configuration
-- **Evidence-based**: Cite official docs, CVEs, GitHub issues, RFCs
-- **Actionable**: Provide clear resolution path with code examples
-- **Prioritized**: Severity-based (Critical → High → Medium → Low)
-
-### Recommendations
-- **Practical**: Implementable within project constraints
-- **Contextual**: Considers team expertise, timeline, budget
-- **Detailed**: Code examples, configuration snippets, migration scripts
-- **Balanced**: Acknowledge trade-offs (performance vs maintainability)
-
-### Research
-- **Current**: Latest stable versions, not outdated docs
-- **Authoritative**: Official documentation, RFCs, security advisories
-- **Relevant**: Directly applicable to plan technologies
-- **Cited**: Links to all sources
-
-### Report Quality
-- **Comprehensive**: Covers all 9 critical areas
-- **Structured**: Follows standard report template
-- **Scannable**: Tables, bullet points, clear headings
-- **Actionable**: Every issue has concrete next steps
-
-## 6. Common Plan Issues (Anti-Patterns)
-
-### Authentication Anti-Patterns
-- ❌ Missing token validation logic
-- ❌ No refresh token strategy
-- ❌ Session management not specified
-- ❌ Incompatible auth methods (JWT vs session cookies)
-- ❌ No authorization rules defined
-
-### Database Anti-Patterns
-- ❌ No migration rollback script
-- ❌ Missing indexes for query patterns
-- ❌ No foreign key constraints
-- ❌ Constraint violations not handled
-- ❌ No data validation at database level
-
-### API Integration Anti-Patterns
-- ❌ Wrong/deprecated API endpoints
-- ❌ Missing authentication headers
-- ❌ No rate limiting strategy
-- ❌ Inadequate error handling (only 200 OK handled)
-- ❌ No timeout or retry configuration
-
-### Performance Anti-Patterns
-- ❌ N+1 queries (SELECT in loop)
-- ❌ No caching strategy
-- ❌ Missing pagination for large results
-- ❌ Unoptimized queries (full table scans)
-- ❌ Synchronous blocking operations
-
-### Security Anti-Patterns
-- ❌ No input validation/sanitization
-- ❌ SQL injection vulnerabilities
-- ❌ XSS vulnerabilities
-- ❌ Missing authorization checks
-- ❌ Secrets hardcoded in config
-
-## 7. Advanced Techniques
-
-### Dependency Conflict Detection
-```bash
-# Check for version conflicts
-npm ls [package-name]
-pip show [package-name]
-cargo tree
+### Recommendation
+BLOCK - Address gaps before implementation
 ```
 
-### API Verification
-- Use WebSearch to find official API documentation
-- Check API status page for outages/deprecations
-- Verify rate limits and quotas
-- Test authentication with example request
+### 1.2 Risk Identification
 
-### Performance Estimation
-- Estimate query complexity (O(n), O(n²))
-- Calculate database table size growth
-- Estimate API call frequency (requests/sec)
-- Check cache hit ratio potential
+**Principle:** Identify technical debt, security holes, and scalability issues before they're built.
 
-## 8. Integration with Dev-AID
+```typescript
+// Plan review risk assessment structure
+interface PlanRiskAssessment {
+  technical: RiskItem[];
+  security: RiskItem[];
+  scalability: RiskItem[];
+  maintainability: RiskItem[];
+}
 
-**Related Skills**:
-- `devsecops-expert` (security review)
-- `database-design` (schema review)
-- `api-expert` (API integration review)
-- `cicd-expert` (deployment strategy review)
+interface RiskItem {
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  planSection: string;
+  mitigation: string;
+}
 
-**Workflow Integration**:
-- Use this skill BEFORE implementing major features
-- Integrate into PR review process for architecture changes
-- Run plan reviews before sprint planning
-- Use for RFCs and technical design documents
+// ❌ WRONG - Vague risk assessment
+const badReview = "There might be some performance issues.";
 
-## 9. References
+// ✅ CORRECT - Specific, actionable risk items
+const properReview: PlanRiskAssessment = {
+  technical: [
+    {
+      description: "N+1 query in user list endpoint",
+      severity: "HIGH",
+      planSection: "§3.2 API Endpoints",
+      mitigation: "Add eager loading or use DataLoader pattern"
+    }
+  ],
+  security: [
+    {
+      description: "JWT stored in localStorage",
+      severity: "CRITICAL",
+      planSection: "§4.1 Authentication",
+      mitigation: "Use httpOnly cookies with SameSite=Strict"
+    }
+  ],
+  scalability: [],
+  maintainability: [
+    {
+      description: "Business logic mixed with controller",
+      severity: "MEDIUM",
+      planSection: "§3.2 API Endpoints",
+      mitigation: "Extract to service layer"
+    }
+  ]
+};
+```
 
-For detailed information, see:
-- `references/review-report-examples.md` - Sample review reports
-- `references/research-checklist.md` - Technology research template
-- `references/common-issues-by-stack.md` - Stack-specific gotchas
-- `references/security-review-guide.md` - Security-focused review process
+### 1.3 Dependency Analysis
+
+**Principle:** Identify blocking dependencies and parallel work opportunities.
 
 ---
 
-**Remember**: Always read the complete plan, research all technologies with official docs, provide specific evidence-based issues, and include concrete recommendations. Begin by clarifying: Where is the plan document? What is the scope? Are there specific concerns?
+## 2. Version Requirements
+
+```
+# Plan review is process-based, no runtime dependencies
+# Tools for documentation
+mermaid-cli>=10.0.0  # Diagram validation
+markdown-lint>=0.35  # Markdown structure check
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN reviewing implementation plans, use structured analysis
+
+```python
+# ❌ WRONG - Unstructured review
+def review_plan(plan: str) -> str:
+    return "LGTM"
+
+# ✅ CORRECT - Structured plan review
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional
+
+class ReviewVerdict(Enum):
+    APPROVE = "approve"
+    APPROVE_WITH_COMMENTS = "approve_with_comments"
+    REQUEST_CHANGES = "request_changes"
+    BLOCK = "block"
+
+class Severity(Enum):
+    INFO = 0
+    LOW = 1
+    MEDIUM = 2
+    HIGH = 3
+    CRITICAL = 4
+
+@dataclass
+class ReviewComment:
+    section: str
+    severity: Severity
+    issue: str
+    suggestion: str
+    blocking: bool = False
+
+@dataclass
+class PlanReview:
+    verdict: ReviewVerdict
+    summary: str
+    comments: list[ReviewComment] = field(default_factory=list)
+    missing_sections: list[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
+
+    def to_markdown(self) -> str:
+        lines = [
+            f"# Plan Review",
+            f"",
+            f"**Verdict:** {self.verdict.value.upper()}",
+            f"",
+            f"## Summary",
+            self.summary,
+            f"",
+        ]
+
+        if self.missing_sections:
+            lines.extend([
+                "## Missing Sections",
+                *[f"- [ ] {s}" for s in self.missing_sections],
+                "",
+            ])
+
+        if self.comments:
+            lines.extend([
+                "## Review Comments",
+                "",
+            ])
+            for c in self.comments:
+                icon = "🚫" if c.blocking else "⚠️" if c.severity.value >= 2 else "💡"
+                lines.extend([
+                    f"### {icon} {c.section}",
+                    f"**Severity:** {c.severity.name}",
+                    f"",
+                    f"**Issue:** {c.issue}",
+                    f"",
+                    f"**Suggestion:** {c.suggestion}",
+                    "",
+                ])
+
+        return "\n".join(lines)
+
+# Usage
+def review_authentication_plan(plan_content: str) -> PlanReview:
+    review = PlanReview(
+        verdict=ReviewVerdict.REQUEST_CHANGES,
+        summary="Plan covers core auth flow but missing critical security controls.",
+    )
+
+    # Check for required sections
+    required = ["rate limiting", "password policy", "session management", "audit logging"]
+    for req in required:
+        if req.lower() not in plan_content.lower():
+            review.missing_sections.append(req.title())
+
+    # Add specific feedback
+    if "localstorage" in plan_content.lower() and "jwt" in plan_content.lower():
+        review.comments.append(ReviewComment(
+            section="Token Storage",
+            severity=Severity.CRITICAL,
+            issue="JWT stored in localStorage is vulnerable to XSS attacks",
+            suggestion="Use httpOnly cookies with SameSite=Strict flag",
+            blocking=True,
+        ))
+
+    if review.missing_sections or any(c.blocking for c in review.comments):
+        review.verdict = ReviewVerdict.BLOCK
+
+    return review
+```
+
+### WHEN identifying architectural issues, use pattern detection
+
+```python
+# ❌ WRONG - Ad-hoc issue detection
+issues = []
+if "api" in plan:
+    issues.append("Check API design")
+
+# ✅ CORRECT - Pattern-based issue detection
+from dataclasses import dataclass
+import re
+
+@dataclass
+class ArchPattern:
+    name: str
+    pattern: re.Pattern
+    severity: Severity
+    issue_template: str
+    suggestion_template: str
+
+ANTIPATTERNS = [
+    ArchPattern(
+        name="God Object",
+        pattern=re.compile(r"single\s+(class|module|service)\s+.*\b(all|everything|handles)\b", re.I),
+        severity=Severity.HIGH,
+        issue_template="Plan describes a {match} that handles too many responsibilities",
+        suggestion_template="Split into focused services following Single Responsibility Principle",
+    ),
+    ArchPattern(
+        name="Shared Database",
+        pattern=re.compile(r"(services?|microservices?)\s+.*\bshared?\s+database\b", re.I),
+        severity=Severity.MEDIUM,
+        issue_template="Multiple services sharing a database creates tight coupling",
+        suggestion_template="Consider database-per-service or event sourcing pattern",
+    ),
+    ArchPattern(
+        name="Synchronous Chain",
+        pattern=re.compile(r"(calls?|invokes?)\s+.*\bthen\s+(calls?|invokes?)\s+.*\bthen\b", re.I),
+        severity=Severity.MEDIUM,
+        issue_template="Long synchronous call chains increase latency and failure risk",
+        suggestion_template="Consider async messaging or saga pattern for multi-step operations",
+    ),
+    ArchPattern(
+        name="Missing Error Handling",
+        pattern=re.compile(r"(api|endpoint|service)\s+(?!.*\b(error|exception|failure|retry)\b)", re.I),
+        severity=Severity.HIGH,
+        issue_template="Service described without error handling strategy",
+        suggestion_template="Add error handling, retries, circuit breaker, and fallback strategies",
+    ),
+]
+
+def detect_antipatterns(plan_content: str) -> list[ReviewComment]:
+    comments = []
+    for ap in ANTIPATTERNS:
+        match = ap.pattern.search(plan_content)
+        if match:
+            comments.append(ReviewComment(
+                section=f"Architecture: {ap.name}",
+                severity=ap.severity,
+                issue=ap.issue_template.format(match=match.group(0)),
+                suggestion=ap.suggestion_template,
+                blocking=ap.severity == Severity.CRITICAL,
+            ))
+    return comments
+```
+
+### WHEN generating alternative approaches, provide comparison
+
+```markdown
+# ❌ WRONG - Single alternative without context
+Consider using microservices instead.
+
+# ✅ CORRECT - Structured alternatives comparison
+## Alternative Approaches
+
+### Option A: Monolith (Current Plan)
+**Pros:**
+- Simpler deployment
+- Easier debugging
+- Lower operational overhead
+
+**Cons:**
+- Scaling requires full app scaling
+- Team coupling on releases
+- Technology lock-in
+
+**Best for:** Small team, early stage, < 10K users
+
+---
+
+### Option B: Modular Monolith
+**Pros:**
+- Clear module boundaries
+- Easier to split later
+- Simpler than microservices
+
+**Cons:**
+- Still single deployment
+- Requires discipline to maintain boundaries
+
+**Best for:** Growing team, planning future scale
+
+---
+
+### Option C: Microservices
+**Pros:**
+- Independent scaling
+- Team autonomy
+- Technology flexibility
+
+**Cons:**
+- Operational complexity
+- Network latency
+- Distributed debugging
+
+**Best for:** Large team, high scale, multiple domains
+
+---
+
+### Recommendation
+Given the current team size (3 engineers) and expected scale (< 50K users),
+**Option B (Modular Monolith)** provides the best balance of simplicity
+and future flexibility.
+```
+
+### WHEN reviewing security aspects, use threat checklist
+
+```python
+# ❌ WRONG - Generic security comment
+# "Make sure it's secure"
+
+# ✅ CORRECT - STRIDE-based security review
+from enum import Enum
+from dataclasses import dataclass
+
+class ThreatCategory(Enum):
+    SPOOFING = "Spoofing"          # Pretending to be someone else
+    TAMPERING = "Tampering"         # Modifying data
+    REPUDIATION = "Repudiation"     # Denying actions
+    INFO_DISCLOSURE = "Info Disclosure"  # Exposing data
+    DENIAL_OF_SERVICE = "DoS"       # Preventing access
+    ELEVATION = "Elevation"         # Gaining unauthorized access
+
+@dataclass
+class ThreatCheck:
+    category: ThreatCategory
+    question: str
+    plan_should_address: str
+
+SECURITY_CHECKLIST = [
+    ThreatCheck(
+        ThreatCategory.SPOOFING,
+        "How are users authenticated?",
+        "Authentication mechanism (OAuth, JWT, sessions)"
+    ),
+    ThreatCheck(
+        ThreatCategory.SPOOFING,
+        "How are API calls authenticated?",
+        "API authentication (API keys, tokens, mTLS)"
+    ),
+    ThreatCheck(
+        ThreatCategory.TAMPERING,
+        "How is input validated?",
+        "Input validation strategy (schema validation, sanitization)"
+    ),
+    ThreatCheck(
+        ThreatCategory.TAMPERING,
+        "How is data integrity ensured?",
+        "Data integrity controls (checksums, signatures)"
+    ),
+    ThreatCheck(
+        ThreatCategory.REPUDIATION,
+        "How are actions logged?",
+        "Audit logging for sensitive operations"
+    ),
+    ThreatCheck(
+        ThreatCategory.INFO_DISCLOSURE,
+        "How is sensitive data protected?",
+        "Encryption at rest and in transit"
+    ),
+    ThreatCheck(
+        ThreatCategory.INFO_DISCLOSURE,
+        "What data is exposed in errors?",
+        "Error handling without sensitive data leakage"
+    ),
+    ThreatCheck(
+        ThreatCategory.DENIAL_OF_SERVICE,
+        "How is rate limiting handled?",
+        "Rate limiting on public endpoints"
+    ),
+    ThreatCheck(
+        ThreatCategory.ELEVATION,
+        "How is authorization enforced?",
+        "RBAC or ABAC authorization model"
+    ),
+]
+
+def security_review(plan_content: str) -> list[ReviewComment]:
+    """Review plan against STRIDE threat model."""
+    comments = []
+    plan_lower = plan_content.lower()
+
+    for check in SECURITY_CHECKLIST:
+        # Simple keyword detection (in practice, use NLP or manual review)
+        keywords = check.plan_should_address.lower().split()
+        if not any(kw in plan_lower for kw in keywords if len(kw) > 4):
+            comments.append(ReviewComment(
+                section=f"Security: {check.category.value}",
+                severity=Severity.HIGH,
+                issue=f"Plan does not address: {check.question}",
+                suggestion=f"Add section covering: {check.plan_should_address}",
+                blocking=check.category in [ThreatCategory.SPOOFING, ThreatCategory.ELEVATION],
+            ))
+
+    return comments
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Approve plans without checking for missing requirements
+- Skip security review for "internal" services
+- Ignore scalability concerns for "MVP"
+- Accept vague descriptions ("handle errors appropriately")
+- Rubber-stamp plans without structured analysis
+- Miss dependency ordering and blocking items
+
+---
+
+## 5. Testing
+
+```python
+import pytest
+from plan_review import PlanReview, review_authentication_plan, detect_antipatterns
+
+class TestPlanReview:
+
+    def test_detects_missing_rate_limiting(self):
+        """Plans without rate limiting should be flagged."""
+        plan = """
+        # Auth Plan
+        ## Login Endpoint
+        Users submit credentials and receive JWT token.
+        """
+        review = review_authentication_plan(plan)
+        assert "Rate Limiting" in review.missing_sections
+
+    def test_blocks_jwt_in_localstorage(self):
+        """JWT in localStorage should block approval."""
+        plan = """
+        Store JWT in localStorage for persistence.
+        """
+        review = review_authentication_plan(plan)
+        assert review.verdict.value == "block"
+        assert any(c.blocking for c in review.comments)
+
+    def test_detects_god_object_antipattern(self):
+        """Should detect god object descriptions."""
+        plan = "The UserService class handles all user operations."
+        comments = detect_antipatterns(plan)
+        assert any("God Object" in c.section for c in comments)
+
+    def test_detects_shared_database(self):
+        """Should flag shared database pattern."""
+        plan = "All microservices connect to the shared database."
+        comments = detect_antipatterns(plan)
+        assert any("Shared Database" in c.section for c in comments)
+
+    def test_markdown_output_format(self):
+        """Review should produce valid markdown."""
+        review = PlanReview(
+            verdict=ReviewVerdict.APPROVE_WITH_COMMENTS,
+            summary="Solid plan with minor suggestions.",
+            comments=[
+                ReviewComment(
+                    section="API Design",
+                    severity=Severity.LOW,
+                    issue="Consider pagination",
+                    suggestion="Add cursor-based pagination",
+                )
+            ]
+        )
+        md = review.to_markdown()
+        assert "# Plan Review" in md
+        assert "APPROVE_WITH_COMMENTS" in md
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE approving any plan:**
+
+- [ ] Requirements coverage: All requirements mapped to plan sections
+- [ ] Security review: STRIDE checklist completed
+- [ ] Scalability: Load expectations and scaling strategy documented
+- [ ] Error handling: Failure modes and recovery documented
+- [ ] Dependencies: Blocking items identified and ordered
+- [ ] Alternatives: At least one alternative considered
+- [ ] Missing sections: All critical sections present
+- [ ] Antipattern scan: No architectural antipatterns detected

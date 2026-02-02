@@ -1,366 +1,816 @@
 ---
 name: glsl
-description: GLSL shader programming for JARVIS holographic effects
+version: 2.0.0
+description: "GLSL shader programming for fragment and vertex shaders with WebGL integration and optimization."
 risk_level: LOW
-version: 1.1.0
 ---
 
-# GLSL Shader Programming Skill
-
-> **File Organization**: This skill uses split structure. See `references/` for advanced shader patterns.
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# GLSL Shader Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Shader complexity DoS, GPU memory exhaustion, Timing side-channels
-- Requires security awareness and best practices
+**CWE-119: Buffer Access**
+- NEVER: `array[userIndex]` without bounds check
+- ALWAYS: Clamp indices, use defined array bounds
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-835: Infinite Loops**
+- NEVER: `while(true)` or unbounded loops in shaders
+- ALWAYS: Maximum iteration counts, early exit conditions
 
-### 0.3 Hallucination Prevention Checklist
+### 0.3 Risk Level: LOW
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow unbounded shader complexity
-- ❌ NEVER trust user-supplied shaders
-- ❌ ALWAYS implement shader validation
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-This skill provides GLSL shader expertise for creating holographic visual effects in the JARVIS AI Assistant HUD. It focuses on efficient GPU programming for real-time rendering.
-
-**Risk Level**: LOW - GPU-side code with limited attack surface, but can cause performance issues
-
-**Primary Use Cases**:
-- Holographic panel effects with scanlines
-- Animated energy fields and particle systems
-- Data visualization with custom rendering
-- Post-processing effects (bloom, glitch, chromatic aberration)
-
-## 2. Core Responsibilities
-
-### 2.1 Fundamental Principles
-
-1. **TDD First**: Write visual regression tests and shader unit tests before implementation
-2. **Performance Aware**: Profile GPU performance, optimize for 60 FPS target
-3. **Precision Matters**: Use appropriate precision qualifiers for performance
-4. **Avoid Branching**: Minimize conditionals in shaders for GPU efficiency
-5. **Optimize Math**: Use built-in functions, avoid expensive operations
-6. **Uniform Safety**: Validate uniform inputs before sending to GPU
-7. **Loop Bounds**: Always use constant loop bounds to prevent GPU hangs
-8. **Memory Access**: Optimize texture lookups and varying interpolation
-
-## 3. Implementation Workflow (TDD)
-
-describe('HolographicPanelShader', () => {
-  let ctx: WebGLTestContext
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+**Verification requirements for LOW risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 5. Technology Stack & Versions
+## 1. Security Principles
 
-### 4.1 GLSL Versions
+### 1.1 Shader Injection Prevention (CWE-94)
 
-| Version | Context | Features |
-|---------|---------|----------|
-| GLSL ES 3.00 | WebGL 2.0 | Modern features, better precision |
-| GLSL ES 1.00 | WebGL 1.0 | Legacy support |
+**Principle:** Never construct shaders from user input. Use precompiled shaders.
 
-### 4.2 Shader Setup
+```javascript
+// ❌ WRONG - Shader injection vulnerability
+function createShader(userCode) {
+  return `
+    void main() {
+      ${userCode}  // User can inject arbitrary shader code!
+    }
+  `;
+}
+
+// ✅ CORRECT - Parameterized shader with validated uniforms
+const fragmentShader = `
+  precision highp float;
+  uniform vec3 u_color;
+  uniform float u_intensity;
+
+  void main() {
+    gl_FragColor = vec4(u_color * u_intensity, 1.0);
+  }
+`;
+
+// Validate uniform values
+function setColor(gl, program, r, g, b) {
+  if (![r, g, b].every(v => v >= 0 && v <= 1)) {
+    throw new Error('Color values must be between 0 and 1');
+  }
+  const loc = gl.getUniformLocation(program, 'u_color');
+  gl.uniform3f(loc, r, g, b);
+}
+```
+
+### 1.2 Resource Exhaustion Prevention (CWE-400)
+
+**Principle:** Limit shader complexity. Avoid unbounded loops.
 
 ```glsl
+// ❌ WRONG - Unbounded loop can freeze GPU
+for (int i = 0; i < iterations; i++) {
+  // Could run millions of times
+}
+
+// ✅ CORRECT - Bounded loop with compile-time constant
+#define MAX_ITERATIONS 100
+for (int i = 0; i < MAX_ITERATIONS; i++) {
+  if (i >= actualIterations) break;
+}
+```
+
+### 1.3 Precision Specification (CWE-681)
+
+**Principle:** Always specify precision to prevent cross-platform issues.
+
+### 1.4 Division Safety (CWE-369)
+
+**Principle:** Guard against division by zero.
+
+### 1.5 Memory Bounds (CWE-125)
+
+**Principle:** Validate array indices. Avoid out-of-bounds access.
+
+### 1.6 Cross-Platform Compatibility
+
+**Principle:** Test on multiple GPUs. Avoid vendor-specific extensions.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these specifications:**
+
+```glsl
+// WebGL 1.0 (OpenGL ES 2.0)
+#version 100
+
+// WebGL 2.0 (OpenGL ES 3.0)
+#version 300 es
+
+// Desktop OpenGL
+#version 330 core
+#version 450 core
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating a basic vertex/fragment shader pair
+
+```glsl
+// ❌ WRONG - No precision, poor structure
+attribute vec3 position;
+varying vec3 vPos;
+void main() {
+  vPos = position;
+  gl_Position = vec4(position, 1.0);
+}
+
+// ✅ CORRECT - WebGL 2.0 vertex shader
 #version 300 es
 precision highp float;
-precision highp int;
 
-// WebGL 2.0 shader header
-```
+// Uniforms
+uniform mat4 u_modelMatrix;
+uniform mat4 u_viewMatrix;
+uniform mat4 u_projectionMatrix;
+uniform mat3 u_normalMatrix;
 
-## 6. Performance Patterns
+// Vertex attributes
+in vec3 a_position;
+in vec3 a_normal;
+in vec2 a_texCoord;
 
-### 5.1 Avoid Branching - Use Mix/Step
+// Outputs to fragment shader
+out vec3 v_worldPosition;
+out vec3 v_worldNormal;
+out vec2 v_texCoord;
 
-```glsl
-// ❌ BAD - GPU branch divergence
-vec3 getColor(float value) {
-  if (value < 0.3) {
-    return vec3(1.0, 0.0, 0.0);  // Red
-  } else if (value < 0.7) {
-    return vec3(1.0, 1.0, 0.0);  // Yellow
-  } else {
-    return vec3(0.0, 1.0, 0.0);  // Green
-  }
-}
+void main() {
+    // Transform to world space
+    vec4 worldPosition = u_modelMatrix * vec4(a_position, 1.0);
+    v_worldPosition = worldPosition.xyz;
 
-// ✅ GOOD - Branchless with mix/step
-vec3 getColor(float value) {
-  vec3 red = vec3(1.0, 0.0, 0.0);
-  vec3 yellow = vec3(1.0, 1.0, 0.0);
-  vec3 green = vec3(0.0, 1.0, 0.0);
+    // Transform normal to world space
+    v_worldNormal = normalize(u_normalMatrix * a_normal);
 
-  vec3 color = mix(red, yellow, smoothstep(0.3, 0.31, value));
-  color = mix(color, green, smoothstep(0.7, 0.71, value));
-  return color;
-}
-```
+    // Pass through texture coordinates
+    v_texCoord = a_texCoord;
 
-### 5.2 Texture Atlases - Reduce Draw Calls
-
-```glsl
-// ❌ BAD - Multiple texture bindings
-uniform sampler2D uIcon1;
-uniform sampler2D uIcon2;
-uniform sampler2D uIcon3;
-
-vec4 getIcon(int id) {
-  if (id == 0) return texture(uIcon1, vUv);
-  if (id == 1) return texture(uIcon2, vUv);
-  return texture(uIcon3, vUv);
-}
-
-// ✅ GOOD - Single atlas texture
-uniform sampler2D uIconAtlas;
-uniform vec4 uAtlasOffsets[3];  // [x, y, width, height] for each icon
-
-vec4 getIcon(int id) {
-  vec4 offset = uAtlasOffsets[id];
-  vec2 atlasUV = offset.xy + vUv * offset.zw;
-  return texture(uIconAtlas, atlasUV);
+    // Final clip space position
+    gl_Position = u_projectionMatrix * u_viewMatrix * worldPosition;
 }
 ```
 
-### 5.3 Level of Detail (LOD) - Distance-Based Quality
-
 ```glsl
-// ❌ BAD - Same quality regardless of distance
-const int NOISE_OCTAVES = 8;
-
-float noise(vec3 p) {
-  float result = 0.0;
-  for (int i = 0; i < NOISE_OCTAVES; i++) {
-    result += snoise(p * pow(2.0, float(i)));
-  }
-  return result;
-}
-
-// ✅ GOOD - Reduce octaves based on distance
-uniform float uCameraDistance;
-
-float noise(vec3 p) {
-  // Fewer octaves when far away (detail not visible)
-  int octaves = int(mix(2.0, 8.0, 1.0 - smoothstep(10.0, 100.0, uCameraDistance)));
-  float result = 0.0;
-  for (int i = 0; i < 8; i++) {
-    if (i >= octaves) break;
-    result += snoise(p * pow(2.0, float(i)));
-  }
-  return result;
-}
-```
-
-### 5.4 Uniform Batching - Minimize CPU-GPU Transfers
-
-```glsl
-// ❌ BAD - Many individual uniforms
-uniform float uPosX;
-uniform float uPosY;
-uniform float uPosZ;
-uniform float uRotX;
-uniform float uRotY;
-uniform float uRotZ;
-uniform float uScaleX;
-uniform float uScaleY;
-uniform float uScaleZ;
-
-// ✅ GOOD - Packed into vectors/matrices
-uniform vec3 uPosition;
-uniform vec3 uRotation;
-uniform vec3 uScale;
-// Or even better:
-uniform mat4 uTransform;
-```
-
-### 5.5 Precision Optimization - Use Appropriate Precision
-
-```glsl
-// ❌ BAD - Everything highp (wastes GPU cycles)
+// ✅ CORRECT - WebGL 2.0 fragment shader with PBR lighting
+#version 300 es
 precision highp float;
 
-highp vec3 color;
-high## 6. Performance Patterns
+// Constants
+const float PI = 3.14159265359;
+const float EPSILON = 0.0001;
 
-// ✅ GOOD - Branchless with mix/step
-vec3 getColor(float value) {
-  vec3 red = vec3(1.0, 0.0, 0.0);
-  vec3 yellow = vec3(1.0, 1.0, 0.0);
-  vec3 green = vec3(0.0, 1.0, 0.0);
+// Uniforms
+uniform vec3 u_cameraPosition;
+uniform vec3 u_lightPosition;
+uniform vec3 u_lightColor;
+uniform float u_lightIntensity;
 
-📚 **For complete details**: See `references/performance-patterns.md`
+// Material properties
+uniform vec3 u_albedo;
+uniform float u_metallic;
+uniform float u_roughness;
+uniform float u_ao;
 
----
-nt(uCount)) break;
+// Inputs from vertex shader
+in vec3 v_worldPosition;
+in vec3 v_worldNormal;
+in vec2 v_texCoord;
+
+// Output
+out vec4 fragColor;
+
+// PBR functions
+float distributionGGX(vec3 N, vec3 H, float roughness) {
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH * NdotH;
+
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
+
+    return a2 / max(denom, EPSILON);  // Guard division
+}
+
+float geometrySchlickGGX(float NdotV, float roughness) {
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0;
+
+    float denom = NdotV * (1.0 - k) + k;
+    return NdotV / max(denom, EPSILON);
+}
+
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    return geometrySchlickGGX(NdotV, roughness) *
+           geometrySchlickGGX(NdotL, roughness);
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
+void main() {
+    vec3 N = normalize(v_worldNormal);
+    vec3 V = normalize(u_cameraPosition - v_worldPosition);
+    vec3 L = normalize(u_lightPosition - v_worldPosition);
+    vec3 H = normalize(V + L);
+
+    // Calculate reflectance at normal incidence
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, u_albedo, u_metallic);
+
+    // Cook-Torrance BRDF
+    float D = distributionGGX(N, H, u_roughness);
+    float G = geometrySmith(N, V, L, u_roughness);
+    vec3 F = fresnelSchlick(max(dot(H, V), 0.0), F0);
+
+    vec3 numerator = D * G * F;
+    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+    vec3 specular = numerator / max(denominator, EPSILON);
+
+    // Energy conservation
+    vec3 kS = F;
+    vec3 kD = vec3(1.0) - kS;
+    kD *= 1.0 - u_metallic;
+
+    // Final lighting
+    float NdotL = max(dot(N, L), 0.0);
+    vec3 radiance = u_lightColor * u_lightIntensity;
+    vec3 Lo = (kD * u_albedo / PI + specular) * radiance * NdotL;
+
+    // Ambient
+    vec3 ambient = vec3(0.03) * u_albedo * u_ao;
+    vec3 color = ambient + Lo;
+
+    // HDR tonemapping
+    color = color / (color + vec3(1.0));
+
+    // Gamma correction
+    color = pow(color, vec3(1.0 / 2.2));
+
+    fragColor = vec4(color, 1.0);
 }
 ```
 
-## 9. Common Mistakes & Anti-Patterns
-
-### 8.1 Never: Use Dynamic Loop Bounds
+### 3.2 WHEN implementing noise functions
 
 ```glsl
-// ❌ DANGEROUS - May cause GPU hang
-for (int i = 0; i < uniformValue; i++) { }
+// ❌ WRONG - Non-deterministic or slow noise
+float noise(vec2 p) {
+  return fract(sin(p.x * 12.9898 + p.y * 78.233) * 43758.5453);
+}
 
-// ✅ SAFE - Constant bound with early exit
-const int MAX = 100;
-for (int i = 0; i < MAX; i++) {
-  if (i >= uniformValue) break;
+// ✅ CORRECT - High-quality Simplex noise
+#version 300 es
+precision highp float;
+
+// Permutation polynomial
+vec3 permute(vec3 x) {
+    return mod(((x * 34.0) + 1.0) * x, 289.0);
+}
+
+// 2D Simplex noise
+float snoise(vec2 v) {
+    const vec4 C = vec4(
+        0.211324865405187,   // (3.0-sqrt(3.0))/6.0
+        0.366025403784439,   // 0.5*(sqrt(3.0)-1.0)
+        -0.577350269189626,  // -1.0 + 2.0 * C.x
+        0.024390243902439    // 1.0 / 41.0
+    );
+
+    // First corner
+    vec2 i = floor(v + dot(v, C.yy));
+    vec2 x0 = v - i + dot(i, C.xx);
+
+    // Other corners
+    vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+    vec4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+
+    // Permutations
+    i = mod(i, 289.0);
+    vec3 p = permute(permute(i.y + vec3(0.0, i1.y, 1.0)) + i.x + vec3(0.0, i1.x, 1.0));
+
+    vec3 m = max(0.5 - vec3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+    m = m * m;
+    m = m * m;
+
+    // Gradients
+    vec3 x = 2.0 * fract(p * C.www) - 1.0;
+    vec3 h = abs(x) - 0.5;
+    vec3 ox = floor(x + 0.5);
+    vec3 a0 = x - ox;
+
+    // Normalize gradients
+    m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+
+    // Compute final value
+    vec3 g;
+    g.x = a0.x * x0.x + h.x * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+}
+
+// Fractal Brownian Motion
+float fbm(vec2 p, int octaves) {
+    float value = 0.0;
+    float amplitude = 0.5;
+    float frequency = 1.0;
+
+    // Bounded loop
+    const int MAX_OCTAVES = 8;
+    for (int i = 0; i < MAX_OCTAVES; i++) {
+        if (i >= octaves) break;
+
+        value += amplitude * snoise(p * frequency);
+        frequency *= 2.0;
+        amplitude *= 0.5;
+    }
+
+    return value;
 }
 ```
 
-### 8.2 Never: Divide Without Checking Zero
+### 3.3 WHEN implementing post-processing effects
 
 ```glsl
-// ❌ DANGEROUS - Division by zero
-float result = value / divisor;
+// ❌ WRONG - Hardcoded values, no safety
+void main() {
+  vec4 color = texture(u_texture, v_texCoord);
+  color.rgb = pow(color.rgb, vec3(1.0/2.2));  // No bounds check
+  fragColor = color;
+}
 
-// ✅ SAFE - Guard against zero
-float result = value / max(divisor, 0.0001);
+// ✅ CORRECT - Bloom post-processing with safety
+#version 300 es
+precision highp float;
+
+uniform sampler2D u_sceneTexture;
+uniform sampler2D u_bloomTexture;
+uniform float u_bloomIntensity;
+uniform float u_exposure;
+uniform float u_gamma;
+
+in vec2 v_texCoord;
+out vec4 fragColor;
+
+// Safe pow for HDR
+vec3 safePow(vec3 base, float exponent) {
+    return pow(max(base, vec3(0.0)), vec3(exponent));
+}
+
+// ACES Filmic Tone Mapping
+vec3 acesFilm(vec3 x) {
+    float a = 2.51;
+    float b = 0.03;
+    float c = 2.43;
+    float d = 0.59;
+    float e = 0.14;
+    return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+}
+
+// Gaussian blur kernel
+vec3 gaussianBlur(sampler2D tex, vec2 uv, vec2 direction) {
+    vec3 color = vec3(0.0);
+    vec2 texelSize = 1.0 / vec2(textureSize(tex, 0));
+
+    // 9-tap Gaussian
+    const float weights[5] = float[](0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+
+    color += texture(tex, uv).rgb * weights[0];
+
+    for (int i = 1; i < 5; i++) {
+        vec2 offset = direction * texelSize * float(i);
+        color += texture(tex, uv + offset).rgb * weights[i];
+        color += texture(tex, uv - offset).rgb * weights[i];
+    }
+
+    return color;
+}
+
+void main() {
+    // Sample textures
+    vec3 sceneColor = texture(u_sceneTexture, v_texCoord).rgb;
+    vec3 bloomColor = texture(u_bloomTexture, v_texCoord).rgb;
+
+    // Combine scene and bloom
+    vec3 color = sceneColor + bloomColor * clamp(u_bloomIntensity, 0.0, 2.0);
+
+    // Apply exposure
+    color *= clamp(u_exposure, 0.1, 10.0);
+
+    // Tone mapping
+    color = acesFilm(color);
+
+    // Gamma correction
+    float gamma = clamp(u_gamma, 1.0, 3.0);
+    color = safePow(color, 1.0 / gamma);
+
+    fragColor = vec4(color, 1.0);
+}
 ```
 
-## 10. Pre-Implementation Checklist
+### 3.4 WHEN implementing SDF raymarching
 
-### Phase 1: Before Writing Code
+```glsl
+// ❌ WRONG - Unbounded raymarching
+for (int i = 0; i < 1000000; i++) {  // Can freeze GPU!
+  float d = map(p);
+  if (d < 0.001) break;
+  p += d * rd;
+}
 
-- [ ] Write shader compilation test
-- [ ] Write uniform accessibility test
-- [ ] Create baseline images for visual regression tests
-- [ ] Define performance targets (FPS, draw calls)
-- [ ] Review existing shaders for reusable patterns
+// ✅ CORRECT - Safe SDF raymarching
+#version 300 es
+precision highp float;
 
-### Phase 2: During Implementation
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform vec3 u_cameraPosition;
 
-- [ ] All loops have constant bounds
-- [ ] No division by zero possible
-- [ ] Using branchless patterns (mix/step)
-- [ ] Appropriate precision qualifiers
-- [ ] Texture lookups cached
-- [ ] Uniforms batched into vectors/matrices
+out vec4 fragColor;
 
-### Phase 3: Before Committing
+// SDF primitives
+float sdSphere(vec3 p, float r) {
+    return length(p) - r;
+}
 
-- [ ] All shader tests pass: `npm run test:shaders`
-- [ ] Visual regression tests pass: `npm run test:visual`
-- [ ] Performance benchmark meets targets: `npm run bench:shaders`
-- [ ] Cross-browser compatibility verified
-- [ ] No artifacts at edge cases (UV 0,0 and 1,1)
-- [ ] Smooth animation timing verified
+float sdBox(vec3 p, vec3 b) {
+    vec3 d = abs(p) - b;
+    return length(max(d, 0.0)) + min(max(d.x, max(d.y, d.z)), 0.0);
+}
 
-## 11. Summary
+float sdTorus(vec3 p, vec2 t) {
+    vec2 q = vec2(length(p.xz) - t.x, p.y);
+    return length(q) - t.y;
+}
 
-GLSL shaders power the visual effects in JARVIS HUD:
+// Smooth minimum for blending
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return mix(b, a, h) - k * h * (1.0 - h);
+}
 
-1. **TDD First**: Write tests before shaders - compilation, uniforms, visual regression
-2. **Performance**: Use branchless patterns, texture atlases, LOD, precision optimization
-3. **Safety**: Constant loop bounds, guard divisions
-4. **Testing**: Verify across target browsers, benchmark GPU performance
+// Scene SDF
+float map(vec3 p) {
+    // Animated spheres
+    float d = sdSphere(p - vec3(sin(u_time), 0.0, 0.0), 0.5);
 
-**Remember**: Shaders run on GPU - a single bad shader can freeze the entire system.
+    // Add torus
+    d = smin(d, sdTorus(p - vec3(0.0, 0.0, 1.5), vec2(0.6, 0.2)), 0.3);
+
+    // Ground plane
+    d = min(d, p.y + 1.0);
+
+    return d;
+}
+
+// Calculate normal via gradient
+vec3 calcNormal(vec3 p) {
+    const float h = 0.0001;
+    const vec2 k = vec2(1.0, -1.0);
+    return normalize(
+        k.xyy * map(p + k.xyy * h) +
+        k.yyx * map(p + k.yyx * h) +
+        k.yxy * map(p + k.yxy * h) +
+        k.xxx * map(p + k.xxx * h)
+    );
+}
+
+// Safe raymarching
+float raymarch(vec3 ro, vec3 rd) {
+    float t = 0.0;
+
+    // Bounded iteration with compile-time constant
+    const int MAX_STEPS = 128;
+    const float MAX_DIST = 100.0;
+    const float SURF_DIST = 0.001;
+
+    for (int i = 0; i < MAX_STEPS; i++) {
+        vec3 p = ro + rd * t;
+        float d = map(p);
+
+        // Hit surface
+        if (d < SURF_DIST) return t;
+
+        // Too far
+        if (t > MAX_DIST) break;
+
+        // Advance safely (prevent overshooting)
+        t += d * 0.9;
+    }
+
+    return -1.0;  // No hit
+}
+
+// Soft shadows
+float softShadow(vec3 ro, vec3 rd, float mint, float maxt, float k) {
+    float res = 1.0;
+    float t = mint;
+
+    const int MAX_STEPS = 64;
+    for (int i = 0; i < MAX_STEPS; i++) {
+        if (t > maxt) break;
+
+        float h = map(ro + rd * t);
+        if (h < 0.001) return 0.0;
+
+        res = min(res, k * h / t);
+        t += clamp(h, 0.01, 0.2);
+    }
+
+    return clamp(res, 0.0, 1.0);
+}
+
+void main() {
+    // Normalized coordinates
+    vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;
+
+    // Camera setup
+    vec3 ro = u_cameraPosition;
+    vec3 rd = normalize(vec3(uv, 1.0));
+
+    // Raymarch
+    float t = raymarch(ro, rd);
+
+    vec3 color = vec3(0.0);
+
+    if (t > 0.0) {
+        vec3 p = ro + rd * t;
+        vec3 n = calcNormal(p);
+
+        // Lighting
+        vec3 lightPos = vec3(2.0, 4.0, -2.0);
+        vec3 lightDir = normalize(lightPos - p);
+
+        float diff = max(dot(n, lightDir), 0.0);
+        float shadow = softShadow(p + n * 0.01, lightDir, 0.01, 10.0, 16.0);
+
+        color = vec3(0.8) * diff * shadow + vec3(0.1);
+    }
+
+    // Gamma correction
+    color = pow(color, vec3(1.0 / 2.2));
+
+    fragColor = vec4(color, 1.0);
+}
+```
+
+### 3.5 WHEN using Three.js with custom shaders
+
+```typescript
+// ❌ WRONG - Inline shader strings, no validation
+const material = new THREE.ShaderMaterial({
+  vertexShader: 'void main() { gl_Position = vec4(position, 1.0); }',
+  fragmentShader: 'void main() { gl_FragColor = vec4(1.0); }',
+});
+
+// ✅ CORRECT - Structured shader management
+import * as THREE from 'three';
+
+// Type-safe uniform definitions
+interface CustomUniforms {
+  u_time: THREE.IUniform<number>;
+  u_resolution: THREE.IUniform<THREE.Vector2>;
+  u_mouse: THREE.IUniform<THREE.Vector2>;
+  u_color: THREE.IUniform<THREE.Color>;
+}
+
+// Vertex shader with proper attributes
+const vertexShader = /* glsl */ `
+  precision highp float;
+
+  uniform float u_time;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+
+  void main() {
+    vUv = uv;
+    vNormal = normalize(normalMatrix * normal);
+    vPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+
+    // Vertex animation
+    vec3 pos = position;
+    pos.z += sin(pos.x * 2.0 + u_time) * 0.1;
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  }
+`;
+
+// Fragment shader
+const fragmentShader = /* glsl */ `
+  precision highp float;
+
+  uniform float u_time;
+  uniform vec2 u_resolution;
+  uniform vec3 u_color;
+
+  varying vec2 vUv;
+  varying vec3 vNormal;
+  varying vec3 vPosition;
+
+  void main() {
+    // Simple lighting
+    vec3 lightDir = normalize(vec3(1.0, 1.0, 1.0));
+    float diff = max(dot(vNormal, lightDir), 0.0);
+
+    vec3 color = u_color * (diff * 0.8 + 0.2);
+
+    gl_FragColor = vec4(color, 1.0);
+  }
+`;
+
+// Create material with type safety
+function createCustomMaterial(): THREE.ShaderMaterial {
+  const uniforms: CustomUniforms = {
+    u_time: { value: 0 },
+    u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+    u_mouse: { value: new THREE.Vector2(0.5, 0.5) },
+    u_color: { value: new THREE.Color(0x00ff88) },
+  };
+
+  const material = new THREE.ShaderMaterial({
+    uniforms,
+    vertexShader,
+    fragmentShader,
+    side: THREE.DoubleSide,
+  });
+
+  // Validate shader compilation
+  const renderer = new THREE.WebGLRenderer();
+  const testScene = new THREE.Scene();
+  const testMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material);
+  testScene.add(testMesh);
+
+  // Force compilation to check for errors
+  renderer.compile(testScene, new THREE.PerspectiveCamera());
+
+  const gl = renderer.getContext();
+  const program = renderer.properties.get(material).program;
+
+  if (program) {
+    const vertexShaderLog = gl.getShaderInfoLog(program.vertexShader);
+    const fragmentShaderLog = gl.getShaderInfoLog(program.fragmentShader);
+
+    if (vertexShaderLog) console.warn('Vertex shader:', vertexShaderLog);
+    if (fragmentShaderLog) console.warn('Fragment shader:', fragmentShaderLog);
+  }
+
+  renderer.dispose();
+
+  return material;
+}
+
+// Animation loop with safe uniform updates
+function animate(material: THREE.ShaderMaterial, clock: THREE.Clock) {
+  const uniforms = material.uniforms as CustomUniforms;
+
+  // Update time (prevent overflow)
+  uniforms.u_time.value = clock.getElapsedTime() % 1000;
+
+  requestAnimationFrame(() => animate(material, clock));
+}
+```
 
 ---
 
-**References**:
-- `references/advanced-patterns.md` - Complex shader techniques
-## 7. Implementation Patterns
+## 4. Anti-Patterns
 
-uniform float uTime;
-uniform vec3 uColor;
-uniform float uOpacity;
-uniform vec2 uResolution;
-
-📚 **For complete details**: See `references/implementation-patterns.md`
+**NEVER:**
+- Construct shaders from user input
+- Use unbounded loops
+- Skip precision declarations
+- Divide without zero-check
+- Use vendor-specific extensions without fallback
+- Hardcode resolution or screen-dependent values
+- Skip gamma correction
+- Use `discard` excessively (kills early-z)
 
 ---
+
+## 5. Testing
+
+**ALWAYS test shaders:**
+
+```typescript
+import { describe, it, expect } from 'vitest';
+
+describe('Shader Compilation', () => {
+  it('compiles vertex shader without errors', () => {
+    const gl = createWebGLContext();
+    const shader = gl.createShader(gl.VERTEX_SHADER)!;
+    gl.shaderSource(shader, vertexShader);
+    gl.compileShader(shader);
+
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    if (!success) {
+      console.error(gl.getShaderInfoLog(shader));
+    }
+    expect(success).toBe(true);
+  });
+
+  it('compiles fragment shader without errors', () => {
+    const gl = createWebGLContext();
+    const shader = gl.createShader(gl.FRAGMENT_SHADER)!;
+    gl.shaderSource(shader, fragmentShader);
+    gl.compileShader(shader);
+
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    expect(success).toBe(true);
+  });
+
+  it('links program successfully', () => {
+    const gl = createWebGLContext();
+    const program = createProgram(gl, vertexShader, fragmentShader);
+
+    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+    expect(success).toBe(true);
+  });
+
+  it('handles uniform updates without errors', () => {
+    const gl = createWebGLContext();
+    const program = createProgram(gl, vertexShader, fragmentShader);
+    gl.useProgram(program);
+
+    const timeLoc = gl.getUniformLocation(program, 'u_time');
+    expect(timeLoc).not.toBeNull();
+
+    // Should not throw
+    gl.uniform1f(timeLoc, 1.5);
+  });
+});
+
+function createWebGLContext(): WebGL2RenderingContext {
+  const canvas = document.createElement('canvas');
+  const gl = canvas.getContext('webgl2');
+  if (!gl) throw new Error('WebGL2 not supported');
+  return gl;
+}
+
+function createProgram(
+  gl: WebGL2RenderingContext,
+  vsSource: string,
+  fsSource: string
+): WebGLProgram {
+  const vs = gl.createShader(gl.VERTEX_SHADER)!;
+  gl.shaderSource(vs, vsSource);
+  gl.compileShader(vs);
+
+  const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
+  gl.shaderSource(fs, fsSource);
+  gl.compileShader(fs);
+
+  const program = gl.createProgram()!;
+  gl.attachShader(program, vs);
+  gl.attachShader(program, fs);
+  gl.linkProgram(program);
+
+  return program;
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any GLSL code:**
+
+- [ ] Precision specified for all floats
+- [ ] All loops have compile-time bounds
+- [ ] Division by zero guarded
+- [ ] No shader code from user input
+- [ ] Uniforms validated before upload
+- [ ] Cross-platform tested (WebGL 1/2)
+- [ ] Gamma correction applied
+- [ ] Array accesses bounds-checked
+- [ ] No vendor-specific extensions
+- [ ] Performance profiled on target hardware

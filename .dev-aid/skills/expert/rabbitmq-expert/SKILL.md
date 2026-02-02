@@ -1,457 +1,490 @@
 ---
 name: rabbitmq-expert
-description: "Expert RabbitMQ administrator and developer specializing in message broker architecture, exchange patterns, clustering, high availability, and production monitoring. Use when designing message queue systems, implementing pub/sub patterns, troubleshooting RabbitMQ clusters, or optimizing message throughput and reliability."
+version: 2.0.0
+description: "RabbitMQ message broker patterns with exchanges, queues, dead letter handling, and clustering."
+risk_level: HIGH
 ---
 
-# RabbitMQ Message Broker Expert
+# RabbitMQ Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: XSS via virtual host names, Unauthorized queue operations, Message injection attacks
-- Requires continuous monitoring of security advisories
+**CWE-502: Message Deserialization**
+- NEVER: Deserialize pickled/arbitrary format messages
+- ALWAYS: JSON with schema validation, reject unknown message types
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-306: Missing Authentication**
+- NEVER: Default guest/guest credentials in production
+- ALWAYS: Strong credentials, TLS for connections, vhost isolation
 
-### 0.2 Vulnerability Research Protocol
+**CWE-285: Queue Permissions**
+- NEVER: Single user with full permissions
+- ALWAYS: Separate users per service, minimum required permissions
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: HIGH
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2025-30219** (CVSS 6.1): XSS in management UI via malicious virtual host names
-     Source: https://github.com/rabbitmq/rabbitmq-server/security/advisories/GHSA-g58g-82mw-9m3p
-   - **CVE-2024-51988** (CVSS 6.5): Unauthorized queue deletion via HTTP API
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-51988
-   - **MSMQ-RCE-2024** (CVSS 9.8): Microsoft Message Queuing RCE (related pattern)
-     Source: https://www.threatdown.com/blog/patch-now-critical-rce-vulnerability-in-microsoft-message-queuing/
-
-**Step 3: Common Attack Patterns**
-
-   - XSS via virtual host names
-   - Unauthorized queue operations
-   - Message injection attacks
-   - Authentication bypass
-   - DoS via message flooding
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER expose management UI publicly
-- ❌ NEVER trust virtual host names without sanitization
-- ❌ NEVER allow unauthenticated queue access
-- ❌ ALWAYS validate user permissions
-- ❌ ALWAYS use SSL/TLS for connections
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any RabbitMQ code**
-
-### Verification Requirements
-
-When using this skill to implement RabbitMQ features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official RabbitMQ documentation at rabbitmq.com
-   - ✅ Confirm AMQP 0.9.1 protocol specifications are current
-   - ✅ Validate queue/exchange arguments against official docs
-   - ❌ Never guess configuration options
-   - ❌ Never invent queue arguments or properties
-   - ❌ Never assume RabbitMQ version compatibility without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing RabbitMQ configurations in codebase
-   - 🔍 Grep: Search for similar queue/exchange declarations
-   - 🔍 WebSearch: Verify features in official RabbitMQ docs
-   - 🔍 WebFetch: Read official documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY RabbitMQ feature/config/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in RabbitMQ can cause message loss, data corruption, production outages
-
-4. **Common RabbitMQ Hallucination Traps** (AVOID)
-   - ❌ Invented queue arguments (e.g., `x-max-retries` - doesn't exist in RabbitMQ)
-   - ❌ Made-up exchange types (only: direct, topic, fanout, headers)
-   - ❌ Non-existent API methods in pika library
-   - ❌ Incorrect configuration file syntax
-   - ❌ Wrong rabbitmqctl command options
-   - ❌ Assumed features from other message brokers (Kafka, Redis)
-
-### Self-Check Checklist
-
-Before EVERY response with RabbitMQ code:
-- [ ] All queue arguments verified against official docs
-- [ ] Exchange types verified (direct/topic/fanout/headers only)
-- [ ] Configuration options verified against current RabbitMQ version
-- [ ] Pika API methods verified against official pika docs
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: RabbitMQ code with hallucinated patterns causes message loss, security vulnerabilities, and production outages. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Message Validation (CWE-20)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite RabbitMQ engineer with deep expertise in:
-
-- **Core AMQP**: Protocol 0.9.1, exchanges, queues, bindings, routing keys
-- **Exchange Types**: Direct, topic, fanout, headers
-- **Queue Patterns**: Work queues, pub/sub, routing, RPC, priority queues
-- **Reliability**: Message persistence, durability, publisher confirms, consumer acknowledgments
-- **Failure Handling**: Dead letter exchanges (DLX), message TTL, queue length limits
-- **High Availability**: Clustering, quorum queues, federation, shovel
-- **Security**: Authentication, authorization, TLS/SSL, policies
-- **Monitoring**: Management plugin, Prometheus exporter, metrics, alerting
-- **Performance**: Prefetch count, flow control, lazy queues, memory/disk thresholds
-
-You build RabbitMQ systems that are:
-- **Reliable**: Message delivery guarantees, no message loss
-- **Scalable**: Cluster design, horizontal scaling, federation
-- **Secure**: TLS encryption, access control, credential management
-- **Observable**: Comprehensive monitoring, alerting, troubleshooting
-
-**Risk Level**: HIGH
-- Message loss can impact business operations
-- Security misconfigurations can expose sensitive data
-- Poor clustering can cause split-brain scenarios
-- Improper acknowledgment handling causes message duplication/loss
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write tests before implementation; verify message flows with test consumers
-2. **Performance Aware** - Optimize prefetch, batching, and connection pooling from the start
-3. **Reliability Obsessed** - No message loss through durability, confirms, and proper acks
-4. **Security by Default** - TLS everywhere, no default credentials, proper isolation
-5. **Observable Always** - Monitor queue depth, throughput, latency, and cluster health
-6. **Design for Failure** - Dead letter exchanges, retries, circuit breakers
-
----
-
-## 3. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Validate all incoming messages. Never trust message content.
 
 ```python
-# tests/test_message_queue.py
-import pytest
+# ❌ WRONG - No message validation
+def callback(ch, method, properties, body):
+    data = json.loads(body)
+    process_order(data['order_id'], data['amount'])  # Trusting raw input!
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+# ✅ CORRECT - Validate with Pydantic
+from pydantic import BaseModel, Field, ValidationError
+
+class OrderMessage(BaseModel):
+    order_id: str = Field(pattern=r'^[A-Z0-9]{8,32}$')
+    amount: float = Field(gt=0, le=1000000)
+    user_id: str
+
+def callback(ch, method, properties, body):
+    try:
+        data = json.loads(body)
+        msg = OrderMessage(**data)
+        process_order(msg.order_id, msg.amount)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except (json.JSONDecodeError, ValidationError) as e:
+        logger.warning(f"Invalid message: {e}")
+        # Send to dead letter queue
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+```
+
+### 1.2 Connection Security (CWE-319)
+
+**Principle:** Always use TLS. Never expose credentials.
+
+```python
+# ❌ WRONG - No TLS, hardcoded credentials
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(
+        host='rabbitmq.example.com',
+        credentials=pika.PlainCredentials('admin', 'password123')
+    )
+)
+
+# ✅ CORRECT - TLS with credentials from environment
+import ssl
+import os
+
+ssl_context = ssl.create_default_context()
+ssl_context.check_hostname = True
+ssl_context.verify_mode = ssl.CERT_REQUIRED
+
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(
+        host=os.environ['RABBITMQ_HOST'],
+        port=5671,  # TLS port
+        credentials=pika.PlainCredentials(
+            os.environ['RABBITMQ_USER'],
+            os.environ['RABBITMQ_PASSWORD']
+        ),
+        ssl_options=pika.SSLOptions(ssl_context),
+        heartbeat=600,
+        blocked_connection_timeout=300,
+    )
+)
+```
+
+### 1.3 Acknowledgment Safety (CWE-400)
+
+**Principle:** Always ack/nack messages. Never lose messages silently.
+
+```python
+# ❌ WRONG - Auto-ack, message lost on crash
+channel.basic_consume(queue='orders', on_message_callback=callback, auto_ack=True)
+
+# ❌ WRONG - No error handling, ack before processing
+def callback(ch, method, properties, body):
+    ch.basic_ack(delivery_tag=method.delivery_tag)  # Ack before process!
+    process(body)  # If this crashes, message lost
+
+# ✅ CORRECT - Manual ack after successful processing
+channel.basic_consume(queue='orders', on_message_callback=callback, auto_ack=False)
+
+def callback(ch, method, properties, body):
+    try:
+        process(body)
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+    except RecoverableError:
+        # Requeue for retry
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+    except FatalError:
+        # Dead letter queue
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+```
+
+### 1.4 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never hardcode credentials. Use environment or vault.
+
+### 1.5 Queue Durability (CWE-636)
+
+**Principle:** Use durable queues and persistent messages for critical data.
+
+### 1.6 Defense in Depth
+
+**Principle:** Dead letter queues, message TTL, and consumer limits.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```
+# Python
+pika>=1.3.0
+aio-pika>=9.4.0
+pydantic>=2.6.0
+
+# Node.js
+amqplib>=0.10.0
+
+# Go
+github.com/rabbitmq/amqp091-go v1.9.0
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN setting up RabbitMQ connection (Python)
+
+```python
 import pika
-import json
-from unittest.mock import MagicMock
+import ssl
+import os
+from contextlib import contextmanager
 
-class TestOrderProcessor:
-    """Test order message processing with RabbitMQ"""
+class RabbitMQConfig:
+    def __init__(self):
+        self.host = os.environ['RABBITMQ_HOST']
+        self.port = int(os.environ.get('RABBITMQ_PORT', 5671))
+        self.user = os.environ['RABBITMQ_USER']
+        self.password = os.environ['RABBITMQ_PASSWORD']
+        self.vhost = os.environ.get('RABBITMQ_VHOST', '/')
 
-    @pytest.fixture
-    def mock_channel(self):
-        """Create mock channel for unit tests"""
-        channel = MagicMock()
-        channel.basic_qos = MagicMock()
-        channel.basic_ack = MagicMock()
-        channel.basic_nack = MagicMock()
-        return channel
+    def get_connection_params(self) -> pika.ConnectionParameters:
+        ssl_context = ssl.create_default_context()
+        ssl_context.check_hostname = True
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
 
-    def test_message_acknowledged_on_success(self, mock_channel):
-        """Test that successful processing sends ack"""
-        from app.consumers import OrderConsumer
+        return pika.ConnectionParameters(
+            host=self.host,
+            port=self.port,
+            virtual_host=self.vhost,
+            credentials=pika.PlainCredentials(self.user, self.password),
+            ssl_options=pika.SSLOptions(ssl_context),
+            heartbeat=600,
+            blocked_connection_timeout=300,
+            connection_attempts=3,
+            retry_delay=5,
+        )
 
-        consumer = OrderConsumer(mock_channel)
-        message = json.dumps({"order_id": 123, "status": "pending"})
-        method = MagicMock()
-        method.delivery_tag = 1
-
-        consumer.process_message(mock_channel, method, None, message.encode())
-
-        mock_channel.basic_ack.assert_called_once_with(delivery_tag=1)
-        mock_channel.basic_nack.assert_not_called()
+@contextmanager
+def get_rabbitmq_channel():
+    """Context manager for RabbitMQ connection."""
+    config = RabbitMQConfig()
+    connection = pika.BlockingConnection(config.get_connection_params())
+    try:
+        channel = connection.channel()
+        channel.basic_qos(prefetch_count=10)  # Limit unacked messages
+        yield channel
+    finally:
+        connection.close()
 ```
 
-### Step 2: Implement Minimum to Pass
+### 3.2 WHEN declaring queues with dead letter handling
 
 ```python
-# app/consumers.py
+def setup_queues(channel):
+    """Set up queues with dead letter exchange."""
+    # Dead letter exchange
+    channel.exchange_declare(
+        exchange='dlx',
+        exchange_type='direct',
+        durable=True,
+    )
+
+    # Dead letter queue
+    channel.queue_declare(
+        queue='orders.dlq',
+        durable=True,
+        arguments={
+            'x-message-ttl': 86400000,  # 24 hours
+        },
+    )
+    channel.queue_bind(
+        queue='orders.dlq',
+        exchange='dlx',
+        routing_key='orders',
+    )
+
+    # Main queue with DLX
+    channel.queue_declare(
+        queue='orders',
+        durable=True,
+        arguments={
+            'x-dead-letter-exchange': 'dlx',
+            'x-dead-letter-routing-key': 'orders',
+            'x-message-ttl': 3600000,  # 1 hour
+            'x-max-length': 100000,    # Max queue size
+        },
+    )
+```
+
+### 3.3 WHEN publishing messages
+
+```python
+from pydantic import BaseModel
 import json
-import logging
+import uuid
 
-logger = logging.getLogger(__name__)
+class OrderEvent(BaseModel):
+    order_id: str
+    user_id: str
+    amount: float
+    timestamp: str
 
-class OrderConsumer:
-    """Consumer that processes order messages with proper ack handling"""
+def publish_order(channel, order: OrderEvent):
+    """Publish order with persistent delivery."""
+    channel.basic_publish(
+        exchange='',
+        routing_key='orders',
+        body=order.model_dump_json(),
+        properties=pika.BasicProperties(
+            delivery_mode=2,  # Persistent
+            content_type='application/json',
+            message_id=str(uuid.uuid4()),
+            timestamp=int(time.time()),
+            headers={
+                'version': '1.0',
+                'source': 'order-service',
+            },
+        ),
+        mandatory=True,  # Return if unroutable
+    )
 
-    def __init__(self, channel, prefetch_count=1):
+def confirm_publish(channel):
+    """Enable publisher confirms for reliability."""
+    channel.confirm_delivery()
+
+    try:
+        publish_order(channel, order)
+    except pika.exceptions.UnroutableError:
+        logger.error("Message was returned - no queue bound")
+        raise
+```
+
+### 3.4 WHEN consuming messages with retry logic
+
+```python
+from pydantic import BaseModel, ValidationError
+import json
+
+class OrderMessage(BaseModel):
+    order_id: str
+    user_id: str
+    amount: float
+
+class MessageConsumer:
+    def __init__(self, channel, max_retries: int = 3):
         self.channel = channel
-        self.prefetch_count = prefetch_count
-
-    def setup(self):
-        """Configure channel settings"""
-        self.channel.basic_qos(prefetch_count=self.prefetch_count)
+        self.max_retries = max_retries
 
     def process_message(self, ch, method, properties, body):
-        """Process message with proper acknowledgment"""
+        """Process message with retry tracking."""
+        retry_count = (properties.headers or {}).get('x-retry-count', 0)
+
         try:
-            order = json.loads(body)
-            self._handle_order(order)
+            # Parse and validate
+            data = json.loads(body)
+            msg = OrderMessage(**data)
+
+            # Process
+            self._handle_order(msg)
+
+            # Acknowledge success
             ch.basic_ack(delivery_tag=method.delivery_tag)
-            logger.info(f"Processed order: {order.get('order_id')}")
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON: {e}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-        except Exception as e:
-            logger.error(f"Processing failed: {e}")
+
+        except json.JSONDecodeError:
+            logger.error("Invalid JSON, sending to DLQ")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    def _handle_order(self, order):
-        """Business logic for order processing"""
+        except ValidationError as e:
+            logger.error(f"Validation error: {e}")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+        except RecoverableError as e:
+            if retry_count < self.max_retries:
+                logger.warning(f"Retry {retry_count + 1}/{self.max_retries}")
+                self._republish_with_retry(ch, body, properties, retry_count + 1)
+                ch.basic_ack(delivery_tag=method.delivery_tag)
+            else:
+                logger.error("Max retries exceeded, sending to DLQ")
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+        except Exception as e:
+            logger.exception(f"Unexpected error: {e}")
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+
+    def _republish_with_retry(self, ch, body, properties, retry_count):
+        """Republish with incremented retry count."""
+        headers = dict(properties.headers or {})
+        headers['x-retry-count'] = retry_count
+
+        ch.basic_publish(
+            exchange='',
+            routing_key='orders',
+            body=body,
+            properties=pika.BasicProperties(
+                delivery_mode=2,
+                headers=headers,
+            ),
+        )
+
+    def _handle_order(self, order: OrderMessage):
+        """Business logic here."""
         pass
 ```
 
----
+### 3.5 WHEN using async with aio-pika
 
+```python
+import aio_pika
+import ssl
+import os
+from contextlib import asynccontextmanager
 
-## 4. Quality Assurance Checklist
+@asynccontextmanager
+async def get_rabbitmq_connection():
+    """Async context manager for RabbitMQ."""
+    ssl_context = ssl.create_default_context()
 
-**Before implementing this skill, ensure**:
+    connection = await aio_pika.connect_robust(
+        host=os.environ['RABBITMQ_HOST'],
+        port=5671,
+        login=os.environ['RABBITMQ_USER'],
+        password=os.environ['RABBITMQ_PASSWORD'],
+        ssl=True,
+        ssl_context=ssl_context,
+    )
+    try:
+        yield connection
+    finally:
+        await connection.close()
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+async def consume_orders():
+    """Async consumer with QoS."""
+    async with get_rabbitmq_connection() as connection:
+        channel = await connection.channel()
+        await channel.set_qos(prefetch_count=10)
 
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
+        queue = await channel.declare_queue('orders', durable=True)
 
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Patterns
-
-connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-channel = connection.channel()
-
-📚 **For complete details**: See `references/core-patterns.md`
-
----
-## 6. Critical Reminders
-
-### NEVER
-
-- ❌ Use `auto_ack=True` in production
-- ❌ Use default guest/guest credentials
-- ❌ Deploy without TLS encryption
-- ❌ Use classic mirrored queues (use quorum)
-- ❌ Ignore memory/disk alarms
-- ❌ Run without dead letter exchanges
-- ❌ Use unlimited prefetch count
-- ❌ Deploy single-node clusters for critical systems
-- ❌ Hardcode credentials in code
-
-### ALWAYS
-
-- ✅ Enable publisher confirms
-- ✅ Use manual acknowledgments
-- ✅ Declare durable queues and exchanges
-- ✅ Configure dead letter exchanges
-- ✅ Set appropriate prefetch counts
-- ✅ Enable TLS for all connections
-- ✅ Monitor queue depth and message rates
-- ✅ Use quorum queues for HA
-- ✅ Implement connection pooling
-- ✅ Set memory and disk thresholds
-
----
-
-## 7. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Read existing queue/exchange declarations and understand topology
-- [ ] Identify message patterns (work queue, pub/sub, RPC)
-- [ ] Plan DLX strategy for failed messages
-- [ ] Determine appropriate prefetch count based on processing time
-- [ ] Design quorum queues for HA requirements
-- [ ] Write failing tests for message acknowledgment flows
-
-### Phase 2: During Implementation
-
-- [ ] Use manual acknowledgments (never auto_ack=True)
-- [ ] Enable publisher confirms for delivery guarantees
-- [ ] Declare durable queues and exchanges
-- [ ] Set appropriate message TTL and queue length limits
-- [ ] Implement connection pooling for efficiency
-- [ ] Add proper error handling with DLX routing
-- [ ] Run tests after each major change
-
-### Phase 3: Before Committing
-
-- [ ] All unit tests pass
-- [ ] Integration tests pass with real RabbitMQ
-- [ ] TLS enabled for client and inter-node communication
-- [ ] Default guest user disabled
-- [ ] Strong authentication configured
-- [ ] Virtual hosts and permissions set
-- [ ] Memory and disk thresholds configured
-- [ ] Prometheus monitoring enabled
-- [ ] Alerting configured (queue depth, memory, connections)
-- [ ] Performance benchmarks met
-
----
-
-## 8. Quick Reference
-
-### Common Commands
-
-```bash
-# User management
-rabbitmqctl add_user username password
-rabbitmqctl set_user_tags username administrator
-rabbitmqctl set_permissions -p / username ".*" ".*" ".*"
-
-# Queue management
-rabbitmqctl list_queues name messages consumers
-rabbitmqctl purge_queue queue_name
-
-# Cluster management
-rabbitmqctl cluster_status
-rabbitmqctl join_cluster rabbit@node1
-
-# Monitoring
-rabbitmqctl list_connections
-rabbitmqctl list_channels
-rabbitmq-diagnostics memory_breakdown
-```
-
-### Configuration (rabbitmq.conf)
-
-```ini
-# Network and TLS
-listeners.ssl.default = 5671
-ssl_options.verify = verify_peer
-ssl_options.fail_if_no_peer_cert = true
-
-# Memory and Disk
-vm_memory_high_watermark.relative = 0.5
-disk_free_limit.absolute = 10GB
-
-# Clustering
-cluster_partition_handling = autoheal
-
-# Performance
-channel_max = 2048
-heartbeat = 60
+        async with queue.iterator() as queue_iter:
+            async for message in queue_iter:
+                async with message.process():
+                    try:
+                        data = json.loads(message.body)
+                        order = OrderMessage(**data)
+                        await process_order(order)
+                    except Exception as e:
+                        logger.error(f"Processing failed: {e}")
+                        raise  # Will nack and requeue
 ```
 
 ---
 
-## 9. References
+## 4. Anti-Patterns
 
-See `references/` directory for detailed guides:
-
-- **`performance-optimization.md`** - Prefetch tuning, batching, connection pooling, lazy queues, benchmarking
-- **`clustering-guide.md`** - Cluster setup, quorum queues, federation, shovel, disaster recovery
-- **`security-examples.md`** - Authentication, TLS configuration, secrets management, OWASP Top 10 mappings
-- **`testing-patterns.md`** - Unit tests with mocks, integration tests, performance benchmarks, CI/CD
-- **`anti-patterns.md`** - Common mistakes, anti-patterns, recovery actions, troubleshooting
+**NEVER:**
+- Use auto_ack=True for important messages
+- Acknowledge before processing completes
+- Hardcode credentials in connection strings
+- Skip TLS in production
+- Ignore dead letter queues
+- Process messages without validation
+- Use unbounded queues (set x-max-length)
 
 ---
 
-## 10. Summary
+## 5. Testing
 
-You are a RabbitMQ expert focused on:
-1. **Reliability** - Publisher confirms, manual acks, DLX
-2. **High availability** - Quorum queues, clustering, federation
-3. **Security** - TLS, authentication, authorization, secrets
-4. **Performance** - Prefetch, lazy queues, connection pooling
-5. **Observability** - Prometheus metrics, alerting, logging
+**ALWAYS write integration tests:**
 
-**Key Principles**:
-- No message loss: Durability, persistence, acknowledgments
-- High availability: Quorum queues across multiple nodes
-- Security first: TLS everywhere, no default credentials
-- Monitor everything: Queue depth, memory, throughput, errors
-- Design for failure: DLX, retries, circuit breakers
+```python
+import pytest
+from testcontainers.rabbitmq import RabbitMqContainer
 
-RabbitMQ is the backbone of distributed systems. Design it for reliability, secure it properly, and monitor it continuously.
+@pytest.fixture(scope="session")
+def rabbitmq_container():
+    with RabbitMqContainer("rabbitmq:3.12-management") as rabbitmq:
+        yield rabbitmq
+
+def test_message_validation(rabbitmq_container):
+    """Verify invalid messages are rejected."""
+    # Publish invalid message
+    channel.basic_publish(
+        exchange='',
+        routing_key='orders',
+        body=json.dumps({'invalid': 'data'}),
+    )
+
+    # Should end up in DLQ
+    time.sleep(1)
+    method, _, body = channel.basic_get('orders.dlq')
+    assert method is not None
+
+def test_retry_logic(rabbitmq_container):
+    """Verify retry count increments."""
+    # Simulate failure
+    with mock.patch('handler.process_order', side_effect=RecoverableError):
+        # Consume and verify retry header
+        pass
+
+def test_dlq_on_fatal_error(rabbitmq_container):
+    """Verify fatal errors go to DLQ."""
+    pass
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any RabbitMQ code:**
+
+- [ ] TLS enabled for all connections
+- [ ] Credentials from environment variables
+- [ ] Manual acknowledgment (auto_ack=False)
+- [ ] Dead letter exchange configured
+- [ ] Message validation with Pydantic
+- [ ] Durable queues for persistent data
+- [ ] Persistent message delivery (delivery_mode=2)
+- [ ] QoS/prefetch limit set
+- [ ] Retry logic with max retries
+- [ ] Publisher confirms for critical messages

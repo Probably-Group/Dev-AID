@@ -1,340 +1,559 @@
 ---
 name: pinia
-description: Pinia state management for JARVIS system state
-risk_level: MEDIUM
-version: 1.0.0
+version: 2.0.0
+description: "Pinia state management for Vue 3 with typed stores, plugins, and SSR hydration patterns."
+risk_level: LOW
 ---
 
-# Pinia State Management Skill
-
-> **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Pinia Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: LOW
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 security concerns identified in 2024-2025
-- Common attack vectors: State pollution attacks, XSS via reactive data, Prototype pollution in store
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: Sensitive Data in Store**
+- NEVER: Store secrets/tokens in Pinia state (visible in devtools, SSR serialization)
+- ALWAYS: Use httpOnly cookies for auth, keep secrets server-side
 
-### 0.3 Hallucination Prevention Checklist
+**CWE-20: Action Input Validation**
+- NEVER: Trust action parameters: `setUser(userData: User)`
+- ALWAYS: Validate in action: `setUser(data: unknown) { const user = UserSchema.parse(data) }`
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**CWE-352: CSRF in Actions**
+- NEVER: Mutation actions without CSRF protection
+- ALWAYS: Include CSRF token in API calls from actions
 
-**Domain-Specific Security Rules**:
+### 0.3 Risk Level: LOW
 
-- ❌ NEVER store sensitive data in Pinia without encryption
-- ❌ NEVER trust client-side state
-- ❌ NEVER use store data directly in v-html
-- ❌ ALWAYS validate state mutations
-- ❌ ALWAYS sanitize data before rendering
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-This skill provides Pinia expertise for managing application state in the JARVIS AI Assistant, including system metrics, user preferences, and HUD configuration.
-
-**Risk Level**: MEDIUM - Manages sensitive state, SSR considerations, potential data exposure
-
-**Primary Use Cases**:
-- System metrics and status tracking
-- User preferences and settings
-- HUD configuration state
-- Command history and queue
-- Real-time data synchronization
-
-## 2. Core Responsibilities
-
-### 2.1 Core Principles
-
-1. **TDD First**: Write store tests before implementation
-2. **Performance Aware**: Optimize subscriptions and computed values
-3. **Type Safety**: Define stores with full TypeScript typing
-4. **SSR Security**: Prevent state leakage between requests
-5. **Composition API**: Use setup stores for better TypeScript support
-6. **Minimal State**: Store only necessary data, derive the rest
-7. **Action Validation**: Validate inputs in actions before mutations
-8. **Persistence Security**: Never persist sensitive data to localStorage
-
-## 3. Technology Stack & Versions
-
-| Package | Version | Notes |
-|---------|---------|-------|
-| pinia | ^2.1.0 | Latest stable |
-| @pinia/nuxt | ^0.5.0 | Nuxt integration |
-| pinia-plugin-persistedstate | ^3.0.0 | Optional persistence |
-
-📚 **For complete details**: See `references/technology-stack-versions.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+**Verification requirements for LOW risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 5. Implementation Patterns
+## 1. Security Principles
 
-### 4.1 Setup Store with TypeScript
+### 1.1 State Isolation (CWE-200)
+
+**Principle:** Never expose sensitive data in state. Keep auth tokens in secure storage.
 
 ```typescript
-// stores/jarvis.ts
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+// ❌ WRONG - Sensitive data in state
+export const useAuthStore = defineStore('auth', () => {
+  const accessToken = ref('');  // Exposed in devtools!
+  const password = ref('');     // NEVER store passwords
+});
 
-interface SystemMetrics {
-  cpu: number
-  memory: number
-  network: number
-  timestamp: number
+// ✅ CORRECT - Sensitive data in secure storage only
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref<User | null>(null);
+  const isAuthenticated = computed(() => !!user.value);
+
+  // Token stored in httpOnly cookie or secure storage
+  // Only store non-sensitive user info in state
+});
+```
+
+### 1.2 Input Validation (CWE-20)
+
+**Principle:** Validate data before storing in state. Use Zod for runtime validation.
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  role: z.enum(['user', 'admin']),
+});
+
+// ❌ WRONG - No validation
+function setUser(data: unknown) {
+  user.value = data as User;  // Trusting unknown data!
 }
 
-interface JARVISState {
-  status: 'idle' | 'listening' | 'processing' | 'responding'
-  securityLevel: 'normal' | 'elevated' | 'lockdown'
+// ✅ CORRECT - Validate before storing
+function setUser(data: unknown) {
+  const result = UserSchema.safeParse(data);
+  if (result.success) {
+    user.value = result.data;
+  } else {
+    console.error('Invalid user data');
+    user.value = null;
+  }
 }
+```
 
-export const useJarvisStore = defineStore('jarvis', () => {
+### 1.3 XSS Prevention (CWE-79)
+
+**Principle:** Never use v-html with state data. Sanitize user-generated content.
+
+### 1.4 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never store API keys in state. Use environment variables server-side.
+
+### 1.5 Fail Secure (CWE-636)
+
+**Principle:** On hydration errors, clear state. Default to logged-out state.
+
+### 1.6 Defense in Depth
+
+**Principle:** Validate on input AND output. Don't trust hydrated state.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "dependencies": {
+    "pinia": "^2.1.0",
+    "vue": "^3.4.0",
+    "zod": "^3.22.0",
+    "pinia-plugin-persistedstate": "^3.2.0"
+  }
+}
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating a Pinia store with Composition API
+
+```typescript
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import { z } from 'zod';
+
+// Schema for validation
+const TodoSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).max(200),
+  completed: z.boolean(),
+  createdAt: z.string().datetime(),
+});
+
+type Todo = z.infer<typeof TodoSchema>;
+
+export const useTodoStore = defineStore('todo', () => {
   // State
-  const state = ref<JARVISState>({
-    status: 'idle',
-    securityLevel: 'normal'
-  })
+  const todos = ref<Todo[]>([]);
+  const loading = ref(false);
+  const error = ref<string | null>(null);
 
-  const metrics = ref<SystemMetrics>({
-    cpu: 0,
-    memory: 0,
-    network: 0,
-    timestamp: Date.now()
-  })
+  // Getters (computed)
+  const completedTodos = computed(() =>
+    todos.value.filter(t => t.completed)
+  );
 
-  // Getters
-  const isActive = computed(() =>
-    state.value.status !== 'idle'
-  )
+  const pendingTodos = computed(() =>
+    todos.value.filter(t => !t.completed)
+  );
 
-  const systemHealth = computed(() => {
-    const avg = (metrics.value.cpu + metrics.value.memory) / 2
-    if (avg > 90) return 'critical'
-    if (avg > 70) return 'warning'
-    return 'healthy'
-  })
+  const todoCount = computed(() => todos.value.length);
 
   // Actions
-  function updateMetrics(newMetrics: Partial<SystemMetrics>) {
-    // ✅ Validate input
-    if (newMetrics.cpu !== undefined) {
-      metrics.value.cpu = Math.max(0, Math.min(100, newMetrics.cpu))
+  async function fetchTodos() {
+    loading.value = true;
+    error.value = null;
+
+    try {
+      const response = await fetch('/api/todos');
+      if (!response.ok) throw new Error('Failed to fetch');
+
+      const data = await response.json();
+
+      // Validate response data
+      const validated = z.array(TodoSchema).safeParse(data);
+      if (validated.success) {
+        todos.value = validated.data;
+      } else {
+        throw new Error('Invalid data format');
+      }
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : 'Unknown error';
+      todos.value = [];  // Fail secure - clear state
+    } finally {
+      loading.value = false;
     }
-    if (newMetrics.memory !== undefined) {
-      metrics.value.memory = Math.max(0, Math.min(100, newMetrics.memory))
-    }
-    if (newMetrics.network !== undefined) {
-      metrics.value.network = Math.max(0, newMetrics.network)
-    }
-    metrics.value.timestamp = Date.now()
   }
 
-  function setStatus(newStatus: JARVISState['status']) {
-    state.value.status = newStatus
+  function addTodo(title: string) {
+    // Validate input
+    const trimmed = title.trim();
+    if (!trimmed || trimmed.length > 200) {
+      error.value = 'Invalid title';
+      return;
+    }
+
+    const newTodo: Todo = {
+      id: crypto.randomUUID(),
+      title: trimmed,
+      completed: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    todos.value.push(newTodo);
   }
 
-  function setSecurityLevel(level: JARVISState['securityLevel']) {
-    state.value.securityLevel = level
+  function toggleTodo(id: string) {
+    const todo = todos.value.find(t => t.id === id);
+    if (todo) {
+      todo.completed = !todo.completed;
+    }
+  }
 
-    // ✅ Audit security changes
-    console.info(`Security level changed to: ${level}`)
+  function removeTodo(id: string) {
+    const index = todos.value.findIndex(t => t.id === id);
+    if (index !== -1) {
+      todos.value.splice(index, 1);
+    }
+  }
+
+  function $reset() {
+    todos.value = [];
+    loading.value = false;
+    error.value = null;
   }
 
   return {
-    state,
-    metrics,
-    isActive,
-    systemHealth,
-    updateMetrics,
-    setStatus,
-    setSecurityLevel
-  }
-})
+    // State
+    todos,
+    loading,
+    error,
+    // Getters
+    completedTodos,
+    pendingTodos,
+    todoCount,
+    // Actions
+    fetchTodos,
+    addTodo,
+    toggleTodo,
+    removeTodo,
+    $reset,
+  };
+});
 ```
 
-### 4.2 User Preferences Store (with Persistence)
+### 3.2 WHEN implementing authentication store
 
 ```typescript
-// stores/preferences.ts
-## 5. Implementation Patterns
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
+import { z } from 'zod';
 
-interface SystemMetrics {
-  cpu: number
-  memory: number
-  network: number
-  timestamp: number
-}
+const UserSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  name: z.string(),
+  role: z.enum(['user', 'admin']),
+});
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+type User = z.infer<typeof UserSchema>;
+
+export const useAuthStore = defineStore('auth', () => {
+  // State - NEVER store tokens here, only non-sensitive user info
+  const user = ref<User | null>(null);
+  const loading = ref(false);
+
+  // Getters
+  const isAuthenticated = computed(() => !!user.value);
+  const isAdmin = computed(() => user.value?.role === 'admin');
+
+  // Actions
+  async function login(email: string, password: string) {
+    loading.value = true;
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',  // httpOnly cookies
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Invalid credentials');
+      }
+
+      const data = await response.json();
+
+      // Validate user data
+      const result = UserSchema.safeParse(data.user);
+      if (result.success) {
+        user.value = result.data;
+      } else {
+        throw new Error('Invalid user data');
+      }
+    } catch (e) {
+      user.value = null;  // Fail secure
+      throw e;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  async function logout() {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } finally {
+      // Always clear state, even on error
+      user.value = null;
+    }
+  }
+
+  async function checkAuth() {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        user.value = null;
+        return;
+      }
+
+      const data = await response.json();
+      const result = UserSchema.safeParse(data);
+      user.value = result.success ? result.data : null;
+    } catch {
+      user.value = null;
+    }
+  }
+
+  return {
+    user,
+    loading,
+    isAuthenticated,
+    isAdmin,
+    login,
+    logout,
+    checkAuth,
+  };
+});
+```
+
+### 3.3 WHEN using store persistence
+
+```typescript
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+
+export const useSettingsStore = defineStore('settings', () => {
+  const theme = ref<'light' | 'dark'>('light');
+  const locale = ref('en');
+  const sidebarCollapsed = ref(false);
+
+  function setTheme(newTheme: 'light' | 'dark') {
+    theme.value = newTheme;
+  }
+
+  function setLocale(newLocale: string) {
+    // Validate locale
+    const validLocales = ['en', 'es', 'fr', 'de'];
+    if (validLocales.includes(newLocale)) {
+      locale.value = newLocale;
+    }
+  }
+
+  return {
+    theme,
+    locale,
+    sidebarCollapsed,
+    setTheme,
+    setLocale,
+  };
+}, {
+  persist: {
+    key: 'app-settings',
+    storage: localStorage,
+    // Only persist non-sensitive data
+    paths: ['theme', 'locale', 'sidebarCollapsed'],
+  },
+});
+```
+
+### 3.4 WHEN composing stores
+
+```typescript
+import { defineStore, storeToRefs } from 'pinia';
+import { useAuthStore } from './auth';
+import { computed } from 'vue';
+
+export const useCartStore = defineStore('cart', () => {
+  const authStore = useAuthStore();
+  const { user, isAuthenticated } = storeToRefs(authStore);
+
+  const items = ref<CartItem[]>([]);
+
+  // Access auth state reactively
+  const canCheckout = computed(() =>
+    isAuthenticated.value && items.value.length > 0
+  );
+
+  async function checkout() {
+    if (!canCheckout.value) {
+      throw new Error('Cannot checkout');
+    }
+
+    // Use user info from auth store
+    const userId = user.value?.id;
+    // ... checkout logic
+  }
+
+  return {
+    items,
+    canCheckout,
+    checkout,
+  };
+});
+```
+
+### 3.5 WHEN testing Pinia stores
+
+```typescript
+import { setActivePinia, createPinia } from 'pinia';
+import { describe, beforeEach, it, expect, vi } from 'vitest';
+import { useTodoStore } from './todo';
+
+describe('Todo Store', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
+
+  it('adds todo with valid input', () => {
+    const store = useTodoStore();
+
+    store.addTodo('Test todo');
+
+    expect(store.todos).toHaveLength(1);
+    expect(store.todos[0].title).toBe('Test todo');
+    expect(store.todos[0].completed).toBe(false);
+  });
+
+  it('rejects invalid todo title', () => {
+    const store = useTodoStore();
+
+    store.addTodo('');  // Empty
+    expect(store.todos).toHaveLength(0);
+    expect(store.error).toBe('Invalid title');
+
+    store.addTodo('a'.repeat(201));  // Too long
+    expect(store.todos).toHaveLength(0);
+  });
+
+  it('validates fetched data', async () => {
+    const store = useTodoStore();
+
+    // Mock invalid response
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve([{ invalid: 'data' }]),
+    });
+
+    await store.fetchTodos();
+
+    expect(store.todos).toHaveLength(0);
+    expect(store.error).toBe('Invalid data format');
+  });
+
+  it('handles fetch errors securely', async () => {
+    const store = useTodoStore();
+    store.todos = [{ id: '1', title: 'Test', completed: false, createdAt: '' }];
+
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+    await store.fetchTodos();
+
+    expect(store.todos).toHaveLength(0);  // Cleared on error
+    expect(store.error).toBe('Network error');
+  });
+});
+```
 
 ---
-tore()
-  }
-  return heavyStore.value
-}
-```
 
-### Pattern 5: Optimistic Updates
+## 4. Anti-Patterns
 
-```typescript
-// BAD - Wait for server response
-async function deleteItem(id: string) {
-  await api.delete(`/items/${id}`)
-  items.value = items.value.filter(i => i.id !== id)
-}
+**NEVER:**
+- Store sensitive data (tokens, passwords) in Pinia state
+- Trust hydrated/persisted state without validation
+- Use `any` type in store definitions
+- Mutate state directly outside actions
+- Skip validation on API responses
+- Expose internal state without getters
 
-// GOOD - Update immediately, rollback on error
-async function deleteItem(id: string) {
-  const backup = [...items.value]
-  items.value = items.value.filter(i => i.id !== id)
+---
 
-  try {
-    await api.delete(`/items/${id}`)
-  } catch (error) {
-    items.value = backup  // Rollback
-    throw error
-  }
-}
-```
+## 5. Testing
 
-## 7. Testing & Quality
-
-See **Section 3.3** for complete TDD workflow with vitest examples.
-
-## 9. Common Anti-Patterns
-
-### Security Anti-Patterns
+**ALWAYS write store tests:**
 
 ```typescript
-// ❌ Global state leaks between SSR users
-const state = reactive({ user: null })
+import { setActivePinia, createPinia } from 'pinia';
+import { beforeEach, it, expect } from 'vitest';
 
-// ✅ Pinia isolates per-request
-export const useUserStore = defineStore('user', () => {
-  const user = ref(null)
-  return { user }
-})
+describe('Auth Store Security', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+  });
 
-// ❌ Never persist auth tokens (XSS risk)
-persist: { paths: ['authToken'] }
+  it('clears state on logout even if API fails', async () => {
+    const store = useAuthStore();
+    store.user = { id: '1', email: 'test@test.com', name: 'Test', role: 'user' };
 
-// ✅ Use httpOnly cookies for auth
+    global.fetch = vi.fn().mockRejectedValue(new Error('API error'));
+
+    await store.logout();
+
+    expect(store.user).toBeNull();
+    expect(store.isAuthenticated).toBe(false);
+  });
+
+  it('validates user data from API', async () => {
+    const store = useAuthStore();
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ user: { id: '1', email: 'invalid' } }),
+    });
+
+    await expect(store.login('test@test.com', 'password'))
+      .rejects.toThrow('Invalid user data');
+
+    expect(store.user).toBeNull();
+  });
+});
 ```
 
-### Performance Anti-Patterns
+---
 
-See **Section 5.5** for detailed performance patterns with Good/Bad examples.
+## 6. Pre-Generation Checklist
 
-## 14. Pre-Implementation Checklist
+**BEFORE generating any Pinia code:**
 
-### Phase 1: Before Writing Code
-
-- [ ] Store interface designed with TypeScript types
-- [ ] Test file created with failing tests
-- [ ] Security requirements identified (persistence, SSR)
-- [ ] Performance patterns selected for use case
-
-### Phase 2: During Implementation
-
-- [ ] Tests passing after each feature added
-- [ ] Actions validate all inputs
-- [ ] Computed values use minimal dependencies
-- [ ] No sensitive data in persisted state
-- [ ] SSR state properly isolated
-
-### Phase 3: Before Committing
-
-- [ ] All store tests passing: `npm run test -- --filter=stores`
-- [ ] Type check passing: `npm run typecheck`
-- [ ] Build succeeds: `npm run build`
-- [ ] No global state outside Pinia
-- [ ] State shape documented in types
-
-## 15. Summary
-
-Pinia provides type-safe state management for JARVIS:
-
-1. **TDD First**: Write store tests before implementation
-2. **Performance**: Optimize subscriptions and computed values
-3. **Security**: Never persist sensitive data, isolate SSR state
-4. **Type Safety**: Use setup stores with full TypeScript
-
-**References**: See `references/` for advanced patterns and security examples.
+- [ ] No sensitive data (tokens, passwords) in state
+- [ ] Input validation on all action parameters
+- [ ] API response validation with Zod
+- [ ] Fail secure - clear state on errors
+- [ ] Proper TypeScript types (no `any`)
+- [ ] Computed getters for derived state
+- [ ] Persistence only for non-sensitive data
+- [ ] Tests for validation and error handling
+- [ ] storeToRefs for reactive destructuring
+- [ ] $reset function for clearing state

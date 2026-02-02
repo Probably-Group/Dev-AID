@@ -1,380 +1,497 @@
-# UI/UX Design Skill
-
-```yaml
-name: ui-ux-design-expert
-risk_level: MEDIUM
-description: Expert in interface design, spatial layouts, glass-morphism, attention management, and creating intuitive user experiences for AI assistants
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [design, ui, ux, interface, hud, jarvis]
-```
-
 ---
+name: ui-ux-design
+version: 2.0.0
+description: "UI/UX design patterns for user flows, wireframes, and interaction design principles."
+risk_level: LOW
+---
+
+# UI/UX Design - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE providing guidance:**
+1. Verify claims against authoritative sources
+2. Distinguish between established practices and opinions
+3. Never invent statistics, studies, or references
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Risk Level: LOW
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Clickjacking, UI redressing, Social engineering via UI
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow iframe embedding without X-Frame-Options
-- ❌ NEVER implement deceptive UI patterns
-- ❌ ALWAYS use CSP frame-ancestors
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any UI/UX code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement UI/UX features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official framework documentation (React, Vue, etc.)
-   - ✅ Confirm CSS properties and values are current
-   - ✅ Validate accessibility standards against WCAG 2.1
-   - ✅ Verify design tokens match the project's design system
-   - ❌ Never guess CSS property values or browser support
-   - ❌ Never invent framework APIs or component props
-   - ❌ Never assume accessibility compliance without testing
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing design system files
-   - 🔍 Grep: Search for similar component patterns
-   - 🔍 WebSearch: Verify browser support on caniuse.com
-   - 🔍 WebFetch: Read official documentation for frameworks
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY CSS property, framework API, or accessibility requirement
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in UI/UX can cause accessibility violations, poor UX, and maintenance issues
-
-4. **Common UI/UX Hallucination Traps** (AVOID)
-   - ❌ Inventing CSS properties that don't exist
-   - ❌ Made-up framework component props or events
-   - ❌ Incorrect ARIA attributes or values
-   - ❌ Non-existent browser APIs
-   - ❌ Assuming universal browser support without checking
-   - ❌ Guessing color contrast ratios instead of calculating
-
-### Self-Check Checklist
-
-Before EVERY response with UI/UX code:
-- [ ] All CSS properties verified against MDN or official specs
-- [ ] Framework APIs verified against official documentation
-- [ ] Accessibility requirements verified against WCAG 2.1
-- [ ] Browser support verified on caniuse.com (if using modern features)
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: UI/UX code with hallucinated patterns causes accessibility violations, cross-browser issues, and poor user experience. Always verify.
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Form Security Patterns (CWE-352, CWE-20)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**Principle:** Forms are primary attack vectors. Implement proper CSRF protection and validation.
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+```html
+<!-- ❌ WRONG - No CSRF protection -->
+<form action="/api/update" method="POST">
+  <input name="email" type="email">
+  <button type="submit">Update</button>
+</form>
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+<!-- ✅ CORRECT - CSRF token, autocomplete, validation -->
+<form action="/api/update" method="POST">
+  <input type="hidden" name="_csrf" value="{{ csrfToken }}">
 
----
+  <label for="email">Email</label>
+  <input
+    id="email"
+    name="email"
+    type="email"
+    autocomplete="email"
+    required
+    pattern="[^@]+@[^@]+\.[^@]+"
+    aria-describedby="email-error"
+  >
+  <span id="email-error" role="alert" aria-live="polite"></span>
 
-## 1. Overview
-
-**Risk Level**: MEDIUM
-
-**Justification**: UI/UX design produces visual assets and interface specifications. While generally low-risk, MEDIUM reflects the importance of accessibility compliance and cross-browser compatibility.
-
-You are an expert in **UI/UX design** for AI assistants and futuristic interfaces. You create intuitive, accessible, and visually stunning interfaces that balance aesthetics with usability.
-
-### Core Expertise
-- Spatial layout and visual hierarchy
-- Glass-morphism and modern aesthetics
-- Attention management systems
-- HUD (Heads-Up Display) design
-- Responsive and adaptive interfaces
-- WCAG 2.1 accessibility compliance
-
-### Primary Use Cases
-- Designing AI assistant interfaces
-- Creating HUD layouts
-- Information density optimization
-- Attention and notification design
-- Accessible component development
-
----
-
-## 2. Core Principles
-
-1. **TDD First**: Write component tests before implementation
-2. **Performance Aware**: Optimize rendering, loading, and interactions
-3. **User-Centered Design**: Prioritize user needs and cognitive load
-4. **Visual Hierarchy**: Guide attention through design
-5. **Accessibility**: Ensure interfaces work for all users (WCAG 2.1 AA minimum)
-6. **Consistency**: Maintain design patterns throughout
-
-### Design Guidelines
-- **Clarity over cleverness**: Function before form
-- **Progressive disclosure**: Show what's needed when needed
-- **Feedback loops**: Users always know system state
-- **Forgiveness**: Allow easy recovery from errors
-- **Inclusive design**: Work for users of all abilities
-
----
-
-## 3. Technical Foundation
-
-/* Surface - Glass effect base */
-  --surface-glass: rgba(255, 255, 255, 0.08);
-  --surface-glass-hover: rgba(255, 255, 255, 0.12);
-  --surface-glass-active: rgba(255, 255, 255, 0.16);
-
-📚 **For complete details**: See `references/technical-foundation.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Implementation Patterns
-
-### 4.1 Glass-Morphism Card
-
-```css
-.glass-card {
-  /* Glass effect */
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-
-  /* Border for definition */
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-
-  /* Subtle shadow */
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-
-  /* Padding */
-  padding: var(--space-4);
-}
-
-.glass-card:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-}
+  <button type="submit">Update</button>
+</form>
 ```
 
-### 4.2 Accessible Focus States
+### 1.2 Sensitive Field Handling (CWE-200)
 
-```css
-/* Focus visible - WCAG 2.1 compliant */
-:focus-visible {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
-}
+**Principle:** Mask sensitive data. Don't expose in autocomplete or errors.
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
+```html
+<!-- ❌ WRONG - Autocomplete enabled on sensitive fields -->
+<input type="password" name="password" autocomplete="on">
+<input type="text" name="ssn" value="123-45-6789">
+
+<!-- ✅ CORRECT - Proper sensitive field handling -->
+<input
+  type="password"
+  name="new-password"
+  autocomplete="new-password"
+  aria-label="New password"
+  minlength="12"
+>
+
+<!-- Masked display for SSN -->
+<input
+  type="text"
+  name="ssn"
+  inputmode="numeric"
+  autocomplete="off"
+  pattern="\d{3}-\d{2}-\d{4}"
+  placeholder="XXX-XX-XXXX"
+  aria-label="Social Security Number"
+>
 ```
 
----
+### 1.3 Error Message Security (CWE-209)
 
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Error messages should be helpful but not reveal system internals.
 
 ```typescript
-// tests/components/GlassCard.test.ts
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import GlassCard from '@/components/ui/GlassCard.vue'
+// ❌ WRONG - Revealing system details
+const errorMessages = {
+  login: "User admin@company.com not found in database users_prod",
+  api: "PostgreSQL error: connection timeout at 192.168.1.100:5432",
+};
 
-describe('GlassCard', () => {
-  it('renders with default glass styling', () => {
-    const wrapper = mount(GlassCard)
-    expect(wrapper.classes()).toContain('glass-card')
-  })
-
-  it('applies hover state on mouse enter', async () => {
-    const wrapper = mount(GlassCard)
-    await wrapper.trigger('mouseenter')
-    expect(wrapper.emitted('hover')).toBeTruthy()
-  })
-
- ## 5. Core Implementation Patterns
-
-/* Border for definition */
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 12px;
-
-📚 **For complete details**: See `references/core-implementation-patterns.md`
-
----
-tem compliance, add transitions.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run component tests
-npm run test -- --filter=GlassCard
-
-# Check accessibility
-npm run test:a11y
-
-# Visual regression test
-npm run test:visual
-
-# Build verification
-npm run build
+// ✅ CORRECT - User-friendly, secure messages
+const errorMessages = {
+  login: "Invalid email or password. Please try again.",
+  api: "Something went wrong. Please try again later.",
+  validation: {
+    email: "Please enter a valid email address.",
+    password: "Password must be at least 12 characters.",
+  },
+};
 ```
 
 ---
 
-## 7. Quality Standards
+## 2. Version Requirements
 
-### Accessibility Requirements
-
-- **Color Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text (WCAG AA)
-- **Touch Targets**: Minimum 44x44px for interactive elements
-- **Focus Indicators**: Visible focus states for all interactive elements
-- **Motion**: Respect `prefers-reduced-motion` preference
-- **Keyboard Navigation**: All interactive elements accessible via keyboard
-- **Screen Reader**: Proper ARIA labels and semantic HTML
-
-### Performance Standards
-
-- **First Contentful Paint (FCP)**:## 6. Implementation Workflow (TDD)
-
-describe('GlassCard', () => {
-  it('renders with default glass styling', () => {
-    const wrapper = mount(GlassCard)
-    expect(wrapper.classes()).toContain('glass-card')
-  })
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-
-# Build
-npm run build
+```
+# Design system tooling
+tailwindcss>=3.4.0
+postcss>=8.4.0
+autoprefixer>=10.4.0
+# Accessibility testing
+axe-core>=4.8.0
 ```
 
-### Browser Support Verification
+---
 
-Always check modern CSS features on:
-- [Can I Use](https://caniuse.com) - Browser compatibility
-- [MDN Web Docs](https://developer.mozilla.org) - CSS/JS reference
-- [WCAG 2.1](https://www.w3.org/WAI/WCAG21/quickref/) - Accessibility guidelines
+## 3. Code Patterns
+
+### WHEN designing forms, follow accessibility-first patterns
+
+```html
+<!-- ❌ WRONG - Missing labels, poor structure -->
+<div>
+  <input placeholder="Email">
+  <input placeholder="Password" type="password">
+  <button>Login</button>
+  <span style="color: red">Error!</span>
+</div>
+
+<!-- ✅ CORRECT - Accessible form structure -->
+<form class="space-y-4" novalidate @submit.prevent="handleSubmit">
+  <div class="form-group">
+    <label for="email" class="block text-sm font-medium">
+      Email address
+      <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <input
+      id="email"
+      v-model="form.email"
+      type="email"
+      autocomplete="email"
+      required
+      :aria-invalid="errors.email ? 'true' : undefined"
+      aria-describedby="email-hint email-error"
+      class="mt-1 block w-full rounded-md border-gray-300"
+    >
+    <p id="email-hint" class="mt-1 text-sm text-gray-500">
+      We'll never share your email.
+    </p>
+    <p
+      v-if="errors.email"
+      id="email-error"
+      role="alert"
+      class="mt-1 text-sm text-red-600"
+    >
+      {{ errors.email }}
+    </p>
+  </div>
+
+  <div class="form-group">
+    <label for="password" class="block text-sm font-medium">
+      Password
+      <span class="text-red-500" aria-hidden="true">*</span>
+    </label>
+    <div class="relative">
+      <input
+        id="password"
+        v-model="form.password"
+        :type="showPassword ? 'text' : 'password'"
+        autocomplete="current-password"
+        required
+        minlength="12"
+        :aria-invalid="errors.password ? 'true' : undefined"
+        aria-describedby="password-requirements password-error"
+        class="mt-1 block w-full rounded-md border-gray-300 pr-10"
+      >
+      <button
+        type="button"
+        class="absolute inset-y-0 right-0 px-3"
+        :aria-label="showPassword ? 'Hide password' : 'Show password'"
+        @click="showPassword = !showPassword"
+      >
+        <EyeIcon v-if="!showPassword" class="h-5 w-5" />
+        <EyeOffIcon v-else class="h-5 w-5" />
+      </button>
+    </div>
+    <p id="password-requirements" class="mt-1 text-sm text-gray-500">
+      Minimum 12 characters
+    </p>
+  </div>
+
+  <button
+    type="submit"
+    :disabled="isSubmitting"
+    class="w-full btn btn-primary"
+  >
+    <span v-if="isSubmitting" class="flex items-center gap-2">
+      <Spinner class="h-4 w-4 animate-spin" />
+      Signing in...
+    </span>
+    <span v-else>Sign in</span>
+  </button>
+</form>
+```
+
+### WHEN implementing loading states, provide feedback
+
+```vue
+<!-- ❌ WRONG - No loading indication -->
+<template>
+  <button @click="save">Save</button>
+</template>
+
+<!-- ✅ CORRECT - Comprehensive loading states -->
+<template>
+  <div>
+    <!-- Button with loading state -->
+    <button
+      :disabled="state === 'loading'"
+      :aria-busy="state === 'loading'"
+      class="btn btn-primary relative"
+      @click="save"
+    >
+      <span :class="{ 'opacity-0': state === 'loading' }">
+        Save changes
+      </span>
+      <span
+        v-if="state === 'loading'"
+        class="absolute inset-0 flex items-center justify-center"
+      >
+        <Spinner class="h-5 w-5 animate-spin" aria-hidden="true" />
+        <span class="sr-only">Saving...</span>
+      </span>
+    </button>
+
+    <!-- Success feedback -->
+    <Transition name="fade">
+      <div
+        v-if="state === 'success'"
+        role="status"
+        class="mt-2 text-green-600 flex items-center gap-2"
+      >
+        <CheckIcon class="h-5 w-5" aria-hidden="true" />
+        Changes saved successfully
+      </div>
+    </Transition>
+
+    <!-- Error feedback -->
+    <Transition name="fade">
+      <div
+        v-if="state === 'error'"
+        role="alert"
+        class="mt-2 text-red-600 flex items-center gap-2"
+      >
+        <ExclamationIcon class="h-5 w-5" aria-hidden="true" />
+        {{ errorMessage }}
+        <button class="underline" @click="save">
+          Try again
+        </button>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<script setup lang="ts">
+type State = 'idle' | 'loading' | 'success' | 'error';
+
+const state = ref<State>('idle');
+const errorMessage = ref('');
+
+async function save() {
+  state.value = 'loading';
+  try {
+    await api.save(form.value);
+    state.value = 'success';
+    // Auto-reset after 3 seconds
+    setTimeout(() => { state.value = 'idle'; }, 3000);
+  } catch (e) {
+    state.value = 'error';
+    errorMessage.value = 'Failed to save. Please try again.';
+  }
+}
+</script>
+```
+
+### WHEN designing responsive layouts, use mobile-first
+
+```vue
+<!-- ❌ WRONG - Desktop-first, hiding on mobile -->
+<template>
+  <div class="sidebar hidden md:block">
+    <!-- Sidebar content -->
+  </div>
+</template>
+
+<!-- ✅ CORRECT - Mobile-first responsive layout -->
+<template>
+  <div class="min-h-screen flex flex-col lg:flex-row">
+    <!-- Mobile navigation -->
+    <header class="lg:hidden sticky top-0 z-40 bg-white border-b">
+      <div class="flex items-center justify-between p-4">
+        <Logo />
+        <button
+          :aria-expanded="mobileMenuOpen"
+          aria-controls="mobile-menu"
+          class="p-2 rounded-md"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+        >
+          <span class="sr-only">
+            {{ mobileMenuOpen ? 'Close menu' : 'Open menu' }}
+          </span>
+          <MenuIcon v-if="!mobileMenuOpen" class="h-6 w-6" />
+          <XIcon v-else class="h-6 w-6" />
+        </button>
+      </div>
+
+      <!-- Mobile menu -->
+      <Transition name="slide-down">
+        <nav
+          v-if="mobileMenuOpen"
+          id="mobile-menu"
+          class="border-t bg-white"
+        >
+          <NavLinks @click="mobileMenuOpen = false" />
+        </nav>
+      </Transition>
+    </header>
+
+    <!-- Desktop sidebar -->
+    <aside class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 border-r">
+      <div class="flex-1 flex flex-col overflow-y-auto">
+        <Logo class="p-4" />
+        <nav class="flex-1 px-4 pb-4">
+          <NavLinks />
+        </nav>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 lg:pl-64">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <slot />
+      </div>
+    </main>
+  </div>
+</template>
+```
+
+### WHEN implementing dark mode, use CSS variables
+
+```css
+/* ❌ WRONG - Hardcoded colors everywhere */
+.card {
+  background: white;
+  color: #1a1a1a;
+  border: 1px solid #e5e5e5;
+}
+
+.dark .card {
+  background: #1a1a1a;
+  color: white;
+  border: 1px solid #333;
+}
+
+/* ✅ CORRECT - CSS custom properties */
+:root {
+  --color-bg-primary: 255 255 255;
+  --color-bg-secondary: 249 250 251;
+  --color-text-primary: 17 24 39;
+  --color-text-secondary: 107 114 128;
+  --color-border: 229 231 235;
+}
+
+:root.dark {
+  --color-bg-primary: 17 24 39;
+  --color-bg-secondary: 31 41 55;
+  --color-text-primary: 249 250 251;
+  --color-text-secondary: 156 163 175;
+  --color-border: 55 65 81;
+}
+
+/* Tailwind config */
+/* tailwind.config.js */
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        surface: {
+          primary: 'rgb(var(--color-bg-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--color-bg-secondary) / <alpha-value>)',
+        },
+        content: {
+          primary: 'rgb(var(--color-text-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--color-text-secondary) / <alpha-value>)',
+        },
+      },
+    },
+  },
+};
+```
 
 ---
 
-## 10. Summary
+## 4. Anti-Patterns
 
-Your goal is to create interfaces that are:
-- **Intuitive**: Users understand immediately how to interact
-- **Beautiful**: Aesthetically pleasing without sacrificing function
-- **Accessible**: Usable by everyone, regardless of ability (WCAG 2.1 AA minimum)
-- **Performant**: Fast and responsive on all devices
-- **Tested**: Comprehensive test coverage with TDD approach
-
-You understand that great UI/UX design is invisible - users accomplish their goals without friction. Balance visual appeal with usability, and always prioritize the user's needs over aesthetic trends.
-
-**Remember**: Always verify CSS properties, framework APIs, and accessibility requirements against official documentation before implementing. When in doubt, use the verification tools available to you.
-
-Design interfaces that delight users while helping them succeed.
-## 9. Quick Reference
-
-**Before Implementation**:
-- [ ] Component requirements documented
-- [ ] Write failing tests first
-- [ ] Design tokens identified
-
-📚 **For complete details**: See `references/quick-reference.md`
+**NEVER:**
+- Create forms without CSRF protection
+- Show detailed error messages to users (log details server-side)
+- Enable autocomplete on sensitive fields (SSN, credit card)
+- Use placeholder as the only label
+- Hide content with display:none for accessibility (use sr-only)
+- Rely solely on color to convey information
+- Use custom scrollbars that break accessibility
+- Implement infinite scroll without pagination fallback
 
 ---
+
+## 5. Testing
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/vue';
+import { axe, toHaveNoViolations } from 'jest-axe';
+import LoginForm from './LoginForm.vue';
+
+expect.extend(toHaveNoViolations);
+
+describe('LoginForm', () => {
+  it('should have no accessibility violations', async () => {
+    const { container } = render(LoginForm);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it('should announce errors to screen readers', async () => {
+    render(LoginForm);
+
+    const emailInput = screen.getByLabelText(/email/i);
+    await fireEvent.update(emailInput, 'invalid');
+    await fireEvent.blur(emailInput);
+
+    const error = screen.getByRole('alert');
+    expect(error).toBeInTheDocument();
+    expect(error).toHaveTextContent(/valid email/i);
+  });
+
+  it('should disable submit during loading', async () => {
+    render(LoginForm);
+
+    const submitBtn = screen.getByRole('button', { name: /sign in/i });
+    await fireEvent.click(submitBtn);
+
+    expect(submitBtn).toBeDisabled();
+    expect(submitBtn).toHaveAttribute('aria-busy', 'true');
+  });
+
+  it('should toggle password visibility', async () => {
+    render(LoginForm);
+
+    const passwordInput = screen.getByLabelText(/password/i);
+    const toggleBtn = screen.getByRole('button', { name: /show password/i });
+
+    expect(passwordInput).toHaveAttribute('type', 'password');
+
+    await fireEvent.click(toggleBtn);
+    expect(passwordInput).toHaveAttribute('type', 'text');
+    expect(toggleBtn).toHaveAccessibleName(/hide password/i);
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating UI code:**
+
+- [ ] Forms: CSRF tokens, proper labels, validation messages
+- [ ] Accessibility: ARIA attributes, focus management, screen reader text
+- [ ] Loading states: Buttons disabled, spinners, feedback messages
+- [ ] Error handling: User-friendly messages, no system details
+- [ ] Responsive: Mobile-first, proper breakpoints
+- [ ] Dark mode: CSS variables, no hardcoded colors
+- [ ] Sensitive fields: Autocomplete off, masked display
+- [ ] Touch targets: Minimum 44x44px for mobile

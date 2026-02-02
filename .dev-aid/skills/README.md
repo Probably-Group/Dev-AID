@@ -1,6 +1,6 @@
 # Dev-AID Skills System
 
-**5 core skills** for automated checking + **72 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **73 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
 
 ## 🔄 Core vs Expert vs Process Skills
 
@@ -23,7 +23,7 @@
 
 **Configuration**: Run `/dev-aid-config-core-skills` to enable/disable
 
-### Expert Skills (72 available)
+### Expert Skills (73 available)
 **Purpose**: Domain-specific knowledge and guidance
 **Loading**: Context-aware (auto-loads based on files/keywords)
 **Token Cost**: ~200-500 tokens each (max 2-3 loaded per prompt)
@@ -115,9 +115,9 @@ All skills follow a unified two-tier template structure:
 
 **Required Sections:**
 - § 0: Security-First Framework & Anti-Hallucination Protocol ⭐ **FULLY ENRICHED**
-  - 0.1: Quick Risk Assessment (LOW/MEDIUM/HIGH) - **100% complete (72/72 skills)**
-  - 0.2: Vulnerability Research Protocol (MEDIUM/HIGH only) - **100% complete (56/56 MEDIUM/HIGH skills)**
-  - 0.3: Hallucination Prevention Checklist - **100% complete (72/72 skills)**
+  - 0.1: Quick Risk Assessment (LOW/MEDIUM/HIGH) - **100% complete (73/73 skills)**
+  - 0.2: Vulnerability Research Protocol (MEDIUM/HIGH only) - **100% complete (57/57 MEDIUM/HIGH skills)**
+  - 0.3: Hallucination Prevention Checklist - **100% complete (73/73 skills)**
   - 0.4: Progressive Disclosure (500-line limit guidance)
 - § 1: Overview
 - § 2: Core Responsibilities
@@ -161,21 +161,19 @@ All skills follow a unified two-tier template structure:
 
 **Configure**: Run `/dev-aid-config-core-skills` to choose which core skills to enable
 
-### Expert Skills (72)
+### Expert Skills (73)
 
-**Development & Languages (15):**
-- api-expert, async-expert, async-programming
-- bash-expert, fastapi-expert, graphql-expert
-- javascript-expert, python, rust
-- typescript-expert, typescript
-- vue-nuxt-expert, vue-nuxt
-- llm-integration, mcp
+**Development & Languages (14):**
+- api-expert, async-expert, bash-expert
+- fastapi-expert, graphql-expert, javascript-expert
+- python, rust, typescript-expert
+- vue3, nuxt4, llm-integration, mcp
 
-**Security & Infrastructure (18):**
+**Security & Infrastructure (19):**
 - appsec-expert, devsecops-expert, encryption
-- kanidm-expert, sandboxing
+- kanidm-expert, sandboxing, security-auditing
 - argo-expert, cilium-expert, harbor-expert
-- talos-os-expert, ci-cd, cicd-expert
+- talos-os-expert, talos-cluster-ops, ci-cd, cicd-expert
 - cross-platform-builds, auto-update-systems
 - browser-automation, dbus, os-keychain
 - skill-creation-expert, senior-architect
@@ -259,6 +257,15 @@ For detailed guidance, see:
 - **Progressive Disclosure**: `template-references/progressive-disclosure.md`
 
 ## 🔄 Migration History
+
+**v2.1.0 (2026-02-02)**: Skills Migration from Dotfiles
+- ✅ Replaced all 69 shared skills with improved dotfiles versions
+- ✅ Added 3 new skills: `talos-cluster-ops`, `nuxt4`, `vue3`
+- ✅ Removed 4 duplicate skills: `async-programming`, `typescript`, `fastapi`, `vue-nuxt`
+- ✅ All skills now follow unified v2.0.0 template with CWE-based security patterns
+- ✅ More concise NEVER/ALWAYS format (vs verbose CVE research protocols)
+- ✅ 2-3x more code examples and patterns per skill
+- ✅ Skills synced from personal dotfiles for improved quality
 
 **v2.0.0 (2025-12-07)**: [PR #62](https://github.com/martinholovsky/Dev-AID/pull/62)
 - ✅ Migrated all 72 skills to two-tier template

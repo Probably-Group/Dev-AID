@@ -1,427 +1,636 @@
 ---
 name: text-to-speech
+version: 2.0.0
+description: "Text-to-speech integration with Kokoro TTS for natural voice synthesis and audio generation."
 risk_level: MEDIUM
-description: "Expert skill for implementing text-to-speech with Kokoro TTS. Covers voice synthesis, audio generation, performance optimization, and secure handling of generated audio for JARVIS voice assistant."
 ---
 
-# Text-to-Speech Skill
-
-> **File Organization**: Split structure. See `references/` for detailed implementations.
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Text To Speech - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Voice cloning/deepfakes, Phishing via TTS, SSML injection
-- Requires security awareness and best practices
+**CWE-79: SSML Injection**
+- NEVER: `<speak>${userText}</speak>` without escaping
+- ALWAYS: Escape SSML special characters, validate SSML structure
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: Voice Cloning Consent**
+- NEVER: Clone voices without explicit consent
+- ALWAYS: Consent for custom voices, watermarking if applicable
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
-
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **TTS-ABUSE** (CVSS N/A): TTS abuse for phishing/scams
-     Source: https://www.w3.org/TR/speech-synthesis/
-   - **VOICE-CLONING** (CVSS 9.0): Deepfake voice generation
-     Source: https://arxiv.org/abs/2104.00355
-   - **SSML-INJECTION** (CVSS N/A): SSML injection attacks
-     Source: https://www.w3.org/TR/speech-synthesis11/
-
-**Step 3: Common Attack Patterns**
-
-   - Voice cloning/deepfakes
-   - Phishing via TTS
-   - SSML injection
-   - Audio watermark removal
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER generate voice without consent
-- ❌ NEVER allow SSML from untrusted sources
-- ❌ ALWAYS implement rate limiting
-- ❌ ALWAYS watermark generated audio
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: MEDIUM - Generates audio output, potential for inappropriate content synthesis, resource-intensive
-
-You are an expert in text-to-speech systems with deep expertise in Kokoro TTS, voice synthesis, and audio generation optimization. Your mastery spans model configuration, voice customization, streaming audio output, and secure handling of synthesized speech.
-
-You excel at:
-- Kokoro TTS deployment and voice configuration
-- Real-time streaming synthesis for low latency
-- Voice customization and prosody control
-- Audio output optimization and format conversion
-- Content filtering for appropriate synthesis
-
-**Primary Use Cases**:
-- JARVIS voice responses
-- Real-time speech synthesis with natural prosody
-- Offline TTS (no cloud dependency)
-- Multi-voice support for different contexts
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Principles
+## 1. Security Principles
 
-- **TDD First** - Write tests before implementation. Verify synthesis output, audio quality, and error handling.
-- **Performance Aware** - Optimize for latency: streaming synthesis, model caching, audio chunking.
-- **Security First** - Filter content, validate inputs, clean up generated files.
-- **Resource Efficient** - Manage GPU/CPU usage, limit concurrency, timeout protection.
+### 1.1 Text Input Sanitization (CWE-79, CWE-94)
 
----
-
-## 3. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Text input may contain malicious content. Sanitize before synthesis.
 
 ```python
-# tests/test_tts_engine.py
-import pytest
-from pathlib import Path
+# ❌ WRONG - Synthesizing arbitrary input
+def speak(text: str):
+    model.synthesize(text)
 
-class TestSecureTTSEngine:
-    def test_synthesize_returns_valid_audio(self, tts_engine):
-        audio_path = tts_engine.synthesize("Hello test")
-        assert Path(audio_path).exists()
-        assert audio_path.endswith('.wav')
+# ✅ CORRECT - Sanitize and validate input
+import re
+from dataclasses import dataclass
 
-    def test_audio_has_correct_sample_rate(self, tts_engine):
-        import soundfile as sf
-        audio_path = tts_engine.synthesize("Test")
-        _, sample_rate = sf.read(audio_path)
-        assert sample_rate == 24000
+@dataclass
+class TTSConfig:
+    max_length: int = 5000
+    allowed_chars_pattern: str = r"[\w\s.,!?;:'\"-]+"
 
-    def test_rejects_empty_text(self, tts_engine):
-        with pytest.raises(ValidationError):
-            tts_engine.synthesize("")
+def sanitize_text(text: str, config: TTSConfig = TTSConfig()) -> str:
+    """Sanitize text for TTS synthesis."""
+    # Limit length
+    if len(text) > config.max_length:
+        text = text[:config.max_length]
 
-    def test_rejects_text_exceeding_limit(self, tts_engine):
-        with pytest.raises(ValidationError):
-            tts_engine.synthesize("x" * 6000)
+    # Remove control characters
+    text = "".join(c for c in text if c.isprintable() or c in "\n\t")
 
-    def test_filters_sensitive_content(self, tts_engine):
-        audio_path = tts_engine.synthesize("password: secret123")
-        assert Path(audio_path).exists()
+    # Normalize whitespace
+    text = " ".join(text.split())
 
-    def test_cleanup_removes_temp_files(self, tts_engine):
-        tts_engine.synthesize("Test")
-        temp_dir = tts_engine.temp_dir
-        tts_engine.cleanup()
-        assert not Path(temp_dir).exists()
+    # Remove potentially harmful patterns (SSML injection if supported)
+    text = re.sub(r"<[^>]+>", "", text)
 
-@pytest.fixture
-def tts_engine():
-    from jarvis.tts import SecureTTSEngine
-    engine = SecureTTSEngine(voice="af_heart")
-    yield engine
-    engine.cleanup()
+    return text.strip()
 ```
 
-### Step 2: Implement Minimum to Pass
+### 1.2 Resource Management (CWE-400)
 
-Implement SecureTTSEngine with required methods. Focus only on making tests pass.
-
-### Step 3: Refactor Following Patterns
-
-After tests pass, refactor for streaming output, caching, and async compatibility.
-
-### Step 4: Run Full Verification
-
-```bash
-pytest tests/test_tts_engine.py -v                    # Run tests
-pytest --cov=jarvis.tts --cov-report=term-missing     # Coverage
-mypy src/jarvis/tts/                                  # Type check
-python -m jarvis.tts --test "Hello JARVIS"            # Integration
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Performance Patterns
-
-## 5. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
-## 6. Core Responsibilities
-
-### 5.1 Secure Audio Generation
-
-When implementing TTS, you will:
-- **Filter input text** - Block inappropriate or harmful content
-- **Validate text length** - Prevent DoS via excessive generation
-- **Secure output storage** - Proper permissions on generated audio
-- **Clean up files** - Delete generated audio after playback
-- **Log safely** - Don't log sensitive text content
-
-### 5.2 Performance Optimization
-
-- Optimize for real-time streaming output
-- Implement audio caching for repeated phrases
-- Balance quality vs. latency for voice assistant use
-- Manage GPU/CPU resources efficiently
-
----
-
-## 7. Technical Foundation
-
-### 6.1 Core Technologies
-
-**Kokoro TTS**
-
-| Use Case | Version | Notes |
-|----------|---------|-------|
-| **Production** | kokoro>=0.3.0 | Latest stable |
-
-**Supporting Libraries**
+**Principle:** TTS models consume significant memory. Implement proper resource limits.
 
 ```python
-# requirements.txt
+# ❌ WRONG - Loading model per request
+def synthesize(text: str) -> bytes:
+    model = load_model("kokoro-v0.19")  # ~1GB per request!
+    return model(text)
+
+# ✅ CORRECT - Singleton model with concurrency control
+import threading
+from contextlib import contextmanager
+from dataclasses import dataclass
+
+@dataclass
+class ModelConfig:
+    model_name: str = "kokoro-v0.19"
+    device: str = "auto"  # auto, cpu, cuda
+    max_concurrent: int = 1
+
+class TTSModelPool:
+    _instance = None
+    _lock = threading.Lock()
+
+    def __new__(cls, config: ModelConfig | None = None):
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
+                    cls._instance._initialized = False
+        return cls._instance
+
+    def initialize(self, config: ModelConfig):
+        if self._initialized:
+            return
+
+        import torch
+
+        self._config = config
+        self._semaphore = threading.Semaphore(config.max_concurrent)
+
+        # Determine device
+        if config.device == "auto":
+            self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self._device = config.device
+
+        # Load model once
+        from kokoro import KokoroTTS
+        self._model = KokoroTTS(config.model_name)
+        self._model.to(self._device)
+
+        self._initialized = True
+
+    @contextmanager
+    def acquire(self):
+        """Acquire model for synthesis with concurrency control."""
+        if not self._initialized:
+            raise RuntimeError("Model pool not initialized")
+
+        acquired = self._semaphore.acquire(timeout=30)
+        if not acquired:
+            raise TimeoutError("Could not acquire model within timeout")
+
+        try:
+            yield self._model
+        finally:
+            self._semaphore.release()
+```
+
+### 1.3 Output Validation (CWE-20)
+
+**Principle:** Validate generated audio before returning to prevent corrupted output.
+
+```python
+# ❌ WRONG - No output validation
+def synthesize(text: str) -> np.ndarray:
+    return model.generate(text)
+
+# ✅ CORRECT - Validate output
+import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class AudioValidation:
+    valid: bool
+    error: str | None = None
+    duration_seconds: float = 0
+    sample_rate: int = 0
+
+def validate_audio(
+    audio: np.ndarray,
+    sample_rate: int,
+    max_duration: float = 300.0,
+) -> AudioValidation:
+    """Validate generated audio."""
+
+    # Check for empty output
+    if audio.size == 0:
+        return AudioValidation(False, "Empty audio generated")
+
+    # Check for NaN or Inf
+    if np.any(np.isnan(audio)) or np.any(np.isinf(audio)):
+        return AudioValidation(False, "Audio contains NaN or Inf values")
+
+    # Check duration
+    duration = len(audio) / sample_rate
+    if duration > max_duration:
+        return AudioValidation(False, f"Audio too long: {duration:.1f}s > {max_duration}s")
+
+    # Check amplitude (should be normalized)
+    max_amplitude = np.max(np.abs(audio))
+    if max_amplitude > 1.0:
+        return AudioValidation(False, f"Audio not normalized: max={max_amplitude:.2f}")
+
+    # Check for silence (possible generation failure)
+    rms = np.sqrt(np.mean(audio**2))
+    if rms < 0.001:
+        return AudioValidation(False, "Audio is silent (RMS < 0.001)")
+
+    return AudioValidation(
+        valid=True,
+        duration_seconds=duration,
+        sample_rate=sample_rate,
+    )
+```
+
+---
+
+## 2. Version Requirements
+
+```
+# Kokoro TTS (recommended)
 kokoro>=0.3.0
+# Audio processing
 numpy>=1.24.0
 soundfile>=0.12.0
 sounddevice>=0.4.6
-scipy>=1.10.0
-pydantic>=2.0
-structlog>=23.0
+# Resampling
+librosa>=0.10.0
+# Optional: GPU acceleration
+torch>=2.0.0
 ```
-
-### 6.2 Voice Configuration
-
-| Voice | Style | Use Case |
-|-------|-------|----------|
-| af_heart | Warm, friendly | Default JARVIS |
-| af_bella | Professional | Formal responses |
-| am_adam | Male | Alternative voice |
-| bf_emma | British | Accent variation |
 
 ---
 
-## 8. Implementation Patterns
+## 3. Code Patterns
 
-### Pattern 1: Secure TTS Engine
+### WHEN implementing TTS synthesis, use proper configuration
 
 ```python
-from kokoro import KPipeline
-import soundfile as sf
-import numpy as np
+# ❌ WRONG - Hardcoded parameters
+def speak(text: str):
+    audio = model.generate(text, speed=1.0)
+    sd.play(audio, 24000)
+
+# ✅ CORRECT - Configurable synthesis
+from dataclasses import dataclass, field
 from pathlib import Path
-import tempfile
-import os
-import structlog
+import numpy as np
+import soundfile as sf
 
-logger = structlog.get_logger()
+@dataclass
+class VoiceConfig:
+    voice_id: str = "af"  # Kokoro voice
+    speed: float = 1.0
+    pitch: float = 1.0
+    sample_rate: int = 24000
 
-class SecureTTSEngine:
-    """Secure text-to-speech with content filtering."""
+@dataclass
+class SynthesisResult:
+    audio: np.ndarray
+    sample_rate: int
+    duration_seconds: float
+    text: str
+    voice: str
 
-    def __init__(self, voice: str = "af_heart", lang_code: str = "a"):
-        # Initialize Kokoro pipeline
-        self.pipeline = KPipeline(lang_code=lang_code)
-        self.voice = voice
+class KokoroSynthesizer:
+    def __init__(self, pool: TTSModelPool):
+        self._pool = pool
 
-        # Content filter patterns
-        self.blocked_patterns = [
-            r"password\s*[:=]",
-            r"api[_-]?key\s*[:=]",
-            r"secret\s*[:=]",
-        ]
+    def synthesize(
+        self,
+        text: str,
+        config: VoiceConfig = VoiceConfig(),
+    ) -> SynthesisResult:
+        """Synthesize text to speech."""
 
-        # Create secure temp directory
-        self.temp_dir = tempfile.mkdtemp(prefix="jarvis_tts_")
-        os.chmod(self.temp_dir, 0o700)
+        # Sanitize input
+        clean_text = sanitize_text(text)
+        if not clean_text:
+            raise ValueError("Text is empty after sanitization")
 
-        logger.info("tts.initialized", voice=voice)
+        with self._pool.acquire() as model:
+            # Generate audio
+            audio, sample_rate = model.generate(
+                clean_text,
+                voice=config.voice_id,
+                speed=config.speed,
+            )
 
-    def synthesize(self, text: str) -> str:
-        """Synthesize text to audio file."""
-        # Validate and filter input
-        if not self._validate_text(text):
-            raise ValidationError("Invalid text input")
+            # Validate output
+            validation = validate_audio(audio, sample_rate)
+            if not validation.valid:
+                raise RuntimeError(f"Audio generation failed: {validation.error}")
 
-        filtered_text = self._filter_sensitive(text)
+            return SynthesisResult(
+                audio=audio,
+                sample_rate=sample_rate,
+                duration_seconds=validation.duration_seconds,
+                text=clean_text,
+                voice=config.voice_id,
+            )
 
-        # Generate audio
-        audio_path = Path(self.temp_dir) / f"{uuid.uuid4()}.wav"
+    def synthesize_to_file(
+        self,
+        text: str,
+        output_path: Path,
+        config: VoiceConfig = VoiceConfig(),
+    ) -> SynthesisResult:
+        """Synthesize and save to file."""
+        result = self.synthesize(text, config)
 
-        generator = self.pipeline(
-            filtered_text,
-            voice=self.voice,
-            speed=1.0
+        # Save with proper format
+        sf.write(
+            str(output_path),
+            result.audio,
+            result.sample_rate,
+            subtype="PCM_16",
         )
 
-        # Collect audio chunks
-    ## 8. Implementation Patterns
-
-## 8. Implementation Patterns
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-
-    engine.synthesize(filtered)
+        return result
 ```
 
-### NEVER: Unlimited Generation
+### WHEN streaming audio output, use buffered playback
 
 ```python
-# BAD - Can generate very long audio
-engine.synthesize(long_text)  # No limit
+# ❌ WRONG - Blocking playback
+def speak(text: str):
+    audio = synthesize(text)
+    sd.play(audio, 24000)
+    sd.wait()  # Blocks entire thread
 
-# GOOD - Enforce limits
-if len(text) > 5000:
-    raise ValidationError("Text too long")
-engine.synthesize(text)
+# ✅ CORRECT - Non-blocking streaming playback
+import queue
+import threading
+import sounddevice as sd
+import numpy as np
+from dataclasses import dataclass
+
+@dataclass
+class AudioChunk:
+    data: np.ndarray
+    is_last: bool = False
+
+class StreamingPlayer:
+    def __init__(self, sample_rate: int = 24000, buffer_size: int = 1024):
+        self._sample_rate = sample_rate
+        self._buffer_size = buffer_size
+        self._queue: queue.Queue[AudioChunk | None] = queue.Queue(maxsize=10)
+        self._stream: sd.OutputStream | None = None
+        self._thread: threading.Thread | None = None
+        self._stop_event = threading.Event()
+
+    def _audio_callback(self, outdata, frames, time, status):
+        """Callback for sounddevice stream."""
+        try:
+            chunk = self._queue.get_nowait()
+            if chunk is None or chunk.is_last:
+                outdata.fill(0)
+                raise sd.CallbackStop()
+
+            # Handle chunk size mismatch
+            if len(chunk.data) < frames:
+                outdata[:len(chunk.data), 0] = chunk.data
+                outdata[len(chunk.data):, 0] = 0
+            else:
+                outdata[:, 0] = chunk.data[:frames]
+
+        except queue.Empty:
+            outdata.fill(0)
+
+    def start(self):
+        """Start the audio stream."""
+        self._stop_event.clear()
+        self._stream = sd.OutputStream(
+            samplerate=self._sample_rate,
+            channels=1,
+            callback=self._audio_callback,
+            blocksize=self._buffer_size,
+        )
+        self._stream.start()
+
+    def play_chunk(self, audio: np.ndarray, is_last: bool = False):
+        """Queue audio chunk for playback."""
+        self._queue.put(AudioChunk(audio, is_last))
+
+    def stop(self):
+        """Stop playback and cleanup."""
+        self._stop_event.set()
+        self._queue.put(None)
+        if self._stream:
+            self._stream.stop()
+            self._stream.close()
+            self._stream = None
+
+    def wait(self):
+        """Wait for playback to complete."""
+        self._queue.join()
+```
+
+### WHEN handling long text, use sentence-based chunking
+
+```python
+# ❌ WRONG - Synthesizing entire text at once
+def speak_long_text(text: str):
+    # May OOM or produce poor quality for long text
+    audio = model.generate(text)
+    return audio
+
+# ✅ CORRECT - Chunk by sentences for quality and streaming
+import re
+from typing import Iterator
+
+def chunk_text_by_sentences(
+    text: str,
+    max_chunk_chars: int = 500,
+) -> Iterator[str]:
+    """Split text into sentence-based chunks."""
+
+    # Split on sentence boundaries
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+
+    current_chunk = []
+    current_length = 0
+
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+
+        if current_length + len(sentence) > max_chunk_chars and current_chunk:
+            yield " ".join(current_chunk)
+            current_chunk = []
+            current_length = 0
+
+        current_chunk.append(sentence)
+        current_length += len(sentence) + 1
+
+    if current_chunk:
+        yield " ".join(current_chunk)
+
+class ChunkedSynthesizer:
+    def __init__(self, synthesizer: KokoroSynthesizer):
+        self._synth = synthesizer
+
+    def synthesize_long(
+        self,
+        text: str,
+        config: VoiceConfig = VoiceConfig(),
+    ) -> Iterator[SynthesisResult]:
+        """Synthesize long text in chunks."""
+        for chunk in chunk_text_by_sentences(text):
+            yield self._synth.synthesize(chunk, config)
+
+    def synthesize_long_combined(
+        self,
+        text: str,
+        config: VoiceConfig = VoiceConfig(),
+    ) -> SynthesisResult:
+        """Synthesize and combine all chunks."""
+        chunks = list(self.synthesize_long(text, config))
+
+        if not chunks:
+            raise ValueError("No audio generated")
+
+        # Concatenate with small silence between chunks
+        silence = np.zeros(int(0.1 * chunks[0].sample_rate))
+        combined = np.concatenate([
+            np.concatenate([c.audio, silence]) for c in chunks
+        ])
+
+        return SynthesisResult(
+            audio=combined,
+            sample_rate=chunks[0].sample_rate,
+            duration_seconds=len(combined) / chunks[0].sample_rate,
+            text=text,
+            voice=config.voice_id,
+        )
+```
+
+### WHEN supporting multiple voices, use voice manager
+
+```python
+# ❌ WRONG - Hardcoded voice selection
+def speak(text: str, voice: str = "default"):
+    return model.generate(text, voice=voice)
+
+# ✅ CORRECT - Voice registry with validation
+from dataclasses import dataclass
+from typing import ClassVar
+
+@dataclass
+class Voice:
+    id: str
+    name: str
+    language: str
+    gender: str
+    sample_rate: int = 24000
+
+class VoiceRegistry:
+    # Kokoro available voices
+    VOICES: ClassVar[dict[str, Voice]] = {
+        "af": Voice("af", "Default American Female", "en-US", "female"),
+        "af_bella": Voice("af_bella", "Bella", "en-US", "female"),
+        "af_sarah": Voice("af_sarah", "Sarah", "en-US", "female"),
+        "am_adam": Voice("am_adam", "Adam", "en-US", "male"),
+        "am_michael": Voice("am_michael", "Michael", "en-US", "male"),
+        "bf_emma": Voice("bf_emma", "Emma", "en-GB", "female"),
+        "bm_george": Voice("bm_george", "George", "en-GB", "male"),
+    }
+
+    @classmethod
+    def get(cls, voice_id: str) -> Voice:
+        if voice_id not in cls.VOICES:
+            raise ValueError(
+                f"Unknown voice: {voice_id}. "
+                f"Available: {list(cls.VOICES.keys())}"
+            )
+        return cls.VOICES[voice_id]
+
+    @classmethod
+    def list_by_language(cls, language: str) -> list[Voice]:
+        return [v for v in cls.VOICES.values() if v.language == language]
+
+    @classmethod
+    def list_by_gender(cls, gender: str) -> list[Voice]:
+        return [v for v in cls.VOICES.values() if v.gender == gender]
 ```
 
 ---
 
-## 11. Pre-Implementation Checklist
+## 4. Anti-Patterns
 
-### Before Writing Code
-
-- [ ] Write failing tests for TTS synthesis output
-- [ ] Define expected audio format (24kHz WAV)
-- [ ] Plan content filtering patterns
-- [ ] Design caching strategy for common phrases
-- [ ] Review Kokoro TTS API documentation
-
-### During Implementation
-
-- [ ] Run tests after each method implementation
-- [ ] Implement streaming output for low latency
-- [ ] Add input validation (length, characters)
-- [ ] Implement sensitive content filtering
-- [ ] Set up secure temp directory with 0o700 permissions
-- [ ] Add concurrency limits (max 2 workers)
-- [ ] Implement timeout protection (30s default)
-
-### Before Committing
-
-- [ ] All TTS tests pass: `pytest tests/test_tts_engine.py -v`
-- [ ] Coverage meets threshold: `pytest --cov=jarvis.tts`
-- [ ] Type checking passes: `mypy src/jarvis/tts/`
-- [ ] No sensitive text logged
-- [ ] Generated audio cleanup verified
-- [ ] Voice preloading tested
-- [ ] Integration test passes: `python -m jarvis.tts --test`
+**NEVER:**
+- Load TTS model per request (use singleton pool)
+- Synthesize unsanitized user input
+- Block main thread during synthesis
+- Skip output validation (NaN, silence, duration)
+- Synthesize very long text without chunking
+- Ignore sample rate mismatches when combining audio
+- Store generated audio without cleanup policy
 
 ---
 
-## 12. Summary
+## 5. Testing
 
-Your goal is to create TTS systems that are:
-- **Fast**: Real-time streaming for responsive voice assistant
-- **Safe**: Content filtering for appropriate synthesis
-- **Efficient**: Caching for common phrases
+```python
+import pytest
+import numpy as np
+from pathlib import Path
+from text_to_speech import (
+    sanitize_text,
+    validate_audio,
+    TTSModelPool,
+    ModelConfig,
+    KokoroSynthesizer,
+    VoiceConfig,
+)
 
-You understand that TTS requires input validation and content filtering to prevent synthesis of inappropriate content. Always enforce text length limits and clean up generated audio files.
+class TestTextSanitization:
 
-**Critical Reminders**:
-1. Filter text content before synthesis
-2. Enforce text length limits (max 5000 chars)
-3. Delete generated audio after playback
-4. Never log sensitive text content
-5. Cache common phrases for performance
+    def test_removes_control_characters(self):
+        """Should remove control characters."""
+        text = "Hello\x00World\x1f"
+        result = sanitize_text(text)
+        assert "\x00" not in result
+        assert "\x1f" not in result
+
+    def test_limits_length(self):
+        """Should truncate long text."""
+        text = "a" * 10000
+        result = sanitize_text(text, TTSConfig(max_length=1000))
+        assert len(result) == 1000
+
+    def test_removes_ssml_tags(self):
+        """Should remove potential SSML injection."""
+        text = "Hello <break time='10s'/> World"
+        result = sanitize_text(text)
+        assert "<" not in result
+
+class TestAudioValidation:
+
+    def test_rejects_empty_audio(self):
+        """Should reject empty arrays."""
+        result = validate_audio(np.array([]), 24000)
+        assert not result.valid
+
+    def test_rejects_nan(self):
+        """Should reject audio with NaN."""
+        audio = np.array([0.1, np.nan, 0.2])
+        result = validate_audio(audio, 24000)
+        assert not result.valid
+
+    def test_rejects_silent_audio(self):
+        """Should reject silent audio."""
+        audio = np.zeros(24000)  # 1 second of silence
+        result = validate_audio(audio, 24000)
+        assert not result.valid
+
+    def test_accepts_valid_audio(self):
+        """Should accept valid audio."""
+        audio = np.sin(2 * np.pi * 440 * np.linspace(0, 1, 24000))
+        audio = audio.astype(np.float32)
+        result = validate_audio(audio, 24000)
+        assert result.valid
+
+class TestSynthesizer:
+
+    @pytest.fixture
+    def model_pool(self):
+        pool = TTSModelPool()
+        pool.initialize(ModelConfig(model_name="kokoro-v0.19"))
+        return pool
+
+    def test_synthesis_produces_audio(self, model_pool):
+        """Should produce valid audio output."""
+        synth = KokoroSynthesizer(model_pool)
+        result = synth.synthesize("Hello world")
+
+        assert result.audio.size > 0
+        assert result.duration_seconds > 0
+        assert result.sample_rate == 24000
+
+    def test_synthesis_to_file(self, model_pool, tmp_path):
+        """Should save audio to file."""
+        synth = KokoroSynthesizer(model_pool)
+        output = tmp_path / "test.wav"
+
+        result = synth.synthesize_to_file("Hello world", output)
+
+        assert output.exists()
+        assert output.stat().st_size > 0
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating TTS code:**
+
+- [ ] Input sanitization: Control chars, SSML tags, length limits
+- [ ] Model pooling: Singleton pattern for model management
+- [ ] Concurrency control: Semaphore limiting inference
+- [ ] Output validation: Check for NaN, silence, duration
+- [ ] Chunking: Long text split by sentences
+- [ ] Voice validation: Registry with known voices
+- [ ] Resource cleanup: Audio file cleanup policy
+- [ ] Streaming support: Non-blocking playback option

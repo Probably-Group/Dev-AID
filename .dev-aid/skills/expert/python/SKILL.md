@@ -1,540 +1,533 @@
 ---
 name: python
-description: Backend services development with Python emphasizing security, performance, and maintainability for JARVIS AI Assistant
+version: 2.0.0
+description: "Python backend patterns with type hints, async programming, and secure coding practices."
 risk_level: HIGH
 ---
 
-# Python Backend Development Skill
-
-## File Organization
-
-This skill uses a split structure for HIGH-RISK requirements:
-- **SKILL.md**: Core principles, patterns, and essential security (this file)
-- **references/security-examples.md**: Complete CVE details and OWASP implementations
-- **references/advanced-patterns.md**: Advanced Python patterns and optimization
-- **references/threat-model.md**: Attack scenarios and STRIDE analysis
-
-## Validation Gates
-
-| Gate | Status | Notes |
-|------|--------|-------|
-| 0.1 Domain Expertise | PASSED | Type safety, async, security, testing |
-| 0.2 Vulnerability Research | PASSED | 5+ CVEs documented (2025-11-20) |
-| 0.5 Hallucination Check | PASSED | Examples tested on Python 3.11+ |
-| 0.11 File Organization | Split | HIGH-RISK, ~450 lines + references |
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Python Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Memory exhaustion via asyncio.writelines(), Tarfile extraction path traversal, Supply chain attacks via missing dependencies
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-89: SQL Injection**
+- NEVER: `f"SELECT * FROM users WHERE id = {user_id}"` or `.format()`
+- ALWAYS: Parameterized queries or ORM methods
 
-### 0.2 Vulnerability Research Protocol
+**CWE-78: OS Command Injection**
+- NEVER: `os.system(user_input)` or `subprocess.run(cmd, shell=True)` with user data
+- ALWAYS: `subprocess.run([binary, arg1, arg2], shell=False)` with validated args
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-22: Path Traversal**
+- NEVER: `open(user_provided_path)` without validation
+- ALWAYS: Use `pathlib`, resolve paths, verify within allowed directory
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-502: Insecure Deserialization**
+- NEVER: `pickle.loads(user_data)` or `yaml.load(data, Loader=yaml.Loader)`
+- ALWAYS: `yaml.safe_load()`, validate JSON schema, avoid pickle with untrusted data
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+**CWE-798: Hardcoded Credentials**
+- NEVER: `password = "secret123"` in code
+- ALWAYS: Environment variables, secrets manager, never commit secrets
 
-   - **CVE-2024-12254** (CVSS 7.5): Python asyncio module memory exhaustion vulnerability
-     Source: https://linuxsecurity.com/news/security-vulnerabilities/new-python-memory-exhaustion-bug
-   - **CVE-2024-12718** (CVSS 9.8): Critical tarfile module vulnerability allowing RCE
-     Source: https://www.sweet.security/blog/python-tar-file-vulnerability-cve-2024-12718-what-you-need-to-know
-   - **CVE-2025-27607** (CVSS 9.8): RCE affecting 43 million Python installations via msgspec-python313-pre
-     Source: https://gbhackers.com/over-43-million-python-installations-vulnerable/
+### 0.3 Risk Level: HIGH
 
-**Step 3: Common Attack Patterns**
-
-   - Memory exhaustion via asyncio.writelines()
-   - Tarfile extraction path traversal
-   - Supply chain attacks via missing dependencies
-   - Zipfile infinite loop DoS
-   - Deserialization attacks in pickle/msgspec
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use pickle for untrusted data deserialization
-- ❌ NEVER extract archives without path validation
-- ❌ NEVER ignore dependency security warnings
-- ❌ ALWAYS validate tarfile filter parameters
-- ❌ ALWAYS use virtual environments with pinned dependencies
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: HIGH
-
-**Justification**: Python backend services handle authentication, database access, file operations, and external API communication. Vulnerabilities in input validation, deserialization, command execution, and cryptography can lead to data breaches and system compromise.
-
-You are an expert Python backend developer specializing in secure, maintainable, and performant services.
-
-### Core Expertise Areas
-- Type annotations and runtime validation
-- Async programming with asyncio
-- Security: input validation, cryptography, secrets management
-- Testing: pytest, property-based testing, security testing
-- Database access with SQLAlchemy/asyncpg
-- API development with FastAPI/Starlette
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### Fundamental Principles
+### 1.1 Data ≠ Code (CWE-94, CWE-78, CWE-89)
 
-1. **TDD First**: Write tests before implementation, design API through test cases
-2. **Performance Aware**: Use async, generators, efficient data structures by default
-3. **Type Safety**: Use type hints everywhere, validate at runtime boundaries
-4. **Defense in Depth**: Multiple validation layers, fail securely
-5. **Secure Defaults**: Use safe libraries, reject unsafe operations
-6. **Explicit over Implicit**: Clear error handling, explicit dependencies
-7. **Testability**: Design for testing, write security tests
+**Principle:** Never construct executable code/commands/queries from untrusted data via string operations.
 
-### Decision Framework
+**NEVER** use string formatting for SQL, commands, or eval:
+```python
+# ❌ WRONG - SQL injection (CWE-89)
+query = f"SELECT * FROM users WHERE id = {user_id}"
+cursor.execute(query)
 
-| Situation | Approach |
-|-----------|----------|
-| User input | Validate with Pydantic, sanitize output |
-| Database queries | Use ORM or parameterized queries, never format strings |
-| File operations | Validate paths, use pathlib, check containment |
-| Subprocess | Use list args, never shell=True with user input |
-| Secrets | Load from environment or secret manager |
-| Cryptography | Use cryptography library, never roll your own |
+# ❌ WRONG - Command injection (CWE-78)
+os.system(f"echo {user_input}")
+subprocess.run(f"ls {directory}", shell=True)
+
+# ❌ WRONG - Code injection (CWE-94)
+eval(user_expression)
+exec(f"result = {user_input}")
+
+# ✅ CORRECT - Parameterized query
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+
+# ✅ CORRECT - ORM
+result = session.execute(select(User).where(User.id == user_id))
+
+# ✅ CORRECT - Command as list, no shell
+subprocess.run(["ls", directory], check=True)
+
+# ✅ CORRECT - Safe evaluation
+import ast
+ast.literal_eval(user_input)  # Only literals, no code
+```
+
+### 1.2 Input Validation (CWE-20)
+
+**Principle:** Validate all input at trust boundaries. Allowlist > Denylist. Reject by default.
+
+**ALWAYS** use Pydantic for validation:
+```python
+# ❌ WRONG - No validation
+def create_user(data: dict):
+    username = data["username"]  # Could be anything
+    # ...
+
+# ✅ CORRECT - Pydantic validation with constraints
+from pydantic import BaseModel, Field, EmailStr
+from typing import Annotated
+
+class UserCreate(BaseModel):
+    model_config = {"extra": "forbid", "str_strip_whitespace": True}
+
+    username: Annotated[str, Field(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")]
+    email: EmailStr
+    age: Annotated[int, Field(ge=0, le=150)]
+    role: Literal["user", "admin"]  # Allowlist
+
+def create_user(data: UserCreate):  # Validated
+    # ...
+```
+
+### 1.3 Output Encoding (CWE-79, CWE-116)
+
+**Principle:** Encode output based on context. Data rendered as data, never as code.
+
+```python
+# ❌ WRONG - Raw output in HTML
+return f"<div>Hello, {username}</div>"
+
+# ❌ WRONG - Raw output in JSON (can break structure)
+return f'{{"name": "{name}"}}'
+
+# ✅ CORRECT - HTML escaping
+import html
+return f"<div>Hello, {html.escape(username)}</div>"
+
+# ✅ CORRECT - JSON serialization
+import json
+return json.dumps({"name": name})
+
+# ✅ CORRECT - Shell escaping when needed
+import shlex
+safe_arg = shlex.quote(user_input)
+```
+
+### 1.4 Least Privilege (CWE-250)
+
+**Principle:** Minimum permissions needed. Drop privileges. Scope access narrowly.
+
+```python
+# ❌ WRONG - Running as root unnecessarily
+if os.geteuid() != 0:
+    sys.exit("Must run as root")
+
+# ❌ WRONG - Overly broad file permissions
+os.chmod(config_file, 0o777)
+
+# ✅ CORRECT - Restricted file permissions
+os.chmod(config_file, 0o600)  # Owner read/write only
+
+# ✅ CORRECT - Drop privileges after binding privileged port
+import pwd
+if os.geteuid() == 0:
+    sock.bind(('0.0.0.0', 443))
+    os.setuid(pwd.getpwnam('nobody').pw_uid)  # Drop to nobody
+```
+
+### 1.5 Fail Secure (CWE-636)
+
+**Principle:** Default deny. On error, deny access. Never fail open.
+
+```python
+# ❌ WRONG - Fail open
+def check_permission(user, resource):
+    try:
+        return has_access(user, resource)
+    except Exception:
+        return True  # DANGEROUS: error = access granted
+
+# ✅ CORRECT - Fail closed
+def check_permission(user, resource):
+    try:
+        return has_access(user, resource)
+    except Exception as e:
+        logger.error(f"Permission check failed: {e}")
+        return False  # Safe: error = access denied
+
+# ❌ WRONG - Silent exception swallowing
+try:
+    validate_token(token)
+except Exception:
+    pass  # Token treated as valid!
+
+# ✅ CORRECT - Explicit handling
+def validate_request(token: str) -> bool:
+    try:
+        validate_token(token)
+        return True
+    except (TokenExpired, TokenInvalid) as e:
+        logger.warning(f"Token validation failed: {e}")
+        return False
+```
+
+### 1.6 Defense in Depth
+
+**Principle:** Multiple security layers. Don't rely on single control.
+
+```python
+# Layer 1: Input validation at API boundary
+@router.post("/upload")
+async def upload_file(file: UploadFile, user: User = Depends(get_current_user)):
+    # Layer 2: File type validation
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(400, "Invalid file type")
+
+    # Layer 3: File size limit
+    contents = await file.read(MAX_SIZE + 1)
+    if len(contents) > MAX_SIZE:
+        raise HTTPException(413, "File too large")
+
+    # Layer 4: Path validation
+    safe_name = secure_filename(file.filename)
+    safe_path = (UPLOAD_DIR / safe_name).resolve()
+    if not safe_path.is_relative_to(UPLOAD_DIR):
+        raise HTTPException(400, "Invalid path")
+
+    # Layer 5: Database constraint
+    # (UNIQUE constraint, foreign key to user)
+```
+
+### 1.7 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never hardcode secrets. Use environment/vault. Never log secrets.
+
+```python
+# ❌ WRONG - Hardcoded secrets
+API_KEY = "sk-1234567890abcdef"
+DATABASE_URL = "postgresql://user:password@localhost/db"
+
+# ❌ WRONG - Secrets in error messages
+raise ValueError(f"Failed to connect with key: {api_key}")
+
+# ❌ WRONG - Logging secrets
+logger.info(f"Using API key: {api_key}")
+
+# ✅ CORRECT - Secrets from environment
+import os
+API_KEY = os.environ["API_KEY"]  # Fails if not set
+DATABASE_URL = os.environ["DATABASE_URL"]
+
+# ✅ CORRECT - Safe error messages
+raise ValueError("Authentication failed")
+
+# ✅ CORRECT - Redacted logging
+logger.info("API key configured: ***")
+```
+
+### 1.8 Trust Boundaries (CWE-501)
+
+**Principle:** Explicitly identify trusted vs untrusted. Validate at every boundary crossing.
+
+```python
+# Trust boundaries in a typical application:
+#
+#  [Untrusted]        [Boundary]           [Trusted]
+#  HTTP Request  -->  API Endpoint  -->    Service Layer
+#  File Upload   -->  Validator     -->    Storage
+#  Database      -->  ORM           -->    Application
+#  External API  -->  Response Val  -->    Internal Use
+
+# ❌ WRONG - Trusting external API response
+external_data = await client.get("https://api.example.com/data")
+user_id = external_data["user_id"]  # No validation
+
+# ✅ CORRECT - Validate at boundary
+external_data = await client.get("https://api.example.com/data")
+validated = ExternalResponse.model_validate(external_data.json())
+user_id = validated.user_id  # Now validated
+```
 
 ---
 
-## 2.1 Implementation Workflow (TDD)
+## 2. Version Requirements
 
-### Step 1: Write Failing Test First
-
-```python
-import pytest
-from my_service import UserService, UserNotFoundError
-
-class TestUserService:
-    @pytest.mark.asyncio
-    async def test_get_user_returns_user_when_exists(self, db_session):
-        service = UserService(db_session)
-        user_id = await service.create_user("alice", "alice@example.com")
-        user = await service.get_user(user_id)
-        assert user.username == "alice"
-
-    @pytest.mark.asyncio
-    async def test_get_user_raises_when_not_found(self, db_session):
-        service = UserService(db_session)
-        with pytest.raises(UserNotFoundError):
-            await service.get_user(99999)
-
-    @pytest.mark.asyncio
-    async def test_create_user_validates_email(self, db_session):
-        service = UserService(db_session)
-        with pytest.raises(ValueError, match="Invalid email"):
-            await service.create_user("bob", "not-an-email")
+**ALWAYS use these minimum versions:**
+```
+python>=3.12.8          # CVE-2024-12718 tarfile bypass, CVE-2024-12254 asyncio
+pydantic>=2.5.0         # Validation
+cryptography>=42.0.0    # CVE-2023-50782 RSA disclosure
+sqlalchemy>=2.0.0       # Async support, type safety
+argon2-cffi>=21.0.0     # Password hashing
+httpx>=0.25.0           # Async HTTP client
 ```
 
-### Step 2: Implement Minimum to Pass
+**WHEN generating pyproject.toml or requirements.txt** → pin these exact versions or higher.
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating async service
 
 ```python
-class UserNotFoundError(Exception): pass
+from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel, Field
 
 class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
     async def get_user(self, user_id: int) -> User:
-        user = await self.db.get(User, user_id)
+        result = await self.db.execute(
+            select(User).where(User.id == user_id)
+        )
+        user = result.scalar_one_or_none()
         if not user:
             raise UserNotFoundError(f"User {user_id} not found")
         return user
 
-    async def create_user(self, username: str, email: str) -> int:
-        if "@" not in email:
-            raise ValueError("Invalid email format")
-        # ... minimal implementation to pass tests
+    async def create_user(self, data: UserCreate) -> User:
+        user = User(**data.model_dump())
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
 ```
 
-### Step 3: Refactor if Needed
-
-- Extract common patterns, add type hints, ensure errors don't leak internals
-
-### Step 4: Run Full Verification
-
-```bash
-pytest --cov=src           # All tests pass
-mypy src/ --strict         # Type check passes
-bandit -r src/ -ll         # Security scan passes
-pip-audit && safety check  # Dependencies clean
-```
-
----
-
-## 2.2 Performance Patterns
-
-### Pattern 1: Async I/O with asyncio.gather
+### 3.2 WHEN hashing passwords
 
 ```python
-# BAD: Sequential requests (slow)
-for url in urls:
-    response = await client.get(url)  # Waits for each one
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
-# GOOD: Concurrent requests with gather
-tasks = [client.get(url) for url in urls]
-responses = await asyncio.gather(*tasks)  # All at once
+ph = PasswordHasher(
+    time_cost=3,
+    memory_cost=65536,
+    parallelism=4
+)
+
+def hash_password(password: str) -> str:
+    return ph.hash(password)
+
+def verify_password(hash: str, password: str) -> bool:
+    try:
+        ph.verify(hash, password)
+        return True
+    except VerifyMismatchError:
+        return False
 ```
 
-### Pattern 2: Generators for Large Data Processing
+### 3.3 WHEN making HTTP requests
 
 ```python
-# BAD: Load all into memory
-return [process(line) for line in f.readlines()]  # OOM risk
+import httpx
+from pydantic import BaseModel
 
-# GOOD: Generator yields one at a time
-def process_large_file(filepath: str) -> Iterator[dict]:
-    with open(filepath) as f:
-        for line in f:
-            yield process(line)  # Memory efficient
+class ExternalResponse(BaseModel):
+    id: int
+    name: str
+
+async def fetch_external_data(url: str) -> ExternalResponse:
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(url)
+        response.raise_for_status()
+        return ExternalResponse.model_validate(response.json())
 ```
 
-### Pattern 3: Efficient Data Structures
+### 3.4 WHEN reading files with user input
 
 ```python
-# BAD: List for membership testing - O(n)
-required in user_perms_list  # Slow for large lists
-
-# GOOD: Set for membership testing - O(1)
-required in user_perms_set  # Fast lookup
-
-# BAD: Repeated string concatenation
-result = ""; for f in fields: result += f + ", "  # Creates new string each time
-
-# GOOD: Join for string building
-", ".join(fields)  # Single allocation
-```
-
-### Pattern 4: Connection Pooling
-
-```python
-# BAD: New connection per request
-engine = create_async_engine(DATABASE_URL)  # Connection overhead each time
-
-# GOOD: Reuse pooled connections
-engine = create_async_engine(DATABASE_URL, pool_size=20, max_overflow=10)
-async_session = sessionmaker(engine, class_=AsyncSession)
-
-async def get_user(user_id: int):
-    async with async_session() as session:  # Reuses pooled connection
-        return await session.get(User, user_id)
-```
-
-### Pattern 5: Batch Database Operations
-
-```python
-# BAD: Individual inserts (N round trips)
-for user in users:
-    db.add(User(**user)); await db.commit()  # N commits = slow
-
-# GOOD: Batch insert (1 round trip)
-stmt = insert(User).values(users)
-await db.execute(stmt); await db.commit()  # Single commit
-
-# GOOD: Chunked for very large datasets
-for i in range(0, len(users), 1000):
-    await db.execute(insert(User).values(users[i:i+1000]))
-await db.commit()
-```
-
----
-
-## 3. Technical Foundation
-
-### Version Recommendations
-
-| Category | Version | Notes |
-|----------|---------|-------|
-| **LTS/Recommended** | Python 3.11+ | Performance improvements, better errors |
-| **Minimum** | Python 3.9 | Security support until Oct 2025 |
-| **Avoid** | Python 3.8- | EOL, no security patches |
-
-### Security Dependencies
-
-```toml
-# pyproject.toml
-[project]
-dependencies = [
-    "pydantic>=2.0", "email-validator>=2.0",      # Validation
-    "cryptography>=41.0", "argon2-cffi>=21.0",    # Cryptography
-    "PyJWT>=2.8", "sqlalchemy>=2.0", "asyncpg>=0.28",
-    "httpx>=0.25", "bandit>=1.7",
-]
-
-[project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "hypothesis>=6.0", "safety>=2.0", "pip-audit>=2.0"]
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-class UserCreate(BaseModel):
-    """Validated user creation request."""
-    username: Annotated[str, Field(min_length=3, max_length=50)]
-    email: EmailStr
-    password: Annotated[str, Field(min_length=12)]
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Security Standards
-
-### 5.1 Domain Vulnerability Landscape
-
-| CVE ID | Severity | Description | Mitigation |
-|--------|----------|-------------|------------|
-| CVE-2024-12718 | CRITICAL | tarfile filter bypass | Python 3.12.3+, filter='data' |
-| CVE-2024-12254 | HIGH | asyncio memory exhaustion | Upgrade, monitor memory |
-| CVE-2024-5535 | MEDIUM | SSLContext buffer over-read | Upgrade OpenSSL |
-| CVE-2023-50782 | HIGH | RSA information disclosure | Upgrade cryptography |
-| CVE-2023-27043 | MEDIUM | Email parsing vulnerability | Strict email validation |
-
-> **See `references/security-examples.md` for complete CVE details and mitigation code**
-
-### 5.2 OWASP Top 10 Mapping
-
-| Category | Risk | Key Mitigations |
-|----------|------|-----------------|
-| A01 Broken Access Control | HIGH | Validate permissions, decorators |
-| A02 Cryptographic Failures | HIGH | cryptography lib, Argon2 |
-| A03 Injection | CRITICAL | Parameterized queries, no shell=True |
-| A04 Insecure Design | MEDIUM | Type safety, validation layers |
-| A05 Misconfiguration | HIGH | Safe defaults, audit deps |
-| A06 Vulnerable Components | HIGH | pip-audit, safety in CI |
-
-### 5.3 Essential Security Patterns
-
-```python
-from pydantic import BaseModel, field_validator
-import os, logging
-
-# Secure base model - reject unknown fields, strip whitespace
-class SecureInput(BaseModel):
-    model_config = {'extra': 'forbid', 'str_strip_whitespace': True}
-
-    @field_validator('*', mode='before')
-    @classmethod
-    def reject_null_bytes(cls, v):
-        if isinstance(v, str) and '\x00' in v:
-            raise ValueError('Null bytes not allowed')
-        return v
-
-# Secrets from environment (NEVER hardcode)
-API_KEY = os.environ["API_KEY"]
-DB_URL = os.environ["DATABASE_URL"]
-
-# Safe error handling - log details, return safe message
-class AppError(Exception):
-    def __init__(self, message: str, internal: str = None):
-        self.message = message
-        if internal:
-            logging.error(f"{message}: {internal}")
-
-    def to_response(self) -> dict:
-        return {"error": self.message}
-```
-
-> **See `references/advanced-patterns.md` for secrets manager integration**
-
----
-
-## 7. Testing & Validation
-
-### Security Testing Commands
-
-```bash
-bandit -r src/ -ll          # Static analysis
-pip-audit && safety check   # Dependency vulnerabilities
-mypy src/ --strict          # Type checking
-```
-
-### Security Test Examples
-
-```python
-import pytest
 from pathlib import Path
 
-def test_sql_injection_prevented(db):
-    for payload in ["'; DROP TABLE users; --", "' OR '1'='1", "admin'--"]:
-        assert get_user_safe(db, payload) is None
+ALLOWED_DIR = Path("/app/data").resolve()
 
-def test_path_traversal_blocked():
-    base = Path("/app/data")
-    for attack in ["../etc/passwd", "..\\windows\\system32", "foo/../../etc/passwd"]:
-        with pytest.raises(ValueError, match="traversal|Invalid"):
-            safe_read_file(base, attack)
+def safe_read_file(user_filename: str) -> str:
+    # Resolve path and check containment
+    file_path = (ALLOWED_DIR / user_filename).resolve()
 
-def test_command_injection_blocked():
-    with pytest.raises(ValueError, match="not allowed"):
-        run_command_safe("rm", ["-rf", "/"])
+    if not file_path.is_relative_to(ALLOWED_DIR):
+        raise ValueError("Path traversal blocked")
+
+    if not file_path.exists():
+        raise FileNotFoundError(f"File not found")
+
+    return file_path.read_text()
 ```
 
-> **See `references/security-examples.md` for comprehensive test patterns**
+### 3.5 WHEN extracting archives
+
+```python
+import tarfile
+
+def safe_extract_tar(tar_path: str, dest_dir: str):
+    dest = Path(dest_dir).resolve()
+
+    with tarfile.open(tar_path) as tar:
+        # Python 3.12+: Use filter='data' to block dangerous entries
+        tar.extractall(dest, filter='data')
+```
+
+### 3.6 WHEN running subprocesses
+
+```python
+import subprocess
+
+def run_command(cmd: str, args: list[str]) -> str:
+    # Validate command is in allowlist
+    ALLOWED_COMMANDS = {"ls", "cat", "head"}
+    if cmd not in ALLOWED_COMMANDS:
+        raise ValueError(f"Command not allowed: {cmd}")
+
+    # Run with list arguments, never shell=True
+    result = subprocess.run(
+        [cmd, *args],
+        capture_output=True,
+        text=True,
+        check=True,
+        timeout=30
+    )
+    return result.stdout
+```
 
 ---
 
-## 8. Common Mistakes & Anti-Patterns
+## 4. Anti-Patterns
 
-| Anti-Pattern | Bad | Good |
-|-------------|-----|------|
-| SQL formatting | `f"SELECT * WHERE id={id}"` | `select(User).where(User.id == id)` |
-| Pickle untrusted | `pickle.loads(data)` | `json.loads(data)` |
-| Shell injection | `subprocess.run(f"echo {x}", shell=True)` | `subprocess.run(["echo", x])` |
-| Weak hashing | `hashlib.md5(pw).hexdigest()` | `PasswordHasher().hash(pw)` |
-| Hardcoded secrets | `API_KEY = "sk-123..."` | `API_KEY = os.environ["API_KEY"]` |
+### 4.1 Deserialization
+
+**NEVER** use pickle with untrusted data (CWE-502, CVE-2025-68664):
+```python
+# ❌ WRONG - Arbitrary code execution
+import pickle
+data = pickle.loads(untrusted_bytes)  # RCE!
+
+# ✅ CORRECT - Safe serialization
+import json
+data = json.loads(untrusted_string)
+
+# ✅ CORRECT - If objects needed, use Pydantic
+from pydantic import BaseModel
+data = MyModel.model_validate_json(untrusted_string)
+```
+
+### 4.2 Password Storage
+
+**NEVER** use MD5/SHA for passwords (CWE-328):
+```python
+# ❌ WRONG - Weak hashing
+import hashlib
+hash = hashlib.md5(password.encode()).hexdigest()
+hash = hashlib.sha256(password.encode()).hexdigest()
+
+# ✅ CORRECT - Argon2id with proper parameters
+from argon2 import PasswordHasher
+ph = PasswordHasher()
+hash = ph.hash(password)
+```
+
+### 4.3 Subprocess Shell
+
+**NEVER** use shell=True with user input (CWE-78):
+```python
+# ❌ WRONG - Command injection
+subprocess.run(f"echo {user_input}", shell=True)
+os.system(f"ls {directory}")
+
+# ✅ CORRECT - List arguments
+subprocess.run(["echo", user_input])
+```
+
+### 4.4 Eval/Exec
+
+**NEVER** use eval/exec with user input (CWE-94):
+```python
+# ❌ WRONG - Code injection
+result = eval(user_expression)
+exec(user_code)
+
+# ✅ CORRECT - ast.literal_eval for safe literals only
+import ast
+result = ast.literal_eval(user_input)  # Only parses literals
+```
 
 ---
 
-## 9. Pre-Deployment Checklist
+## 5. Testing
 
-### Phase 1: Before Writing Code
+**ALWAYS write security tests:**
+```python
+import pytest
 
-- [ ] Requirements understood and documented
-- [ ] API design reviewed (inputs, outputs, errors)
-- [ ] Security threat model considered
-- [ ] Test cases written first (TDD)
-- [ ] Edge cases and error scenarios identified
+class TestSecurityPatterns:
+    def test_sql_injection_prevented(self, db_session):
+        service = UserService(db_session)
+        # These should not cause errors or return unexpected results
+        payloads = ["'; DROP TABLE users; --", "' OR '1'='1", "admin'--"]
+        for payload in payloads:
+            result = service.get_user_by_username(payload)
+            assert result is None
 
-### Phase 2: During Implementation
+    def test_path_traversal_blocked(self):
+        attacks = ["../etc/passwd", "..\\..\\etc\\passwd", "foo/../../etc/passwd"]
+        for attack in attacks:
+            with pytest.raises(ValueError, match="traversal"):
+                safe_read_file(attack)
 
-- [ ] Following TDD workflow (test -> implement -> refactor)
-- [ ] Using performance patterns (async, generators, pooling)
-- [ ] All inputs validated with Pydantic
-- [ ] DB queries parameterized/ORM
-- [ ] File ops check path containment
-- [ ] Subprocess uses list args
-- [ ] Passwords hashed with Argon2id
-- [ ] Secrets from environment only
+    def test_command_injection_blocked(self):
+        attacks = ["; rm -rf /", "| cat /etc/passwd", "$(whoami)"]
+        for attack in attacks:
+            with pytest.raises(ValueError):
+                run_command("ls", [attack])
 
-### Phase 3: Before Committing
+    def test_deserialization_uses_json_not_pickle(self):
+        # Verify pickle is not used for untrusted data
+        import pickle
+        malicious = pickle.dumps({"__reduce__": (os.system, ("whoami",))})
+        with pytest.raises(Exception):  # Should fail, not execute
+            process_untrusted_data(malicious)
+```
 
-- [ ] All tests pass: `pytest --cov=src`
-- [ ] Type check passes: `mypy src/ --strict`
-- [ ] Security scan passes: `bandit -r src/ -ll`
-- [ ] Dependency audit passes: `pip-audit && safety check`
-- [ ] No hardcoded secrets in code
-- [ ] Errors don't leak internal details
-- [ ] Debug mode disabled
-- [ ] Logging configured (no PII/secrets)
+**Test coverage requirements:**
+- [ ] Security tests for all input handling
+- [ ] SQL injection tests
+- [ ] Path traversal tests
+- [ ] Command injection tests
+- [ ] Deserialization tests (verify no pickle)
 
 ---
 
-## 10. Summary
+## 6. Pre-Generation Checklist
 
-Create Python code that is **type safe**, **secure**, **testable**, and **maintainable**.
+**BEFORE generating any Python code:**
 
-**Security Essentials**:
-1. Validate and sanitize all user input
-2. Use parameterized queries for database ops
-3. Never use shell=True with user input
-4. Hash passwords with Argon2id
-5. Load secrets from environment
-6. Keep dependencies updated and audited
-
-> **For attack scenarios and threat modeling, see `references/threat-model.md`**
+- [ ] Data ≠ Code: No f-strings in SQL/commands/eval
+- [ ] Input validation: All external input through Pydantic
+- [ ] Output encoding: Context-appropriate escaping
+- [ ] Secrets: From os.environ, never hardcoded
+- [ ] Passwords: Argon2id, never MD5/SHA
+- [ ] Subprocess: List args, never shell=True with user input
+- [ ] Files: Path containment check before access
+- [ ] Archives: tarfile filter='data' (Python 3.12+)
+- [ ] Deserialization: json/Pydantic, never pickle for untrusted
+- [ ] Error handling: Fail closed, no internals in messages

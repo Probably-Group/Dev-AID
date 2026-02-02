@@ -1,449 +1,682 @@
 ---
-name: CI/CD Pipeline Security Expert
+name: ci-cd
+version: 2.0.0
+description: "Desktop app CI/CD pipelines with code signing, notarization, artifact management, and release automation."
 risk_level: HIGH
-description: Expert in CI/CD pipeline design with focus on secret management, code signing, artifact security, and supply chain protection for desktop application builds
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [ci-cd, devops, security, github-actions, code-signing, artifacts]
-model: claude-sonnet-4-5-20250929
 ---
 
-# CI/CD Pipeline Security Expert
+# CI/CD Pipeline Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Pipeline injection, Secret leakage, Supply chain compromise
-- Requires continuous monitoring of security advisories
+**CWE-321: Signing Key Management**
+- NEVER: Signing keys in repository or plaintext
+- ALWAYS: HSM, secure key storage, separate signing environment
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-494: Code Signing Bypass**
+- NEVER: Ship unsigned binaries
+- ALWAYS: Sign all artifacts, verify signatures before deployment
 
-### 0.2 Vulnerability Research Protocol
+**CWE-829: Dependency Confusion**
+- NEVER: Mix public and private package sources without scoping
+- ALWAYS: Scoped registries, namespace prefixes, source pinning
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: HIGH
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-9164** (CVSS 9.6): GitLab pipeline injection
-     Source: https://about.gitlab.com/releases/2024/09/11/
-   - **CI-SUPPLY-CHAIN** (CVSS 9.0): CI/CD supply chain attacks
-     Source: https://slsa.dev/
-   - **SECRETS-LEAKAGE** (CVSS 8.8): Secrets exposure in CI logs
-     Source: https://owasp.org/
-
-**Step 3: Common Attack Patterns**
-
-   - Pipeline injection
-   - Secret leakage
-   - Supply chain compromise
-   - Artifact tampering
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER log secrets
-- ❌ NEVER skip pipeline validation
-- ❌ ALWAYS use secret scanning
-- ❌ ALWAYS sign artifacts
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any CI/CD pipeline code**
-
-### Verification Requirements
-
-When implementing CI/CD pipelines, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official GitHub Actions documentation
-   - ✅ Confirm action versions and SHA hashes are current
-   - ✅ Validate security best practices against official guides
-   - ❌ Never guess configuration options
-   - ❌ Never invent action methods or parameters
-   - ❌ Never assume compatibility without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing workflow files for patterns
-   - 🔍 Grep: Search for similar implementations
-   - 🔍 WebSearch: Verify specs in official GitHub docs
-   - 🔍 WebFetch: Read official action documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY workflow feature/config/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in CI/CD can cause production outages, security breaches, or supply chain attacks
-
-4. **Common CI/CD Hallucination Traps** (AVOID)
-   - ❌ Inventing action input parameters
-   - ❌ Made-up workflow syntax
-   - ❌ Non-existent permission scopes
-   - ❌ Fake GitHub Actions features
-   - ❌ Incorrect secret handling patterns
-
-### Mandatory Reading Protocol
-
-**CRITICAL**: Before implementing ANY CI/CD pipeline, you MUST read the relevant reference files:
-
-| Trigger Condition | Reference File |
-|-------------------|----------------|
-| Configuring secrets, code signing, OIDC, supply chain protection | `references/security-examples.md` |
-| Multi-platform builds, caching, release automation | `references/advanced-patterns.md` |
-| Security assessment, defense-in-depth, security gates | `references/threat-model.md` |
-| Performance optimization, caching strategies | `references/performance-optimization.md` |
-| Avoiding common mistakes and vulnerabilities | `references/anti-patterns.md` |
-| Testing workflows, validation, TDD approach | `references/testing-guide.md` |
-
-### Self-Check Checklist
-
-Before EVERY response with CI/CD code:
-- [ ] All actions verified against official documentation
-- [ ] Action SHA hashes verified as current
-- [ ] Security patterns verified against GitHub security guides
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: CI/CD code with hallucinated patterns causes supply chain attacks, credential leaks, and production outages. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Secret Management (CWE-798)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level: HIGH**
-
-**Justification**: CI/CD pipelines have access to signing keys, deployment credentials, and can modify production artifacts. Compromised pipelines can inject malicious code into releases (supply chain attacks), expose secrets, or deploy unauthorized changes.
-
-You are an expert in CI/CD pipeline security, specializing in:
-- **Secret management** with proper scoping and rotation
-- **Code signing** for Windows, macOS, and Linux
-- **Artifact security** including SBOM generation and attestation
-- **Supply chain protection** against dependency attacks
-- **GitHub Actions security** best practices
-
-### Primary Use Cases
-- Automated building of Tauri/desktop applications
-- Multi-platform release pipelines
-- Automated testing and security scanning
-- Code signing and notarization
-- Artifact publishing and distribution
-
----
-
-## 2. Core Responsibilities
-
-### 2.1 Core Principles
-
-1. **TDD First** - Write pipeline tests before configuration
-2. **Performance Aware** - Optimize for speed and resource efficiency
-3. **Least privilege for all jobs** - Minimal permissions per job
-4. **Pin all dependencies** - Actions, containers, tools by SHA
-5. **Isolate secrets** - Different secrets for different environments
-6. **Verify before trust** - Check signatures, hashes, attestations
-7. **Audit everything** - Log all security-relevant actions
-
-### 2.2 Supply Chain Security Principles
-
-1. **Pin dependencies by hash** - Not by tag or branch
-2. **Use trusted runners** - Self-hosted or verified GitHub runners
-3. **Scan dependencies** - Automated vulnerability detection
-4. **Generate SBOMs** - Track all components
-5. **Sign artifacts** - Cryptographic proof of origin
-
----
-
-## 3. Technical Foundation
-
-### 3.1 GitHub Actions Security Features
-
-| Feature | Purpose | Usage |
-|---------|---------|-------|
-| `permissions` | Restrict GITHUB_TOKEN | Always explicitly set |
-| `environment` | Require approvals | For production deploys |
-| OIDC | Keyless auth | Cloud provider access |
-| Secrets | Encrypted storage | Never log or expose |
-
-### 3.2 Required Security Tools
+**Principle:** Never hardcode secrets. Use encrypted secrets, OIDC, or external vaults.
 
 ```yaml
-- name: Dependency Scanning
-  uses: github/dependency-review-action@v3
-- name: SAST Scanning
-  uses: github/codeql-action/analyze@v2
-- name: Secret Detection
-  uses: trufflesecurity/trufflehog@main
-- name: Container Scanning
-  uses: aquasecurity/trivy-action@master
+# ❌ WRONG - Secret in workflow file
+jobs:
+  deploy:
+    steps:
+      - run: |
+          curl -H "Authorization: Bearer sk-secret123" https://api.example.com
+
+# ✅ CORRECT - GitHub encrypted secrets
+jobs:
+  deploy:
+    steps:
+      - run: |
+          curl -H "Authorization: Bearer ${{ secrets.API_TOKEN }}" https://api.example.com
+        env:
+          # Explicit env prevents accidental logging
+          API_TOKEN: ${{ secrets.API_TOKEN }}
+```
+
+### 1.2 Workflow Injection Prevention (CWE-94)
+
+**Principle:** Never use untrusted input in `run:` commands directly.
+
+```yaml
+# ❌ WRONG - Command injection via PR title
+jobs:
+  greet:
+    steps:
+      - run: echo "PR: ${{ github.event.pull_request.title }}"
+
+# ✅ CORRECT - Use environment variable
+jobs:
+  greet:
+    steps:
+      - run: echo "PR: $PR_TITLE"
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+```
+
+### 1.3 Permissions Minimization (CWE-250)
+
+**Principle:** Request minimum permissions. Never use `write-all`.
+
+### 1.4 Dependency Pinning (CWE-829)
+
+**Principle:** Pin all actions by SHA, not tag. Pin base images by digest.
+
+### 1.5 Code Signing (CWE-494)
+
+**Principle:** Sign all release artifacts. Verify signatures before deployment.
+
+### 1.6 Supply Chain Security (CWE-1357)
+
+**Principle:** Use SLSA provenance. Verify dependencies with checksums.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```yaml
+# GitHub Actions
+actions/checkout@v4  # Pin by SHA in production
+actions/setup-node@v4
+actions/cache@v4
+
+# Runner images
+ubuntu-24.04  # Latest LTS
+macos-14      # Apple Silicon
+windows-2022
 ```
 
 ---
 
+## 3. Code Patterns
 
-## 4. Quality Assurance Checklist
+### 3.1 WHEN creating GitHub Actions workflow
 
-**Before implementing this skill, ensure**:
+```yaml
+# ❌ WRONG - Overly permissive, unpinned actions
+name: CI
+on: [push, pull_request]
+permissions: write-all  # Too permissive!
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4  # Not pinned!
+      - run: npm install && npm test
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
+# ✅ CORRECT - Secure workflow structure
+name: CI
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Security Standards
-
-### 5.1 Critical Vulnerabilities
-
-| CVE | Severity | Mitigation |
-|-----|----------|------------|
-| CVE-2024-23897 | Critical (9.8) | Update Jenkins, restrict CLI |
-| CVE-2023-49291 | Critical (9.8) | Pin actions by SHA |
-| CVE-2025-30066 | High (8.6) | Audit tj-actions usage |
-
-**Key Insight**: Supply chain attacks through third-party actions are a major threat. Always pin by SHA and audit action sources.
-
-### 5.2 OWASP CI/CD Top 10 Summary
-
-| Risk | Key Controls |
-|------|--------------|
-| Insufficient Flow Control | Required reviews, environment protection |
-| Inadequate Identity/Access | OIDC, least privilege, MFA |
-| Dependency Chain Abuse | Pin by SHA, scan dependencies |
-| Poisoned Pipeline Execution | Protect workflow files, limit triggers |
-| Insufficient Credential Hygiene | Rotate secrets, scope narrowly |
-
-### 5.3 Supply Chain Security
-
-```yaml
-# Pin actions by SHA (not tag)
-- uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-
-# Generate SBOM for transparency
-- name: Generate SBOM
-  uses: anchore/sbom-action@v0
-  with:
-    artifact-name: sbom.spdx.json
-```
-
-📚 **See `references/security-examples.md`** for complete supply chain protection.
-
----
-
-## 7. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-Before creating or modifying a workflow, write tests that validate expected behavior:
-
-```yaml
-# .github/workflows/test-workflows.yml
-name: Validate Workflows
-on: [push, pull_request]
-
-jobs:
-  test-workflow-syntax:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install actionlint
-        run: |
-          bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-      - name: Lint workflows
-        run: ./actionlint -color
-
-  test-security-compliance:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check permissions are explicit
-        run: |
-          for f in .github/workflows/*.yml; do
-            if ! grep -q "^permissions:" "$f"; then
-              echo "FAIL: $f missing explicit permissions"
-              exit 1
-            fi
-          done
-      - name: Check actions are SHA-pinned
-        run: |
-          if grep -rE 'uses:.*@v[0-9]' .github/workflows/; then
-            echo "FAIL: Found unpinned actions"
-            exit 1
-          fi
-```
-
-📚 **See `references/testing-guide.md`** for comprehensive testing strategies.
-
-### Step 2: Implement Minimum to Pass
-
-Create the workflow configuration that satisfies the test requirements:
-
-```yaml
-# .github/workflows/build.yml
-name: Build
-on: [push]
+# Minimal default permissions
 permissions:
   contents: read
+
+# Prevent concurrent runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - run: npm ci && npm run build
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11  # v4.1.1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d  # v3.0.0
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8  # v4.0.2
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+  test:
+    name: Test
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@a3252b78c470c02df07e9d59298aecedc3ccdd6d
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test -- --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@54bcd8715eee62d40e33596ef5e8f0f48dbbccab  # v4.1.0
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
 ```
 
-### Step 3: Refactor and Optimize
-
-Add caching, parallelization, and security enhancements:
+### 3.2 WHEN building desktop apps with code signing
 
 ```yaml
+name: Build Desktop App
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # For release creation
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-tauri:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos-14
+            target: aarch64-apple-darwin
+          - platform: macos-14
+            target: x86_64-apple-darwin
+          - platform: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+          - platform: windows-2022
+            target: x86_64-pc-windows-msvc
+
+    runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-      - uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
         with:
           node-version: '20'
-          cache: 'npm'
-      - run: npm ci && npm run build
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-24.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev
+
+      # macOS code signing
+      - name: Import macOS certificates
+        if: startsWith(matrix.platform, 'macos')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -t 3600 -u build.keychain
+
+          # Import certificate
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+          security import certificate.p12 -k build.keychain \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+
+          # Allow codesign access
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          # Clean up
+          rm certificate.p12
+
+      # Windows code signing
+      - name: Setup Windows signing
+        if: matrix.platform == 'windows-2022'
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+          WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "$env:WINDOWS_CERTIFICATE" > certificate.b64
+          certutil -decode certificate.b64 certificate.pfx
+          Remove-Item certificate.b64
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS signing
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Windows signing
+          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
+          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'v__VERSION__'
+          releaseBody: 'See the assets for downloadable binaries.'
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }}
+
+      - name: Clean up Windows certificate
+        if: matrix.platform == 'windows-2022' && always()
+        run: Remove-Item -Force certificate.pfx -ErrorAction SilentlyContinue
 ```
 
-📚 **See `references/performance-optimization.md`** for caching strategies and optimization patterns.
+### 3.3 WHEN implementing release automation
 
-### Step 4: Run Full Verification
+```yaml
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  id-token: write  # For OIDC
+  attestations: write  # For SLSA
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          fetch-depth: 0  # For changelog generation
+
+      - name: Setup Node.js
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          artifact-name: sbom.spdx.json
+
+      - name: Generate changelog
+        id: changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --latest --strip header
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.sha256
+
+      - name: Generate attestation
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: 'dist/*'
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.content }}
+          files: |
+            dist/*
+            sbom.spdx.json
+          draft: false
+          prerelease: ${{ contains(github.ref, '-') }}
+
+      - name: Publish to npm
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+```
+
+### 3.4 WHEN setting up matrix builds
+
+```yaml
+name: Cross-Platform Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux
+          - os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact: app-linux-x64
+          - os: ubuntu-24.04
+            target: aarch64-unknown-linux-gnu
+            artifact: app-linux-arm64
+            cross: true
+
+          # macOS
+          - os: macos-14
+            target: aarch64-apple-darwin
+            artifact: app-macos-arm64
+          - os: macos-14
+            target: x86_64-apple-darwin
+            artifact: app-macos-x64
+
+          # Windows
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            artifact: app-windows-x64
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup cross-compilation
+        if: matrix.cross
+        uses: taiki-e/setup-cross-toolchain-action@v1
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            target/${{ matrix.target }}/release/app
+            target/${{ matrix.target }}/release/app.exe
+          if-no-files-found: error
+          retention-days: 7
+```
+
+### 3.5 WHEN implementing security scanning
+
+```yaml
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 6 AM
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  sast:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+          queries: security-extended
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:javascript'
+
+  secrets-scan:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: Detect secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+```
+
+### 3.6 WHEN implementing deployment pipelines
+
+```yaml
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write  # For OIDC
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false  # Never cancel deployments
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-24.04
+    environment:
+      name: production
+      url: https://app.example.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      # Use OIDC instead of long-lived credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789:role/github-actions-deploy
+          aws-region: us-east-1
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: dist
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync dist/ s3://my-bucket/ \
+            --delete \
+            --cache-control "max-age=31536000,immutable" \
+            --exclude "index.html" \
+            --exclude "*.json"
+
+          # index.html with no-cache
+          aws s3 cp dist/index.html s3://my-bucket/ \
+            --cache-control "no-cache,no-store,must-revalidate"
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/*"
+
+      - name: Notify on failure
+        if: failure()
+        uses: slackapi/slack-github-action@v1
+        with:
+          channel-id: 'deployments'
+          slack-message: 'Deployment failed: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Use `permissions: write-all`
+- Use unpinned actions (use SHA)
+- Put secrets in workflow files
+- Use untrusted input in `run:` directly
+- Skip security scanning
+- Use long-lived credentials (use OIDC)
+- Cancel deployment jobs in progress
+- Deploy without environment protection rules
+
+---
+
+## 5. Testing
+
+**ALWAYS test workflows locally:**
 
 ```bash
-# Local validation
-actionlint .github/workflows/
-yamllint .github/workflows/
+# Install act for local testing
+brew install act
 
-# Security checks
-grep -rE 'uses:.*@v[0-9]' .github/workflows/ && echo "FAIL: Unpinned actions" || echo "PASS"
-grep -r 'echo.*secrets\.' .github/workflows/ && echo "FAIL: Secret exposure" || echo "PASS"
+# Run workflow locally
+act push --secret-file .secrets
 
-# Push and verify CI passes
-git push && gh run watch
+# Test specific job
+act -j build --secret-file .secrets
+
+# Validate workflow syntax
+actionlint .github/workflows/*.yml
 ```
 
 ---
 
-## 8. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Phase 1: Before Writing Code
-- [ ] Review existing workflows for patterns to follow
-- [ ] Identify security requirements (secrets, signing, OIDC)
-- [ ] Plan caching strategy for dependencies
-- [ ] Define job parallelization structure
-- [ ] Check `references/threat-model.md` for security considerations
-- [ ] Read `references/anti-patterns.md` to avoid common mistakes
+**BEFORE generating any CI/CD configuration:**
 
-### Phase 2: During Implementation
-- [ ] Default permissions: `contents: read`
-- [ ] All jobs have explicit minimal permissions
-- [ ] All actions pinned by SHA (not tag)
-- [ ] Secrets passed via environment variables
-- [ ] Caching configured with proper keys
-- [ ] Jobs parallelized where independent
-- [ ] Path filters for conditional execution
-
-### Phase 3: Bef## 7. Implementation Workflow (TDD)
-
-Before creating or modifying a workflow, write tests that validate expected behavior:
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
+- [ ] Minimal permissions declared
+- [ ] All actions pinned by SHA
+- [ ] Secrets use GitHub encrypted secrets or OIDC
+- [ ] No untrusted input in run commands
+- [ ] Security scanning (SAST, dependencies, secrets)
+- [ ] Code signing configured for releases
+- [ ] SBOM and attestations for artifacts
+- [ ] Concurrency controls prevent race conditions
+- [ ] Environment protection rules for production
+- [ ] Caching optimized for performance

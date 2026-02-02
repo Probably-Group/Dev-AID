@@ -1,408 +1,688 @@
 ---
 name: wake-word-detection
+version: 2.0.0
+description: "Wake word detection with openWakeWord for voice-activated applications and always-on listening."
 risk_level: MEDIUM
-description: "Expert skill for implementing wake word detection with openWakeWord. Covers audio monitoring, keyword spotting, privacy protection, and efficient always-listening systems for JARVIS voice assistant."
 ---
 
-# Wake Word Detection Skill
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Wake Word Detection - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Adversarial wake word triggering, False activation attacks, Privacy violations
-- Requires security awareness and best practices
+**CWE-200: Always-On Listening Privacy**
+- NEVER: Process/store audio beyond wake word detection
+- ALWAYS: Local-only processing, clear privacy indicators
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-287: Wake Word Spoofing**
+- NEVER: Single wake word as authentication
+- ALWAYS: Wake word triggers auth flow, not direct actions
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
-
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **FALSE-WAKE** (CVSS N/A): False wake word activation
-     Source: https://arxiv.org/abs/1904.05734
-   - **ADVERSARIAL-AUDIO** (CVSS 7.5): Adversarial wake word attacks
-     Source: https://www.usenix.org/conference/usenixsecurity19/
-   - **PRIVACY-ALWAYS-ON** (CVSS N/A): Always-on microphone privacy risks
-     Source: https://www.ftc.gov/business-guidance/blog/2023/06/voice-cloning-ai-scams
-
-**Step 3: Common Attack Patterns**
-
-   - Adversarial wake word triggering
-   - False activation attacks
-   - Privacy violations
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER store audio before wake word
-- ❌ NEVER process audio without user indicator
-- ❌ ALWAYS implement false positive mitigation
-- ❌ ALWAYS use on-device processing
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: MEDIUM - Continuous audio monitoring, privacy implications, resource constraints
-
-You are an expert in wake word detection with deep expertise in openWakeWord, keyword spotting, and always-listening systems.
-
-**Primary Use Cases**:
-- JARVIS activation phrase detection ("Hey JARVIS")
-- Always-listening with minimal resource usage
-- Offline wake word detection (no cloud dependency)
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Principles
+## 1. Security Principles
 
-- **TDD First** - Write tests before implementation code
-- **Performance Aware** - Optimize for CPU, memory, and latency
-- **Privacy Preserving** - Never store audio, minimize buffers
-- **Accuracy Focused** - Minimize false positives/negatives
-- **Resource Efficient** - Target <5% CPU, <100MB memory
+### 1.1 Audio Privacy (CWE-200, CWE-312)
 
----
-
-## 3. Core Responsibilities
-
-### 3.1 Privacy-First Monitoring
-
-- **Process locally** - Never send audio to external services
-- **Buffer minimally** - Only keep audio needed for detection
-- **Discard non-wake** - Immediately discard non-wake audio
-- **User control** - Easy disable/pause functionality
-
-### 3.2 Efficiency Requirements
-
-- Minimal CPU usage (<5% average)
-- Low memory footprint (<100MB)
-- Low latency detection (<500ms)
-- Low false positive rate (<1 per hour)
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Technical Foundation
+**Principle:** Audio contains sensitive data. Never store raw audio longer than needed.
 
 ```python
-# requirements.txt
+# ❌ WRONG - Storing all audio indefinitely
+class WakeWordDetector:
+    def __init__(self):
+        self.audio_history = []  # Stores everything forever!
+
+    def process(self, audio_chunk):
+        self.audio_history.append(audio_chunk)
+        return self.model.predict(audio_chunk)
+
+# ✅ CORRECT - Minimal audio retention with secure cleanup
+from dataclasses import dataclass
+from collections import deque
+import numpy as np
+import secrets
+
+@dataclass
+class PrivacyConfig:
+    max_buffer_seconds: float = 2.0
+    clear_on_detection: bool = True
+    secure_wipe: bool = True
+
+class SecureAudioBuffer:
+    def __init__(self, sample_rate: int, config: PrivacyConfig):
+        self._sample_rate = sample_rate
+        self._config = config
+        self._max_samples = int(config.max_buffer_seconds * sample_rate)
+        self._buffer = deque(maxlen=self._max_samples)
+
+    def add(self, chunk: np.ndarray) -> None:
+        for sample in chunk:
+            self._buffer.append(sample)
+
+    def get_audio(self) -> np.ndarray:
+        return np.array(self._buffer, dtype=np.float32)
+
+    def clear(self) -> None:
+        if self._config.secure_wipe:
+            # Overwrite with random data before clearing
+            for i in range(len(self._buffer)):
+                self._buffer[i] = secrets.randbelow(2**16) / 2**15 - 1
+        self._buffer.clear()
+```
+
+### 1.2 Model Integrity (CWE-494)
+
+**Principle:** Verify model files haven't been tampered with.
+
+```python
+# ❌ WRONG - Loading models without verification
+def load_model(path: str):
+    return onnxruntime.InferenceSession(path)
+
+# ✅ CORRECT - Verify model integrity before loading
+import hashlib
+from pathlib import Path
+from dataclasses import dataclass
+
+@dataclass
+class ModelManifest:
+    path: str
+    sha256: str
+    version: str
+
+TRUSTED_MODELS: dict[str, ModelManifest] = {
+    "hey_jarvis": ModelManifest(
+        path="models/hey_jarvis_v0.6.0.onnx",
+        sha256="a1b2c3d4e5f6...",  # Actual hash from release
+        version="0.6.0",
+    ),
+}
+
+def verify_model_integrity(model_path: Path, expected_hash: str) -> bool:
+    """Verify model file hasn't been tampered with."""
+    sha256 = hashlib.sha256()
+    with open(model_path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            sha256.update(chunk)
+    return sha256.hexdigest() == expected_hash
+
+def load_verified_model(model_name: str) -> ort.InferenceSession:
+    """Load model only after integrity verification."""
+    if model_name not in TRUSTED_MODELS:
+        raise ValueError(f"Unknown model: {model_name}")
+
+    manifest = TRUSTED_MODELS[model_name]
+    model_path = Path(manifest.path)
+
+    if not model_path.exists():
+        raise FileNotFoundError(f"Model not found: {model_path}")
+
+    if not verify_model_integrity(model_path, manifest.sha256):
+        raise SecurityError(f"Model integrity check failed: {model_path}")
+
+    return ort.InferenceSession(str(model_path))
+```
+
+### 1.3 Resource Limits (CWE-400)
+
+**Principle:** Prevent resource exhaustion from audio processing.
+
+```python
+# ❌ WRONG - Unbounded processing
+def process_audio_stream(stream):
+    while True:
+        chunk = stream.read()
+        result = model.predict(chunk)
+
+# ✅ CORRECT - Resource-limited processing
+import asyncio
+from dataclasses import dataclass
+
+@dataclass
+class ResourceConfig:
+    max_concurrent_inferences: int = 1
+    inference_timeout_ms: int = 100
+    max_queue_size: int = 10
+    chunk_size_samples: int = 1280  # 80ms at 16kHz
+
+class ResourceLimitedDetector:
+    def __init__(self, model, config: ResourceConfig):
+        self._model = model
+        self._config = config
+        self._semaphore = asyncio.Semaphore(config.max_concurrent_inferences)
+        self._queue: asyncio.Queue = asyncio.Queue(maxsize=config.max_queue_size)
+
+    async def process_chunk(self, chunk: np.ndarray) -> float | None:
+        """Process audio chunk with resource limits."""
+        # Drop if queue full (prevent backpressure)
+        try:
+            self._queue.put_nowait(chunk)
+        except asyncio.QueueFull:
+            return None  # Drop frame
+
+        async with self._semaphore:
+            try:
+                chunk = await asyncio.wait_for(
+                    self._queue.get(),
+                    timeout=self._config.inference_timeout_ms / 1000,
+                )
+                return self._model.predict(chunk)
+            except asyncio.TimeoutError:
+                return None
+```
+
+---
+
+## 2. Version Requirements
+
+```
 openwakeword>=0.6.0
 numpy>=1.24.0
 sounddevice>=0.4.6
 onnxruntime>=1.16.0
+# Optional: GPU support
+onnxruntime-gpu>=1.16.0
 ```
 
 ---
 
-## 6. Implementation Workflow (TDD)
+## 3. Code Patterns
+
+### WHEN setting up openWakeWord, use proper configuration
+
+```python
+# ❌ WRONG - Default configuration without tuning
+from openwakeword import Model
+
+model = Model()
+while True:
+    audio = mic.read()
+    prediction = model.predict(audio)
+
+# ✅ CORRECT - Production-ready configuration
+from openwakeword import Model
+from openwakeword.utils import download_models
+from dataclasses import dataclass
+import numpy as np
+import logging
+
+logger = logging.getLogger(__name__)
+
+@dataclass
+class WakeWordConfig:
+    model_names: list[str]
+    threshold: float = 0.5
+    trigger_level: int = 3  # Consecutive detections required
+    sample_rate: int = 16000
+    chunk_size_ms: int = 80
+    vad_threshold: float = 0.3
+    inference_framework: str = "onnx"
+
+class OpenWakeWordDetector:
+    def __init__(self, config: WakeWordConfig):
+        self._config = config
+        self._chunk_size = int(config.sample_rate * config.chunk_size_ms / 1000)
+
+        # Download models if needed
+        for model_name in config.model_names:
+            download_models(model_name)
+
+        # Initialize model with custom settings
+        self._model = Model(
+            wakeword_models=config.model_names,
+            inference_framework=config.inference_framework,
+        )
+
+        # Tracking for trigger level
+        self._detection_counts: dict[str, int] = {
+            name: 0 for name in config.model_names
+        }
+
+    def process(self, audio_chunk: np.ndarray) -> dict[str, bool]:
+        """Process audio and return triggered wake words."""
+        # Ensure correct shape and type
+        if audio_chunk.dtype != np.int16:
+            audio_chunk = (audio_chunk * 32767).astype(np.int16)
+
+        # Get predictions
+        predictions = self._model.predict(audio_chunk)
+
+        triggered = {}
+        for model_name in self._config.model_names:
+            score = predictions.get(model_name, 0)
+
+            if score >= self._config.threshold:
+                self._detection_counts[model_name] += 1
+            else:
+                self._detection_counts[model_name] = 0
+
+            # Trigger only after consecutive detections
+            triggered[model_name] = (
+                self._detection_counts[model_name] >= self._config.trigger_level
+            )
+
+            if triggered[model_name]:
+                logger.info(f"Wake word detected: {model_name} (score: {score:.3f})")
+                self._detection_counts[model_name] = 0  # Reset after trigger
+
+        return triggered
+
+    def reset(self) -> None:
+        """Reset detection state."""
+        self._model.reset()
+        for key in self._detection_counts:
+            self._detection_counts[key] = 0
+```
+
+### WHEN streaming audio input, handle device lifecycle
+
+```python
+# ❌ WRONG - No error handling, no cleanup
+import sounddevice as sd
+
+stream = sd.InputStream(samplerate=16000, channels=1)
+stream.start()
+while True:
+    audio, _ = stream.read(1280)
+    process(audio)
+
+# ✅ CORRECT - Proper device management
+import sounddevice as sd
+import numpy as np
+from typing import Callable
+import threading
+import logging
+
+logger = logging.getLogger(__name__)
+
+class AudioStreamManager:
+    def __init__(
+        self,
+        sample_rate: int = 16000,
+        chunk_size: int = 1280,
+        device: int | str | None = None,
+    ):
+        self._sample_rate = sample_rate
+        self._chunk_size = chunk_size
+        self._device = device
+        self._stream: sd.InputStream | None = None
+        self._callbacks: list[Callable[[np.ndarray], None]] = []
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def _audio_callback(self, indata, frames, time, status):
+        """Callback for audio stream."""
+        if status:
+            logger.warning(f"Audio stream status: {status}")
+
+        # Convert to float32 normalized
+        audio = indata[:, 0].astype(np.float32)
+
+        for callback in self._callbacks:
+            try:
+                callback(audio)
+            except Exception as e:
+                logger.error(f"Callback error: {e}")
+
+    def add_callback(self, callback: Callable[[np.ndarray], None]) -> None:
+        self._callbacks.append(callback)
+
+    def start(self) -> None:
+        """Start audio capture."""
+        if self._stream is not None:
+            raise RuntimeError("Stream already running")
+
+        self._stop_event.clear()
+
+        try:
+            self._stream = sd.InputStream(
+                samplerate=self._sample_rate,
+                blocksize=self._chunk_size,
+                device=self._device,
+                channels=1,
+                dtype=np.float32,
+                callback=self._audio_callback,
+            )
+            self._stream.start()
+            logger.info(f"Audio stream started (device: {self._device})")
+        except sd.PortAudioError as e:
+            logger.error(f"Failed to start audio stream: {e}")
+            raise
+
+    def stop(self) -> None:
+        """Stop audio capture and cleanup."""
+        self._stop_event.set()
+
+        if self._stream is not None:
+            try:
+                self._stream.stop()
+                self._stream.close()
+            except Exception as e:
+                logger.error(f"Error stopping stream: {e}")
+            finally:
+                self._stream = None
+
+        logger.info("Audio stream stopped")
+
+    def __enter__(self):
+        self.start()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop()
+```
+
+### WHEN handling detections, implement cooldown and callbacks
+
+```python
+# ❌ WRONG - Multiple rapid triggers
+def on_audio(audio):
+    if detector.detect(audio):
+        activate_assistant()  # May trigger 10 times in a row!
+
+# ✅ CORRECT - Cooldown and proper callback system
+from dataclasses import dataclass
+from typing import Callable
+import time
+import asyncio
+
+@dataclass
+class DetectionEvent:
+    wake_word: str
+    confidence: float
+    timestamp: float
+    audio_context: np.ndarray | None = None
+
+class WakeWordListener:
+    def __init__(
+        self,
+        detector: OpenWakeWordDetector,
+        cooldown_seconds: float = 2.0,
+        capture_context: bool = True,
+        context_seconds: float = 1.0,
+    ):
+        self._detector = detector
+        self._cooldown = cooldown_seconds
+        self._capture_context = capture_context
+        self._context_samples = int(context_seconds * 16000)
+
+        self._last_detection: float = 0
+        self._callbacks: list[Callable[[DetectionEvent], None]] = []
+        self._audio_buffer = SecureAudioBuffer(16000, PrivacyConfig())
+
+    def on_detection(self, callback: Callable[[DetectionEvent], None]) -> None:
+        """Register detection callback."""
+        self._callbacks.append(callback)
+
+    def process_audio(self, audio: np.ndarray) -> None:
+        """Process audio chunk."""
+        if self._capture_context:
+            self._audio_buffer.add(audio)
+
+        results = self._detector.process(audio)
+
+        for wake_word, triggered in results.items():
+            if not triggered:
+                continue
+
+            now = time.time()
+            if now - self._last_detection < self._cooldown:
+                continue  # Still in cooldown
+
+            self._last_detection = now
+
+            event = DetectionEvent(
+                wake_word=wake_word,
+                confidence=results.get(f"{wake_word}_score", 0.0),
+                timestamp=now,
+                audio_context=(
+                    self._audio_buffer.get_audio()
+                    if self._capture_context else None
+                ),
+            )
+
+            # Clear buffer after detection (privacy)
+            self._audio_buffer.clear()
+
+            # Notify callbacks
+            for callback in self._callbacks:
+                try:
+                    callback(event)
+                except Exception as e:
+                    logger.error(f"Detection callback error: {e}")
+
+    async def process_audio_async(self, audio: np.ndarray) -> None:
+        """Async version for event loop integration."""
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, self.process_audio, audio)
+```
+
+### WHEN supporting custom wake words, validate training data
+
+```python
+# ❌ WRONG - Training on arbitrary audio
+def train_custom_wakeword(audio_files: list[str]):
+    for f in audio_files:
+        process_training_audio(f)
+
+# ✅ CORRECT - Validated training pipeline
+from dataclasses import dataclass
+from pathlib import Path
+import soundfile as sf
+
+@dataclass
+class TrainingConfig:
+    min_samples: int = 50
+    max_samples: int = 500
+    min_duration_s: float = 0.5
+    max_duration_s: float = 3.0
+    required_sample_rate: int = 16000
+    max_total_audio_minutes: float = 30.0
+
+@dataclass
+class TrainingValidation:
+    valid: bool
+    errors: list[str]
+    warnings: list[str]
+    stats: dict
+
+def validate_training_data(
+    audio_dir: Path,
+    config: TrainingConfig,
+) -> TrainingValidation:
+    """Validate training audio before processing."""
+    errors = []
+    warnings = []
+    stats = {"total_files": 0, "total_duration": 0, "valid_files": 0}
+
+    audio_files = list(audio_dir.glob("*.wav"))
+    stats["total_files"] = len(audio_files)
+
+    if len(audio_files) < config.min_samples:
+        errors.append(
+            f"Insufficient samples: {len(audio_files)} < {config.min_samples}"
+        )
+
+    if len(audio_files) > config.max_samples:
+        warnings.append(
+            f"Too many samples: {len(audio_files)} > {config.max_samples}, "
+            "will use random subset"
+        )
+
+    for audio_file in audio_files:
+        try:
+            info = sf.info(str(audio_file))
+
+            if info.samplerate != config.required_sample_rate:
+                errors.append(
+                    f"{audio_file.name}: Wrong sample rate "
+                    f"({info.samplerate} != {config.required_sample_rate})"
+                )
+                continue
+
+            if info.duration < config.min_duration_s:
+                warnings.append(f"{audio_file.name}: Too short ({info.duration:.2f}s)")
+                continue
+
+            if info.duration > config.max_duration_s:
+                warnings.append(f"{audio_file.name}: Too long ({info.duration:.2f}s)")
+                continue
+
+            stats["valid_files"] += 1
+            stats["total_duration"] += info.duration
+
+        except Exception as e:
+            errors.append(f"{audio_file.name}: Failed to read ({e})")
+
+    total_minutes = stats["total_duration"] / 60
+    if total_minutes > config.max_total_audio_minutes:
+        warnings.append(
+            f"Total audio too long: {total_minutes:.1f} > "
+            f"{config.max_total_audio_minutes} minutes"
+        )
+
+    return TrainingValidation(
+        valid=len(errors) == 0,
+        errors=errors,
+        warnings=warnings,
+        stats=stats,
+    )
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Store raw audio longer than necessary (privacy risk)
+- Load model files without integrity verification
+- Process audio without resource limits (DoS risk)
+- Trigger on single detection (use trigger_level)
+- Skip cooldown between detections
+- Use default thresholds in production (tune per environment)
+- Process audio on main thread (use callbacks/async)
+
+---
+
+## 5. Testing
+
+```python
+import pytest
+import numpy as np
+from wake_word_detection import (
+    OpenWakeWordDetector,
+    WakeWordConfig,
+    SecureAudioBuffer,
+    PrivacyConfig,
+)
+
+class TestSecureAudioBuffer:
+
+    def test_secure_wipe_clears_data(self):
+        """Buffer should overwrite data before clearing."""
+        config = PrivacyConfig(secure_wipe=True)
+        buffer = SecureAudioBuffer(16000, config)
+
+        # Add some data
+        original = np.array([0.5, 0.6, 0.7], dtype=np.float32)
+        buffer.add(original)
+
+        # Store reference to internal buffer
+        internal_data = list(buffer._buffer)
+
+        # Clear with secure wipe
+        buffer.clear()
+
+        # Original values should be overwritten
+        assert len(buffer._buffer) == 0
+
+    def test_max_buffer_size_enforced(self):
+        """Buffer should not exceed max size."""
+        config = PrivacyConfig(max_buffer_seconds=0.1)  # 0.1s = 1600 samples
+        buffer = SecureAudioBuffer(16000, config)
+
+        # Add more than max
+        buffer.add(np.zeros(5000, dtype=np.float32))
+
+        # Should be capped
+        assert len(buffer.get_audio()) <= 1600
 
 class TestWakeWordDetector:
-    """TDD tests for wake word detection."""
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 7. Implementation Patterns
-
-### Pattern 1: Secure Wake Word Detector
-
-```python
-from openwakeword.model import Model
-import numpy as np
-import sounddevice as sd
-from collections import deque
-import structlog
-
-logger = structlog.get_logger()
-
-class SecureWakeWordDetector:
-    """Privacy-preserving wake word detection."""
-
-    def __init__(self, model_path: str = None, threshold: float = 0.5, sample_rate: int = 16000):
-        if model_path:
-            self.model = Model(wakeword_models=[model_path])
-        else:
-            self.model = Model(wakeword_models=["hey_jarvis"])
-
-        self.threshold = threshold
-        self.sample_rate = sample_rate
-        self.buffer_size = int(sample_rate * 1.5)
-        self.audio_buffer = deque(maxlen=self.buffer_size)
-        self.is_listening = False
-        self.on_wake = None
-
-    def start(self, callback):
-        """Start listening for wake word."""
-        self.on_wake = callback
-        self.is_listening = True
-
-        def audio_callback(indata, frames, time, status):
-            if not self.is_listening:
-                return
-            audio = indata[:, 0] if len(indata.shape) > 1 else indata
-            self.audio_buffer.extend(audio)
-            if len(self.audio_buffer) >= self.sample_rate:
-                self._process_audio()
-
-        self.stream = sd.InputStream(
-            samplerate=self.sample_rate, channels=1, dtype=np.float32,
-            callback=audio_callback, blocksize=int(self.sample_rate * 0.1)
+    @pytest.fixture
+    def detector(self):
+        config = WakeWordConfig(
+            model_names=["alexa"],
+            threshold=0.5,
+            trigger_level=3,
         )
-        self.stream.start()
+        return OpenWakeWordDetector(config)
 
-    def _process_audio(self):
-        """Process audio buffer for wake word."""
-        audio = np.array(list(self.audio_buffer))
-        predictions = self.model.predict(audio)
+    def test_requires_consecutive_detections(self, detector):
+        """Should only trigger after trigger_level consecutive detections."""
+        # Mock high-confidence audio (would be actual wake word)
+        high_score_audio = np.random.randn(1280).astype(np.float32)
 
-        for model_name, scores in predictions.items():
-            if np.max(scores) > self.threshold:
-                self.audio_buffer.clear()  # Privacy: clear immediately
-                if self.on_wake:
-                    self.on_wake(model_name, np.max(scores))
-                break
+        # First two should not trigger
+        results1 = detector.process(high_score_audio)
+        results2 = detector.process(high_score_audio)
 
-    def stop(self):
-        """Stop listening."""
-        self.is_listening = False
-        if hasattr(self, 'stream'):
-            self.stream.stop()
-            self.stream.close()
-        self.audio_buffer.clear()
-```
+        # Note: In real test, mock the model to return high scores
+        # This is demonstrating the pattern
 
-### Pattern 2: False Positive Reduction
+    def test_reset_clears_state(self, detector):
+        """Reset should clear detection counts."""
+        detector._detection_counts["alexa"] = 2
+        detector.reset()
+        assert detector._detection_counts["alexa"] == 0
 
-```python
-class RobustDetector:
-    """Reduce false positives with confirmation."""
+class TestCooldown:
 
-    def __init__(self, detector: SecureWakeWordDetector):
-        self.detector = detector
-        self.detection_history = []
-        self.confirmation_window = 2.0
-        self.min_confirmations = 2
+    def test_cooldown_prevents_rapid_triggers(self):
+        """Should not trigger twice within cooldown period."""
+        events = []
 
-    def on_potential_wake(self, model: str, confidence: float):
-        now = time.time()
-        self.detection_history.append({"time": now, "confidence": confidence})
-        self.detection_history = [d for d in self.detection_history if now - d["time"] < self.confirmation_window]
+        listener = WakeWordListener(
+            detector=mock_detector,
+            cooldown_seconds=2.0,
+        )
+        listener.on_detection(events.append)
 
-        if len(self.detection_history) >= self.min_confirmations:
-            avg_confidence = np.mean([d["confidence"] for d in self.detection_history])
-            if avg_confidence > 0.6:
-                self.detection_history.clear()
-                return True
-        return False
+        # Simulate two quick detections
+        listener._last_detection = time.time() - 1.0  # 1s ago
+        listener.process_audio(wake_word_audio)
+
+        # Should not trigger (still in cooldown)
+        assert len(events) == 0
 ```
 
 ---
 
-## 8. Performance Patterns
+## 6. Pre-Generation Checklist
 
-### Pattern 1: Model Quantization
+**BEFORE generating wake word detection code:**
 
-```python
-# Good - Use quantized ONNX model
-import onnxruntime as ort
-
-class QuantizedDetector:
-    def __init__(self, model_path: str):
-        sess_options = ort.SessionOptions()
-    ## 7. Implementation Patterns
-
-## 7. Implementation Patterns
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-elf.last_activity = time.time()
-
-    def check_privacy_mode(self) -> bool:
-        if self._is_dnd_enabled():
-            return False
-        if time.time() - self.last_activity > 3600:
-            return False
-        return self.is_enabled
-
-# Data minimization
-MAX_BUFFER_SECONDS = 2.0
-def on_wake_detected():
-    audio_buffer.clear()  # Delete immediately
-```
-
----
-
-## 10. Common Mistakes
-
-```python
-# BAD - Stores all audio
-def on_audio(chunk):
-    with open("audio.raw", "ab") as f:
-        f.write(chunk)
-
-# GOOD - Discard after processing
-def on_audio(chunk):
-    buffer.extend(chunk)
-    process_buffer()
-
-# BAD - Large buffer
-buffer = deque(maxlen=sample_rate * 60)  # 1 minute!
-
-# GOOD - Minimal buffer
-buffer = deque(maxlen=sample_rate * 1.5)  # 1.5 seconds
-```
-
----
-
-## 11. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Read TDD workflow section completely
-- [ ] Set up test file with detection accuracy tests
-- [ ] Define threshold and performance targets
-- [ ] Identify which performance patterns apply
-- [ ] Review privacy requirements
-
-### Phase 2: During Implementation
-
-- [ ] Write failing test for each feature first
-- [ ] Implement minimal code to pass test
-- [ ] Apply performance patterns (VAD, quantization)
-- [ ] Buffer size minimal (<2 seconds)
-- [ ] Audio cleared after detection
-
-### Phase 3: Before Committing
-
-- [ ] All tests pass: `pytest tests/test_wake_word.py -v`
-- [ ] Coverage >80%: `pytest --cov=wake_word`
-- [ ] False positive rate <1/hour tested
-- [ ] CPU usage <5% measured
-- [ ] Memory usage <100MB verified
-- [ ] Audio never stored to disk
-
----
-
-## 12. Summary
-
-Your goal is to create wake word detection that is:
-- **Private**: Audio processed locally, minimal retention
-- **Efficient**: Low CPU (<5%), low memory (<100MB)
-- **Accurate**: Low false positive rate (<1/hour)
-- **Test-Driven**: All features have tests first
-
-**Critical Reminders**:
-1. Write tests before implementation
-2. Never store audio to disk
-3. Keep buffer minimal (<2 seconds)
-4. Apply performance patterns (VAD, quantization)
-## 8. Performance Patterns
-
-class QuantizedDetector:
-    def __init__(self, model_path: str):
-        sess_options = ort.SessionOptions()
-        sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
-        self.session = ort.InferenceSession(model_path, sess_options, providers=['CPUExecutionProvid...
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
+- [ ] Privacy: Audio buffer has max duration, secure wipe
+- [ ] Model integrity: SHA256 verification before loading
+- [ ] Resource limits: Max concurrent inferences, queue size limits
+- [ ] Detection logic: trigger_level for consecutive confirmations
+- [ ] Cooldown: Prevent rapid-fire triggers
+- [ ] Device handling: Proper stream lifecycle, error recovery
+- [ ] Callbacks: Exception handling, async support
+- [ ] Testing: Mock models for unit tests

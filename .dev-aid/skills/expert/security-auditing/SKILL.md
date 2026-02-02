@@ -1,558 +1,694 @@
-# Security Auditing Skill
-
 ---
 name: security-auditing
-version: 1.0.0
-domain: security/compliance
+version: 2.0.0
+description: "Security audit methodology with vulnerability assessment, compliance checking, and remediation tracking."
 risk_level: HIGH
-languages: [python, go, typescript]
-frameworks: [structlog, opentelemetry, falco]
-requires_security_review: true
-compliance: [GDPR, HIPAA, PCI-DSS, SOC2, ISO27001]
-last_updated: 2025-01-15
 ---
 
-> **MANDATORY READING PROTOCOL**: Before implementing audit logging, read `references/advanced-patterns.md` for tamper-evident patterns and `references/threat-model.md` for log integrity attacks.
+# Security Auditing - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Log injection, Audit bypass, SIEM evasion
-- Requires continuous monitoring of security advisories
+**CWE-778: Insufficient Logging**
+- NEVER: Skip logging for security events
+- ALWAYS: Log auth attempts, access control failures, input validation failures
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-209: Error Information Leakage**
+- NEVER: Return stack traces or internal errors to users
+- ALWAYS: Generic error messages, detailed logs server-side
 
-### 0.2 Vulnerability Research Protocol
+**CWE-523: Unprotected Transport**
+- NEVER: HTTP for any authenticated endpoint
+- ALWAYS: HTTPS, HSTS, secure cookies
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-250: Excessive Privileges**
+- NEVER: Run services as root/admin
+- ALWAYS: Principle of least privilege, dedicated service accounts
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+### 0.3 Risk Level: HIGH
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **LOG-INJECTION** (CVSS 7.5): Log injection attacks
-     Source: https://owasp.org/
-   - **AUDIT-BYPASS** (CVSS 8.0): Audit trail manipulation
-     Source: https://nvd.nist.gov/
-   - **SIEM-EVASION** (CVSS N/A): SIEM evasion techniques
-     Source: https://attack.mitre.org/
-
-**Step 3: Common Attack Patterns**
-
-   - Log injection
-   - Audit bypass
-   - SIEM evasion
-   - Log tampering
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER skip log validation
-- ❌ NEVER trust logs without integrity checks
-- ❌ ALWAYS implement tamper-proof logging
-- ❌ ALWAYS validate audit trails
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any security auditing code**
-
-### Verification Requirements
-
-When using this skill to implement security auditing features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official security standards (OWASP, NIST, CIS)
-   - ✅ Confirm cryptographic algorithms are current and secure
-   - ✅ Validate compliance requirements against official regulations
-   - ❌ Never guess security configurations
-   - ❌ Never invent cryptographic methods
-   - ❌ Never assume compliance requirements without verification
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing security implementations
-   - 🔍 Grep: Search for similar audit logging patterns
-   - 🔍 WebSearch: Verify security standards and best practices
-   - 🔍 WebFetch: Read official compliance documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY security feature/config/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in security auditing can cause: compliance violations, evidence loss, security breaches, legal liability
-
-4. **Common Security Auditing Hallucination Traps** (AVOID)
-   - ❌ Invented cryptographic signature schemes
-   - ❌ Made-up compliance requirements (e.g., fake GDPR articles)
-   - ❌ Non-existent SIEM integration formats
-   - ❌ Incorrect log retention policies
-   - ❌ Fabricated CVE numbers or severity ratings
-   - ❌ Imaginary tamper-evident log verification methods
-
-### Self-Check Checklist
-
-Before EVERY response with security auditing code:
-- [ ] All cryptographic operations verified against official standards
-- [ ] Compliance requirements verified against actual regulations
-- [ ] SIEM integration formats verified against vendor documentation
-- [ ] Can cite official security standards and documentation sources
-
-**⚠️ CRITICAL**: Security auditing code with hallucinated patterns causes compliance failures, legal liability, and evidence inadmissibility. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Audit Trail Integrity (CWE-778)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-### 1.1 Purpose and Scope
-
-This skill provides security auditing and compliance capabilities:
-
-- **Tamper-Evident Logging**: Cryptographically signed audit trails
-- **SIEM Integration**: Forward events to security monitoring systems
-- **Vulnerability Assessment**: Automated security scanning and reporting
-- **Compliance Reporting**: Generate audit reports for regulations
-
-### 1.2 Risk Assessment
-
-**Risk Level**: HIGH
-
-**Justification**:
-- Audit logs are evidence in incident investigations
-- Log tampering hides attacker activity
-- Compliance violations result in legal penalties
-- Missing logs = blind spots in security monitoring
-
-**Attack Surface**:
-- Log injection attacks
-- Log tampering/deletion
-- SIEM misconfiguration
-- Sensitive data in logs (PII leakage)
-- Log storage exhaustion
-
-## 2. Core Responsibilities
-
-### 2.1 Primary Functions
-
-1. **Generate tamper-evident audit logs** for security events
-2. **Forward events to SIEM** for correlation and alerting
-3. **Assess vulnerabilities** through automated scanning
-4. **Produce compliance reports** for regulatory requirements
-5. **Detect anomalies** in user behavior and system activity
-
-### 2.2 Core Principles
-
-- **TDD First**: Write tests for security checks before implementation
-- **Performance Aware**: Use incremental scanning and caching for efficiency
-- **NEVER** log sensitive data (passwords, PII, secrets)
-- **NEVER** trust log data without integrity verification
-- **ALWAYS** use structured logging (JSON)
-- **ALWAYS** include correlation IDs for request tracing
-- **ALWAYS** protect logs from unauthorized modification
-
-## 3. Technology Stack
-
-| Component | Recommended | Purpose |
-|-----------|-------------|---------|
-| Structured Logging | `structlog` (Python) | JSON log generation |
-| Log Aggregation | Elasticsearch, Loki | Centralized storage |
-| SIEM | Splunk, QRadar, Sentinel | Security monitoring |
-| Integrity | Signed logs, WORM storage | Tamper evidence |
-| Compliance | OpenSCAP, Prowler, Trivy | Assessment tools |
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-### 4.1 Tamper-Evident Audit Logging (Summary)
+**Principle:** Audit logs must be tamper-evident and include sufficient context for investigation.
 
 ```python
-import hashlib
-import hmac
+# ❌ WRONG - Minimal logging without context
+logger.info(f"User {user_id} accessed resource")
+
+# ✅ CORRECT - Structured audit log with context
 import json
-from datetime import datetime, timezone
+import hashlib
+from datetime import datetime, UTC
+from dataclasses import dataclass, asdict
+from enum import Enum
 
-class TamperEvidentLogger:
-    """Audit logger with cryptographic integrity protection."""
-
-    def __init__(self, signing_key: bytes, output_path: str):
-        self._key = signing_key
-        self._path = output_path
-        self._sequence = 0
-        self._previous_hash = b'\x00' * 32
-
-    def log(self, event: str, actor: str = None, **context) -> dict:
-        """Log a tamper-evident audit entry."""
-        self._sequence += 1
-
-        entry = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'sequence': self._sequence,
-            'event': event,
-            'actor': actor,
-            'context': context,
-            'previous_hash': self._previous_hash.hex(),
-        }
-
-        # Calculate and sign
-        entry_bytes = json.dumps(entry, sort_keys=True).encode()
-        entry['hash'] = hashlib.sha256(entry_bytes).hexdigest()
-        entry['signature'] = hmac.new(
-            self._key, entry_bytes, hashlib.sha256
-        ).hexdigest()
-
-        self._previous_hash = bytes.fromhex(entry['hash'])
-
-        with open(self._path, 'a') as f:
-            f.write(json.dumps(entry) + '\n')
-
-        return entry
-```
-
-**📚 For complete implementation** (verification, chain validation):
-- See `references/advanced-patterns.md`
-
-### 4.2 Structured Security Logging
-
-```python
-import structlog
-
-logger = structlog.get_logger()
-
-class SecurityAuditLogger:
-    """Security-focused audit logging."""
-
-    @staticmethod
-    def log_authentication(user_id: str, success: bool, method: str, ip: str):
-        """Log authentication attempt."""
-        logger.info(
-            "auth.attempt",
-            user_id=user_id,  # Never log email for privacy
-            success=success,
-            method=method,
-            ip_address=ip
-        )
-
-    @staticmethod
-    def log_authorization(user_id: str, resource: str, action: str, allowed: bool):
-        """Log authorization decision."""
-        logger.info(
-            "authz.decision",
-            user_id=user_id,
-            resource=resource,
-            action=action,
-            allowed=allowed
-        )
-
-    @staticmethod
-    def log_data_access(user_id: str, resource_type: str, resource_id: str, action: str):
-        """Log data access for compliance."""
-        logger.info(
-            "data.access",
-            user_id=user_id,
-            resource_type=resource_type,
-            resource_id=resource_id,
-            action=action
-        )
-```
-
-**📚 For complete patterns** (decorators, context managers, SIEM integration):
-- See `references/security-examples.md`
-
-### 4.3 SIEM Integration (CEF Format)
-
-```python
-class SIEMForwarder:
-    def _to_cef(self, event: dict) -> str:
-        """Convert event to CEF format for SIEM ingestion."""
-        severity = self._map_severity(event.get('level', 'INFO'))
-        return (f"CEF:0|JARVIS|SecurityAudit|1.0|{event.get('event', 'unknown')}|"
-                f"{event.get('event', 'Unknown Event')}|{severity}|"
-                f"src={event.get('ip_address', '')} suser={event.get('user_id', '')}")
-```
-
-**📚 For full SIEM implementation**: See `references/security-examples.md#siem-integration`
-
-### 4.4 Vulnerability Assessment
-
-```python
-from dataclasses import dataclass
-from typing import List
+class AuditAction(Enum):
+    READ = "read"
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    LOGIN = "login"
+    LOGOUT = "logout"
+    PRIVILEGE_ESCALATION = "privilege_escalation"
 
 @dataclass
-class Vulnerability:
-    id: str
-    severity: str
-    package: str
-    fixed_version: str
+class AuditEvent:
+    timestamp: str
+    event_id: str
+    action: AuditAction
+    actor_id: str
+    actor_ip: str
+    resource_type: str
+    resource_id: str
+    outcome: str  # "success" | "failure" | "denied"
+    details: dict
+    previous_hash: str  # Chain for tamper evidence
 
-class VulnerabilityScanner:
-    def scan_dependencies(self, path: str) -> List[Vulnerability]:
-        """Scan dependencies using pip-audit, trivy for containers."""
-        pass
+    def compute_hash(self) -> str:
+        """Compute hash for tamper detection."""
+        data = json.dumps(asdict(self), sort_keys=True)
+        return hashlib.sha256(data.encode()).hexdigest()
+
+class AuditLogger:
+    def __init__(self, storage: "AuditStorage"):
+        self._storage = storage
+        self._previous_hash = "genesis"
+
+    def log(
+        self,
+        action: AuditAction,
+        actor_id: str,
+        actor_ip: str,
+        resource_type: str,
+        resource_id: str,
+        outcome: str,
+        details: dict | None = None,
+    ) -> AuditEvent:
+        import uuid
+
+        event = AuditEvent(
+            timestamp=datetime.now(UTC).isoformat(),
+            event_id=str(uuid.uuid4()),
+            action=action,
+            actor_id=actor_id,
+            actor_ip=actor_ip,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            outcome=outcome,
+            details=details or {},
+            previous_hash=self._previous_hash,
+        )
+
+        self._previous_hash = event.compute_hash()
+        self._storage.append(event)
+        return event
 ```
 
-**📚 For complete scanner**: See `references/advanced-patterns.md#vulnerability-assessment`
+### 1.2 Finding Classification (CWE-693)
 
-## 6. Implementation Workflow (TDD)
+**Principle:** Security findings must be classified by severity and exploitability.
 
-### Step 1: Write Failing Test First
+```python
+# ❌ WRONG - Vague finding report
+findings = ["SQL injection found", "XSS vulnerability"]
+
+# ✅ CORRECT - Structured finding with CVSS-like scoring
+from dataclasses import dataclass
+from enum import Enum
+
+class Severity(Enum):
+    CRITICAL = 4  # CVSS 9.0-10.0
+    HIGH = 3      # CVSS 7.0-8.9
+    MEDIUM = 2    # CVSS 4.0-6.9
+    LOW = 1       # CVSS 0.1-3.9
+    INFO = 0      # Informational
+
+class Exploitability(Enum):
+    TRIVIAL = "trivial"      # Script kiddie level
+    MODERATE = "moderate"    # Requires some skill
+    DIFFICULT = "difficult"  # Expert level
+    THEORETICAL = "theoretical"  # Not proven exploitable
+
+@dataclass
+class SecurityFinding:
+    id: str
+    title: str
+    severity: Severity
+    exploitability: Exploitability
+    cwe_id: str
+    affected_component: str
+    description: str
+    proof_of_concept: str | None
+    remediation: str
+    references: list[str]
+
+    def to_report(self) -> str:
+        return f"""
+## [{self.severity.name}] {self.title}
+
+**ID:** {self.id}
+**CWE:** {self.cwe_id}
+**Exploitability:** {self.exploitability.value}
+**Affected Component:** {self.affected_component}
+
+### Description
+{self.description}
+
+### Proof of Concept
+```
+{self.proof_of_concept or "N/A"}
+```
+
+### Remediation
+{self.remediation}
+
+### References
+{chr(10).join(f"- {ref}" for ref in self.references)}
+"""
+```
+
+### 1.3 Evidence Preservation (CWE-779)
+
+**Principle:** Preserve evidence for findings without modifying the target system.
+
+---
+
+## 2. Version Requirements
+
+```
+# SAST/DAST Tools
+bandit>=1.7.0          # Python SAST
+semgrep>=1.50.0        # Multi-language SAST
+trivy>=0.48.0          # Container/IaC scanning
+# Dependency scanning
+pip-audit>=2.6.0       # Python deps
+npm-audit              # Node deps
+# Secrets detection
+gitleaks>=8.18.0
+trufflehog>=3.60.0
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN performing code review for security, use SAST integration
+
+```python
+# ❌ WRONG - Manual grep for vulnerabilities
+os.system("grep -r 'eval(' ./src")
+
+# ✅ CORRECT - Structured SAST scanning with Semgrep
+import subprocess
+import json
+from pathlib import Path
+from dataclasses import dataclass
+
+@dataclass
+class SASTResult:
+    rule_id: str
+    severity: str
+    message: str
+    file_path: str
+    line_start: int
+    line_end: int
+    code_snippet: str
+
+def run_semgrep_scan(
+    target_dir: Path,
+    config: str = "p/owasp-top-ten"
+) -> list[SASTResult]:
+    """Run Semgrep SAST scan and parse results."""
+
+    result = subprocess.run(
+        [
+            "semgrep", "scan",
+            "--config", config,
+            "--json",
+            "--no-git-ignore",
+            str(target_dir),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+
+    if result.returncode not in (0, 1):  # 1 means findings found
+        raise RuntimeError(f"Semgrep failed: {result.stderr}")
+
+    data = json.loads(result.stdout)
+    findings = []
+
+    for match in data.get("results", []):
+        findings.append(SASTResult(
+            rule_id=match["check_id"],
+            severity=match["extra"]["severity"],
+            message=match["extra"]["message"],
+            file_path=match["path"],
+            line_start=match["start"]["line"],
+            line_end=match["end"]["line"],
+            code_snippet=match.get("extra", {}).get("lines", ""),
+        ))
+
+    return findings
+
+def run_bandit_scan(target_dir: Path) -> list[SASTResult]:
+    """Run Bandit Python SAST scan."""
+
+    result = subprocess.run(
+        [
+            "bandit",
+            "-r", str(target_dir),
+            "-f", "json",
+            "--severity-level", "low",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+
+    data = json.loads(result.stdout)
+    findings = []
+
+    for issue in data.get("results", []):
+        findings.append(SASTResult(
+            rule_id=issue["test_id"],
+            severity=issue["issue_severity"],
+            message=issue["issue_text"],
+            file_path=issue["filename"],
+            line_start=issue["line_number"],
+            line_end=issue["line_number"],
+            code_snippet=issue.get("code", ""),
+        ))
+
+    return findings
+```
+
+### WHEN scanning for secrets, use multiple detection tools
+
+```python
+# ❌ WRONG - Simple regex for secrets
+if re.search(r'password\s*=\s*["\']', code):
+    print("Found hardcoded password")
+
+# ✅ CORRECT - Multi-tool secret scanning
+import subprocess
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+@dataclass
+class SecretFinding:
+    detector: str
+    secret_type: str
+    file_path: str
+    line_number: int
+    commit: str | None
+    snippet: str  # Redacted
+    verified: bool
+
+def run_gitleaks_scan(repo_path: Path) -> list[SecretFinding]:
+    """Scan git repo for leaked secrets."""
+
+    result = subprocess.run(
+        [
+            "gitleaks", "detect",
+            "--source", str(repo_path),
+            "--report-format", "json",
+            "--report-path", "/dev/stdout",
+            "--no-banner",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+
+    findings = []
+    if result.stdout:
+        for leak in json.loads(result.stdout):
+            # Redact the actual secret
+            snippet = leak.get("Match", "")
+            redacted = snippet[:4] + "..." + snippet[-4:] if len(snippet) > 8 else "***"
+
+            findings.append(SecretFinding(
+                detector="gitleaks",
+                secret_type=leak["RuleID"],
+                file_path=leak["File"],
+                line_number=leak["StartLine"],
+                commit=leak.get("Commit"),
+                snippet=redacted,
+                verified=False,
+            ))
+
+    return findings
+
+def run_trufflehog_scan(repo_path: Path) -> list[SecretFinding]:
+    """Scan with TruffleHog for verified secrets."""
+
+    result = subprocess.run(
+        [
+            "trufflehog", "filesystem",
+            str(repo_path),
+            "--json",
+            "--only-verified",  # Only report verified secrets
+        ],
+        capture_output=True,
+        text=True,
+        timeout=600,
+    )
+
+    findings = []
+    for line in result.stdout.strip().split("\n"):
+        if not line:
+            continue
+        data = json.loads(line)
+
+        findings.append(SecretFinding(
+            detector="trufflehog",
+            secret_type=data.get("DetectorName", "unknown"),
+            file_path=data.get("SourceMetadata", {}).get("filename", ""),
+            line_number=data.get("SourceMetadata", {}).get("line", 0),
+            commit=None,
+            snippet="[VERIFIED SECRET REDACTED]",
+            verified=True,
+        ))
+
+    return findings
+```
+
+### WHEN auditing dependencies, check multiple vulnerability databases
+
+```python
+# ❌ WRONG - Only checking one source
+pip_audit_output = subprocess.run(["pip-audit"], capture_output=True)
+
+# ✅ CORRECT - Multi-source dependency audit
+import subprocess
+import json
+from dataclasses import dataclass
+from pathlib import Path
+
+@dataclass
+class VulnerableDependency:
+    package: str
+    installed_version: str
+    vulnerable_versions: str
+    fixed_version: str | None
+    cve_ids: list[str]
+    severity: str
+    description: str
+    source: str
+
+def audit_python_deps(requirements_path: Path) -> list[VulnerableDependency]:
+    """Audit Python dependencies using pip-audit."""
+
+    result = subprocess.run(
+        [
+            "pip-audit",
+            "-r", str(requirements_path),
+            "--format", "json",
+            "--progress-spinner", "off",
+        ],
+        capture_output=True,
+        text=True,
+    )
+
+    findings = []
+    data = json.loads(result.stdout)
+
+    for dep in data.get("dependencies", []):
+        for vuln in dep.get("vulns", []):
+            findings.append(VulnerableDependency(
+                package=dep["name"],
+                installed_version=dep["version"],
+                vulnerable_versions=vuln.get("affected_versions", ""),
+                fixed_version=vuln.get("fix_versions", [None])[0],
+                cve_ids=[vuln.get("id", "")],
+                severity=vuln.get("severity", "UNKNOWN"),
+                description=vuln.get("description", ""),
+                source="pip-audit",
+            ))
+
+    return findings
+
+def audit_with_trivy(target: Path) -> list[VulnerableDependency]:
+    """Audit with Trivy for comprehensive scanning."""
+
+    result = subprocess.run(
+        [
+            "trivy", "fs",
+            "--format", "json",
+            "--scanners", "vuln",
+            str(target),
+        ],
+        capture_output=True,
+        text=True,
+        timeout=300,
+    )
+
+    findings = []
+    data = json.loads(result.stdout)
+
+    for result_item in data.get("Results", []):
+        for vuln in result_item.get("Vulnerabilities", []):
+            findings.append(VulnerableDependency(
+                package=vuln["PkgName"],
+                installed_version=vuln["InstalledVersion"],
+                vulnerable_versions="",
+                fixed_version=vuln.get("FixedVersion"),
+                cve_ids=[vuln["VulnerabilityID"]],
+                severity=vuln["Severity"],
+                description=vuln.get("Description", ""),
+                source="trivy",
+            ))
+
+    return findings
+```
+
+### WHEN generating audit reports, use structured templates
+
+```python
+# ❌ WRONG - Unstructured text report
+report = f"Found {len(findings)} issues"
+
+# ✅ CORRECT - Structured audit report generation
+from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Literal
+import json
+
+@dataclass
+class AuditReport:
+    title: str
+    scope: str
+    methodology: str
+    start_date: datetime
+    end_date: datetime
+    auditor: str
+    findings: list[SecurityFinding] = field(default_factory=list)
+    executive_summary: str = ""
+
+    def add_finding(self, finding: SecurityFinding):
+        self.findings.append(finding)
+        self.findings.sort(key=lambda f: f.severity.value, reverse=True)
+
+    def get_statistics(self) -> dict:
+        stats = {s.name: 0 for s in Severity}
+        for f in self.findings:
+            stats[f.severity.name] += 1
+        return stats
+
+    def to_markdown(self) -> str:
+        stats = self.get_statistics()
+
+        sections = [
+            f"# {self.title}",
+            "",
+            "## Executive Summary",
+            self.executive_summary,
+            "",
+            "## Audit Details",
+            f"- **Scope:** {self.scope}",
+            f"- **Methodology:** {self.methodology}",
+            f"- **Period:** {self.start_date.date()} to {self.end_date.date()}",
+            f"- **Auditor:** {self.auditor}",
+            "",
+            "## Findings Summary",
+            "",
+            "| Severity | Count |",
+            "|----------|-------|",
+        ]
+
+        for severity in Severity:
+            sections.append(f"| {severity.name} | {stats[severity.name]} |")
+
+        sections.extend(["", "## Detailed Findings", ""])
+
+        for finding in self.findings:
+            sections.append(finding.to_report())
+
+        return "\n".join(sections)
+
+    def to_json(self) -> str:
+        return json.dumps({
+            "title": self.title,
+            "scope": self.scope,
+            "methodology": self.methodology,
+            "period": {
+                "start": self.start_date.isoformat(),
+                "end": self.end_date.isoformat(),
+            },
+            "auditor": self.auditor,
+            "statistics": self.get_statistics(),
+            "findings": [
+                {
+                    "id": f.id,
+                    "title": f.title,
+                    "severity": f.severity.name,
+                    "cwe": f.cwe_id,
+                    "component": f.affected_component,
+                    "remediation": f.remediation,
+                }
+                for f in self.findings
+            ],
+        }, indent=2)
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Report vulnerabilities without proof of concept
+- Skip severity classification on findings
+- Store audit logs in modifiable locations
+- Run active scans without authorization
+- Expose actual secrets in reports (always redact)
+- Use single-source vulnerability databases
+- Generate reports without remediation guidance
+
+---
+
+## 5. Testing
 
 ```python
 import pytest
-from security_auditing import TamperEvidentLogger, SecurityAuditLogger
+from datetime import datetime
+from security_auditing import (
+    AuditLogger,
+    AuditEvent,
+    AuditAction,
+    SecurityFinding,
+    Severity,
+    Exploitability,
+)
 
-class TestTamperEvidentLogger:
-    def test_log_entry_contains_required_fields(self, tmp_path):
-        """Each log entry must have timestamp, sequence, hash, signature."""
-        logger = TamperEvidentLogger(b'test-key', str(tmp_path / 'audit.log'))
-        entry = logger.log("user.login", actor="user123")
-        assert all(k in entry for k in ['timestamp', 'sequence', 'hash', 'signature'])
+class TestAuditLogging:
 
-    def test_chain_integrity_detects_tampering(self, tmp_path):
-        """Tampered logs must be detected via chain validation."""
-        log_path = tmp_path / 'audit.log'
-        logger = TamperEvidentLogger(b'test-key', str(log_path))
-        logger.log("event1", actor="user1")
+    def test_audit_chain_integrity(self):
+        """Verify audit log chain detects tampering."""
+        storage = InMemoryAuditStorage()
+        logger = AuditLogger(storage)
 
-        # Tamper with log file
-        tampered = log_path.read_text().replace('"event1"', '"TAMPERED"')
-        log_path.write_text(tampered)
+        event1 = logger.log(
+            action=AuditAction.LOGIN,
+            actor_id="user1",
+            actor_ip="192.168.1.1",
+            resource_type="session",
+            resource_id="sess123",
+            outcome="success",
+        )
 
-        valid, errors = logger.verify_chain()
-        assert not valid and len(errors) > 0
+        event2 = logger.log(
+            action=AuditAction.READ,
+            actor_id="user1",
+            actor_ip="192.168.1.1",
+            resource_type="document",
+            resource_id="doc456",
+            outcome="success",
+        )
 
-    def test_no_pii_in_log_output(self, tmp_path):
-        """PII patterns must not appear in logs."""
-        import re
-        log_path = tmp_path / 'audit.log'
-        logger = SecurityAuditLogger(str(log_path))
-        logger.log_authentication(user_id="user123", success=True, method="password", ip="192.168.1.1")
-        content = log_path.read_text()
-        assert not re.search(r'[\w\.-]+@[\w\.-]+', content)  # No emails
+        # Chain should be linked
+        assert event2.previous_hash == event1.compute_hash()
+
+    def test_finding_severity_ordering(self):
+        """Findings should be sorted by severity."""
+        report = AuditReport(
+            title="Test",
+            scope="test",
+            methodology="test",
+            start_date=datetime.now(),
+            end_date=datetime.now(),
+            auditor="test",
+        )
+
+        report.add_finding(SecurityFinding(
+            id="LOW-1", title="Low", severity=Severity.LOW,
+            exploitability=Exploitability.DIFFICULT,
+            cwe_id="CWE-1", affected_component="test",
+            description="", proof_of_concept=None,
+            remediation="", references=[],
+        ))
+
+        report.add_finding(SecurityFinding(
+            id="CRIT-1", title="Critical", severity=Severity.CRITICAL,
+            exploitability=Exploitability.TRIVIAL,
+            cwe_id="CWE-2", affected_component="test",
+            description="", proof_of_concept=None,
+            remediation="", references=[],
+        ))
+
+        # Critical should be first
+        assert report.findings[0].severity == Severity.CRITICAL
+
+class TestSecretScanning:
+
+    def test_secrets_are_redacted_in_findings(self):
+        """Secret values must be redacted in findings."""
+        finding = SecretFinding(
+            detector="test",
+            secret_type="api_key",
+            file_path="config.py",
+            line_number=10,
+            commit=None,
+            snippet="sk-1234...5678",  # Already redacted
+            verified=False,
+        )
+
+        # Should not contain full secret
+        assert "1234567890" not in str(finding)
 ```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# Implement only what's needed to pass the tests
-class TamperEvidentLogger:
-    def __init__(self, signing_key: bytes, output_path: str):
-        self._key, self._path = signing_key, output_path
-        self._sequence, self._previous_hash = 0, b'\x00' * 32
-
-    def log(self, event: str, actor: str = None, **context) -> dict:
-        self._sequence += 1
-        entry = {'timestamp': datetime.now(timezone.utc).isoformat(),
-                 'sequence': self._sequence, 'event': event, 'actor': actor}
-        # Add hash and signature...
-        return entry
-```
-
-### Step 3: Refactor Following Patterns
-
-After tests pass, refactor for better error handling, performance optimizations, and security hardening.
-
-### Step 4: Run Full Verification
-
-```bash
-pytest tests/security_auditing/ -v --tb=short
-pytest tests/security_auditing/ --cov=security_auditing --cov-report=term-missing
-```
-
-## 7. Performance Patterns
-
-**Key Principles**:
-- Use incremental scanning (only scan changed files)
-- Cache scan results and vulnerability data
-- Parallelize multi-project scans
-- Set resource limits to prevent exhaustion
-
-**📚 For detailed performance patterns**:
-- See `references/performance-patterns.md` for complete implementations
-
-## 8. Security Standards
-
-### 7.1 Known Vulnerabilities
-
-| CVE | Severity | Component | Mitigation |
-|-----|----------|-----------|------------|
-| CVE-2023-50960 | Critical | QRadar | Command injection - Update QRadar |
-| CVE-2023-50961 | High | QRadar | Stored XSS - Update QRadar |
-| CVE-2023-2976 | Medium | Guava | File exposure - Update to 32.0+ |
-| CVE-2024-22365 | Medium | PAM | DoS - Update Linux PAM |
-| CVE-2023-22875 | Medium | QRadar | Info disclosure - Update |
-
-### 7.2 OWASP Mapping
-
-| OWASP 2025 | Risk | Implementation |
-|------------|------|----------------|
-| A09: Security Logging Failures | Critical | Tamper-evident logs, SIEM forwarding |
-| A05: Security Misconfiguration | High | Log protection, retention policies |
-| A01: Broken Access Control | High | Log access auditing |
-
-**📚 For detailed OWASP guidance**:
-- See `references/security-examples.md#owasp-coverage`
-
-### 7.3 Compliance Requirements
-
-- **GDPR Article 30**: Records of processing activities
-- **HIPAA 164.312(b)**: Audit controls
-- **PCI-DSS 10**: Track all access to network resources
-- **SOC2 CC7.2**: Monitor system components
-
-## 9. Testing Requirements
-
-```python
-def test_log_integrity_tamper_detection(audit_logger):
-    """Tampered logs must be detected."""
-    audit_logger.log("test.event", actor="user1")
-
-    # Tamper and verify detection
-    valid, errors = audit_logger.verify_chain()
-    assert not valid
-
-def test_no_pii_in_logs(audit_logger):
-    """PII must not appear in logs."""
-    # Check for email, phone, SSN patterns in log output
-    pass
-```
-
-**📚 For complete test suite**:
-- See `references/security-examples.md#testing`
-
-## 10. Common Mistakes
-
-**Critical Anti-Patterns to Avoid**:
-- ❌ Logging passwords, tokens, or PII
-- ❌ Unprotected logs without integrity verification
-- ❌ Missing correlation IDs for request tracing
-- ❌ World-readable log files (use `chmod 600`)
-- ❌ Synchronous SIEM forwarding (blocks on failure)
-
-**📚 For complete anti-patterns catalog**: See `references/anti-patterns.md`
-
-## 11. Pre-Implementation Checklist
-
-**Three Phases**:
-1. **Before Code**: Read threat model, identify compliance needs, design format, plan SIEM integration
-2. **During Implementation**: Structured logging, tamper-evident signing, no PII, correlation IDs, performance patterns
-3. **Before Committing**: Tests pass, log protection verified, SIEM tested, retention policies enforced
-
-**📚 For complete checklists**: See `references/audit-checklists.md` (includes GDPR, HIPAA, PCI-DSS, SOC2, ISO27001 compliance checklists)
-
-## 12. Summary
-
-### Key Objectives
-
-1. **Tamper-evident logs**: Cryptographic signing and chaining
-2. **Centralized monitoring**: SIEM integration for all events
-3. **Compliance ready**: Meet GDPR, HIPAA, PCI-DSS requirements
-4. **Privacy protection**: No PII/secrets in logs
-
-### References
-
-**Core Documentation**:
-- `references/advanced-patterns.md` - Full implementations, WORM storage, chain verification
-- `references/security-examples.md` - SIEM configs, compliance reports, testing examples
-- `references/threat-model.md` - Log integrity attack scenarios, threat analysis
-
-**Specialized Guides**:
-- `references/performance-patterns.md` - Optimization strategies (caching, incremental scanning, parallelization)
-- `references/anti-patterns.md` - Common mistakes and how to avoid them
-- `references/audit-checklists.md` - Implementation checklists for GDPR, HIPAA, PCI-DSS, SOC2, ISO27001
 
 ---
 
-**If it's not logged, it didn't happen. If logs can be tampered, you can't prove anything.**
+## 6. Pre-Generation Checklist
+
+**BEFORE generating security audit code:**
+
+- [ ] Authorization: Written permission for active scanning
+- [ ] Audit logging: Tamper-evident chain implemented
+- [ ] Finding classification: Severity and CWE mapping
+- [ ] Secret redaction: No plain secrets in outputs
+- [ ] Multi-source: Using multiple vulnerability databases
+- [ ] Evidence preservation: Read-only access to targets
+- [ ] Report structure: Executive summary + detailed findings
+- [ ] Remediation: Each finding has fix guidance

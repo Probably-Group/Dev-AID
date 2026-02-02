@@ -1,535 +1,669 @@
 ---
 name: ui-ux-expert
-description: "Expert UI/UX designer specializing in user-centered design, accessibility (WCAG 2.2), design systems, and responsive interfaces. Use when designing web/mobile applications, implementing accessible interfaces, creating design systems, or conducting usability testing."
+version: 2.0.0
+description: "UI/UX expertise for user research, usability testing, and responsive design systems."
+risk_level: LOW
 ---
 
-# UI/UX Design Expert
-
-## File Organization
-
-This skill uses a split structure to comply with the 500-line limit:
-- **SKILL.md**: Core principles, workflow, and essential guidance (this file)
-- **references/performance-patterns.md**: Performance optimization patterns and implementation
-- **references/ux-patterns.md**: Top 7 UX patterns with detailed examples
-- **references/anti-patterns.md**: Common UI/UX mistakes and how to avoid them
-- **references/testing-guide.md**: Comprehensive testing strategies for UI components
-- **references/accessibility-guide.md**: Complete WCAG 2.2 implementation guide
-- **references/design-patterns.md**: Complete UI pattern library and component guidelines
-
-## Validation Gates
-
-| Gate | Status | Notes |
-|------|--------|-------|
-| 0.1 Domain Expertise | PASSED | User-centered design, accessibility, design systems |
-| 0.2 Best Practices Research | PASSED | WCAG 2.2, responsive design, performance |
-| 0.5 Hallucination Check | PASSED | Examples validated with real frameworks |
-| 0.11 File Organization | Split | ~480 lines + references |
-
----
+# UI/UX Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE providing guidance:**
+1. Verify claims against authoritative sources
+2. Distinguish between established practices and opinions
+3. Never invent statistics, studies, or references
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Risk Level: LOW
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Clickjacking, UI spoofing, Phishing
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow untrusted iframe embedding
-- ❌ NEVER create deceptive UI patterns
-- ❌ ALWAYS implement frame protection
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any UI/UX design using this skill**
-
-### Verification Requirements
-
-When using this skill to implement UI/UX designs, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check WCAG 2.2 Level AA requirements
-   - ✅ Confirm framework-specific component syntax
-   - ✅ Validate accessibility patterns (ARIA, roles, semantic HTML)
-   - ❌ Never guess ARIA attributes or roles
-   - ❌ Never invent CSS properties or HTML attributes
-   - ❌ Never assume color contrast without testing
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing components for patterns
-   - 🔍 Grep: Search for similar implementations
-   - 🔍 WebSearch: Verify WCAG criteria and best practices
-   - 🔍 WebFetch: Read official framework and accessibility docs
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY accessibility requirement, ARIA pattern, or design principle
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in accessibility can exclude users and cause legal issues
-
-4. **Common UI/UX Hallucination Traps** (AVOID)
-   - ❌ Inventing ARIA attributes (e.g., `aria-custom-label`)
-   - ❌ Wrong color contrast ratios (must be 4.5:1 for text, 3:1 for UI)
-   - ❌ Made-up touch target sizes (WCAG 2.2 requires 24x24px minimum)
-   - ❌ Non-existent HTML attributes or CSS properties
-   - ❌ Incorrect WCAG success criteria levels
-   - ❌ Assuming patterns work without testing with assistive tech
-
-### Self-Check Checklist
-
-Before EVERY response with UI/UX implementation:
-- [ ] All ARIA attributes verified against WAI-ARIA specification
-- [ ] Color contrast ratios tested (4.5:1 text, 3:1 UI)
-- [ ] Touch targets meet WCAG 2.2 requirements (24x24px minimum)
-- [ ] Keyboard navigation pattern verified
-- [ ] Can cite WCAG 2.2 success criteria or official documentation
-
-**⚠️ CRITICAL**: Inaccessible designs exclude users with disabilities and can cause legal liability. Always verify accessibility requirements.
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
 
 ---
 
-## 1. Overview
+## 1. Security Principles
 
-You are an elite UI/UX designer with deep expertise in:
+### 1.1 Clickjacking Prevention (CWE-1021)
 
-- **User-Centered Design**: User research, personas, journey mapping, usability testing
-- **Accessibility**: WCAG 2.2 AA/AAA compliance, ARIA patterns, screen readers, keyboard navigation
-- **Design Systems**: Component libraries, design tokens, pattern documentation, Figma
-- **Responsive Design**: Mobile-first, fluid layouts, breakpoints, adaptive interfaces
-- **Visual Design**: Typography, color theory, spacing systems, visual hierarchy
-- **Prototyping**: Figma, interactive prototypes, micro-interactions, animation principles
-- **Design Thinking**: Ideation, wireframing, user flows, information architecture
-- **Usability**: Heuristic evaluation, A/B testing, analytics integration, user feedback
+**Principle:** Prevent UI elements from being embedded in malicious iframes.
 
-You design interfaces that are:
-- **Accessible**: WCAG 2.2 compliant, inclusive, universally usable
-- **User-Friendly**: Intuitive navigation, clear information architecture
-- **Consistent**: Design system-driven, predictable patterns
-- **Responsive**: Mobile-first, adaptive across all devices
-- **Performant**: Optimized assets, fast load times, smooth interactions
+```typescript
+// ❌ WRONG - No frame protection
+// Page can be embedded anywhere
 
-**Risk Level**: LOW
-- Focus areas: Design quality, accessibility compliance, usability issues
-- Impact: Poor UX affects user satisfaction, accessibility violations may have legal implications
-- Mitigation: Follow WCAG 2.2 guidelines, conduct usability testing, iterate based on user feedback
+// ✅ CORRECT - Frame busting and CSP headers
+// nuxt.config.ts or server middleware
+export default defineNuxtConfig({
+  routeRules: {
+    '/**': {
+      headers: {
+        'X-Frame-Options': 'DENY',
+        'Content-Security-Policy': "frame-ancestors 'none'",
+      },
+    },
+  },
+});
 
----
-
-## 2. Core Principles
-
-1. **TDD First**: Write component tests before implementation to validate accessibility, responsive behavior, and user interactions
-2. **Performance Aware**: Optimize for Core Web Vitals (LCP, FID, CLS), lazy load images, minimize layout shifts
-3. **User-Centered Design**: Research-driven decisions validated through usability testing
-4. **Accessibility Excellence**: WCAG 2.2 Level AA compliance as baseline
-5. **Design System Thinking**: Consistent, reusable components with design tokens
-6. **Mobile-First Responsive**: Start with mobile, scale up progressively
-7. **Iterative Improvement**: Test early, test often, iterate based on feedback
-
----
-
-## 3. Implementation Workflow (TDD)
-
-Follow this test-driven workflow when implementing UI components:
-
-### TDD Cycle
-1. **Write Failing Test First**: Test accessibility, keyboard navigation, touch targets, and loading states
-2. **Implement Minimum to Pass**: Build component with semantic HTML and ARIA attributes
-3. **Refactor**: Optimize for accessibility, performance, and design system alignment
-4. **Verify**: Run full test suite (unit, a11y, visual, performance)
-
-### Key Testing Focus Areas
-- **Accessibility**: ARIA attributes, keyboard navigation, screen reader support
-- **Touch Targets**: Minimum 44x44px for all interactive elements
-- **Responsive**: Behavior across viewports and devices
-- **States**: Default, hover, focus, active, disabled, loading, error
-- **Performance**: Core Web Vitals (LCP, FID, CLS)
-
-### Verification Commands
-```bash
-npm run test:unit      # Component unit tests
-npm run test:a11y      # Accessibility audits
-npm run test:visual    # Visual regression
-npm run build          # Build validation
-npm run lighthouse     # Performance audit
+// Client-side backup (for legacy browser support)
+if (window.self !== window.top) {
+  window.top.location = window.self.location;
+}
 ```
 
-**Reference**: See `references/testing-guide.md` for complete TDD examples with test code, component implementations, and comprehensive testing strategies.
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Performance Optimization
-
-Performance is a critical part of UX. Users expect fast load times and smooth interactions.
-
-### Core Web Vitals Targets
-- **LCP** (Largest Contentful Paint): < 2.5s
-- **FID** (First Input Delay): < 100ms
-- **CLS** (Cumulative Layout Shift): < 0.1
-
-### Key Performance Strategies
-1. **Lazy Loading**: Load below-fold images and content on demand
-2. **Image Optimization**: Use modern formats (AVIF, WebP) with responsive sizes
-3. **Critical CSS**: Inline above-fold styles, defer non-critical CSS
-4. **Skeleton Screens**: Show loading placeholders that match final layout
-5. **Code Splitting**: Lazy load routes and heavy components
-6. **Prevent Layout Shifts**: Always specify image dimensions
-
-**Reference**: See `references/performance-patterns.md` for complete implementation examples with code samples for lazy loading, image optimization, critical CSS, skeleton screens, code splitting, and layout shift prevention.
-
----
-
-## 6. Core Responsibilities
-
-### 1. User-Centered Design Approach
-
-You will prioritize user needs in all design decisions:
-- Conduct user research to understand pain points and goals
-- Create user personas based on real data and research
-- Map user journeys to identify friction points
-- Design interfaces that align with mental models
-- Validate designs through usability testing
-- Iterate based on user feedback and analytics
-- Apply design thinking methodologies
-
-### 2. Accessibility First
-
-You will ensure all designs are accessible:
-- Meet WCAG 2.2 Level AA compliance (AAA when possible)
-- Design with keyboard navigation in mind
-- Ensure sufficient color contrast (4.5:1 for text)
-- Provide text alternatives for all non-text content
-- Create logical focus order and tab sequences
-- Use semantic HTML and ARIA when needed
-- Test with screen readers (NVDA, JAWS, VoiceOver)
-- Support assistive technologies
-
-### 3. Design System Excellence
-
-You will create and maintain scalable design systems:
-- Define design tokens (colors, spacing, typography)
-- Create reusable component libraries
-- Document patterns and usage guidelines
-- Ensure consistency across all touchpoints
-- Version control design assets
-- Collaborate with developers on implementation
-- Build in Figma with proper component structure
-
-### 4. Responsive & Mobile-First Design
-
-You will design for all screen sizes:
-- Start with mobile layouts, scale up to desktop
-- Define breakpoints based on content, not devices
-- Use fluid typography and spacing
-- Design touch-friendly interfaces (44x44px minimum)
-- Optimize for different orientations
-- Consider context of use for different devices
-- Test across multiple screen sizes
-
-### 5. Visual Design Principles
-
-You will apply strong visual design:
-- Establish clear visual hierarchy
-- Use typography effectively (scale, weight, line height)
-- Apply color purposefully with accessible palettes
-- Create consistent spacing systems (4px or 8px grid)
-- Use white space to improve readability
-- Design for scannability with proper chunking
-- Apply gestalt principles for grouping
-
----
-
-## 7. Essential UX Patterns
-
-Apply these core patterns to create intuitive, user-friendly interfaces:
-
-1. **Progressive Disclosure**: Reveal information gradually to reduce cognitive load
-   - Use multi-step forms, collapsible sections, "Show more" links
-   - Announce state changes with `aria-expanded`
-
-2. **Error Prevention & Recovery**: Help users avoid and recover from mistakes
-   - Validate inline, provide clear error messages with recovery guidance
-   - Use confirmation dialogs for destructive actions
-
-3. **Logical Information Architecture**: Organize content to match user mental models
-   - Limit top-level navigation to 5-7 items
-   - Provide breadcrumbs and clear location indicators
-
-4. **Effective Form Design**: Minimize friction and errors in forms
-   - Single-column layout with labels above inputs
-   - Mark required fields, provide inline validation
-
-5. **Responsive Touch Targets**: Design for mouse and touch input
-   - Minimum 44x44px touch targets (WCAG 2.2), 48x48px recommended
-   - 8px spacing between interactive elements
-
-6. **Loading States & Feedback**: Provide clear feedback for all actions
-   - Use skeleton screens for loading, progress bars for long operations
-   - Announce state changes with `aria-live` regions
-
-7. **Consistent Visual Hierarchy**: Guide attention through clear hierarchy
-   - Use size, color, weight, and spacing to indicate importance
-   - One clear primary action per screen
-
-**Reference**: See `references/ux-patterns.md` for detailed implementation examples with code samples, accessibility guidelines, and complete pattern documentation.
-
----
-
-## 8. Accessibility (WCAG 2.2 AA Compliance)
-
-### Core WCAG 2.2 Principles (POUR)
-- **Perceivable**: Text alternatives, captions, adaptable content, color contrast (4.5:1 text, 3:1 UI)
-- **Operable**: Keyboard accessible, adequate time, no seizures, navigable, 44x44px touch targets
-- **Understandable**: Readable text, predictable behavior, error prevention and recovery
-- **Robust**: Compatible with assistive technologies, semantic HTML, proper ARIA usage
-
-### Critical Requirements
-**Color Contrast**:
-- Normal text: 4.5:1 minimum | Large text: 3:1 minimum | UI components: 3:1 minimum
-
-**Keyboard Navigation**:
-- All elements reachable via Tab | Visible focus indicators (3px min) | No keyboard traps
-
-**Screen Readers**:
-- Use semantic HTML (`<nav>`, `<main>`, `<button>`) | Add ARIA when needed | Announce dynamic changes
-
-**Forms**:
-- Associate labels with inputs | Mark required fields | Link errors with `aria-describedby`
-
-### WCAG 2.2 New Criteria
-- **2.5.8** Target Size: 24x24px minimum (44x44px recommended)
-- **2.4.11** Focus Not Obscured: Keep focused elements visible
-- **2.5.7** Dragging: Provide keyboard alternatives to drag interactions
-- **3.3.7** Redundant Entry: Don't ask for same info twice in session
-- **3.3.8** Accessible Auth: Provide alternatives to CAPTCHAs
-
-**Reference**: See `references/accessibility-guide.md` for complete WCAG 2.2 implementation guide, ARIA patterns, screen reader testing, and keyboard navigation patterns.
-
----
-
-## 9. Common UI/UX Anti-Patterns to Avoid
-
-1. **Insufficient Color Contrast**: Test ratios (4.5:1 for text, 3:1 for UI components)
-2. **Color as Only Indicator**: Combine color with icons and text labels
-3. **Tiny Touch Targets**: Minimum 44x44px (WCAG 2.2), 48x48px recommended
-4. **Non-Semantic HTML**: Use `<button>` for buttons, `<a>` for links
-5. **Missing Form Labels**: Always use visible `<label>` elements with inputs
-6. **Inconsistent Patterns**: Create and follow a design system
-7. **Unclear Error Messages**: Be specific, helpful, and actionable
-8. **Auto-Playing Media**: Never auto-play with sound, provide user controls
-9. **Complex Navigation**: Limit to 5-7 top-level items, use clear hierarchy
-10. **No Loading/Error States**: Provide feedback for all user actions
-
-**Reference**: See `references/anti-patterns.md` for detailed explanations, complete examples, and best practices for avoiding each mistake.
-
----
-
-## 10. Quick Reference Checklist
-
-**Before Starting**:
-- Research first, validate with real users | Define design tokens and component structure
-
-**During Design**:
-- Mobile-first responsive (44x44px touch targets) | WCAG 2.2 AA compliance (4.5:1 text contrast)
-- Semantic HTML + proper ARIA | Single-column forms with inline validation
-
-**Before Handoff**:
-- Test: Unit + A11y + Visual + Performance | All states documented (hover, focus, disabled)
-- Keyboard navigation verified | Screen reader tested | Cross-browser compatible
-
-**Critical Non-Negotiables**:
-- Color contrast ratios met | Touch targets adequate | Keyboard accessible | Loading/error states
-
----
-
-## 11. Testing Strategy
-
-Comprehensive UI/UX testing includes multiple layers:
-
-### Test Types
-1. **Unit Tests**: Test components for accessibility, interactions, and responsive behavior
-   - ARIA attributes and roles
-   - Keyboard navigation (Tab, Enter, Escape)
-   - Touch target sizes (44x44px minimum)
-   - Loading/error states
-
-2. **Visual Regression Tests**: Catch unintended visual changes
-   - Component states (default, hover, focus, disabled)
-   - Responsive layouts across breakpoints
-   - Color contrast verification
-
-3. **Accessibility Audits**: Ensure WCAG 2.2 AA compliance
-   - Automated testing with axe-core
-   - Keyboard navigation flows
-   - Screen reader compatibility
-   - Focus management
-
-4. **Performance Tests**: Verify Core Web Vitals
-   - LCP < 2.5s
-   - FID < 100ms
-   - CLS < 0.1
-
-### Testing Commands
-```bash
-npm run test:unit      # Run component unit tests
-npm run test:a11y      # Run accessibility audits
-npm run test:visual    # Run visual regression tests
-npm run test:perf      # Run performance tests
+### 1.2 Safe External Links (CWE-601)
+
+**Principle:** External links must prevent tabnabbing attacks.
+
+```html
+<!-- ❌ WRONG - Vulnerable to tabnabbing -->
+<a href="https://external.com" target="_blank">External Link</a>
+
+<!-- ✅ CORRECT - Safe external link -->
+<a
+  href="https://external.com"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  External Link
+  <span class="sr-only">(opens in new tab)</span>
+  <ExternalLinkIcon class="h-4 w-4 inline" aria-hidden="true" />
+</a>
+
+<!-- Component for safe external links -->
+<script setup lang="ts">
+interface Props {
+  href: string;
+  showIcon?: boolean;
+}
+const props = withDefaults(defineProps<Props>(), {
+  showIcon: true,
+});
+
+const isExternal = computed(() => {
+  try {
+    const url = new URL(props.href, window.location.origin);
+    return url.origin !== window.location.origin;
+  } catch {
+    return false;
+  }
+});
+</script>
+
+<template>
+  <a
+    :href="href"
+    :target="isExternal ? '_blank' : undefined"
+    :rel="isExternal ? 'noopener noreferrer' : undefined"
+    class="link"
+  >
+    <slot />
+    <template v-if="isExternal && showIcon">
+      <span class="sr-only">(opens in new tab)</span>
+      <ExternalLinkIcon class="h-4 w-4 inline ml-1" aria-hidden="true" />
+    </template>
+  </a>
+</template>
 ```
 
-**Reference**: See `references/testing-guide.md` for complete test examples with Vitest, Playwright, axe-core, manual testing checklists, and tool setup instructions.
+### 1.3 Copy Protection for Sensitive Data (CWE-200)
 
----
+**Principle:** Prevent accidental copying/sharing of sensitive information.
 
-## 12. Implementation Checklist
+```vue
+<script setup lang="ts">
+const sensitiveValue = ref('');
+const masked = computed(() => sensitiveValue.value.replace(/./g, '•'));
+const isRevealed = ref(false);
 
-**Before Starting**:
-- [ ] User research and personas defined | Design tokens and system established
-- [ ] WCAG 2.2 AA requirements mapped | Performance budgets set (LCP < 2.5s, CLS < 0.1)
-- [ ] Tests written first (TDD): Accessibility, responsive, interaction states
+function handleCopy(e: ClipboardEvent) {
+  // Prevent copying masked value
+  if (!isRevealed.value) {
+    e.preventDefault();
+    // Optionally copy the actual value
+    navigator.clipboard.writeText(sensitiveValue.value);
+  }
+}
+</script>
 
-**During Implementation**:
-- [ ] Semantic HTML + proper ARIA | Touch targets 44x44px minimum
-- [ ] Mobile-first responsive CSS | Keyboard navigation and focus management
-- [ ] All states implemented: default, hover, focus, active, disabled, loading, error
-
-**Before Committing**:
-```bash
-npm run test:unit && npm run test:a11y && npm run test:visual && npm run lighthouse
+<template>
+  <div class="relative">
+    <input
+      :value="isRevealed ? sensitiveValue : masked"
+      readonly
+      :aria-label="isRevealed ? 'API key (visible)' : 'API key (hidden)'"
+      @copy="handleCopy"
+    >
+    <div class="absolute right-0 flex gap-2">
+      <button
+        :aria-label="isRevealed ? 'Hide' : 'Reveal'"
+        @click="isRevealed = !isRevealed"
+      >
+        <EyeIcon v-if="!isRevealed" />
+        <EyeOffIcon v-else />
+      </button>
+      <button
+        aria-label="Copy to clipboard"
+        @click="navigator.clipboard.writeText(sensitiveValue)"
+      >
+        <CopyIcon />
+      </button>
+    </div>
+  </div>
+</template>
 ```
-- [ ] All tests pass | Lighthouse A11y: 100, Performance: > 90
-- [ ] Keyboard navigation verified | Screen reader tested
-- [ ] Cross-browser compatible | Matches design specs
-- [ ] Component documented with examples
 
 ---
 
-## 13. Summary
+## 2. Version Requirements
 
-As a UI/UX Design Expert, you excel at creating user-centered, accessible, and delightful interfaces. Your approach is grounded in:
+```
+# Component libraries
+@headlessui/vue>=1.7.0
+@heroicons/vue>=2.1.0
+# Animation
+framer-motion>=11.0.0
+# Testing
+@testing-library/vue>=8.0.0
+vitest>=1.2.0
+```
 
-**User-Centered Design**:
-- Research-driven decision making
-- Validated through usability testing
-- Iterative based on user feedback
-- Focused on solving real user problems
+---
 
-**Accessibility Excellence**:
-- WCAG 2.2 Level AA compliance minimum
-- Keyboard navigation support
-- Screen reader compatibility
-- Inclusive design for all users
-- Color contrast and touch target requirements
+## 3. Code Patterns
 
-**Design System Thinking**:
-- Consistent, reusable components
-- Design tokens for scalability
-- Documentation and governance
-- Collaboration with development teams
+### WHEN building modals, implement focus trap and escape handling
 
-**Responsive & Mobile-First**:
-- Adaptive across all devices
-- Touch-friendly interactions
-- Performance-optimized
-- Context-aware design
+```vue
+<!-- ❌ WRONG - Focus escapes modal, no keyboard handling -->
+<template>
+  <div v-if="isOpen" class="modal-backdrop">
+    <div class="modal">
+      <slot />
+      <button @click="close">Close</button>
+    </div>
+  </div>
+</template>
 
-**Visual Design Mastery**:
-- Clear visual hierarchy
-- Purposeful use of color and typography
-- Consistent spacing systems
-- Scannable, digestible content
+<!-- ✅ CORRECT - Accessible modal with HeadlessUI -->
+<script setup lang="ts">
+import {
+  Dialog,
+  DialogPanel,
+  DialogTitle,
+  DialogDescription,
+  TransitionRoot,
+  TransitionChild,
+} from '@headlessui/vue';
 
-**Interaction Excellence**:
-- Clear feedback for all actions
-- Intuitive navigation patterns
-- Error prevention and recovery
-- Delightful micro-interactions
+interface Props {
+  open: boolean;
+  title: string;
+  description?: string;
+}
+const props = defineProps<Props>();
+const emit = defineEmits<{
+  close: [];
+}>();
+</script>
 
-**Quality Assurance**:
-- Rigorous testing across devices and browsers
-- Accessibility validation with assistive tech
-- Usability testing with real users
-- Continuous iteration and improvement
+<template>
+  <TransitionRoot :show="open" as="template">
+    <Dialog
+      :open="open"
+      class="relative z-50"
+      @close="emit('close')"
+    >
+      <!-- Backdrop -->
+      <TransitionChild
+        enter="ease-out duration-300"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="ease-in duration-200"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black/30" aria-hidden="true" />
+      </TransitionChild>
 
-You create interfaces that are not just beautiful, but fundamentally usable, accessible, and aligned with user needs. Your designs are validated through research, tested with real users, and implemented with a strong partnership with development teams.
+      <!-- Full-screen container -->
+      <div class="fixed inset-0 flex items-center justify-center p-4">
+        <TransitionChild
+          enter="ease-out duration-300"
+          enter-from="opacity-0 scale-95"
+          enter-to="opacity-100 scale-100"
+          leave="ease-in duration-200"
+          leave-from="opacity-100 scale-100"
+          leave-to="opacity-0 scale-95"
+        >
+          <DialogPanel class="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+            <DialogTitle class="text-lg font-semibold">
+              {{ title }}
+            </DialogTitle>
 
-**Reference Documentation**:
-- `references/performance-patterns.md`: Performance optimization with lazy loading, image optimization, critical CSS, skeleton screens
-- `references/ux-patterns.md`: Top 7 UX patterns with implementation examples and accessibility guidelines
-- `references/anti-patterns.md`: Common UI/UX mistakes and how to avoid them
-- `references/testing-guide.md`: Comprehensive testing strategies with Vitest, Playwright, and axe-core
-- `references/accessibility-guide.md`: Complete WCAG 2.2 implementation guide and screen reader testing
-- `references/design-patterns.md`: Complete UI pattern library and component design guidelines
+            <DialogDescription v-if="description" class="mt-2 text-gray-600">
+              {{ description }}
+            </DialogDescription>
 
-Remember: Great design is invisible. It works so well that users don't have to think about it. Always design with empathy, test with real users, and iterate relentlessly toward better experiences.
+            <div class="mt-4">
+              <slot />
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+              <button
+                class="btn btn-secondary"
+                @click="emit('close')"
+              >
+                Cancel
+              </button>
+              <slot name="actions" />
+            </div>
+          </DialogPanel>
+        </TransitionChild>
+      </div>
+    </Dialog>
+  </TransitionRoot>
+</template>
+```
+
+### WHEN implementing dropdowns, handle keyboard navigation
+
+```vue
+<!-- ❌ WRONG - No keyboard support -->
+<template>
+  <div @click="open = !open">
+    <button>Menu</button>
+    <div v-if="open">
+      <a href="#">Item 1</a>
+      <a href="#">Item 2</a>
+    </div>
+  </div>
+</template>
+
+<!-- ✅ CORRECT - Full keyboard navigation with HeadlessUI -->
+<script setup lang="ts">
+import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+
+interface MenuItem {
+  label: string;
+  action: () => void;
+  icon?: Component;
+  danger?: boolean;
+}
+
+interface Props {
+  items: MenuItem[];
+  label?: string;
+}
+defineProps<Props>();
+</script>
+
+<template>
+  <Menu as="div" class="relative">
+    <MenuButton
+      class="flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100"
+    >
+      <span class="sr-only">{{ label || 'Open menu' }}</span>
+      <span v-if="$slots.default"><slot /></span>
+      <ChevronDownIcon class="h-5 w-5" aria-hidden="true" />
+    </MenuButton>
+
+    <Transition
+      enter-active-class="transition duration-100 ease-out"
+      enter-from-class="transform scale-95 opacity-0"
+      enter-to-class="transform scale-100 opacity-100"
+      leave-active-class="transition duration-75 ease-in"
+      leave-from-class="transform scale-100 opacity-100"
+      leave-to-class="transform scale-95 opacity-0"
+    >
+      <MenuItems
+        class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+      >
+        <div class="py-1">
+          <MenuItem
+            v-for="item in items"
+            :key="item.label"
+            v-slot="{ active }"
+          >
+            <button
+              :class="[
+                'flex w-full items-center gap-2 px-4 py-2 text-left text-sm',
+                active ? 'bg-gray-100' : '',
+                item.danger ? 'text-red-600' : 'text-gray-700',
+              ]"
+              @click="item.action"
+            >
+              <component
+                :is="item.icon"
+                v-if="item.icon"
+                class="h-5 w-5"
+                aria-hidden="true"
+              />
+              {{ item.label }}
+            </button>
+          </MenuItem>
+        </div>
+      </MenuItems>
+    </Transition>
+  </Menu>
+</template>
+```
+
+### WHEN displaying data tables, implement proper semantics
+
+```vue
+<!-- ❌ WRONG - div soup, no semantics -->
+<template>
+  <div class="table">
+    <div class="row header">
+      <div>Name</div>
+      <div>Email</div>
+    </div>
+    <div v-for="user in users" class="row">
+      <div>{{ user.name }}</div>
+      <div>{{ user.email }}</div>
+    </div>
+  </div>
+</template>
+
+<!-- ✅ CORRECT - Semantic table with accessibility -->
+<script setup lang="ts">
+interface Column<T> {
+  key: keyof T;
+  label: string;
+  sortable?: boolean;
+  align?: 'left' | 'center' | 'right';
+}
+
+interface Props<T> {
+  columns: Column<T>[];
+  data: T[];
+  caption: string;
+  sortBy?: keyof T;
+  sortOrder?: 'asc' | 'desc';
+}
+
+const props = defineProps<Props<User>>();
+const emit = defineEmits<{
+  sort: [key: keyof User];
+}>();
+</script>
+
+<template>
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <caption class="sr-only">{{ caption }}</caption>
+
+      <thead class="bg-gray-50">
+        <tr>
+          <th
+            v-for="column in columns"
+            :key="String(column.key)"
+            scope="col"
+            :class="[
+              'px-6 py-3 text-xs font-medium uppercase tracking-wider',
+              column.align === 'right' ? 'text-right' : 'text-left',
+            ]"
+          >
+            <button
+              v-if="column.sortable"
+              class="group inline-flex items-center gap-1"
+              :aria-sort="
+                sortBy === column.key
+                  ? sortOrder === 'asc' ? 'ascending' : 'descending'
+                  : 'none'
+              "
+              @click="emit('sort', column.key)"
+            >
+              {{ column.label }}
+              <span class="flex-none rounded">
+                <ChevronUpIcon
+                  v-if="sortBy === column.key && sortOrder === 'asc'"
+                  class="h-4 w-4"
+                />
+                <ChevronDownIcon
+                  v-else-if="sortBy === column.key && sortOrder === 'desc'"
+                  class="h-4 w-4"
+                />
+                <ChevronUpDownIcon
+                  v-else
+                  class="h-4 w-4 opacity-0 group-hover:opacity-100"
+                />
+              </span>
+            </button>
+            <span v-else>{{ column.label }}</span>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr
+          v-for="(row, index) in data"
+          :key="index"
+          class="hover:bg-gray-50"
+        >
+          <td
+            v-for="column in columns"
+            :key="String(column.key)"
+            :class="[
+              'px-6 py-4 whitespace-nowrap text-sm',
+              column.align === 'right' ? 'text-right' : 'text-left',
+            ]"
+          >
+            <slot :name="column.key" :row="row" :value="row[column.key]">
+              {{ row[column.key] }}
+            </slot>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+```
+
+### WHEN implementing toast notifications, use proper ARIA
+
+```vue
+<!-- ❌ WRONG - No live region, notifications missed by screen readers -->
+<template>
+  <div v-for="toast in toasts" class="toast">
+    {{ toast.message }}
+  </div>
+</template>
+
+<!-- ✅ CORRECT - Accessible toast system -->
+<script setup lang="ts">
+import { TransitionGroup } from 'vue';
+
+interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  message: string;
+  duration?: number;
+}
+
+const toasts = ref<Toast[]>([]);
+
+function addToast(toast: Omit<Toast, 'id'>) {
+  const id = crypto.randomUUID();
+  toasts.value.push({ ...toast, id });
+
+  if (toast.duration !== 0) {
+    setTimeout(() => removeToast(id), toast.duration || 5000);
+  }
+}
+
+function removeToast(id: string) {
+  const index = toasts.value.findIndex(t => t.id === id);
+  if (index !== -1) toasts.value.splice(index, 1);
+}
+
+// Expose for global access
+defineExpose({ addToast, removeToast });
+</script>
+
+<template>
+  <!-- Live region for screen reader announcements -->
+  <div
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
+    class="sr-only"
+  >
+    <template v-for="toast in toasts" :key="toast.id">
+      {{ toast.type }}: {{ toast.message }}
+    </template>
+  </div>
+
+  <!-- Visual toasts -->
+  <div
+    aria-hidden="true"
+    class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"
+  >
+    <TransitionGroup
+      enter-active-class="transition ease-out duration-300"
+      enter-from-class="translate-x-full opacity-0"
+      enter-to-class="translate-x-0 opacity-100"
+      leave-active-class="transition ease-in duration-200"
+      leave-from-class="translate-x-0 opacity-100"
+      leave-to-class="translate-x-full opacity-0"
+    >
+      <div
+        v-for="toast in toasts"
+        :key="toast.id"
+        :class="[
+          'flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg',
+          {
+            'bg-green-50 text-green-800': toast.type === 'success',
+            'bg-red-50 text-red-800': toast.type === 'error',
+            'bg-yellow-50 text-yellow-800': toast.type === 'warning',
+            'bg-blue-50 text-blue-800': toast.type === 'info',
+          },
+        ]"
+      >
+        <component
+          :is="iconMap[toast.type]"
+          class="h-5 w-5 flex-shrink-0"
+        />
+        <p class="text-sm font-medium">{{ toast.message }}</p>
+        <button
+          class="ml-auto flex-shrink-0 rounded p-1 hover:bg-black/5"
+          @click="removeToast(toast.id)"
+        >
+          <XIcon class="h-4 w-4" />
+          <span class="sr-only">Dismiss</span>
+        </button>
+      </div>
+    </TransitionGroup>
+  </div>
+</template>
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Use target="_blank" without rel="noopener noreferrer"
+- Build modals without focus trap and escape key handling
+- Create dropdowns without arrow key navigation
+- Use divs for tables (semantic HTML matters)
+- Display toast notifications outside of ARIA live regions
+- Allow iframes on sensitive pages without CSP
+- Copy sensitive data to clipboard without user action
+- Skip loading/error states on async operations
+
+---
+
+## 5. Testing
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/vue';
+import userEvent from '@testing-library/user-event';
+import Modal from './Modal.vue';
+import Dropdown from './Dropdown.vue';
+
+describe('Modal', () => {
+  it('should trap focus within modal', async () => {
+    const user = userEvent.setup();
+    render(Modal, {
+      props: { open: true, title: 'Test Modal' },
+      slots: {
+        default: '<button>Button 1</button><button>Button 2</button>',
+      },
+    });
+
+    // Focus should be trapped
+    const button1 = screen.getByText('Button 1');
+    const button2 = screen.getByText('Button 2');
+    const closeBtn = screen.getByText('Cancel');
+
+    await user.tab();
+    expect(button1).toHaveFocus();
+
+    await user.tab();
+    expect(button2).toHaveFocus();
+
+    await user.tab();
+    expect(closeBtn).toHaveFocus();
+
+    // Tab should wrap back
+    await user.tab();
+    expect(button1).toHaveFocus();
+  });
+
+  it('should close on Escape key', async () => {
+    const onClose = vi.fn();
+    render(Modal, {
+      props: { open: true, title: 'Test Modal' },
+      listeners: { close: onClose },
+    });
+
+    await fireEvent.keyDown(document, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('Dropdown', () => {
+  const items = [
+    { label: 'Edit', action: vi.fn() },
+    { label: 'Delete', action: vi.fn(), danger: true },
+  ];
+
+  it('should support arrow key navigation', async () => {
+    const user = userEvent.setup();
+    render(Dropdown, { props: { items } });
+
+    // Open menu
+    await user.click(screen.getByRole('button'));
+
+    // Arrow down to first item
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByText('Edit').closest('button')).toHaveFocus();
+
+    // Arrow down to second item
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByText('Delete').closest('button')).toHaveFocus();
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating UI component code:**
+
+- [ ] External links: rel="noopener noreferrer" on target="_blank"
+- [ ] Modals: Focus trap, escape key, proper ARIA roles
+- [ ] Dropdowns: Arrow key navigation, proper menu roles
+- [ ] Tables: Semantic HTML (table, th, td), sortable columns with aria-sort
+- [ ] Toasts: ARIA live region, auto-dismiss with undo option
+- [ ] Frame protection: X-Frame-Options, CSP frame-ancestors
+- [ ] Sensitive data: Copy protection, masked display
+- [ ] Focus management: Visible focus indicators, logical tab order

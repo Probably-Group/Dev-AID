@@ -1,450 +1,570 @@
 ---
 name: browser-automation
+version: 2.0.0
+description: "Browser automation with Puppeteer, Playwright, and CDP for testing, scraping, and web interaction."
 risk_level: HIGH
-description: "Expert in browser automation using Chrome DevTools Protocol (CDP) and WebDriver. Specializes in secure web automation, testing, and scraping with proper credential handling, domain restrictions, and audit logging. HIGH-RISK skill due to web access and data handling."
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Browser Automation Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Browser automation RCE, CDP command injection, Automation credential theft
-- Requires security awareness and best practices
+**CWE-79: XSS via evaluate**
+- NEVER: `page.evaluate(userString)` - execute user code
+- ALWAYS: Parameterize, use `evaluateHandle` with sanitized data
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: Credential Exposure**
+- NEVER: Screenshot/video with credentials visible
+- ALWAYS: Mask sensitive data, use environment variables for creds
 
-### 0.2 Vulnerability Research Protocol
+**CWE-611: SSRF via Navigation**
+- NEVER: `page.goto(userUrl)` without validation
+- ALWAYS: Allowlist domains, validate URL format
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: HIGH
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 No Arbitrary Code Execution (CWE-94)
+
+**Principle:** Never execute untrusted code via page.evaluate(). Validate all data.
+
+```typescript
+// ❌ WRONG - Executing untrusted code
+async function scrape(page: Page, userSelector: string) {
+  // User could inject: '); document.cookie; //'
+  return await page.evaluate(`document.querySelector('${userSelector}')`);
+}
+
+// ✅ CORRECT - Pass data as arguments, not code
+async function scrape(page: Page, selector: string) {
+  // Validate selector first
+  if (!/^[a-zA-Z0-9\s\[\]\.#\-_="':>+~*]+$/.test(selector)) {
+    throw new Error('Invalid selector');
+  }
+
+  return await page.evaluate((sel) => {
+    return document.querySelector(sel)?.textContent;
+  }, selector);  // Passed as argument, not interpolated
+}
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Credential Protection (CWE-798)
 
-   - **PUPPETEER-RCE** (CVSS N/A): RCE via browser automation
-     Source: https://github.com/puppeteer/puppeteer/security
-   - **CDP-INJECTION** (CVSS N/A): Chrome DevTools Protocol injection
-     Source: https://chromedevtools.github.io/devtools-protocol/
-   - **SELENIUM-XSS** (CVSS N/A): XSS via Selenium automation
-     Source: https://www.selenium.dev/documentation/webdriver/support_features/expected_conditions/
+**Principle:** Never screenshot pages with credentials. Mask sensitive data.
 
-**Step 3: Common Attack Patterns**
+```typescript
+// ❌ WRONG - Screenshot might capture credentials
+await page.type('#password', process.env.PASSWORD!);
+await page.screenshot({ path: 'debug.png' });  // Password visible!
 
-   - Browser automation RCE
-   - CDP command injection
-   - Automation credential theft
+// ✅ CORRECT - Clear sensitive fields before screenshot
+await page.type('#password', process.env.PASSWORD!);
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+// Mask before screenshot
+await page.evaluate(() => {
+  document.querySelectorAll('input[type="password"]').forEach(el => {
+    (el as HTMLInputElement).value = '********';
+  });
+});
+await page.screenshot({ path: 'debug.png' });
+```
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+### 1.3 Input Validation (CWE-20)
 
-### 0.3 Hallucination Prevention Checklist
+**Principle:** Validate all URLs and selectors. Whitelist allowed domains.
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+### 1.4 Secrets ≠ Code (CWE-798)
 
-**Domain-Specific Security Rules**:
+**Principle:** Credentials from environment/vault only. Never log credentials.
 
-- ❌ NEVER automate untrusted websites without sandboxing
-- ❌ NEVER expose CDP endpoints publicly
-- ❌ ALWAYS validate automation commands
-- ❌ ALWAYS use headless mode in production
+### 1.5 Fail Secure (CWE-636)
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
+**Principle:** On error, close browser. Don't leave sessions open.
 
-**If uncertain**: STOP and research. Never guess on security.
+### 1.6 Defense in Depth
 
-
-## 1. Overview
-
-**Risk Level**: HIGH - Web access, credential handling, data extraction, network requests
-
-You are an expert in browser automation with deep expertise in:
-
-- **Chrome DevTools Protocol**: Direct Chrome/Chromium control
-- **WebDriver/Selenium**: Cross-browser automation standard
-- **Playwright/Puppeteer**: Modern automation frameworks
-- **Security Controls**: Domain restrictions, credential protection
-
-### Core Principles
-
-1. **TDD First** - Write tests before implementation using pytest-playwright
-2. **Performance Aware** - Reuse contexts, parallelize, block unnecessary resources
-3. **Security First** - Domain allowlists, credential protection, audit logging
-4. **Reliable Automation** - Timeout enforcement, proper waits, error handling
-
-### Core Expertise Areas
-
-1. **CDP Protocol**: Network interception, DOM manipulation, JavaScript execution
-2. **WebDriver API**: Element interaction, navigation, waits
-3. **Security**: Domain allowlists, credential handling, audit logging
-4. **Performance**: Resource management, parallel execution
+**Principle:** Network isolation, proxy support, user-agent rotation.
 
 ---
 
-## 2. Implementation Workflow (TDD)
+## 2. Version Requirements
 
-See `references/implementation-workflow.md` for complete details.
+**ALWAYS use these minimum versions:**
 
-## 3. Performance Patterns
-
-See `references/performance-patterns.md` for complete details.
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+```json
+{
+  "dependencies": {
+    "playwright": "^1.41.0",
+    "puppeteer": "^22.0.0",
+    "zod": "^3.22.0"
+  }
+}
+```
 
 ---
 
+## 3. Code Patterns
 
-## 4. Quality Assurance Checklist
+### 3.1 WHEN setting up Playwright with security
 
-**Before implementing this skill, ensure**:
+```typescript
+import { chromium, Browser, BrowserContext, Page } from 'playwright';
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+interface BrowserConfig {
+  proxy?: { server: string; username?: string; password?: string };
+  allowedDomains: string[];
+  timeout: number;
+}
 
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
+export class SecureBrowser {
+  private browser: Browser | null = null;
+  private context: BrowserContext | null = null;
+  private config: BrowserConfig;
 
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
+  constructor(config: BrowserConfig) {
+    this.config = config;
+  }
 
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
+  async launch(): Promise<void> {
+    this.browser = await chromium.launch({
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--disable-extensions',
+        // Block dangerous features
+        '--disable-background-networking',
+        '--disable-default-apps',
+        '--disable-sync',
+      ],
+    });
 
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+    this.context = await this.browser.newContext({
+      // Limit permissions
+      permissions: [],
+      // Block geolocation
+      geolocation: undefined,
+      // Set user agent
+      userAgent: 'Mozilla/5.0 (compatible; Bot/1.0)',
+      // Proxy if configured
+      proxy: this.config.proxy,
+      // Timeout
+      navigationTimeout: this.config.timeout,
+    });
 
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
+    // Block requests to non-allowed domains
+    await this.context.route('**/*', async (route) => {
+      const url = new URL(route.request().url());
+      if (!this.config.allowedDomains.some(d => url.hostname.endsWith(d))) {
+        await route.abort('blockedbyclient');
+        return;
+      }
+      await route.continue();
+    });
+  }
 
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+  async newPage(): Promise<Page> {
+    if (!this.context) throw new Error('Browser not launched');
+    return await this.context.newPage();
+  }
 
----
+  async close(): Promise<void> {
+    await this.context?.close();
+    await this.browser?.close();
+    this.context = null;
+    this.browser = null;
+  }
+}
 
-## 5. Core Responsibilities
+// Usage with cleanup guarantee
+async function withBrowser<T>(
+  config: BrowserConfig,
+  fn: (browser: SecureBrowser) => Promise<T>
+): Promise<T> {
+  const browser = new SecureBrowser(config);
+  try {
+    await browser.launch();
+    return await fn(browser);
+  } finally {
+    await browser.close();  // Always close
+  }
+}
+```
 
-### 4.1 Safe Automation Principles
+### 3.2 WHEN implementing safe page navigation
 
-When automating browsers:
-- **Restrict domains** to allowlist
-- **Never store credentials** in scripts
-- **Block sensitive URLs** (banking, healthcare)
-- **Log all navigations** and actions
-- **Implement timeouts** on all operations
+```typescript
+import { Page } from 'playwright';
+import { z } from 'zod';
 
-### 4.2 Security-First Approach
+const UrlSchema = z.string().url().refine(
+  (url) => {
+    const parsed = new URL(url);
+    return ['http:', 'https:'].includes(parsed.protocol);
+  },
+  { message: 'Only HTTP(S) URLs allowed' }
+);
 
-Every browser operation MUST:
-1. Validate URL against domain allowlist
-2. Check for credential exposure
-3. Block sensitive site access
-4. Log operation details
-5. Enforce timeout limits
+const ALLOWED_DOMAINS = ['example.com', 'api.example.com'];
 
-### 4.3 Data Handling
+async function navigateSafely(page: Page, url: string): Promise<void> {
+  // Validate URL format
+  const validatedUrl = UrlSchema.parse(url);
 
-- **Never extract credentials** from pages
-- **Redact sensitive data** in logs
-- **Clear browser state** after sessions
-- **Use isolated profiles**
+  // Check domain whitelist
+  const parsed = new URL(validatedUrl);
+  if (!ALLOWED_DOMAINS.some(d => parsed.hostname === d || parsed.hostname.endsWith(`.${d}`))) {
+    throw new Error(`Domain not allowed: ${parsed.hostname}`);
+  }
 
----
+  // Navigate with timeout
+  await page.goto(validatedUrl, {
+    waitUntil: 'domcontentloaded',
+    timeout: 30000,
+  });
 
-## 6. Technical Foundation
+  // Verify we're on expected domain (no redirects to malicious sites)
+  const currentUrl = new URL(page.url());
+  if (!ALLOWED_DOMAINS.some(d => currentUrl.hostname === d || currentUrl.hostname.endsWith(`.${d}`))) {
+    throw new Error(`Unexpected redirect to: ${currentUrl.hostname}`);
+  }
+}
+```
 
-### 5.1 Automation Frameworks
+### 3.3 WHEN extracting data safely
 
-**Chrome DevTools Protocol (CDP)**:
-- Direct browser control
-- Network interception
-- Performance profiling
+```typescript
+import { Page } from 'playwright';
+import { z } from 'zod';
 
-**WebDriver/Selenium**:
-- Cross-browser support
-- W3C standard
+// Define expected data schema
+const ProductSchema = z.object({
+  title: z.string().min(1).max(500),
+  price: z.number().positive(),
+  description: z.string().max(5000).optional(),
+  url: z.string().url(),
+});
 
-**Modern Frameworks**:
-- Playwright: Multi-browser, auto-waiting
-- Puppeteer: CDP wrapper for Chrome
+type Product = z.infer<typeof ProductSchema>;
 
-### 5.2 Security Considerations
+async function extractProduct(page: Page): Promise<Product | null> {
+  // Extract data using page.evaluate with serializable return
+  const rawData = await page.evaluate(() => {
+    const title = document.querySelector('h1')?.textContent?.trim();
+    const priceText = document.querySelector('.price')?.textContent;
+    const price = priceText ? parseFloat(priceText.replace(/[^0-9.]/g, '')) : null;
+    const description = document.querySelector('.description')?.textContent?.trim();
 
-| Risk Area | Mitigation | Priority |
-|-----------|------------|----------|
-| Credential theft | Domain allowlists | CRITICAL |
-| Phishing | URL validation | CRITICAL |
-| Data exfiltration | Output filtering | HIGH |
-| Session hijacking | Isolated profiles | HIGH |
+    return {
+      title,
+      price,
+      description,
+      url: window.location.href,
+    };
+  });
 
----
+  // Validate extracted data
+  const result = ProductSchema.safeParse(rawData);
+  if (!result.success) {
+    console.error('Invalid data extracted:', result.error);
+    return null;
+  }
 
-## 7. Implementation Patterns
+  return result.data;
+}
+```
 
-### Pattern 1: Secure Browser Session
+### 3.4 WHEN handling authentication securely
 
-```python
-from playwright.sync_api import sync_playwright
-import logging
-import re
-from urllib.parse import urlparse
+```typescript
+import { Page, BrowserContext } from 'playwright';
 
-class SecureBrowserAutomation:
-    """Secure browser automation with comprehensive controls."""
+interface Credentials {
+  username: string;
+  password: string;
+}
 
-    BLOCKED_DOMAINS = {
-        'chase.com', 'bankofamerica.com', 'wellsfargo.com',
-        'accounts.google.com', 'login.microsoft.com',
-        'paypal.com', 'venmo.com', 'stripe.com',
+async function authenticateSecurely(
+  context: BrowserContext,
+  loginUrl: string,
+  credentials: Credentials
+): Promise<void> {
+  const page = await context.newPage();
+
+  try {
+    await page.goto(loginUrl);
+
+    // Type credentials without logging
+    await page.fill('#username', credentials.username);
+    await page.fill('#password', credentials.password);
+
+    // Click login
+    await page.click('button[type="submit"]');
+
+    // Wait for authentication
+    await page.waitForURL('**/dashboard**', { timeout: 10000 });
+
+    // Verify authentication succeeded
+    const isLoggedIn = await page.evaluate(() => {
+      return !!document.querySelector('.user-menu');
+    });
+
+    if (!isLoggedIn) {
+      throw new Error('Authentication failed');
     }
 
-    BLOCKED_URL_PATTERNS = [
-        r'/login', r'/signin', r'/auth', r'/password',
-        r'/payment', r'/checkout', r'/billing',
-    ]
+    // Save session state for reuse
+    await context.storageState({ path: 'auth-state.json' });
 
-    def __init__(self, domain_allowlist: list = None, permission_tier: str = 'standard'):
-        self.domain_allowlist = domain_allowlist
-        self.permission_tier = permission_tier
-        self.logger = logging.getLogger('browser.security')
-        self.timeout = 30000
+  } finally {
+    // Clear sensitive fields
+    await page.evaluate(() => {
+      document.querySelectorAll('input[type="password"]').forEach(el => {
+        (el as HTMLInputElement).value = '';
+      });
+    });
 
-    def start_session(self):
-        """Start browser with security settings."""
-        self.playwright = sync_playwright().start()
-        self.browser = self.playwright.chromium.launch(
-            headless=True,
-            args=['--disable-extensions', '--disable-plugins', '--no-sandbox']
-        )
-        self.context = self.browser.new_context(ignore_https_errors=False)
-        self.context.set_default_timeout(self.timeout)
-        self.page = self.context.new_page()
+    await page.close();
+  }
+}
 
-    def navigate(self, url: str):
-        """Navigate with URL validation."""
-        if not self._validate_url(url):
-            raise SecurityError(f"URL blocked: {url}")
-        self._audit_log('navigate', url)
-        self.page.goto(url, wait_until='networkidle')
+// Reuse authenticated session
+async function withAuthenticatedContext(
+  browser: Browser,
+  fn: (context: BrowserContext) => Promise<void>
+): Promise<void> {
+  const context = await browser.newContext({
+    storageState: 'auth-state.json',  // Reuse session
+  });
 
-    def _validate_url(self, url: str) -> bool:
-        """Validate URL against security rules."""
-        parsed = urlparse(url)
-        domain = parsed.netloc.lower().removeprefix('www.')
-        if any(domain == d or domain.endswith('.' + d) for d in self.BLOCKED_DOMAINS):
-            return False
-        if self.domain_allowlist:
-            if not any(domain == d or domain.endswith('.' + d) for d in self.domain_allowlist):
-                return False
-        return not any(re.search(p, url, re.I) for p in self.BLOCKED_URL_PATTERNS)
-
-    def close(self):
-        """Clean up browser session."""
-        if hasattr(self, 'context'):
-            self.context.clear_cookies()
-            self.context.close()
-        if hasattr(self, 'browser'):
-            self.browser.close()
-        if hasattr(self, 'playwright'):
-            self.playwright.stop()
+  try {
+    await fn(context);
+  } finally {
+    await context.close();
+  }
+}
 ```
 
-### Pattern 2: Rate Limiting
+### 3.5 WHEN implementing rate limiting
 
-```python
-import time
+```typescript
+import { Page } from 'playwright';
 
-class BrowserRateLimiter:
-    """Rate limit browser operations."""
+class RateLimitedScraper {
+  private lastRequest = 0;
+  private minDelay: number;
+  private requestCount = 0;
+  private maxRequests: number;
 
-    def __init__(self, requests_per_minute: int = 60):
-        self.requests_per_minute = requests_per_minute
-        self.request_times = []
+  constructor(minDelayMs: number = 1000, maxRequestsPerSession: number = 100) {
+    this.minDelay = minDelayMs;
+    this.maxRequests = maxRequestsPerSession;
+  }
 
-    def check_request(self):
-        """Check if request is allowed."""
-        cutoff = time.time() - 60
-        self.request_times = [t for t in self.request_times if t > cutoff]
-        if len(self.request_times) >= self.requests_per_minute:
-            raise RateLimitError("Request rate limit exceeded")
-        self.request_times.append(time.time())
+  async scrape<T>(page: Page, fn: () => Promise<T>): Promise<T> {
+    // Check request limit
+    if (this.requestCount >= this.maxRequests) {
+      throw new Error('Request limit exceeded');
+    }
+
+    // Enforce minimum delay
+    const now = Date.now();
+    const elapsed = now - this.lastRequest;
+    if (elapsed < this.minDelay) {
+      await new Promise(r => setTimeout(r, this.minDelay - elapsed));
+    }
+
+    this.lastRequest = Date.now();
+    this.requestCount++;
+
+    // Add random jitter
+    const jitter = Math.random() * 500;
+    await new Promise(r => setTimeout(r, jitter));
+
+    return await fn();
+  }
+}
+
+// Usage
+const scraper = new RateLimitedScraper(2000, 50);  // 2s delay, max 50 requests
+
+const data = await scraper.scrape(page, async () => {
+  await page.goto('https://example.com/data');
+  return await page.evaluate(() => document.body.textContent);
+});
+```
+
+### 3.6 WHEN handling errors and cleanup
+
+```typescript
+import { Browser, BrowserContext, Page } from 'playwright';
+
+class BrowserSession {
+  private browser: Browser;
+  private context: BrowserContext;
+  private pages: Set<Page> = new Set();
+
+  constructor(browser: Browser, context: BrowserContext) {
+    this.browser = browser;
+    this.context = context;
+  }
+
+  async newPage(): Promise<Page> {
+    const page = await this.context.newPage();
+    this.pages.add(page);
+
+    // Auto-cleanup on page close
+    page.on('close', () => this.pages.delete(page));
+
+    return page;
+  }
+
+  async cleanup(): Promise<void> {
+    // Close all pages
+    for (const page of this.pages) {
+      try {
+        await page.close();
+      } catch {
+        // Ignore errors during cleanup
+      }
+    }
+    this.pages.clear();
+
+    // Close context
+    try {
+      await this.context.close();
+    } catch {
+      // Ignore
+    }
+
+    // Close browser
+    try {
+      await this.browser.close();
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+// Error handling wrapper
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  delayMs: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Don't retry on certain errors
+      if (lastError.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+        throw lastError;
+      }
+
+      if (i < maxRetries - 1) {
+        await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+      }
+    }
+  }
+
+  throw lastError;
+}
 ```
 
 ---
 
-## 8. Security Standards
+## 4. Anti-Patterns
 
-### 7.1 Critical Vulnerabilities
+**NEVER:**
+- Execute user-provided code via page.evaluate()
+- Screenshot pages with visible credentials
+- Navigate to non-whitelisted domains
+- Leave browser sessions open on error
+- Log credentials or sensitive data
+- Scrape without rate limiting
+- Trust data from page without validation
 
-| Vulnerability | CWE | Severity | Mitigation |
-|--------------|-----|----------|------------|
-| XSS via Automation | CWE-79 | HIGH | Sanitize injected scripts |
-| Credential Harvesting | CWE-522 | CRITICAL | Block password field access |
-| Session Hijacking | CWE-384 | HIGH | Isolated profiles, session clearing |
-| Phishing Automation | CWE-601 | CRITICAL | Domain allowlists, URL validation |
+---
 
-### 7.2 Common Mistakes
+## 5. Testing
 
-```python
-# Never: Fill Password Fields
-# BAD
-page.fill('input[type="password"]', password)
+**ALWAYS write automation tests:**
 
-# GOOD
-if element.get_attribute('type') == 'password':
-    raise SecurityError("Cannot fill password fields")
+```typescript
+import { test, expect } from '@playwright/test';
 
-# Never: Access Banking Sites
-# BAD
-page.goto(user_url)
+test.describe('Scraper Security', () => {
+  test('rejects invalid selectors', async ({ page }) => {
+    const maliciousSelector = "'); alert(1); //";
 
-# GOOD
-if not validate_url(user_url):
-    raise SecurityError("URL blocked")
-page.goto(user_url)
+    await expect(
+      scrape(page, maliciousSelector)
+    ).rejects.toThrow('Invalid selector');
+  });
+
+  test('blocks non-whitelisted domains', async ({ page }) => {
+    await expect(
+      navigateSafely(page, 'https://evil.com')
+    ).rejects.toThrow('Domain not allowed');
+  });
+
+  test('validates extracted data', async ({ page }) => {
+    await page.setContent('<h1></h1>');  // Empty title
+
+    const result = await extractProduct(page);
+    expect(result).toBeNull();  // Fails validation
+  });
+
+  test('enforces rate limiting', async ({ page }) => {
+    const scraper = new RateLimitedScraper(100, 2);
+
+    await scraper.scrape(page, async () => {});
+    await scraper.scrape(page, async () => {});
+
+    await expect(
+      scraper.scrape(page, async () => {})
+    ).rejects.toThrow('Request limit exceeded');
+  });
+});
 ```
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Before Writing Code
-- [ ] Read security requirements from PRD Section 8
-- [ ] Write failing tests for new automation features
-- [ ] Define domain allowlist for target sites
-- [ ] Identify sensitive elements to block/redact
+**BEFORE generating any browser automation code:**
 
-### During Implementation
-- [ ] Implement URL validation before navigation
-- [ ] Add audit logging for all actions
-- [ ] Configure request interception and blocking
-- [ ] Set appropriate timeouts for all operations
-- [ ] Reuse browser contexts for performance
-
-### Before Committing
-- [ ] All tests pass: `pytest tests/test_browser_automation.py`
-- [ ] Security tests pass: `pytest -k security`
-- [ ] No credentials in code or logs
-- [ ] Session cleanup verified
-- [ ] Rate limiting configured and tested
-
----
-
-## 10. Summary
-
-Your goal is to create browser automation that is:
-- **Test-Driven**: Write tests first, implement to pass
-- **Performant**: Context reuse, parallelization, resource blocking
-- **Secure**: Domain restrictions, credential protection, output filtering
-- **Auditable**: Comprehensive logging, request tracking
-
-**Implementation Order**:
-1. Write failing test first
-2. Implement minimum code to pass
-3. Refactor with performance patterns
-4. Run all verification commands
-5. Commit only when all pass
-
----
-
-## References
-
-- See `references/secure-session-full.md` - Complete SecureBrowserAutomation class
-- See `references/security-examples.md` - Additional security patterns
-- See `references/threat-model.md` - Full threat analysis
+- [ ] No user input in page.evaluate() code strings
+- [ ] URL validation and domain whitelisting
+- [ ] Credentials from environment variables only
+- [ ] No credentials visible in screenshots
+- [ ] Rate limiting implemented
+- [ ] Browser/context cleanup in finally blocks
+- [ ] Data validation with Zod schemas
+- [ ] Redirect validation after navigation
+- [ ] Timeout on all operations
+- [ ] Retry logic with exponential backoff

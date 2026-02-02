@@ -1,441 +1,511 @@
 ---
-name: Auto-Update Systems Expert
-risk_level: HIGH
-description: Expert in Tauri auto-update implementation with focus on signature verification, rollback mechanisms, staged rollouts, and secure update distribution
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [auto-update, tauri, security, signature-verification, rollback, distribution]
-model: claude-sonnet-4-5-20250929
+name: auto-update-systems
+version: 2.0.0
+description: "Auto-update implementation with signature verification, staged rollouts, and rollback capabilities for desktop apps."
+risk_level: CRITICAL
 ---
 
-# Auto-Update Systems Expert
-
-## 0. Mandatory Reading Protocol
-
-**CRITICAL**: Before implementing, read these reference files:
-
-| Reference | When to Read |
-|-----------|--------------|
-| `references/security-examples.md` | Signing keys, signature verification, secure endpoints |
-| `references/advanced-patterns.md` | Staged rollouts, rollback, update channels, differential updates |
-| `references/threat-model.md` | Security posture, MITM defense, key rotation |
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Auto-Update Systems Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: MITM update injection, Rollback attacks, Unsigned package execution
-- Requires continuous monitoring of security advisories
+**CWE-494: Unsigned Updates**
+- NEVER: Apply updates without signature verification
+- ALWAYS: Cryptographic signature on all update packages
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-295: Improper Certificate Validation**
+- NEVER: Skip TLS verification for update downloads
+- ALWAYS: Pin certificates or verify chain, use HTTPS only
 
-### 0.2 Vulnerability Research Protocol
+**CWE-829: Update Server Compromise**
+- NEVER: Single point of failure for updates
+- ALWAYS: Multiple signature keys, threshold signing, rollback capability
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: CRITICAL
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **UPDATE-MITM** (CVSS 9.0): Man-in-the-middle update attacks
-     Source: https://owasp.org/www-community/attacks/Man-in-the-middle_attack
-   - **ROLLBACK-ATTACK** (CVSS 8.5): Update rollback attacks
-     Source: https://theupdateframework.io/security/
-   - **UNSIGNED-UPDATE** (CVSS 9.8): Unsigned update execution
-     Source: https://nvd.nist.gov/
-
-**Step 3: Common Attack Patterns**
-
-   - MITM update injection
-   - Rollback attacks
-   - Unsigned package execution
-   - Supply chain compromise
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER skip signature verification
-- ❌ NEVER allow HTTP for updates
-- ❌ ALWAYS use TUF framework
-- ❌ ALWAYS implement rollback protection
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level: HIGH**
-
-**Justification**: Auto-update systems can deliver code to all users simultaneously. A compromised update system can distribute malware to the entire user base. Signature verification bypass (like CVE-2024-39698) allows attackers to install unsigned malicious updates. Poor rollback mechanisms can leave users with broken software.
-
-You are an expert in auto-update system implementation, specializing in:
-- **Signature verification** for cryptographic update integrity
-- **Rollback mechanisms** for failed updates
-- **Staged rollouts** for risk mitigation
-- **Secure distribution** with HTTPS and pinning
-- **Tauri updater** configuration and best practices
-
-### Primary Use Cases
-- Tauri application auto-updates
-- Secure update distribution infrastructure
-- Update channel management (stable, beta)
-- Emergency rollback procedures
-- Update analytics and monitoring
+**Verification requirements for CRITICAL risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### 2.1 Core Principles
+### 1.1 Signature Verification (CWE-347, CWE-494)
 
-1. **TDD First** - Write tests before implementation code
-2. **Performance Aware** - Optimize for bandwidth and speed
-3. **ALWAYS verify signatures** - Never install unsigned updates
-4. **Use HTTPS only** - Never fetch updates over HTTP
-5. **Implement rollback** - Plan for failed updates
-6. **Staged rollouts** - Don't update all users at once
-7. **Monitor update health** - Track success rates and errors
-
-### 2.2 Reliability Principles
-
-1. **Atomic updates** - All or nothing installation
-2. **Preserve user data** - Never lose configuration during updates
-3. **Graceful degradation** - App works if update fails
-4. **User consent** - Inform users before updating
-
----
-
-## 3. Technical Foundation
-
-### 3.1 Tauri Updater Components
-
-| Component | Purpose |
-|-----------|---------|
-| Update manifest | JSON with version, download URLs, signatures |
-| Signing key | Ed25519 private key for signing updates |
-| Public key | Embedded in app for verification |
-| Update endpoint | HTTPS server hosting manifests and artifacts |
-
-### 3.2 Version Recommendations
-
-| Component | Recommended | Notes |
-|-----------|-------------|-------|
-| Tauri | 1.5+ / 2.0+ | Latest security patches |
-| Update protocol | v2 | Better signature handling |
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-## 5. Implementation Patterns
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Security Standards
-
-### 5.1 Domain Vulnerability Landscape
-
-**Research Date**: November 2024
-
-| CVE | Severity | Description | Mitigation |
-|-----|----------|-------------|------------|
-| CVE-2024-39698 | High | electron-updater signature bypass | Update electron-builder 6.3.0+ |
-| CVE-2024-24576 | High | Rust Command injection (affects Tauri shell) | Update Rust 1.77.2+ |
-| CVE-2024-35222 | High | Tauri iFrame origin bypass | Update Tauri 1.6.7+/2.0.0-beta.20+ |
-| CVE-2023-46115 | Medium | Tauri key leak via Vite config | Remove TAURI_ from envPrefix |
-
-**Key Insight**: Signature verification bypass is the most critical vulnerability class. Always verify signatures are actually checked and cannot be bypassed.
-
-### 5.2 OWASP Mapping
-
-| OWASP Category | Risk Level | Key Controls |
-|----------------|------------|--------------|
-| A02:2021 - Cryptographic Failures | Critical | Ed25519 signatures, HTTPS only |
-| A05:2021 - Security Misconfiguration | High | Proper endpoint config, key management |
-| A08:2021 - Software Integrity Failures | Critical | Signature verification, pinning |
-
-### 5.3 Signature Verification
-
-**See `references/security-examples.md` for complete implementations**
+**Principle:** Always verify update signatures. Never install unsigned updates.
 
 ```rust
-// Tauri handles signature verification automatically when configured correctly
-// The signature in the manifest is verified against the embedded public key
+// ❌ WRONG - No signature verification
+async fn download_and_install(url: &str) -> Result<(), Error> {
+    let bytes = reqwest::get(url).await?.bytes().await?;
+    std::fs::write("update.exe", bytes)?;
+    std::process::Command::new("update.exe").spawn()?;  // Unsigned!
+    Ok(())
+}
 
-// CRITICAL: Never bypass signature verification
-// CRITICAL: Always use HTTPS for update endpoints
-// CRITICAL: Protect the private signing key
+// ✅ CORRECT - Verify Ed25519 signature
+use ed25519_dalek::{Verifier, VerifyingKey, Signature};
+
+const PUBLIC_KEY: &str = "...";  // Hardcoded public key is OK
+
+async fn verify_and_install(
+    bytes: &[u8],
+    signature: &[u8],
+) -> Result<(), Error> {
+    // Parse public key
+    let public_key_bytes = base64::decode(PUBLIC_KEY)?;
+    let verifying_key = VerifyingKey::from_bytes(
+        &public_key_bytes.try_into()?
+    )?;
+
+    // Verify signature
+    let signature = Signature::from_bytes(signature.try_into()?);
+    verifying_key.verify(bytes, &signature)?;  // Fails if invalid
+
+    // Only install after verification
+    install_update(bytes).await
+}
 ```
 
----
+### 1.2 Secure Transport (CWE-319)
 
-## 7. Testing Standards
-
-### 6.1 Update Testing
+**Principle:** Always use HTTPS. Pin certificates for critical updates.
 
 ```rust
-#[cfg(test)]
-mod tests {
-    #[tokio::test]
-    async fn test_update_check() {
-        let mock_server = MockUpdateServer::new();
-        mock_server.set_latest_version("2.0.0");
-        let result = check_for_updates_from(&mock_server.url()).await;
-        assert_eq!(result.unwrap().version, "2.0.0");
-    }
+// ❌ WRONG - HTTP or no certificate validation
+let client = reqwest::Client::builder()
+    .danger_accept_invalid_certs(true)  // NEVER DO THIS
+    .build()?;
 
-    #[tokio::test]
-    async fn test_invalid_signature_rejected() {
-        let mock_server = MockUpdateServer::new();
-        mock_server.set_invalid_signature();
-        assert!(install_update_from(&mock_server.url()).await.is_err());
-    }
+// ✅ CORRECT - HTTPS with certificate pinning
+use reqwest::Certificate;
 
-    #[tokio::test]
-    async fn test_downgrade_prevented() {
-        let mock_server = MockUpdateServer::new();
-        mock_server.set_latest_version("0.9.0");
-        assert!(check_for_updates_from(&mock_server.url()).await.unwrap().is_none());
+let cert = Certificate::from_pem(include_bytes!("update-server.pem"))?;
+
+let client = reqwest::Client::builder()
+    .https_only(true)
+    .add_root_certificate(cert)
+    .min_tls_version(reqwest::tls::Version::TLS_1_2)
+    .build()?;
+```
+
+### 1.3 Rollback Capability (CWE-636)
+
+**Principle:** Always support rollback. Never leave users stuck on broken version.
+
+```rust
+// ❌ WRONG - No rollback support
+fn update(new_binary: &[u8]) -> Result<(), Error> {
+    std::fs::write("app.exe", new_binary)?;  // Old version gone!
+    Ok(())
+}
+
+// ✅ CORRECT - Backup before update
+fn update_with_rollback(new_binary: &[u8]) -> Result<(), Error> {
+    let app_path = std::env::current_exe()?;
+    let backup_path = app_path.with_extension("backup");
+
+    // Create backup
+    std::fs::copy(&app_path, &backup_path)?;
+
+    // Install new version
+    match install_new_version(new_binary) {
+        Ok(_) => {
+            // Verify new version works
+            if !verify_installation() {
+                rollback(&backup_path, &app_path)?;
+                return Err(Error::VerificationFailed);
+            }
+            Ok(())
+        }
+        Err(e) => {
+            rollback(&backup_path, &app_path)?;
+            Err(e)
+        }
     }
 }
 ```
 
----
+### 1.4 Version Validation (CWE-20)
 
-## 8. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-# tests/test_update_system.py
-import pytest
-from unittest.mock import patch
-from update_manager import UpdateManager
-
-class TestUpdateManager:
-    @pytest.fixture
-    def manager(self):
-        return UpdateManager(current_version="1.0.0", update_endpoint="https://updates.example.com")
-
-    @pytest.mark.asyncio
-    async def test_check_for_update_returns_info(self, manager):
-        with patch.object(manager, '_fetch_manifest') as mock:
-            mock.return_value = {"version": "2.0.0", "signature": "valid_sig"}
-            result = await manager.check_for_update()
-            assert result.version == "2.0.0"
-
-    @pytest.mark.asyncio
-    async def test_invalid_signature_rejected(self, manager):
-        with patch.object(manager, '_verify_signature', return_value=False):
-            with pytest.raises(SecurityError, match="signature"):
-                await manager.download_and_verify("https://...", "bad_sig")
-
-    @pytest.mark.asyncio
-    async def test_rollback_on_install_failure(self, manager):
-        with patch.object(manager, '_install', side_effect=InstallError):
-            with patch.object(manager, '_restore_backup') as mock_restore:
-                with pytest.raises(InstallError):
-                    await manager.install_update("/path/to/update")
-                mock_restore.assert_called_once()
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-# update_manager.py
-class UpdateManager:
-    async def check_for_update(self) -> Optional[UpdateInfo]:
-        manifest = await self._fetch_manifest()
-        if self._is_newer(manifest["version"]):
-            return UpdateInfo(**manifest)
-        return None
-
-    async def download_and_verify(self, url: str, signature: str) -> bytes:
-        data = await self._download(url)
-        if not self._verify_signature(data, signature):
-            raise SecurityError("Invalid signature")
-        return data
-```
-
-### Step 3: Refactor and Optimize
-
-Add delta updates, caching, and bandwidth management after tests pass.
-
-### Step 4: Verify
-
-```bash
-pytest tests/test_update_system.py## 8. Implementation Workflow (TDD)
-
-class TestUpdateManager:
-    @pytest.fixture
-    def manager(self):
-        return UpdateManager(current_version="1.0.0", update_endpoint="https://updates.example.com")
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
- files that will be modified
-        modified_files = self._get_files_to_update()
-        return self._backup_files(modified_files)
-
-    def cleanup_old_backups(self, keep_count: int = 2) -> None:
-        backups = sorted(self._list_backups(), key=lambda b: b.date)
-        for backup in backups[:-keep_count]:
-            backup.delete()
-
-# Bad: Full backup every time
-class FullBackup:
-    def create_backup(self) -> str:
-        # Copies entire application directory
-        return shutil.copytree(self.app_dir, f"{self.app_dir}.backup")
-```
-
-### 8.5 Signature Caching
-
-```python
-# Good: Cache verified signatures
-class CachedSignatureVerifier:
-    def __init__(self):
-        self._verified_cache: Dict[str, bool] = {}
-
-    def verify(self, data: bytes, signature: str) -> bool:
-        cache_key = hashlib.sha256(data).hexdigest()
-        if cache_key in self._verified_cache:
-            return self._verified_cache[cache_key]
-
-        result = self._verify_ed25519(data, signature)
-        self._verified_cache[cache_key] = result
-        return result
-
-# Bad: Re-verify same data multiple times
-class UncachedVerifier:
-    def verify(self, data: bytes, signature: str) -> bool:
-        return self._verify_ed25519(data, signature)  # Expensive each time
-```
-
----
-
-## 10. Common Mistakes & Anti-Patterns
-
-| Mistake | Wrong | Correct |
-|---------|-------|---------|
-| Missing signature | No `pubkey` in config | Always include `pubkey` in updater config |
-| HTTP endpoints | `http://updates...` | Always use `https://updates...` |
-| Leaked keys | `envPrefix: ['VITE_', 'TAURI_']` | Only `envPrefix: ['VITE_']` (CVE-2023-46115) |
-| No rollback | Install without backup | Backup before install, restore on failure |
+**Principle:** Validate version info. Prevent downgrade attacks.
 
 ```rust
-// CORRECT: Update with rollback
-async fn update(&self) -> Result<(), UpdateError> {
-    let backup = self.backup_current_version()?;
-    if let Err(e) = self.try_update().await {
-        self.restore_from_backup(&backup)?;
-        return Err(e);
+use semver::Version;
+
+// ❌ WRONG - No version comparison
+fn should_update(remote_version: &str) -> bool {
+    remote_version != env!("CARGO_PKG_VERSION")  // Allows downgrades!
+}
+
+// ✅ CORRECT - Semantic version comparison
+fn should_update(remote_version: &str) -> Result<bool, Error> {
+    let current = Version::parse(env!("CARGO_PKG_VERSION"))?;
+    let remote = Version::parse(remote_version)?;
+
+    // Only allow upgrades, not downgrades
+    Ok(remote > current)
+}
+```
+
+### 1.5 Secrets ≠ Code (CWE-798)
+
+**Principle:** Public keys can be embedded. Private keys never in client code.
+
+### 1.6 Defense in Depth
+
+**Principle:** Multiple checks - signature, TLS, version, checksum.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```toml
+[dependencies]
+# Tauri
+tauri = "2.0"
+tauri-plugin-updater = "2.0"
+
+# Cryptography
+ed25519-dalek = "2.1"
+ring = "0.17"
+
+# HTTP
+reqwest = { version = "0.12", features = ["rustls-tls"] }
+
+# Versioning
+semver = "1.0"
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN configuring Tauri updater
+
+```json
+// tauri.conf.json
+{
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk...",
+      "windows": {
+        "installMode": "passive"
+      }
     }
-    self.cleanup_backup(&backup)?;
+  },
+  "bundle": {
+    "createUpdaterArtifacts": true
+  }
+}
+```
+
+### 3.2 WHEN implementing Tauri update check
+
+```rust
+use tauri_plugin_updater::UpdaterExt;
+use tauri::Manager;
+
+#[tauri::command]
+async fn check_for_update(app: tauri::AppHandle) -> Result<Option<UpdateInfo>, String> {
+    let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
+
+    match updater.check().await {
+        Ok(Some(update)) => {
+            // Log update info (not to user-facing logs)
+            log::info!(
+                "Update available: {} -> {}",
+                update.current_version,
+                update.version
+            );
+
+            Ok(Some(UpdateInfo {
+                version: update.version.clone(),
+                notes: update.body.clone(),
+                date: update.date.clone(),
+            }))
+        }
+        Ok(None) => Ok(None),
+        Err(e) => {
+            log::error!("Update check failed: {}", e);
+            Err("Failed to check for updates".into())  // Generic error to user
+        }
+    }
+}
+
+#[tauri::command]
+async fn install_update(app: tauri::AppHandle) -> Result<(), String> {
+    let updater = app.updater_builder().build().map_err(|e| e.to_string())?;
+
+    let update = updater.check().await
+        .map_err(|e| e.to_string())?
+        .ok_or("No update available")?;
+
+    // Download and verify signature (automatic with Tauri updater)
+    update.download_and_install(|progress, total| {
+        // Report progress to UI
+        let _ = app.emit("update-progress", (progress, total));
+    }, || {
+        // Restart callback
+        log::info!("Update installed, restarting...");
+    }).await.map_err(|e| e.to_string())?;
+
     Ok(())
 }
 ```
 
---## 9. Performance Patterns
+### 3.3 WHEN implementing custom update server response
 
-## 9. Performance Patterns
+```json
+// Update server response format
+{
+  "version": "2.1.0",
+  "notes": "Bug fixes and performance improvements",
+  "pub_date": "2024-01-15T12:00:00Z",
+  "platforms": {
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9...",
+      "url": "https://releases.myapp.com/v2.1.0/myapp-2.1.0-x86_64.dmg"
+    },
+    "darwin-aarch64": {
+      "signature": "...",
+      "url": "https://releases.myapp.com/v2.1.0/myapp-2.1.0-aarch64.dmg"
+    },
+    "windows-x86_64": {
+      "signature": "...",
+      "url": "https://releases.myapp.com/v2.1.0/myapp-2.1.0-x64-setup.exe"
+    },
+    "linux-x86_64": {
+      "signature": "...",
+      "url": "https://releases.myapp.com/v2.1.0/myapp-2.1.0-x86_64.AppImage"
+    }
+  }
+}
+```
 
-📚 **For complete details**: See `references/performance-patterns.md`
+### 3.4 WHEN implementing staged rollout
+
+```rust
+use rand::Rng;
+use sha2::{Sha256, Digest};
+
+struct StagedRollout {
+    percentage: u8,  // 0-100
+    salt: String,
+}
+
+impl StagedRollout {
+    /// Deterministic rollout based on installation ID
+    fn should_update(&self, installation_id: &str) -> bool {
+        // Hash installation ID with salt for consistent result
+        let mut hasher = Sha256::new();
+        hasher.update(installation_id.as_bytes());
+        hasher.update(self.salt.as_bytes());
+        let hash = hasher.finalize();
+
+        // Use first byte as rollout percentage check
+        let value = hash[0] as u8;
+        value < (self.percentage as u16 * 255 / 100) as u8
+    }
+}
+
+// Server-side: include rollout in response
+#[derive(Serialize)]
+struct UpdateResponse {
+    version: String,
+    url: String,
+    signature: String,
+    rollout: Option<StagedRollout>,
+}
+
+// Client-side: check rollout before offering update
+async fn check_update_with_rollout(
+    installation_id: &str,
+) -> Result<Option<UpdateInfo>, Error> {
+    let response = fetch_update_info().await?;
+
+    if let Some(rollout) = &response.rollout {
+        if !rollout.should_update(installation_id) {
+            log::info!("Update {} not in rollout group", response.version);
+            return Ok(None);
+        }
+    }
+
+    Ok(Some(response.into()))
+}
+```
+
+### 3.5 WHEN generating update signing keys
+
+```bash
+# Generate Ed25519 key pair for signing updates
+# Use tauri CLI for proper format
+
+# Generate keys (run ONCE, store private key securely)
+tauri signer generate -w ~/.tauri/myapp.key
+
+# Output:
+# Private key: ~/.tauri/myapp.key (KEEP SECRET, use in CI only)
+# Public key: dW50cnVzdGVkIGNvbW1lbnQ6... (embed in tauri.conf.json)
+
+# Sign update artifact in CI
+export TAURI_SIGNING_PRIVATE_KEY=$(cat ~/.tauri/myapp.key)
+tauri build
+
+# Or sign manually
+tauri signer sign -k ~/.tauri/myapp.key target/release/bundle/msi/myapp.msi
+```
+
+### 3.6 WHEN implementing update in CI/CD
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            target: aarch64-apple-darwin
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and sign
+        env:
+          # Private key from GitHub Secrets
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
+        run: |
+          npm ci
+          npm run tauri build -- --target ${{ matrix.target }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.target }}
+          path: |
+            target/${{ matrix.target }}/release/bundle/**/*.dmg
+            target/${{ matrix.target }}/release/bundle/**/*.exe
+            target/${{ matrix.target }}/release/bundle/**/*.AppImage
+            target/${{ matrix.target }}/release/bundle/**/*.sig
+```
 
 ---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Install updates without signature verification
+- Use HTTP for update downloads
+- Allow downgrade attacks (always compare versions)
+- Store private signing keys in client code
+- Skip rollback mechanism
+- Trust user-provided update URLs
+- Expose detailed update errors to users
+
+---
+
+## 5. Testing
+
+**ALWAYS write update security tests:**
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_signature_verification_rejects_invalid() {
+        let valid_binary = include_bytes!("../fixtures/valid_update.bin");
+        let invalid_sig = &[0u8; 64];
+
+        let result = verify_signature(valid_binary, invalid_sig);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_signature_verification_accepts_valid() {
+        let valid_binary = include_bytes!("../fixtures/valid_update.bin");
+        let valid_sig = include_bytes!("../fixtures/valid_update.sig");
+
+        let result = verify_signature(valid_binary, valid_sig);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_downgrade_prevention() {
+        assert!(!should_update("1.0.0").unwrap());  // Current is 2.0.0
+        assert!(should_update("2.1.0").unwrap());
+        assert!(should_update("3.0.0").unwrap());
+    }
+
+    #[test]
+    fn test_staged_rollout_deterministic() {
+        let rollout = StagedRollout {
+            percentage: 50,
+            salt: "test-salt".into(),
+        };
+
+        // Same ID should always get same result
+        let id = "user-123";
+        let result1 = rollout.should_update(id);
+        let result2 = rollout.should_update(id);
+        assert_eq!(result1, result2);
+    }
+
+    #[test]
+    fn test_rollback_on_failure() {
+        // Simulate update failure and verify rollback works
+    }
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any auto-update code:**
+
+- [ ] Ed25519 signature verification implemented
+- [ ] Public key embedded, private key in CI secrets only
+- [ ] HTTPS-only with TLS 1.2+ minimum
+- [ ] Semantic version comparison (no downgrades)
+- [ ] Rollback mechanism with backup
+- [ ] Staged rollout support considered
+- [ ] Update errors logged internally, generic to user
+- [ ] CI/CD signs artifacts with protected secret
+- [ ] Certificate pinning for update server
+- [ ] Installation verification after update

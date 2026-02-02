@@ -1,0 +1,281 @@
+# Node Failure Investigation Plan
+# Full-stack node troubleshooting from hardware to Kubernetes
+
+name: "node-failure"
+triggers:
+  - "Node in NotReady state"
+  - "Node in Unknown state"
+  - "Node conditions: DiskPressure, MemoryPressure, PIDPressure"
+  - "Node NetworkUnavailable"
+  - "etcd member unhealthy (control plane nodes)"
+
+investigation_phases:
+  phase_1_kubernetes_layer:
+    description: "Check node status from Kubernetes perspective"
+    commands:
+      - cmd: "kubectl get nodes -o wide"
+        purpose: "Cluster-wide node status"
+      
+      - cmd: "kubectl describe node {node}"
+        purpose: "CRITICAL: Node conditions, capacity, taints, events"
+      
+      - cmd: "kubectl top node {node}"
+        purpose: "Current resource usage"
+      
+      - cmd: "kubectl get pods --field-selector spec.nodeName={node} -A"
+        purpose: "All pods running on this node"
+      
+      - cmd: "kubectl get events --field-selector involvedObject.kind=Node,involvedObject.name={node}"
+        purpose: "Node-specific events"
+    
+    analysis:
+      - check_conditions:
+          - "Ready=False": "Node kubelet not posting status"
+          - "DiskPressure=True": "Disk space critical"
+          - "MemoryPressure=True": "Memory exhausted"
+          - "PIDPressure=True": "Too many processes"
+          - "NetworkUnavailable=True": "CNI problem"
+
+  phase_2_talos_health:
+    description: "Talos OS layer diagnostics"
+    commands:
+      - cmd: "talosctl health --nodes {node}"
+        purpose: "Talos health check (apid, etcd, kubelet)"
+      
+      - cmd: "talosctl version --nodes {node}"
+        purpose: "Talos version and kernel"
+      
+      - cmd: "talosctl get members --nodes {node}"
+        purpose: "Cluster membership status"
+      
+      - cmd: "talosctl get machineconfig -o yaml --nodes {node}"
+        purpose: "Machine configuration"
+    
+    analysis:
+      - if_unresponsive:
+          root_cause: "Node completely down or network unreachable"
+          next_steps: ["check_physical_connectivity", "check_power"]
+
+  phase_3_system_logs:
+    description: "Examine Talos system logs for errors"
+    commands:
+      - cmd: "talosctl logs kubelet --nodes {node} --tail=100"
+        purpose: "Kubelet logs (pod scheduling, CNI issues)"
+      
+      - cmd: "talosctl logs kernel --nodes {node} | grep -i 'error|fail|oom|panic'"
+        purpose: "Kernel errors, OOM kills, panics"
+      
+      - cmd: "talosctl logs containerd --nodes {node} --tail=50"
+        purpose: "Container runtime issues"
+      
+      - cmd: "talosctl logs apid --nodes {node} --tail=50"
+        purpose: "Talos API server logs"
+    
+    analysis:
+      - check_for_patterns:
+          - "OOM": "Out of memory condition"
+          - "disk I/O error": "Hardware disk failure"
+          - "CGROUP": "Resource control issues"
+
+  phase_4_resource_inspection:
+    description: "Deep dive into node resources"
+    commands:
+      - cmd: "talosctl read /proc/meminfo --nodes {node}"
+        purpose: "Detailed memory breakdown"
+      
+      - cmd: "talosctl read /proc/loadavg --nodes {node}"
+        purpose: "System load average"
+      
+      - cmd: "talosctl read /proc/diskstats --nodes {node}"
+        purpose: "Disk I/O statistics"
+      
+      - cmd: "talosctl read /proc/mounts --nodes {node}"
+        purpose: "Mounted filesystems"
+      
+      - cmd: "talosctl read /sys/class/net/*/statistics/* --nodes {node}"
+        purpose: "Network interface stats"
+    
+    analysis:
+      - if_disk_full:
+          actions:
+            - "Check ephemeral-storage usage"
+            - "Clean up unused container images"
+            - "Check Longhorn disk usage"
+      - if_memory_exhausted:
+          actions:
+            - "Identify memory-intensive pods"
+            - "Check for memory leaks"
+            - "Evict non-critical pods"
+
+  phase_5_cilium_cni:
+    description: "Cilium network plugin health on node"
+    commands:
+      - cmd: "cilium status --nodes {node}"
+        purpose: "Cilium agent health on this node"
+      
+      - cmd: "kubectl get pods -n kube-system -l k8s-app=cilium --field-selector spec.nodeName={node}"
+        purpose: "Cilium pod on this node"
+      
+      - cmd: "kubectl logs -n kube-system -l k8s-app=cilium --field-selector spec.nodeName={node} --tail=100"
+        purpose: "Cilium agent logs"
+      
+      - cmd: "cilium endpoint list | grep {node}"
+        purpose: "Endpoints on this node"
+      
+      - cmd: "hubble observe --node {node} --last 100"
+        purpose: "Network flows from this node"
+    
+    analysis:
+      - if_cilium_down:
+          root_cause: "CNI failure - pods cannot network"
+          immediate_action: "Restart cilium agent pod"
+
+  phase_6_longhorn_storage:
+    description: "Longhorn storage node health"
+    commands:
+      - cmd: "kubectl get nodes.longhorn.io {node} -n longhorn-system -o yaml"
+        purpose: "Longhorn node status"
+      
+      - cmd: "kubectl get replicas -n longhorn-system --field-selector spec.nodeName={node}"
+        purpose: "Volume replicas on this node"
+      
+      - cmd: "kubectl get pods -n longhorn-system --field-selector spec.nodeName={node}"
+        purpose: "Longhorn components on this node"
+      
+      - cmd: "talosctl read /var/lib/longhorn --nodes {node}"
+        purpose: "Longhorn data directory status"
+    
+    analysis:
+      - if_disk_pressure_affects_longhorn:
+          impact: "Volume replicas may be degraded"
+          action: "Free up disk space or migrate replicas"
+
+  phase_7_etcd_control_plane:
+    description: "etcd health (for control plane nodes only)"
+    condition: "is_control_plane_node"
+    commands:
+      - cmd: "talosctl etcd status --nodes {node}"
+        purpose: "etcd member health"
+      
+      - cmd: "talosctl etcd members --nodes {node}"
+        purpose: "etcd cluster membership"
+      
+      - cmd: "talosctl logs etcd --nodes {node} --tail=100"
+        purpose: "etcd logs"
+      
+      - cmd: "kubectl get --raw /metrics | grep etcd_server_leader_changes_seen_total"
+        purpose: "etcd leader election stability"
+    
+    analysis:
+      - if_etcd_unhealthy:
+          severity: "CRITICAL"
+          impact: "Cluster control plane degraded"
+          actions:
+            - "Check disk latency (etcd is disk-sensitive)"
+            - "Verify network connectivity to other control plane nodes"
+            - "Check if etcd member needs to be removed and re-added"
+
+  phase_8_security_events:
+    description: "Check for security-related node issues"
+    commands:
+      - cmd: "kubectl logs -n falco -l app=falco | grep {node}"
+        purpose: "Falco alerts for this node"
+      
+      - cmd: "kubectl exec -n kube-system ds/tetragon -c tetragon -- tetra getevents --node {node} --since 1h"
+        purpose: "Tetragon process events on node"
+      
+      - cmd: "kubectl get vulnerabilityreports -A | grep {node}"
+        purpose: "Trivy vulnerability reports"
+    
+    analysis:
+      - if_security_incident:
+          action: "Isolate node, investigate, potentially drain and reset"
+
+  phase_9_metrics_correlation:
+    description: "VictoriaMetrics time-series analysis"
+    commands:
+      - cmd: "VictoriaMetrics: node_memory_MemAvailable_bytes{{node='{node}'}}"
+        purpose: "Memory availability trend"
+      
+      - cmd: "VictoriaMetrics: node_filesystem_avail_bytes{{node='{node}'}}"
+        purpose: "Disk space trend"
+      
+      - cmd: "VictoriaMetrics: node_disk_io_time_seconds_total{{node='{node}'}}"
+        purpose: "Disk I/O performance"
+      
+      - cmd: "VictoriaMetrics: node_network_receive_errs_total{{node='{node}'}}"
+        purpose: "Network errors"
+      
+      - cmd: "VictoriaMetrics: kubelet_running_pods{{node='{node}'}}"
+        purpose: "Pod count trend"
+      
+      - cmd: "VictoriaMetrics: rate(node_cpu_seconds_total{{mode='iowait',node='{node}'}}[5m])"
+        purpose: "I/O wait time (disk contention)"
+    
+    analysis:
+      - trending_disk_full:
+          root_cause: "Disk space exhaustion imminent"
+          action: "Clean up or add storage"
+      - high_iowait:
+          root_cause: "Disk I/O bottleneck"
+          action: "Investigate disk-heavy workloads, consider SSD upgrade"
+
+remediation_decision_tree:
+  node_not_ready_kubelet_down:
+    risk: "high"
+    snapshot: true
+    snapshot_components: ["node-state", "running-pods"]
+    actions:
+      - "kubectl drain {node} --ignore-daemonsets"
+      - "talosctl reboot --nodes {node}"
+      - "Wait for node to rejoin cluster"
+      - "kubectl uncordon {node}"
+  
+  disk_pressure:
+    risk: "medium"
+    snapshot: false
+    actions:
+      - "talosctl read /var/log --nodes {node} | head (check log size)"
+      - "kubectl exec containerd cleanup on node"
+      - "Free up Longhorn replica space"
+      - "Expand disk if possible"
+  
+  memory_pressure:
+    risk: "high"
+    snapshot: true
+    actions:
+      - "Identify top memory-consuming pods"
+      - "Evict non-critical pods"
+      - "Add memory to node if possible"
+  
+  etcd_member_unhealthy:
+    risk: "emergency"
+    snapshot: true
+    snapshot_components: ["etcd-full", "machine-config"]
+    actions:
+      - "Verify network connectivity to other control plane nodes"
+      - "Check disk latency"
+      - "If unrecoverable: remove member and re-add"
+  
+  cilium_agent_crashed:
+    risk: "high"
+    snapshot: false
+    immediate_action: "kubectl delete pod {cilium-pod} -n kube-system"
+
+output_format:
+  summary:
+    - "Node: {node}"
+    - "Status: {status}"
+    - "Root cause: {diagnosis}"
+    - "Affected workloads: {pod_count} pods"
+  
+  impact_assessment:
+    - "Control plane impact: {yes/no}"
+    - "Workload availability: {percentage}% of pods healthy"
+    - "Storage impact: {longhorn_volumes_affected}"
+  
+  remediation_proposal:
+    - "Recommended action: {action}"
+    - "Risk level: {risk}"
+    - "Requires drain: {yes/no}"
+    - "Estimated downtime: {duration}"

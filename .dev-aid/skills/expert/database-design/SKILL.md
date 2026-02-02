@@ -1,458 +1,458 @@
 ---
-name: Database Design Expert
+name: database-design
+version: 2.0.0
+description: "Database schema design with normalization, indexing strategies, full-text search, and migration patterns."
 risk_level: HIGH
-description: Expert in database schema design with focus on normalization, indexing strategies, FTS optimization, and performance-oriented architecture for desktop applications
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [database, schema, design, normalization, indexing, fts, performance]
-model: claude-sonnet-4-5-20250929
 ---
 
-# Database Design Expert
-
-## 0. Mandatory Reading Protocol
-
-**CRITICAL**: Before implementing ANY database schema, you MUST read the relevant reference files:
-
-### Trigger Conditions for Reference Files
-
-**Read `references/advanced-patterns.md` WHEN**:
-- Designing schemas for new features
-- Implementing complex relationships (many-to-many, polymorphic)
-- Setting up inheritance patterns
-- Designing for high-performance queries
-
-**Read `references/security-examples.md` WHEN**:
-- Storing sensitive user data
-- Designing audit trails
-- Implementing access control at database level
-- Handling PII or financial data
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Database Design Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: SQL injection via quoting bypass, Second-order SQL injection, Blind SQL injection
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-89: SQL Injection**
+- NEVER: String concatenation in queries
+- ALWAYS: Parameterized queries, ORM methods, prepared statements
 
-### 0.2 Vulnerability Research Protocol
+**CWE-312: Cleartext Storage of Sensitive Data**
+- NEVER: Store passwords, tokens, PII in plaintext
+- ALWAYS: Hash passwords (bcrypt/argon2), encrypt PII, use column encryption
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-732: Insecure Permissions**
+- NEVER: Application user with admin/superuser privileges
+- ALWAYS: Principle of least privilege, separate read/write users
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-209: Error Message Information Leak**
+- NEVER: Return database errors to client
+- ALWAYS: Log details server-side, return generic error to client
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: HIGH
 
-   - **CVE-2025-1094** (CVSS 8.1): PostgreSQL SQL injection via PQescapeLiteral() quoting bypass
-     Source: https://www.rapid7.com/blog/post/2025/02/13/cve-2025-1094-postgresql-psql-sql-injection-fixed/
-   - **CVE-2024-1597** (CVSS 8.0): SQL injection in PostgreSQL JDBC driver
-     Source: https://www.sangfor.com/farsight-labs-threat-intelligence/cybersecurity/cve-2024-1597-sql-injection-vulnerability
-   - **CVE-2024-21096** (CVSS 7.5): MySQL similar SQL injection vulnerability
-     Source: https://www.armosec.io/blog/cve-2025-1094-postgresql-sql-injection-vulnerability/
-
-**Step 3: Common Attack Patterns**
-
-   - SQL injection via quoting bypass
-   - Second-order SQL injection
-   - Blind SQL injection
-   - Time-based SQL injection
-   - Boolean-based SQL injection
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER concatenate user input into SQL queries
-- ❌ NEVER trust ORM frameworks alone for injection protection
-- ❌ NEVER use string escaping for SQL injection prevention
-- ❌ ALWAYS use parameterized queries/prepared statements
-- ❌ ALWAYS validate input before database operations
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level: MEDIUM**
-
-**Justification**: Database schema design impacts data integrity, query performance, and application security. Poor design can lead to data corruption, performance bottlenecks, and difficulty in maintaining data consistency. Schema changes in production require careful migration planning.
-
-You are an expert in database schema design, specializing in:
-- **Normalization** with appropriate denormalization for performance
-- **Indexing strategies** for query optimization
-- **Full-Text Search (FTS5)** schema design
-- **Constraint design** for data integrity
-- **Migration-friendly schemas** that evolve safely
-
-### Core Principles
-
-1. **TDD First** - Write tests for schema and queries before implementation
-2. **Performance Aware** - Design for query patterns, optimize indexes, profile regularly
-3. **Normalize then denormalize** - Start with 3NF, denormalize based on measured needs
-4. **Constraint everything** - Use database constraints as the last line of defense
-5. **Migration safety** - All schema changes must be reversible and tested
-
-### Primary Use Cases
-- Desktop application data modeling
-- Local-first application architecture
-- Efficient search and retrieval patterns
-- Audit and history tracking
-- Configuration and settings storage
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### 2.1 Data Integrity Principles
+### 1.1 SQL Injection Prevention (CWE-89)
 
-1. **Normalize to eliminate redundancy** - Then denormalize strategically for performance
-2. **Use appropriate constraints** - Primary keys, foreign keys, unique, check constraints
-3. **Design for referential integrity** - Foreign keys with appropriate cascade rules
-4. **Plan for schema evolution** - Design migrations that preserve data
-
-### 2.2 Performance Design Principles
-
-1. **Index for your queries** - Analyze query patterns before indexing
-2. **Avoid over-indexing** - Each index slows writes
-3. **Use covering indexes** - Include columns in index to avoid table lookups
-4. **Design for locality** - Keep related data together
-
----
-
-## 3. Technical Foundation
-
-### 3.1 SQLite Data Types
-
-| SQLite Type | Use For | Notes |
-|-------------|---------|-------|
-| INTEGER | IDs, counts, booleans | PRIMARY KEY for auto-increment |
-| TEXT | Strings, JSON, UUIDs | No length limit |
-| REAL | Floating point | 8-byte IEEE float |
-| BLOB | Binary data | Files, encrypted data |
-| NUMERIC | Dates, decimals | Stored as most efficient type |
-
-### 3.2 Normalization Levels
-
-| Form | Description | When to Use |
-|------|-------------|-------------|
-| 1NF | Atomic values, no repeating groups | Always |
-| 2NF | 1NF + no partial dependencies | Most tables |
-| 3NF | 2NF + no transitive dependencies | Default choice |
-| BCNF | 3NF + every determinant is a key | Complex relationships |
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-CREATE INDEX idx_entities_status ON entities(status) WHERE deleted_at IS NULL;
-```
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Security Standards
-
-### 5.1 Data Integrity Controls
+**Principle:** Never concatenate user input into SQL. Always use parameterized queries.
 
 ```sql
--- Numeric, string format, and enum constraints
+-- ❌ WRONG - String concatenation
+EXECUTE 'SELECT * FROM users WHERE name = ''' || user_input || '''';
+
+-- ❌ WRONG - Format strings
+cursor.execute(f"SELECT * FROM users WHERE name = '{name}'")
+
+-- ✅ CORRECT - Parameterized queries
+-- PostgreSQL
+SELECT * FROM users WHERE name = $1;
+
+-- MySQL
+SELECT * FROM users WHERE name = ?;
+
+-- Python
+cursor.execute("SELECT * FROM users WHERE name = %s", (name,))
+```
+
+### 1.2 Data Validation at Schema Level (CWE-20)
+
+**Principle:** Enforce constraints in the database. Don't rely solely on application validation.
+
+```sql
+-- ❌ WRONG - No constraints
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY,
-    email TEXT UNIQUE NOT NULL CHECK(email LIKE '%_@__%.__%'),
-    phone TEXT CHECK(phone IS NULL OR phone GLOB '+[0-9]*'),
-    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'active', 'deleted'))
+    email TEXT,
+    age INTEGER,
+    status TEXT
 );
 
--- Date range validation
-CREATE TABLE events (
-    id INTEGER PRIMARY KEY, start_date TEXT NOT NULL, end_date TEXT NOT NULL,
-    CHECK(end_date >= start_date)
+-- ✅ CORRECT - Constraints enforced
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE
+        CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    age INTEGER CHECK (age >= 0 AND age <= 150),
+    status TEXT NOT NULL DEFAULT 'active'
+        CHECK (status IN ('active', 'inactive', 'pending')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
-### 5.2 Soft Delete Pattern
+### 1.3 Secrets ≠ Code (CWE-798)
+
+**Principle:** Connection strings from environment. Never hardcode credentials.
+
+### 1.4 Least Privilege (CWE-250)
+
+**Principle:** Application user gets minimum permissions. Never use superuser.
 
 ```sql
-CREATE TABLE documents (id INTEGER PRIMARY KEY, title TEXT NOT NULL, deleted_at TEXT);
-CREATE VIEW active_documents AS SELECT * FROM documents WHERE deleted_at IS NULL;
-CREATE INDEX idx_documents_active ON documents(title) WHERE deleted_at IS NULL;
+-- ❌ WRONG - Application uses superuser
+GRANT ALL ON ALL TABLES TO app_user;
+
+-- ✅ CORRECT - Minimum required permissions
+CREATE ROLE app_readonly;
+GRANT SELECT ON users, orders, products TO app_readonly;
+
+CREATE ROLE app_writer;
+GRANT SELECT, INSERT, UPDATE ON users, orders TO app_writer;
+GRANT SELECT ON products TO app_writer;
+
+-- No DELETE, no TRUNCATE, no DDL
+```
+
+### 1.5 Fail Secure (CWE-636)
+
+**Principle:** Transactions fail completely or succeed completely.
+
+### 1.6 Defense in Depth
+
+**Principle:** Application validation + database constraints + row-level security.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```
+PostgreSQL >= 15.0
+MySQL >= 8.0
+SQLite >= 3.44.0 (for JSON and FTS5)
 ```
 
 ---
 
-## 7. Indexing Strategies
+## 3. Code Patterns
+
+### 3.1 WHEN designing normalized schema
 
 ```sql
--- Single column for equality/range | Composite (equality first, then range)
-CREATE INDEX idx_users_email ON users(email);
+-- Users table
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE
+        CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+    password_hash TEXT NOT NULL,  -- Never store plaintext!
+    name TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 100),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Organizations (1:N with users)
+CREATE TABLE organizations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL CHECK (length(name) BETWEEN 1 AND 200),
+    slug TEXT NOT NULL UNIQUE CHECK (slug ~* '^[a-z0-9-]+$'),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Organization membership (N:N)
+CREATE TABLE organization_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member')),
+    joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (organization_id, user_id)
+);
+
+-- Index for common queries
+CREATE INDEX idx_org_members_user ON organization_members(user_id);
+CREATE INDEX idx_org_members_org ON organization_members(organization_id);
+```
+
+### 3.2 WHEN implementing soft deletes
+
+```sql
+-- Add soft delete columns
+ALTER TABLE users ADD COLUMN deleted_at TIMESTAMPTZ;
+
+-- Create view for active records
+CREATE VIEW active_users AS
+SELECT * FROM users WHERE deleted_at IS NULL;
+
+-- Partial index for efficient queries
+CREATE INDEX idx_users_active ON users(id) WHERE deleted_at IS NULL;
+
+-- Soft delete function
+CREATE OR REPLACE FUNCTION soft_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.deleted_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Application query pattern
+SELECT * FROM users
+WHERE deleted_at IS NULL
+  AND id = $1;
+
+-- Soft delete instead of DELETE
+UPDATE users SET deleted_at = NOW() WHERE id = $1;
+```
+
+### 3.3 WHEN implementing full-text search
+
+```sql
+-- PostgreSQL FTS
+ALTER TABLE articles ADD COLUMN search_vector tsvector;
+
+-- Update search vector on insert/update
+CREATE OR REPLACE FUNCTION update_search_vector()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.search_vector = to_tsvector('english',
+        coalesce(NEW.title, '') || ' ' ||
+        coalesce(NEW.body, '')
+    );
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER articles_search_update
+    BEFORE INSERT OR UPDATE ON articles
+    FOR EACH ROW EXECUTE FUNCTION update_search_vector();
+
+-- GIN index for fast search
+CREATE INDEX idx_articles_search ON articles USING GIN(search_vector);
+
+-- Search query
+SELECT id, title,
+       ts_rank(search_vector, query) AS rank
+FROM articles,
+     to_tsquery('english', $1) query
+WHERE search_vector @@ query
+ORDER BY rank DESC
+LIMIT 20;
+```
+
+### 3.4 WHEN implementing audit logging
+
+```sql
+-- Audit log table
+CREATE TABLE audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    table_name TEXT NOT NULL,
+    record_id UUID NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('INSERT', 'UPDATE', 'DELETE')),
+    old_data JSONB,
+    new_data JSONB,
+    user_id UUID,
+    ip_address INET,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Partition by month for performance
+CREATE TABLE audit_log_y2024m01 PARTITION OF audit_log
+    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+
+-- Generic audit trigger
+CREATE OR REPLACE FUNCTION audit_trigger()
+RETURNS TRIGGER AS $$
+DECLARE
+    old_data JSONB;
+    new_data JSONB;
+BEGIN
+    IF TG_OP = 'DELETE' THEN
+        old_data = to_jsonb(OLD);
+        new_data = NULL;
+    ELSIF TG_OP = 'UPDATE' THEN
+        old_data = to_jsonb(OLD);
+        new_data = to_jsonb(NEW);
+    ELSIF TG_OP = 'INSERT' THEN
+        old_data = NULL;
+        new_data = to_jsonb(NEW);
+    END IF;
+
+    INSERT INTO audit_log (table_name, record_id, action, old_data, new_data, user_id)
+    VALUES (TG_TABLE_NAME, COALESCE(NEW.id, OLD.id), TG_OP, old_data, new_data,
+            current_setting('app.current_user_id', true)::UUID);
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Apply to tables
+CREATE TRIGGER audit_users
+    AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger();
+```
+
+### 3.5 WHEN implementing row-level security
+
+```sql
+-- Enable RLS
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
+
+-- Policy: users can only see their own documents
+CREATE POLICY documents_select ON documents
+    FOR SELECT
+    USING (owner_id = current_setting('app.current_user_id')::UUID);
+
+-- Policy: users can only update their own documents
+CREATE POLICY documents_update ON documents
+    FOR UPDATE
+    USING (owner_id = current_setting('app.current_user_id')::UUID)
+    WITH CHECK (owner_id = current_setting('app.current_user_id')::UUID);
+
+-- Policy: admins can see all documents
+CREATE POLICY documents_admin ON documents
+    FOR ALL
+    USING (current_setting('app.current_role') = 'admin');
+
+-- Set user context before queries (in application)
+SELECT set_config('app.current_user_id', $1::TEXT, true);
+SELECT set_config('app.current_role', $2, true);
+```
+
+### 3.6 WHEN designing for performance
+
+```sql
+-- Proper indexing
 CREATE INDEX idx_orders_user_date ON orders(user_id, created_at DESC);
+CREATE INDEX idx_orders_status ON orders(status) WHERE status = 'pending';
 
--- Covering index (avoid table lookup) | Partial index (filtered queries)
-CREATE INDEX idx_users_cover ON users(email, name, status);
-CREATE INDEX idx_active_users ON users(email) WHERE status = 'active';
+-- Covering index (includes all needed columns)
+CREATE INDEX idx_users_email_name ON users(email) INCLUDE (name);
 
--- Expression index | Always verify with EXPLAIN
-CREATE INDEX idx_users_lower ON users(LOWER(email));
-EXPLAIN QUERY PLAN SELECT * FROM users WHERE email = ?;
+-- Composite index for common filters
+CREATE INDEX idx_products_category_price ON products(category_id, price)
+    WHERE deleted_at IS NULL;
+
+-- Use EXPLAIN ANALYZE
+EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)
+SELECT * FROM orders
+WHERE user_id = $1 AND created_at > NOW() - INTERVAL '30 days';
+```
+
+### 3.7 WHEN implementing migrations
+
+```sql
+-- Migration: 001_create_users.sql
+-- Up
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Down
+DROP TABLE users;
+
+-- Migration: 002_add_user_name.sql
+-- Up
+ALTER TABLE users ADD COLUMN name TEXT;
+
+-- Backfill with default
+UPDATE users SET name = split_part(email, '@', 1) WHERE name IS NULL;
+
+-- Add constraint after backfill
+ALTER TABLE users ALTER COLUMN name SET NOT NULL;
+ALTER TABLE users ADD CONSTRAINT users_name_length CHECK (length(name) BETWEEN 1 AND 100);
+
+-- Down
+ALTER TABLE users DROP CONSTRAINT users_name_length;
+ALTER TABLE users DROP COLUMN name;
 ```
 
 ---
 
-## 8. Implementation Workflow (TDD)
+## 4. Anti-Patterns
 
-### Step 1: Write Failing Tests First
+**NEVER:**
+- Concatenate user input into SQL strings
+- Store passwords in plaintext
+- Use database superuser for application
+- Skip foreign key constraints
+- Create tables without primary keys
+- Store sensitive data without encryption
+- Skip database-level validation
+- Use SELECT * in production code
+
+---
+
+## 5. Testing
+
+**ALWAYS write database tests:**
 
 ```python
-# tests/test_schema.py
 import pytest
-import sqlite3
+from sqlalchemy import create_engine, text
 
 @pytest.fixture
 def db():
-    conn = sqlite3.connect(':memory:')
-    conn.execute("PRAGMA foreign_keys = ON")
-    yield conn
-    conn.close()
+    engine = create_engine("postgresql://test@localhost/test_db")
+    with engine.connect() as conn:
+        conn.execute(text("BEGIN"))
+        yield conn
+        conn.execute(text("ROLLBACK"))
 
-class TestUserSchema:
-    def test_email_uniqueness(self, db):
-        db.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT UNIQUE NOT NULL)")
-        db.execute("INSERT INTO users (email) VALUES ('test@example.com')")
-        with pytest.raises(sqlite3.IntegrityError):
-            db.execute("INSERT INTO users (email) VALUES ('test@example.com')")
+def test_email_constraint(db):
+    """Verify email format is enforced."""
+    with pytest.raises(Exception) as exc:
+        db.execute(text(
+            "INSERT INTO users (email, name) VALUES ('invalid', 'Test')"
+        ))
+    assert "violates check constraint" in str(exc.value)
 
-    def test_email_format_constraint(self, db):
-        db.execute("""CREATE TABLE users (
-            id INTEGER PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL CHECK(email LIKE '%_@__%.__%'))""")
-        with pytest.raises(sqlite3.IntegrityError):
-            db.execute("INSERT INTO users (email) VALUES ('invalid')")
+def test_unique_email(db):
+    """Verify email uniqueness."""
+    db.execute(text(
+        "INSERT INTO users (email, name) VALUES ('test@example.com', 'Test')"
+    ))
+    with pytest.raises(Exception) as exc:
+        db.execute(text(
+            "INSERT INTO users (email, name) VALUES ('test@example.com', 'Test2')"
+        ))
+    assert "unique" in str(exc.value).lower()
 
-    def test_index_used_for_lookup(self, db):
-        db.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT)")
-        db.execute("CREATE INDEX idx_users_email ON users(email)")
-        plan = db.execute("EXPLAIN QUERY PLAN SELECT * FROM users WHERE email = ?", ('test@example.com',)).fetchone()
-        assert 'USING INDEX' in plan[3]
+def test_cascade_delete(db):
+    """Verify cascade delete works."""
+    db.execute(text(
+        "INSERT INTO organizations (id, name, slug) VALUES ('org-1', 'Org', 'org')"
+    ))
+    db.execute(text(
+        "INSERT INTO organization_members (organization_id, user_id) "
+        "VALUES ('org-1', 'user-1')"
+    ))
+
+    db.execute(text("DELETE FROM organizations WHERE id = 'org-1'"))
+
+    result = db.execute(text(
+        "SELECT COUNT(*) FROM organization_members WHERE organization_id = 'org-1'"
+    ))
+    assert result.scalar() == 0
 ```
-
-### Step 2: Implement Schema to Pass Tests
-
-```python
-# src/database/schema.py
-SCHEMA_SQL = """
-CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL CHECK(email LIKE '%_@__%.__%'),
-    name TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-"""
-
-def init_schema(conn):
-    """Initialize database schema."""
-    conn.executescript(SCHEMA_SQL)
-    conn.commit()
-```
-
-### Step 3: Run Tests and Verify
-
-```bash
-# Run schema tests
-pytest tests/test_schema.py -v
-
-# Run with coverage
-pytest tests/test_schema.py --cov=src/database --cov-report=term-missing
-```
-
-### Step 4: Test Migrations
-
-```python
-# tests/test_migrations.py
-def test_migration_adds_column(db):
-    """Migration should add new column without data loss."""
-    # Setup: create old schema with data
-    db.execute("CREATE TABLE users (id INTEGER PRIMARY KEY, email TEXT)")
-    db.execute("INSERT INTO users (email) VALUES ('test@example.com')")
-
-    # Run migration
-    db.execute("ALTER TABLE users ADD COLUMN name TEXT DEFAULT 'Unknown'")
-
-    # Verify: data preserved, new column exists
-    row = db.execute("SELECT id, email, name FROM users").fetchone()
-    assert r## 8. Implementation Workflow (TDD)
-
-@pytest.fixture
-def db():
-    conn = sqlite3.connect(':memory:')
-    conn.execute("PRAGMA foreign_keys = ON")
-    yield conn
-    conn.close()
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-on Mistakes & Anti-Patterns
-
-| Mistake | Bad | Good |
-|---------|-----|------|
-| Over-normalization | Separate tables for first_name, last_name | Store directly in users table |
-| Missing FK | `user_id INTEGER` (no FK) | `user_id INTEGER REFERENCES users(id)` |
-| Wrong index order | `INDEX(created_at, user_id)` for `WHERE user_id=? AND created_at>?` | `INDEX(user_id, created_at)` |
-| CSV in column | `tags TEXT -- "a,b,c"` | Junction table with proper FK |
 
 ---
 
-## 11. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Phase 1: Before Writing Code
-- [ ] Query patterns identified and documented
-- [ ] Performance requirements defined (latency, throughput)
-- [ ] Data volume estimates calculated
-- [ ] Test fixtures designed for schema validation
-- [ ] Migration strategy planned (if modifying existing schema)
-- [ ] Reference files read (`references/advanced-patterns.md`, `references/security-examples.md`)
+**BEFORE generating any database code:**
 
-### Phase 2: During Implementation
-- [ ] All tables have PRIMARY KEY
-- [ ] Foreign keys defined for all relationships
-- [ ] Appropriate ON DELETE actions (CASCADE, RESTRICT, SET NULL)
+- [ ] All tables have primary keys (prefer UUID)
+- [ ] Foreign keys with appropriate ON DELETE behavior
 - [ ] CHECK constraints for data validation
-- [ ] UNIQUE constraints where needed
-- [ ] NOT NULL for required fields
-- [ ] Indexes created for all foreign keys
-- [ ] Composite indexes with correct column order (equality before range)
-- [ ] FTS5 tables with sync triggers if needed
-- [ ] Tests written and passing for constraints
-
-### Phase 3: Before Committing
-- [ ] `pytest tests/test_schema.py -v` passes
-- [ ] EXPLAIN QUERY PLAN verified for critical queries
-- [ ] No redundant indexes
-- [ ] Migrations tested with rollback
-- [ ] No data loss in migrations
-- [ ] Performance benchmarks meet requirements
-- [ ] Schema version tracked
-
----
-
-## 12. Summary
-
-Your goal is to create database schemas that are:
-
-- **Normalized**: Eliminate redundancy while allowing strategic denormalization
-- **Performant**: Proper indexing, covering indexes, efficient query patterns
-- **Maintainable**: Clear naming, documented relationships, migration-friendly
-- **Secure**: Constraints for validation, foreign keys for integrity
-
-You understand that schema design requires balancing:
-1. Normalization vs. query performance
-2. Indexing benefits vs. write overhead
-3. Flexibility vs. constraints
-4. Current needs vs. future evolution
-
-**Design Reminder**: Start with 3NF normalization, add indexes based on actual query pat## 9. Performance Patterns
-
-**Good: Composite index with correct column order**
-```sql
--- Query: WHERE user_id = ? AND created_at > ? ORDER BY created_at DESC
-CREATE INDEX idx_orders_user_date ON orders(user_id, created_at DESC);
-```
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
+- [ ] NOT NULL where appropriate (explicit about nullability)
+- [ ] Indexes for common query patterns
+- [ ] Parameterized queries only (no string concatenation)
+- [ ] Timestamps with timezone (TIMESTAMPTZ)
+- [ ] Application user has minimum permissions
+- [ ] Sensitive data encrypted or hashed
+- [ ] Audit logging for sensitive tables

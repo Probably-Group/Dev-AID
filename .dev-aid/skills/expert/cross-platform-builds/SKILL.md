@@ -1,512 +1,644 @@
 ---
-name: Cross-Platform Build Expert
-risk_level: MEDIUM
-description: Expert in building desktop applications for Windows, macOS, and Linux with focus on platform-specific configurations, code signing, and distribution requirements
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [build, cross-platform, windows, macos, linux, tauri, code-signing]
-model: claude-sonnet-4-5-20250929
+name: cross-platform-builds
+version: 2.0.0
+description: "Cross-platform build systems for Windows, macOS, and Linux with code signing and distribution."
+risk_level: HIGH
 ---
 
-# Cross-Platform Build Expert
+# Cross-Platform Builds Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Supply chain compromise, Dependency confusion, Build script injection
-- Requires security awareness and best practices
+**CWE-494: Missing Code Signing**
+- NEVER: Distribute unsigned binaries
+- ALWAYS: Sign all platforms, verify signatures in installer
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-829: Build Dependency Attacks**
+- NEVER: Build with unverified tools/compilers
+- ALWAYS: Verified toolchains, reproducible builds, SBOM
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: HIGH
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+---
+
+## 1. Security Principles
+
+### 1.1 Code Signing (CWE-494)
+
+**Principle:** Sign all binaries for distribution. Verify signatures during updates.
+
+```rust
+// ❌ WRONG - Unsigned binary distribution
+fn build() {
+    Command::new("cargo")
+        .args(["build", "--release"])
+        .status()?;
+    // No signing!
+}
+
+// ✅ CORRECT - Signed with verification
+fn build_and_sign() -> Result<()> {
+    // Build
+    Command::new("cargo")
+        .args(["build", "--release", "--target", target])
+        .status()?;
+
+    // Sign for macOS
+    #[cfg(target_os = "macos")]
+    Command::new("codesign")
+        .args([
+            "--sign", "Developer ID Application: Company",
+            "--options", "runtime",
+            "--timestamp",
+            "--deep",
+            &binary_path,
+        ])
+        .status()?;
+
+    Ok(())
+}
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Notarization (CWE-494)
 
-   - **SUPPLY-CHAIN-ATTACK** (CVSS 9.0): Supply chain attacks in build pipelines
-     Source: https://slsa.dev/
-   - **DEPENDENCY-CONFUSION** (CVSS 8.8): Dependency confusion attacks
-     Source: https://medium.com/@alex.birsan/dependency-confusion-4a5d60fec610
-   - **BUILD-INJECTION** (CVSS N/A): Build script injection
-     Source: https://owasp.org/www-community/attacks/Code_Injection
+**Principle:** Notarize macOS apps for Gatekeeper approval.
 
-**Step 3: Common Attack Patterns**
+### 1.3 Dependency Verification (CWE-829)
 
-   - Supply chain compromise
-   - Dependency confusion
-   - Build script injection
-   - Artifact tampering
+**Principle:** Verify all dependencies with checksums. Use lockfiles.
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.4 Build Isolation (CWE-250)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Build in isolated environments. Use containers or sandboxes.
 
-### 0.3 Hallucination Prevention Checklist
+### 1.5 Secret Handling (CWE-798)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Never embed signing keys in builds. Use CI secrets.
 
-**Domain-Specific Security Rules**:
+### 1.6 Reproducible Builds (CWE-1357)
 
-- ❌ NEVER use unverified dependencies
-- ❌ NEVER skip checksum validation
-- ❌ ALWAYS pin exact versions
-- ❌ ALWAYS sign build artifacts
-- ❌ ALWAYS use SLSA provenance
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**CRITICAL**: Before implementing ANY platform-specific build configuration, you MUST read the relevant reference files.
-
-📚 **For complete details**: See `references/anti-hallucination-protocol.md`
-
----
-## 1. Overview
-
-**Risk Level: MEDIUM**
-
-**Justification**: Cross-platform builds involve code signing credentials, platform-specific security configurations, and distribution through various channels. Improper signing leads to security warnings, failed installations, or rejected submissions. Build configurations can also leak sensitive information or create platform-specific vulnerabilities.
-
-You are an expert in cross-platform desktop application builds, specializing in:
-- **Platform-specific configurations** for Windows, macOS, and Linux
-- **Code signing** and notarization procedures
-- **Distribution requirements** for each platform
-- **Build optimization** for size and performance
-- **Tauri configuration** for multi-platform builds
-
-### Primary Use Cases
-- Building Tauri applications for all desktop platforms
-- Setting up code signing for trusted distribution
-- Configuring CI/CD for multi-platform builds
-- Optimizing application bundles
-- Meeting platform distribution requirements
+**Principle:** Ensure builds are reproducible for verification.
 
 ---
 
-## 2. Core Principles
+## 2. Version Requirements
 
-1. **TDD First** - Write build configuration tests before implementing
-2. **Performance Aware** - Optimize build times, bundle sizes, and startup
-3. **Test on all target platforms** - Don't assume cross-platform compatibility
-4. **Use platform abstractions** - Rust std, Tauri APIs for platform differences
-5. **Handle path differences** - Forward vs backward slashes, case sensitivity
-6. **Respect platform conventions** - File locations, UI guidelines
-7. **Sign all releases** - Users trust signed applications
-8. **Protect signing credentials** - Never commit certificates
-9. **Verify signatures** - Check before distribution
-10. **Use timestamping** - Signatures remain valid after certificate expiry
+**ALWAYS use these minimum versions:**
 
----
+```toml
+# Rust
+[build-dependencies]
+tauri-build = "2.0"
 
-## 3. Technical Foundation
+# Tauri
+[dependencies]
+tauri = "2.0"
 
-### 3.1 Platform Build Targets
+# Node.js for frontend
+node = ">=20.0.0"
 
-| Platform | Rust Target | Tauri Bundle |
-|----------|-------------|--------------|
-| Windows x64 | x86_64-pc-windows-msvc | msi, nsis |
-| Windows ARM | aarch64-pc-windows-msvc | msi, nsis |
-| macOS Intel | x86_64-apple-darwin | dmg, app |
-| macOS Apple Silicon | aarch64-apple-darwin | dmg, app |
-| Linux x64 | x86_64-unknown-linux-gnu | deb, appimage |
-| Linux ARM | aarch64-unknown-linux-gnu | deb, appimage |
-
-### 3.2 Build Dependencies
-
-**Windows**:
-- Visual Studio Build Tools
-- Windows SDK
-- WebView2 Runtime (bundled by Tauri)
-
-**macOS**:
-- Xcode Command Line Tools
-- Apple Developer Certificate
-- App-specific password for notarization
-
-**Linux**:
-- GTK3 development libraries
-- WebKitGTK
-- AppIndicator (for system tray)
+# Build tools
+cargo = ">=1.75.0"
+```
 
 ---
 
+## 3. Code Patterns
 
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Quick Start: Basic Tauri Configuration
-
-### 4.1 Minimal tauri.conf.json
+### 3.1 WHEN configuring Tauri for cross-platform
 
 ```json
+// ❌ WRONG - Missing platform configs
 {
   "build": {
-    "beforeBuildCommand": "npm run build",
+    "beforeBuildCommand": "npm run build"
+  }
+}
+
+// ✅ CORRECT - tauri.conf.json with full cross-platform config
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/packages/api/src/tauri.schema.json",
+  "productName": "MyApp",
+  "version": "1.0.0",
+  "identifier": "com.company.myapp",
+
+  "build": {
     "beforeDevCommand": "npm run dev",
-    "devPath": "http://localhost:3000",
-    "distDir": "../dist"
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
   },
-  "package": {
-    "productName": "MyApp",
-    "version": "1.0.0"
+
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+
+    "macOS": {
+      "minimumSystemVersion": "10.15",
+      "exceptionDomain": null,
+      "signingIdentity": null,
+      "entitlements": "./entitlements.plist",
+      "frameworks": [],
+      "providerShortName": null
+    },
+
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "http://timestamp.digicert.com",
+      "wix": {
+        "language": ["en-US"]
+      },
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser"
+      }
+    },
+
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": true
+      },
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
+      },
+      "rpm": {
+        "requires": ["webkit2gtk4.1", "gtk3"]
+      }
+    }
   },
-  "tauri": {
-    "bundle": {
+
+  "security": {
+    "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+    "dangerousDisableAssetCspModification": false,
+    "freezePrototype": true,
+    "pattern": {
+      "use": "isolation"
+    }
+  },
+
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "title": "MyApp",
+        "width": 1200,
+        "height": 800,
+        "resizable": true,
+        "fullscreen": false,
+        "alwaysOnTop": false,
+        "decorations": true,
+        "transparent": false
+      }
+    ]
+  },
+
+  "plugins": {
+    "updater": {
       "active": true,
-      "identifier": "com.company.myapp",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "targets": "all"
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6...",
+      "endpoints": [
+        "https://releases.myapp.com/{{target}}/{{arch}}/{{current_version}}"
+      ]
     }
   }
 }
 ```
 
-**See `references/build-patterns.md`** for complete configuration examples including platform-specific settings.
-
-### 4.2 Platform-Specific Code Pattern
-
-```rust
-#[cfg(target_os = "windows")]
-fn platform_init() {
-    // Windows-specific initialization
-}
-
-#[cfg(target_os = "macos")]
-fn platform_init() {
-    // macOS-specific initialization
-}
-
-#[cfg(target_os = "linux")]
-fn platform_init() {
-    // Linux-specific initialization
-}
-
-fn main() {
-    platform_init();
-    tauri::Builder::default()
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-}
-```
-
-**See `references/advanced-patterns.md`** for sophisticated platform detection and conditional compilation patterns.
-
----
-
-## 6. Build Workflow (TDD Approach)
-
-### Step 1: Write Failing Test First
-
-```rust
-#[test]
-fn test_tauri_config_exists() {
-    assert!(Path::new("src-tauri/tauri.conf.json").exists());
-}
-
-#[test]
-fn test_bundle_identifier_format() {
-    let config: serde_json::Value = serde_json::from_str(
-        &std::fs::read_to_string("src-tauri/tauri.conf.json").unwrap()
-    ).unwrap();
-    let identifier = config["tauri"]["bundle"]["identifier"].as_str().unwrap();
-    assert!(identifier.contains('.'), "Bundle ID must use reverse domain");
-}
-```
-
-### Step 2: Implement Minimum Configuration
-
-Create minimal tauri.conf.json to pass tests.
-
-### Step 3: Expand and Refactor
-
-Add platform-specific configurations, signing, and optimization.
-
-**See `references/testing-guide.md`** for comprehensive TDD workflow and test examples.
-
----
-
-## 7. Code Signing Essentials
-
-### 6.1 Certificate Types
-
-| Platform | Certificate Type | Purpose |
-|----------|-----------------|---------|
-| Windows | EV Code Signing | Immediate SmartScreen trust |
-| macOS | Developer ID Application | Distribution outside App Store |
-| Linux | GPG Key | Package signing |
-
-### 6.2 Basic Signing Commands
-
-**Windows**:
-```bash
-signtool sign /tr http://timestamp.digicert.com /td sha256 /fd sha256 MyApp.exe
-```
-
-**macOS**:
-```bash
-codesign --sign "Developer ID Application" --options runtime MyApp.app
-xcrun notarytool submit MyApp.zip --wait
-xcrun stapler staple MyApp.app
-```
-
-**Linux**:
-```bash
-gpg --detach-sign --armor MyApp.AppImage
-```
-
-**See `references/security-examples.md`** for detailed code signing procedures, credential management, and troubleshooting.
-
----
-
-## 8. CI/CD Quick Start
-
-### 7.1 Basic Build Matrix
+### 3.2 WHEN setting up GitHub Actions for cross-platform
 
 ```yaml
+# ✅ CORRECT - Cross-platform build workflow
+name: Build
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
-          - platform: macos-latest
+          # macOS (Apple Silicon)
+          - platform: macos-14
+            target: aarch64-apple-darwin
+            args: '--target aarch64-apple-darwin'
+            artifact: app-macos-arm64
+
+          # macOS (Intel)
+          - platform: macos-14
             target: x86_64-apple-darwin
+            args: '--target x86_64-apple-darwin'
+            artifact: app-macos-x64
+
+          # Linux (x64)
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
+            args: ''
+            artifact: app-linux-x64
+
+          # Linux (ARM64)
+          - platform: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+            args: '--target aarch64-unknown-linux-gnu'
+            artifact: app-linux-arm64
+            cross: true
+
+          # Windows (x64)
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
+            args: ''
+            artifact: app-windows-x64
+
     runs-on: ${{ matrix.platform }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-      - name: Build
-        run: npm run tauri build
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Install cross-compilation tools
+        if: matrix.cross
+        run: |
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            g++-aarch64-linux-gnu
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+
+      # macOS code signing
+      - name: Setup macOS signing
+        if: startsWith(matrix.platform, 'macos')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 --decode > certificate.p12
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain -s build.keychain
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security set-keychain-settings -lut 7200 build.keychain
+
+          security import certificate.p12 \
+            -k build.keychain \
+            -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -T /usr/bin/security
+
+          security set-key-partition-list -S apple-tool:,apple: \
+            -s -k "$KEYCHAIN_PASSWORD" build.keychain
+
+          rm certificate.p12
+
+      # Windows code signing
+      - name: Setup Windows signing
+        if: matrix.platform == 'windows-latest'
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+        run: |
+          echo "$env:WINDOWS_CERTIFICATE" > certificate.b64
+          certutil -decode certificate.b64 certificate.pfx
+          del certificate.b64
+
+      - name: Build Tauri
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # macOS
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Windows
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'v__VERSION__'
+          releaseBody: 'See CHANGELOG.md for details.'
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
+
+      - name: Cleanup Windows certificate
+        if: matrix.platform == 'windows-latest' && always()
+        run: del certificate.pfx -ErrorAction SilentlyContinue
 ```
 
-**See `references/build-patterns.md`** for complete CI/CD workflows with caching, code signing, and artifact management.
+### 3.3 WHEN implementing platform-specific code
 
----
+```rust
+// ❌ WRONG - No platform handling
+fn get_config_path() -> PathBuf {
+    PathBuf::from("~/.config/myapp")  // Won't work on Windows!
+}
 
-## 9. Performance Quick Wins
+// ✅ CORRECT - Platform-aware paths
+use directories::ProjectDirs;
+use std::path::PathBuf;
 
-### 8.1 Enable Incremental Builds
+pub fn get_config_dir() -> Result<PathBuf, Error> {
+    ProjectDirs::from("com", "company", "myapp")
+        .map(|dirs| dirs.config_dir().to_path_buf())
+        .ok_or_else(|| Error::NoConfigDir)
+}
 
-```toml
-# Cargo.toml
-[profile.dev]
-incremental = true
+pub fn get_data_dir() -> Result<PathBuf, Error> {
+    ProjectDirs::from("com", "company", "myapp")
+        .map(|dirs| dirs.data_dir().to_path_buf())
+        .ok_or_else(|| Error::NoDataDir)
+}
 
-[profile.release]
-incremental = true
-lto = "thin"
+// Platform-specific behavior
+#[cfg(target_os = "macos")]
+pub fn setup_app() -> Result<()> {
+    // macOS-specific setup
+    use cocoa::appkit::NSApplication;
+    // ...
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+pub fn setup_app() -> Result<()> {
+    // Windows-specific setup
+    use windows::Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID;
+    unsafe {
+        SetCurrentProcessExplicitAppUserModelID(w!("com.company.myapp"))?;
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+pub fn setup_app() -> Result<()> {
+    // Linux-specific setup
+    // Set up D-Bus, etc.
+    Ok(())
+}
 ```
 
-### 8.2 Cache Dependencies in CI
+### 3.4 WHEN handling file paths cross-platform
 
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: |
-      ~/.cargo/registry
-      target
-    key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+```rust
+// ❌ WRONG - Hardcoded path separators
+let path = format!("data/config/{}.json", name);
+
+// ✅ CORRECT - Use std::path
+use std::path::{Path, PathBuf};
+
+pub fn get_config_file(name: &str) -> PathBuf {
+    let mut path = get_config_dir().expect("Config dir required");
+    path.push(name);
+    path.set_extension("json");
+    path
+}
+
+// Cross-platform path handling
+pub fn ensure_parent_exists(path: &Path) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
+    Ok(())
+}
+
+// Safe path joining (prevents traversal)
+pub fn safe_join(base: &Path, relative: &str) -> Result<PathBuf, Error> {
+    let relative = Path::new(relative);
+
+    // Reject absolute paths
+    if relative.is_absolute() {
+        return Err(Error::InvalidPath("Absolute path not allowed"));
+    }
+
+    // Reject path traversal
+    for component in relative.components() {
+        if matches!(component, std::path::Component::ParentDir) {
+            return Err(Error::InvalidPath("Path traversal not allowed"));
+        }
+    }
+
+    let joined = base.join(relative);
+    let canonical = joined.canonicalize()?;
+
+    // Verify result is still under base
+    if !canonical.starts_with(base.canonicalize()?) {
+        return Err(Error::InvalidPath("Path escaped base directory"));
+    }
+
+    Ok(canonical)
+}
 ```
 
-**See `references/performance-optimization.md`** for comprehensive optimization strategies including fast linkers, bundle size reduction, and startup time improvements.
+### 3.5 WHEN setting up auto-updates
+
+```rust
+// ✅ CORRECT - Tauri updater with signature verification
+// Cargo.toml
+// [dependencies]
+// tauri = { version = "2.0", features = ["updater"] }
+
+// src-tauri/src/main.rs
+use tauri::Manager;
+use tauri_plugin_updater::UpdaterExt;
+
+fn main() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .setup(|app| {
+            let handle = app.handle().clone();
+
+            tauri::async_runtime::spawn(async move {
+                if let Err(e) = check_for_updates(handle).await {
+                    eprintln!("Update check failed: {}", e);
+                }
+            });
+
+            Ok(())
+        })
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+
+async fn check_for_updates(app: tauri::AppHandle) -> Result<(), Box<dyn std::error::Error>> {
+    let updater = app.updater_builder().build()?;
+
+    if let Some(update) = updater.check().await? {
+        println!("Update available: {}", update.version);
+
+        // Download and verify signature
+        let mut downloaded = 0;
+        update.download_and_install(
+            |chunk_length, content_length| {
+                downloaded += chunk_length;
+                if let Some(total) = content_length {
+                    println!("Downloaded {}/{} bytes", downloaded, total);
+                }
+            },
+            || {
+                println!("Download complete, restarting...");
+            },
+        ).await?;
+    }
+
+    Ok(())
+}
+```
+
+### 3.6 WHEN creating entitlements for macOS
+
+```xml
+<!-- ✅ CORRECT - entitlements.plist with minimal permissions -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Required for notarization with hardened runtime -->
+    <key>com.apple.security.app-sandbox</key>
+    <false/>
+
+    <key>com.apple.security.cs.allow-jit</key>
+    <false/>
+
+    <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+    <false/>
+
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <false/>
+
+    <!-- Network access -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+
+    <!-- File access (if needed) -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+
+    <!-- Keychain access (if needed) -->
+    <key>com.apple.security.keychain-access-groups</key>
+    <array>
+        <string>$(AppIdentifierPrefix)com.company.myapp</string>
+    </array>
+</dict>
+</plist>
+```
 
 ---
 
-## 10. Common Mistakes to Avoid
+## 4. Anti-Patterns
 
-**Critical Anti-Patterns**:
-- ❌ Hardcoded platform-specific paths (use `directories` crate)
-- ❌ Committing signing certificates (use CI/CD secrets)
-- ❌ Skipping macOS notarization (causes Gatekeeper warnings)
-- ❌ Missing Linux build dependencies in CI
-- ❌ Not testing on all platforms before release
-- ❌ Skipping timestamping on signatures
-
-**See `references/anti-patterns.md`** for comprehensive list of mistakes and their solutions.
-
----
-
-## 11. Platform-Specific Gotchas
-
-### Windows
-- Use EV certificates to avoid SmartScreen warnings
-- Always timestamp signatures
-- Include WebView2 runtime
-
-### macOS
-- Must notarize for distribution (not just code sign)
-- Test on both Intel and Apple Silicon
-- Minimum system version should be 10.15+
-
-### Linux
-- Different distros require different dependencies
-- Provide both .deb and AppImage formats
-- GTK version compatibility matters
+**NEVER:**
+- Distribute unsigned binaries
+- Skip notarization for macOS
+- Hardcode path separators (`/` or `\`)
+- Use `~` expansion (not cross-platform)
+- Embed signing keys in source code
+- Skip update signature verification
+- Use different versions across platforms
+- Ignore platform-specific security features
 
 ---
 
-## 12. Pre-Implementation Checklist
+## 5. Testing
 
-### Phase 1: Before Writing Code
-- [ ] Read relevant reference files based on task
-- [ ] Identify target platforms and architectures
-- [ ] Write tests for build configuration validation
-- [ ] Set up CI/CD matrix for all targets
-- [ ] Acquire code signing certificates
-- [ ] Configure secrets in CI environment
-
-### Phase 2: During Implementation
-- [ ] Run tests after each configuration change
-- [ ] Verify incremental builds are working
-- [ ] Test platform-specific code with conditional compilation
-- [ ] Check bundle sizes after adding dependencies
-- [ ] Validate icons exist for all platforms
-- [ ] Test on actual target platforms (not just CI)
-
-### Phase 3: Before Release
-- [ ] All build configuration tests pass
-- ## 7. Code Signing Essentials
-
-| Platform | Certificate Type | Purpose |
-|----------|-----------------|---------|
-| Windows | EV Code Signing | Immediate SmartScreen trust |
-| macOS | Developer ID Application | Distribution outside App Store |
-| Linux | GPG Key | Package signing |
-
-📚 **For complete details**: See `references/code-signing-essentials.md`
-
----
-ages, troubleshooting guide, what to avoid
-- **`references/testing-guide.md`** - TDD workflow, build configuration tests, CI/CD testing, integration tests
-- **`references/advanced-patterns.md`** - Universal binaries, custom installers, platform-specific optimizations, auto-updates
-
----
-
-## 14. Quick Reference Commands
+**ALWAYS test cross-platform builds:**
 
 ```bash
-# Build for current platform
-npm run tauri build
+#!/bin/bash
+# Test cross-platform build locally
 
-# Build for specific target
-npm run tauri build -- --target x86_64-pc-windows-msvc
+set -euo pipefail
 
-# Run tests
-cargo test --manifest-path src-tauri/Cargo.toml
+# Test each target
+targets=(
+    "x86_64-apple-darwin"
+    "aarch64-apple-darwin"
+    "x86_64-unknown-linux-gnu"
+    "x86_64-pc-windows-msvc"
+)
 
-# Verify Windows signature
-signtool verify /pa /v MyApp.exe
+for target in "${targets[@]}"; do
+    echo "Testing build for $target..."
+    cargo check --target "$target" 2>/dev/null || echo "Skipped (target not installed)"
+done
 
-# Verify macOS signature and notarization
-codesign --verify --deep --strict MyApp.app
-xcrun stapler validate MyApp.app
+# Verify no platform-specific assumptions
+echo "Checking for hardcoded paths..."
+! grep -r '\\\\' src/ --include="*.rs" || echo "WARNING: Backslash paths found"
+! grep -r '"/home' src/ --include="*.rs" || echo "WARNING: Hardcoded Linux paths"
+! grep -r '"C:\\' src/ --include="*.rs" || echo "WARNING: Hardcoded Windows paths"
 
-# Verify Linux signature
-gpg --verify MyApp.AppImage.asc MyApp.AppImage
+# Test path handling
+cargo test path_tests
+
+echo "Cross-platform checks complete!"
 ```
 
 ---
 
-## 15. Summary
+## 6. Pre-Generation Checklist
 
-Your goal is to create cross-platform builds that are:
+**BEFORE generating any cross-platform build code:**
 
-- **Correctly Signed**: Trusted by each operating system
-- **Platform Native**: Respecting each platform's conventions
-- **Optimized**: Reasonable file sizes, fast startup
-- **Well Tested**: Verified on all target platforms
-
-You understand that cross-platform development requires:
-1. Testing on each target platform (not just your development machine)
-2. Proper code signing for user trust
-3. Platform-specific configurations and dependencies
-4. Awareness of distribution requirements
-
-**Build Reminder**:
-- ALWAYS test on each platform before release
-- ALWAYS sign your releases with timestamping
-- ALWAYS verify signatures work correctly
-- ALWAYS read relevant reference files when implementing new features
-- When in doubt, consult the reference files for detailed procedures
-
-**Remember**: The reference files contain the detailed implementations. This skill file provides the overview and quick reference. Always read the appropriate reference file before implementing platform-specific features.
+- [ ] Code signing configured for all platforms
+- [ ] macOS notarization set up
+- [ ] Windows certificate configured
+- [ ] Update signature verification enabled
+- [ ] Platform-specific paths handled correctly
+- [ ] Entitlements/capabilities minimized
+- [ ] CI builds all target platforms
+- [ ] Lockfiles committed for reproducibility
+- [ ] Platform-specific dependencies documented
+- [ ] Testing covers all target platforms

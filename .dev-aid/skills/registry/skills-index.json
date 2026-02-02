@@ -224,42 +224,6 @@
       ]
     }
   },
-  "async-programming": {
-    "activation": {
-      "confidence_weights": {
-        "async patterns": 0.25,
-        "asynchronous programming": 0.35,
-        "concurrency": 0.3
-      },
-      "exclude_with": [],
-      "file_patterns": [
-        "*.py",
-        "*.js",
-        "*.ts",
-        "*.go",
-        "*.rs"
-      ],
-      "primary_keywords": [
-        "asynchronous programming",
-        "async patterns",
-        "concurrency",
-        "parallel processing"
-      ],
-      "requires": [],
-      "secondary_keywords": [
-        "thread pool",
-        "task queue",
-        "message passing",
-        "reactive"
-      ],
-      "technologies": [
-        "asyncio",
-        "async/await",
-        "RxJS",
-        "Akka"
-      ]
-    }
-  },
   "auto-update-systems": {
     "activation": {
       "confidence_weights": {
@@ -512,6 +476,40 @@
       ]
     }
   },
+  "copywriting": {
+    "activation": {
+      "confidence_weights": {
+        "copywriting": 0.4,
+        "headlines": 0.25,
+        "CTAs": 0.25
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/content/*",
+        "*.md",
+        "*/marketing/*"
+      ],
+      "primary_keywords": [
+        "copywriting",
+        "headlines",
+        "CTAs",
+        "marketing copy",
+        "conversion copy"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "call to action",
+        "headline formulas",
+        "persuasive writing",
+        "SEO copy"
+      ],
+      "technologies": [
+        "Marketing",
+        "Content",
+        "SEO"
+      ]
+    }
+  },
   "cloud-api-integration": {
     "activation": {
       "confidence_weights": {
@@ -726,45 +724,6 @@
         "bcrypt",
         "HTTPS",
         "TLS"
-      ]
-    }
-  },
-  "docker-expert": {
-    "activation": {
-      "confidence_weights": {
-        "Dockerfile": 0.35,
-        "container": 0.2,
-        "docker-compose": 0.3
-      },
-      "exclude_with": [],
-      "file_patterns": [
-        "Dockerfile",
-        "docker-compose.yml",
-        "docker-compose.yaml",
-        ".dockerignore"
-      ],
-      "primary_keywords": [
-        "Docker",
-        "Dockerfile",
-        "container",
-        "docker-compose",
-        "containerization"
-      ],
-      "requires": [
-        "devsecops-expert"
-      ],
-      "secondary_keywords": [
-        "FROM",
-        "RUN",
-        "COPY",
-        "ENTRYPOINT",
-        "docker build",
-        "docker run"
-      ],
-      "technologies": [
-        "Docker",
-        "docker-compose",
-        "containerd"
       ]
     }
   },
@@ -1365,6 +1324,41 @@
         "GSAP",
         "Framer Motion",
         "CSS animations"
+      ]
+    }
+  },
+  "nuxt4": {
+    "activation": {
+      "confidence_weights": {
+        "Nuxt": 0.35,
+        "Nuxt 4": 0.4,
+        "useFetch": 0.25
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "nuxt.config.ts",
+        "nuxt.config.js",
+        "*/server/api/*",
+        "*/pages/*"
+      ],
+      "primary_keywords": [
+        "Nuxt 4",
+        "Nuxt",
+        "server routes",
+        "useFetch",
+        "hybrid rendering"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "useAsyncData",
+        "runtime config",
+        "Nuxt server",
+        "Nitro"
+      ],
+      "technologies": [
+        "Nuxt 4",
+        "Nitro",
+        "Vue 3"
       ]
     }
   },
@@ -1989,6 +1983,41 @@
       ]
     }
   },
+  "talos-cluster-ops": {
+    "activation": {
+      "confidence_weights": {
+        "Talos cluster": 0.4,
+        "Kubernetes troubleshooting": 0.3,
+        "cluster operations": 0.25
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "*/talos/*",
+        "*/k8s/*",
+        "*/kubernetes/*"
+      ],
+      "primary_keywords": [
+        "Talos cluster",
+        "Kubernetes troubleshooting",
+        "cluster operations",
+        "cluster health"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "pod crashes",
+        "node issues",
+        "Cilium",
+        "Longhorn",
+        "ArgoCD sync"
+      ],
+      "technologies": [
+        "Talos",
+        "Kubernetes",
+        "Cilium",
+        "Longhorn"
+      ]
+    }
+  },
   "talos-os-expert": {
     "activation": {
       "confidence_weights": {
@@ -2119,35 +2148,6 @@
       ]
     }
   },
-  "typescript": {
-    "activation": {
-      "confidence_weights": {
-        "TypeScript": 0.35,
-        "tsconfig.json": 0.25
-      },
-      "exclude_with": [],
-      "file_patterns": [
-        "*.ts",
-        "*.tsx",
-        "tsconfig.json"
-      ],
-      "primary_keywords": [
-        "TypeScript",
-        "TS",
-        "type definition"
-      ],
-      "requires": [],
-      "secondary_keywords": [
-        "tsconfig.json",
-        "tsc",
-        "type annotation"
-      ],
-      "technologies": [
-        "TypeScript",
-        "ts-node"
-      ]
-    }
-  },
   "typescript-expert": {
     "activation": {
       "confidence_weights": {
@@ -2254,77 +2254,37 @@
       ]
     }
   },
-  "vue-nuxt": {
+  "vue3": {
     "activation": {
       "confidence_weights": {
-        "Nuxt": 0.3,
-        "Vue": 0.3,
-        "Vue 3": 0.25
+        "Composition API": 0.3,
+        "Vue": 0.35,
+        "Vue 3": 0.35
       },
       "exclude_with": [],
       "file_patterns": [
-        "nuxt.config.ts",
-        "nuxt.config.js",
         "*.vue",
-        "*/pages/*",
+        "*/components/*",
         "*/composables/*"
       ],
       "primary_keywords": [
-        "Vue",
-        "Nuxt",
         "Vue 3",
-        "Nuxt 3"
+        "Composition API",
+        "Vue composables",
+        "Vue reactivity"
       ],
       "requires": [],
       "secondary_keywords": [
-        "nuxt.config",
-        "composables",
-        "useAsyncData",
-        "Vue Router"
+        "ref",
+        "reactive",
+        "computed",
+        "watch",
+        "provide/inject"
       ],
       "technologies": [
         "Vue 3",
-        "Nuxt 3",
-        "Vite",
-        "Pinia"
-      ]
-    }
-  },
-  "vue-nuxt-expert": {
-    "activation": {
-      "confidence_weights": {
-        "Composition API": 0.25,
-        "Nuxt": 0.3,
-        "Vue": 0.3
-      },
-      "exclude_with": [],
-      "file_patterns": [
-        "nuxt.config.ts",
-        "nuxt.config.js",
-        "*.vue",
-        "*/pages/*",
-        "*/composables/*"
-      ],
-      "primary_keywords": [
-        "Vue",
-        "Nuxt",
-        "Vue 3",
-        "Nuxt 3",
-        "Composition API"
-      ],
-      "requires": [],
-      "secondary_keywords": [
-        "nuxt.config",
-        "composables",
-        "useAsyncData",
-        "Vue Router",
-        "Pinia"
-      ],
-      "technologies": [
-        "Vue 3",
-        "Nuxt 3",
-        "Vite",
-        "Pinia"
+        "Composition API",
+        "Vite"
       ]
     }
   },

@@ -1,0 +1,316 @@
+# Workload Failure Investigation Plan
+# Comprehensive template for debugging pod/deployment/statefulset failures
+
+name: "workload-failure"
+triggers:
+  - "Pod in CrashLoopBackOff"
+  - "Pod in ImagePullBackOff"
+  - "Pod in Pending state"
+  - "Pod in Error state"
+  - "Deployment rollout stuck"
+  - "StatefulSet not ready"
+
+investigation_phases:
+  phase_1_pod_diagnostics:
+    description: "Gather pod-level information and events"
+    commands:
+      - cmd: "kubectl get pod {pod} -n {namespace} -o wide"
+        purpose: "Pod status, node placement, IP"
+      
+      - cmd: "kubectl describe pod {pod} -n {namespace}"
+        purpose: "Events (CRITICAL), conditions, resource requests"
+      
+      - cmd: "kubectl logs {pod} -n {namespace} --all-containers --previous"
+        purpose: "Logs from crashed container"
+      
+      - cmd: "kubectl logs {pod} -n {namespace} --all-containers --tail=200"
+        purpose: "Current/recent logs"
+      
+      - cmd: "kubectl get pod {pod} -n {namespace} -o yaml"
+        purpose: "Full pod manifest (security context, volumes, etc)"
+      
+      - cmd: "kubectl top pod {pod} -n {namespace}"
+        purpose: "Current resource usage"
+    
+    analysis:
+      - check_events_for:
+          - "Failed to pull image"
+          - "ImagePullBackOff"
+          - "ErrImagePull"
+          - "Back-off pulling image"
+        root_cause: "Image availability issue"
+        next_steps: ["check_harbor_registry", "verify_image_exists", "check_pull_secrets"]
+      
+      - check_events_for:
+          - "FailedScheduling"
+          - "Insufficient memory"
+          - "Insufficient cpu"
+        root_cause: "Resource constraints"
+        next_steps: ["phase_3_node_resources", "check_resource_quotas"]
+      
+      - check_logs_for:
+          - "OOMKilled"
+          - "OutOfMemory"
+        root_cause: "Memory limit too low"
+        next_steps: ["analyze_memory_usage", "propose_limit_increase"]
+      
+      - check_logs_for:
+          - "Permission denied"
+          - "Access denied"
+        root_cause: "Security context or RBAC issue"
+        next_steps: ["phase_7_security", "check_psa_pss"]
+      
+      - check_logs_for:
+          - "Connection refused"
+          - "dial tcp .* i/o timeout"
+        root_cause: "Network connectivity issue"
+        next_steps: ["phase_5_networking"]
+
+  phase_2_parent_resource:
+    description: "Check deployment/statefulset/daemonset that owns the pod"
+    commands:
+      - cmd: "kubectl get deploy,sts,ds -n {namespace} -o wide"
+        purpose: "Find parent resource"
+      
+      - cmd: "kubectl describe {resource_type}/{resource_name} -n {namespace}"
+        purpose: "Parent resource status and events"
+      
+      - cmd: "kubectl rollout status {resource_type}/{resource_name} -n {namespace}"
+        purpose: "Rollout progress (for deployments)"
+      
+      - cmd: "kubectl get rs -n {namespace} | grep {deployment_name}"
+        purpose: "ReplicaSets for deployments"
+    
+    analysis:
+      - if: "deployment"
+        check:
+          - "Replicas: X desired, Y current, Z available"
+          - "If Y < X: scaling issue"
+          - "If Z < Y: readiness probe failing"
+
+  phase_3_node_resources:
+    description: "Investigate node where pod is running/should run"
+    commands:
+      - cmd: "kubectl get nodes -o wide"
+        purpose: "All nodes status"
+      
+      - cmd: "kubectl describe node {node}"
+        purpose: "Node conditions, capacity, allocatable, taints"
+      
+      - cmd: "kubectl top node {node}"
+        purpose: "Current node resource usage"
+      
+      - cmd: "talosctl logs kubelet --nodes {node} | grep -i {pod}"
+        purpose: "Kubelet logs mentioning this pod"
+      
+      - cmd: "talosctl get machineconfig -o yaml --nodes {node}"
+        purpose: "Node configuration (may affect pod scheduling)"
+    
+    analysis:
+      - check_node_conditions:
+          - "DiskPressure=True": "Node disk full"
+          - "MemoryPressure=True": "Node memory exhausted"
+          - "PIDPressure=True": "Too many processes"
+          - "Ready=False": "Node not healthy"
+
+  phase_4_resource_constraints:
+    description: "Check namespace resource quotas and limits"
+    commands:
+      - cmd: "kubectl get limitrange,resourcequota -n {namespace}"
+        purpose: "Namespace resource constraints"
+      
+      - cmd: "kubectl describe limitrange -n {namespace}"
+        purpose: "Default limits and requests"
+      
+      - cmd: "kubectl describe resourcequota -n {namespace}"
+        purpose: "Quota usage vs limits"
+    
+    analysis:
+      - if_quota_exceeded:
+          action: "Request quota increase or scale down other workloads"
+
+  phase_5_networking:
+    description: "Cilium service mesh and network debugging"
+    commands:
+      - cmd: "kubectl get svc,endpoints -n {namespace}"
+        purpose: "Services and their endpoints"
+      
+      - cmd: "cilium endpoint list | grep {pod}"
+        purpose: "Cilium endpoint for this pod"
+      
+      - cmd: "hubble observe --pod {namespace}/{pod} --last 100"
+        purpose: "Recent network flows"
+      
+      - cmd: "hubble observe --pod {namespace}/{pod} --verdict DROPPED"
+        purpose: "Dropped packets (policy denials)"
+      
+      - cmd: "kubectl get networkpolicy,ciliumnetworkpolicy -n {namespace}"
+        purpose: "Network policies that might block traffic"
+      
+      - cmd: "kubectl get svc -n kube-system | grep dns"
+        purpose: "DNS service health"
+    
+    analysis:
+      - if_drops_detected:
+          check_policies: "Review NetworkPolicy/CiliumNetworkPolicy"
+          verify_selectors: "Ensure pod labels match policy selectors"
+
+  phase_6_storage:
+    description: "Longhorn PVC investigation (if pod uses volumes)"
+    condition: "pod_has_volumes"
+    commands:
+      - cmd: "kubectl get pvc -n {namespace}"
+        purpose: "PVC status"
+      
+      - cmd: "kubectl describe pvc {pvc_name} -n {namespace}"
+        purpose: "PVC events and binding"
+      
+      - cmd: "kubectl get pv {pv_name}"
+        purpose: "PV status"
+      
+      - cmd: "kubectl get volumes -n longhorn-system | grep {pvc_name}"
+        purpose: "Longhorn volume health"
+      
+      - cmd: "kubectl get replicas -n longhorn-system | grep {volume_name}"
+        purpose: "Volume replica status"
+      
+      - cmd: "talosctl read /proc/mounts --nodes {node} | grep longhorn"
+        purpose: "Verify volume mount on node"
+    
+    analysis:
+      - check_pvc_status:
+          - "Pending": "PVC not bound to PV"
+          - "Lost": "PV deleted or unavailable"
+      - check_longhorn_volume:
+          - "Degraded": "Some replicas unavailable"
+          - "Faulted": "Volume critically unhealthy"
+
+  phase_7_security:
+    description: "Security context, SPIRE, Falco, Tetragon investigation"
+    commands:
+      - cmd: "kubectl get pod {pod} -n {namespace} -o yaml | yq '.spec.securityContext'"
+        purpose: "Pod security context"
+      
+      - cmd: "kubectl get pod {pod} -n {namespace} -o yaml | yq '.spec.containers[].securityContext'"
+        purpose: "Container security contexts"
+      
+      - cmd: "kubectl get psp,psa -n {namespace}"
+        purpose: "Pod Security Policies/Standards"
+      
+      - cmd: "kubectl exec -n spire spire-server-0 -- spire-server entry show | grep {namespace}/{pod}"
+        purpose: "SPIRE workload identity for pod"
+      
+      - cmd: "kubectl exec -n kube-system ds/tetragon -c tetragon -- tetra getevents --pod {namespace}/{pod} --since 30m"
+        purpose: "Tetragon process execution events"
+      
+      - cmd: "kubectl logs -n falco -l app=falco --since=30m | grep {pod}"
+        purpose: "Falco security alerts for this pod"
+    
+    analysis:
+      - check_capabilities:
+          missing: "Add required capabilities"
+          excessive: "Review least privilege"
+      - check_tetragon_denials:
+          action: "Review TracingPolicy enforcement"
+
+  phase_8_gitops_drift:
+    description: "ArgoCD sync status and Kustomize drift detection"
+    commands:
+      - cmd: "argocd app list | grep {namespace}"
+        purpose: "Find ArgoCD app managing this namespace"
+      
+      - cmd: "argocd app get {app_name}"
+        purpose: "App sync status and health"
+      
+      - cmd: "argocd app diff {app_name}"
+        purpose: "Drift between Git and cluster"
+      
+      - cmd: "kustomize build overlays/{env} | kubectl diff -f -"
+        purpose: "Expected vs actual manifests"
+    
+    analysis:
+      - if_out_of_sync:
+          action: "Determine if manual changes need to be reverted or committed to Git"
+
+  phase_9_metrics_correlation:
+    description: "VictoriaMetrics time-series analysis"
+    commands:
+      - cmd: "VictoriaMetrics: kube_pod_container_status_restarts_total{{pod='{pod}',namespace='{namespace}'}}"
+        purpose: "Restart count over time"
+      
+      - cmd: "VictoriaMetrics: container_memory_working_set_bytes{{pod='{pod}'}}"
+        purpose: "Memory usage trend"
+      
+      - cmd: "VictoriaMetrics: container_cpu_usage_seconds_total{{pod='{pod}'}}"
+        purpose: "CPU usage trend"
+      
+      - cmd: "VictoriaMetrics: container_oom_kills_total{{pod='{pod}'}}"
+        purpose: "OOM kill history"
+      
+      - cmd: "VictoriaMetrics: rate(container_cpu_cfs_throttled_seconds_total{{pod='{pod}'}}[5m])"
+        purpose: "CPU throttling rate"
+      
+      - cmd: "VictoriaLogs: _stream:{{namespace='{namespace}'}} | '{pod}' | 'error|ERROR|exception|fatal'"
+        purpose: "Error patterns in logs"
+    
+    analysis:
+      - trending_memory_up:
+          root_cause: "Memory leak suspected"
+          action: "Investigate application code, increase limit as temporary fix"
+      - high_cpu_throttling:
+          root_cause: "CPU limit too low"
+          action: "Increase CPU limit or investigate CPU-intensive operations"
+
+remediation_decision_tree:
+  oom_killed:
+    risk: "medium"
+    snapshot: true
+    action: "Increase memory limit"
+    command: "kubectl patch {resource} {name} -n {namespace} -p '{{\"spec\":{{\"template\":{{\"spec\":{{\"containers\":[{{\"name\":\"{container}\",\"resources\":{{\"limits\":{{\"memory\":\"{new_limit}\"}}}}}}]}}}}}}}}'"
+  
+  image_pull_backoff:
+    risk: "low"
+    snapshot: false
+    actions:
+      - "Verify image exists in Harbor"
+      - "Check imagePullSecrets"
+      - "Test manual pull: docker pull {image}"
+  
+  insufficient_resources:
+    risk: "medium"
+    snapshot: false
+    actions:
+      - "Add more worker nodes"
+      - "Scale down non-critical workloads"
+      - "Reduce resource requests"
+      - "Enable cluster autoscaler"
+  
+  network_policy_denial:
+    risk: "medium"
+    snapshot: true
+    action: "Update NetworkPolicy to allow required traffic"
+  
+  pvc_pending:
+    risk: "medium"
+    snapshot: false
+    actions:
+      - "Check Longhorn provisioner health"
+      - "Verify StorageClass exists"
+      - "Check node disk capacity"
+
+output_format:
+  summary:
+    - "Root cause: {diagnosis}"
+    - "Affected resources: {resources}"
+    - "Impact assessment: {impact}"
+  
+  remediation_proposal:
+    - "Recommended action: {action}"
+    - "Risk level: {risk}"
+    - "Rollback plan: {rollback}"
+    - "Estimated duration: {duration}"
+  
+  approval_prompt:
+    - Display detailed approval request if remediation needed
+    - Include exact commands to execute
+    - Show before/after state changes

@@ -1,563 +1,652 @@
 ---
 name: cilium-expert
-description: "Expert in Cilium eBPF-based networking and security for Kubernetes. Use for CNI setup, network policies (L3/L4/L7), service mesh, Hubble observability, zero-trust security, and cluster-wide network troubleshooting. Specializes in high-performance, secure cluster networking."
+version: 2.0.0
+description: "Kubernetes networking with Cilium eBPF, network policies, service mesh, and Hubble observability."
+risk_level: HIGH
 ---
 
-# Cilium eBPF Networking & Security Expert
+# Cilium Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Network policy bypass via CIDR range manipulation, eBPF program injection for traffic interception, DNS spoofing to bypass egress policies
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-863: Authorization Bypass (CVE-2025-30162)**
+- NEVER: Assume egress policies work with Gateway API + LB-IPAM/BGP
+- ALWAYS: Test egress policies specifically, upgrade to v1.15.15+/v1.16.8+/v1.17.2+
 
-### 0.2 Vulnerability Research Protocol
+**CWE-436: IPv6 Policy Bypass (CVE-2023-27594)**
+- NEVER: Route IPv6 through Cilium without verifying policy enforcement
+- ALWAYS: Disable IPv6 if not needed, verify policies for both IP versions
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-319: Cleartext Transmission (CVE-2024-25630)**
+- NEVER: Assume all traffic encrypted with WireGuard enabled
+- ALWAYS: Verify encryption on all paths, check for unencrypted packet leaks
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-284: Default Allow Policy**
+- NEVER: Rely on default "allow all" without explicit deny policies
+- ALWAYS: Set `policyEnforcementMode: always`, create default-deny policies
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: HIGH
 
-   - **CVE-2025-64715** (CVSS 8.8): Network policy bypass via CIDR manipulation
-     Source: https://github.com/cilium/cilium/security/advisories
-   - **CVE-2025-30162** (CVSS 7.5): eBPF program validation bypass
-     Source: https://cilium.io/blog/2025/security-advisories/
-   - **CVE-2024-42488** (CVSS 6.5): DNS policy enforcement bypass
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-42488
-
-**Step 3: Common Attack Patterns**
-
-   - Network policy bypass via CIDR range manipulation
-   - eBPF program injection for traffic interception
-   - DNS spoofing to bypass egress policies
-   - Service mesh privilege escalation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow unrestricted egress traffic
-- ❌ NEVER trust DNS responses without validation
-- ❌ NEVER bypass network policies for debugging
-- ❌ ALWAYS validate eBPF programs before loading
-- ❌ ALWAYS enforce mutual TLS in service mesh
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any Cilium code**
-
-### Verification Requirements
-
-When using this skill to implement Cilium features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Cilium documentation (docs.cilium.io)
-   - ✅ Confirm CiliumNetworkPolicy syntax is current
-   - ✅ Validate Helm chart options against official values.yaml
-   - ❌ Never guess configuration options
-   - ❌ Never invent CRD fields or annotations
-   - ❌ Never assume Cilium feature availability without checking version
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing policies and configurations
-   - 🔍 Grep: Search for similar implementations
-   - 🔍 WebSearch: Verify features in official docs
-   - 🔍 WebFetch: Read official Cilium documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Cilium feature/config/CRD field
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Cilium can cause cluster-wide network outages
-
-4. **Common Cilium Hallucination Traps** (AVOID)
-   - ❌ Invented CiliumNetworkPolicy fields (e.g., non-existent toService)
-   - ❌ Made-up Helm chart options
-   - ❌ Non-existent Hubble CLI flags
-   - ❌ Incorrect FQDN policy syntax
-   - ❌ Wrong L7 policy rules (HTTP/gRPC/Kafka)
-   - ❌ Imaginary cilium CLI commands
-
-### Self-Check Checklist
-
-Before EVERY response with Cilium code:
-- [ ] All CiliumNetworkPolicy fields verified against v2 API spec
-- [ ] Helm chart options verified against official cilium/cilium chart
-- [ ] CLI commands verified against cilium/hubble documentation
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Cilium controls cluster networking. Hallucinated configurations cause production outages. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Default Deny Network Policy (CWE-284)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level: HIGH** ⚠️🔴
-- Cluster-wide networking impact (CNI misconfiguration can break entire cluster)
-- Security policy errors (accidentally block critical traffic or allow unauthorized access)
-- Service mesh failures (break mTLS, observability, load balancing)
-- Network performance degradation (inefficient policies, resource exhaustion)
-- Data plane disruption (eBPF program failures, kernel compatibility issues)
-
-You are an elite Cilium networking and security expert with deep expertise in:
-
-- **CNI Configuration**: Cilium as Kubernetes CNI, IPAM modes, tunnel overlays (VXLAN/Geneve), direct routing
-- **Network Policies**: L3/L4 policies, L7 HTTP/gRPC/Kafka policies, DNS-based policies, FQDN filtering, deny policies
-- **Service Mesh**: Cilium Service Mesh, mTLS, traffic management, canary deployments, circuit breaking
-- **Observability**: Hubble for flow visibility, service maps, metrics (Prometheus), distributed tracing
-- **Security**: Zero-trust networking, identity-based policies, encryption (WireGuard, IPsec), network segmentation
-- **eBPF Programs**: Understanding eBPF datapath, XDP, TC hooks, socket-level filtering, performance optimization
-- **Multi-Cluster**: ClusterMesh for multi-cluster networking, global services, cross-cluster policies
-
-You design and implement Cilium solutions that are:
-- **Secure**: Zero-trust by default, least-privilege policies, encrypted communication
-- **Performant**: eBPF-native, kernel bypass, minimal overhead, efficient resource usage
-- **Observable**: Full flow visibility, real-time monitoring, audit logs, troubleshooting capabilities
-- **Reliable**: Robust policies, graceful degradation, tested failover scenarios
-
----
-
-## 2. Core Principles
-
-1. **TDD First**: Write connectivity tests and policy validation before implementing network changes
-2. **Performance Aware**: Optimize eBPF programs, policy selectors, and Hubble sampling for minimal overhead
-3. **Zero-Trust by Default**: All traffic denied unless explicitly allowed with identity-based policies
-4. **Observe Before Enforce**: Enable Hubble and test policies in audit mode before enforcement
-5. **Identity Over IPs**: Use Kubernetes labels and workload identity, never hard-coded IP addresses
-6. **Encrypt Sensitive Traffic**: WireGuard or mTLS for all inter-service communication
-7. **Continuous Monitoring**: Alert on policy denies, dropped flows, and eBPF program errors
-
----
-
-## 3. Core Responsibilities
-
-### CNI Setup & Configuration
-- Installation: Helm charts, cilium CLI, operator deployment, agent DaemonSet
-- IPAM Modes: Kubernetes (PodCIDR), cluster-pool, Azure/AWS/GCP native IPAM
-- Datapath: Tunnel mode (VXLAN/Geneve), native routing, DSR (Direct Server Return)
-- Kube-proxy Replacement: Full kube-proxy replacement mode, socket-level load balancing
-
-### Network Policy Management
-- L3/L4 Policies: CIDR-based rules, pod/namespace selectors, port-based filtering
-- L7 Policies: HTTP method/path filtering, gRPC service/method filtering, Kafka topic filtering
-- DNS Policies: matchPattern for DNS names, FQDN-based egress filtering
-- Deny Policies: Explicit deny rules, default-deny namespaces, policy precedence
-- **See `references/network-policies.md` for comprehensive examples**
-
-### Service Mesh Capabilities
-- Sidecar-less Architecture: eBPF-based service mesh, no sidecar overhead
-- mTLS: Automatic mutual TLS between services, SPIFFE/SPIRE integration
-- Traffic Management: Load balancing, health checks, canary deployments
-- **See `references/advanced-patterns.md` for service mesh patterns**
-
-### Observability with Hubble
-- Hubble Deployment: Hubble server, Hubble Relay, Hubble UI, Hubble CLI
-- Flow Monitoring: Real-time flow logs, protocol detection, drop reasons, policy verdicts
-- Troubleshooting: Debug connection failures, identify policy denies, trace packet paths
-- **See `references/observability.md` for comprehensive Hubble guide**
-
-### Security Hardening
-- Identity-Based Policies: Kubernetes identity (labels), SPIFFE identities
-- Encryption: WireGuard transparent encryption, IPsec encryption
-- Network Segmentation: Isolate namespaces, multi-tenancy, environment separation
-- **See `references/security-examples.md` for zero-trust patterns**
-
-### Performance Optimization
-- eBPF Efficiency: Minimize program complexity, optimize map lookups
-- Resource Tuning: Memory limits, CPU requests, eBPF map sizes
-- Datapath Selection: Choose optimal datapath (native routing > tunneling)
-- **See `references/performance-optimization.md` for tuning strategies**
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Essential Implementation Patterns
-
-### Pattern 1: Zero-Trust Namespace Isolation
-
-**Problem**: Implement default-deny network policies for zero-trust security
+**Principle:** Start with deny-all policy. Explicitly allow required traffic only.
 
 ```yaml
-# Default deny all ingress/egress in namespace
+# ❌ WRONG - No default deny
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: default-deny-all
-  namespace: production
-spec:
-  endpointSelector: {}
-  ingress: []
-  egress: []
----
-# Allow DNS for all pods
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-dns
-  namespace: production
-spec:
-  endpointSelector: {}
-  egress:
-  - toEndpoints:
-    - matchLabels:
-        io.kubernetes.pod.namespace: kube-system
-        k8s-app: kube-dns
-    toPorts:
-    - ports:
-      - port: "53"
-        protocol: UDP
-      rules:
-        dns:
-        - matchPattern: "*"
----
-# Allow specific app communication
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: frontend-to-backend
-  namespace: production
+  name: allow-frontend
 spec:
   endpointSelector:
     matchLabels:
       app: frontend
-  egress:
-  - toEndpoints:
-    - matchLabels:
-        app: backend
-        io.kubernetes.pod.namespace: production
-    toPorts:
-    - ports:
-      - port: "8080"
-        protocol: TCP
-      rules:
-        http:
-        - method: "GET|POST"
-          path: "/api/.*"
-```
-
-**Key Points**:
-- Start with default-deny, then allow specific traffic
-- Always allow DNS (kube-dns) or pods can't resolve names
-- Use namespace labels to prevent cross-namespace traffic
-- Test policies in audit mode first (`cilium.io/policy-audit-mode: "true"`)
-
-### Pattern 2: L7 HTTP Policy with Path-Based Filtering
-
-**Problem**: Enforce L7 HTTP policies for microservices API security
-
-```yaml
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: api-gateway-policy
-  namespace: production
-spec:
-  endpointSelector:
-    matchLabels:
-      app: api-gateway
   ingress:
-  - fromEndpoints:
-    - matchLabels:
-        app: frontend
-    toPorts:
-    - ports:
-      - port: "8080"
-        protocol: TCP
-      rules:
-        http:
-        - method: "GET"
-          path: "/api/v1/(users|products)/.*"
-          headers:
-          - "X-API-Key: .*"
-        - method: "POST"
-          path: "/api/v1/orders"
-          headers:
-          - "Content-Type: application/json"
-```
+    - fromEndpoints:
+        - {}  # Allows all!
 
-**Key Points**:
-- L7 policies require protocol parser (HTTP/gRPC/Kafka)
-- Use regex for path matching: `/api/v1/.*`
-- Headers can enforce API keys, content types
-- Higher overhead than L3/L4 - use selectively
-
-**📚 For more patterns**: See `references/network-policies.md` for L7 HTTP/gRPC/Kafka examples
-
-### Pattern 3: DNS-Based Egress Control
-
-**Problem**: Allow egress to external services by domain name (FQDN)
-
-```yaml
+# ✅ CORRECT - Default deny with explicit allows
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: external-api-access
+  name: default-deny
   namespace: production
 spec:
-  endpointSelector:
-    matchLabels:
-      app: payment-processor
-  egress:
-  - toFQDNs:
-    - matchName: "api.stripe.com"
-    - matchPattern: "*.amazonaws.com"
-    toPorts:
-    - ports:
-      - port: "443"
-        protocol: TCP
-  - toEndpoints:
-    - matchLabels:
-        io.kubernetes.pod.namespace: kube-system
-        k8s-app: kube-dns
-    toPorts:
-    - ports:
-      - port: "53"
-        protocol: UDP
-      rules:
-        dns:
-        - matchPattern: "*.stripe.com"
-        - matchPattern: "*.amazonaws.com"
-```
-
-**Key Points**:
-- `toFQDNs` uses DNS lookups to resolve IPs dynamically
-- `matchName` for exact domain, `matchPattern` for wildcards
-- DNS rules restrict which domains can be queried
-- TTL-aware: updates rules when DNS records change
-
+  endpointSelector: {}  # Apply to all pods
+  ingress: []  # Deny all ingress
+  egress: []   # Deny all egress
 ---
-
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```bash
-# Create connectivity test before implementing policy
-kubectl run connectivity-test --image=curlimages/curl --rm -it -- \
-  curl -s --connect-timeout 5 http://backend-svc:8080/health
-# Expected: Connection should succeed (no policy yet)
-```
-
-### Step 2: Implement Minimum to Pass
-
-```yaml
-# Apply the network policy
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: backend-policy
-  namespace: test-ns
+  name: allow-frontend-to-backend
+  namespace: production
 spec:
   endpointSelector:
     matchLabels:
       app: backend
   ingress:
-  - fromEndpoints:
-    - matchLabels:
-        app: frontend
-    toPorts:
-    - ports:
-      - port: "8080"
-        protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app: frontend
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
 ```
 
-### Step 3: Verify with Cilium Connectivity Test
+### 1.2 Identity-Based Access Control (CWE-863)
+
+**Principle:** Use Cilium identities for workload authentication. Never rely on IP addresses.
+
+### 1.3 L7 Policy Enforcement (CWE-20)
+
+**Principle:** Use L7 policies to validate HTTP methods, paths, and headers.
+
+### 1.4 Encryption in Transit (CWE-319)
+
+**Principle:** Enable WireGuard or IPsec for pod-to-pod encryption.
+
+### 1.5 Egress Control (CWE-918)
+
+**Principle:** Control egress to prevent data exfiltration. Use FQDN policies.
+
+### 1.6 Hubble Observability (CWE-778)
+
+**Principle:** Enable Hubble for network visibility and audit logging.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```yaml
+cilium: v1.15.0+
+hubble: v0.13.0+
+cilium-cli: v0.16.0+
+kubernetes: v1.28.0+
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN implementing network policies
+
+```yaml
+# ❌ WRONG - Overly permissive policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-all-web
+spec:
+  endpointSelector:
+    matchLabels:
+      role: web
+  ingress:
+    - fromEntities:
+        - world  # Allows all external traffic!
+      toPorts:
+        - ports:
+            - port: "443"
+
+# ✅ CORRECT - Restrictive policy with L7 rules
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: web-api-policy
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api
+      tier: backend
+
+  ingress:
+    # Allow from frontend pods only
+    - fromEndpoints:
+        - matchLabels:
+            app: frontend
+            tier: web
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              # L7: Only allow specific paths and methods
+              - method: "GET"
+                path: "/api/v1/users/.*"
+              - method: "POST"
+                path: "/api/v1/users"
+                headers:
+                  - 'Content-Type: application/json'
+              - method: "GET"
+                path: "/health"
+
+    # Allow from Prometheus for scraping
+    - fromEndpoints:
+        - matchLabels:
+            app: prometheus
+            namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/metrics"
+
+  egress:
+    # Allow to database
+    - toEndpoints:
+        - matchLabels:
+            app: postgres
+            tier: database
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+
+    # Allow DNS resolution
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*.production.svc.cluster.local"
+              - matchPattern: "*.kube-system.svc.cluster.local"
+```
+
+### 3.2 WHEN configuring FQDN-based egress
+
+```yaml
+# ❌ WRONG - Allow all external traffic
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+spec:
+  egress:
+    - toEntities:
+        - world
+
+# ✅ CORRECT - FQDN-restricted egress
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-api-egress
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: payment-service
+
+  egress:
+    # Allow DNS first
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*"
+
+    # Allow specific external APIs only
+    - toFQDNs:
+        - matchName: "api.stripe.com"
+        - matchName: "api.paypal.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+    # Allow AWS services (pattern match)
+    - toFQDNs:
+        - matchPattern: "*.amazonaws.com"
+        - matchPattern: "*.s3.*.amazonaws.com"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+```
+
+### 3.3 WHEN enabling encryption
+
+```yaml
+# ❌ WRONG - No encryption
+apiVersion: cilium.io/v2
+kind: CiliumConfig
+metadata:
+  name: cilium-config
+spec:
+  encryption:
+    enabled: false
+
+# ✅ CORRECT - WireGuard encryption enabled
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  chart:
+    spec:
+      chart: cilium
+      version: "1.15.x"
+      sourceRef:
+        kind: HelmRepository
+        name: cilium
+  values:
+    # Enable WireGuard encryption
+    encryption:
+      enabled: true
+      type: wireguard
+      wireguard:
+        userspaceFallback: false
+
+    # Enable node-to-node encryption
+    nodeEncryption: true
+
+    # Enable strict mode (require encryption)
+    encryption:
+      strictMode:
+        enabled: true
+        cidr: "10.0.0.0/8"
+        allowRemoteNodeIdentities: false
+
+    # Hubble observability
+    hubble:
+      enabled: true
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+      metrics:
+        enabled:
+          - dns
+          - drop
+          - tcp
+          - flow
+          - port-distribution
+          - icmp
+          - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+
+    # Security context
+    securityContext:
+      privileged: false
+      capabilities:
+        ciliumAgent:
+          - CHOWN
+          - KILL
+          - NET_ADMIN
+          - NET_RAW
+          - IPC_LOCK
+          - SYS_MODULE
+          - SYS_ADMIN
+          - SYS_RESOURCE
+          - DAC_OVERRIDE
+          - FOWNER
+          - SETGID
+          - SETUID
+```
+
+### 3.4 WHEN implementing cluster mesh
+
+```yaml
+# ✅ CORRECT - Secure cluster mesh configuration
+apiVersion: cilium.io/v2
+kind: CiliumClusterConfig
+metadata:
+  name: cluster-mesh-config
+spec:
+  cluster:
+    name: cluster-1
+    id: 1
+
+  clustermesh:
+    # Enable cluster mesh
+    enabled: true
+
+    # API server configuration
+    apiserver:
+      replicas: 3
+      resources:
+        requests:
+          cpu: 100m
+          memory: 128Mi
+        limits:
+          cpu: 1000m
+          memory: 1Gi
+
+      # TLS configuration
+      tls:
+        auto:
+          enabled: true
+          method: helm
+          certValidityDuration: 1095  # 3 years
+
+    # Use kvstoremesh for better performance
+    useAPIServer: true
+
+---
+# Cross-cluster network policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cross-cluster-api
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api-gateway
+
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: frontend
+            # Allow from any cluster
+            io.cilium.k8s.policy.cluster: "*"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            app: backend-service
+            # Target specific cluster
+            io.cilium.k8s.policy.cluster: "cluster-2"
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+```
+
+### 3.5 WHEN configuring Hubble for observability
+
+```yaml
+# ✅ CORRECT - Comprehensive Hubble configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hubble-config
+  namespace: kube-system
+data:
+  config.yaml: |
+    # Enable flow visibility
+    enableIPv4: true
+    enableIPv6: false
+
+    # Metrics configuration
+    metrics:
+      enabled:
+        - dns:query;ignoreAAAA
+        - drop
+        - tcp
+        - flow
+        - icmp
+        - http
+
+    # Flow export (for SIEM integration)
+    export:
+      static:
+        enabled: true
+        filePath: /var/run/cilium/hubble/events.log
+        allowList:
+          - '{"verdict":["DROPPED","ERROR"]}'
+        fieldMask:
+          - time
+          - source
+          - destination
+          - verdict
+          - drop_reason
+          - l7
+
+---
+# Hubble UI with authentication
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hubble-ui
+  namespace: kube-system
+  annotations:
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: hubble-ui-auth
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - hubble.internal.example.com
+      secretName: hubble-ui-tls
+  rules:
+    - host: hubble.internal.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: hubble-ui
+                port:
+                  number: 80
+```
+
+### 3.6 WHEN implementing service mesh features
+
+```yaml
+# ✅ CORRECT - Cilium service mesh with mTLS
+apiVersion: cilium.io/v2
+kind: CiliumEnvoyConfig
+metadata:
+  name: envoy-lb-listener
+  namespace: production
+spec:
+  services:
+    - name: api-service
+      namespace: production
+
+  backendServices:
+    - name: api-backend
+      namespace: production
+
+  resources:
+    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
+      name: api-listener
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: api_ingress
+                http_filters:
+                  # Rate limiting
+                  - name: envoy.filters.http.local_ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+                      stat_prefix: http_local_rate_limiter
+                      token_bucket:
+                        max_tokens: 100
+                        tokens_per_fill: 100
+                        fill_interval: 1s
+                      filter_enabled:
+                        runtime_key: local_rate_limit_enabled
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+
+                  # Router
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+---
+# Ingress policy with TLS termination
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: ingress-tls-policy
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: ingress-gateway
+
+  ingress:
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+          terminatingTLS:
+            secret:
+              name: ingress-tls-cert
+              namespace: production
+            trustedCA: |
+              -----BEGIN CERTIFICATE-----
+              ...
+              -----END CERTIFICATE-----
+          rules:
+            http:
+              - method: "GET|POST|PUT|DELETE"
+                path: "/api/.*"
+                headers:
+                  - 'X-Request-ID: .*'
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Deploy without default-deny policies
+- Use IP-based policies (use labels/identities)
+- Allow `world` entity without L7 filtering
+- Disable Hubble in production
+- Skip encryption for sensitive workloads
+- Allow unrestricted egress
+- Use `fromEntities: [all]` in ingress
+- Forget DNS egress for FQDN policies
+
+---
+
+## 5. Testing
+
+**ALWAYS test network policies:**
 
 ```bash
-# Run comprehensive connectivity test
-cilium connectivity test --test-namespace=cilium-test
+#!/bin/bash
+# Test Cilium network policies
 
-# Verify specific policy enforcement
-hubble observe --namespace test-ns --verdict DROPPED
+set -euo pipefail
 
-# Check policy status
-cilium policy get -n test-ns
+# Verify Cilium is healthy
+cilium status --wait
+
+# Test connectivity
+cilium connectivity test
+
+# Verify policy enforcement
+cilium policy get -o jsonpath='{.spec}'
+
+# Test specific policy
+kubectl run test-pod --image=curlimages/curl --rm -it --restart=Never -- \
+  curl -v --max-time 5 http://api-service.production:8080/health
+
+# Check Hubble flows
+hubble observe --namespace production --verdict DROPPED --last 100
+
+# Verify encryption
+cilium encrypt status
+
+# Export policy for review
+cilium policy get -o yaml > policies-backup.yaml
 ```
 
-### Step 4: Run Full Verification
-
-```bash
-# Validate Cilium agent health
-kubectl -n kube-system exec ds/cilium -- cilium status
-
-# Verify all endpoints have identity
-cilium endpoint list
-
-# Validate no unexpected drops
-hubble observe --verdict DROPPED --last 100
-```
-
 ---
 
-## 7. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Phase 1: Before Writing Code
-- [ ] **Read existing policies** - Understand current network policy state
-- [ ] **Check Cilium version** - `cilium version` for feature compatibility
-- [ ] **Verify kernel version** - Minimum 4.9.17, recommend 5.10+
-- [ ] **Review PRD requirements** - Identify security and connectivity requirements
-- [ ] **Plan test strategy** - Define connectivity tests before implementation
-- [ ] **Enable Hubble** - Required for policy validation and troubleshooting
+**BEFORE generating any Cilium configuration:**
 
-### Phase 2: During Implementation
-- [ ] **Write failing tests first** - Create connectivity tests before policies
-- [ ] **Use audit mode** - Deploy with `cilium.io/policy-audit-mode: "true"`
-- [ ] **Always allow DNS** - Include kube-dns egress in every namespace
-- [ ] **Allow kube-apiserver** - Use `toEntities: [kube-apiserver]`
-- [ ] **Use identity-based selectors** - Labels over CIDR where possible
-- [ ] **Monitor Hubble flows** - Watch for AUDIT/DROPPED verdicts
-
-### Phase 3: Before Committing
-- [ ] **Run full connectivity test** - `cilium connectivity test`
-- [ ] **Verify no unexpected drops** - `hubble observe --verdict DROPPED`
-- [ ] **Check policy enforcement** - Remove audit mode annotation
-- [ ] **Test rollback procedure** - Ensure policies can be quickly removed
-- [ ] **Validate performance** - Check eBPF map usage and agent resources
-- [ ] **Peer review** - Have another engineer review critical policies
-
----
-
-## 8. Common Mistakes to Avoid
-
-**❌ Top Mistakes**:
-1. No default-deny policies (leaves cluster insecure)
-2. Forgetting DNS in default-deny (breaks name resolution)
-3. Using IP addresses instead of labels (breaks when pods restart)
-4. Not testing policies in audit mode (causes production outages)
-5. Overly broad FQDN patterns like `*.com` (defeats egress control)
-6. Missing Hubble for troubleshooting (blind debugging)
-7. No resource limits on Cilium agents (causes OOM kills)
-8. L7 policies on all traffic (high performance overhead)
-
-**📚 For detailed anti-patterns**: See `references/anti-patterns.md`
-
----
-
-## 9. References
-
-**Comprehensive Documentation**:
-- `references/network-policies.md` - L3/L4/L7 policy examples (DNS, HTTP, gRPC, Kafka)
-- `references/observability.md` - Hubble setup, CLI commands, troubleshooting workflows
-- `references/security-examples.md` - Zero-trust patterns, encryption, network segmentation
-- `references/performance-optimization.md` - eBPF tuning, resource limits, datapath selection
-- `references/advanced-patterns.md` - Multi-cluster, service mesh, canary deployments
-- `references/anti-patterns.md` - Common mistakes and how to avoid them
-
----
-
-## 10. Summary
-
-You are a Cilium expert who:
-
-1. **Configures Cilium CNI** for high-performance, secure Kubernetes networking
-2. **Implements network policies** at L3/L4/L7 with identity-based, zero-trust approach
-3. **Deploys service mesh** features (mTLS, traffic management) without sidecars
-4. **Enables observability** with Hubble for real-time flow visibility and troubleshooting
-5. **Hardens security** with encryption, network segmentation, and egress control
-6. **Optimizes performance** with eBPF-native datapath and kube-proxy replacement
-7. **Manages multi-cluster** networking with ClusterMesh for global services
-
-**Key Principles**:
-- **Zero-trust by default**: Deny all, then allow specific traffic
-- **Identity over IPs**: Use labels, not IP addresses
-- **Observe first**: Enable Hubble before enforcing policies
-- **Test in audit mode**: Never deploy untested policies to production
-- **Encrypt sensitive traffic**: WireGuard or mTLS for compliance
-- **Monitor continuously**: Alert on policy denies and dropped flows
-
-**Target Users**: Platform engineers, SRE teams, network engineers building secure, high-performance Kubernetes platforms.
-
-**Risk Awareness**: Cilium controls cluster networking - mistakes can cause outages. Always test changes in non-production environments first.
+- [ ] Default deny policy exists
+- [ ] Policies use labels, not IPs
+- [ ] L7 rules validate HTTP methods/paths
+- [ ] FQDN policies for external egress
+- [ ] DNS egress allowed for FQDN policies
+- [ ] Encryption enabled (WireGuard/IPsec)
+- [ ] Hubble enabled for observability
+- [ ] Cross-cluster policies use cluster identities
+- [ ] Ingress TLS termination configured
+- [ ] Rate limiting for public endpoints

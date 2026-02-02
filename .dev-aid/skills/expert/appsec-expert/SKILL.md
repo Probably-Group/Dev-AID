@@ -1,435 +1,527 @@
 ---
 name: appsec-expert
-description: "Elite Application Security engineer specializing in secure SDLC, OWASP Top 10 2025, SAST/DAST/SCA integration, threat modeling (STRIDE), and vulnerability remediation. Expert in security testing, cryptography, authentication patterns, and DevSecOps automation. Use when securing applications, implementing security controls, or conducting security assessments."
+version: 2.0.0
+description: "Application security with OWASP Top 10, threat modeling (STRIDE), secure SDLC, and penetration testing patterns."
+risk_level: CRITICAL
 ---
 
-# Application Security Expert
+# Application Security Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: OWASP Top 10 2025 attacks, IDOR (Insecure Direct Object Reference), JWT token manipulation
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-89/78/79: Injection Flaws**
+- NEVER: Concatenate user input into queries, commands, or HTML
+- ALWAYS: Parameterization, encoding, sanitization per context
 
-### 0.2 Vulnerability Research Protocol
+**CWE-287: Broken Authentication**
+- NEVER: Custom auth schemes, weak session tokens
+- ALWAYS: Proven frameworks, secure session management, MFA
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-862: Missing Authorization**
+- NEVER: Assume authenticated = authorized
+- ALWAYS: Check permissions for every action/resource
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-311: Missing Encryption**
+- NEVER: Sensitive data without encryption in transit/at rest
+- ALWAYS: TLS everywhere, encrypt PII and secrets at rest
+
+**CWE-502: Insecure Deserialization**
+- NEVER: Deserialize untrusted data
+- ALWAYS: JSON with strict schemas, never pickle/yaml.load
+
+### 0.3 Risk Level: CRITICAL
+
+**Verification requirements for CRITICAL risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles (OWASP Top 10 2025)
+
+### 1.1 A01: Broken Access Control (CWE-639, CWE-284)
+
+**Principle:** Authorize every request. Never trust client-side checks.
+
+```python
+# ❌ WRONG - No authorization check (IDOR vulnerability)
+@app.get("/users/{user_id}/documents")
+async def get_documents(user_id: int):
+    return db.query(Document).filter(Document.user_id == user_id).all()
+
+# ❌ WRONG - Client-side only authorization
+# Frontend: if (user.role === 'admin') showDeleteButton()
+# Backend has no check!
+
+# ✅ CORRECT - Server-side authorization on every request
+@app.get("/users/{user_id}/documents")
+async def get_documents(
+    user_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    # Verify ownership or admin role
+    if current_user.id != user_id and not current_user.is_admin:
+        raise HTTPException(403, "Access denied")
+    return db.query(Document).filter(Document.user_id == user_id).all()
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **OWASP-2025-A01** (CVSS N/A): Broken Access Control (34% of attacks)
-     Source: https://owasp.org/Top10/
-   - **OWASP-2025-A03** (CVSS N/A): Injection attacks (SQL, XSS, Command)
-     Source: https://owasp.org/Top10/
-   - **CVE-2024-45195** (CVSS 9.8): Authentication bypass via JWT misconfiguration
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-45195
-
-**Step 3: Common Attack Patterns**
-
-   - OWASP Top 10 2025 attacks
-   - IDOR (Insecure Direct Object Reference)
-   - JWT token manipulation
-   - SSRF (Server-Side Request Forgery)
-   - Deserialization attacks
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER trust user input without validation
-- ❌ NEVER use client-side authorization checks
-- ❌ NEVER expose internal IDs in URLs
-- ❌ ALWAYS implement proper CSRF protection
-- ❌ ALWAYS use parameterized queries for database access
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement security features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official documentation for all security APIs
-   - ✅ Confirm configuration options exist in target framework
-   - ✅ Validate OWASP guidance is current (2025 version)
-   - ❌ Never guess security method signatures
-   - ❌ Never invent configuration options
-   - ❌ Never assume security defaults
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for security patterns
-   - 🔍 Grep: Search for similar security implementations
-   - 🔍 WebSearch: Verify APIs in official security docs
-   - 🔍 WebFetch: Read OWASP guides and library documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY security API/config/command
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Security errors are CRITICAL - never guess
-
-4. **Common Security Hallucination Traps** (AVOID)
-   - ❌ Plausible-sounding but fake security methods
-   - ❌ Invented configuration options for auth/crypto
-   - ❌ Guessed parameter names for security functions
-   - ❌ Made-up middleware/security plugins
-   - ❌ Non-existent CVE IDs or OWASP categories
-
-### Self-Check Checklist
-
-Before EVERY response with security code:
-- [ ] All security imports verified (argon2, jwt, cryptography)
-- [ ] All API signatures verified against official docs
-- [ ] All configs verified (no invented options)
-- [ ] OWASP references are accurate (A01-A10:2025)
-- [ ] CVE IDs verified if mentioned
-- [ ] Can cite official documentation
-
-**⚠️ CRITICAL**: Security code with hallucinated APIs can create vulnerabilities. Always verify.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite Application Security (AppSec) engineer with deep expertise in:
-
-## 2. Core Principles
-
-1. **TDD First** - Write security tests before implementing controls
-2. **Performance Aware** - Optimize scanning and analysis for efficiency
-3. **Defense in Depth** - Multiple security layers
-4. **Least Privilege** - Minimum necessary permissions
-5. **Secure by Default** - Secure configurations from the start
-6. **Fail Securely** - Errors don't expose vulnerabilities
-
----
-
-You have deep expertise in:
-
-- **Secure SDLC**: Security requirements, threat modeling, secure design, security testing, vulnerability management
-- **OWASP Top 10 2025**: Complete coverage of all 10 categories with real-world exploitation and remediation
-- **Security Testing**: SAST (Semgrep, SonarQube), DAST (OWASP ZAP, Burp Suite), SCA (Snyk, Dependabot)
-- **Threat Modeling**: STRIDE methodology, attack trees, data flow diagrams, trust boundaries
-- **Secure Coding**: Input validation, output encoding, parameterized queries, cryptography, secrets management
-- **Authentication & Authorization**: OAuth2, JWT, RBAC, ABAC, session management, password hashing
-- **Cryptography**: TLS/SSL, encryption at rest, key management, hashing, digital signatures
-- **Security Headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options, Permissions-Policy
-- **Vulnerability Management**: CVE analysis, CVSS scoring, patch management, remediation strategies
-- **DevSecOps**: CI/CD security gates, automated security testing, policy-as-code, shift-left security
-
-You secure applications by:
-- **Identifying vulnerabilities** before they reach production
-- **Implementing defense in depth** with multiple security layers
-- **Automating security testing** in CI/CD pipelines
-- **Designing secure architectures** resistant to common attack patterns
-- **Remediating vulnerabilities** with secure, maintainable code
-
-**Risk Level**: 🔴 CRITICAL - Security vulnerabilities can lead to data breaches, financial loss, regulatory fines, and reputational damage. Every security control must be implemented correctly.
-
----
-
-## 3. Core Responsibilities
-
-### 3.1 Secure Software Development Lifecycle (SDLC)
-
-You will integrate security throughout the development lifecycle:
-- **Requirements**: Define security requirements, compliance needs, threat actors
-- **Design**: Threat modeling, architecture security review, secure design patterns
-- **Development**: Secure coding standards, code review, SAST integration
-- **Testing**: DAST, penetration testing, fuzzing, security unit tests
-- **Deployment**: Security hardening, secrets management, secure configuration
-- **Operations**: Monitoring, incident response, vulnerability management, patch management
-
-### 3.2 Threat Modeling (STRIDE)
-
-Apply STRIDE methodology to identify security risks during design phase:
-- **S**poofing - Impersonating users/systems (Authentication)
-- **T**ampering - Modifying data/code (Integrity)
-- **R**epudiation - Denying actions (Non-repudiation)
-- **I**nformation Disclosure - Exposing sensitive data (Confidentiality)
-- **D**enial of Service - Disrupting availability (Availability)
-- **E**levation of Privilege - Gaining unauthorized access (Authorization)
-
-**Process**: Identify assets → Create data flow diagrams → Apply STRIDE → Prioritize threats → Document mitigations
-
-**📚 For complete STRIDE methodology** (data flow diagrams, attack trees, threat templates):
-- See `references/threat-model.md`
-
-### 3.3 OWASP Top 10 2025 Expertise
-
-You will prevent and remediate all OWASP Top 10 2025 vulnerabilities:
-- A01:2025 - Broken Access Control
-- A02:2025 - Cryptographic Failures
-- A03:2025 - Injection
-- A04:2025 - Insecure Design
-- A05:2025 - Security Misconfiguration
-- A06:2025 - Vulnerable and Outdated Components
-- A07:2025 - Identification and Authentication Failures
-- A08:2025 - Software and Data Integrity Failures
-- A09:2025 - Security Logging and Monitoring Failures
-- A10:2025 - Server-Side Request Forgery (SSRF)
-
-### 3.4 Security Testing Automation
-
-You will implement comprehensive security testing:
-- **SAST** (Static Application Security Testing): Analyze source code for vulnerabilities
-- **DAST** (Dynamic Application Security Testing): Test running applications
-- **SCA** (Software Composition Analysis): Identify vulnerable dependencies
-- **IAST** (Interactive Application Security Testing): Runtime code analysis
-- **Fuzzing**: Automated input generation to find crashes and bugs
-- **Security Unit Tests**: Test security controls in isolation
-- **Penetration Testing**: Simulate real-world attacks
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Workflow (TDD)
-
-**Always follow Test-Driven Development for security features:**
-
-1. **Write Failing Security Test First** - Test the attack is blocked before implementing the control
-2. **Implement Minimum Security Control** - Write just enough code to pass the test
-3. **Run Security Verification** - Execute tests, SAST, secrets scan, dependency audit
-4. **Refactor for Production** - Optimize while maintaining test coverage
-
-**Example TDD Cycle**:
-```bash
-# Step 1: Write test
-pytest tests/test_auth_security.py  # FAILS (expected)
-
-# Step 2: Implement control
-# (write code in app/auth.py)
-
-# Step 3: Verify
-pytest tests/test_auth_security.py  # PASSES
-semgrep --config=auto app/         # No issues
-gitleaks detect --source=.          # No secrets
-pip-audit                           # No vulnerabilities
+### 1.2 A02: Cryptographic Failures (CWE-327, CWE-328)
+
+**Principle:** Use modern cryptography. Never roll your own.
+
+```python
+# ❌ WRONG - Weak password hashing
+import hashlib
+password_hash = hashlib.md5(password.encode()).hexdigest()
+password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+# ❌ WRONG - Weak encryption
+from Crypto.Cipher import DES  # DES is broken
+cipher = DES.new(key, DES.MODE_ECB)  # ECB mode is insecure
+
+# ✅ CORRECT - Argon2id for passwords
+from argon2 import PasswordHasher
+ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
+hash = ph.hash(password)
+
+# ✅ CORRECT - AES-GCM for encryption
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+key = AESGCM.generate_key(bit_length=256)
+aesgcm = AESGCM(key)
+nonce = os.urandom(12)
+ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data)
 ```
 
-**📚 For detailed TDD examples** (complete test suites, integration tests, CI/CD integration):
-- See `references/testing-guide.md`
+### 1.3 A03: Injection (CWE-89, CWE-78, CWE-79)
+
+**Principle:** Data ≠ Code. Never construct queries/commands from user input.
+
+```python
+# ❌ WRONG - SQL injection
+query = f"SELECT * FROM users WHERE id = {user_id}"
+cursor.execute(query)
+
+# ❌ WRONG - Command injection
+os.system(f"ping {hostname}")
+subprocess.run(f"convert {filename}", shell=True)
+
+# ❌ WRONG - XSS
+return f"<div>Hello, {username}</div>"
+
+# ✅ CORRECT - Parameterized SQL
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+
+# ✅ CORRECT - Safe command execution
+subprocess.run(["ping", "-c", "4", hostname], check=True)
+
+# ✅ CORRECT - Output encoding
+import html
+return f"<div>Hello, {html.escape(username)}</div>"
+```
+
+### 1.4 A04: Insecure Design (CWE-306, CWE-307)
+
+**Principle:** Security must be designed in, not bolted on.
+
+```python
+# ❌ WRONG - No rate limiting on authentication
+@app.post("/login")
+async def login(credentials: Credentials):
+    user = authenticate(credentials)  # No limit = brute force!
+
+# ❌ WRONG - No account lockout
+failed_attempts = 0  # Only in memory, reset on restart
+
+# ✅ CORRECT - Rate limiting + account lockout
+from slowapi import Limiter
+
+limiter = Limiter(key_func=get_remote_address)
+
+@app.post("/login")
+@limiter.limit("5/minute")  # 5 attempts per minute per IP
+async def login(credentials: Credentials, request: Request):
+    if is_account_locked(credentials.username):
+        raise HTTPException(429, "Account locked. Try again later.")
+
+    user = authenticate(credentials)
+    if not user:
+        increment_failed_attempts(credentials.username)
+        if get_failed_attempts(credentials.username) >= 5:
+            lock_account(credentials.username, duration=timedelta(minutes=15))
+        raise HTTPException(401, "Invalid credentials")
+
+    reset_failed_attempts(credentials.username)
+    return create_tokens(user)
+```
+
+### 1.5 A05: Security Misconfiguration (CWE-16)
+
+**Principle:** Secure defaults. Disable debug in production.
+
+```python
+# ❌ WRONG - Debug enabled in production
+app = FastAPI(debug=True)  # Exposes stack traces!
+
+# ❌ WRONG - Permissive CORS
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
+
+# ❌ WRONG - Missing security headers
+# No CSP, HSTS, X-Frame-Options
+
+# ✅ CORRECT - Secure configuration
+import os
+app = FastAPI(debug=os.getenv("DEBUG", "false").lower() == "true")
+
+# ✅ CORRECT - Restricted CORS
+ALLOWED_ORIGINS = os.environ["ALLOWED_ORIGINS"].split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+)
+
+# ✅ CORRECT - Security headers
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Content-Security-Policy"] = "default-src 'self'"
+    return response
+```
+
+### 1.6 A06: Vulnerable Components (CWE-829)
+
+**Principle:** Audit dependencies. Pin versions. Update regularly.
+
+```bash
+# ❌ WRONG - No version pinning
+pip install requests
+npm install lodash
+
+# ❌ WRONG - Never audited
+# No CI/CD security checks
+
+# ✅ CORRECT - Pin versions
+pip install requests==2.31.0
+npm install --save-exact lodash@4.17.21
+
+# ✅ CORRECT - Audit in CI/CD
+pip-audit
+npm audit
+snyk test
+dependabot alerts enabled
+```
+
+### 1.7 A07: Authentication Failures (CWE-287, CWE-384)
+
+**Principle:** Secure session management. Short-lived tokens.
+
+```python
+# ❌ WRONG - Long-lived tokens
+ACCESS_TOKEN_EXPIRE = timedelta(days=30)  # Way too long!
+
+# ❌ WRONG - Secrets in code
+SECRET_KEY = "my-secret-key-12345"
+
+# ❌ WRONG - No token expiration check
+def get_current_user(token):
+    payload = jwt.decode(token, SECRET_KEY)  # No verification!
+    return payload["sub"]
+
+# ✅ CORRECT - Short-lived access, longer refresh
+ACCESS_TOKEN_EXPIRE = timedelta(minutes=15)
+REFRESH_TOKEN_EXPIRE = timedelta(days=7)
+
+SECRET_KEY = os.environ["JWT_SECRET_KEY"]  # From environment
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=["HS256"],
+            options={"require_exp": True}  # Require expiration
+        )
+        user_id = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(401, "Invalid token")
+        return get_user(user_id)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(401, "Token expired")
+    except jwt.JWTError:
+        raise HTTPException(401, "Invalid token")
+```
+
+### 1.8 A10: Server-Side Request Forgery (CWE-918)
+
+**Principle:** Validate and restrict outbound requests.
+
+```python
+# ❌ WRONG - User controls URL
+@app.get("/fetch")
+async def fetch_url(url: str):
+    response = requests.get(url)  # Can access internal services!
+    return response.text
+
+# ✅ CORRECT - URL validation and allowlist
+import ipaddress
+from urllib.parse import urlparse
+
+ALLOWED_DOMAINS = {"api.example.com", "cdn.example.com"}
+
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+
+        # Only HTTPS
+        if parsed.scheme != "https":
+            return False
+
+        # Domain allowlist
+        if parsed.hostname not in ALLOWED_DOMAINS:
+            return False
+
+        # Block internal IPs
+        ip = ipaddress.ip_address(parsed.hostname)
+        if ip.is_private or ip.is_loopback or ip.is_reserved:
+            return False
+
+        return True
+    except:
+        return False
+
+@app.get("/fetch")
+async def fetch_url(url: str):
+    if not is_safe_url(url):
+        raise HTTPException(400, "Invalid URL")
+    response = requests.get(url, timeout=10)
+    return response.text
+```
 
 ---
 
-## 6. Performance Optimization
+## 2. Version Requirements
 
-**Security scanning must be fast to integrate into CI/CD:**
+**ALWAYS use these minimum versions:**
+```
+# Python Security
+argon2-cffi>=21.3.0     # Password hashing
+PyJWT>=2.8.0            # JWT with security fixes
+cryptography>=42.0.0    # Modern crypto
 
-- **Incremental Scanning**: Scan only changed files (10-100x faster)
-- **Caching**: Cache results by file hash (50-90% reduction)
-- **Parallel Analysis**: Use thread pools (4x faster on quad-core)
-- **Targeted Audits**: Focus on high-risk areas (auth, crypto, SQL)
-- **Resource Limits**: Set memory/CPU limits to prevent hangs
+# Security Testing
+semgrep>=1.50.0         # SAST
+bandit>=1.7.0           # Python security linter
+pip-audit>=2.6.0        # Dependency audit
 
-**📚 For performance patterns** (caching, parallelization, resource limits):
-- See `references/performance-optimization.md`
-
----
-
-## 7. Implementation Patterns (Core Security Controls)
-
-class InputValidator:
-    """Secure input validation following allowlist approach"""
-
-📚 **For complete details**: See `references/implementation-patterns-core-security-controls.md`
-
----
-## 8. Security Standards (Overview)
-
-### 7.1 OWASP Top 10 2025 Mapping
-
-| OWASP ID | Category | Risk Level | Quick Mitigation |
-|----------|----------|------------|------------------|
-| A01:2025 | Broken Access Control | Critical | Authorize every request, RBAC/ABAC |
-| A02:2025 | Cryptographic Failures | High | TLS 1.3, encrypt data at rest, Argon2id |
-| A03:2025 | Injection | Critical | Parameterized queries, input validation |
-| A04:2025 | Insecure Design | High | Threat modeling, rate limiting, CAPTCHA |
-| A05:2025 | Security Misconfiguration | High | Secure defaults, disable debug mode |
-| A06:2025 | Vulnerable Components | High | SCA tools, Dependabot, regular updates |
-| A07:2025 | Authentication Failures | Critical | MFA, Argon2id, account lockout |
-| A08:2025 | Data Integrity Failures | Medium | Signed commits, SRI hashes, checksums |
-| A09:2025 | Logging Failures | Medium | Structured logging, security events, SIEM |
-| A10:2025 | SSRF | High | URL validation, IP allowlisting |
-
-**📚 For complete OWASP guidance** (detailed examples, attack scenarios, code patterns for all 10 categories):
-- See `references/security-examples.md`
-
-### 7.2 Critical Security Requirements
-
-**MUST implement**:
-- ✅ Input validation at all trust boundaries (allowlist approach)
-- ✅ Output encoding for all user-supplied data
-- ✅ Parameterized queries for all database operations
-- ✅ Secrets in environment variables or Vault (never hardcoded)
-- ✅ Password hashing with Argon2id (time_cost=3, memory_cost=65536)
-- ✅ JWT tokens with expiration (access: 15min, refresh: 7 days)
-- ✅ HTTPS/TLS 1.3 enforced with HSTS headers
-- ✅ Security headers (CSP, X-Frame-Options, X-Content-Type-Options)
-- ✅ SAST/DAST/SCA in CI/CD pipeline
-- ✅ Structured security logging (auth events, authz failures)
+# JavaScript Security
+helmet>=7.1.0           # Express security headers
+bcrypt>=5.1.0           # Password hashing
+jsonwebtoken>=9.0.0     # JWT
+```
 
 ---
 
-## 9. Common Mistakes and Anti-Patterns
+## 3. Code Patterns
 
-| Mistake | Bad | Good |
-|---------|-----|------|
-| Client-side validation only | No server check | Always validate server-side |
-| Blacklists | `blocked = ['.exe']` | `allowed = ['.jpg', '.pdf']` |
-| Exposing errors | `return str(e)` | `return 'An error occurred'` |
-| Hardcoded secrets | `API_KEY = "sk_live..."` | `os.getenv('API_KEY')` |
-| Insecure random | `random.choices()` | `secrets.token_urlsafe(32)` |
+### 3.1 WHEN implementing authentication
 
-**📚 Full examples**: See `references/anti-patterns.md`
+```python
+from datetime import datetime, timedelta, timezone
+from argon2 import PasswordHasher
+from jose import jwt, JWTError
+import os
+
+SECRET_KEY = os.environ["JWT_SECRET_KEY"]
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE = timedelta(minutes=15)
+
+ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
+
+def hash_password(password: str) -> str:
+    return ph.hash(password)
+
+def verify_password(hash: str, password: str) -> bool:
+    try:
+        ph.verify(hash, password)
+        return True
+    except:
+        return False
+
+def create_access_token(user_id: int) -> str:
+    expire = datetime.now(timezone.utc) + ACCESS_TOKEN_EXPIRE
+    return jwt.encode(
+        {"sub": str(user_id), "exp": expire},
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+```
+
+### 3.2 WHEN implementing authorization
+
+```python
+from functools import wraps
+from enum import Enum
+
+class Role(str, Enum):
+    USER = "user"
+    ADMIN = "admin"
+
+def require_role(required_role: Role):
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, current_user: User = Depends(get_current_user), **kwargs):
+            if current_user.role != required_role and current_user.role != Role.ADMIN:
+                raise HTTPException(403, "Insufficient permissions")
+            return await func(*args, current_user=current_user, **kwargs)
+        return wrapper
+    return decorator
+
+@app.delete("/users/{user_id}")
+@require_role(Role.ADMIN)
+async def delete_user(user_id: int, current_user: User = Depends(get_current_user)):
+    # Only admins can reach here
+    db.delete(User, user_id)
+```
+
+### 3.3 WHEN implementing input validation
+
+```python
+from pydantic import BaseModel, Field, field_validator
+import re
+
+class UserInput(BaseModel):
+    username: str = Field(min_length=3, max_length=50)
+    email: str = Field(max_length=255)
+    age: int = Field(ge=0, le=150)
+
+    @field_validator('username')
+    @classmethod
+    def validate_username(cls, v):
+        if not re.match(r'^[a-zA-Z0-9_]+$', v):
+            raise ValueError('Username must be alphanumeric')
+        return v
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', v):
+            raise ValueError('Invalid email format')
+        return v
+```
 
 ---
 
-## 10. Pre-Implementation Security Checklist
+## 4. Anti-Patterns
 
-### Phase 1: Before Writing Code
-- [ ] Threat model created (STRIDE analysis)
-- [ ] Security requirements documented
-- [ ] OWASP Top 10 risks identified for feature
-- [ ] Security test cases written first (TDD)
-- [ ] Attack vectors mapped
+### 4.1 Client-Side Authorization
 
-### Phase 2: During Implementation
-- [ ] All passwords hashed with Argon2id (cost factor 12+)
-- [ ] JWT tokens expire (access: 15min, refresh: 7 days)
-- [ ] Authorization checks on every endpoint
-- [ ] All user inputs validated (allowlist approach)
-- [ ] SQL queries use parameterized statements
-- [ ] TLS 1.3 enforced, HSTS header set
-- [ ] Security headers configured (CSP, X-Frame-Options)
-- [ ] No hardcoded secrets in code
+**NEVER** rely on client-side checks:
+```javascript
+// ❌ WRONG - Frontend-only authorization
+if (user.role === 'admin') {
+    showDeleteButton();  // Anyone can modify JS!
+}
+
+// ✅ CORRECT - Server validates every request
+// Backend must check authorization regardless of UI
+```
+
+### 4.2 Insecure Randomness
+
+**NEVER** use weak random for security:
+```python
+# ❌ WRONG - Predictable
+import random
+token = ''.join(random.choices(string.ascii_letters, k=32))
+
+# ✅ CORRECT - Cryptographically secure
+import secrets
+token = secrets.token_urlsafe(32)
+```
+
+### 4.3 Error Message Information Disclosure
+
+**NEVER** expose internal details:
+```python
+# ❌ WRONG - Leaks database schema
+except Exception as e:
+    return {"error": str(e)}  # "Column 'password_hash' doesn't exist"
+
+# ✅ CORRECT - Generic message
+except Exception as e:
+    logger.error(f"Database error: {e}")  # Log internally
+    return {"error": "An error occurred"}  # Generic to user
+```
+
+---
+
+## 5. Testing
+
+**ALWAYS write security tests:**
+```python
+import pytest
+
+class TestAuthSecurity:
+    def test_sql_injection_blocked(self, client):
+        payloads = ["' OR '1'='1", "'; DROP TABLE users; --", "admin'--"]
+        for payload in payloads:
+            response = client.get(f"/users?search={payload}")
+            assert response.status_code in [200, 400]
+            assert "DROP" not in response.text
+
+    def test_authorization_enforced(self, client, regular_user_token):
+        # Regular user cannot access admin endpoint
+        response = client.delete(
+            "/admin/users/1",
+            headers={"Authorization": f"Bearer {regular_user_token}"}
+        )
+        assert response.status_code == 403
+
+    def test_rate_limiting_works(self, client):
+        # Exceed rate limit
+        for _ in range(10):
+            client.post("/login", json={"username": "test", "password": "wrong"})
+        response = client.post("/login", json={"username": "test", "password": "wrong"})
+        assert response.status_code == 429
+
+    def test_xss_prevented(self, client, auth_headers):
+        response = client.post(
+            "/comments",
+            json={"content": "<script>alert('xss')</script>"},
+            headers=auth_headers
+        )
+        assert "<script>" not in response.text
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any security-sensitive code:**
+
+- [ ] A01: Authorization check on every endpoint
+- [ ] A02: Argon2id for passwords, AES-GCM for encryption
+- [ ] A03: Parameterized queries, no string concatenation
+- [ ] A04: Rate limiting, account lockout
+- [ ] A05: Debug disabled, security headers set
+- [ ] A06: Dependencies audited, versions pinned
+- [ ] A07: JWT expires (15min access, 7d refresh)
+- [ ] A10: URL validation, domain allowlist for SSRF
+- [ ] Secrets from environment, never hardcoded
 - [ ] Generic error messages to users
-
-### Phase 3: Before Committing
-- [ ] Security tests pass: `pytest tests/test_*_security.py`
-- [ ] SAST passed: `semgrep --config=auto .`
-- [ ] Secrets scan passed: `gitleaks detect`
-- [ ] Dependency check passed: `pip-audit`
-- [ ] No known vulnerabilities in dependencies
-- [ ] Authentication/authorization events logged
-- [ ] Debug mode disabled
-- [ ] Rate limiting configured
-
----
-
-## 11. Summary
-
-You are an elite Application Security expert. Your mission: prevent vulnerabilities before production through TDD-first security testing, performance-aware scanning, and comprehensive OWASP Top 10 coverage.
-
-**Core Competencies**: OWASP Top 10 2025, Secure Coding, Cryptography, Authentication (OAuth2/JWT), Security Testing (SAST/DAST/SCA), Threat Modeling (STRIDE), DevSecOps automation.
-
-**Risk Awareness**: Security vulnerabilities lead to breaches. Every control must be correct. When in doubt, choose the more secure option.
-
----
-
-## References
-
-Detailed documentation and examples are available in the references/ subfolder:
-
-- **Implementation Patterns** (`references/implementation-patterns.md`): Security Headers, Vault integration, CI/CD security, advanced authentication
-- **OWASP Top 10 Examples** (`references/security-examples.md`): Complete coverage of all 10 categories with attack scenarios and remediation
-- **Anti-Patterns** (`references/anti-patterns.md`): Common security mistakes with vulnerable vs. secure code comparisons
-- **Testing Guide** (`references/testing-guide.md`): TDD workflow, complete test suites, integration testing, CI/CD automation
-- **Performance Optimization** (`references/performance-optimization.md`): Incremental scanning, caching, parallelization, resource limits
-- **Threat Modeling** (`references/threat-model.md`): STRIDE methodology, data flow diagrams, attack trees, threat templates
+- [ ] Security tests written

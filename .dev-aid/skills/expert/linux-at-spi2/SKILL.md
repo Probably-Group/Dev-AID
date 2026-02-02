@@ -1,465 +1,430 @@
 ---
 name: linux-at-spi2
+version: 2.0.0
+description: "Linux accessibility automation with AT-SPI2 for GTK/Qt application testing and control."
 risk_level: MEDIUM
-description: "Expert in AT-SPI2 (Assistive Technology Service Provider Interface) for Linux desktop automation. Specializes in accessible automation of GTK/Qt applications via D-Bus accessibility interface. HIGH-RISK skill requiring security controls for system-wide access."
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Linux AT-SPI2 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: D-Bus injection attacks, Privilege escalation, Screen scraping for sensitive data
-- Requires security awareness and best practices
+**CWE-284: D-Bus Access Control**
+- NEVER: Open D-Bus accessibility to all users
+- ALWAYS: Restrict to session bus, validate caller
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-78: Command Injection via Accessibility**
+- NEVER: Execute commands from accessibility text content
+- ALWAYS: Treat all accessibility data as untrusted input
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
-
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **AT-SPI2-PRIV-ESC** (CVSS N/A): AT-SPI2 privilege escalation risks
-     Source: https://www.freedesktop.org/wiki/Accessibility/AT-SPI2/
-   - **DBUS-INJECTION** (CVSS N/A): D-Bus injection via AT-SPI2
-     Source: https://www.freedesktop.org/wiki/Software/dbus/
-   - **SCREEN-SCRAPING-ABUSE** (CVSS N/A): Unauthorized screen scraping
-     Source: https://wiki.gnome.org/Accessibility
-
-**Step 3: Common Attack Patterns**
-
-   - D-Bus injection attacks
-   - Privilege escalation
-   - Screen scraping for sensitive data
-   - UI automation abuse
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow untrusted AT-SPI2 clients
-- ❌ NEVER expose sensitive UI elements
-- ❌ ALWAYS validate D-Bus messages
-- ❌ ALWAYS use least privilege
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: HIGH - System-wide accessibility access, D-Bus IPC, input injection
-
-You are an expert in Linux AT-SPI2 automation with deep expertise in:
-
-- **AT-SPI2 Protocol**: Accessibility object tree, interfaces, events
-- **D-Bus Integration**: Session bus communication, interface proxies
-- **pyatspi2**: Python bindings for AT-SPI2
-- **Security Controls**: Process validation, permission management
-
-### Core Expertise Areas
-
-1. **Accessible Objects**: AtspiAccessible, roles, states, interfaces
-2. **D-Bus Protocol**: Object paths, interfaces, method calls
-3. **Event Monitoring**: AT-SPI2 event system, callbacks
-4. **Security**: Application isolation, audit logging
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Principles
+## 1. Security Principles
 
-1. **TDD First** - Write tests before implementation for all AT-SPI2 interactions
-2. **Performance Aware** - Optimize tree traversals, cache nodes, filter events
-3. **Security First** - Validate targets, block sensitive apps, audit all operations
-4. **Reliability** - Enforce timeouts, handle D-Bus errors gracefully
+### 1.1 D-Bus Access Control (CWE-284)
 
----
-
-## 3. Core Responsibilities
-
-### 3.1 Safe Automation Principles
-
-When performing AT-SPI2 automation:
-- **Validate target applications** before interaction
-- **Block sensitive applications** (password managers, terminals)
-- **Implement rate limiting** for actions
-- **Log all operations** for audit trails
-- **Enforce timeouts** on D-Bus calls
-
-### 3.2 Security-First Approach
-
-Every automation operation MUST:
-1. Verify target application identity
-2. Check against blocked application list
-3. Validate action permissions
-4. Log operation with correlation ID
-5. Enforce timeout limits
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Technical Foundation
-
-### 4.1 AT-SPI2 Architecture
-
-```
-Application -> ATK/QAccessible -> AT-SPI2 Registry -> D-Bus -> Client
-```
-
-**Key Components**:
-- **AT-SPI2 Registry**: Central daemon managing accessibility objects
-- **ATK Bridge**: GTK accessibility implementation
-- **QAccessible**: Qt accessibility implementation
-- **pyatspi2**: Python client library
-
-### 4.2 Essential Libraries
-
-| Library | Purpose | Security Notes |
-|---------|---------|----------------|
-| `pyatspi2` | Python AT-SPI2 bindings | Validate accessible objects |
-| `gi.repository.Atspi` | GObject Introspection bindings | Check object validity |
-| `dbus-python` | D-Bus access | Use session bus only |
-
----
-
-## 6. Implementation Patterns
-
-class SecureATSPI:
-    """Secure wrapper for AT-SPI2 operations."""
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 7. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** AT-SPI2 operates over D-Bus session bus. Validate all received data as untrusted IPC.
 
 ```python
-# tests/test_atspi_automation.py
+# ❌ WRONG - Trusting D-Bus data without validation
+def handle_accessible(proxy):
+    name = proxy.Name  # Could be malicious string
+    exec(f"log_{name}()")  # Code injection
+
+# ✅ CORRECT - Validate D-Bus responses
+import re
+from gi.repository import Atspi
+
+SAFE_NAME_PATTERN = re.compile(r'^[\w\s\-\.]{1,256}$')
+
+def handle_accessible(accessible: Atspi.Accessible) -> str | None:
+    try:
+        name = accessible.get_name()
+        if name and SAFE_NAME_PATTERN.match(name):
+            return name
+        return None
+    except GLib.Error:
+        return None  # D-Bus timeout or disconnected
+```
+
+### 1.2 Resource Exhaustion Prevention (CWE-400)
+
+**Principle:** AT-SPI trees can be massive. Always limit traversal depth and implement timeouts.
+
+```python
+# ❌ WRONG - Unbounded tree traversal
+def find_all_buttons(root):
+    buttons = []
+    for child in root:
+        buttons.extend(find_all_buttons(child))  # Stack overflow risk
+    return buttons
+
+# ✅ CORRECT - Bounded traversal with limits
+from gi.repository import Atspi, GLib
+
+MAX_DEPTH = 15
+MAX_NODES = 5000
+
+def find_buttons_bounded(
+    accessible: Atspi.Accessible,
+    depth: int = 0,
+    visited: set[int] | None = None
+) -> list[Atspi.Accessible]:
+    if visited is None:
+        visited = set()
+
+    if depth > MAX_DEPTH or len(visited) > MAX_NODES:
+        return []
+
+    unique_id = accessible.get_index_in_parent()
+    if unique_id in visited:
+        return []  # Cycle detection
+    visited.add(unique_id)
+
+    buttons = []
+    role = accessible.get_role()
+    if role == Atspi.Role.PUSH_BUTTON:
+        buttons.append(accessible)
+
+    try:
+        child_count = accessible.get_child_count()
+        for i in range(min(child_count, 100)):  # Limit children
+            child = accessible.get_child_at_index(i)
+            if child:
+                buttons.extend(find_buttons_bounded(child, depth + 1, visited))
+    except GLib.Error:
+        pass  # Handle disconnected objects
+
+    return buttons
+```
+
+### 1.3 Privilege Separation (CWE-250)
+
+**Principle:** AT-SPI2 requires accessibility permissions. Run automation in isolated process.
+
+---
+
+## 2. Version Requirements
+
+```
+# AT-SPI2 (via PyGObject)
+PyGObject>=3.42.0
+# Atspi bindings (system package)
+libatspi>=2.46
+# GLib for main loop
+glib>=2.74
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN querying accessibility tree, use Atspi bindings with GLib main loop
+
+```python
+# ❌ WRONG - Blocking calls without main loop
+from gi.repository import Atspi
+
+desktop = Atspi.get_desktop(0)
+app = desktop.get_child_at_index(0)  # May hang
+
+# ✅ CORRECT - Async with GLib main loop
+from gi.repository import Atspi, GLib
+
+class ATSPIClient:
+    def __init__(self):
+        Atspi.init()
+        self.loop = GLib.MainLoop()
+        self.result: list[Atspi.Accessible] = []
+
+    def find_by_role(
+        self,
+        role: Atspi.Role,
+        timeout_ms: int = 5000
+    ) -> list[Atspi.Accessible]:
+        self.result = []
+
+        def search():
+            desktop = Atspi.get_desktop(0)
+            for i in range(desktop.get_child_count()):
+                app = desktop.get_child_at_index(i)
+                if app:
+                    self._search_recursive(app, role, depth=0)
+            self.loop.quit()
+            return False
+
+        GLib.timeout_add(0, search)
+        GLib.timeout_add(timeout_ms, self.loop.quit)
+        self.loop.run()
+        return self.result
+
+    def _search_recursive(
+        self,
+        node: Atspi.Accessible,
+        target_role: Atspi.Role,
+        depth: int
+    ):
+        if depth > 10 or len(self.result) > 100:
+            return
+
+        try:
+            if node.get_role() == target_role:
+                self.result.append(node)
+
+            for i in range(min(node.get_child_count(), 50)):
+                child = node.get_child_at_index(i)
+                if child:
+                    self._search_recursive(child, target_role, depth + 1)
+        except GLib.Error:
+            pass  # Object no longer valid
+```
+
+### WHEN performing actions, verify state before acting
+
+```python
+# ❌ WRONG - Click without checking actionable
+def click_button(button):
+    action = button.get_action_iface()
+    action.do_action(0)
+
+# ✅ CORRECT - Verify action availability
+from gi.repository import Atspi, GLib
+
+def safe_click(accessible: Atspi.Accessible) -> bool:
+    """Click an accessible element safely."""
+    try:
+        # Verify it's visible and sensitive
+        states = accessible.get_state_set()
+        if not states.contains(Atspi.StateType.VISIBLE):
+            return False
+        if not states.contains(Atspi.StateType.SENSITIVE):
+            return False
+
+        # Get action interface
+        action = accessible.get_action_iface()
+        if not action:
+            return False
+
+        # Find click action
+        n_actions = action.get_n_actions()
+        for i in range(n_actions):
+            action_name = action.get_action_name(i)
+            if action_name in ('click', 'press', 'activate'):
+                return action.do_action(i)
+
+        return False
+    except GLib.Error as e:
+        print(f"Action failed: {e}")
+        return False
+```
+
+### WHEN listening to events, use proper event subscription
+
+```python
+# ❌ WRONG - Polling for changes
+while True:
+    check_for_changes()
+    time.sleep(0.1)
+
+# ✅ CORRECT - Event-driven with AT-SPI listeners
+from gi.repository import Atspi, GLib
+from typing import Callable
+
+class ATSPIEventListener:
+    def __init__(self):
+        Atspi.init()
+        self.loop = GLib.MainLoop()
+        self._listeners: list[Atspi.EventListener] = []
+
+    def on_focus_change(
+        self,
+        callback: Callable[[Atspi.Accessible], None]
+    ):
+        def handler(event: Atspi.Event):
+            if event.source:
+                callback(event.source)
+
+        listener = Atspi.EventListener.new(handler)
+        listener.register('focus:')
+        self._listeners.append(listener)
+
+    def on_window_create(
+        self,
+        callback: Callable[[Atspi.Accessible], None]
+    ):
+        def handler(event: Atspi.Event):
+            if event.source:
+                callback(event.source)
+
+        listener = Atspi.EventListener.new(handler)
+        listener.register('window:create')
+        self._listeners.append(listener)
+
+    def start(self):
+        self.loop.run()
+
+    def stop(self):
+        for listener in self._listeners:
+            listener.deregister('focus:')
+            listener.deregister('window:create')
+        self.loop.quit()
+
+# Usage
+listener = ATSPIEventListener()
+listener.on_focus_change(lambda acc: print(f"Focus: {acc.get_name()}"))
+listener.start()
+```
+
+### WHEN finding elements by text, use match rules
+
+```python
+# ❌ WRONG - Manual text comparison everywhere
+def find_by_name(root, name):
+    if root.get_name() == name:
+        return root
+    # ... recursive search
+
+# ✅ CORRECT - Use Atspi match rules for efficient search
+from gi.repository import Atspi
+
+def find_by_match_rule(
+    root: Atspi.Accessible,
+    name: str | None = None,
+    role: Atspi.Role | None = None,
+    states: list[Atspi.StateType] | None = None
+) -> list[Atspi.Accessible]:
+    """Find elements using AT-SPI match rules."""
+
+    # Build state set if provided
+    state_set = Atspi.StateSet.new([])
+    if states:
+        for state in states:
+            state_set.add(state)
+
+    # Build attribute dict (empty for now)
+    attributes = GLib.HashTable.new(None, None)
+
+    # Create match rule
+    rule = Atspi.MatchRule.new(
+        state_set,
+        Atspi.CollectionMatchType.ALL,  # All states must match
+        attributes,
+        Atspi.CollectionMatchType.ANY,
+        [role] if role else [],
+        Atspi.CollectionMatchType.ANY,
+        [],  # interfaces
+        Atspi.CollectionMatchType.ANY,
+        False  # invert
+    )
+
+    # Get collection interface
+    collection = root.get_collection_iface()
+    if not collection:
+        return []
+
+    # Query with limits
+    matches = collection.get_matches(
+        rule,
+        Atspi.CollectionSortOrder.CANONICAL,
+        100,   # max results
+        False  # traverse
+    )
+
+    # Filter by name if provided
+    if name:
+        return [m for m in matches if m.get_name() == name]
+    return matches
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Traverse accessibility trees without depth limits
+- Assume D-Bus responses are immediate (use timeouts)
+- Hold references to stale Accessible objects
+- Poll for changes instead of using event listeners
+- Ignore GLib.Error exceptions from D-Bus calls
+- Run automation without accessibility permissions enabled
+
+---
+
+## 5. Testing
+
+```python
 import pytest
 from unittest.mock import Mock, patch
+from gi.repository import Atspi, GLib
 
-class TestSecureATSPI:
-    def test_blocked_app_raises_security_error(self):
-        from automation.atspi_client import SecureATSPI, SecurityError
-        atspi = SecureATSPI(permission_tier='standard')
-        with pytest.raises(SecurityError, match="blocked"):
-            atspi.get_application('keepassxc')
+class TestATSPIClient:
+    @pytest.fixture
+    def mock_desktop(self):
+        desktop = Mock(spec=Atspi.Accessible)
+        desktop.get_child_count.return_value = 2
+        return desktop
 
-    def test_password_field_access_blocked(self):
-        from automation.atspi_client import SecureATSPI, SecurityError
-        atspi = SecureATSPI()
-        mock_obj = Mock()
-        mock_obj.get_role.return_value = 24  # PASSWORD_TEXT
-        with pytest.raises(SecurityError):
-            atspi.get_object_value(mock_obj)
+    def test_bounded_traversal_respects_depth_limit(self, mock_desktop):
+        """Verify traversal stops at MAX_DEPTH."""
+        # Create deeply nested structure
+        current = mock_desktop
+        for _ in range(20):
+            child = Mock(spec=Atspi.Accessible)
+            child.get_child_count.return_value = 1
+            child.get_role.return_value = Atspi.Role.PANEL
+            current.get_child_at_index.return_value = child
+            current = child
 
-    def test_read_only_tier_blocks_actions(self):
-        from automation.atspi_client import SecureATSPI
-        atspi = SecureATSPI(permission_tier='read-only')
-        with pytest.raises(PermissionError):
-            atspi.perform_action(Mock(), 'click')
-```
+        result = find_buttons_bounded(mock_desktop)
+        # Should not traverse full depth
+        assert mock_desktop.get_child_at_index.call_count < 20
 
-### Step 2: Implement Minimum to Pass
+    def test_handles_dbus_disconnection(self, mock_desktop):
+        """Verify graceful handling of D-Bus errors."""
+        mock_desktop.get_child_at_index.side_effect = GLib.Error("Disconnected")
 
-Implement the security checks and validations to pass tests.
+        result = find_buttons_bounded(mock_desktop)
+        assert result == []  # No crash
 
-### Step 3: Refactor Following Patterns
+    def test_safe_click_verifies_state(self):
+        """Verify click checks element state."""
+        button = Mock(spec=Atspi.Accessible)
+        state_set = Mock()
+        state_set.contains.return_value = False  # Not visible
+        button.get_state_set.return_value = state_set
 
-Apply caching, async patterns, and connection pooling.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/ -v --cov=automation --cov-report=term-missing
-
-# Run security-specific tests
-pytest tests/ -k "security or blocked" -v
-
-# Verify no password field access
-pytest tests/ -k "password" -v
-```
-
----
-
-## 8. Performance Patterns
-
-### Pattern 1: Event Filtering (Reduce D-Bus Traffic)
-
-```python
-# BAD: Register for all events
-Atspi.EventListener.register_full(handler, 'object:', None)
-
-# GOOD: Filter to specific events needed
-ALLOWED_EVENTS = ['object:state-changed:focused', 'window:activate']
-for event in ALLOWED_EVENTS:
-    Atspi.EventListener.register_full(handler, event, None)
-```
-
-### Pattern 2: Node Caching (Avoid Repeated Lookups)
-
-```python
-# BAD: Re-traverse tree for each query
-def find_button():
-    desktop = Atspi.get_desktop(0)
-    for i in range(desktop.get_child_count()):
-        app = desktop.get_child_at_index(i)
-        # Full tree traversal every time
-
-# GOOD: Cache frequently accessed nodes
-class CachedATSPI:
-    def __init__(self):
-        self._app_cache = {}
-        self._cache_ttl = 5.0  # seconds
-
-    def get_application(self, name: str):
-        now = time.time()
-        if name in self._app_cache:
-            cached, timestamp = self._app_cache[name]
-            if now - timestamp < self._cache_ttl:
-                return cached
-
-        app = self._find_app(name)
-        self._app_cache[name] = (app, now)
-        return app
-```
-
-### Pattern 3: Async Queries (Non-Blocking Operations)
-
-```python
-# BAD: Blocking synchronous calls in main thread
-buttons = [c for c in children if c.get_role() == PUSH_BUTTON]
-
-# GOOD: Use executor for heavy tree traversals
-async def get_all_buttons_async(app):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, lambda: find_buttons(app))
-```
-
-### Pattern 4: Connection Pooling (Singleton)
-
-```python
-# BAD: Atspi.init() called per operation
-# GOOD: Singleton manager
-class ATSPIManager:
-    _instance = None
-    def __new__(cls):
-        if not cls._instance:
-            cls._instance = super().__new__(cls)
-            Atspi.init()
-        return cls._instance
-```
-
-### Pattern 5: Scope Limiting (Reduce Search Space)
-
-```python
-# BAD: Search entire desktop tree
-result = search_recursive(Atspi.get_desktop(0), name)
-
-# GOOD: Limit to specific app
-app = get_application(app_name)
-result = search_recursive(app, name)
-
-# BETTER: Add role filtering
-result = search_with_role(app, name, role=Atspi.Role.PUSH_BUTTON)
+        result = safe_click(button)
+        assert result is False
 ```
 
 ---
 
-## 9. Security Standards
+## 6. Pre-Generation Checklist
 
-### 8.1 Critical Vulnerabilities
+**BEFORE generating AT-SPI2 code:**
 
-| Vulnerability | Severity | Mitigation |
-|--------------|----------|------------|
-| AT-SPI2 Registry Bypass (CWE-284) | HIGH | Validate through registry |
-| D-Bus Session Hijacking (CVE-2022-42012) | HIGH | Validate D-Bus peer credentials |
-| Password Field Access (CWE-200) | CRITICAL | Block PASSWORD_TEXT role |
-| Input Injection (CWE-74) | HIGH | Application blocklists |
-| Event Flooding (CWE-400) | MEDIUM | Rate limiting, event filtering |
-
-### 8.2 Permission Tier Model
-
-```python
-PERMISSION_TIERS = {
-    'read-only': {
-        'allowed_operations': ['get_name', 'get_role', 'get_state', 'find'],
-        'blocked_roles': [Atspi.Role.PASSWORD_TEXT],
-        'timeout': 5000,
-    },
-    'standard': {
-        'allowed_operations': ['*', 'do_action', 'set_text'],
-        'blocked_roles': [Atspi.Role.PASSWORD_TEXT],
-        'timeout': 10000,
-    },
-    'elevated': {
-        'allowed_operations': ['*'],
-        'blocked_apps': ['polkit', 'gnome-keyring'],
-        'timeout': 30000,
-    }
-}
-```
-
----
-
-## 10. Common Mistakes
-
-### Never: Access Password Fields
-
-```python
-# BAD: No role check
-value = obj.get_text().get_text(0, -1)
-
-# GOOD: Check role first
-if obj.get_role() != Atspi.Role.PASSWORD_TEXT:
-    value = obj.get_text().get_text(0, -1)
-```
-
-### Never: Skip Application Validation
-
-```python
-# BAD: Direct access
-app = desktop.get_child_at_index(0)
-interact(app)
-
-# GOOD: Validate first
-if is_allowed_app(app.get_name()):
-    interact(app)
-```
-
----
-
-## 11. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Reviewed AT-SPI2 security patterns in this skill
-- [ ] Identified target applications and verified not in blocklist
-- [ ] Determined required permission tier (read-only/standard/elevated)
-- [ ] Wrote failing tests for security validations
-- [ ] Planned caching strategy for node lookups
-
-### Phase 2: During Implementation
-
-- [ ] Implemented application blocklist checks
-- [ ] Added PASSWORD_TEXT role blocking
-- [ ] Enforced timeouts on all D-Bus calls
-- [ ] Applied node caching for performance
-- [ ] Used event filtering (not wildcard subscriptions)
-- [ ] Implemented scope limiting for searches
-
-### Phase 3: Before Committing
-
-- [ ] All pytest tests pass with coverage > 80%
-- [ ] Audit logging verified for all operations
-- [ ] Rate limiting tested under load
-- [ ] No security warnings in test output
-- [ ] Performance verified (< 100ms for element lookups)
-
----
-
-## 12. Summary
-
-Your goal is to create AT-SPI2 automation that is:
-- **Secure**: Application validation, role blocking, audit logging
-- **Reliable**: Timeout enforcement, error handling
-- **Accessible**: Respects assistive te## 8. Performance Patterns
-
-## 8. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
+- [ ] Depth limits: Tree traversal bounded (MAX_DEPTH=15)
+- [ ] Timeouts: All D-Bus calls have timeout handling
+- [ ] Error handling: GLib.Error caught on all Atspi calls
+- [ ] Event-driven: Using listeners instead of polling
+- [ ] Resource limits: MAX_NODES limit on search results
+- [ ] State verification: Check VISIBLE/SENSITIVE before actions
+- [ ] Cycle detection: Track visited nodes in traversal
+- [ ] GLib main loop: Async operations use proper event loop

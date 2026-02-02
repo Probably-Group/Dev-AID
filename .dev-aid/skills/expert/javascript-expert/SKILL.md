@@ -1,422 +1,589 @@
 ---
 name: javascript-expert
-description: "Expert JavaScript developer specializing in modern ES6+ features, async patterns, Node.js, and browser APIs. Use when building JavaScript applications, optimizing performance, handling async operations, or implementing secure JavaScript code."
+version: 2.0.0
+description: "Modern JavaScript with ES6+ patterns, async/await, module systems, and Node.js best practices."
+risk_level: MEDIUM
 ---
 
-# JavaScript Development Expert
+# JavaScript Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: React Server Component payload manipulation, Prototype pollution attacks, Expression evaluation RCE
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-79: Cross-Site Scripting (XSS)**
+- NEVER: `element.innerHTML = userInput` or `document.write(userInput)`
+- ALWAYS: `element.textContent = userInput` or sanitize with DOMPurify
 
-### 0.2 Vulnerability Research Protocol
+**CWE-1321: Prototype Pollution**
+- NEVER: `Object.assign(target, JSON.parse(userInput))` without validation
+- ALWAYS: Validate keys, use `Object.create(null)` for dictionaries, reject `__proto__`
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-94: eval Injection**
+- NEVER: `eval(userInput)` or `new Function(userInput)()`
+- ALWAYS: Use JSON.parse for data, avoid dynamic code execution
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-918: SSRF in Node.js**
+- NEVER: `fetch(userProvidedUrl)` without validation
+- ALWAYS: Allowlist domains, validate URL scheme (https only), block private IPs
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+**CWE-400: ReDoS (Regular Expression DoS)**
+- NEVER: Complex regex with user input: `new RegExp(userInput)`
+- ALWAYS: Sanitize regex special chars, use timeout, prefer simple patterns
 
-   - **CVE-2025-55182** (CVSS 10.0): React Server Components RCE via payload decoding flaw
-     Source: https://thehackernews.com/2025/12/critical-rsc-bugs-in-react-and-nextjs.html
-   - **CVE-2025-66478** (CVSS 10.0): Next.js RCE affecting default configurations
-     Source: https://www.endorlabs.com/learn/critical-remote-code-execution-rce-vulnerabilities-in-react-and-next-js
-   - **CVE-2025-12735** (CVSS 9.8): expr-eval library RCE via malicious input (800k weekly downloads)
-     Source: https://www.bleepingcomputer.com/news/security/popular-javascript-library-expr-eval-vulnerable-to-rce-flaw/
+### 0.3 Risk Level: MEDIUM
 
-**Step 3: Common Attack Patterns**
-
-   - React Server Component payload manipulation
-   - Prototype pollution attacks
-   - Expression evaluation RCE
-   - NPM supply chain attacks (2.6B downloads compromised Sept 2025)
-   - Client-side XSS via framework bypasses
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER trust client-side validation alone
-- ❌ NEVER use eval() or Function() with user input
-- ❌ NEVER install NPM packages without integrity checks
-- ❌ ALWAYS sanitize React dangerouslySetInnerHTML
-- ❌ ALWAYS validate Server Component payloads
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any JavaScript code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement JavaScript features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check MDN Web Docs or official ECMAScript documentation
-   - ✅ Confirm API methods exist in target runtime (Node.js, browser, Deno)
-   - ✅ Validate best practices against current ECMAScript standards
-   - ❌ Never guess API method names or signatures
-   - ❌ Never invent DOM/Web API methods
-   - ❌ Never assume browser/Node.js compatibility without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for patterns
-   - 🔍 Grep: Search for similar implementations in project
-   - 🔍 WebSearch: Verify APIs in MDN or official Node.js docs
-   - 🔍 WebFetch: Read official documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY JavaScript API, syntax, or pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in JavaScript can cause runtime failures, security vulnerabilities, or data loss
-
-4. **Common JavaScript Hallucination Traps** (AVOID)
-   - ❌ Inventing Array/Object/Promise methods that don't exist
-   - ❌ Mixing up Node.js vs Browser APIs (e.g., `fs` in browser, `window` in Node)
-   - ❌ Using non-existent ESNext features (verify stage in TC39 process)
-   - ❌ Assuming deprecated methods still work (e.g., `String.prototype.substr`)
-   - ❌ Inventing configuration options for testing frameworks
-   - ❌ Making up event names or DOM properties
-
-### Self-Check Checklist
-
-Before EVERY response with JavaScript code:
-- [ ] All APIs verified against MDN or official Node.js docs
-- [ ] Runtime compatibility verified (browser version, Node.js version)
-- [ ] Best practices verified against current ECMAScript standards
-- [ ] Can cite official documentation sources
-- [ ] No deprecated methods used without explicit warning
-
-**⚠️ CRITICAL**: JavaScript code with hallucinated APIs causes runtime errors and production failures. Always verify.
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 XSS Prevention (CWE-79)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite JavaScript developer with deep expertise in:
-
-- **Modern JavaScript**: ES6+, ESNext features, module systems (ESM, CommonJS)
-- **Async Patterns**: Promises, async/await, event loop, callback patterns
-- **Runtime Environments**: Node.js, browser APIs, Deno, Bun
-- **Functional Programming**: Higher-order functions, closures, immutability
-- **Object-Oriented**: Prototypes, classes, inheritance patterns
-- **Performance**: Memory management, optimization, bundling, tree-shaking
-- **Security**: XSS prevention, prototype pollution, dependency vulnerabilities
-- **Testing**: Jest, Vitest, Mocha, unit testing, integration testing
-
-You build JavaScript applications that are:
-- **Performant**: Optimized execution, minimal memory footprint
-- **Secure**: Protected against XSS, prototype pollution, injection attacks
-- **Maintainable**: Clean code, proper error handling, comprehensive tests
-- **Modern**: Latest ECMAScript features, current best practices
-
----
-
-## 2. Core Principles
-
-1. **TDD First**: Write tests before implementation. Every feature starts with a failing test.
-2. **Performance Aware**: Optimize for efficiency from the start. Profile before and after changes.
-3. **Security by Default**: Never trust user input. Sanitize, validate, escape.
-4. **Clean Code**: Readable, maintainable, self-documenting code with meaningful names.
-5. **Error Resilience**: Handle all errors gracefully. Never swallow exceptions silently.
-6. **Modern Standards**: Use ES6+ features, avoid deprecated patterns.
-
----
-
-## 3. Core Responsibilities
-
-### 1. Modern JavaScript Development
-
-You will leverage ES6+ features effectively:
-- Use `const`/`let` instead of `var` for block scoping
-- Apply destructuring for cleaner code
-- Implement arrow functions appropriately (avoid when `this` binding needed)
-- Use template literals for string interpolation
-- Leverage spread/rest operators for array/object manipulation
-- Apply optional chaining (`?.`) and nullish coalescing (`??`)
-
-### 2. Asynchronous Programming
-
-You will handle async operations correctly:
-- Prefer async/await over raw promises for readability
-- Always handle promise rejections (catch blocks, try/catch)
-- Understand event loop, microtasks, and macrotasks
-- Avoid callback hell with promise chains or async/await
-- Use Promise.all() for parallel operations, Promise.allSettled() for error tolerance
-- Implement proper error propagation in async code
-
-**See**: `references/async-patterns.md` for comprehensive async examples
-
-### 3. Security-First Development
-
-You will write secure JavaScript code:
-- Sanitize all user inputs to prevent XSS attacks
-- Avoid `eval()`, `Function()` constructor, and dynamic code execution
-- Validate and sanitize data before DOM manipulation
-- Use Content Security Policy (CSP) headers
-- Prevent prototype pollution attacks
-- Implement secure authentication token handling
-- Regularly audit dependencies for vulnerabilities (npm audit, Snyk)
-
-**See**: `references/security-examples.md` for detailed security patterns
-
-### 4. Performance Optimization
-
-You will optimize JavaScript performance:
-- Minimize DOM manipulation, batch updates
-- Use event delegation over multiple event listeners
-- Implement debouncing/throttling for frequent events
-- Optimize loops (avoid unnecessary work in iterations)
-- Use Web Workers for CPU-intensive tasks
-- Implement code splitting and lazy loading
-- Profile with Chrome DevTools, identify bottlenecks
-
-**See**: `references/performance-optimization.md` for optimization strategies
-
-### 5. Error Handling and Debugging
-
-You will implement robust error handling:
-- Use try/catch for synchronous code, .catch() for promises
-- Create custom error classes for domain-specific errors
-- Log errors with context (stack traces, user actions, timestamps)
-- Never swallow errors silently
-- Implement global error handlers (window.onerror, unhandledrejection)
-- Use structured logging in Node.js applications
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Workflow (TDD)
-
-describe('Cart calculations', () => {
-    it('should calculate total from items', () => {
-        const items = [
-            { price: 10, quantity: 2 },
-            { price: 5, quantity: 3 }
-        ];
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 6. Essential Patterns
-
-### Pattern 1: Async Error Handling
+**Principle:** Never use innerHTML with untrusted data. Use textContent or sanitize.
 
 ```javascript
-// SAFE: Proper error handling
-async function fetchUser(id) {
-    try {
-        const response = await fetch(`/api/users/${id}`);
+// ❌ WRONG - XSS vulnerability
+element.innerHTML = userInput;
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+// ❌ WRONG - Still XSS
+document.write(userInput);
 
-        const data = await response.json();
-        return { success: true, data };
-    } catch (error) {
-        console.error('Failed to fetch user:', error);
-        return { success: false, error: error.message };
-    }
-}
-```
+// ✅ CORRECT - Safe text insertion
+element.textContent = userInput;
 
-### Pattern 2: XSS Prevention
-
-```javascript
-// SAFE: Use textContent for plain text
-function displayUserComment(comment) {
-    document.getElementById('comment').textContent = comment;
-}
-
-// SAFE: Sanitize HTML if needed
+// ✅ CORRECT - If HTML needed, sanitize
 import DOMPurify from 'dompurify';
-
-function displayUserComment(comment) {
-    const clean = DOMPurify.sanitize(comment, {
-        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a'],
-        ALLOWED_ATTR: ['href']
-    });
-    document.getElementById('comment').innerHTML = clean;
-}
+element.innerHTML = DOMPurify.sanitize(userInput);
 ```
 
-### Pattern 3: Prototype Pollution Prevention
+### 1.2 Prototype Pollution (CWE-1321)
+
+**Principle:** Never use user input as object keys directly.
 
 ```javascript
-// SAFE: Check for prototype pollution
+// ❌ WRONG - Prototype pollution
 function merge(target, source) {
-    for (let key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-            if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
-                continue;
-            }
-            target[key] = source[key];
-        }
+  for (const key in source) {
+    target[key] = source[key];  // Can pollute __proto__
+  }
+}
+
+// ✅ CORRECT - Safe merge
+function safeMerge(target, source) {
+  for (const key of Object.keys(source)) {
+    if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      continue;
     }
-    return target;
+    target[key] = source[key];
+  }
 }
 
-// BETTER: Use Object.assign or spread operator
-function merge(target, source) {
-    return Object.assign({}, target, source);
+// ✅ BETTER - Use Object.assign or spread
+const merged = { ...target, ...source };
+```
+
+### 1.3 eval() and Function() (CWE-94)
+
+**Principle:** Never use eval() or new Function() with user input.
+
+### 1.4 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never expose secrets in client-side code. Use server-side proxies.
+
+### 1.5 JSON Parsing (CWE-502)
+
+**Principle:** Always try-catch JSON.parse. Validate parsed data.
+
+### 1.6 URL Handling (CWE-601)
+
+**Principle:** Validate URLs before redirects. Use allowlists for external links.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  }
 }
 ```
 
-### Pattern 4: Parallel Async Operations
+**Target:** ES2022+ for modern features.
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN handling async operations
 
 ```javascript
-// FAST: Parallel execution with Promise.all()
-async function loadUserData(userId) {
-    const [user, posts, comments] = await Promise.all([
-        fetchUser(userId),
-        fetchUserPosts(userId),
-        fetchUserComments(userId)
-    ]);
-    return { user, posts, comments };
+// ❌ WRONG - Callback hell
+getData(function(data) {
+  processData(data, function(result) {
+    saveResult(result, function(response) {
+      console.log(response);
+    });
+  });
+});
+
+// ❌ WRONG - Missing error handling
+async function fetchData() {
+  const response = await fetch('/api/data');
+  return response.json();
 }
 
-// RESILIENT: Promise.allSettled() for error tolerance
-async function loadUserData(userId) {
-    const results = await Promise.allSettled([
-        fetchUser(userId),
-## 6. Essential Patterns
+// ✅ CORRECT - Proper async/await with error handling
+async function fetchData() {
+  try {
+    const response = await fetch('/api/data');
 
-if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
 
-📚 **For complete details**: See `references/essential-patterns.md`
+    return await response.json();
+  } catch (error) {
+    console.error('Fetch failed:', error);
+    throw error;
+  }
+}
+
+// Promise.all for concurrent operations
+async function fetchAllUsers(ids) {
+  const results = await Promise.all(
+    ids.map(id => fetchUser(id).catch(e => ({ error: e, id })))
+  );
+
+  const successes = results.filter(r => !r.error);
+  const failures = results.filter(r => r.error);
+
+  return { successes, failures };
+}
+
+// Promise.allSettled for graceful failure handling
+async function fetchWithFallback(urls) {
+  const results = await Promise.allSettled(
+    urls.map(url => fetch(url).then(r => r.json()))
+  );
+
+  return results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value);
+}
+```
+
+### 3.2 WHEN using modern array methods
+
+```javascript
+// ❌ WRONG - Mutating in map
+const doubled = arr.map(x => {
+  x.value *= 2;  // Mutates original!
+  return x;
+});
+
+// ✅ CORRECT - Immutable operations
+const doubled = arr.map(x => ({ ...x, value: x.value * 2 }));
+
+// Chaining with proper error handling
+const result = users
+  .filter(user => user.active)
+  .map(user => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// reduce for complex transformations
+const grouped = items.reduce((acc, item) => {
+  const key = item.category;
+  acc[key] = acc[key] ?? [];
+  acc[key].push(item);
+  return acc;
+}, {});
+
+// Object.groupBy (ES2024)
+const grouped = Object.groupBy(items, item => item.category);
+
+// flatMap for one-to-many transformations
+const allTags = posts.flatMap(post => post.tags);
+
+// at() for negative indexing
+const last = array.at(-1);
+const secondToLast = array.at(-2);
+```
+
+### 3.3 WHEN handling errors
+
+```javascript
+// ❌ WRONG - Swallowing errors
+try {
+  await riskyOperation();
+} catch (e) {
+  // Silent failure
+}
+
+// ❌ WRONG - Catching all, returning undefined
+function getData() {
+  try {
+    return JSON.parse(input);
+  } catch {
+    return undefined;  // Caller doesn't know it failed
+  }
+}
+
+// ✅ CORRECT - Custom error classes
+class ValidationError extends Error {
+  constructor(message, field) {
+    super(message);
+    this.name = 'ValidationError';
+    this.field = field;
+  }
+}
+
+class NotFoundError extends Error {
+  constructor(resource, id) {
+    super(`${resource} not found: ${id}`);
+    this.name = 'NotFoundError';
+    this.resource = resource;
+    this.id = id;
+  }
+}
+
+// ✅ CORRECT - Result pattern
+function parseJson(input) {
+  try {
+    return { ok: true, value: JSON.parse(input) };
+  } catch (error) {
+    return { ok: false, error };
+  }
+}
+
+// ✅ CORRECT - Error boundary with proper logging
+async function handleRequest(req) {
+  try {
+    return await processRequest(req);
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return { status: 400, body: { error: error.message, field: error.field } };
+    }
+    if (error instanceof NotFoundError) {
+      return { status: 404, body: { error: error.message } };
+    }
+
+    // Log unexpected errors, don't expose details
+    console.error('Unexpected error:', error);
+    return { status: 500, body: { error: 'Internal server error' } };
+  }
+}
+```
+
+### 3.4 WHEN working with objects and data
+
+```javascript
+// ❌ WRONG - Mutating objects
+function updateUser(user, updates) {
+  user.name = updates.name;
+  return user;
+}
+
+// ✅ CORRECT - Immutable updates
+function updateUser(user, updates) {
+  return { ...user, ...updates, updatedAt: new Date() };
+}
+
+// Deep cloning
+const clone = structuredClone(original);
+
+// Object.hasOwn (preferred over hasOwnProperty)
+if (Object.hasOwn(obj, 'key')) {
+  console.log(obj.key);
+}
+
+// Nullish coalescing and optional chaining
+const name = user?.profile?.name ?? 'Anonymous';
+const count = data.count ?? 0;  // Only null/undefined, not 0 or ''
+
+// Object.fromEntries for transformations
+const inverted = Object.fromEntries(
+  Object.entries(obj).map(([k, v]) => [v, k])
+);
+
+// WeakMap for private data
+const privateData = new WeakMap();
+
+class User {
+  constructor(name) {
+    privateData.set(this, { secret: 'hidden' });
+    this.name = name;
+  }
+
+  getSecret() {
+    return privateData.get(this).secret;
+  }
+}
+```
+
+### 3.5 WHEN using ES modules
+
+```javascript
+// ❌ WRONG - require() in ESM
+const fs = require('fs');
+
+// ✅ CORRECT - ESM imports
+import fs from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+
+// Dynamic imports for code splitting
+async function loadModule(name) {
+  const module = await import(`./modules/${name}.js`);
+  return module.default;
+}
+
+// Named exports (preferred)
+export function processData(data) { /* ... */ }
+export function validateData(data) { /* ... */ }
+
+// Default export for main functionality
+export default class DataProcessor {
+  // ...
+}
+
+// Re-exports
+export { processData as process } from './processor.js';
+export * from './utils.js';
+```
+
+### 3.6 WHEN validating data
+
+```javascript
+import { z } from 'zod';
+
+// Define schemas
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  age: z.number().int().min(0).max(150),
+  role: z.enum(['admin', 'user', 'guest']),
+  preferences: z.object({
+    theme: z.enum(['light', 'dark']).default('light'),
+    notifications: z.boolean().default(true),
+  }).optional(),
+});
+
+// Parse with validation
+function createUser(input) {
+  const user = UserSchema.parse(input);
+  return user;
+}
+
+// Safe parse for error handling
+function tryCreateUser(input) {
+  const result = UserSchema.safeParse(input);
+
+  if (!result.success) {
+    return {
+      ok: false,
+      errors: result.error.issues.map(i => ({
+        path: i.path.join('.'),
+        message: i.message,
+      })),
+    };
+  }
+
+  return { ok: true, user: result.data };
+}
+
+// Transform and validate
+const ApiResponseSchema = z.object({
+  data: z.array(UserSchema),
+  meta: z.object({
+    total: z.number(),
+    page: z.number(),
+  }),
+});
+
+async function fetchUsers() {
+  const response = await fetch('/api/users');
+  const json = await response.json();
+  return ApiResponseSchema.parse(json);
+}
+```
+
+### 3.7 WHEN using Web APIs safely
+
+```javascript
+// Safe URL construction
+function buildUrl(base, params) {
+  const url = new URL(base);
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.set(key, String(value));
+    }
+  });
+  return url.toString();
+}
+
+// Safe redirect validation
+const ALLOWED_DOMAINS = ['example.com', 'trusted.com'];
+
+function safeRedirect(urlString) {
+  try {
+    const url = new URL(urlString);
+    if (!ALLOWED_DOMAINS.includes(url.hostname)) {
+      throw new Error('Redirect to untrusted domain blocked');
+    }
+    window.location.href = url.toString();
+  } catch (error) {
+    console.error('Invalid redirect URL:', error);
+    window.location.href = '/';
+  }
+}
+
+// AbortController for cancellation
+async function fetchWithTimeout(url, timeout = 5000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+// IntersectionObserver for lazy loading
+function lazyLoadImages() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const img = entry.target;
+        img.src = img.dataset.src;
+        observer.unobserve(img);
+      }
+    });
+  });
+
+  document.querySelectorAll('img[data-src]').forEach(img => {
+    observer.observe(img);
+  });
+}
+```
 
 ---
-erHTML` with unsanitized content
-- Ignore promise rejections
-- Use `Math.random()` for security
-- Use `var` - always use `const` or `let`
-- Block the event loop
 
-### ALWAYS
+## 4. Anti-Patterns
 
-- Use strict equality (`===`)
-- Handle errors in async code
-- Validate and sanitize inputs
-- Clean up event listeners
-- Use proper HTTP headers (CSP, CORS)
-- Run `npm audit` before deploying
-- Use environment variables for secrets
-- Write tests for critical paths
+**NEVER:**
+- Use `eval()` or `new Function()` with user input
+- Use `innerHTML` with untrusted data
+- Mutate function arguments
+- Use `var` (use `const` or `let`)
+- Use `==` (use `===`)
+- Catch errors without handling them
+- Use `for...in` on arrays (use `for...of`)
+- Trust client-side validation alone
 
 ---
 
-## 10. Summary
+## 5. Testing
 
-You are a JavaScript expert focused on:
-1. **TDD workflow** - Tests first, then implementation
-2. **Modern ES6+ patterns** - const/let, arrow functions, destructuring, optional chaining
-3. **Security-first development** - XSS, prototype pollution prevention
-4. **Async mastery** - promises, error handling, parallel operations
-5. **Performance optimization** - memoization, lazy loading, Web Workers
-6. **Production quality** - testing, monitoring, proper error handling
+**ALWAYS write comprehensive tests:**
 
-**Key principles**:
-- Write tests before implementation
-- Optimize for performance from the start
-- Write secure code by default
-- Handle errors gracefully
-- Never trust user input
+```javascript
+import { describe, it, expect, vi } from 'vitest';
 
-JavaScript runs in untrusted environments. Security and robustness are fundamental requirements.
+describe('fetchData', () => {
+  it('returns parsed data on success', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ data: [1, 2, 3] }),
+    });
+
+    const result = await fetchData('/api/data');
+    expect(result).toEqual({ data: [1, 2, 3] });
+  });
+
+  it('throws on HTTP error', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      statusText: 'Not Found',
+    });
+
+    await expect(fetchData('/api/data'))
+      .rejects.toThrow('HTTP 404');
+  });
+
+  it('handles network errors', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+    await expect(fetchData('/api/data'))
+      .rejects.toThrow('Network error');
+  });
+});
+
+describe('validation', () => {
+  it('accepts valid user data', () => {
+    const input = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      email: 'test@example.com',
+      age: 25,
+      role: 'user',
+    };
+
+    expect(() => UserSchema.parse(input)).not.toThrow();
+  });
+
+  it('rejects invalid email', () => {
+    const input = {
+      id: '550e8400-e29b-41d4-a716-446655440000',
+      email: 'not-an-email',
+      age: 25,
+      role: 'user',
+    };
+
+    const result = UserSchema.safeParse(input);
+    expect(result.success).toBe(false);
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any JavaScript code:**
+
+- [ ] No innerHTML with untrusted data
+- [ ] No eval() or new Function() with user input
+- [ ] All external data validated (Zod)
+- [ ] Proper error handling (no silent catches)
+- [ ] Immutable data patterns used
+- [ ] Modern syntax (const/let, arrow functions, etc.)
+- [ ] AbortController for cancellable requests
+- [ ] URL validation for redirects
+- [ ] Object property access safety (?., ??)
+- [ ] No prototype pollution vectors

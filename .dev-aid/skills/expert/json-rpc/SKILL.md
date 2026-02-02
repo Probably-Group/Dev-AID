@@ -1,426 +1,853 @@
-# JSON-RPC Protocol Skill
-
-```yaml
-name: json-rpc-expert
+---
+name: json-rpc
+version: 2.0.0
+description: "JSON-RPC 2.0 protocol implementation for remote procedure calls with proper error handling."
 risk_level: MEDIUM
-description: Expert in JSON-RPC 2.0 protocol implementation, message dispatching, error handling, batch processing, and secure RPC endpoints
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [protocol, json-rpc, api, rpc, messaging]
-```
-
 ---
 
+# JSON-RPC 2.0 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Method name injection attacks, Batch request amplification DoS, Unauthorized method invocation
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-20: Method Name Injection**
+- NEVER: Dynamic method dispatch from user input
+- ALWAYS: Whitelist allowed methods, validate method exists
 
-### 0.2 Vulnerability Research Protocol
+**CWE-94: Code Injection via Params**
+- NEVER: `eval()` or dynamic execution of parameters
+- ALWAYS: Strict schema validation for each method's params
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-285: Batch Request Authorization**
+- NEVER: Skip auth checks for batch requests
+- ALWAYS: Authorize EACH request in batch independently
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+### 0.3 Risk Level: MEDIUM
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-32651** (CVSS 9.8): JSON-RPC - Method name injection for unauthorized calls
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-32651
-   - **OWASP-API-2023-01** (CVSS N/A): Broken authorization in RPC methods
-     Source: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
-   - **CVE-2024-45678** (CVSS 7.5): JSON-RPC batch request DoS
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-45678
-
-**Step 3: Common Attack Patterns**
-
-   - Method name injection attacks
-   - Batch request amplification DoS
-   - Unauthorized method invocation
-   - Parameter tampering
-   - Response spoofing
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow arbitrary method invocation
-- ❌ NEVER trust method names from client
-- ❌ NEVER skip authorization for internal methods
-- ❌ ALWAYS whitelist allowed RPC methods
-- ❌ ALWAYS validate batch request limits
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 1. Overview
+## 1. Security Principles
 
-**Risk Level**: MEDIUM-RISK
+### 1.1 Method Execution Safety (CWE-94)
 
-**Justification**: JSON-RPC endpoints handle remote procedure calls, can execute server-side code, and are vulnerable to injection attacks, DoS, and improper error handling that leaks information.
-
-You are an expert in **JSON-RPC 2.0** protocol implementation. You build secure, standards-compliant RPC servers and clients with proper message dispatching, error handling, and batch processing.
-
-### Core Expertise
-- JSON-RPC 2.0 specification compliance
-- Method dispatching and routing
-- Error code standardization
-- Batch request processing
-- Transport layer integration
-
-### Primary Use Cases
-- Building JSON-RPC servers for microservices
-- Implementing RPC clients
-- Batch operation optimization
-- Error handling standardization
-
-**File Organization**: Main concepts here; see `references/security-examples.md` for CVE mitigations.
-
----
-
-## 2. Core Principles
-
-1. **TDD First**: Write tests before implementation - verify RPC methods, error handling, and batch processing work correctly before deploying
-2. **Performance Aware**: Optimize for throughput with connection pooling, batch requests, and response caching
-3. **Security by Design**: Whitelist methods, validate inputs, sanitize errors
-4. **Specification Compliance**: Follow JSON-RPC 2.0 exactly
-
----
-
-## 3. Core Responsibilities
-
-### Fundamental Duties
-1. **Specification Compliance**: Implement JSON-RPC 2.0 correctly
-2. **Secure Method Dispatch**: Validate methods before execution
-3. **Proper Error Handling**: Use standard error codes, hide internals
-4. **Batch Processing**: Handle batch requests securely and efficiently
-
-### Security Principles
-- **Method Whitelisting**: Only expose registered methods
-- **Input Validation**: Validate all parameters
-- **Rate Limiting**: Prevent abuse
-- **Error Sanitization**: Never expose stack traces
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Technical Foundation
-
-### JSON-RPC 2.0 Message Format
+**Principle:** Never execute arbitrary methods. Use explicit allowlist.
 
 ```typescript
-// Request
-interface JSONRPCRequest {
-  jsonrpc: "2.0";
+// ❌ WRONG - Arbitrary method execution
+async function handleRequest(req: JsonRpcRequest) {
+  const method = methods[req.method];  // User controls method!
+  return method(req.params);
+}
+
+// ✅ CORRECT - Explicit method allowlist
+const handlers = new Map<string, Handler>([
+  ['user.get', getUserHandler],
+  ['user.create', createUserHandler],
+]);
+
+async function handleRequest(req: JsonRpcRequest) {
+  const handler = handlers.get(req.method);
+  if (!handler) {
+    throw new JsonRpcError(-32601, 'Method not found');
+  }
+  return handler(req.params);
+}
+```
+
+### 1.2 Parameter Validation (CWE-20)
+
+**Principle:** Validate all parameters with schemas. Type check before use.
+
+```typescript
+// ❌ WRONG - No validation
+async function getUser({ id }: any) {
+  return db.users.findById(id);
+}
+
+// ✅ CORRECT - Schema validation
+const GetUserSchema = z.object({
+  id: z.string().uuid(),
+});
+
+async function getUser(params: unknown) {
+  const { id } = GetUserSchema.parse(params);
+  return db.users.findById(id);
+}
+```
+
+### 1.3 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never include secrets in RPC responses or error messages.
+
+### 1.4 Batch Request Limits (CWE-400)
+
+**Principle:** Limit batch request size. Prevent resource exhaustion.
+
+```typescript
+// ❌ WRONG - Unlimited batch size
+async function handleBatch(requests: JsonRpcRequest[]) {
+  return Promise.all(requests.map(handleRequest));
+}
+
+// ✅ CORRECT - Limited batch size
+const MAX_BATCH_SIZE = 100;
+
+async function handleBatch(requests: JsonRpcRequest[]) {
+  if (requests.length > MAX_BATCH_SIZE) {
+    throw new JsonRpcError(-32600, `Batch size exceeds limit of ${MAX_BATCH_SIZE}`);
+  }
+  return Promise.all(requests.map(handleRequest));
+}
+```
+
+### 1.5 Error Information Leakage (CWE-209)
+
+**Principle:** Don't expose internal details in error responses.
+
+### 1.6 Authentication (CWE-287)
+
+**Principle:** Authenticate before processing requests. Use transport-level auth.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "dependencies": {
+    "zod": "^3.23.0",
+    "jayson": "^4.1.0"
+  }
+}
+```
+
+**JSON-RPC Version:** 2.0 (strict compliance)
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN implementing a JSON-RPC server
+
+```typescript
+import { z } from 'zod';
+import http from 'http';
+
+// JSON-RPC 2.0 types
+interface JsonRpcRequest {
+  jsonrpc: '2.0';
   method: string;
-  params?: unknown[] | Record<string, unknown>;
+  params?: unknown;
   id?: string | number | null;
 }
 
-// Response
-interface JSONRPCResponse {
-  jsonrpc: "2.0";
+interface JsonRpcResponse {
+  jsonrpc: '2.0';
   result?: unknown;
-  error?: JSONRPCError;
+  error?: JsonRpcErrorObject;
   id: string | number | null;
 }
 
-// Error
-interface JSONRPCError {
+interface JsonRpcErrorObject {
   code: number;
   message: string;
   data?: unknown;
 }
-```
 
-### Standard Error Codes
+// Standard error codes
+const ErrorCodes = {
+  PARSE_ERROR: -32700,
+  INVALID_REQUEST: -32600,
+  METHOD_NOT_FOUND: -32601,
+  INVALID_PARAMS: -32602,
+  INTERNAL_ERROR: -32603,
+} as const;
 
-| Code | Message | Meaning |
-|------|---------|---------|
-| -32700 | Parse error | Invalid JSON |
-| -32600 | Invalid Request | Not valid JSON-RPC |
-| -32601 | Method not found | Method doesn't exist |
-| -32602 | Invalid params | Invalid method parameters |
-| -32603 | Internal error | Internal JSON-RPC error |
-| -32000 to -32099 | Server error | Implementation-defined |
+class JsonRpcError extends Error {
+  constructor(
+    public code: number,
+    message: string,
+    public data?: unknown
+  ) {
+    super(message);
+  }
+}
 
----
+// Request validation schema
+const RequestSchema = z.object({
+  jsonrpc: z.literal('2.0'),
+  method: z.string().min(1),
+  params: z.unknown().optional(),
+  id: z.union([z.string(), z.number(), z.null()]).optional(),
+});
 
-## 6. Implementation Workflow (TDD)
+// Method handler type
+type Handler<P = unknown, R = unknown> = (
+  params: P,
+  context: RequestContext
+) => Promise<R>;
 
-class TestRPCMethods:
-    @pytest.fixture
-    def server(self):
-        return JSONRPCServer()
+interface RequestContext {
+  requestId: string | number | null;
+  remoteAddress?: string;
+}
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+// Method registry with type safety
+class JsonRpcServer {
+  private handlers = new Map<string, { handler: Handler; schema?: z.ZodType }>();
+  private maxBatchSize = 100;
 
----
-## 7. Implementation Patterns
-
-### 6.1 Secure JSON-RPC Server
-
-```typescript
-import { z } from "zod";
-
-class JSONRPCServer {
-  private methods: Map<string, MethodHandler> = new Map();
-
-  registerMethod<T>(name: string, schema: z.ZodSchema<T>, handler: (params: T) => Promise<unknown>): void {
-    if (!/^[a-zA-Z][a-zA-Z0-9_.]*$/.test(name)) throw new Error("Invalid method name");
-    this.methods.set(name, { schema, handler });
+  // Register a method
+  method<P, R>(
+    name: string,
+    handler: Handler<P, R>,
+    schema?: z.ZodType<P>
+  ): this {
+    this.handlers.set(name, { handler: handler as Handler, schema });
+    return this;
   }
 
-  async handleRequest(request: unknown): Promise<JSONRPCResponse | JSONRPCResponse[]> {
+  // Handle single request
+  private async handleSingle(
+    request: JsonRpcRequest,
+    context: RequestContext
+  ): Promise<JsonRpcResponse | undefined> {
+    const id = request.id ?? null;
+
+    try {
+      // Validate request structure
+      const validated = RequestSchema.parse(request);
+
+      // Find handler
+      const entry = this.handlers.get(validated.method);
+      if (!entry) {
+        throw new JsonRpcError(
+          ErrorCodes.METHOD_NOT_FOUND,
+          `Method not found: ${validated.method}`
+        );
+      }
+
+      // Validate params if schema provided
+      let params = validated.params;
+      if (entry.schema) {
+        try {
+          params = entry.schema.parse(params);
+        } catch (e) {
+          if (e instanceof z.ZodError) {
+            throw new JsonRpcError(
+              ErrorCodes.INVALID_PARAMS,
+              'Invalid params',
+              e.errors.map(err => ({
+                path: err.path.join('.'),
+                message: err.message,
+              }))
+            );
+          }
+          throw e;
+        }
+      }
+
+      // Execute handler
+      const result = await entry.handler(params, { ...context, requestId: id });
+
+      // Notification (no id) doesn't get response
+      if (request.id === undefined) {
+        return undefined;
+      }
+
+      return {
+        jsonrpc: '2.0',
+        result,
+        id,
+      };
+    } catch (e) {
+      // Notification errors are discarded
+      if (request.id === undefined) {
+        console.error('Notification error:', e);
+        return undefined;
+      }
+
+      if (e instanceof JsonRpcError) {
+        return {
+          jsonrpc: '2.0',
+          error: {
+            code: e.code,
+            message: e.message,
+            data: e.data,
+          },
+          id,
+        };
+      }
+
+      // Don't expose internal errors
+      console.error('Internal error:', e);
+      return {
+        jsonrpc: '2.0',
+        error: {
+          code: ErrorCodes.INTERNAL_ERROR,
+          message: 'Internal error',
+        },
+        id,
+      };
+    }
+  }
+
+  // Handle request (single or batch)
+  async handle(body: string, context: Omit<RequestContext, 'requestId'>): Promise<string | null> {
     let parsed: unknown;
-    try {
-      parsed = typeof request === "string" ? JSON.parse(request) : request;
-    } catch { return this.createError(null, -32700, "Parse error"); }
 
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      return JSON.stringify({
+        jsonrpc: '2.0',
+        error: {
+          code: ErrorCodes.PARSE_ERROR,
+          message: 'Parse error',
+        },
+        id: null,
+      });
+    }
+
+    // Batch request
     if (Array.isArray(parsed)) {
-      if (parsed.length === 0) return this.createError(null, -32600, "Invalid Request");
-      return Promise.all(parsed.map(req => this.handleSingleRequest(req)));
+      if (parsed.length === 0) {
+        return JSON.stringify({
+          jsonrpc: '2.0',
+          error: {
+            code: ErrorCodes.INVALID_REQUEST,
+            message: 'Empty batch',
+          },
+          id: null,
+        });
+      }
+
+      if (parsed.length > this.maxBatchSize) {
+        return JSON.stringify({
+          jsonrpc: '2.0',
+          error: {
+            code: ErrorCodes.INVALID_REQUEST,
+            message: `Batch size exceeds limit of ${this.maxBatchSize}`,
+          },
+          id: null,
+        });
+      }
+
+      const responses = await Promise.all(
+        parsed.map(req => this.handleSingle(req as JsonRpcRequest, { ...context, requestId: null }))
+      );
+
+      const filtered = responses.filter((r): r is JsonRpcResponse => r !== undefined);
+      return filtered.length > 0 ? JSON.stringify(filtered) : null;
     }
-    return this.handleSingleRequest(parsed);
+
+    // Single request
+    const response = await this.handleSingle(parsed as JsonRpcRequest, { ...context, requestId: null });
+    return response ? JSON.stringify(response) : null;
   }
 
-  private async handleSingleRequest(request: unknown): Promise<JSONRPCResponse> {
-    if (!this.validateRequest(request)) return this.createError(null, -32600, "Invalid Request");
-    const { method, params, id } = request as JSONRPCRequest;
+  // Create HTTP server
+  listen(port: number): http.Server {
+    const server = http.createServer(async (req, res) => {
+      if (req.method !== 'POST') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          error: { code: -32600, message: 'Only POST allowed' },
+          id: null,
+        }));
+        return;
+      }
 
-    const handler = this.methods.get(method);
-    if (!handler) return this.createError(id, -32601, "Method not found");
+      const chunks: Buffer[] = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', async () => {
+        const body = Buffer.concat(chunks).toString();
+        const remoteAddress = req.socket.remoteAddress;
 
-    const paramValidation = handler.schema.safeParse(params);
-    if (!paramValidation.success) return this.createError(id, -32602, "Invalid params");
+        const response = await this.handle(body, { remoteAddress });
 
-    try {
-      const result = await handler.handler(paramValidation.data);
-      if (id === undefined) return null as unknown as JSONRPCResponse;
-      return { jsonrpc: "2.0", result, id };
-    } catch (error) {
-      console.error("Method execution error:", error);
-      return this.createError(id, -32603, "Internal error");
-    }
-  }
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(response ?? '');
+      });
+    });
 
-  private createError(id: string | number | null, code: number, message: string): JSONRPCResponse {
-    return { jsonrpc: "2.0", error: { code, message }, id };
-  }
-
-  private validateRequest(request: unknown): boolean {
-    if (typeof request !== "object" || request === null) return false;
-    const req = request as Record<string, unknown>;
-    return req.jsonrpc === "2.0" && typeof req.method === "string";
+    server.listen(port);
+    return server;
   }
 }
 ```
 
-##### 7. Implementation Patterns
-
-class JSONRPCServer {
-  private methods: Map<string, MethodHandler> = new Map();
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-nerabilities**:
-- **Method Injection**: Accessing unregistered/internal methods
-- **Parameter Injection**: Malicious params causing code execution
-- **Batch DoS**: Large batches consuming resources
-- **Error Information Disclosure**: Stack traces in errors
-
-### 8.2 Input Validation
+### 3.2 WHEN defining methods with validation
 
 ```typescript
-// Complete parameter validation with Zod
-const TransferSchema = z.object({
-  from: z.string().uuid(),
-  to: z.string().uuid(),
-  amount: z.number().positive().max(1000000),
-  currency: z.enum(["USD", "EUR", "GBP"]),
-  memo: z.string().max(200).optional()
-}).refine(data => data.from !== data.to, "Cannot transfer to same account");
+// Method schemas
+const GetUserSchema = z.object({
+  id: z.string().uuid(),
+});
 
-server.registerMethod("transfer", TransferSchema, async (params) => executeTransfer(params));
+const CreateUserSchema = z.object({
+  name: z.string().min(1).max(100),
+  email: z.string().email(),
+});
+
+const ListUsersSchema = z.object({
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(20),
+});
+
+// Create server with methods
+const server = new JsonRpcServer()
+  .method('user.get', async (params: z.infer<typeof GetUserSchema>) => {
+    const user = await db.users.findById(params.id);
+    if (!user) {
+      throw new JsonRpcError(-32000, 'User not found');
+    }
+    return user;
+  }, GetUserSchema)
+
+  .method('user.create', async (params: z.infer<typeof CreateUserSchema>) => {
+    // Check for existing user
+    const existing = await db.users.findByEmail(params.email);
+    if (existing) {
+      throw new JsonRpcError(-32001, 'Email already registered');
+    }
+
+    const user = await db.users.create(params);
+    return { id: user.id };
+  }, CreateUserSchema)
+
+  .method('user.list', async (params: z.infer<typeof ListUsersSchema>) => {
+    const { page, limit } = params;
+    const offset = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      db.users.findMany({ skip: offset, take: limit }),
+      db.users.count(),
+    ]);
+
+    return {
+      data: users,
+      pagination: { page, limit, total },
+    };
+  }, ListUsersSchema);
+
+server.listen(3000);
 ```
 
-### 8.3 Error Handling
+### 3.3 WHEN implementing a JSON-RPC client
 
 ```typescript
-// Safe error responses - log details internally, return generic message
-class SafeJSONRPCError extends Error {
-  constructor(public code: number, message: string, private internal?: string) { super(message); }
+import { z } from 'zod';
 
-  toResponse(id: string | number | null): JSONRPCResponse {
-    if (this.internal) console.error(`RPC Error [${this.code}]: ${this.internal}`);
-    return { jsonrpc: "2.0", error: { code: this.code, message: this.message }, id };
+class JsonRpcClient {
+  private id = 0;
+  private baseUrl: string;
+  private timeout: number;
+
+  constructor(baseUrl: string, options: { timeout?: number } = {}) {
+    this.baseUrl = baseUrl;
+    this.timeout = options.timeout ?? 30000;
+  }
+
+  async call<T>(
+    method: string,
+    params?: unknown,
+    schema?: z.ZodType<T>
+  ): Promise<T> {
+    const requestId = ++this.id;
+
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method,
+        params,
+        id: requestId,
+      }),
+      signal: AbortSignal.timeout(this.timeout),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Check for JSON-RPC error
+    if (data.error) {
+      const err = new Error(data.error.message) as Error & {
+        code: number;
+        data?: unknown;
+      };
+      err.code = data.error.code;
+      err.data = data.error.data;
+      throw err;
+    }
+
+    // Validate response if schema provided
+    if (schema) {
+      return schema.parse(data.result);
+    }
+
+    return data.result as T;
+  }
+
+  async notify(method: string, params?: unknown): Promise<void> {
+    await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        method,
+        params,
+        // No id = notification
+      }),
+      signal: AbortSignal.timeout(this.timeout),
+    });
+  }
+
+  async batch<T extends Record<string, unknown>>(
+    calls: Array<{ method: string; params?: unknown }>
+  ): Promise<T[]> {
+    const requests = calls.map((call, index) => ({
+      jsonrpc: '2.0' as const,
+      method: call.method,
+      params: call.params,
+      id: index,
+    }));
+
+    const response = await fetch(this.baseUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requests),
+      signal: AbortSignal.timeout(this.timeout),
+    });
+
+    const data = await response.json();
+
+    // Sort responses by id to match request order
+    const sorted = (data as Array<{ id: number; result?: T; error?: unknown }>)
+      .sort((a, b) => a.id - b.id);
+
+    return sorted.map(r => {
+      if (r.error) {
+        throw new Error(`Batch call ${r.id} failed`);
+      }
+      return r.result as T;
+    });
   }
 }
 
-// Usage: internal details logged but not returned to client
-throw new SafeJSONRPCError(-32603, "Internal error", `DB failed: ${dbError.message}`);
+// Usage
+const client = new JsonRpcClient('http://localhost:3000/rpc');
+
+const UserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string(),
+});
+
+const user = await client.call('user.get', { id: '123' }, UserSchema);
 ```
 
----
-
-## 10. Common Mistakes
-
-### NEVER: Execute Dynamic Methods
+### 3.4 WHEN implementing WebSocket transport
 
 ```typescript
-// Bad: Arbitrary method access from user input
-const fn = this[request.method]; return fn(request.params);
+import { WebSocketServer, WebSocket } from 'ws';
 
-// Good: Whitelist registered methods only
-const handler = this.registeredMethods.get(request.method);
-if (!handler) throw new Error("Method not found");
-return handler(request.params);
+class JsonRpcWebSocketServer {
+  private wss: WebSocketServer;
+  private rpcServer: JsonRpcServer;
+
+  constructor(port: number, rpcServer: JsonRpcServer) {
+    this.rpcServer = rpcServer;
+    this.wss = new WebSocketServer({ port });
+
+    this.wss.on('connection', (ws, req) => {
+      const remoteAddress = req.socket.remoteAddress;
+
+      ws.on('message', async (data) => {
+        try {
+          const response = await this.rpcServer.handle(
+            data.toString(),
+            { remoteAddress }
+          );
+
+          if (response) {
+            ws.send(response);
+          }
+        } catch (e) {
+          console.error('WebSocket handler error:', e);
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            error: {
+              code: -32603,
+              message: 'Internal error',
+            },
+            id: null,
+          }));
+        }
+      });
+
+      ws.on('error', (err) => {
+        console.error('WebSocket error:', err);
+      });
+    });
+  }
+
+  // Broadcast notification to all clients
+  broadcast(method: string, params?: unknown): void {
+    const message = JSON.stringify({
+      jsonrpc: '2.0',
+      method,
+      params,
+    });
+
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
+
+  close(): void {
+    this.wss.close();
+  }
+}
 ```
 
-### NEVER: Return Internal Errors
+### 3.5 WHEN implementing authentication
 
 ```typescript
-// Bad: Exposes stack traces
-catch (error) { return { error: { code: -32603, message: error.stack } }; }
+import { IncomingMessage } from 'http';
 
-// Good: Log internally, return generic message
-catch (error) { console.error(error); return { error: { code: -32603, message: "Internal error" } }; }
+interface AuthenticatedContext extends RequestContext {
+  user?: { id: string; role: string };
+}
+
+class AuthenticatedJsonRpcServer extends JsonRpcServer {
+  private authenticator: (req: IncomingMessage) => Promise<{ id: string; role: string } | null>;
+
+  constructor(authenticator: (req: IncomingMessage) => Promise<{ id: string; role: string } | null>) {
+    super();
+    this.authenticator = authenticator;
+  }
+
+  // Override listen to add authentication
+  listen(port: number): http.Server {
+    const server = http.createServer(async (req, res) => {
+      // Authenticate
+      const user = await this.authenticator(req);
+
+      if (!user) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          jsonrpc: '2.0',
+          error: { code: -32000, message: 'Unauthorized' },
+          id: null,
+        }));
+        return;
+      }
+
+      // Continue with normal handling
+      if (req.method !== 'POST') {
+        res.writeHead(405);
+        res.end();
+        return;
+      }
+
+      const chunks: Buffer[] = [];
+      req.on('data', chunk => chunks.push(chunk));
+      req.on('end', async () => {
+        const body = Buffer.concat(chunks).toString();
+        const response = await this.handle(body, {
+          remoteAddress: req.socket.remoteAddress,
+          user,
+        } as AuthenticatedContext);
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(response ?? '');
+      });
+    });
+
+    server.listen(port);
+    return server;
+  }
+}
+
+// Usage with Bearer token authentication
+const server = new AuthenticatedJsonRpcServer(async (req) => {
+  const auth = req.headers.authorization;
+  if (!auth?.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = auth.slice(7);
+  try {
+    const payload = await verifyJwt(token);
+    return { id: payload.sub, role: payload.role };
+  } catch {
+    return null;
+  }
+});
+
+// Method with authorization check
+server.method('admin.getStats', async (params, context: AuthenticatedContext) => {
+  if (context.user?.role !== 'admin') {
+    throw new JsonRpcError(-32000, 'Admin access required');
+  }
+  return getSystemStats();
+});
 ```
 
 ---
 
-## 11. Pre-Implementation Checklist
+## 4. Anti-Patterns
 
-### Phase 1: Before Writing Code
-- [ ] Write failing tests for RPC methods and error handling
-- [ ] Define parameter schemas for all methods
-- [ ] Document method whitelist
-- [ ] Plan authentication strategy for protected methods
-
-### Phase 2: During Implementation
-- [ ] All methods registered with explicit whitelist
-- [ ] Parameter validation using schemas (Zod/Pydantic)
-- [ ] Batch size limits enforced (max 100)
-- [ ] Rate limiting configured per endpoint
-- [ ] Error messages sanitized (no stack traces)
-- [ ] Request size limits set (max 1MB)
-- [ ] Timeout on method execution
-
-### Phase 3: Before Committing
-- [ ] All tests pass: `pytest tests/test_rpc_*.py -v`
-- [ ] Security tests pass: `pytest tests/test_rpc_security.py -v`
-- [ ] Performance benchmarks acceptable
-- [ ] Audit logging enabled for all method calls
-- [ ] Documentation updated for new methods
+**NEVER:**
+- Execute methods from arbitrary strings without allowlist
+- Skip parameter validation
+- Expose stack traces in error responses
+- Allow unlimited batch sizes
+- Process requests without authentication on protected endpoints
+- Log sensitive parameter values
+- Use JSON-RPC 1.0 (always use 2.0)
 
 ---
 
-## 12. Summary
+## 5. Testing
 
-Your goal is to implement JSON-RPC services that are:
-- **Compliant**: Follow JSON-RPC 2.0 specification exactly
-- **Secure**: Validate all inputs, whitelist methods, sanitize errors
-- **Robust**: Handle batches safely, enforce limits, timeout operations
+**ALWAYS write JSON-RPC tests:**
 
-Remember: Every RPC method is a potential attack vector. Validate parameters, authorize access, and never expose internal details in error responses.
-## 8. Performance Patterns
+```typescript
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
-// Good: Single batch request
-const batch = items.map((item, i) => ({ jsonrpc: "2.0", method: "process", params: { item }, id: i }));
-const results = await client.batch(batch);
+describe('JSON-RPC Server', () => {
+  let server: JsonRpcServer;
+
+  beforeAll(() => {
+    server = createTestServer();
+  });
+
+  it('handles valid request', async () => {
+    const response = await server.handle(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'user.get',
+        params: { id: 'test-uuid' },
+        id: 1,
+      }),
+      {}
+    );
+
+    const parsed = JSON.parse(response!);
+    expect(parsed.jsonrpc).toBe('2.0');
+    expect(parsed.result).toBeDefined();
+    expect(parsed.id).toBe(1);
+  });
+
+  it('returns method not found for unknown method', async () => {
+    const response = await server.handle(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'unknown.method',
+        id: 1,
+      }),
+      {}
+    );
+
+    const parsed = JSON.parse(response!);
+    expect(parsed.error.code).toBe(-32601);
+  });
+
+  it('returns invalid params for bad input', async () => {
+    const response = await server.handle(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'user.get',
+        params: { id: 'not-a-uuid' },
+        id: 1,
+      }),
+      {}
+    );
+
+    const parsed = JSON.parse(response!);
+    expect(parsed.error.code).toBe(-32602);
+  });
+
+  it('handles batch requests', async () => {
+    const response = await server.handle(
+      JSON.stringify([
+        { jsonrpc: '2.0', method: 'user.get', params: { id: 'id1' }, id: 1 },
+        { jsonrpc: '2.0', method: 'user.get', params: { id: 'id2' }, id: 2 },
+      ]),
+      {}
+    );
+
+    const parsed = JSON.parse(response!);
+    expect(parsed).toHaveLength(2);
+  });
+
+  it('rejects oversized batches', async () => {
+    const requests = Array(200).fill({
+      jsonrpc: '2.0',
+      method: 'user.get',
+      params: { id: 'id' },
+      id: 1,
+    });
+
+    const response = await server.handle(JSON.stringify(requests), {});
+    const parsed = JSON.parse(response!);
+    expect(parsed.error.code).toBe(-32600);
+  });
+
+  it('returns null for notifications', async () => {
+    const response = await server.handle(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        method: 'log.event',
+        params: { event: 'test' },
+        // No id = notification
+      }),
+      {}
+    );
+
+    expect(response).toBeNull();
+  });
+});
 ```
 
-📚 **For complete details**: See `references/performance-patterns.md`
-
 ---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any JSON-RPC code:**
+
+- [ ] Method names explicitly allowlisted
+- [ ] All parameters validated with Zod schemas
+- [ ] Batch request size limited
+- [ ] Error responses don't leak internals
+- [ ] Authentication implemented for protected methods
+- [ ] Notifications handled (no response required)
+- [ ] Proper JSON-RPC 2.0 error codes used
+- [ ] Timeout handling for long operations
+- [ ] Response ids match request ids
+- [ ] Parse errors return proper JSON-RPC error

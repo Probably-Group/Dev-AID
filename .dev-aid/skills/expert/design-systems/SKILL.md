@@ -1,402 +1,797 @@
-# Design Systems Skill
-
-```yaml
-name: design-systems-expert
+---
+name: design-systems
+version: 2.0.0
+description: "Design system architecture with token-based theming, component APIs, and cross-platform consistency."
 risk_level: LOW
-description: Expert in token-based theming, component APIs, design system architecture, and creating scalable design foundations
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [design-system, tokens, theming, components, architecture]
-```
-
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Design Systems - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE providing guidance:**
+1. Verify claims against authoritative sources
+2. Distinguish between established practices and opinions
+3. Never invent statistics, studies, or references
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Risk Level: LOW
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Component XSS, CSS injection, Theme manipulation
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use dangerouslySetInnerHTML in components
-- ❌ NEVER allow user CSS without sanitization
-- ❌ ALWAYS validate component props
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: LOW-RISK
-
-**Justification**: Design systems produce CSS, design tokens, and component specifications without direct code execution or data processing.
-
-You are an expert in **design system architecture**. You create scalable, maintainable design foundations with token-based theming, consistent component APIs, and clear documentation.
-
-### Core Expertise
-- Design token architecture
-- Component API design
-- Theme switching
-- Documentation systems
-- Version management
-
-### Primary Use Cases
-- Creating design system foundations
-- Building component libraries
-- Implementing theming systems
-- Design system documentation
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### Fundamental Duties
-1. **Token Architecture**: Build scalable token hierarchies
-2. **Component Design**: Create consistent, composable components
-3. **Theme Support**: Enable multiple themes
-4. **Documentation**: Keep system well-documented
+### 1.1 XSS Prevention in Dynamic Theming (CWE-79)
 
-### Design System Principles
-- **TDD First**: Write tests for tokens and components before implementation
-- **Performance Aware**: Optimize CSS delivery, minimize repaints
-- **Single source of truth**: Tokens define all values
-- **Composability**: Components combine simply
-- **Consistency**: Same patterns throughout
-- **Extensibility**: Easy to extend, hard to break
-
----
-
-## 3. Technical Foundation
-
-### Token Hierarchy
-
-```
-┌─────────────────────────────────────┐
-│       Semantic Tokens               │
-│  (purpose-specific references)      │
-│  --color-text-primary               │
-│  --color-bg-surface                 │
-│  --spacing-component                │
-└──────────────┬──────────────────────┘
-               │ references
-┌──────────────▼──────────────────────┐
-│       Core Tokens                   │
-│  (raw design values)                │
-│  --color-blue-500                   │
-│  --space-4                          │
-│  --font-size-base                   │
-└─────────────────────────────────────┘
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-/* Colors - Blue scale */
-  --color-blue-500: #3b82f6;
-  --color-blue-600: #2563eb;
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Quality Standards
-
-### Naming Conventions
-
-- **Core tokens**: `--{category}-{scale}` (e.g., `--color-blue-500`)
-- **Semantic tokens**: `--{category}-{property}-{variant}` (e.g., `--color-text-primary`)
-- **Component tokens**: `--{component}-{property}-{state}` (e.g., `--button-bg-hover`)
-
-### Documentation Requirements
-
-- Token values with visual examples
-- Component props and variants
-- Usage guidelines and examples
-- Do's and Don'ts
-- Accessibility notes
-
----
-
-## 7. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Never interpolate user input into CSS or style attributes.
 
 ```typescript
-// tests/tokens.test.ts
-import { describe, it, expect } from 'vitest'
-import { tokens } from '../tokens'
+// ❌ WRONG - CSS injection vulnerability
+const Theme = ({ userColor }) => (
+  <style>{`
+    .button { background: ${userColor}; }
+  `}</style>
+);
 
-describe('Design Tokens', () => {
-  it('should have all required color scales', () => {
-    expect(tokens.colors.gray).toBeDefined()
-    expect(tokens.colors.blue).toBeDefined()
-    expect(Object.keys(tokens.colors.gray)).toHaveLength(10)
-  })
+// ✅ CORRECT - Validated CSS custom properties
+const VALID_COLORS = ['primary', 'secondary', 'accent'] as const;
+type ValidColor = typeof VALID_COLORS[number];
 
-  it('should have semantic tokens referencing core tokens', () => {
-    expect(tokens.semantic.textPrimary).toBe(tokens.colors.gray[900])
-    expect(tokens.semantic.bgPrimary).toBe(tokens.colors.white)
-  })
+function isValidColor(color: string): color is ValidColor {
+  return VALID_COLORS.includes(color as ValidColor);
+}
 
-  it('should generate valid CSS custom properties', () => {
-    const css = tokens.toCSS()
-    expect(css).toContain('--color-gray-500')
-    expect(css).toContain('--color-text-primary')
-  })
-})
+const Theme = ({ colorKey }: { colorKey: string }) => {
+  if (!isValidColor(colorKey)) {
+    throw new Error(`Invalid color key: ${colorKey}`);
+  }
 
-// tests/components/Button.test.ts
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
-import Button from '../components/Button.vue'
-
-describe('Button', () => {
-  it('applies variant classes correctly', () => {
-    const wrapper = mount(Button, {
-      props: { variant: 'primary' }
-    })
-    expect(wrapper.classes()).toContain('button--primary')
-  })
-
-  it('uses design tokens for styling', () => {
-    const wrapper = mount(Button)
-    const styles = getComputedStyle(wrapper.element)
-    expect(styles.getPropertyValue('--button-bg')).toBeTruthy()
-  })
-})
+  return (
+    <div style={{ '--button-bg': `var(--color-${colorKey})` } as React.CSSProperties}>
+      {children}
+    </div>
+  );
+};
 ```
 
-### Step 2: Implement Minimum to Pass
+### 1.2 Content Security Policy (CWE-1021)
+
+**Principle:** Design systems must support strict CSP. No inline styles where avoidable.
 
 ```typescript
-// tokens/index.ts
-export const tokens = {
-  colors: {
-    gray: { 50: '#f9fafb', /* ... */ 900: '#111827' },
-    blue: { 500: '#3b82f6', 600: '#2563eb' }
-  },
-  semantic: {
-    textPrimary: '#111827',
-    bgPrimary: '#ffffff'
-  },
-  toCSS() {
-    // Generate CSS custom properties
+// ❌ WRONG - Inline styles break CSP
+<div style="background: red">
+
+// ✅ CORRECT - CSS classes or CSS custom properties
+<div className={styles.errorBackground}>
+// or
+<div style={{ backgroundColor: 'var(--color-error)' }}>
+```
+
+### 1.3 Token Validation (CWE-20)
+
+**Principle:** Validate all design tokens at build time. Reject invalid values.
+
+### 1.4 Dependency Security (CWE-1104)
+
+**Principle:** Audit CSS-in-JS libraries for prototype pollution and injection risks.
+
+### 1.5 Asset Integrity (CWE-353)
+
+**Principle:** Use SRI for external fonts and stylesheets.
+
+### 1.6 Accessible by Default
+
+**Principle:** All components must meet WCAG 2.1 AA. Never compromise accessibility for styling.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "@vanilla-extract/css": "^1.14.0",
+  "@vanilla-extract/recipes": "^0.5.0",
+  "style-dictionary": "^4.0.0",
+  "radix-ui": "^1.0.0",
+  "tailwindcss": "^3.4.0",
+  "clsx": "^2.0.0"
+}
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN defining design tokens
+
+```typescript
+// ❌ WRONG - Unstructured, no type safety
+const colors = {
+  blue: '#0066cc',
+  red: '#cc0000',
+};
+
+// ✅ CORRECT - Structured, type-safe tokens with Style Dictionary
+// tokens/base/colors.json
+{
+  "color": {
+    "base": {
+      "blue": {
+        "50": { "value": "#eff6ff", "type": "color" },
+        "100": { "value": "#dbeafe", "type": "color" },
+        "500": { "value": "#3b82f6", "type": "color" },
+        "900": { "value": "#1e3a8a", "type": "color" }
+      }
+    },
+    "semantic": {
+      "primary": {
+        "value": "{color.base.blue.500}",
+        "type": "color",
+        "description": "Primary brand color"
+      },
+      "primary-hover": {
+        "value": "{color.base.blue.600}",
+        "type": "color"
+      }
+    },
+    "component": {
+      "button": {
+        "primary": {
+          "background": { "value": "{color.semantic.primary}" },
+          "background-hover": { "value": "{color.semantic.primary-hover}" },
+          "text": { "value": "{color.base.white}" }
+        }
+      }
+    }
   }
 }
+
+// style-dictionary.config.js
+import StyleDictionary from 'style-dictionary';
+
+export default {
+  source: ['tokens/**/*.json'],
+  platforms: {
+    css: {
+      transformGroup: 'css',
+      buildPath: 'dist/css/',
+      files: [{
+        destination: 'variables.css',
+        format: 'css/variables',
+        options: {
+          outputReferences: true,
+        },
+      }],
+    },
+    typescript: {
+      transformGroup: 'js',
+      buildPath: 'dist/ts/',
+      files: [{
+        destination: 'tokens.ts',
+        format: 'javascript/es6',
+      }],
+    },
+  },
+};
 ```
 
-### Step 3: Refactor Following Patterns
+### 3.2 WHEN creating component variants with Vanilla Extract
 
-Apply token naming conventions and ensure semantic layer references core tokens.
+```typescript
+// ❌ WRONG - String-based variants, no type safety
+const Button = ({ variant }) => (
+  <button className={`btn-${variant}`}>  {/* No validation! */}
+    {children}
+  </button>
+);
 
-### Step 4: Run Full Verification
+// ✅ CORRECT - Type-safe variants with recipes
+// button.css.ts
+import { recipe, RecipeVariants } from '@vanilla-extract/recipes';
+import { tokens } from '../tokens.css';
 
-```bash
-npm test -- --run                    # Run all tests
-npm run build                        # Verify CSS generation
-npm run lint:css                     # Check CSS validity
-```
+export const button = recipe({
+  base: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: tokens.radius.md,
+    fontWeight: tokens.fontWeight.medium,
+    transition: 'all 150ms ease',
+    cursor: 'pointer',
 
----
+    ':focus-visible': {
+      outline: `2px solid ${tokens.color.focus}`,
+      outlineOffset: '2px',
+    },
 
-## 8. Performance Patterns
+    ':disabled': {
+      opacity: 0.5,
+      cursor: 'not-allowed',
+    },
+  },
 
-### 7.1 CSS Custom Properties Optimization
+  variants: {
+    intent: {
+      primary: {
+        backgroundColor: tokens.color.primary,
+        color: tokens.color.onPrimary,
+        ':hover:not(:disabled)': {
+          backgroundColor: tokens.color.primaryHover,
+        },
+      },
+      secondary: {
+        backgroundColor: 'transparent',
+        color: tokens.color.primary,
+        border: `1px solid ${tokens.color.primary}`,
+        ':hover:not(:disabled)': {
+          backgroundColor: tokens.color.primaryLight,
+        },
+      },
+      danger: {
+        backgroundColor: tokens.color.error,
+        color: tokens.color.onError,
+        ':hover:not(:disabled)': {
+          backgroundColor: tokens.color.errorHover,
+        },
+      },
+    },
 
-**Bad** - Redundant property declarations:
-```css
-.button { background: var(--color-blue-500); }
-.button:hover { background: var(--color-blue-600); }
-.button:active { background: var(--color-blue-700); }
-```
+    size: {
+      sm: {
+        height: '32px',
+        paddingInline: tokens.space[3],
+        fontSize: tokens.fontSize.sm,
+      },
+      md: {
+        height: '40px',
+        paddingInline: tokens.space[4],
+        fontSize: tokens.fontSize.base,
+      },
+      lg: {
+        height: '48px',
+        paddingInline: tokens.space[6],
+        fontSize: tokens.fontSize.lg,
+      },
+    },
 
-**Good** - Single property with state modifiers:
-```css
-.button {
-  --button-bg: var(--color-blue-500);
-  background: var(--button-bg);
+    fullWidth: {
+      true: { width: '100%' },
+    },
+  },
+
+  defaultVariants: {
+    intent: 'primary',
+    size: 'md',
+  },
+
+  compoundVariants: [
+    {
+      variants: { intent: 'secondary', size: 'sm' },
+      style: { paddingInline: tokens.space[2] },
+    },
+  ],
+});
+
+export type ButtonVariants = RecipeVariants<typeof button>;
+
+// Button.tsx
+import { button, ButtonVariants } from './button.css';
+import { clsx } from 'clsx';
+
+interface ButtonProps extends ButtonVariants {
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
-.button:hover { --button-bg: var(--color-blue-600); }
-.button:active { --button-bg: var(--color-blue-700); }
-```
 
-### 7.2 Tree-Shaking Token Exports
-
-**Bad** - Importing entire token object:
-```typescript
-import { tokens } from './tokens'
-const primary = tokens.colors.blue[500]
-```
-
-**Good** - Named exports for tree-shaking:
-```typescript
-import { colorBlue500 } from './tokens/colors'
-const primary = colorBlue500
-```
-
-### 7.3 Lazy Loading Theme Files
-
-**Bad** - Loading all themes upfront:
-```typescript
-import './themes/light.css'
-import './themes/dark.css'
-import './themes/high-contrast.css'
-```
-
-**Good** - Dynamic theme loading:
-```typescript
-async function loadTheme(theme: string) {
-  await import(`./themes/${theme}.css`)
-  document.documentElement.dataset.theme = theme
+export function Button({
+  children,
+  className,
+  intent,
+  size,
+  fullWidth,
+  disabled,
+  type = 'button',
+  ...props
+}: ButtonProps) {
+  return (
+    <button
+      type={type}
+      disabled={disabled}
+      className={clsx(button({ intent, size, fullWidth }), className)}
+      {...props}
+    >
+      {children}
+    </button>
+  );
 }
 ```
 
-### 7.4 Token Computation Optimization
+### 3.3 WHEN implementing dark mode
 
-**Bad** - Runtime calculations:
-```css
-.card { padding: calc(var(--space-4) * 1.5); }
-```
+```typescript
+// ❌ WRONG - Hardcoded theme values
+const Button = styled.button`
+  background: ${props => props.theme === 'dark' ? '#333' : '#fff'};
+`;
 
-**Good** - Pre-computed semantic tokens:
-```css
-:root { --spacing-card: 1.5rem; }
-.card { padding: var(--spacing-card); }
-```
+// ✅ CORRECT - CSS custom properties with theme tokens
+// theme.css.ts
+import { createTheme, createThemeContract } from '@vanilla-extract/css';
 
-### 7.5 Responsive Image Tokens
+// Define the contract (shape of theme)
+export const themeContract = createThemeContract({
+  color: {
+    background: null,
+    surface: null,
+    text: {
+      primary: null,
+      secondary: null,
+      muted: null,
+    },
+    border: null,
+    focus: null,
+  },
+  shadow: {
+    sm: null,
+    md: null,
+    lg: null,
+  },
+});
 
-**Bad** - Fixed image sizes:
-```css
-.avatar { width: 48px; height: 48px; }
-```
+// Light theme implementation
+export const lightTheme = createTheme(themeContract, {
+  color: {
+    background: '#ffffff',
+    surface: '#f8fafc',
+    text: {
+      primary: '#0f172a',
+      secondary: '#475569',
+      muted: '#94a3b8',
+    },
+    border: '#e2e8f0',
+    focus: '#3b82f6',
+  },
+  shadow: {
+    sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+  },
+});
 
-**Good** - Token-based responsive sizing:
-```css
-:root {
-  --avatar-size-sm: 2rem;
-  --avatar-size-md: 3rem;
-  --avatar-size-lg: 4rem;
+// Dark theme implementation
+export const darkTheme = createTheme(themeContract, {
+  color: {
+    background: '#0f172a',
+    surface: '#1e293b',
+    text: {
+      primary: '#f8fafc',
+      secondary: '#cbd5e1',
+      muted: '#64748b',
+    },
+    border: '#334155',
+    focus: '#60a5fa',
+  },
+  shadow: {
+    sm: '0 1px 2px rgba(0, 0, 0, 0.3)',
+    md: '0 4px 6px rgba(0, 0, 0, 0.4)',
+    lg: '0 10px 15px rgba(0, 0, 0, 0.5)',
+  },
+});
+
+// ThemeProvider.tsx
+import { useEffect, useState } from 'react';
+import { lightTheme, darkTheme } from './theme.css';
+
+type Theme = 'light' | 'dark' | 'system';
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setTheme] = useState<Theme>('system');
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // Remove existing theme classes
+    root.classList.remove(lightTheme, darkTheme);
+
+    if (theme === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.add(prefersDark ? darkTheme : lightTheme);
+    } else {
+      root.classList.add(theme === 'dark' ? darkTheme : lightTheme);
+    }
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, setTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
 }
-.avatar { width: var(--avatar-size-md); aspect-ratio: 1; }
+```
+
+### 3.4 WHEN building accessible components with Radix
+
+```typescript
+// ❌ WRONG - Custom implementation without a11y
+const Dropdown = ({ items }) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div onClick={() => setOpen(!open)}>
+      {open && items.map(item => <div key={item}>{item}</div>)}
+    </div>
+  );
+};
+
+// ✅ CORRECT - Radix primitives with design system styling
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
+import { dropdownStyles } from './dropdown.css';
+
+interface DropdownItem {
+  label: string;
+  onSelect: () => void;
+  icon?: React.ReactNode;
+  disabled?: boolean;
+  destructive?: boolean;
+}
+
+interface DropdownProps {
+  trigger: React.ReactNode;
+  items: DropdownItem[];
+  align?: 'start' | 'center' | 'end';
+}
+
+export function Dropdown({ trigger, items, align = 'end' }: DropdownProps) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        {trigger}
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className={dropdownStyles.content}
+          align={align}
+          sideOffset={4}
+        >
+          {items.map((item, index) => (
+            <DropdownMenu.Item
+              key={index}
+              className={dropdownStyles.item({
+                destructive: item.destructive,
+              })}
+              disabled={item.disabled}
+              onSelect={item.onSelect}
+            >
+              {item.icon && (
+                <span className={dropdownStyles.itemIcon}>{item.icon}</span>
+              )}
+              {item.label}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  );
+}
+
+// dropdown.css.ts
+import { style } from '@vanilla-extract/css';
+import { recipe } from '@vanilla-extract/recipes';
+import { themeContract } from './theme.css';
+
+export const dropdownStyles = {
+  content: style({
+    minWidth: '180px',
+    backgroundColor: themeContract.color.surface,
+    borderRadius: '8px',
+    padding: '4px',
+    boxShadow: themeContract.shadow.lg,
+    border: `1px solid ${themeContract.color.border}`,
+
+    // Animation
+    animationDuration: '150ms',
+    animationTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+
+    selectors: {
+      '&[data-state="open"]': {
+        animationName: 'fadeIn, slideDown',
+      },
+    },
+  }),
+
+  item: recipe({
+    base: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '8px 12px',
+      borderRadius: '4px',
+      fontSize: '14px',
+      color: themeContract.color.text.primary,
+      cursor: 'pointer',
+      outline: 'none',
+
+      selectors: {
+        '&[data-highlighted]': {
+          backgroundColor: themeContract.color.background,
+        },
+        '&[data-disabled]': {
+          color: themeContract.color.text.muted,
+          cursor: 'not-allowed',
+        },
+      },
+    },
+
+    variants: {
+      destructive: {
+        true: {
+          color: 'var(--color-error)',
+          selectors: {
+            '&[data-highlighted]': {
+              backgroundColor: 'var(--color-error-light)',
+            },
+          },
+        },
+      },
+    },
+  }),
+
+  itemIcon: style({
+    width: '16px',
+    height: '16px',
+    flexShrink: 0,
+  }),
+};
+```
+
+### 3.5 WHEN creating spacing and layout utilities
+
+```typescript
+// ❌ WRONG - Magic numbers, inconsistent spacing
+<div style={{ margin: '17px', padding: '13px' }}>
+
+// ✅ CORRECT - Design token-based spacing scale
+// tokens/spacing.ts
+export const spacing = {
+  0: '0px',
+  px: '1px',
+  0.5: '2px',
+  1: '4px',
+  1.5: '6px',
+  2: '8px',
+  2.5: '10px',
+  3: '12px',
+  4: '16px',
+  5: '20px',
+  6: '24px',
+  8: '32px',
+  10: '40px',
+  12: '48px',
+  16: '64px',
+  20: '80px',
+  24: '96px',
+} as const;
+
+// sprinkles.css.ts (Vanilla Extract Sprinkles)
+import { defineProperties, createSprinkles } from '@vanilla-extract/sprinkles';
+import { spacing } from './tokens/spacing';
+import { themeContract } from './theme.css';
+
+const responsiveProperties = defineProperties({
+  conditions: {
+    mobile: {},
+    tablet: { '@media': 'screen and (min-width: 768px)' },
+    desktop: { '@media': 'screen and (min-width: 1024px)' },
+  },
+  defaultCondition: 'mobile',
+  properties: {
+    display: ['none', 'flex', 'grid', 'block', 'inline-flex'],
+    flexDirection: ['row', 'column', 'row-reverse', 'column-reverse'],
+    alignItems: ['stretch', 'flex-start', 'center', 'flex-end', 'baseline'],
+    justifyContent: ['flex-start', 'center', 'flex-end', 'space-between', 'space-around'],
+    gap: spacing,
+    padding: spacing,
+    paddingTop: spacing,
+    paddingBottom: spacing,
+    paddingLeft: spacing,
+    paddingRight: spacing,
+    margin: spacing,
+    marginTop: spacing,
+    marginBottom: spacing,
+    marginLeft: spacing,
+    marginRight: spacing,
+  },
+  shorthands: {
+    p: ['padding'],
+    px: ['paddingLeft', 'paddingRight'],
+    py: ['paddingTop', 'paddingBottom'],
+    m: ['margin'],
+    mx: ['marginLeft', 'marginRight'],
+    my: ['marginTop', 'marginBottom'],
+  },
+});
+
+const colorProperties = defineProperties({
+  conditions: {
+    default: {},
+    hover: { selector: '&:hover' },
+    focus: { selector: '&:focus' },
+  },
+  defaultCondition: 'default',
+  properties: {
+    color: themeContract.color.text,
+    backgroundColor: {
+      ...themeContract.color,
+      transparent: 'transparent',
+    },
+  },
+});
+
+export const sprinkles = createSprinkles(responsiveProperties, colorProperties);
+export type Sprinkles = Parameters<typeof sprinkles>[0];
+
+// Box.tsx - Polymorphic box with sprinkles
+import { sprinkles, Sprinkles } from './sprinkles.css';
+
+type BoxProps<T extends React.ElementType = 'div'> = {
+  as?: T;
+  children?: React.ReactNode;
+} & Sprinkles &
+  Omit<React.ComponentPropsWithoutRef<T>, keyof Sprinkles>;
+
+export function Box<T extends React.ElementType = 'div'>({
+  as,
+  children,
+  className,
+  ...props
+}: BoxProps<T>) {
+  const Component = as || 'div';
+
+  // Separate sprinkle props from native props
+  const sprinkleProps: Record<string, unknown> = {};
+  const nativeProps: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(props)) {
+    if (key in sprinkles.properties) {
+      sprinkleProps[key] = value;
+    } else {
+      nativeProps[key] = value;
+    }
+  }
+
+  return (
+    <Component
+      className={clsx(sprinkles(sprinkleProps as Sprinkles), className)}
+      {...nativeProps}
+    >
+      {children}
+    </Component>
+  );
+}
 ```
 
 ---
 
-## 9. Commo## 7. Implementation Workflow (TDD)
+## 4. Anti-Patterns
 
-describe('Design Tokens', () => {
-  it('should have all required color scales', () => {
-    expect(tokens.colors.gray).toBeDefined()
-    expect(tokens.colors.blue).toBeDefined()
-    expect(Object.keys(tokens.colors.gray)).toHaveLength(10)
-  })
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+**NEVER:**
+- Use magic numbers for spacing/sizing
+- Interpolate user input into styles
+- Skip dark mode support in new components
+- Create components without keyboard navigation
+- Use color alone to convey information
+- Hardcode colors instead of tokens
+- Skip focus indicators
+- Create non-responsive components
 
 ---
-## 8. Performance Patterns
 
-**Bad** - Redundant property declarations:
-```css
-.button { background: var(--color-blue-500); }
-.button:hover { background: var(--color-blue-600); }
-.button:active { background: var(--color-blue-700); }
+## 5. Testing
+
+**ALWAYS test design system components:**
+
+```typescript
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { axe, toHaveNoViolations } from 'jest-axe';
+
+expect.extend(toHaveNoViolations);
+
+describe('Button', () => {
+  it('renders with correct variant styles', () => {
+    render(<Button intent="primary">Click me</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass(expect.stringContaining('primary'));
+  });
+
+  it('supports keyboard interaction', async () => {
+    const onClick = jest.fn();
+    render(<Button onClick={onClick}>Click me</Button>);
+
+    const button = screen.getByRole('button');
+    button.focus();
+    await userEvent.keyboard('{Enter}');
+
+    expect(onClick).toHaveBeenCalled();
+  });
+
+  it('has no accessibility violations', async () => {
+    const { container } = render(<Button>Click me</Button>);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it('shows focus indicator', () => {
+    render(<Button>Click me</Button>);
+    const button = screen.getByRole('button');
+    button.focus();
+
+    // Check focus styles are applied
+    expect(button).toHaveFocus();
+    expect(getComputedStyle(button).outlineWidth).not.toBe('0px');
+  });
+});
+
+describe('Theme', () => {
+  it('applies dark theme correctly', () => {
+    render(
+      <ThemeProvider defaultTheme="dark">
+        <Box backgroundColor="background" data-testid="box" />
+      </ThemeProvider>
+    );
+
+    const box = screen.getByTestId('box');
+    expect(getComputedStyle(box).backgroundColor).toBe('rgb(15, 23, 42)');
+  });
+
+  it('respects system preference', () => {
+    // Mock matchMedia
+    window.matchMedia = jest.fn().mockImplementation(query => ({
+      matches: query === '(prefers-color-scheme: dark)',
+      media: query,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }));
+
+    render(
+      <ThemeProvider>
+        <Box backgroundColor="background" data-testid="box" />
+      </ThemeProvider>
+    );
+
+    // Should use dark theme based on system preference
+    const root = document.documentElement;
+    expect(root.classList.contains(darkTheme)).toBe(true);
+  });
+});
 ```
 
-📚 **For complete details**: See `references/performance-patterns.md`
-
 ---
-## 9. Common Mistakes
 
-## 9. Common Mistakes
+## 6. Pre-Generation Checklist
 
-📚 **For complete details**: See `references/common-mistakes.md`
+**BEFORE generating any design system code:**
 
----
+- [ ] Tokens defined in structured format (Style Dictionary)
+- [ ] Type-safe variant system (recipes or similar)
+- [ ] Dark mode support via CSS custom properties
+- [ ] Accessible primitives (Radix or equivalent)
+- [ ] Spacing scale is consistent
+- [ ] No inline styles with user input
+- [ ] Focus indicators on all interactive elements
+- [ ] Responsive breakpoints defined
+- [ ] Color contrast meets WCAG AA
+- [ ] Components tested with axe

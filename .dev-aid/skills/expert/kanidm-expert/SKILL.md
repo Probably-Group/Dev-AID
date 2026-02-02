@@ -1,536 +1,826 @@
 ---
 name: kanidm-expert
-description: "Expert in Kanidm modern identity management system specializing in user/group management, OAuth2/OIDC, LDAP, RADIUS, SSH key management, WebAuthn, and MFA. Deep expertise in secure authentication flows, credential policies, access control, and platform integrations. Use when implementing identity management, SSO, authentication systems, or securing access to infrastructure."
+version: 2.0.0
+description: "Kanidm identity management with OAuth2/OIDC, LDAP compatibility, and WebAuthn authentication."
+risk_level: HIGH
 ---
 
-# Kanidm Identity Management Expert
+# Kanidm Identity Management Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Auth bypass, LDAP injection, Privilege escalation
-- Requires continuous monitoring of security advisories
+**CWE-532: Sensitive Info in Logs (CVE-2025-30205)**
+- NEVER: Use NixOS module with `adminPasswordFile` on unpatched versions
+- ALWAYS: Audit logs for leaked creds, rotate exposed passwords
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-287: OAuth2 Auth Code Reuse**
+- NEVER: Assume auth codes are one-time-use without verification
+- ALWAYS: Implement client-side validation, monitor for code reuse
 
-### 0.2 Vulnerability Research Protocol
+**CWE-269: Account Policy Downgrade**
+- NEVER: Assume MFA policies persist across migrations
+- ALWAYS: Review `idm_all_accounts` policies after upgrades, verify MFA settings
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-90: LDAP Injection**
+- NEVER: Use LDAP gateway with unsanitized user input in filters
+- ALWAYS: Parameterized queries, escape `( ) ! | & *` chars, whitelist validation
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 OAuth2/OIDC Configuration (CWE-287)
+
+**Principle:** Use PKCE for all clients. Validate redirect URIs strictly.
+
+```toml
+# ❌ WRONG - Insecure OAuth2 client
+[oauth2_client.myapp]
+basic_secret = "plaintext-secret"
+redirect_uris = ["*"]
+
+# ✅ CORRECT - Secure OAuth2 client with PKCE
+[[oauth2_rs_basic_secret]]
+name = "myapp"
+origin = "https://myapp.example.com"
+displayname = "My Application"
+# Strict redirect URIs - no wildcards
+redirect_uris = ["https://myapp.example.com/auth/callback"]
+# Enable PKCE
+enable_pkce = true
+# Require signed tokens
+prefer_short_username = false
+# Scopes
+scope_maps = [
+    { "group" = "myapp_users", "scopes" = ["openid", "profile", "email"] },
+    { "group" = "myapp_admins", "scopes" = ["openid", "profile", "email", "groups"] },
+]
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 WebAuthn/Passkey Security (CWE-308)
 
-   - **KANIDM-AUTH-BYPASS** (CVSS N/A): Authentication bypass risks
-     Source: https://kanidm.com/documentation/
-   - **LDAP-INJECTION** (CVSS 8.0): LDAP injection attacks
-     Source: https://owasp.org/
-   - **PRIV-ESC** (CVSS 8.8): Privilege escalation
-     Source: https://kanidm.com/security/
+**Principle:** Prefer passkeys over passwords. Enforce MFA for privileged accounts.
 
-**Step 3: Common Attack Patterns**
+### 1.3 Group-Based Access Control (CWE-284)
 
-   - Auth bypass
-   - LDAP injection
-   - Privilege escalation
-   - Session hijacking
+**Principle:** Use groups for authorization. Minimize direct user permissions.
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.4 Session Management (CWE-613)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Configure appropriate session timeouts. Enable session revocation.
 
-### 0.3 Hallucination Prevention Checklist
+### 1.5 LDAP Security (CWE-90)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Use LDAPS only. Validate all LDAP queries for injection.
 
-**Domain-Specific Security Rules**:
+### 1.6 Credential Storage (CWE-916)
 
-- ❌ NEVER skip MFA
-- ❌ NEVER trust LDAP queries without sanitization
-- ❌ ALWAYS validate permissions
-- ❌ ALWAYS use secure sessions
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Kanidm configuration**
-
-### Verification Requirements
-
-When using this skill to implement Kanidm identity management features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Kanidm documentation at kanidm.com/documentation
-   - ✅ Confirm CLI commands and API methods are current
-   - ✅ Validate OAuth2/OIDC flows against official guides
-   - ❌ Never guess configuration options or file paths
-   - ❌ Never invent kanidm CLI subcommands
-   - ❌ Never assume LDAP/RADIUS compatibility without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing Kanidm configurations
-   - 🔍 Grep: Search for similar identity management patterns
-   - 🔍 WebSearch: Verify specs in official Kanidm docs
-   - 🔍 WebFetch: Read Kanidm documentation pages
-   - 🔍 Bash: Test kanidm commands with --help flag
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Kanidm feature/config/CLI command
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in identity management can cause authentication failures, privilege escalation, or complete system lockout
-
-4. **Common Kanidm Hallucination Traps** (AVOID)
-   - ❌ Inventing kanidm CLI subcommands that don't exist
-   - ❌ Assuming LDAP attribute mappings without verification
-   - ❌ Guessing OAuth2 scope names or redirect URI formats
-   - ❌ Making up RADIUS configuration options
-   - ❌ Inventing server.toml configuration keys
-   - ❌ Assuming PAM/NSS integration steps without checking
-   - ❌ Creating non-existent credential policy options
-
-### Self-Check Checklist
-
-Before EVERY response with Kanidm code:
-- [ ] All kanidm CLI commands verified against --help or official docs
-- [ ] Configuration file syntax verified against current version
-- [ ] OAuth2/OIDC flows verified against official integration guides
-- [ ] LDAP/RADIUS options verified against Kanidm documentation
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Kanidm code with hallucinated commands or configs causes authentication system failures, account lockouts, and security vulnerabilities. Always verify.
+**Principle:** Use Kanidm's built-in credential storage. Never store passwords externally.
 
 ---
 
+## 2. Version Requirements
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+**ALWAYS use these minimum versions:**
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+```yaml
+kanidm-server: v1.3.0+
+kanidm-client: v1.3.0+
+kanidm-tools: v1.3.0+
+```
 
 ---
 
-## 1. Overview
+## 3. Code Patterns
 
-You are an elite Kanidm identity management expert with deep expertise in:
+### 3.1 WHEN configuring Kanidm server
 
-- **Kanidm Core**: Modern identity platform, account/group management, service accounts, API tokens
-- **Authentication**: WebAuthn/FIDO2, TOTP, password policies, credential verification
-- **Authorization**: POSIX attributes, group membership, access control policies
-- **OAuth2/OIDC**: SSO provider, client registration, scope management, token flows
-- **LDAP Integration**: Legacy system compatibility, attribute mapping, search filters
-- **RADIUS**: Network authentication, wireless/VPN access, shared secrets
-- **SSH Management**: Public key distribution, certificate authority, authorized keys
-- **PAM Integration**: Unix/Linux authentication, sudo integration, session management
-- **Security**: Credential policies, account lockout, audit logging, privilege separation
-- **High Availability**: Replication, backup/restore, database management
+```toml
+# ❌ WRONG - Insecure configuration
+# server.toml
+bindaddress = "0.0.0.0:8443"
+ldapbindaddress = "0.0.0.0:636"
+# No TLS, no domain, insecure defaults
 
-You build Kanidm deployments that are:
-- **Secure**: WebAuthn-first, strong credential policies, audit trails
-- **Modern**: OAuth2/OIDC native, REST API driven, CLI-first design
-- **Reliable**: Replication support, backup strategies, disaster recovery
-- **Integrated**: LDAP compatibility, RADIUS support, SSH key distribution
-- **Maintainable**: Clear policies, documented procedures, automation-ready
+# ✅ CORRECT - Production Kanidm server configuration
+# /etc/kanidm/server.toml
 
-**Risk Level**: 🔴 CRITICAL - Identity and access management is the foundation of security. Misconfigurations can lead to unauthorized access, privilege escalation, credential compromise, and complete system takeover.
+# Network binding
+bindaddress = "[::]:8443"
+ldapbindaddress = "[::]:636"
+
+# Domain configuration
+domain = "idm.example.com"
+origin = "https://idm.example.com"
+
+# TLS configuration
+tls_chain = "/etc/kanidm/certs/fullchain.pem"
+tls_key = "/etc/kanidm/certs/privkey.pem"
+
+# Database
+db_path = "/var/lib/kanidm/kanidm.db"
+db_fs_type = "zfs"  # or "generic" for other filesystems
+
+# Trust X-Forwarded-For from specific proxy
+trust_x_forward_for = true
+# Only trust headers from localhost (reverse proxy)
+role = "WriteReplica"
+
+# Logging
+log_level = "info"
+
+# Online backup to object storage
+[online_backup]
+path = "/var/lib/kanidm/backup"
+schedule = "0 2 * * *"  # Daily at 2 AM
+versions = 7
+
+# Integration with replication
+[replication]
+# Configure for HA setup
+# origin = "https://idm-replica.example.com"
+# bindaddress = "[::]:8444"
+```
+
+### 3.2 WHEN creating OAuth2/OIDC clients programmatically
+
+```rust
+// ❌ WRONG - Hardcoded credentials, no validation
+let client = kanidm_client::KanidmClient::new("https://idm.example.com");
+client.auth_simple_password("admin", "password123").await?;
+
+// ✅ CORRECT - Secure Kanidm client in Rust
+use kanidm_client::{KanidmClient, KanidmClientBuilder};
+use kanidm_proto::v1::{
+    Entry, CreateRequest, ModifyRequest, Modify,
+    OAuth2RsBasicSecretRequest, OAuth2RsBasicSecret,
+};
+use std::collections::BTreeSet;
+
+#[derive(Clone)]
+pub struct KanidmConfig {
+    pub url: String,
+    pub ca_path: Option<String>,
+    pub connect_timeout: u64,
+}
+
+pub struct KanidmAdmin {
+    client: KanidmClient,
+}
+
+impl KanidmAdmin {
+    pub async fn new(config: &KanidmConfig) -> Result<Self, anyhow::Error> {
+        let mut builder = KanidmClientBuilder::new()
+            .address(config.url.clone())
+            .connect_timeout(config.connect_timeout);
+
+        if let Some(ca_path) = &config.ca_path {
+            builder = builder.add_root_certificate_filepath(ca_path)?;
+        }
+
+        let client = builder.build()?;
+
+        // Authenticate using token from environment
+        let token = std::env::var("KANIDM_TOKEN")
+            .map_err(|_| anyhow::anyhow!("KANIDM_TOKEN not set"))?;
+
+        client.auth_with_token(&token).await?;
+
+        Ok(Self { client })
+    }
+
+    pub async fn create_oauth2_client(
+        &self,
+        name: &str,
+        display_name: &str,
+        origin: &str,
+        redirect_uris: &[String],
+        allowed_groups: &[String],
+    ) -> Result<OAuth2RsBasicSecret, anyhow::Error> {
+        // Validate redirect URIs - must be HTTPS, no wildcards
+        for uri in redirect_uris {
+            if !uri.starts_with("https://") {
+                anyhow::bail!("Redirect URI must use HTTPS: {}", uri);
+            }
+            if uri.contains('*') {
+                anyhow::bail!("Wildcard redirect URIs not allowed: {}", uri);
+            }
+        }
+
+        // Create OAuth2 resource server
+        let request = OAuth2RsBasicSecretRequest {
+            name: name.to_string(),
+            displayname: display_name.to_string(),
+            origin: origin.to_string(),
+            redirect_uris: redirect_uris.to_vec(),
+            // Enable PKCE
+            enable_pkce: true,
+            // Enable token refresh
+            enable_refresh_token: true,
+            // Strict redirect matching
+            strict_redirect_uri: true,
+        };
+
+        let secret = self.client
+            .idm_oauth2_rs_basic_secret_create(&request)
+            .await?;
+
+        // Configure scope maps for allowed groups
+        for group in allowed_groups {
+            self.client
+                .idm_oauth2_rs_update_scope_map(
+                    name,
+                    group,
+                    &["openid", "profile", "email"],
+                )
+                .await?;
+        }
+
+        // Add groups claim for admin group
+        self.client
+            .idm_oauth2_rs_update_scope_map(
+                name,
+                &format!("{}_admins", name),
+                &["openid", "profile", "email", "groups"],
+            )
+            .await?;
+
+        Ok(secret)
+    }
+
+    pub async fn create_service_account(
+        &self,
+        name: &str,
+        display_name: &str,
+        groups: &[String],
+    ) -> Result<String, anyhow::Error> {
+        // Create service account
+        self.client
+            .idm_service_account_create(name, display_name)
+            .await?;
+
+        // Add to groups
+        for group in groups {
+            self.client
+                .idm_group_add_members(group, &[name])
+                .await?;
+        }
+
+        // Generate API token
+        let token = self.client
+            .idm_service_account_generate_api_token(name, "automation", None)
+            .await?;
+
+        Ok(token)
+    }
+
+    pub async fn configure_mfa_policy(
+        &self,
+        group_name: &str,
+        require_mfa: bool,
+        allowed_methods: &[&str],  // ["passkey", "totp"]
+    ) -> Result<(), anyhow::Error> {
+        // Create or update credential policy
+        let policy_name = format!("{}_cred_policy", group_name);
+
+        // Set MFA requirement
+        self.client
+            .idm_group_set_credential_policy(
+                group_name,
+                &policy_name,
+            )
+            .await?;
+
+        if require_mfa {
+            // Require at least passkey or TOTP
+            self.client
+                .idm_credential_policy_set_mfa_required(&policy_name, true)
+                .await?;
+        }
+
+        // Configure allowed authentication methods
+        for method in allowed_methods {
+            match *method {
+                "passkey" => {
+                    self.client
+                        .idm_credential_policy_enable_webauthn(&policy_name)
+                        .await?;
+                }
+                "totp" => {
+                    self.client
+                        .idm_credential_policy_enable_totp(&policy_name)
+                        .await?;
+                }
+                _ => anyhow::bail!("Unknown auth method: {}", method),
+            }
+        }
+
+        Ok(())
+    }
+}
+```
+
+### 3.3 WHEN integrating applications with Kanidm OIDC
+
+```typescript
+// ❌ WRONG - No state validation, no PKCE
+const authUrl = `${KANIDM_URL}/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT}`;
+
+// ✅ CORRECT - Full OIDC integration with PKCE
+import { Issuer, generators, Client, TokenSet } from 'openid-client';
+import { z } from 'zod';
+
+interface KanidmOIDCConfig {
+  issuerUrl: string;
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+  scopes: string[];
+}
+
+const UserInfoSchema = z.object({
+  sub: z.string(),
+  name: z.string().optional(),
+  preferred_username: z.string(),
+  email: z.string().email().optional(),
+  email_verified: z.boolean().optional(),
+  groups: z.array(z.string()).optional(),
+});
+
+type UserInfo = z.infer<typeof UserInfoSchema>;
+
+class KanidmOIDC {
+  private client: Client | null = null;
+  private config: KanidmOIDCConfig;
+
+  constructor(config: KanidmOIDCConfig) {
+    this.config = config;
+  }
+
+  async initialize(): Promise<void> {
+    const issuer = await Issuer.discover(this.config.issuerUrl);
+
+    this.client = new issuer.Client({
+      client_id: this.config.clientId,
+      client_secret: this.config.clientSecret,
+      redirect_uris: [this.config.redirectUri],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'client_secret_basic',
+    });
+  }
+
+  generateAuthorizationUrl(state: string): { url: string; codeVerifier: string } {
+    if (!this.client) {
+      throw new Error('OIDC client not initialized');
+    }
+
+    // Generate PKCE challenge
+    const codeVerifier = generators.codeVerifier();
+    const codeChallenge = generators.codeChallenge(codeVerifier);
+
+    const url = this.client.authorizationUrl({
+      scope: this.config.scopes.join(' '),
+      state,
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      // Prompt for re-authentication
+      prompt: 'login',
+    });
+
+    return { url, codeVerifier };
+  }
+
+  async handleCallback(
+    params: { code: string; state: string },
+    expectedState: string,
+    codeVerifier: string
+  ): Promise<{ tokens: TokenSet; userInfo: UserInfo }> {
+    if (!this.client) {
+      throw new Error('OIDC client not initialized');
+    }
+
+    // Validate state to prevent CSRF
+    if (params.state !== expectedState) {
+      throw new Error('Invalid state parameter');
+    }
+
+    // Exchange code for tokens with PKCE
+    const tokens = await this.client.callback(
+      this.config.redirectUri,
+      { code: params.code, state: params.state },
+      { state: expectedState, code_verifier: codeVerifier }
+    );
+
+    // Fetch user info
+    const rawUserInfo = await this.client.userinfo(tokens.access_token!);
+
+    // Validate user info
+    const userInfo = UserInfoSchema.parse(rawUserInfo);
+
+    return { tokens, userInfo };
+  }
+
+  async refreshTokens(refreshToken: string): Promise<TokenSet> {
+    if (!this.client) {
+      throw new Error('OIDC client not initialized');
+    }
+
+    return this.client.refresh(refreshToken);
+  }
+
+  async revokeToken(token: string, tokenType: 'access_token' | 'refresh_token'): Promise<void> {
+    if (!this.client) {
+      throw new Error('OIDC client not initialized');
+    }
+
+    await this.client.revoke(token, tokenType);
+  }
+
+  // Verify group membership for authorization
+  hasRequiredGroups(userInfo: UserInfo, requiredGroups: string[]): boolean {
+    if (!userInfo.groups) {
+      return false;
+    }
+
+    return requiredGroups.every((group) => userInfo.groups!.includes(group));
+  }
+}
+
+// Express middleware example
+import { Request, Response, NextFunction } from 'express';
+import session from 'express-session';
+
+declare module 'express-session' {
+  interface SessionData {
+    oidcState?: string;
+    codeVerifier?: string;
+    tokens?: TokenSet;
+    userInfo?: UserInfo;
+  }
+}
+
+function createKanidmAuthMiddleware(oidc: KanidmOIDC, requiredGroups?: string[]) {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    // Check if already authenticated
+    if (req.session.tokens && req.session.userInfo) {
+      // Check token expiration
+      if (req.session.tokens.expired()) {
+        try {
+          // Try to refresh
+          const newTokens = await oidc.refreshTokens(req.session.tokens.refresh_token!);
+          req.session.tokens = newTokens;
+        } catch {
+          // Refresh failed, need re-authentication
+          return res.redirect('/auth/login');
+        }
+      }
+
+      // Check group membership if required
+      if (requiredGroups && !oidc.hasRequiredGroups(req.session.userInfo, requiredGroups)) {
+        return res.status(403).json({ error: 'Insufficient permissions' });
+      }
+
+      return next();
+    }
+
+    // Not authenticated
+    return res.redirect('/auth/login');
+  };
+}
+```
+
+### 3.4 WHEN configuring LDAP integration
+
+```yaml
+# ❌ WRONG - LDAP without TLS
+ldap_url: ldap://idm.example.com:389
+
+# ✅ CORRECT - Kubernetes LDAP configuration with Kanidm
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kanidm-ldap-config
+  namespace: auth
+data:
+  ldap-config.yaml: |
+    # LDAP client configuration for Kanidm
+    servers:
+      - url: ldaps://idm.example.com:636
+        start_tls: false  # Already using LDAPS
+        tls_verify: true
+        tls_ca_cert: /etc/ldap/certs/ca.crt
+
+    bind:
+      # Use service account for LDAP binds
+      method: simple
+      dn_template: "spn={{ .Username }}@example.com,dc=idm,dc=example,dc=com"
+
+    search:
+      base_dn: "dc=idm,dc=example,dc=com"
+      user_filter: "(|(uid={{ .Username }})(mail={{ .Username }}))"
+      group_filter: "(member={{ .UserDN }})"
+      user_attrs:
+        - uid
+        - mail
+        - displayName
+        - memberOf
+      group_attrs:
+        - cn
+        - member
+
+    timeout:
+      connect: 5s
+      read: 10s
+---
+# Example: GitLab LDAP configuration
+apiVersion: v1
+kind: Secret
+metadata:
+  name: gitlab-ldap-secret
+  namespace: gitlab
+stringData:
+  ldap.yaml: |
+    main:
+      label: 'Kanidm'
+      host: 'idm.example.com'
+      port: 636
+      uid: 'uid'
+      encryption: 'simple_tls'
+      verify_certificates: true
+      ca_file: '/etc/gitlab/ldap/ca.crt'
+      bind_dn: 'dn=token'
+      password: '${LDAP_BIND_TOKEN}'
+      active_directory: false
+      allow_username_or_email_login: true
+      base: 'dc=idm,dc=example,dc=com'
+      user_filter: '(class=person)'
+      group_base: 'dc=idm,dc=example,dc=com'
+      admin_group: 'gitlab_admins'
+      attributes:
+        username: 'uid'
+        email: 'mail'
+        name: 'displayName'
+```
+
+### 3.5 WHEN implementing passkey/WebAuthn registration
+
+```rust
+// ❌ WRONG - Weak authentication, no MFA
+async fn login(username: &str, password: &str) -> Result<Token, Error> {
+    client.auth_simple_password(username, password).await
+}
+
+// ✅ CORRECT - WebAuthn/Passkey authentication flow
+use kanidm_client::KanidmClient;
+use kanidm_proto::v1::{
+    AuthAllowed, AuthCredential, AuthIssueSession, AuthMech, AuthRequest, AuthState,
+};
+use webauthn_rs::prelude::*;
+
+pub struct PasskeyAuth {
+    client: KanidmClient,
+}
+
+impl PasskeyAuth {
+    pub async fn start_authentication(
+        &self,
+        username: &str,
+    ) -> Result<AuthenticationContext, anyhow::Error> {
+        // Initialize authentication
+        let auth_state = self.client
+            .auth_step_init(username)
+            .await?;
+
+        // Check available authentication methods
+        let allowed = match auth_state.state {
+            AuthState::Choose(allowed) => allowed,
+            _ => anyhow::bail!("Unexpected auth state"),
+        };
+
+        // Prefer passkey if available
+        let use_passkey = allowed.iter().any(|a| matches!(a, AuthAllowed::Passkey));
+        let use_totp = allowed.iter().any(|a| matches!(a, AuthAllowed::Totp));
+
+        if use_passkey {
+            // Request passkey challenge
+            let challenge_state = self.client
+                .auth_step_begin(AuthMech::Passkey)
+                .await?;
+
+            match challenge_state.state {
+                AuthState::Continue(allowed) => {
+                    // Extract WebAuthn challenge
+                    for method in allowed {
+                        if let AuthAllowed::Passkey = method {
+                            // Return challenge to client for WebAuthn
+                            return Ok(AuthenticationContext::Passkey {
+                                // Challenge data from Kanidm
+                                challenge: challenge_state,
+                            });
+                        }
+                    }
+                }
+                _ => anyhow::bail!("Unexpected state after passkey begin"),
+            }
+        }
+
+        if use_totp {
+            // Fall back to TOTP
+            let totp_state = self.client
+                .auth_step_begin(AuthMech::Totp)
+                .await?;
+
+            return Ok(AuthenticationContext::Totp {
+                state: totp_state,
+            });
+        }
+
+        anyhow::bail!("No supported authentication methods available")
+    }
+
+    pub async fn complete_passkey_auth(
+        &self,
+        credential: PublicKeyCredential,
+    ) -> Result<AuthToken, anyhow::Error> {
+        // Submit passkey credential to Kanidm
+        let response = self.client
+            .auth_step_passkey(&credential)
+            .await?;
+
+        match response.state {
+            AuthState::Success(token) => Ok(token),
+            AuthState::Denied(_) => anyhow::bail!("Authentication denied"),
+            _ => anyhow::bail!("Unexpected auth state after passkey"),
+        }
+    }
+
+    pub async fn complete_totp_auth(
+        &self,
+        totp_code: &str,
+    ) -> Result<AuthToken, anyhow::Error> {
+        // Validate TOTP code format (6 digits)
+        if !totp_code.chars().all(|c| c.is_ascii_digit()) || totp_code.len() != 6 {
+            anyhow::bail!("Invalid TOTP code format");
+        }
+
+        let response = self.client
+            .auth_step_totp(totp_code.parse()?)
+            .await?;
+
+        match response.state {
+            AuthState::Success(token) => Ok(token),
+            AuthState::Denied(reason) => anyhow::bail!("Authentication denied: {}", reason),
+            _ => anyhow::bail!("Unexpected auth state after TOTP"),
+        }
+    }
+
+    pub async fn register_passkey(
+        &self,
+        token: &str,
+        passkey_label: &str,
+    ) -> Result<CreationChallengeResponse, anyhow::Error> {
+        self.client.set_token(token).await;
+
+        // Start passkey registration
+        let challenge = self.client
+            .idm_account_credential_passkey_register_start(passkey_label)
+            .await?;
+
+        Ok(challenge)
+    }
+
+    pub async fn complete_passkey_registration(
+        &self,
+        credential: RegisterPublicKeyCredential,
+    ) -> Result<(), anyhow::Error> {
+        self.client
+            .idm_account_credential_passkey_register_finish(&credential)
+            .await?;
+
+        Ok(())
+    }
+}
+
+pub enum AuthenticationContext {
+    Passkey {
+        challenge: AuthState,
+    },
+    Totp {
+        state: AuthState,
+    },
+}
+```
 
 ---
 
-## 3. Core Principles
-
-1. **TDD First** - Write tests before implementing Kanidm configurations. Validate authentication flows, group memberships, and access policies with automated tests before deployment.
-
-2. **Performance Aware** - Optimize for connection reuse, efficient LDAP queries, token caching, and minimize authentication latency. Identity systems must be fast and responsive.
-
-3. **Security First** - WebAuthn for privileged accounts, TLS everywhere, strong credential policies, audit everything. Never compromise on security.
-
-4. **Modern Identity** - OAuth2/OIDC native, API-driven, CLI-first design. Build integrations using modern standards.
-
-5. **Operational Excellence** - Automated backups, monitoring, disaster recovery procedures, regular access reviews.
-
-6. **Least Privilege** - Grant minimum required permissions, separate read/write access, use service accounts for applications.
-
-7. **Audit Everything** - Log all authentication attempts, privileged operations, and API token usage. Maintain complete audit trails.
-
----
-
-## 2. Core Responsibilities
-
-### 1. User & Group Management
-- Create users with proper attributes (displayname, mail, POSIX uid/gid)
-- Manage group memberships for access control
-- Set POSIX attributes for Unix/Linux integration
-- Handle service accounts for applications
-- Implement account lifecycle (creation, suspension, deletion)
-- Never reuse UIDs/GIDs after account deletion
-
-### 2. Authentication Configuration
-- Enforce WebAuthn/FIDO2 as primary authentication
-- Configure TOTP as backup authentication method
-- Set strong password policies (length, complexity, history)
-- Implement credential policy inheritance
-- Enable account lockout protection
-- Monitor authentication failures and anomalies
-
-### 3. OAuth2/OIDC Provider Setup
-- Register OAuth2 clients with proper redirect URIs
-- Configure scopes (openid, email, profile, groups)
-- Set token lifetimes appropriately
-- Enable PKCE for public clients
-- Implement proper client secret rotation
-- Map groups to OIDC claims
-
-### 4. LDAP Integration
-- Configure LDAP bind accounts with minimal privileges
-- Map Kanidm attributes to LDAP schema
-- Implement search base restrictions
-- Enable LDAP over TLS (LDAPS)
-- Test compatibility with legacy applications
-- Monitor LDAP query performance
-
-### 5. RADIUS Configuration
-- Generate strong shared secrets for RADIUS clients
-- Configure network device access policies
-- Implement group-based RADIUS authorization
-- Enable proper logging for network authentication
-- Test wireless/VPN authentication flows
-- Rotate RADIUS secrets regularly
-
-### 6. SSH Key Management
-- Distribute SSH public keys via Kanidm
-- Configure SSH certificate authority
-- Implement SSH key rotation policies
-- Integrate with PAM for Unix authentication
-- Manage sudo rules and privilege escalation
-- Audit SSH key usage
-
-### 7. Security & Compliance
-- Enable audit logging for all privileged operations
-- Implement credential policies per security tier
-- Configure account lockout thresholds
-- Monitor for suspicious authentication patterns
-- Regular security audits and policy reviews
-- Backup and disaster recovery procedures
-
----
-
-## 6. Implementation Workflow (TDD)
-
-For detailed TDD workflow with Kanidm, see:
-- `references/tdd-workflow.md` - Complete test-driven development workflow with examples
-
-**Key Steps:**
-1. Write failing tests first (OAuth2, LDAP, RADIUS integration tests)
-2. Implement minimum code to pass tests
-3. Refactor with security hardening
-4. Verify with comprehensive test suite
-
----
-
-## 7. Performance Patterns
-
-For detailed performance optimization patterns, see:
-- `references/performance-patterns.md` - Connection pooling, token caching, LDAP optimization, async operations
-
-**Key Patterns:**
-1. Connection pooling for LDAP and HTTP clients
-2. OAuth2 token caching to reduce authentication overhead
-3. Efficient LDAP queries with specific attributes and batch operations
-4. API token management for service accounts
-5. Async operations for concurrent identity operations
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Top 7 Implementation Patterns
-
-For detailed implementation patterns, see:
-- `references/implementation-patterns.md` - Complete implementation guides
-
-**Key Patterns:**
-1. Secure Kanidm server setup with TLS and backup
-2. User account lifecycle management
-3. OAuth2/OIDC integration for SSO
-4. LDAP integration for legacy systems
-5. RADIUS for network authentication
-6. SSH key management and PAM integration
-7. Security hardening and monitoring
-
----
-
-## 6. Security Standards
-
-### 5.1 Authentication Security
-
-**WebAuthn/FIDO2 (PRIMARY)**
-- Require WebAuthn for all privileged accounts (admin, operators)
-- Enforce hardware security keys (YubiKey, Titan, TouchID)
-- TOTP as backup only (not primary authentication)
-- Never allow password-only for privileged access
-
-**Password Policies**
-- Minimum 14 characters for standard users
-- Minimum 16 characters for privileged accounts
-- Require complexity (uppercase, lowercase, number, symbol)
-- Password history: prevent reuse of last 12 passwords
-- Never allow common passwords (dictionary check)
-- Enforce regular password rotation for service accounts
-
-**Account Lockout**
-- Threshold: 5 failed attempts
-- Lockout duration: 1 hour (3600 seconds)
-- Admin notification on lockout
-- Permanent lockout after 10 failures (requires admin unlock)
-
-### 5.2 Authorization & Access Control
-
-**Principle of Least Privilege**
-- Grant minimum required permissions
-- Use service accounts for applications (not personal accounts)
-- Separate read-only and write access
-- Never grant global admin unnecessarily
-
-**Group Management**
-- Nested groups for complex hierarchies
-- Document group purposes and membership criteria
-- Regular access reviews (quarterly for privileged groups)
-- Remove users from groups immediately on role change
-
-**POSIX Security**
-- Assign uidNumber >= 10000 (avoid system UIDs)
-- Never reuse UIDs after account deletion
-- Set appropriate gidNumber for primary group
-- Use supplementary groups for access control
-
-### 5.3 OAuth2/OIDC Security
-
-**Client Registration**
-- Exact redirect URI matching (no wildcards)
-- Use PKCE for all public clients (mobile, SPA)
-- Short access token lifetime (1 hour max)
-- Refresh token rotation enabled
-- Client secret rotation every 90 days
-
-**Scope Management**
-- Grant minimal scopes required
-- Audit scope usage regularly
-- Never grant overly broad scopes
-- Map groups to claims for fine-grained authorization
-
-### 5.4 Network Security
-
-**TLS Requirements**
-- HTTPS/TLS for all Kanidm server connections
-- LDAPS (LDAP over TLS) required - never plain LDAP
-- Valid CA-signed certificates in production
-- TLS 1.2 minimum, prefer TLS 1.3
-- Strong cipher suites only
-
-**RADIUS Security**
-- Strong shared secrets (32+ random characters)
-- Separate secrets per RADIUS client
-- Rotate secrets every 90 days
-- IP address restriction for RADIUS clients
-- Monitor for unauthorized RADIUS requests
-
-### 5.5 Operational Security
-
-**Backup & Recovery**
-- Daily automated backups
-- Test restore procedures monthly
-- Off-site backup storage
-- Encrypted backup storage
-- Retention: 30 daily, 12 monthly, 7 yearly
-
-**Audit Logging**
-- Log all authentication attempts (success/failure)
-- Log all privileged operations (account creation, policy changes)
-- Log all API token usage
-- Retain logs for 1 year minimum
-- SIEM integration for real-time monitoring
-
-**Database Security**
-- File system encryption for database files
-- Restrict database file permissions (600)
-- Regular integrity checks
-- No direct database access (use kanidmd API)
-
-### 5.6 Critical Security Rules
-
-**ALWAYS:**
-- Use WebAuthn for privileged accounts
-- Enable TLS for all connections
-- Backup before major changes
-- Test in non-production first
-- Audit privileged operations
-- Rotate service account credentials
-- Monitor authentication failures
-- Document security policies
+## 4. Anti-Patterns
 
 **NEVER:**
-- Use plain LDAP (always LDAPS)
-- Share admin credentials
-- Disable TLS verification
-- Use weak RADIUS secrets
-- Expose Kanidm server to internet without protection
-- Grant unnecessary privileges
-- Delete users (lock instead for audit trail)
-- Reuse UIDs/GIDs
+- Disable PKCE for OAuth2 clients
+- Use wildcard redirect URIs
+- Store credentials outside Kanidm
+- Allow password-only authentication for admins
+- Skip TLS for LDAP connections
+- Grant direct permissions instead of groups
+- Use long-lived API tokens without rotation
+- Disable WebAuthn/passkey support
+- Trust X-Forwarded headers from untrusted sources
 
 ---
 
-## 9. Common Mistakes
+## 5. Testing
 
-For detailed anti-patterns and common mistakes, see:
-- `references/anti-patterns.md` - Common configuration mistakes and how to avoid them
+**ALWAYS test Kanidm configurations:**
 
-**Key Anti-Patterns to Avoid:**
-1. Using plain LDAP instead of LDAPS
-2. Weak RADIUS shared secrets
-3. Missing WebAuthn for privileged accounts
-4. OAuth2 redirect URI wildcards
-5. No backup strategy
-6. UID/GID reuse
-7. Exposing server without protection
-8. Deleting accounts instead of locking them
+```bash
+#!/bin/bash
+set -euo pipefail
+
+KANIDM_URL="${KANIDM_URL:-https://idm.example.com}"
+
+echo "=== Kanidm Security Tests ==="
+
+# Test 1: TLS verification
+echo "Test 1: TLS certificate..."
+openssl s_client -connect "${KANIDM_URL#https://}:443" -servername "${KANIDM_URL#https://}" </dev/null 2>/dev/null | \
+    openssl x509 -noout -dates || {
+    echo "FAIL: TLS certificate issue"
+    exit 1
+}
+echo "PASS: TLS certificate valid"
+
+# Test 2: OAuth2 discovery endpoint
+echo "Test 2: OIDC discovery..."
+curl -sf "$KANIDM_URL/oauth2/openid/myapp/.well-known/openid-configuration" | \
+    jq -e '.authorization_endpoint and .token_endpoint' > /dev/null || {
+    echo "FAIL: OIDC discovery not working"
+    exit 1
+}
+echo "PASS: OIDC discovery working"
+
+# Test 3: PKCE required
+echo "Test 3: PKCE enforcement..."
+# Attempt auth without PKCE should fail or warn
+RESPONSE=$(curl -sf "$KANIDM_URL/oauth2/authorise?client_id=myapp&response_type=code&redirect_uri=https://myapp.example.com/callback" 2>&1 || true)
+if echo "$RESPONSE" | grep -qi "pkce"; then
+    echo "PASS: PKCE enforcement working"
+else
+    echo "WARN: Could not verify PKCE enforcement"
+fi
+
+# Test 4: LDAPS connectivity
+echo "Test 4: LDAPS..."
+openssl s_client -connect "${KANIDM_URL#https://}:636" </dev/null 2>/dev/null | \
+    grep -q "BEGIN CERTIFICATE" || {
+    echo "FAIL: LDAPS not available"
+    exit 1
+}
+echo "PASS: LDAPS available"
+
+# Test 5: API authentication required
+echo "Test 5: API authentication..."
+STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$KANIDM_URL/v1/self")
+if [ "$STATUS" == "401" ]; then
+    echo "PASS: API requires authentication"
+else
+    echo "FAIL: API accessible without auth"
+    exit 1
+fi
+
+echo "=== All Kanidm Security Tests Passed ==="
+```
 
 ---
 
-## 10. Testing
+## 6. Pre-Generation Checklist
 
-For comprehensive testing guides, see:
-- `references/testing-guide.md` - Unit, integration, E2E, and security tests
+**BEFORE generating any Kanidm code:**
 
-**Test Types:**
-1. Unit tests for service layer with mocks
-2. Integration tests for OAuth2, LDAP, RADIUS
-3. End-to-end tests for authentication flows
-4. Security tests for TLS, lockout, redirect validation
-
----
-
-## 11. References
-
-### Reference Documentation
-
-For comprehensive examples and guides, see the `references/` directory:
-
-- **`tdd-workflow.md`** - Complete test-driven development workflow with examples
-- **`implementation-patterns.md`** - Top 7 implementation patterns (server setup, OAuth2, LDAP, RADIUS, SSH, security)
-- **`performance-patterns.md`** - Connection pooling, token caching, LDAP optimization, async operations
-- **`anti-patterns.md`** - Common configuration mistakes and how to avoid them
-- **`testing-guide.md`** - Unit, integration, E2E, and security tests
-- **`integration-guide.md`** - LDAP, OAuth2/OIDC, RADIUS, PAM, SSH integration examples
-- **`security-config.md`** - MFA setup, WebAuthn, password policies, credential policies
-
----
-
-## 12. Critical Reminders
-
-For complete pre-implementation checklists, see:
-- `references/operational-checklist.md` - Detailed checklists for all deployment phases
-
-**Key Reminders:**
-- Write tests before implementation (TDD)
-- WebAuthn required for privileged accounts
-- TLS everywhere (HTTPS, LDAPS)
-- Daily automated backups with tested restore
-- OAuth2 redirect URIs exact match only
-- Strong RADIUS secrets (use generate-secret)
-- Never reuse UIDs/GIDs
-- Lock accounts instead of deleting
-
----
-
-## 13. Summary
-
-You are a Kanidm identity management expert focused on:
-1. **Security First** - WebAuthn, strong policies, audit trails, TLS everywhere
-2. **Modern Identity** - OAuth2/OIDC native, API-driven, CLI-first
-3. **Legacy Compatibility** - LDAP, RADIUS, PAM integration for existing systems
-4. **Operational Excellence** - Backup/restore, monitoring, disaster recovery
-5. **Access Control** - Least privilege, group-based authorization, regular reviews
-
-**Key Principles**: WebAuthn for privileged accounts, TLS for all connections, exact redirect URIs, strong RADIUS secrets, daily backups, audit everything, never reuse UIDs, lock accounts don't delete, test restore procedures, principle of least privilege.
-
-Kanidm is a modern identity platform that balances security with usability. Build identity infrastructure that is secure, reliable, and maintainable.
-
-**Remember**: Identity management is CRITICAL. A misconfiguration can compromise your entire infrastructure. Always test in non-production, backup before changes, and audit privileged operations.
+- [ ] TLS configured for all endpoints
+- [ ] OAuth2 clients use PKCE
+- [ ] Redirect URIs strictly validated
+- [ ] Groups used for authorization
+- [ ] MFA required for admin accounts
+- [ ] Passkey/WebAuthn enabled
+- [ ] Service accounts use API tokens
+- [ ] LDAP uses LDAPS only
+- [ ] Session timeouts configured
+- [ ] Credential policies defined

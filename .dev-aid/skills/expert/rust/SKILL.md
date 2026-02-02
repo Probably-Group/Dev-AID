@@ -1,377 +1,518 @@
 ---
 name: rust
-description: Systems programming expertise for Tauri desktop application backend development with memory safety and performance optimization
+version: 2.0.0
+description: "Rust systems programming with memory safety, error handling, async Tokio, and FFI patterns."
 risk_level: MEDIUM
 ---
 
-# Rust Systems Programming Skill
-
-## File Organization
-
-- **SKILL.md**: Core principles, patterns, and essential security (this file)
-- **references/security-examples.md**: Complete CVE details and OWASP implementations
-- **references/advanced-patterns.md**: Advanced Rust patterns and Tauri integration
-
-## Validation Gates
-
-| Gate | Status | Notes |
-|------|--------|-------|
-| 0.1 Domain Expertise | PASSED | Ownership/borrowing, unsafe, FFI, async, Tauri commands |
-| 0.2 Vulnerability Research | PASSED | 3+ CVEs documented (2025-11-20) |
-| 0.5 Hallucination Check | PASSED | Examples tested against rustc 1.75+ |
-| 0.11 File Organization | Split | MEDIUM-RISK, ~400 lines main + references |
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Rust Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Command injection via std::process::Command on Windows, TAR archive path traversal attacks, Logic bugs in unsafe code blocks
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-119: Unsafe Memory Access**
+- NEVER: `unsafe {}` without documented justification and safety invariants
+- ALWAYS: Prefer safe abstractions, document why unsafe is necessary
 
-### 0.2 Vulnerability Research Protocol
+**CWE-78: Command Injection**
+- NEVER: `Command::new("sh").arg("-c").arg(user_string)`
+- ALWAYS: `Command::new(binary).args(&validated_args)` - no shell
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-252: Unchecked Return Value**
+- NEVER: `.unwrap()` in production code or libraries
+- ALWAYS: Proper error handling with `?`, `match`, or `unwrap_or_default()`
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-457: Uninitialized Memory**
+- NEVER: `MaybeUninit` without proper initialization
+- ALWAYS: Initialize all memory before use, use safe constructors
+
+**CWE-362: Race Conditions**
+- NEVER: `static mut` variables
+- ALWAYS: Use `Mutex`, `RwLock`, `AtomicT`, or message passing
+
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Data ≠ Code (CWE-78, CWE-94)
+
+**Principle:** Never construct shell commands from untrusted data via string operations.
+
+**NEVER** use shell string construction (CVE-2024-24576 BatBadBut):
+```rust
+// ❌ WRONG - Command injection via shell
+use std::process::Command;
+
+let user_input = get_user_input();
+Command::new("sh")
+    .arg("-c")
+    .arg(format!("echo {}", user_input))  // Injection!
+    .output();
+
+// ❌ WRONG - Windows bat file execution (CVE-2024-24576)
+Command::new("cmd")
+    .args(["/C", &format!("script.bat {}", user_input)])
+    .output();
+
+// ✅ CORRECT - Direct execution with argument list
+Command::new("echo")
+    .arg(&user_input)  // Passed as single argument
+    .output();
+
+// ✅ CORRECT - Command allowlist
+const ALLOWED_COMMANDS: &[&str] = &["git", "ls", "cat"];
+
+fn safe_command(cmd: &str, args: &[&str]) -> Result<Output, AppError> {
+    if !ALLOWED_COMMANDS.contains(&cmd) {
+        return Err(AppError::CommandNotAllowed);
+    }
+    Command::new(cmd).args(args).output().map_err(Into::into)
+}
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Input Validation (CWE-20)
 
-   - **CVE-2024-24576** (CVSS 10.0): BatBadBut - Windows command injection via improper argument escaping
-     Source: https://blog.rust-lang.org/2024/04/09/cve-2024-24576.html
-   - **CVE-2025-62518** (CVSS 8.1): TARmageddon - async-tar library RCE via file overwriting
-     Source: https://www.csoonline.com/article/4077445/serious-vulnerability-found-in-rust-library.html
-   - **CVE-2024-43402** (CVSS 7.5): Standard library vulnerability in batch file handling
-     Source: https://blog.rust-lang.org/2024/09/04/cve-2024-43402.html
-
-**Step 3: Common Attack Patterns**
-
-   - Command injection via std::process::Command on Windows
-   - TAR archive path traversal attacks
-   - Logic bugs in unsafe code blocks
-   - Supply chain attacks via crates.io
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use std::process::Command with untrusted input on Windows without validation
-- ❌ NEVER extract TAR archives without path sanitization
-- ❌ NEVER assume Rust prevents all security vulnerabilities
-- ❌ ALWAYS validate external command arguments
-- ❌ ALWAYS audit unsafe blocks for logic errors
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: MEDIUM
-
-**Justification**: Rust provides memory safety through the borrow checker, but unsafe blocks, FFI boundaries, and command injection via std::process::Command present security risks.
-
-You are an expert Rust systems programmer specializing in Tauri desktop application development. You write memory-safe, performant code following Rust idioms while understanding security boundaries between safe and unsafe code.
-
-### Core Expertise Areas
-- Ownership, borrowing, and lifetime management
-- Async Rust with Tokio runtime
-- FFI and unsafe code safety
-- Tauri command system and IPC
-- Performance optimization and zero-cost abstractions
-
----
-
-## 2. Core Responsibilities
-
-### Fundamental Principles
-
-1. **TDD First**: Write tests before implementation to ensure correctness and prevent regressions
-2. **Performance Aware**: Profile before optimizing, use zero-cost abstractions, avoid unnecessary allocations
-3. **Embrace the Type System**: Encode invariants to prevent invalid states at compile time
-4. **Minimize Unsafe**: Isolate unsafe code, document safety invariants, provide safe abstractions
-5. **Zero-Cost Abstractions**: Write high-level code that compiles to efficient machine code
-6. **Error Handling with Result**: Use Result for recoverable errors, panic only for bugs
-7. **Security at Boundaries**: Validate all input at FFI and IPC boundaries
-
-### Decision Framework
-
-| Situation | Approach |
-|-----------|----------|
-| Shared ownership | `Arc<T>` (thread-safe) or `Rc<T>` (single-thread) |
-| Interior mutability | `Mutex<T>`, `RwLock<T>`, or `RefCell<T>` |
-| Performance-critical | Profile first, then consider unsafe optimizations |
-| FFI interaction | Create safe wrapper types with validation |
-| Error handling | Return `Result<T, E>` with custom error types |
-
----
-
-## 3. Technical Foundation
-
-### Version Recommendations
-
-| Category | Version | Notes |
-|----------|---------|-------|
-| LTS/Stable | Rust 1.75+ | Minimum for Tauri 2.x |
-| Recommended | Rust 1.82+ | Latest stable with security patches |
-| Tauri | 2.0+ | Use 2.x for new projects |
-| Tokio | 1.35+ | Async runtime |
-
-### Security Dependencies
-
-```toml
-[dependencies]
-serde = { version = "1.0", features = ["derive"] }
-validator = { version = "0.16", features = ["derive"] }
-ring = "0.17"              # Cryptography
-argon2 = "0.5"             # Password hashing
-dunce = "1.0"              # Safe path canonicalization
-
-[dev-dependencies]
-cargo-audit = "0.18"       # Vulnerability scanning
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Workflow (TDD)
-
-## 5. Implementation Workflow (TDD)
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 6. Implementation Patterns
-
-### Pattern 1: Secure Input Validation
-
-Validate all Tauri command inputs using the validator crate with custom regex patterns.
+**Principle:** Validate all input at trust boundaries (Tauri commands, FFI, files).
 
 ```rust
+// ❌ WRONG - No validation at Tauri command boundary
+#[tauri::command]
+fn process_input(data: String) -> String {
+    // data could be anything
+    data.to_uppercase()
+}
+
+// ✅ CORRECT - Validation with validator crate
 use serde::Deserialize;
 use validator::Validate;
 
 #[derive(Deserialize, Validate)]
 pub struct UserInput {
-    #[validate(length(min = 1, max = 100), regex(path = "SAFE_STRING_REGEX"))]
+    #[validate(length(min = 1, max = 100))]
+    #[validate(regex(path = "*SAFE_STRING_RE"))]
     pub name: String,
-    #[validate(range(min = 0, max = 120))]
+
+    #[validate(range(min = 0, max = 150))]
     pub age: u8,
 }
 
+lazy_static! {
+    static ref SAFE_STRING_RE: Regex = Regex::new(r"^[a-zA-Z0-9_-]+$").unwrap();
+}
+
 #[tauri::command]
-pub async fn create_user(input: UserInput) -> Result<User, String> {
-    input.validate().map_err(|e| format!("Validation error: {}", e))?;
-    Ok(User::new(input))
+fn process_input(input: UserInput) -> Result<String, String> {
+    input.validate().map_err(|e| format!("Invalid input: {}", e))?;
+    Ok(input.name.to_uppercase())
 }
 ```
 
-> **See `references/advanced-patterns.md` for complete validation patterns with regex definitions**
+### 1.3 Path Traversal Prevention (CWE-22)
 
-### Pattern 2: Safe Error Handling
+**Principle:** Always canonicalize and verify path containment.
 
-Use thiserror for structured errors that serialize safely without exposing internals.
+```rust
+use std::path::{Path, PathBuf};
+use dunce::canonicalize;  // Cross-platform canonicalization
+
+// ❌ WRONG - Path traversal possible
+fn read_user_file(base: &Path, filename: &str) -> std::io::Result<String> {
+    let path = base.join(filename);  // "../../../etc/passwd" works!
+    std::fs::read_to_string(path)
+}
+
+// ✅ CORRECT - Canonicalize and verify containment
+fn safe_read_file(base: &Path, filename: &str) -> Result<String, AppError> {
+    let base = canonicalize(base)?;
+    let requested = canonicalize(base.join(filename))?;
+
+    // Verify the resolved path is under base
+    if !requested.starts_with(&base) {
+        return Err(AppError::PathTraversal);
+    }
+
+    std::fs::read_to_string(requested).map_err(Into::into)
+}
+```
+
+### 1.4 Archive Extraction Safety (CWE-22, CVE-2025-62518)
+
+**Principle:** Never extract archives without path validation.
+
+```rust
+// ❌ WRONG - TARmageddon vulnerability
+use tar::Archive;
+
+fn extract_archive(path: &Path, dest: &Path) -> std::io::Result<()> {
+    let file = std::fs::File::open(path)?;
+    let mut archive = Archive::new(file);
+    archive.unpack(dest)?;  // Can overwrite arbitrary files!
+    Ok(())
+}
+
+// ✅ CORRECT - Validate each entry path
+fn safe_extract(archive_path: &Path, dest: &Path) -> Result<(), AppError> {
+    let dest = dunce::canonicalize(dest)?;
+    let file = std::fs::File::open(archive_path)?;
+    let mut archive = Archive::new(file);
+
+    for entry in archive.entries()? {
+        let mut entry = entry?;
+        let path = entry.path()?;
+
+        // Verify no path traversal
+        let full_path = dest.join(&path);
+        let canonical = dunce::canonicalize(&full_path)?;
+
+        if !canonical.starts_with(&dest) {
+            return Err(AppError::PathTraversal);
+        }
+
+        entry.unpack(&canonical)?;
+    }
+    Ok(())
+}
+```
+
+### 1.5 Unsafe Code Discipline
+
+**Principle:** Minimize unsafe. Always document safety invariants.
+
+```rust
+// ❌ WRONG - Unsafe without documentation
+unsafe fn process(ptr: *const u8, len: usize) -> &[u8] {
+    std::slice::from_raw_parts(ptr, len)
+}
+
+// ❌ WRONG - Undefined behavior
+unsafe {
+    let ptr: *const i32 = std::ptr::null();
+    *ptr  // Null pointer dereference!
+}
+
+// ✅ CORRECT - Documented safety invariants
+/// # Safety
+/// - `ptr` must be valid for reads of `len` bytes
+/// - `ptr` must be properly aligned
+/// - The memory must not be mutated for the lifetime of the returned slice
+/// - `len` must not exceed isize::MAX
+unsafe fn process(ptr: *const u8, len: usize) -> &[u8] {
+    debug_assert!(!ptr.is_null());
+    debug_assert!(len <= isize::MAX as usize);
+    // SAFETY: Caller guarantees ptr is valid, aligned, and len is correct
+    std::slice::from_raw_parts(ptr, len)
+}
+```
+
+### 1.6 Error Handling - No Unwrap in Production
+
+**Principle:** Never use `.unwrap()` or `.expect()` in production code paths.
+
+```rust
+// ❌ WRONG - Panics crash the application
+fn get_user(id: i64) -> User {
+    db.query_one(&query, &[&id]).unwrap()  // Panics if not found!
+}
+
+// ❌ WRONG - expect is still a panic
+let config = std::fs::read_to_string("config.json").expect("Config required");
+
+// ✅ CORRECT - Propagate errors with ?
+fn get_user(id: i64) -> Result<User, AppError> {
+    db.query_one(&query, &[&id]).map_err(|e| match e {
+        sqlx::Error::RowNotFound => AppError::NotFound,
+        e => AppError::Database(e),
+    })
+}
+
+// ✅ CORRECT - Custom error types
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("Not found")]
+    NotFound,
+    #[error("Database error")]
+    Database(#[from] sqlx::Error),
+    #[error("Path traversal blocked")]
+    PathTraversal,
+}
+```
+
+### 1.7 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never hardcode secrets. Use environment or secure storage.
+
+```rust
+// ❌ WRONG - Hardcoded secret
+const API_KEY: &str = "sk-1234567890";
+const DB_PASSWORD: &str = "supersecret";
+
+// ❌ WRONG - Secrets in error messages
+return Err(format!("Failed to connect with key: {}", api_key));
+
+// ✅ CORRECT - From environment
+fn get_api_key() -> Result<String, AppError> {
+    std::env::var("API_KEY").map_err(|_| AppError::ConfigMissing("API_KEY"))
+}
+
+// ✅ CORRECT - OS keychain for desktop apps
+use keyring::Entry;
+
+fn get_secret(service: &str, key: &str) -> Result<String, AppError> {
+    let entry = Entry::new(service, key)?;
+    entry.get_password().map_err(Into::into)
+}
+```
+
+### 1.8 Serialization Safety (CWE-502)
+
+**Principle:** Use safe serialization formats. Never expose internal details.
+
+```rust
+use serde::{Deserialize, Serialize};
+
+// ❌ WRONG - Error exposes internal details
+#[derive(Serialize)]
+pub enum AppError {
+    Database { query: String, error: String },  // Leaks query!
+}
+
+// ✅ CORRECT - Safe error serialization
+#[derive(Debug)]
+pub enum AppError {
+    Database(sqlx::Error),
+    NotFound,
+}
+
+impl Serialize for AppError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        // Only expose safe error message, never internals
+        serializer.serialize_str(match self {
+            AppError::Database(_) => "Database error",
+            AppError::NotFound => "Not found",
+        })
+    }
+}
+```
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+```toml
+[dependencies]
+# Core (CVE-2024-24576, CVE-2024-43402 fixes require 1.77.2+)
+rust-version = "1.77.2"
+
+# Validation
+serde = { version = "1.0", features = ["derive"] }
+validator = { version = "0.16", features = ["derive"] }
+
+# Security
+ring = "0.17"              # Cryptography
+argon2 = "0.5"             # Password hashing
+dunce = "1.0"              # Safe path canonicalization
+
+# Error handling
+thiserror = "1.0"
+
+[dev-dependencies]
+cargo-audit = "0.18"
+```
+
+**WHEN generating Cargo.toml** → pin these exact versions or higher.
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating Tauri commands
+
+```rust
+use serde::Deserialize;
+use validator::Validate;
+use tauri::State;
+
+#[derive(Deserialize, Validate)]
+pub struct CreateUserInput {
+    #[validate(length(min = 1, max = 100))]
+    name: String,
+    #[validate(email)]
+    email: String,
+}
+
+#[tauri::command]
+pub async fn create_user(
+    input: CreateUserInput,
+    db: State<'_, DbPool>,
+) -> Result<User, String> {
+    // Validate at boundary
+    input.validate().map_err(|e| e.to_string())?;
+
+    // Process with validated input
+    let user = db.create_user(&input.name, &input.email)
+        .await
+        .map_err(|e| "Failed to create user".to_string())?;  // Safe message
+
+    Ok(user)
+}
+```
+
+### 3.2 WHEN handling Result types
 
 ```rust
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
-    #[error("Database error")]
-    Database(#[from] sqlx::Error),
-    #[error("Validation failed: {0}")]
-    Validation(String),
     #[error("Not found")]
     NotFound,
+    #[error("Invalid input: {0}")]
+    Validation(String),
+    #[error("Database error")]
+    Database(#[from] sqlx::Error),
+    #[error("IO error")]
+    Io(#[from] std::io::Error),
 }
 
-impl serde::Serialize for AppError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer {
-        serializer.serialize_str(&self.to_string()) // Never expose internals
-    }
-}
-```
-
-### Pattern 3: Secure File Operations
-## 6. Implementation Patterns
-
-Validate all Tauri command inputs using the validator crate with custom regex patterns.
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-om environment or tauri-plugin-store with encryption
-fn get_api_key() -> Result<String, AppError> {
-    std::env::var("API_KEY")
-        .map_err(|_| AppError::Configuration("API_KEY not set".into()))
+// Propagate with ?
+async fn get_user(db: &DbPool, id: i64) -> Result<User, AppError> {
+    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", id)
+        .fetch_optional(db)
+        .await?
+        .ok_or(AppError::NotFound)?;
+    Ok(user)
 }
 ```
 
-> **See `references/security-examples.md` for secure storage patterns**
+### 3.3 WHEN doing async operations
 
----
-
-## 8. Performance Patterns
-
-### Pattern 1: Zero-Copy Operations
-
-**Bad**: `data.to_vec()` then iterate - **Good**: Return iterator with lifetime
 ```rust
-// Bad: fn process(data: &[u8]) -> Vec<u8> { data.to_vec().iter().map(|b| b+1).collect() }
-fn process(data: &[u8]) -> impl Iterator<Item = u8> + '_ {
-    data.iter().map(|b| b + 1)  // No allocation
-}
-```
+use tokio::task::spawn_blocking;
 
-### Pattern 2: Iterator Chains Over Loops
-
-**Bad**: Manual loop with push - **Good**: Iterator chain (lazy, fused)
-```rust
-fn filter_transform(items: &[Item]) -> Vec<String> {
-    items.iter().filter(|i| i.is_valid()).map(|i| i.name.to_uppercase()).collect()
-}
-```
-
-### Pattern 3: Memory Pooling for Frequent Allocations
-
-**Bad**: `Vec::with_capacity()` in hot path - **Good**: Object pool
-```rust
-static BUFFER_POOL: Lazy<Pool<Vec<u8>>> = Lazy::new(|| Pool::new(32, || Vec::with_capacity(1024)));
-
-async fn handle_request(data: &[u8]) -> Vec<u8> {
-    let mut buffer = BUFFER_POOL.pull(|| Vec::with_capacity(1024));
-    buffer.clear(); process(&mut buffer, data); buffer.to_vec()
-}
-```
-
-### Pattern 4: Async Runtime Selection
-
-**Bad**: CPU work on async - **Good**: `spawn_blocking` for CPU-bound
-```rust
+// CPU-bound work: use spawn_blocking
 async fn hash_password(password: String) -> Result<String, AppError> {
-    tokio::task::spawn_blocking(move || {
-        argon2::hash_encoded(password.as_bytes(), &salt, &config)
-            .map_err(|e| AppError::Internal(e.into()))
-    }).await?
+    spawn_blocking(move || {
+        let salt = argon2::password_hash::SaltString::generate(&mut OsRng);
+        let hash = Argon2::default()
+            .hash_password(password.as_bytes(), &salt)?
+            .to_string();
+        Ok(hash)
+    })
+    .await?
+}
+
+// IO-bound work: direct async
+async fn fetch_data(url: &str) -> Result<String, AppError> {
+    let response = reqwest::get(url).await?;
+    let body = response.text().await?;
+    Ok(body)
 }
 ```
 
-### Pattern 5: Avoid Allocations in Hot Paths
+### 3.4 WHEN using generics with constraints
 
-**Bad**: `println!` allocates - **Good**: `write!` to preallocated buffer
 ```rust
-fn log_metric(buffer: &mut Vec<u8>, name: &str, value: u64) {
-    buffer.clear();
-    write!(buffer, "{}: {}", name, value).unwrap();
-    std::io::stdout().write_all(buffer).unwrap();
+use std::fmt::Display;
+
+// Generic with trait bounds
+fn process<T: Display + Send + Sync>(item: T) -> String {
+    format!("Processed: {}", item)
+}
+
+// Where clause for complex bounds
+fn merge<K, V>(map1: HashMap<K, V>, map2: HashMap<K, V>) -> HashMap<K, V>
+where
+    K: Eq + Hash + Clone,
+    V: Clone,
+{
+    let mut result = map1;
+    result.extend(map2);
+    result
 }
 ```
 
 ---
 
-## 9. Testing & Validation
+## 4. Anti-Patterns
 
-### Security Testing Commands
+### 4.1 Unwrap in Production
 
-```bash
-cargo audit                          # Dependency vulnerabilities
-cargo +nightly careful test          # Memory safety checking
-cargo clippy -- -D warnings          # Lint with security warnings
+**NEVER** use `.unwrap()` or `.expect()` in production:
+```rust
+// ❌ WRONG - Application crash
+let value = map.get("key").unwrap();
+
+// ✅ CORRECT - Handle the None case
+let value = map.get("key").ok_or(AppError::KeyNotFound)?;
 ```
 
-### Unit Test Pattern
+### 4.2 Shell Command Construction
 
+**NEVER** construct shell commands from user input (CVE-2024-24576):
+```rust
+// ❌ WRONG - Command injection
+Command::new("sh").arg("-c").arg(format!("echo {}", user_input));
+
+// ✅ CORRECT - Direct execution
+Command::new("echo").arg(user_input);
+```
+
+### 4.3 Unsafe Without Documentation
+
+**NEVER** write unsafe without safety documentation:
+```rust
+// ❌ WRONG
+unsafe { ... }
+
+// ✅ CORRECT
+// SAFETY: ptr is valid, aligned, and len is within bounds
+unsafe { ... }
+```
+
+### 4.4 Panic in Libraries
+
+**NEVER** panic in library code:
+```rust
+// ❌ WRONG - Forces caller to handle panic
+pub fn parse(input: &str) -> Data {
+    if input.is_empty() { panic!("Empty input"); }
+    ...
+}
+
+// ✅ CORRECT - Return Result
+pub fn parse(input: &str) -> Result<Data, ParseError> {
+    if input.is_empty() { return Err(ParseError::Empty); }
+    ...
+}
+```
+
+---
+
+## 5. Testing
+
+**ALWAYS write tests before implementation:**
 ```rust
 #[cfg(test)]
 mod tests {
@@ -380,8 +521,12 @@ mod tests {
     #[test]
     fn test_path_traversal_blocked() {
         let base = Path::new("/app/data");
-        assert!(safe_path_join(base, "../etc/passwd").is_err());
-        assert!(safe_path_join(base, "user/file.txt").is_ok());
+        let attacks = ["../etc/passwd", "..\\..\\windows\\system32", "foo/../../etc/passwd"];
+
+        for attack in attacks {
+            let result = safe_read_file(base, attack);
+            assert!(result.is_err(), "Path traversal not blocked: {}", attack);
+        }
     }
 
     #[test]
@@ -389,79 +534,44 @@ mod tests {
         assert!(safe_command("rm", &["-rf", "/"]).is_err());
         assert!(safe_command("git", &["status"]).is_ok());
     }
+
+    #[test]
+    fn test_input_validation() {
+        let valid = UserInput { name: "alice".into(), age: 25 };
+        assert!(valid.validate().is_ok());
+
+        let invalid = UserInput { name: "".into(), age: 200 };
+        assert!(invalid.validate().is_err());
+    }
+
+    #[tokio::test]
+    async fn test_async_operation() {
+        let result = fetch_user(1).await;
+        assert!(result.is_ok());
+    }
 }
 ```
 
-> **See `references/advanced-patterns.md` for fuzzing and integration test patterns**
+**Test coverage requirements:**
+- [ ] Path traversal prevention
+- [ ] Command injection prevention
+- [ ] Input validation
+- [ ] Error handling (no panics)
+- [ ] Async operations
 
 ---
 
-## 10. Common Mistakes & Anti-Patterns
+## 6. Pre-Generation Checklist
 
-| Anti-Pattern | Problem | Solution |
-|--------------|---------|----------|
-| `.unwrap()` in production | Panics crash app | Use `?` with Result |
-| Unsafe without docs | Unverified invariants | Add `// SAFETY:` comments |
-| Shell command execution | Injection vulnerability | Use `Command::new()` directly |
-| Ignoring Clippy | Missed security lints | Run `cargo clippy -- -D warnings` |
-| Hardcoded credentials | Secrets in code | Use env vars or secure storage |
+**BEFORE generating any Rust code:**
 
-```rust
-// NEVER: Shell injection
-Command::new("sh").arg("-c").arg(format!("echo {}", user_input));
-
-// ALWAYS: Direct execution
-Command::new("echo").arg(user_input);
-```
-
----
-
-## 11. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Write failing tests that define expected behavior
-- [ ] Review relevant CVEs for the feature area
-- [ ] Identify security boundaries (FFI, IPC, file system)
-- [ ] Plan error handling strategy with Result types
-- [ ] Check dependencies with `cargo audit`
-
-### Phase 2: During Implementation
-
-- [ ] Run tests after each significant change
-- [ ] Document all unsafe blocks with `// SAFETY:` comments
-- [ ] Validate inputs at all boundaries (Tauri commands, FFI)
-- [ ] Use type system to enforce invariants (newtypes)
-- [ ] Apply performance patterns (zero-copy, iterators)
-- [ ] Ensure error messages don't leak internal details
-
-### Phase 3: Before Committing
-
-- [ ] `cargo test` - all tests pass
-- [ ] `cargo clippy -- -D warnings` - no warnings
-- [ ] `cargo audit` - zero HIGH/CRITICAL vulnerabilities
-- [ ] No hardcoded secrets (grep for "password", "secret", "key")
-- [ ] Path operations use canonicalization and containment checks
-- [ ] Command execution uses allowlist, no shell
-- [ ] Panic handler configured for graceful shutdown
-- [ ] Logging configured (no secrets in logs)
-
----
-
-## 12. Summary
-
-Your goal is to create Rust code that is:
-- **Memory Safe**: Leverage the borrow checker, minimize unsafe
-- **Typ## 8. Performance Patterns
-
-**Bad**: `data.to_vec()` then iterate - **Good**: Return iterator with lifetime
-```rust
-// Bad: fn process(data: &[u8]) -> Vec<u8> { data.to_vec().iter().map(|b| b+1).collect() }
-fn process(data: &[u8]) -> impl Iterator<Item = u8> + '_ {
-    data.iter().map(|b| b + 1)  // No allocation
-}
-```
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
+- [ ] Data ≠ Code: No shell strings, use Command::new().arg()
+- [ ] Input validation: validator crate at all boundaries
+- [ ] Path safety: canonicalize + containment check
+- [ ] Archive extraction: validate each entry path
+- [ ] No unwrap: Use Result with ? operator
+- [ ] Unsafe documented: SAFETY comments for all unsafe blocks
+- [ ] Secrets: From environment or keychain, never hardcoded
+- [ ] Error handling: thiserror, no internal details exposed
+- [ ] Dependencies audited: cargo audit passes
+- [ ] Tests: Security tests for boundaries

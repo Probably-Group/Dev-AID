@@ -1,553 +1,579 @@
 ---
 name: tailwindcss
-description: Tailwind CSS utility-first styling for JARVIS UI components
+version: 2.0.0
+description: "Tailwind CSS patterns with utility composition, custom plugins, and responsive design."
 risk_level: LOW
-version: 1.1.0
 ---
 
-# Tailwind CSS Development Skill
-
-> **File Organization**: This skill uses split structure. See `references/` for advanced patterns.
+# Tailwind CSS Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: XSS via dynamic arbitrary values, Dependency vulnerabilities, CSS injection attacks
-- Requires continuous monitoring of security advisories
+**CWE-79: XSS via Dynamic Classes**
+- NEVER: `class="${userInput}"` or dynamic class names from user input
+- ALWAYS: Whitelist allowed classes, use static class mappings
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-94: Arbitrary Code in Config**
+- NEVER: `tailwind.config.js` with dynamic imports from user input
+- ALWAYS: Static config, validate any customization inputs
 
-### 0.2 Vulnerability Research Protocol
+**CWE-400: Build-time DoS**
+- NEVER: Allow user-controlled content in Tailwind's content paths
+- ALWAYS: Restrict content scanning to known directories
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: LOW
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-4068** (CVSS 7.5): Vulnerability in braces dependency
-     Source: https://github.com/tailwindlabs/tailwindcss/issues/14258
-   - **CVE-2024-4067** (CVSS 7.5): Vulnerability in micromatch dependency
-     Source: https://github.com/tailwindlabs/tailwindcss/issues/14258
-   - **ARBITRARY-VALUE-XSS** (CVSS N/A): XSS via unsanitized arbitrary values
-     Source: https://dansasser.me/posts/navigating-the-security-risks-of-arbitrary-values-in-tailwind-css/
-
-**Step 3: Common Attack Patterns**
-
-   - XSS via dynamic arbitrary values
-   - Dependency vulnerabilities
-   - CSS injection attacks
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use user input directly in arbitrary values
-- ❌ NEVER skip sanitization for dynamic classes
-- ❌ ALWAYS use safelist for dynamic classes
-- ❌ ALWAYS validate class names
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Tailwind CSS code**
-
-### Verification Requirements
-
-When using this skill to implement Tailwind CSS styling, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Tailwind CSS documentation at tailwindcss.com
-   - ✅ Confirm utility classes exist in current version (v3.4+)
-   - ✅ Validate configuration options against official guides
-   - ❌ Never guess utility class names
-   - ❌ Never invent configuration options
-   - ❌ Never assume plugin APIs without checking docs
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing components for Tailwind patterns
-   - 🔍 Grep: Search codebase for similar styling implementations
-   - 🔍 WebSearch: Verify utility classes in official Tailwind docs
-   - 🔍 WebFetch: Read official Tailwind CSS documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY utility class, configuration, or plugin
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Tailwind CSS can cause build failures and visual bugs
-
-4. **Common Tailwind CSS Hallucination Traps** (AVOID)
-   - ❌ Inventing utility class names that don't exist
-   - ❌ Making up configuration options not in Tailwind config
-   - ❌ Assuming plugin APIs without checking documentation
-   - ❌ Using deprecated classes from older Tailwind versions
-   - ❌ Confusing Tailwind utilities with other CSS frameworks
-
-### Self-Check Checklist
-
-Before EVERY response with Tailwind CSS code:
-- [ ] All utility classes verified against Tailwind v3.4+ docs
-- [ ] Configuration options verified in tailwind.config.js docs
-- [ ] Plugin usage verified against official plugin documentation
-- [ ] Can cite official Tailwind CSS documentation sources
-
-**⚠️ CRITICAL**: Tailwind CSS code with hallucinated classes causes build failures and visual inconsistencies. Always verify.
+**Verification requirements for LOW risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 No Dynamic Class Construction (CWE-94)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**Principle:** Never construct class names from user input. Use complete class names.
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+```html
+<!-- ❌ WRONG - Dynamic class construction -->
+<div :class="`bg-${userColor}-500`">
+  <!-- User could inject: "red-500 hidden" or worse -->
+</div>
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+<div :class="`text-${size}`">
+  <!-- Tailwind can't purge dynamic classes -->
+</div>
 
----
+<!-- ✅ CORRECT - Complete class names with safelist -->
+<div :class="colorClasses[userColor]">
+  <!-- Mapped to predefined classes -->
+</div>
 
-## 1. Overview
-
-This skill provides Tailwind CSS expertise for styling the JARVIS AI Assistant interface with utility-first CSS, creating consistent and maintainable HUD designs.
-
-**Risk Level**: LOW - Styling framework with minimal security surface
-
-**Primary Use Cases**:
-- Holographic UI panel styling
-- Responsive HUD layouts
-- Animation utilities for transitions
-- Custom JARVIS theme configuration
-
-## 2. Core Responsibilities
-
-### 2.1 Fundamental Principles
-
-1. **TDD First**: Write component tests before styling implementation
-2. **Performance Aware**: Optimize CSS output size and rendering performance
-3. **Utility-First**: Compose styles from utility classes, extract components when patterns repeat
-4. **Design System**: Define JARVIS color palette and spacing in config
-5. **Responsive Design**: Mobile-first with breakpoint utilities
-6. **Dark Mode Default**: HUD is always dark-themed
-7. **Accessibility**: Maintain sufficient contrast ratios
-
-## 3. Implementation Workflow (TDD)
-
-### 3.1 TDD Process for Styled Components
-
-Follow this workflow for every styled component:
-
-#### Step 1: Write Failing Test First
-
-```typescript
-// tests/components/HUDPanel.test.ts
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import HUDPanel from '~/components/HUDPanel.vue'
-
-describe('HUDPanel', () => {
-  it('renders with correct JARVIS theme classes', () => {
-    const wrapper = mount(HUDPanel, {
-      props: { title: 'System Status' }
-    })
-
-    const panel = wrapper.find('[data-testid="hud-panel"]')
-    expect(panel.classes()).toContain('bg-jarvis-bg-panel/80')
-    expect(panel.classes()).toContain('border-jarvis-primary/30')
-    expect(panel.classes()).toContain('backdrop-blur-sm')
-  })
-
-  it('applies responsive grid layout', () => {
-    const wrapper = mount(HUDPanel)
-    const grid = wrapper.find('[data-testid="panel-grid"]')
-
-    expect(grid.classes()).toContain('grid-cols-1')
-    expect(grid.classes()).toContain('md:grid-cols-2')
-    expect(grid.classes()).toContain('lg:grid-cols-3')
-  })
-
-  it('shows correct status indicator colors', async () => {
-    const wrapper = mount(HUDPanel, {
-      props: { status: 'active' }
-    })
-
-    const indicator = wrapper.find('[data-testid="status-indicator"]')
-    expect(indicator.classes()).toContain('bg-jarvis-primary')
-    expect(indicator.classes()).toContain('animate-pulse')
-
-    await wrapper.setProps({ status: 'error' })
-    expect(indicator.classes()).toContain('bg-jarvis-danger')
-  })
-
-  it('maintains accessibility focus styles', () => {
-    const wrapper = mount(HUDPanel)
-    const button = wrapper.find('button')
-
-    expect(button.classes()).toContain('focus:ring-2')
-    expect(button.classes()).toContain('focus:outline-none')
-  })
-})
-```
-
-#### Step 2: Implement Minimum to Pass
-
-```vue
-<!-- components/HUDPanel.vue -->
-<template>
-  <div
-    data-testid="hud-panel"
-    class="bg-jarvis-bg-panel/80 border border-jarvis-primary/30 backdrop-blur-sm rounded-lg p-4"
-  >
-    <div
-      data-testid="panel-grid"
-      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-    >
-      <slot />
-    </div>
-    <span
-      data-testid="status-indicator"
-      :class="statusClasses"
-    />
-    <button class="focus:ring-2 focus:outline-none focus:ring-jarvis-primary">
-      Action
-    </button>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { computed } from 'vue'
-
-const props = defineProps<{
-  title?: string
-  status?: 'active' | 'warning' | 'error' | 'inactive'
-}>()
-
-const statusClasses = computed(() => ({
-  'bg-jarvis-primary animate-pulse': props.status === 'active',
-  'bg-jarvis-warning': props.status === 'warning',
-  'bg-jarvis-danger': props.status === 'error',
-  'bg-gray-500': props.status === 'inactive'
-}))
+<script setup>
+const colorClasses = {
+  red: 'bg-red-500',
+  blue: 'bg-blue-500',
+  green: 'bg-green-500',
+} as const;
 </script>
 ```
 
-#### Step 3: Refactor if Needed
+### 1.2 Content Security (CWE-79)
 
-Extract repeated patterns to @apply directives:
+**Principle:** Never use v-html or innerHTML with user content in styled elements.
 
-```css
-/* assets/css/components.css */
-@layer components {
-  .hud-panel {
-    @apply bg-jarvis-bg-panel/80 border border-jarvis-primary/30 backdrop-blur-sm rounded-lg p-4;
-  }
+```html
+<!-- ❌ WRONG - XSS risk -->
+<div class="prose" v-html="userContent"></div>
 
-  .hud-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4;
-  }
-}
+<!-- ✅ CORRECT - Sanitized or text only -->
+<div class="prose">{{ sanitizedContent }}</div>
 ```
 
-#### Step 4: Run Full Verification
+### 1.3 Safelist for Dynamic Classes
 
-```bash
-# Run all style-related tests
-npm run test -- --grep "HUDPanel"
-
-# Check for unused CSS
-npx tailwindcss --content './components/**/*.vue' --output /dev/null
-
-# Verify build size
-npm run build && ls -lh .output/public/_nuxt/*.css
-```
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Performance Patterns
-
-For detailed performance optimization strategies, see `references/performance-optimization.md`.
-
-**Key principles**:
-- Optimize content paths to exclude non-production files
-- Use JIT mode (default in v3+) for on-demand class generation
-- Extract patterns with @apply only when they repeat 3+ times
-- Follow mobile-first approach with minimal breakpoints
-- Use GPU-accelerated properties for animations (transform, opacity)
-- Keep CSS bundle under 50KB (gzipped)
-
-## 6. Technology Stack & Versions
-
-### 5.1 Recommended Versions
-
-| Package | Version | Notes |
-|---------|---------|-------|
-| tailwindcss | ^3.4.0 | Latest with JIT mode |
-| @nuxtjs/tailwindcss | ^6.0.0 | Nuxt integration |
-| tailwindcss-animate | ^1.0.0 | Animation utilities |
-
-### 5.2 Configuration
+**Principle:** Use safelist in config for any dynamically selected classes.
 
 ```javascript
 // tailwind.config.js
-export default {
-  content: [
-    './components/**/*.{vue,js,ts}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './composables/**/*.ts',
-    './plugins/**/*.ts'
+module.exports = {
+  safelist: [
+    // Explicit safelist for dynamic themes
+    'bg-red-500', 'bg-blue-500', 'bg-green-500',
+    'text-red-500', 'text-blue-500', 'text-green-500',
+    // Pattern-based safelist
+    {
+      pattern: /^(bg|text|border)-(primary|secondary|accent)/,
+    },
   ],
-  darkMode: 'class',
-  theme: {
-    extend: {
-      colors: {
-        jarvis: {
-          primary: '#00ff41',
-          secondary: '#0891b2',
-          warning: '#f59e0b',
-          danger: '#ef4444',
-          bg: {
-            dark: '#0a0a0f',
-            panel: '#111827'
-          }
-        }
-      },
-      fontFamily: {
-        mono: ['JetBrains Mono', 'monospace'],
-        display: ['Orbitron', 'sans-serif']
-      },
-      animation: {
-        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'scan': 'scan 2s linear infinite',
-        'glow': 'glow 2s ease-in-out infinite alternate'
-      },
-      keyframes: {
-        scan: {
-          '0%': { transform: 'translateY(-100%)' },
-          '100%': { transform: 'translateY(100%)' }
-        },
-        glow: {
-          '0%': { boxShadow: '0 0 5px #00ff41' },
-          '100%': { boxShadow: '0 0 20px #00ff41' }
-        }
-      }
-    }
-  },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('tailwindcss-animate')
-  ]
+};
+```
+
+### 1.4 Fail Secure (CWE-636)
+
+**Principle:** Missing classes should render safely. Always have fallback styles.
+
+### 1.5 Defense in Depth
+
+**Principle:** Combine Tailwind with CSS custom properties for theming.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "@tailwindcss/forms": "^0.5.0",
+    "@tailwindcss/typography": "^0.5.0"
+  }
 }
 ```
 
-## 7. Implementation Patterns
+---
 
-For complete implementation examples, see `references/advanced-patterns.md`.
+## 3. Code Patterns
 
-**Common patterns**:
-- HUD Panel Components with holographic effects
-- Status Indicators with animated states
-- Button Variants (primary, secondary, danger)
-- Complex Dashboard Grid Layouts
-- Responsive Mobile-First Designs
-- Custom Animation Keyframes
-- Holographic Glow Plugin
+### 3.1 WHEN configuring Tailwind
 
-**Quick example**:
-```vue
-<div class="bg-jarvis-bg-panel/80 border border-jarvis-primary/30 backdrop-blur-sm rounded-lg p-4">
-  <h3 class="font-display text-jarvis-primary text-lg uppercase tracking-wider mb-2">
-    System Status
-  </h3>
-  <slot />
-</div>
+```javascript
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    './index.html',
+    './src/**/*.{vue,js,ts,jsx,tsx}',
+    // Include component libraries
+    './node_modules/@myorg/ui/**/*.{vue,js,ts}',
+  ],
+
+  theme: {
+    extend: {
+      // Custom colors with semantic names
+      colors: {
+        primary: {
+          50: '#eff6ff',
+          100: '#dbeafe',
+          500: '#3b82f6',
+          600: '#2563eb',
+          700: '#1d4ed8',
+        },
+        secondary: {
+          50: '#f8fafc',
+          500: '#64748b',
+          700: '#334155',
+        },
+      },
+
+      // Custom spacing
+      spacing: {
+        '18': '4.5rem',
+        '88': '22rem',
+      },
+
+      // Custom breakpoints
+      screens: {
+        'xs': '475px',
+        '3xl': '1920px',
+      },
+
+      // Animation
+      animation: {
+        'fade-in': 'fadeIn 0.3s ease-out',
+        'slide-up': 'slideUp 0.3s ease-out',
+      },
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+      },
+    },
+  },
+
+  plugins: [
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
+  ],
+
+  // Safelist for dynamic classes
+  safelist: [
+    'bg-red-500', 'bg-green-500', 'bg-blue-500',
+    'text-red-500', 'text-green-500', 'text-blue-500',
+  ],
+};
 ```
 
-## 8. Quality Standards
-
-### 7.1 Accessibility
+### 3.2 WHEN creating reusable component styles
 
 ```vue
-<!-- Good - Sufficient contrast -->
-<span class="text-jarvis-primary"><!-- #00ff41 on dark bg --></span>
+<!-- Button.vue -->
+<template>
+  <button
+    :class="[
+      // Base styles
+      'inline-flex items-center justify-center',
+      'font-medium rounded-lg',
+      'focus:outline-none focus:ring-2 focus:ring-offset-2',
+      'disabled:opacity-50 disabled:cursor-not-allowed',
+      'transition-colors duration-200',
+      // Size variants
+      sizeClasses[size],
+      // Color variants
+      variantClasses[variant],
+    ]"
+    :disabled="disabled || loading"
+  >
+    <svg
+      v-if="loading"
+      class="animate-spin -ml-1 mr-2 h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+    >
+      <circle
+        class="opacity-25"
+        cx="12" cy="12" r="10"
+        stroke="currentColor"
+        stroke-width="4"
+      />
+      <path
+        class="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+    <slot />
+  </button>
+</template>
 
-<!-- Good - Focus visible -->
-<button class="focus:ring-2 focus:ring-jarvis-primary focus:outline-none">
+<script setup lang="ts">
+defineProps<{
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  loading?: boolean;
+  disabled?: boolean;
+}>();
 
-<!-- Good - Screen reader text -->
-<span class="sr-only">Status: Active</span>
+// Complete class names - no dynamic construction
+const sizeClasses = {
+  sm: 'px-3 py-1.5 text-sm',
+  md: 'px-4 py-2 text-sm',
+  lg: 'px-6 py-3 text-base',
+} as const;
+
+const variantClasses = {
+  primary: 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500',
+  secondary: 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200 focus:ring-secondary-500',
+  danger: 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500',
+  ghost: 'bg-transparent text-secondary-700 hover:bg-secondary-100 focus:ring-secondary-500',
+} as const;
+</script>
 ```
 
-### 7.2 Design System Consistency
+### 3.3 WHEN implementing dark mode
 
-- Use theme colors defined in `tailwind.config.js`
-- Follow spacing scale: 4, 8, 12, 16, 20, 24... (rem units)
-- Apply consistent border radius: rounded, rounded-lg, rounded-xl
-- Maintain typography hierarchy with font-display and font-mono
+```javascript
+// tailwind.config.js
+module.exports = {
+  darkMode: 'class', // or 'media' for system preference
 
-### 7.3 Performance Standards
+  theme: {
+    extend: {
+      // Colors that work in both modes
+      colors: {
+        surface: {
+          light: '#ffffff',
+          dark: '#1f2937',
+        },
+      },
+    },
+  },
+};
+```
 
-- CSS bundle size under 50KB (gzipped)
-- All animations use GPU-accelerated properties
-- Content paths exclude test and build files
-- No unused utility variants generated
-
-## 9. Common Mistakes & Anti-Patterns
-
-For comprehensive anti-patterns guide, see `references/anti-patterns.md`.
-
-**Common mistakes to avoid**:
-- ❌ Writing custom CSS when utilities exist
-- ❌ Using inconsistent spacing values
-- ❌ Hardcoding colors instead of theme references
-- ❌ Overusing @apply for single-use styles
-- ❌ Redundant breakpoint definitions
-- ❌ Missing focus states on interactive elements
-- ❌ Layout-triggering animation properties
-- ❌ Overly broad content paths
-
-**Quick fix**:
 ```vue
-<!-- Bad -->
-<div class="text-[#00ff41] p-3 mt-5">
+<!-- Layout.vue -->
+<template>
+  <div :class="[
+    'min-h-screen transition-colors duration-300',
+    'bg-white dark:bg-gray-900',
+    'text-gray-900 dark:text-gray-100',
+  ]">
+    <slot />
+  </div>
+</template>
 
-<!-- Good -->
-<div class="text-jarvis-primary p-4 mt-4">
+<!-- Component with dark mode -->
+<template>
+  <div class="
+    bg-white dark:bg-gray-800
+    border border-gray-200 dark:border-gray-700
+    rounded-lg shadow-sm dark:shadow-gray-900/20
+    p-4
+  ">
+    <h3 class="text-gray-900 dark:text-white font-semibold">
+      {{ title }}
+    </h3>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      {{ description }}
+    </p>
+  </div>
+</template>
 ```
 
-## 10. Pre-Implementation Checklist
+### 3.4 WHEN creating responsive layouts
 
-### Phase 1: Before Writing Code
+```vue
+<template>
+  <!-- Responsive grid -->
+  <div class="
+    grid
+    grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4
+    gap-4 md:gap-6 lg:gap-8
+  ">
+    <div v-for="item in items" :key="item.id">
+      <!-- Responsive card -->
+      <div class="
+        p-4 md:p-6
+        rounded-lg
+        hover:shadow-lg
+        transition-shadow
+      ">
+        <!-- Responsive text -->
+        <h3 class="text-lg md:text-xl lg:text-2xl font-bold">
+          {{ item.title }}
+        </h3>
 
-- [ ] Write component tests for expected class applications
-- [ ] Verify JARVIS theme colors are defined in config
-- [ ] Check content paths include all source files
-- [ ] Review existing components for reusable patterns
+        <!-- Hide on mobile, show on desktop -->
+        <p class="hidden md:block text-gray-600">
+          {{ item.description }}
+        </p>
 
-### Phase 2: During Implementation
+        <!-- Show on mobile only -->
+        <p class="md:hidden text-gray-600 line-clamp-2">
+          {{ item.shortDescription }}
+        </p>
+      </div>
+    </div>
+  </div>
 
-- [ ] Use utilities before custom CSS
-- [ ] Apply consistent spacing scale (4, 8, 12, 16...)
-- [ ] Include focus states for all interactive elements
-- [ ] Test responsive breakpoints at each size
-- [ ] Use theme colors, never hardcoded hex values
+  <!-- Responsive navigation -->
+  <nav class="
+    flex flex-col md:flex-row
+    items-center
+    space-y-2 md:space-y-0 md:space-x-4
+  ">
+    <a href="#" class="
+      w-full md:w-auto
+      px-4 py-2
+      text-center
+      rounded-lg
+      hover:bg-gray-100
+    ">
+      Link
+    </a>
+  </nav>
+</template>
+```
 
-### Phase 3: Before Committing
+### 3.5 WHEN implementing forms with @tailwindcss/forms
 
-- [ ] All component tests pass: `npm test`
-- [ ] Build completes without CSS errors: `npm run build`
-- [ ] Check CSS bundle size hasn't grown unexpectedly
-- [ ] Verify no unused @apply extractions
-- [ ] Test accessibility with keyboard navigation
+```vue
+<template>
+  <form @submit.prevent="submit" class="space-y-6">
+    <!-- Text input -->
+    <div>
+      <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        Email
+      </label>
+      <input
+        id="email"
+        v-model="form.email"
+        type="email"
+        required
+        :class="[
+          'mt-1 block w-full rounded-md shadow-sm',
+          'focus:ring-primary-500 focus:border-primary-500',
+          errors.email
+            ? 'border-red-300 text-red-900 placeholder-red-300'
+            : 'border-gray-300 dark:border-gray-600 dark:bg-gray-700',
+        ]"
+      />
+      <p v-if="errors.email" class="mt-1 text-sm text-red-600">
+        {{ errors.email }}
+      </p>
+    </div>
 
-## 11. Summary
+    <!-- Select -->
+    <div>
+      <label for="country" class="block text-sm font-medium text-gray-700">
+        Country
+      </label>
+      <select
+        id="country"
+        v-model="form.country"
+        class="
+          mt-1 block w-full rounded-md border-gray-300 shadow-sm
+          focus:ring-primary-500 focus:border-primary-500
+        "
+      >
+        <option value="">Select a country</option>
+        <option v-for="c in countries" :key="c.code" :value="c.code">
+          {{ c.name }}
+        </option>
+      </select>
+    </div>
 
-Tailwind CSS provides utility-first styling for JARVIS:
+    <!-- Checkbox -->
+    <div class="flex items-center">
+      <input
+        id="terms"
+        v-model="form.acceptTerms"
+        type="checkbox"
+        class="
+          h-4 w-4 rounded
+          border-gray-300
+          text-primary-600
+          focus:ring-primary-500
+        "
+      />
+      <label for="terms" class="ml-2 text-sm text-gray-700">
+        I accept the terms and conditions
+      </label>
+    </div>
 
-1. **TDD**: Write tests for class applications before implementation
-2. **Performance**: Optimize content paths and use JIT mode
-3. **Theme**: Define JARVIS colors and fonts in config
-4. **Utilities**: Compose styles from utilities, extract patterns with @apply
-5. **Accessibility**: Maintain focus states and sufficient contrast
+    <!-- Submit button -->
+    <button
+      type="submit"
+      :disabled="loading"
+      class="
+        w-full flex justify-center
+        py-2 px-4
+        border border-transparent rounded-md shadow-sm
+        text-sm font-medium text-white
+        bg-primary-600 hover:bg-primary-700
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+        disabled:opacity-50 disabled:cursor-not-allowed
+      "
+    >
+      {{ loading ? 'Submitting...' : 'Submit' }}
+    </button>
+  </form>
+</template>
+```
 
-**Remember**: The JARVIS HUD has a distinct visual identity - maintain consistency with the theme configuration and test all styling with vitest.
+### 3.6 WHEN using CSS custom properties with Tailwind
+
+```javascript
+// tailwind.config.js
+module.exports = {
+  theme: {
+    extend: {
+      colors: {
+        // Reference CSS custom properties
+        brand: 'var(--color-brand)',
+        surface: 'var(--color-surface)',
+      },
+    },
+  },
+};
+```
+
+```css
+/* styles/themes.css */
+:root {
+  --color-brand: #3b82f6;
+  --color-surface: #ffffff;
+}
+
+.dark {
+  --color-brand: #60a5fa;
+  --color-surface: #1f2937;
+}
+
+/* Custom theme */
+.theme-purple {
+  --color-brand: #8b5cf6;
+}
+```
+
+```vue
+<template>
+  <!-- Now you can use bg-brand, text-brand, etc. -->
+  <div class="bg-surface text-brand">
+    Theme-aware content
+  </div>
+</template>
+```
 
 ---
 
-## 12. References
+## 4. Anti-Patterns
 
-See `references/` directory for detailed guides:
-
-- **`advanced-patterns.md`** - Implementation patterns, complex layouts, custom animations, and plugins
-- **`performance-optimization.md`** - Build optimization, JIT mode, responsive strategies, and performance checklist
-- **`anti-patterns.md`** - Common mistakes, bad practices, and how to fix them
-
-**Official Documentation**:
-- [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [Tailwind Configuration](https://tailwindcss.com/docs/configuration)
-- [Tailwind Plugins](https://tailwindcss.com/docs/plugins)
+**NEVER:**
+- Construct class names dynamically from user input
+- Use string interpolation for class names
+- Inline styles when Tailwind classes exist
+- Override Tailwind with !important
+- Use arbitrary values `[...]` excessively (configure in theme instead)
+- Forget to safelist dynamically selected classes
 
 ---
 
-**Version**: 1.1.0
-**Last Updated**: 2025-12-05
-**Skill Type**: Expert - Frontend Styling
+## 5. Testing
+
+**ALWAYS test responsive and dark mode:**
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { mount } from '@vue/test-utils';
+import Button from './Button.vue';
+
+describe('Button Component', () => {
+  it('applies correct size classes', () => {
+    const wrapper = mount(Button, {
+      props: { size: 'lg' },
+      slots: { default: 'Click me' },
+    });
+
+    expect(wrapper.classes()).toContain('px-6');
+    expect(wrapper.classes()).toContain('py-3');
+  });
+
+  it('applies correct variant classes', () => {
+    const wrapper = mount(Button, {
+      props: { variant: 'danger' },
+    });
+
+    expect(wrapper.classes()).toContain('bg-red-600');
+    expect(wrapper.classes()).toContain('hover:bg-red-700');
+  });
+
+  it('shows loading state', () => {
+    const wrapper = mount(Button, {
+      props: { loading: true },
+    });
+
+    expect(wrapper.find('svg').exists()).toBe(true);
+    expect(wrapper.attributes('disabled')).toBeDefined();
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any Tailwind code:**
+
+- [ ] No dynamic class name construction from user input
+- [ ] Complete class names used (not interpolated)
+- [ ] Safelist configured for dynamically selected classes
+- [ ] Dark mode variants included where needed
+- [ ] Responsive breakpoints considered
+- [ ] Focus states for accessibility
+- [ ] Disabled states for interactive elements
+- [ ] Transition utilities for smooth UX
+- [ ] Custom values in theme config (not arbitrary `[...]`)
+- [ ] Form plugin for form elements

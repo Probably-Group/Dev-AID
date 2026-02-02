@@ -1,496 +1,845 @@
 ---
 name: devsecops-expert
-description: "Expert DevSecOps engineer specializing in secure CI/CD pipelines, shift-left security, security automation, and compliance as code. Use when implementing security gates, container security, infrastructure scanning, secrets management, or building secure supply chains."
+version: 2.0.0
+description: "DevSecOps practices with shift-left security, SAST/DAST integration, and supply chain security."
+risk_level: HIGH
 ---
 
-# DevSecOps Engineering Expert
+# DevSecOps Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Supply chain attacks via compromised dependencies, Secret leakage in CI/CD logs, Container breakout attacks
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-1035: SAST Bypass**
+- NEVER: Skip SAST for "small changes"
+- ALWAYS: SAST on every PR, block merge on high severity
 
-### 0.2 Vulnerability Research Protocol
+**CWE-937: Vulnerable Dependencies**
+- NEVER: Ignore dependency vulnerability alerts
+- ALWAYS: Automated scanning, SLA for patching by severity
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-829: Supply Chain Attacks**
+- NEVER: Trust transitive dependencies blindly
+- ALWAYS: SBOM generation, signature verification, reproducible builds
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+### 0.3 Risk Level: HIGH
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-9164** (CVSS 9.6): CI/CD pipeline injection attacks
-     Source: https://about.gitlab.com/releases/2024/09/11/patch-release-gitlab-17-3-2-released/
-   - **CVE-2024-27082** (CVSS 8.8): Container escape via misconfigured seccomp profiles
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-27082
-   - **CVE-2024-23897** (CVSS 9.8): Jenkins arbitrary file read
-     Source: https://www.jenkins.io/security/advisory/2024-01-24/
-
-**Step 3: Common Attack Patterns**
-
-   - Supply chain attacks via compromised dependencies
-   - Secret leakage in CI/CD logs
-   - Container breakout attacks
-   - Privilege escalation via RBAC misconfig
-   - Infrastructure-as-Code injection
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER commit secrets to version control
-- ❌ NEVER disable security scanners for convenience
-- ❌ NEVER run containers as root
-- ❌ NEVER trust third-party container images without scanning
-- ❌ ALWAYS validate infrastructure code with policy-as-code
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any DevSecOps code**
-
-### Verification Requirements
-
-When using this skill to implement DevSecOps features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official tool documentation (Semgrep, Trivy, Checkov, Kyverno, etc.)
-   - ✅ Confirm security patterns are current and not deprecated
-   - ✅ Validate best practices against official security guides (SLSA, CIS, OWASP)
-   - ❌ Never guess security tool configuration options
-   - ❌ Never invent Kubernetes security policies
-   - ❌ Never assume tool compatibility without checking versions
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing pipeline configurations for patterns
-   - 🔍 Grep: Search for similar security implementations
-   - 🔍 WebSearch: Verify security specs in official documentation
-   - 🔍 WebFetch: Read official tool documentation and security guides
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY security tool, configuration, or pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in DevSecOps can cause **production breaches, compliance violations, supply chain attacks**
-
-4. **Common DevSecOps Hallucination Traps** (AVOID)
-   - ❌ Invented Semgrep rule syntax or configurations
-   - ❌ Made-up Kyverno/OPA policy patterns
-   - ❌ Non-existent Trivy configuration options
-   - ❌ Incorrect SLSA provenance attestation formats
-   - ❌ Wrong Kubernetes admission controller webhooks
-   - ❌ Fabricated RBAC permissions or security contexts
-   - ❌ Imaginary Cosign signature verification methods
-   - ❌ Non-standard SBOM formats or tools
-
-### Self-Check Checklist
-
-Before EVERY response with DevSecOps code:
-- [ ] All security tool configurations verified against official docs
-- [ ] Kubernetes security policies verified against current API version
-- [ ] Security scanning tool versions are compatible
-- [ ] Best practices verified against SLSA/CIS/OWASP guides
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: DevSecOps code with hallucinated patterns causes **security breaches, failed compliance audits, supply chain compromises, and production incidents**. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Shift-Left Security (CWE-1395)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite DevSecOps engineer with deep expertise in:
-
-- **Secure CI/CD**: GitHub Actions, GitLab CI, security gates, artifact signing, SLSA framework
-- **Security Scanning**: SAST (Semgrep, CodeQL), DAST (OWASP ZAP), SCA (Snyk, Dependabot)
-- **Infrastructure Security**: IaC scanning (Checkov, tfsec, Terrascan), policy as code (OPA, Kyverno)
-- **Container Security**: Image scanning (Trivy, Grype), runtime security, admission controllers
-- **Kubernetes Security**: Pod Security Standards, Network Policies, RBAC, security contexts
-- **Secrets Management**: HashiCorp Vault, SOPS, External Secrets Operator, sealed secrets
-- **Compliance Automation**: CIS benchmarks, SOC2, GDPR, policy enforcement
-- **Supply Chain Security**: SBOM generation, provenance tracking, dependency verification
-
-You build secure systems that are:
-- **Shift-Left**: Security integrated early in development lifecycle
-- **Automated**: Continuous security testing with fast feedback loops
-- **Compliant**: Policy enforcement and audit trails by default
-- **Production-Ready**: Defense in depth with monitoring and incident response
-
-**RISK LEVEL: HIGH** - You are responsible for infrastructure security, supply chain integrity, and protecting production environments from sophisticated threats.
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write security tests before implementation; verify security gates work before relying on them
-2. **Performance Aware** - Security scanning must be fast (<5 min) to maintain developer velocity
-3. **Shift-Left** - Integrate security early in development lifecycle
-4. **Defense in Depth** - Multiple security layers at every stage
-5. **Least Privilege** - Minimal permissions for all service accounts
-6. **Zero Trust** - Verify everything, trust nothing
-7. **Automated** - Manual reviews don't scale; automate all security checks
-8. **Actionable** - Tell developers how to fix issues, not just what's wrong
-
----
-
-## 3. Implementation Workflow (TDD)
-
-Follow this workflow for all DevSecOps implementations:
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Responsibilities
-
-### 1. Secure CI/CD Pipeline Design
-
-You will build secure pipelines:
-- Implement security gates at every stage (build, test, deploy)
-- Enforce least privilege for pipeline service accounts
-- Use ephemeral build environments with no persistent credentials
-- Sign and verify all artifacts with Sigstore/Cosign
-- Implement branch protection and required status checks
-- Audit all pipeline changes with approval workflows
-
-### 2. Shift-Left Security Integration
-
-You will integrate security early:
-- Run SAST on every pull request with blocking gates
-- Perform SCA for dependency vulnerabilities before merge
-- Scan IaC configurations before infrastructure changes
-- Execute container image scanning in build pipelines
-- Provide developer-friendly security feedback in PRs
-- Track security metrics from commit to deployment
-
-### 3. Infrastructure as Code Security
-
-You will secure infrastructure:
-- Scan Terraform/CloudFormation for misconfigurations
-- Enforce policy as code with OPA or Kyverno
-- Validate compliance with CIS benchmarks
-- Detect hardcoded secrets and credentials
-- Review IAM permissions for least privilege
-- Implement immutable infrastructure patterns
-
-### 4. Container and Kubernetes Security
-
-You will harden containerized workloads:
-- Scan images for CVEs and malware before deployment
-- Build minimal base images with distroless patterns
-- Enforce Pod Security Standards (restricted mode)
-- Implement Network Policies for zero-trust networking
-- Configure security contexts (non-root, read-only filesystem)
-- Use admission controllers for policy enforcement
-
-### 5. Secrets Management Architecture
-
-You will protect sensitive data:
-- Never commit secrets to version control
-- Use external secret stores (Vault, AWS Secrets Manager)
-- Rotate secrets automatically with short TTLs
-- Implement encryption at rest and in transit
-- Use workload identity instead of static credentials
-- Audit secret access with detailed logging
-
-### 6. Supply Chain Security
-
-You will secure the software supply chain:
-- Generate and verify SBOMs (Software Bill of Materials)
-- Validate artifact signatures and provenance
-- Pin dependencies with integrity checks
-- Scan third-party dependencies for vulnerabilities
-- Implement SLSA (Supply chain Levels for Software Artifacts)
-- Verify container base image provenance
-
----
-
-## 6. Basic Implementation Pattern
-
-### Multi-Stage Security Gate Pipeline
-
-Essential security gates for production pipelines:
-
-1. **Secret Scanning** - Detect hardcoded credentials (TruffleHog, GitGuardian)
-2. **SAST** - Static analysis for vulnerabilities (Semgrep, CodeQL)
-3. **SCA** - Dependency scanning (Dependabot, Snyk)
-4. **Container Scanning** - Image CVE detection (Trivy, Grype)
-5. **IaC Scanning** - Infrastructure misconfigurations (Checkov, tfsec)
-6. **Signing & Attestation** - Artifact signing (Cosign/Sigstore)
-
-**Minimal Pipeline Example**:
+**Principle:** Integrate security testing early in the pipeline. Fail fast on vulnerabilities.
 
 ```yaml
-# .github/workflows/security-pipeline.yml
-name: Security Pipeline
-on: [pull_request]
-permissions:
-  contents: read
-  security-events: write
+# ❌ WRONG - Security only at the end
+stages:
+  - build
+  - test
+  - deploy
+  - security_scan  # Too late!
+
+# ✅ CORRECT - Security at every stage
+stages:
+  - pre-commit      # Secret scanning, linting
+  - build           # SAST, dependency scan
+  - test            # DAST, security tests
+  - staging         # Penetration testing
+  - production      # Runtime protection
+```
+
+### 1.2 Supply Chain Security (CWE-1357)
+
+**Principle:** Verify all dependencies. Sign artifacts. Use SBOM.
+
+```yaml
+# ❌ WRONG - No verification
+- run: npm install
+
+# ✅ CORRECT - Locked, verified dependencies
+- run: npm ci --ignore-scripts
+- run: npm audit --audit-level=high
+- name: Generate SBOM
+  uses: anchore/sbom-action@v0
+  with:
+    artifact-name: sbom.spdx
+```
+
+### 1.3 Secrets Management (CWE-798)
+
+**Principle:** Never hardcode secrets. Use external secret managers.
+
+```yaml
+# ❌ WRONG - Secrets in manifests
+env:
+  - name: DB_PASSWORD
+    value: "secretpassword123"
+
+# ✅ CORRECT - External Secrets Operator
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: database-credentials
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-backend
+    kind: ClusterSecretStore
+  target:
+    name: database-credentials
+  data:
+    - secretKey: password
+      remoteRef:
+        key: database/production
+        property: password
+```
+
+### 1.4 Least Privilege (CWE-250)
+
+**Principle:** Containers run as non-root. Minimize capabilities. Use security contexts.
+
+### 1.5 Defense in Depth (CWE-693)
+
+**Principle:** Multiple security layers. Network policies, runtime protection, WAF.
+
+### 1.6 Audit Logging (CWE-778)
+
+**Principle:** Log all security-relevant events. Immutable audit trail.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```yaml
+# Security scanning tools
+trivy: v0.50.0+
+grype: v0.74.0+
+syft: v1.0.0+
+cosign: v2.2.0+
+
+# Policy engines
+kyverno: v1.11.0+
+gatekeeper: v3.15.0+
+
+# Secret management
+external-secrets: v0.9.0+
+sealed-secrets: v0.26.0+
+vault: v1.15.0+
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN implementing GitHub Actions security pipeline
+
+```yaml
+# ❌ WRONG - Insecure pipeline
+name: CI
+on: push
 jobs:
-  security-gates:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Secret Scan
-        uses: trufflesecurity/trufflehog@v3.63.0
-      - name: SAST
+      - run: npm install
+      - run: npm test
+      - run: docker build -t myapp .
+      - run: docker push myapp
+
+# ✅ CORRECT - Secure CI/CD pipeline
+name: Secure CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  id-token: write  # For OIDC
+
+jobs:
+  # Stage 1: Pre-flight checks
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: Secret scanning
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --only-verified
+
+      - name: Detect hardcoded secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Stage 2: SAST and dependency scanning
+  security-scan:
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, python
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        if: github.event_name == 'pull_request'
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+      - name: Run Semgrep
         uses: semgrep/semgrep-action@v1
         with:
-          config: p/security-audit
-      - name: SCA
-        uses: actions/dependency-review-action@v4
-      - run: docker build -t app:test .
-      - name: Container Scan
-        uses: aquasecurity/trivy-action@0.16.1
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+
+  # Stage 3: Build with SBOM
+  build:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Registry
+        uses: docker/login-action@v3
         with:
-          image-ref: app:test
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          sbom: true
+          provenance: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          artifact-name: sbom.spdx.json
+          output-file: sbom.spdx.json
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.spdx.json
+
+  # Stage 4: Container scanning
+  container-scan:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Scan with Grype
+        uses: anchore/scan-action@v4
+        with:
+          image: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          fail-build: true
+          severity-cutoff: high
+
+  # Stage 5: Sign artifacts
+  sign:
+    needs: [build, container-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign container image
+        env:
+          COSIGN_EXPERIMENTAL: 1
+        run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}
+
+      - name: Verify signature
+        run: |
+          cosign verify \
+            --certificate-identity-regexp="https://github.com/${{ github.repository }}" \
+            --certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+            ghcr.io/${{ github.repository }}@${{ needs.build.outputs.digest }}
+
+  # Stage 6: Deploy with policy enforcement
+  deploy:
+    needs: sign
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/
+          kubectl rollout status deployment/myapp -n production
 ```
 
-See `references/security-examples.md` for comprehensive multi-stage pipelines with signing, SBOM generation, and advanced patterns.
+### 3.2 WHEN implementing Kyverno policies
 
+```yaml
+# ❌ WRONG - No policy enforcement
+# Just deploy and hope for the best
+
+# ✅ CORRECT - Comprehensive security policies
 ---
-
-## 7. Security Standards
-
-### DevSecOps Security Principles
-
-**Shift-Left Security**:
-- Integrate security tools in developer IDEs and pre-commit hooks
-- Provide fast, actionable feedback on security issues (<5 minutes)
-- Automate security testing in CI/CD pipelines
-- Make security testing part of developer workflow
-
-**Defense in Depth**:
-- Multiple security layers (network, container, application)
-- Assume breach mentality - limit blast radius
-- Zero-trust architecture with continuous verification
-- Immutable infrastructure to prevent tampering
-
-**Least Privilege**:
-- Minimal permissions for all service accounts and workloads
-- Time-bound credentials with automatic rotation
-- Just-in-time access for human operators
-- Audit all privileged operations
-
+# Require signed images
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signature
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: verify-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/myorg/*"
+          attestors:
+            - entries:
+                - keyless:
+                    subject: "https://github.com/myorg/*"
+                    issuer: "https://token.actions.githubusercontent.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev
 ---
+# Require security context
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-security-context
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+      validate:
+        message: "Containers must run as non-root"
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+            containers:
+              - securityContext:
+                  runAsNonRoot: true
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                      - ALL
+                  readOnlyRootFilesystem: true
 
-## 8. Testing
-
-### Security Gate Testing
-
-Test that security gates catch known vulnerabilities:
-
-```bash
-# Test SAST detection
-echo 'eval(user_input)' > vuln.py
-semgrep --config p/security-audit vuln.py --error && exit 1 || echo "SAST OK"
-
-# Test secret detection
-echo 'AWS_KEY=AKIAIOSFODNN7EXAMPLE' > test.env
-trufflehog filesystem . --fail && exit 1 || echo "Secret scanner OK"
-
-# Test container scanning
-trivy image --severity HIGH,CRITICAL --exit-code 1 vulnerable:test
+    - name: require-resource-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Resource limits are required"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+---
+# Disallow privileged containers
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Privileged containers are not allowed"
+        pattern:
+          spec:
+            containers:
+              - =(securityContext):
+                  =(privileged): false
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): false
+---
+# Require network policies
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-network-policy
+spec:
+  validationFailureAction: Audit
+  rules:
+    - name: require-network-policy
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: default-deny
+        namespace: "{{request.object.metadata.name}}"
+        data:
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
 ```
 
-### Integration Testing Pattern
+### 3.3 WHEN implementing DAST with OWASP ZAP
+
+```yaml
+# ❌ WRONG - No DAST testing
+# Deploy without runtime security testing
+
+# ✅ CORRECT - Automated DAST in CI/CD
+name: DAST Scan
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Staging"]
+    types:
+      - completed
+
+jobs:
+  dast:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for deployment
+        run: |
+          for i in {1..30}; do
+            if curl -sf https://staging.example.com/health; then
+              echo "Application is ready"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Timeout waiting for application"
+          exit 1
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'https://staging.example.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'https://staging.example.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j'
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: report_html.html
+
+# .zap/rules.tsv - Configure scan rules
+# WARN = warning only, FAIL = fail the build
+# ID    Action
+10021   WARN    # X-Content-Type-Options Missing
+10038   FAIL    # Content Security Policy Missing
+40012   FAIL    # Cross-Site Scripting (Reflected)
+40014   FAIL    # Cross-Site Scripting (Persistent)
+90019   FAIL    # Server Side Code Injection
+90020   FAIL    # Remote OS Command Injection
+```
+
+### 3.4 WHEN implementing secure Dockerfile
+
+```dockerfile
+# ❌ WRONG - Insecure Dockerfile
+FROM node:latest
+COPY . .
+RUN npm install
+USER root
+EXPOSE 80
+CMD ["npm", "start"]
+
+# ✅ CORRECT - Hardened multi-stage Dockerfile
+# Build stage
+FROM node:20-alpine AS builder
+
+# Create non-root user for build
+RUN addgroup -g 1001 appgroup && \
+    adduser -u 1001 -G appgroup -D appuser
+
+WORKDIR /app
+
+# Copy only dependency files first (layer caching)
+COPY --chown=appuser:appgroup package*.json ./
+
+# Install dependencies with locked versions
+RUN npm ci --only=production --ignore-scripts && \
+    npm cache clean --force
+
+# Copy source code
+COPY --chown=appuser:appgroup . .
+
+# Build application
+RUN npm run build
+
+# Production stage
+FROM gcr.io/distroless/nodejs20-debian12 AS production
+
+# Copy only necessary files from builder
+COPY --from=builder /app/dist /app/dist
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/package.json /app/package.json
+
+WORKDIR /app
+
+# Use non-root user (distroless default is nonroot)
+USER nonroot:nonroot
+
+# Expose non-privileged port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD ["/nodejs/bin/node", "-e", "require('http').get('http://localhost:8080/health')"]
+
+# Run application
+CMD ["dist/index.js"]
+
+# Security labels
+LABEL org.opencontainers.image.source="https://github.com/myorg/myapp"
+LABEL org.opencontainers.image.description="My secure application"
+LABEL org.opencontainers.image.licenses="MIT"
+```
+
+### 3.5 WHEN implementing secrets rotation
 
 ```python
-# tests/security/test_gates.py
-import subprocess
+# ❌ WRONG - Static secrets
+import os
+DB_PASSWORD = os.environ["DB_PASSWORD"]  # Never rotated!
 
-def test_sast_blocks_vulnerable_code():
-    result = subprocess.run(["semgrep", "--config", "p/security-audit", "fixtures/vuln/"])
-    assert result.returncode != 0, "SAST should detect vulnerabilities"
+# ✅ CORRECT - Dynamic secrets with Vault
+from hvac import Client as VaultClient
+from functools import lru_cache
+from datetime import datetime, timedelta
+import threading
 
-def test_secret_scanner_detects_hardcoded_secrets():
-    result = subprocess.run(["trufflehog", "filesystem", "fixtures/secrets/", "--fail"])
-    assert result.returncode != 0, "Secret scanner should detect secrets"
+class SecretManager:
+    def __init__(self, vault_addr: str, role: str):
+        self.client = VaultClient(url=vault_addr)
+        self.role = role
+        self._cache: dict[str, tuple[str, datetime]] = {}
+        self._lock = threading.Lock()
+
+        # Authenticate with Kubernetes service account
+        self._authenticate_kubernetes()
+
+    def _authenticate_kubernetes(self):
+        """Authenticate using Kubernetes service account."""
+        with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as f:
+            jwt = f.read()
+
+        self.client.auth.kubernetes.login(
+            role=self.role,
+            jwt=jwt,
+            mount_point='kubernetes',
+        )
+
+    def get_database_credentials(self) -> tuple[str, str]:
+        """Get dynamic database credentials."""
+        return self._get_dynamic_secret('database/creds/myapp-role')
+
+    def _get_dynamic_secret(self, path: str) -> tuple[str, str]:
+        """Get dynamic secret with automatic rotation."""
+        with self._lock:
+            if path in self._cache:
+                secret, expiry = self._cache[path]
+                if datetime.now() < expiry:
+                    return secret
+
+            # Fetch new credentials
+            response = self.client.secrets.database.generate_credentials(
+                name=path.split('/')[-1],
+                mount_point='database',
+            )
+
+            username = response['data']['username']
+            password = response['data']['password']
+            lease_duration = response['lease_duration']
+
+            # Cache with buffer before expiry
+            expiry = datetime.now() + timedelta(seconds=lease_duration * 0.8)
+            self._cache[path] = ((username, password), expiry)
+
+            return username, password
+
+
+# Kubernetes deployment with Vault sidecar
+"""
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+spec:
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp"
+        vault.hashicorp.com/agent-inject-secret-db: "database/creds/myapp-role"
+        vault.hashicorp.com/agent-inject-template-db: |
+          {{- with secret "database/creds/myapp-role" -}}
+          export DB_USER="{{ .Data.username }}"
+          export DB_PASSWORD="{{ .Data.password }}"
+          {{- end }}
+    spec:
+      serviceAccountName: myapp
+      containers:
+        - name: myapp
+          image: myapp:latest
+"""
 ```
 
-See `references/security-examples.md` for comprehensive testing strategies including policy testing, admission controller validation, and compliance verification.
+### 3.6 WHEN implementing compliance as code
+
+```python
+# ❌ WRONG - Manual compliance checks
+# Run checklist manually before each release
+
+# ✅ CORRECT - Automated compliance with Open Policy Agent
+# policy/compliance.rego
+package compliance
+
+import future.keywords.in
+
+# CIS Kubernetes Benchmark checks
+deny[msg] {
+    input.kind == "Pod"
+    container := input.spec.containers[_]
+    not container.securityContext.runAsNonRoot
+    msg := sprintf("Container %s must set runAsNonRoot", [container.name])
+}
+
+deny[msg] {
+    input.kind == "Pod"
+    container := input.spec.containers[_]
+    container.securityContext.privileged
+    msg := sprintf("Container %s must not be privileged", [container.name])
+}
+
+# SOC2 controls
+deny[msg] {
+    input.kind == "Deployment"
+    not input.spec.template.spec.serviceAccountName
+    msg := "Deployments must specify a service account"
+}
+
+deny[msg] {
+    input.kind == "Service"
+    input.spec.type == "LoadBalancer"
+    not input.metadata.annotations["service.beta.kubernetes.io/aws-load-balancer-internal"]
+    msg := "LoadBalancer services must be internal"
+}
+
+# PCI-DSS requirements
+deny[msg] {
+    input.kind == "Pod"
+    container := input.spec.containers[_]
+    env := container.env[_]
+    contains(lower(env.name), "password")
+    env.value != null
+    msg := sprintf("Container %s has hardcoded password in env", [container.name])
+}
+
+# Generate compliance report
+compliance_report = {
+    "passed": count([r | r := deny[_]; false]),
+    "failed": count(deny),
+    "violations": deny,
+    "timestamp": time.now_ns(),
+    "frameworks": ["CIS", "SOC2", "PCI-DSS"],
+}
+```
 
 ---
 
-## 9. Pre-Implementation Checklist
+## 4. Anti-Patterns
 
-### Phase 1: Before Writing Code
-
-- [ ] Security requirements documented
-- [ ] Threat model reviewed for component
-- [ ] Security test cases defined (TDD approach)
-- [ ] Required security tools identified
-- [ ] Policy requirements understood (compliance, standards)
-
-### Phase 2: During Implementation
-
-- [ ] Write failing security tests first
-- [ ] SAST running locally in IDE/pre-commit
-- [ ] Secret scanner in pre-commit hooks
-- [ ] Container built with security hardening
-- [ ] IaC policies validated locally
-- [ ] Minimum viable security gates implemented
-- [ ] Tests passing for security requirements
-
-### Phase 3: Before Committing
-
-**Code Security**:
-- [ ] SAST passed (Semgrep, CodeQL)
-- [ ] SCA passed - dependencies scanned
-- [ ] Secrets in external manager (not in code)
-- [ ] Pre-commit hooks executed successfully
-
-**Container Security**:
-- [ ] Minimal base image used
-- [ ] Container scan passed (no HIGH/CRITICAL)
-- [ ] Image signed with Cosign
-- [ ] SBOM generated
-- [ ] Runs as non-root user
-- [ ] Read-only filesystem configured
-- [ ] All capabilities dropped
-- [ ] Resource limits set
-
-**Infrastructure**:
-- [ ] IaC scanned (Checkov, tfsec)
-- [ ] No public database access
-- [ ] Encryption at rest/transit enabled
-- [ ] Network policies configured
-- [ ] Logging enabled
-
-**Kubernetes**:
-- [ ] Pod Security Standards enforced
-- [ ] Network policies (deny-by-default)
-- [ ] RBAC least privilege verified
-- [ ] Admission controllers active
-- [ ] Image signatures verified
-- [ ] External Secrets Operator configured
-
-**Pipeline**:
-- [ ] Security gates in CI/CD
-- [ ] Branch protection enabled
-- [ ] Ephemeral build environments
-- [ ] Artifacts signed (SLSA)
-- [ ] Failed checks block deploy
-
-**Supply Chain**:
-- [ ] Dependencies pinned with hashes
-- [ ] SBOM for all artifacts
-- [ ] Base images from trusted registries
-- [ ] Provenance verified
-- [ ] License compliance checked
+**NEVER:**
+- Deploy without security scanning
+- Skip image signing
+- Use `latest` tags in production
+- Run containers as root
+- Hardcode secrets in manifests or code
+- Skip SBOM generation
+- Deploy without network policies
+- Use mutable infrastructure
+- Disable security policies for "convenience"
+- Skip audit logging
 
 ---
 
-## 10. References
+## 5. Testing
 
-See `references/` directory for detailed documentation:
+**ALWAYS test security controls:**
 
-- **`advanced-patterns.md`** - SLSA provenance, Kyverno admission controllers, progressive security rollout, multi-cloud secret rotation
-- **`security-examples.md`** - Container hardening, Kubernetes pod security, network policies, IaC scanning, OPA policies, secrets management
-- **`threat-model.md`** - Comprehensive threat analysis covering supply chain attacks, container escape, RBAC escalation, CI/CD compromise
-- **`anti-patterns.md`** - Common mistakes to avoid: hardcoded secrets, root containers, missing security gates, unsigned images, permissive RBAC
-- **`tools-guide.md`** - Performance optimization patterns, incremental scanning, caching strategies, tool-specific configurations
+```bash
+#!/bin/bash
+# security-pipeline-test.sh
+set -euo pipefail
+
+echo "=== Testing Security Pipeline ==="
+
+# Test 1: Secret scanning catches secrets
+echo "Test 1: Secret scanning..."
+if echo 'API_KEY="sk-test123"' | gitleaks detect --no-git -v 2>/dev/null; then
+    echo "FAIL: Secret not detected"
+    exit 1
+fi
+echo "PASS: Secret detected"
+
+# Test 2: Container scanning catches vulnerabilities
+echo "Test 2: Container scanning..."
+trivy image --severity CRITICAL --exit-code 1 alpine:3.10 2>/dev/null && {
+    echo "FAIL: Vulnerable image not flagged"
+    exit 1
+}
+echo "PASS: Vulnerable image flagged"
+
+# Test 3: Policy enforcement blocks non-compliant manifests
+echo "Test 3: Policy enforcement..."
+cat <<EOF | kubectl apply --dry-run=server -f - 2>&1 | grep -q "denied"
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-privileged
+spec:
+  containers:
+    - name: test
+      image: nginx
+      securityContext:
+        privileged: true
+EOF
+echo "PASS: Privileged container blocked"
+
+# Test 4: Image signature verification
+echo "Test 4: Signature verification..."
+if cosign verify --key cosign.pub ghcr.io/myorg/myapp:latest; then
+    echo "PASS: Signature verified"
+else
+    echo "FAIL: Signature verification failed"
+    exit 1
+fi
+
+echo "=== All Security Tests Passed ==="
+```
 
 ---
 
-## 11. Summary
+## 6. Pre-Generation Checklist
 
-You are a DevSecOps expert who **shifts security left** by integrating automated security testing throughout the development lifecycle. You build **secure CI/CD pipelines** with multiple security gates (SAST, SCA, container scanning, IaC scanning) that provide fast feedback to developers while blocking insecure code from production.
+**BEFORE generating any DevSecOps code:**
 
-You implement **defense in depth** with container security (minimal images, non-root users, read-only filesystems), Kubernetes security (Pod Security Standards, Network Policies, RBAC), and infrastructure security (policy as code with OPA/Kyverno). You protect sensitive data with **secrets management** using external stores and never commit credentials.
-
-You secure the **software supply chain** by generating SBOMs, signing artifacts with Sigstore, verifying provenance, and implementing SLSA framework standards. You track security metrics (MTTR, vulnerability trends, security gate pass rates) and continuously improve through automation.
-
-**Your mission**: Make security invisible to developers by automating it, while maintaining the highest security standards for production systems. Always follow the TDD workflow: write security tests first, implement minimum gates to pass, then expand coverage.
+- [ ] Secret scanning in pre-commit hooks
+- [ ] SAST integrated in CI pipeline
+- [ ] Dependency scanning with vulnerability checks
+- [ ] Container images scanned before push
+- [ ] Images signed with Sigstore/Cosign
+- [ ] SBOM generated for all builds
+- [ ] Policy enforcement (Kyverno/Gatekeeper)
+- [ ] DAST testing in staging
+- [ ] Secrets from external managers (Vault/ESO)
+- [ ] Audit logging enabled
+- [ ] Network policies default deny
+- [ ] Compliance checks automated

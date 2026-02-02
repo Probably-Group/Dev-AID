@@ -1,489 +1,418 @@
 ---
 name: fastapi-expert
-description: "Expert FastAPI developer specializing in production-ready async REST APIs with Pydantic v2, SQLAlchemy 2.0, OAuth2/JWT authentication, and comprehensive security. Deep expertise in dependency injection, background tasks, async database operations, input validation, and OWASP security best practices. Use when building high-performance Python web APIs, implementing authentication systems, or securing API endpoints."
+version: 2.0.0
+description: "Production FastAPI with OAuth2/JWT authentication, SQLAlchemy 2.0, and async database patterns."
+risk_level: HIGH
 ---
 
-# FastAPI Development Expert
+# FastAPI Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: OWASP API Top 10 2023 attacks, Path traversal via static files, ReDoS (Regular Expression DoS)
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-89: SQL Injection**
+- NEVER: `text(f"SELECT * FROM users WHERE id = {id}")`
+- ALWAYS: `select(User).where(User.id == bindparam('id'))`
 
-### 0.2 Vulnerability Research Protocol
+**CWE-285: Improper Authorization**
+- NEVER: `async def get_item(user_id: int)` - trusting client-provided ID
+- ALWAYS: `async def get_item(current_user: User = Depends(get_current_user))`
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-522: Weak Password Storage**
+- NEVER: Store plaintext passwords or use MD5/SHA1
+- ALWAYS: `passlib.hash.bcrypt.hash(password)` with cost factor ≥12
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-614: Missing Secure Cookie Flag**
+- NEVER: Session cookies without secure flags
+- ALWAYS: `response.set_cookie(key, value, httponly=True, secure=True, samesite="lax")`
+
+**CWE-918: SSRF**
+- NEVER: `httpx.get(user_provided_url)` without validation
+- ALWAYS: Allowlist domains, block private IP ranges (10.x, 172.16.x, 192.168.x)
+
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Version Requirements
+
+**ALWAYS USE these minimum versions:**
+```
+fastapi>=0.115.3
+starlette>=0.49.1
+pydantic>=2.5.0
+sqlalchemy>=2.0.0
+python>=3.11
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-47874** (CVSS 8.7): Starlette - Path traversal via static file serving
-     Source: https://github.com/encode/starlette/security/advisories/GHSA-2jv5-9r88-3w3p
-   - **CVE-2024-24762** (CVSS 7.5): ReDoS in Pydantic email validation
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-24762
-   - **OWASP-API-2023-01** (CVSS N/A): BOLA (Broken Object Level Authorization) - 40% of attacks
-     Source: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
-
-**Step 3: Common Attack Patterns**
-
-   - OWASP API Top 10 2023 attacks
-   - Path traversal via static files
-   - ReDoS (Regular Expression DoS)
-   - Mass assignment vulnerabilities
-   - Unrestricted resource consumption
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER expose internal object IDs without authorization
-- ❌ NEVER trust Pydantic validation alone for security
-- ❌ NEVER disable CORS without understanding implications
-- ❌ ALWAYS implement rate limiting on all endpoints
-- ❌ ALWAYS validate file uploads with type checking and size limits
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any FastAPI code**
-
-### Verification Requirements
-
-When using this skill to implement FastAPI features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official FastAPI documentation (https://fastapi.tiangolo.com)
-   - ✅ Confirm Pydantic v2 syntax and features
-   - ✅ Validate SQLAlchemy 2.0 async patterns
-   - ✅ Verify dependency versions and compatibility
-   - ❌ Never guess Pydantic field validators
-   - ❌ Never invent FastAPI decorators or parameters
-   - ❌ Never assume SQLAlchemy ORM methods without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for patterns
-   - 🔍 Grep: Search for similar implementations
-   - 🔍 WebSearch: Verify specs in official docs
-   - 🔍 WebFetch: Read official FastAPI/Pydantic documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY FastAPI feature/config/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in FastAPI can cause security vulnerabilities, runtime errors, and data breaches
-
-4. **Common FastAPI Hallucination Traps** (AVOID)
-   - ❌ Invented Pydantic validators that don't exist
-   - ❌ Made-up FastAPI dependency parameters
-   - ❌ Non-existent SQLAlchemy async methods
-   - ❌ Wrong OAuth2 flow configurations
-   - ❌ Incorrect middleware parameters
-   - ❌ Guessing type hints for async functions
-
-### Self-Check Checklist
-
-Before EVERY response with FastAPI code:
-- [ ] All Pydantic validators verified against v2 docs
-- [ ] FastAPI dependency syntax verified
-- [ ] SQLAlchemy 2.0 async patterns verified
-- [ ] OAuth2/JWT patterns verified against official docs
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: FastAPI code with hallucinated patterns causes runtime errors, security vulnerabilities, and production failures. Always verify.
+**WHEN generating requirements.txt or pyproject.toml** → pin these exact versions or higher.
 
 ---
 
+## 2. Security Rules (CVE-Driven)
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 2.1 File Uploads & Multipart Forms
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**NEVER** accept unbounded file uploads (CVE-2024-47874, CVE-2025-54121):
+```python
+# ❌ WRONG - No size limit
+@router.post("/upload")
+async def upload(file: UploadFile):
+    contents = await file.read()
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+# ✅ CORRECT - Always limit size
+from fastapi import UploadFile, HTTPException
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+
+@router.post("/upload")
+async def upload(file: UploadFile):
+    contents = await file.read(MAX_FILE_SIZE + 1)
+    if len(contents) > MAX_FILE_SIZE:
+        raise HTTPException(413, "File too large")
+```
+
+### 2.2 Static File Serving
+
+**NEVER** serve files from user-controlled paths (GHSA-v5gw-mw7f-84px):
+```python
+# ❌ WRONG - Path traversal possible
+@router.get("/files/{filename}")
+async def get_file(filename: str):
+    return FileResponse(f"uploads/{filename}")
+
+# ✅ CORRECT - Validate and resolve path
+from pathlib import Path
+
+UPLOAD_DIR = Path("uploads").resolve()
+
+@router.get("/files/{filename}")
+async def get_file(filename: str):
+    file_path = (UPLOAD_DIR / filename).resolve()
+    if not file_path.is_relative_to(UPLOAD_DIR):
+        raise HTTPException(400, "Invalid path")
+    if not file_path.exists():
+        raise HTTPException(404)
+    return FileResponse(file_path)
+```
+
+### 2.3 SQL Queries
+
+**NEVER** use f-strings or .format() in SQL (CWE-89):
+```python
+# ❌ WRONG - SQL injection
+query = f"SELECT * FROM users WHERE id = {user_id}"
+await db.execute(text(query))
+
+# ✅ CORRECT - Parameterized query
+from sqlalchemy import select
+result = await db.execute(select(User).where(User.id == user_id))
+
+# ✅ CORRECT - If raw SQL needed
+from sqlalchemy import text
+result = await db.execute(text("SELECT * FROM users WHERE id = :id"), {"id": user_id})
+```
+
+### 2.4 Object Authorization (BOLA Prevention)
+
+**ALWAYS** verify ownership before returning objects (CWE-639):
+```python
+# ❌ WRONG - Returns any user's data
+@router.get("/orders/{order_id}")
+async def get_order(order_id: int, db: AsyncSession = Depends(get_db)):
+    return await db.get(Order, order_id)
+
+# ✅ CORRECT - Verify ownership
+@router.get("/orders/{order_id}")
+async def get_order(
+    order_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    order = await db.get(Order, order_id)
+    if not order or order.user_id != current_user.id:
+        raise HTTPException(404)
+    return order
+```
+
+### 2.5 Input Validation
+
+**ALWAYS** constrain string lengths and numeric ranges:
+```python
+# ❌ WRONG - Unbounded input
+class UserCreate(BaseModel):
+    username: str
+    bio: str
+
+# ✅ CORRECT - Constrained input
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=50, pattern=r"^[a-zA-Z0-9_]+$")
+    bio: str = Field(max_length=500)
+    age: int = Field(ge=0, le=150)
+```
 
 ---
 
-## 1. Overview
+## 3. Code Patterns
 
-You are an elite FastAPI developer with deep expertise in:
-
-- **FastAPI Core**: Async/await, dependency injection, path operations, request/response models
-- **Pydantic v2**: Advanced validation, custom validators, field serialization, model composition
-- **SQLAlchemy 2.0**: Async engines, ORM models, migrations with Alembic, query optimization
-- **Authentication**: OAuth2 password flow, JWT tokens with refresh, role-based access control
-- **Security**: CORS, rate limiting, SQL injection prevention, input sanitization, OWASP Top 10
-- **Database**: AsyncPG, async sessions, connection pooling, transaction management
-- **Performance**: Background tasks, async queries, caching strategies
-- **Testing**: pytest with TestClient, async tests, comprehensive coverage
-- **API Documentation**: Auto-generated OpenAPI 3.1, Swagger UI customization
-
-You build FastAPI applications that are:
-- **Secure**: Defense against OWASP Top 10, proper authentication/authorization
-- **Fast**: Async operations, optimized queries, efficient serialization
-- **Type-Safe**: Full Pydantic validation, mypy compliance
-- **Production-Ready**: Error handling, logging, monitoring
-- **Well-Tested**: Comprehensive pytest coverage
-
-**Risk Level**: 🔴 HIGH - Web APIs handle sensitive data, authentication, and database operations. Security vulnerabilities can lead to data breaches, unauthorized access, and SQL injection attacks.
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write tests before implementation. Use httpx AsyncClient and pytest-asyncio for async endpoint testing.
-2. **Performance Aware** - Optimize for high throughput with connection pooling, asyncio.gather, caching, and streaming responses.
-3. **Security First** - Every endpoint must be secure by default. Apply OWASP Top 10 mitigations.
-4. **Type Safety** - Full Pydantic v2 validation on all inputs, mypy compliance throughout.
-5. **Async Excellence** - All I/O operations must be non-blocking with proper async/await.
-6. **Clean Architecture** - Dependency injection, separation of concerns, DRY principles.
-7. **Production Ready** - Comprehensive error handling, structured logging, monitoring.
-
----
-
-## 3. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-Before implementing any endpoint, write the test that defines expected behavior:
+### 3.1 WHEN creating a new endpoint
 
 ```python
-# tests/test_users.py
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from pydantic import BaseModel, Field
+
+router = APIRouter(prefix="/api/v1/items", tags=["items"])
+
+class ItemCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    price: float = Field(gt=0)
+
+class ItemResponse(BaseModel):
+    id: int
+    name: str
+    price: float
+    model_config = {"from_attributes": True}
+
+@router.post("/", response_model=ItemResponse, status_code=status.HTTP_201_CREATED)
+async def create_item(
+    item_in: ItemCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    item = Item(**item_in.model_dump(), owner_id=current_user.id)
+    db.add(item)
+    await db.commit()
+    await db.refresh(item)
+    return item
+```
+
+### 3.2 WHEN implementing authentication
+
+```python
+from datetime import datetime, timedelta, timezone
+from jose import jwt, JWTError
+from passlib.context import CryptContext
+from fastapi.security import OAuth2PasswordBearer
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+SECRET_KEY = os.environ["SECRET_KEY"]  # NEVER hardcode
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 15
+
+def create_access_token(user_id: int) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    return jwt.encode({"sub": str(user_id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = int(payload["sub"])
+    except (JWTError, ValueError, KeyError):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await db.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+```
+
+### 3.3 WHEN setting up database session
+
+```python
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+
+DATABASE_URL = os.environ["DATABASE_URL"]  # NEVER hardcode
+
+engine = create_async_engine(
+    DATABASE_URL,
+    pool_size=5,
+    max_overflow=10,
+    pool_pre_ping=True,
+)
+
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+```
+
+### 3.4 WHEN adding CORS
+
+```python
+# ❌ WRONG - Allows all origins
+app.add_middleware(CORSMiddleware, allow_origins=["*"])
+
+# ✅ CORRECT - Explicit origins
+from fastapi.middleware.cors import CORSMiddleware
+
+ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "").split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,  # ["https://app.example.com"]
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+```
+
+### 3.5 WHEN implementing rate limiting
+
+```python
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@router.post("/login")
+@limiter.limit("5/minute")
+async def login(request: Request, credentials: LoginRequest):
+    # ... login logic
+```
+
+---
+
+## 4. Async Rules
+
+**ALWAYS** use async for I/O operations:
+```python
+# ❌ WRONG - Blocking call
+import requests
+response = requests.get(url)
+
+# ✅ CORRECT - Async HTTP
+import httpx
+async with httpx.AsyncClient() as client:
+    response = await client.get(url)
+
+# ❌ WRONG - Sync database
+result = db.query(User).filter(User.id == user_id).first()
+
+# ✅ CORRECT - Async database
+from sqlalchemy import select
+result = await db.execute(select(User).where(User.id == user_id))
+user = result.scalar_one_or_none()
+```
+
+**WHEN running CPU-bound tasks** → use run_in_executor:
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+
+executor = ThreadPoolExecutor(max_workers=4)
+
+async def process_image(image_data: bytes):
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(executor, cpu_intensive_function, image_data)
+    return result
+```
+
+---
+
+## 5. Error Handling
+
+**ALWAYS** use structured error responses:
+```python
+from fastapi import HTTPException
+from fastapi.responses import JSONResponse
+
+# Custom exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    # Log full error internally
+    logger.exception("Unhandled exception")
+    # Return safe message to client
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
+    )
+
+# ❌ WRONG - Exposes internals
+raise HTTPException(500, f"Database error: {str(e)}")
+
+# ✅ CORRECT - Safe message
+logger.error(f"Database error: {e}")
+raise HTTPException(500, "Failed to process request")
+```
+
+---
+
+## 6. Testing Pattern
+
+**ALWAYS** write tests before implementation:
+```python
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 @pytest.fixture
-async def async_client():
-    """Async test client using httpx."""
+async def client():
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        yield client
+    async with AsyncClient(transport=transport, base_url="http://test") as c:
+        yield c
 
 @pytest.mark.asyncio
-async def test_create_user_returns_201(async_client: AsyncClient):
-    """Test: Creating a valid user returns 201 with user data."""
-    # Arrange
-    user_data = {
-        "email": "test@example.com",
-        "username": "testuser",
-        "password": "Test123!@#",
-        "full_name": "Test User"
-    }
-
-    # Act
-    response = await async_client.post("/api/v1/users/", json=user_data)
-
-    # Assert
+async def test_create_item_success(client: AsyncClient, auth_headers):
+    response = await client.post(
+        "/api/v1/items/",
+        json={"name": "Test", "price": 10.0},
+        headers=auth_headers
+    )
     assert response.status_code == 201
-    data = response.json()
-    assert data["email"] == "test@example.com"
-    assert data["username"] == "testuser"
-    assert "password" not in data  # Never expose password
-    assert "id" in data
+    assert response.json()["name"] == "Test"
 
 @pytest.mark.asyncio
-async def test_create_user_invalid_email_returns_422(async_client: AsyncClient):
-    """Test: Invalid email returns 422 validation error."""
-    user_data = {
-        "email": "not-an-email",
-        "username": "testuser",
-        "password": "Test123!@#",
-        "full_name": "Test User"
-    }
-
-    response = await async_client.post("/api/v1/users/", json=user_data)
-
-    assert response.status_code == 422
-    assert "email" in str(response.json())
-
-@pytest.mark.asyncio
-async def test_get_user_requires_auth(async_client: AsyncClient):
-    """Test: Protected endpoint returns 401 without token."""
-    response = await async_client.get("/api/v1/users/me")
-
+async def test_create_item_unauthorized(client: AsyncClient):
+    response = await client.post("/api/v1/items/", json={"name": "Test", "price": 10.0})
     assert response.status_code == 401
 
 @pytest.mark.asyncio
-async def test_get_user_with_valid_token(async_client: AsyncClient):
-    """Test: Protected endpoint returns user with valid token."""
-    # First login to get token
-    login_response = await async_client.post(
-        "/api/v1/auth/login",
-        data={"username": "testuser", "password": "Test123!@#"}
+async def test_create_item_invalid_price(client: AsyncClient, auth_headers):
+    response = await client.post(
+        "/api/v1/items/",
+        json={"name": "Test", "price": -5},
+        headers=auth_headers
     )
-    token = login_response.json()["access_token"]
-
-    # Access protected endpoint
-    response = await async_client.get(
-        "/api/v1/users/me",
-        headers={"Authorization": f"Bearer {token}"}
-    )
-
-    assert response.status_code == 200
-    assert response.json()["username"] == "testuser"
-```
-
-### Step 2: Implement Minimum Code to Pass
-
-Create the endpoint implementation that makes tests pass:
-
-```python
-# app/api/v1/endpoints/users.py
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.api.deps import get_db, get_current_user
-from app.crud import user as user_crud
-from app.schemas.user import UserCreate, UserResponse
-
-router = APIRouter()
-
-@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-async def create_user(
-    user_in: UserCreate,
-    db: AsyncSession = Depends(get_db)
-):
-    # Check if user exists
-    existing = await user_crud.get_user_by_email(db, user_in.email)
-    if existing:
-        raise HTTPException(400, "Email already registered")
-
-    user = await user_crud.create_user(db, user_in)
-    return user
-
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_info(
-    current_user = Depends(get_current_user)
-):
-    return current_user
-```
-
-### Step 3: Refactor if Needed
-
-After tests pass, refactor for clarity and performance while keeping tests green.
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/ -v --cov=app --cov-report=term-missing
-
-# Type checking
-mypy app/
-
-# Security audit
-pip-audit
-safety check
-
-# Run linting
-ruff check app/
-```
-
-### Testing Configuration
-
-```python
-# conftest.py - Full async test setup
-import pytest
-import pytest_asyncio
-from httpx import AsyncClient, ASGITransport
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from app.main import app
-from app.db.session import get_db
-from app.db.models import Base
-
-# Test database
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
-
-@pytest_asyncio.fixture
-async def test_db():
-    """Create test database and tables."""
-    engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession)
-
-    async def override_get_db():
-        async with TestSessionLocal() as session:
-            yield session
-
-    app.dependency_overrides[get_db] = override_get_db
-
-    yield
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
-
-    app.dependency_overrides.clear()
-
-@pytest_asyncio.fixture
-async def async_client(test_db):
-    """Async client with test database."""
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        yield client
+    assert response.status_code == 422
 ```
 
 ---
 
+## 7. Pre-Commit Checklist
 
-## 4. Quality Assurance Checklist
+**BEFORE generating any FastAPI code, verify:**
 
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Responsibilities
-
-### 1. Async/Await Excellence
-- Use `async def` for all I/O-bound operations (database, external APIs)
-- Await all async functions (`await db.execute()`, `await client.get()`)
-- Use async database drivers (asyncpg, aiomysql)
-- Implement async context managers for resource management
-- Never block the event loop with synchronous operations
-
-### 2. Pydantic v2 Validation
-- Create Pydantic models for all request/response bodies
-- Use field validators for custom validation logic
-- Implement `Field()` constraints (min_length, max_length, ge, le)
-- Separate request and response models
-- Never trust unvalidated user input
-
-### 3. Dependency Injection System
-- Create reusable dependencies with `Depends()`
-- Implement database session dependencies
-- Build authentication dependencies (get_current_user)
-- Create authorization dependencies (require_admin)
-- Clean up resources in dependencies with yield
-
-### 4. Authentication & Authorization
-- OAuth2 password bearer flow with JWT
-- Access tokens (short-lived, 15-30 min)
-- Refresh tokens (long-lived, 7 days) with rotation
-- Password hashing with bcrypt (cost factor 12+)
-- Role-based access control (RBAC)
-- Token revocation (blacklist in Redis)
-
-### 5. Database Integration
-- Async engine with AsyncSession
-- Declarative models with proper relationships
-- Alembic migrations for schema changes
-- Connection pooling configuration
-- Proper transaction management (commit/rollback)
-- Use `select()` for queries (not legacy query API)
-
-### 6. Security Best Practices
-- Validate and sanitize all inputs
-- Prevent SQL injection with parameterized queries
-- Implement CORS with specific origins (not "*")
-- Add rate limiting to prevent abuse
-- Use HTTPS only in production
-- Set secure headers (HSTS, CSP, X-Frame-Options)
-- Never expose stack traces in production
-
----
-
-## 6. References
-
-See `references/` directory for detailed guidance:
-
-- **[implementation-patterns.md](references/implementation-patterns.md)** - 10 core implementation patterns including FastAPI app structure, Pydantic models, SQLAlchemy async setup, JWT authentication, authorization, error handling, rate limiting, background tasks, testing, and configuration management.
-
-- **[performance-optimization.md](references/performance-optimization.md)** - Performance patterns including connection pooling, concurrent operations with asyncio.gather, response caching, streaming responses, async database queries, and background task optimization.
-
-- **[security-examples.md](references/security-examples.md)** - OWASP Top 10 2025 mapping, input validation, injection prevention, CORS security, secrets management, and critical security rules.
-
-- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes to avoid including not using async/await, exposing sensitive data, missing input validation, weak password hashing, no rate limiting, improper error handling, and not using dependency injection.
-
-- **[checklist.md](references/checklist.md)** - Pre-implementation checklist covering requirements analysis, test planning, security planning, implementation verification, and production readiness checks.
-
----
-
-## 7. Summary
-
-You are a FastAPI expert focused on:
-1. **Async excellence** - Proper async/await, non-blocking I/O
-2. **Type safety** - Pydantic v2 validation everywhere
-3. **Security first** - OWASP Top 10, JWT auth, input validation
-4. **Clean architecture** - Dependency injection, DRY principles
-5. **Production ready** - Testing, monitoring, error handling
-
-**Key principles**: Validate all inputs with Pydantic, use async/await for I/O, implement auth on protected endpoints, never expose sensitive data, test with pytest, handle errors gracefully, log security events.
-
-FastAPI combines Python's simplicity with performance. Build APIs that are fast, secure, and maintainable.
+- [ ] All user inputs have Pydantic validation with Field constraints
+- [ ] All database queries use parameterized statements
+- [ ] All file operations validate paths against traversal
+- [ ] All protected endpoints have Depends(get_current_user)
+- [ ] All object access verifies ownership (BOLA prevention)
+- [ ] CORS uses explicit origins, not "*"
+- [ ] Secrets come from environment variables, not hardcoded
+- [ ] Error messages don't expose internal details
+- [ ] All I/O uses async/await

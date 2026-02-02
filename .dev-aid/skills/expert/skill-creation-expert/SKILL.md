@@ -1,492 +1,304 @@
 ---
 name: skill-creation-expert
-description: "Interactive guide for building custom Dev-AID skills with anti-hallucination protocols, proper structure, and automatic skills-index.json registration"
-risk_level: low
-version: "2.0.0"
-credit: |
-  Based on: Alireza Rezvani's agents-guide (GitHub: alirezarezvani)
-  Source: https://github.com/alirezarezvani/claude-code-skill-factory
-  Commit: 61135a053f00d5f56504bac3699fc56aac5ffb5f
-  License: MIT
-  Adapted to Dev-AID Skill Template by: Dev-AID Team
+version: 4.0.0
+description: "Template for creating Claude Code skills with anti-hallucination protocols, CWE security patterns, and proper structure."
 ---
 
-# Skill Creation Expert
+# Skill Creation Template
 
 ## 0. Anti-Hallucination Protocol
 
+### 0.1 Mandatory Verification
+
+**BEFORE creating any skill:**
+1. Run `/list-skills` to verify no duplicate/similar skill exists
+2. Determine if Technical or Non-Technical domain
+3. Research authoritative sources for the technology
+4. Never invent CWE patterns - use known vulnerabilities
+
+### 0.2 Risk Level: LOW
+
+**Verification requirements:**
+- Validate skill structure follows template
+- Ensure Section 0.2 has proper CWE patterns (not generic links)
+- Confirm NEVER/ALWAYS rules are actionable
+
+---
+
+## 1. How Skills Work
+
+Skills are **instructions for Claude** loaded into context when invoked. Every section must answer: **"What should Claude do when generating code?"**
+
+**NOT documentation** - Claude doesn't need explanations, it needs rules.
+
+---
+
+## 2. Required Skill Structure
+
+Every skill MUST follow this structure:
+
+```markdown
+---
+name: [technology]-expert
+version: 1.0.0
+description: "[15-25 word elevator pitch - visible in /list-skills]"
+risk_level: [LOW|MEDIUM|HIGH|CRITICAL]
+---
+
+# [Technology] Expert - Code Generation Rules
+
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
+[Standard verification steps]
 
-**Risk Level**: LOW
+### 0.2 Security Patterns (NEVER violate)  ← TECHNICAL SKILLS ONLY
+[Technology-specific CWE patterns - see Section 4]
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Prompt injection in templates, Generated vulnerable code, Template injection
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER generate code without security review
-- ❌ NEVER use unsanitized input in templates
-- ❌ ALWAYS validate generated code
-- ❌ ALWAYS include security checklists
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-### Critical Verification Requirements
-- **NEVER create skills without understanding domain** - Research the topic thoroughly first
-- **NEVER skip anti-hallucination protocol section** - Section 0 is mandatory for ALL skills
-- **NEVER forget to update skills-index.json** - Every new skill MUST be registered for auto-injection
-- **NEVER exceed 500-line limit for SKILL.md** - Move detailed content to references/
-
-### Common Hallucination Traps
-1. **Generic expertise claims** - Using vague capabilities instead of specific, verifiable skills
-2. **Missing verification checklist** - Creating skills without self-check mechanisms
-3. **Invented best practices** - Claiming patterns without citing authoritative sources
-4. **Incomplete workflow** - Skipping critical steps in implementation process
-5. **Forgetting references/ extraction** - Keeping all content in SKILL.md instead of splitting
-
-### Self-Check Checklist
-Before creating any skill:
-- [ ] Researched the domain thoroughly (not guessing expertise)
-- [ ] Identified common hallucination traps for this domain
-- [ ] Created comprehensive anti-hallucination protocol (Section 0)
-- [ ] Defined concrete, testable core principles (Section 2)
-- [ ] Documented step-by-step workflow (Section 3)
-- [ ] Added self-check checklists at critical workflow steps
-- [ ] Extracted detailed content to references/ if approaching 500 lines
-- [ ] Created skills-index.json entry with activation keywords
-- [ ] Validated skill follows Dev-AID template structure
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+### 0.3 Risk Level: [LEVEL]
+[Verification requirements for this risk level]
 
 ---
 
-## 1. Overview
+## 1. Security Principles
+[NEVER/ALWAYS rules with ❌ WRONG / ✅ CORRECT code]
 
-**Expertise**: Interactive skill creation for Dev-AID with proper template structure, anti-hallucination protocols, and automatic registration
+## 2. Version Requirements
+[Minimum safe versions to use]
 
-**Risk Level**: Low (file creation only)
+## 3. Code Patterns
+[WHEN X → use this exact template]
 
-**Key Capabilities**:
-- Guided skill creation through 7-8 simple questions
-- Automatic Dev-AID template application
-- Anti-hallucination protocol generation
-- skills-index.json registration
-- Cross-provider skill setup (Claude, Gemini, etc.)
-- References/ directory structure creation
+## 4. Anti-Patterns
+[NEVER do X - with code examples]
 
-**When to Use This Skill**:
-- Creating new domain-expert skills for Dev-AID
-- Building specialized workflow skills
-- Developing team-specific expertise skills
-- Converting external prompts/agents to Dev-AID skills
+## 5. Testing
+[How to test in this technology]
 
-## 2. Core Principles
-
-### Dev-AID Skill Template Compliance
-- **Required sections**: 0 (Anti-Hallucination), 1 (Overview), 2 (Principles), 3 (Workflow), 4+ (Domain-Specific)
-- **500-line limit**: Main SKILL.md must be under 500 lines
-- **References extraction**: Detailed content goes to references/ directory
-- **Cross-provider**: Skills work with all AI providers (Claude, Gemini, etc.)
-
-### Anti-Hallucination First
-- **Section 0 mandatory**: Every skill MUST have anti-hallucination protocol
-- **Domain-specific traps**: Identify common hallucinations for this expertise area
-- **Self-check checklists**: Provide verification steps at critical workflow points
-- **Concrete requirements**: "NEVER X without Y" - specific, testable rules
-
-### Automatic Registration
-- **skills-index.json required**: Every new skill MUST be added to registry
-- **Activation keywords**: Define primary/secondary keywords for auto-loading
-- **File patterns**: Specify file types that trigger this skill
-- **Technologies**: List relevant frameworks/tools that activate this skill
-
-### Structured Workflow
-- **Step-by-step**: Number each workflow step clearly
-- **Validation checkpoints**: Add "Validation:" line after each critical step
-- **Examples included**: Provide concrete code/config examples
-- **Progressive refinement**: Build complexity gradually
-
-## 3. Implementation Workflow
-
-### Phase 1: Initial Questioning
-
-**Question 1: Skill Purpose**
-```
-What expertise should this skill provide?
-
-Examples:
-- Security code review with OWASP Top 10
-- React performance optimization patterns
-- Database schema design best practices
-- API design with REST/GraphQL standards
-
-Your answer: ___
-```
-
-**Validation**: Purpose is specific and domain-focused (not "general coding help")
-
----
-
-**Question 2: Risk Level**
-```
-What is the risk level for this domain?
-
-1. Low - Information/guidance only (documentation, research)
-2. Medium - Code review/analysis (no execution)
-3. High - Code generation/modification (test carefully)
-4. Critical - Security/infrastructure changes (expert review required)
-
-Your choice (1-4): ___
-```
-
-**Rationale**: Risk level determines anti-hallucination protocol depth
-
----
-
-**Question 3: Core Capabilities**
-```
-What are 3-5 core capabilities this skill provides?
-
-Be specific and actionable:
-✅ "Identifies SQL injection vulnerabilities in database queries"
-❌ "Improves security"
-
-Your capabilities:
-1. ___
-2. ___
-3. ___
-```
-
-**Validation**: Each capability is concrete and testable
-
----
-
-**Question 4: Common Hallucination Traps**
-```
-What common mistakes or hallucinations could occur in this domain?
-
-Examples for "security-expert":
-- Claiming vulnerability exists without proof
-- Recommending deprecated security practices
-- Missing context-specific security requirements
-
-Your hallucination traps:
-1. ___
-2. ___
-3. ___
-```
-
-**Validation**: At least 3 domain-specific hallucination traps identified
-
----
-
-**Question 5: Skill Name**
-```
-Skill name (kebab-case, ends with -expert)?
-
-Examples:
-- security-review-expert
-- react-performance-expert
-- api-design-expert
-
-Your name: ___
-```
-
-**Validation**: Follows kebab-case, ends with -expert or appropriate suffix
-
----
-
-**Question 6: Activation Keywords**
-```
-What keywords should trigger auto-loading of this skill?
-
-Primary keywords (10 points each): ___
-Secondary keywords (5 points each): ___
-File patterns (matches files): ___
-Technologies (matches package.json, etc.): ___
-
-Examples for "api-design-expert":
-- Primary: REST API, RESTful, OpenAPI
-- Secondary: endpoint, route, API documentation
-- File patterns: */routes/*, */api/*, openapi.yaml
-- Technologies: FastAPI, Express, NestJS
-```
-
-**Validation**: At least 3 primary keywords, 3 secondary keywords defined
-
----
-
-**Question 7: Required Dependencies**
-```
-Does this skill require other skills to be loaded?
-
-Examples:
-- security-expert might require: devsecops-expert
-- api-design-expert might require: devsecops-expert
-- None (standalone skill)
-
-Your dependencies: ___
+## 6. Pre-Generation Checklist
+[Final verification before generating]
 ```
 
 ---
 
-**Question 8: Conflicting Skills**
-```
-Are there skills that conflict with this one?
+## 3. Skill Categories
 
-Examples:
-- graphql-expert conflicts with: rest-api-design
-- sql-expert conflicts with: nosql-expert
+### Technical Skills (require Section 0.2 with CWE patterns)
 
-Your conflicts: ___
-```
+| Category | Skills | Key CWEs |
+|----------|--------|----------|
+| **Backend/Python** | fastapi, python, celery | CWE-89, CWE-78, CWE-502 |
+| **Frontend/JS** | javascript, typescript, vue3, nuxt4 | CWE-79, CWE-1321, CWE-94 |
+| **Bash/Shell** | bash-expert | CWE-78, CWE-20, CWE-377 |
+| **Rust** | rust, tauri | CWE-119, CWE-252, CWE-362 |
+| **Database** | sqlite, sqlcipher, database-design | CWE-89, CWE-312, CWE-732 |
+| **APIs** | api-expert, graphql, rest-api, websocket | CWE-285, CWE-918, CWE-352 |
+| **DevOps/K8s** | cicd, argo, cilium, harbor, talos | CWE-798, CWE-829, CWE-306 |
+| **Security** | encryption, appsec, sandboxing | CWE-327, CWE-287, CWE-269 |
+| **AI/ML** | llm-integration, cloud-api | CWE-74 (prompt injection) |
 
-**Validation**: Identify logical conflicts (REST vs GraphQL, SQL vs NoSQL)
+### Non-Technical Skills (simpler Section 0.2)
 
----
-
-### Phase 2: Generate Skill Structure
-
-**Action**: Create skill directory and files
-
-**Directory Structure**:
-```
-.dev-aid/skills/expert/[skill-name]/
-├── SKILL.md (< 500 lines)
-└── references/
-    ├── advanced-patterns.md
-    ├── anti-patterns.md
-    ├── examples.md
-    └── [domain-specific].md
-```
-
-**Validation**: Directory created at correct path
+- `design-systems`, `ui-ux-design`, `accessibility-wcag`
+- `deep-research-expert`, `web-research-expert`
+- `senior-architect`, `plan-review-expert`, `refactoring-expert`
+- `prompt-engineering`, `prompt-engineering-expert`
 
 ---
 
-### Phase 3: Generate SKILL.md
+## 4. Section 0.2: CWE Security Patterns
 
-**Action**: Create main skill file using Dev-AID template
+### For Technical Skills
 
-**Template Structure**:
+**Section 0.2 MUST contain technology-specific NEVER/ALWAYS rules:**
 
 ```markdown
----
-name: [skill-name]
-description: "[Elevator pitch in 10-15 words]"
-risk_level: [low|medium|high|critical]
-version: "1.0.0"
-credit: |
-  [Attribution if based on external source]
----
+### 0.2 Security Patterns (NEVER violate)
 
+**CWE-89: SQL Injection**
+- NEVER: `f"SELECT * FROM users WHERE id = {user_id}"`
+- ALWAYS: `cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))`
 
-📚 **For complete skill template with all sections**: See `references/skill-template-example.md`
+**CWE-78: Command Injection**
+- NEVER: `os.system(user_input)` or `subprocess.run(cmd, shell=True)`
+- ALWAYS: `subprocess.run([binary, arg1], shell=False)`
 
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Quality Standards
-
-### Skill Quality Requirements
-
-**Anti-Hallucination Protocol**:
-- Minimum 3 "NEVER X without Y" requirements
-- Minimum 3 domain-specific hallucination traps
-- Minimum 5 self-check checklist items
-- All requirements are specific and testable
-
-**Workflow Documentation**:
-- Each step has clear objective
-- Each step has concrete actions (not vague "analyze")
-- Each step has validation checkpoint
-- Steps are numbered and sequential
-
-**Activation Configuration**:
-- Minimum 3 primary keywords
-- Minimum 3 secondary keywords
-- At least 1 file pattern OR 1 technology trigger
-- Confidence weights sum appropriately
-
-**File Organization**:
-- SKILL.md under 500 lines
-- Detailed content in references/
-- skills-index.json updated
-- Cross-provider compatibility maintained
-
-### Naming Conventions
-
-**Skill Names**:
-- Kebab-case: `api-design-expert`
-- Descriptive suffix: `-expert`, `-specialist`, `-master`
-- Domain-focused: `security-review-expert` not `code-helper`
-
-**File Names**:
-- SKILL.md (uppercase, exactly this)
-- references/ (lowercase, exactly this)
-- Reference files: `advanced-patterns.md` (kebab-case)
-
-## 6. Common Skill Patterns
-
-### Expert Skills (Most Common)
-**Purpose**: Domain expertise (security, performance, API design)
-**Risk**: Medium to High
-**Structure**: Deep anti-hallucination protocol, comprehensive workflow
-**Examples**: `devsecops-expert`, `api-expert`, `performance-expert`
-
-### Specialist Skills
-**Purpose**: Narrow, specialized knowledge (specific framework/tool)
-**Risk**: Low to Medium
-**Structure**: Focused workflow, tool-specific guidance
-**Examples**: `fastapi-expert`, `docker-expert`, `tailwindcss`
-
-### Meta Skills
-**Purpose**: Skills for creating/managing other skills or prompts
-**Risk**: Low
-**Structure**: Interactive workflow, template generation
-**Examples**: `skill-creation-expert`, `prompt-engineering-expert`
-
-## 7. Integration with Dev-AID
-
-**CRITICAL REQUIREMENT**: Every new skill MUST be added to skills-index.json
-
-**Why This Matters**:
-- Auto-injection depends on skills-index.json
-- Skills not in registry will NEVER auto-load
-- Missing registration = skill is invisible to system
-
-**Verification Process**:
-After creating skill:
-1. Check skills-index.json has new entry
-2. Run select-skills.sh with test context
-3. Verify skill appears in output
-4. Test with real project context
-
-**Related Skills**:
-- `prompt-engineering-expert` (for creating mega-prompts)
-- `plan-review-expert` (for reviewing skill design before implementation)
-
-## 8. Documentation Requirements
-
-**MANDATORY DOCUMENTATION**: Every Dev-AID skill creation guide MUST include:
-
-### skills-index.json Update Requirement
-**Location**: Add this to all skill creation documentation
-
-```markdown
-## IMPORTANT: Registering Your Skill
-
-**EVERY new skill MUST be added to skills-index.json for auto-injection.**
-
-### Steps:
-1. Open `/path/to/.dev-aid/skills/registry/skills-index.json`
-2. Add entry following template:
-   ```json
-   {
-     "your-skill-name": {
-       "activation": {
-         "primary_keywords": [...],
-         "secondary_keywords": [...],
-         "file_patterns": [...],
-         "technologies": [...],
-         "confidence_weights": {...},
-         "requires": [...],
-         "exclude_with": [...]
-       }
-     }
-   }
-   ```
-3. Validate JSON syntax
-4. Test activation with: `./select-skills.sh "test context"`
-
-**If you skip this step, your skill will NEVER auto-load.**
+**CWE-79: XSS**
+- NEVER: `element.innerHTML = userInput`
+- ALWAYS: `element.textContent = userInput`
 ```
 
-## 9. References
+### For Non-Technical Skills
 
-For detailed information, see:
-- `references/dev-aid-template-spec.md` - Complete template specification
-- `references/anti-hallucination-patterns.md` - Domain-specific hallucination patterns
-- `references/skills-index-reference.md` - Detailed skills-index.json configuration
-- `references/example-skills.md` - Sample skills following template
+```markdown
+### 0.2 Risk Level: [LEVEL]
+
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
+```
 
 ---
 
-**Remember**: NEVER create skills without anti-hallucination protocol (Section 0), ALWAYS update skills-index.json, and ALWAYS keep SKILL.md under 500 lines. Begin by asking: "What expertise should this skill provide?"
+## 5. Researching Security Patterns
+
+### Hybrid Approach (Recommended)
+
+**For well-known technologies** (Python, JS, Bash, Rust, SQL):
+- Use established CWE patterns from training knowledge
+- These are timeless vulnerability classes, not specific CVEs
+- Focus on 3-5 most critical patterns per technology
+
+**For niche technologies** (Kanidm, SurrealDB, Cilium, etc.):
+- Web search for security advisories and CVEs
+- Check: GitHub Security Advisories, OSV.dev, CISA KEV
+- Look for documented attack patterns in official docs
+
+### Research Checklist
+
+1. **Search for CVEs**: `"[technology] CVE site:github.com/advisories"`
+2. **Check official security docs**: `[technology] security best practices`
+3. **Find injection patterns**: `"[technology] injection" OR "[technology] security vulnerability"`
+4. **Look for OWASP mappings**: `OWASP [technology]`
+
+### Common CWE Categories by Technology Type
+
+| Tech Type | Primary CWEs |
+|-----------|--------------|
+| Web Backend | CWE-89 (SQLi), CWE-78 (Command), CWE-22 (Path Traversal) |
+| Web Frontend | CWE-79 (XSS), CWE-1321 (Prototype Pollution), CWE-352 (CSRF) |
+| Shell Scripts | CWE-78 (Injection), CWE-20 (Input Val), CWE-377 (Temp Files) |
+| APIs | CWE-285 (Auth), CWE-918 (SSRF), CWE-400 (DoS) |
+| Crypto | CWE-327 (Weak Algo), CWE-321 (Hardcoded Key), CWE-328 (Weak KDF) |
+| Identity/Auth | CWE-287 (Auth), CWE-522 (Weak Creds), CWE-307 (Brute Force) |
+| Containers/K8s | CWE-250 (Privilege), CWE-306 (Missing Auth), CWE-829 (Supply Chain) |
+
+---
+
+## 6. Creating a New Skill - Workflow
+
+### Step 1: Pre-Creation Research
+
+```bash
+# Check for duplicates
+/list-skills
+
+# Determine category
+Is this Technical or Non-Technical?
+```
+
+### Step 2: Create Directory
+
+```bash
+mkdir -p ~/.claude/skills/[skill-name]
+```
+
+### Step 3: Write SKILL.md
+
+1. **Frontmatter**: name, version, description (15-25 words), risk_level
+2. **Section 0**: Anti-Hallucination Protocol
+   - 0.1: Mandatory Verification
+   - 0.2: Security Patterns (technical) OR Risk Level (non-technical)
+   - 0.3: Risk Level and requirements
+3. **Sections 1-6**: Follow template structure
+
+### Step 4: Research Security Patterns (Technical Skills)
+
+```markdown
+For [technology]:
+1. What are the common injection vectors?
+2. What authentication/authorization issues exist?
+3. What data exposure risks exist?
+4. What resource exhaustion attacks are possible?
+```
+
+### Step 5: Write CWE Patterns
+
+For each vulnerability found:
+
+```markdown
+**CWE-XXX: [Vulnerability Name]**
+- NEVER: `[bad code pattern]`
+- ALWAYS: `[good code pattern]`
+```
+
+### Step 6: Test the Skill
+
+```bash
+# Invoke the skill
+/[skill-name]
+
+# Verify it loads and patterns are actionable
+```
+
+---
+
+## 7. Anti-Patterns in Skill Writing
+
+**NEVER** write generic research links:
+```markdown
+# ❌ WRONG - not actionable
+### 0.2 Vulnerability Research
+Check these sources: GHSA, OSV, CISA KEV
+
+# ✅ CORRECT - actionable patterns
+### 0.2 Security Patterns (NEVER violate)
+**CWE-89: SQL Injection**
+- NEVER: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
+- ALWAYS: `db.execute("SELECT * FROM users WHERE id = ?", [id])`
+```
+
+**NEVER** write passive documentation:
+```markdown
+# ❌ WRONG - describes, doesn't instruct
+SQL injection is a vulnerability where attackers can execute
+malicious SQL code. It's important to use parameterized queries.
+
+# ✅ CORRECT - actionable rule
+**NEVER** use f-strings in SQL (CWE-89):
+```python
+# ❌ WRONG
+query = f"SELECT * FROM users WHERE id = {user_id}"
+
+# ✅ CORRECT
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+```
+```
+
+**NEVER** forget the WHY (CWE reference):
+```markdown
+# ❌ WRONG - no justification
+Don't use eval().
+
+# ✅ CORRECT - references vulnerability
+**NEVER** use `eval()` with external data (CWE-94):
+```
+
+---
+
+## 8. Checklist for New Skills
+
+### Structure
+- [ ] Has frontmatter with name, version, description, risk_level
+- [ ] Description is 15-25 words (visible in /list-skills)
+- [ ] Section 0 (Anti-Hallucination) is present
+- [ ] Section 0.2 has CWE patterns (technical) or Risk Level (non-technical)
+
+### Content Quality
+- [ ] All rules are WHEN/NEVER/ALWAYS format
+- [ ] All bad patterns have ❌ WRONG example
+- [ ] All good patterns have ✅ CORRECT example
+- [ ] CWE references on security patterns
+- [ ] No passive documentation, only actionable rules
+
+### Security (Technical Skills)
+- [ ] 3-5 CWE patterns in Section 0.2
+- [ ] Patterns are technology-specific (not generic)
+- [ ] Patterns researched from CVEs/advisories (niche tech)
+- [ ] Patterns from training knowledge (well-known tech)
+
+### Final
+- [ ] Skill invocable via `/[skill-name]`
+- [ ] No similar/duplicate skill exists
+- [ ] Follows 6-section structure after Section 0

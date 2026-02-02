@@ -1,474 +1,471 @@
 ---
 name: tauri
-description: Cross-platform desktop application framework combining Rust backend with web frontend, emphasizing security and performance
+version: 2.0.0
+description: "Tauri desktop app development with Rust backend, IPC patterns, and native OS integration."
 risk_level: HIGH
 ---
 
-# Tauri Desktop Framework Skill
+# Tauri Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in high-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: XSS in webview, IPC command injection, CSP bypass
-- Requires security awareness and best practices
+**CWE-78: Command Injection via IPC**
+- NEVER: Execute shell commands with frontend-provided strings
+- ALWAYS: Whitelist commands, validate all IPC arguments in Rust
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-22: Path Traversal**
+- NEVER: `fs::read(frontend_provided_path)` without validation
+- ALWAYS: Use `tauri::api::path` scopes, validate paths are within allowed directories
 
-### 0.2 Vulnerability Research Protocol
+**CWE-79: XSS in WebView**
+- NEVER: `window.__TAURI__.invoke` results directly into innerHTML
+- ALWAYS: Sanitize any data displayed, use CSP headers
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-200: IPC Data Exposure**
+- NEVER: Send sensitive data (tokens, keys) to frontend
+- ALWAYS: Keep secrets in Rust backend, use secure storage APIs
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-306: Missing IPC Authentication**
+- NEVER: Allow all IPC commands without origin check
+- ALWAYS: Use `tauri.conf.json` security settings, validate window origin
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: HIGH
 
-   - **TAURI-XSS** (CVSS N/A): XSS via webview context
-     Source: https://tauri.app/v1/references/security/
-   - **IPC-INJECTION** (CVSS 8.8): IPC message injection
-     Source: https://github.com/tauri-apps/tauri/security/
-   - **CSP-BYPASS** (CVSS N/A): Content Security Policy bypass
-     Source: https://tauri.app/v1/guides/security/
-
-**Step 3: Common Attack Patterns**
-
-   - XSS in webview
-   - IPC command injection
-   - CSP bypass
-   - Filesystem access abuse
-   - Native API abuse
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER disable Tauri security features
-- ❌ NEVER trust frontend input in IPC handlers
-- ❌ ALWAYS validate IPC messages
-- ❌ ALWAYS implement CSP
-- ❌ ALWAYS use allowlist for commands
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Tauri code**
-
-### Verification Requirements
-
-When using this skill to implement Tauri features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Tauri documentation (tauri.app)
-   - ✅ Confirm capability syntax is current for Tauri 2.0+
-   - ✅ Validate IPC patterns against official guides
-   - ❌ Never guess configuration options
-   - ❌ Never invent capability names
-   - ❌ Never assume CSP directives without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing Tauri configuration files
-   - 🔍 Grep: Search for similar IPC command patterns
-   - 🔍 WebSearch: Verify specs in official Tauri docs
-   - 🔍 WebFetch: Read official documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Tauri config/capability/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Tauri can cause security vulnerabilities, privilege escalation, or XSS attacks
-
-4. **Common Tauri Hallucination Traps** (AVOID)
-   - ❌ Invented capability identifiers (e.g., "fs:allow-all")
-   - ❌ Made-up CSP directives
-   - ❌ Non-existent IPC command patterns
-   - ❌ Incorrect path variable names ($APP, $HOME instead of $APPDATA, $RESOURCE)
-   - ❌ Mixing Tauri 1.x and 2.x syntax
-
-### Validation Gates
-
-#### Gate 0.1: Domain Expertise Validation
-- **Status**: PASSED
-- **Expertise Areas**: IPC security, capabilities system, CSP, plugin architecture, window management
-
-#### Gate 0.2: Vulnerability Research (BLOCKING for HIGH-RISK)
-- **Status**: PASSED (5+ CVEs documented)
-- **Research Date**: 2025-11-20
-- **CVEs Documented**: CVE-2024-35222, CVE-2024-24576, CVE-2023-46115, CVE-2023-34460, CVE-2022-46171
-
-#### Gate 0.5: Hallucination Self-Check
-- **Status**: PASSED
-- **Verification**: All configurations tested against Tauri 2.0
-
-### Self-Check Checklist
-
-Before EVERY response with Tauri code:
-- [ ] All capability identifiers verified against Tauri 2.0 schema
-- [ ] CSP directives verified against current CSP spec
-- [ ] IPC patterns verified against official docs
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Tauri code with hallucinated patterns causes security vulnerabilities. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Data ≠ Code (CWE-94, CWE-78)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**Principle:** Never construct shell commands from frontend data via string operations.
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. File Organization
-
-This skill uses a split structure for HIGH-RISK requirements:
-- **SKILL.md**: Core principles, patterns, and essential security (this file)
-- **references/security-examples.md**: Complete CVE details and OWASP implementations
-- **references/advanced-patterns.md**: Advanced Tauri patterns and plugins
-- **references/threat-model.md**: Attack scenarios and STRIDE analysis
-- **references/performance-optimization.md**: Performance patterns and optimization strategies
-- **references/anti-patterns.md**: Common mistakes and anti-patterns to avoid
-- **references/testing-guide.md**: Comprehensive testing strategies
-- **references/ipc-patterns.md**: IPC communication patterns and best practices
-
----
-
-## 2. Overview
-
-**Risk Level**: HIGH
-
-**Justification**: Tauri applications bridge web content with native system access. Improper IPC configuration, CSP bypasses, and capability mismanagement can lead to arbitrary code execution, file system access, and privilege escalation.
-
-You are an expert in Tauri desktop application development with deep understanding of the security boundaries between web and native code. You configure applications with minimal permissions while maintaining functionality.
-
-### Core Expertise Areas
-- Tauri capability and permission system
-- IPC (Inter-Process Communication) security
-- Content Security Policy (CSP) configuration
-- Plugin development and security
-- Auto-updater security
-- Window and webview management
-
----
-
-## 3. Core Responsibilities
-
-### Fundamental Principles
-
-1. **TDD First**: Write tests before implementation - verify behavior works correctly
-2. **Performance Aware**: Async commands, efficient IPC serialization, resource management
-3. **Least Privilege**: Grant only necessary capabilities and permissions
-4. **Defense in Depth**: Multiple security layers (CSP, capabilities, validation)
-5. **Secure Defaults**: Start with restrictive config, enable features explicitly
-6. **Input Validation**: Validate all IPC messages from frontend
-7. **Origin Verification**: Check origins for all sensitive operations
-8. **Transparent Updates**: Secure update mechanism with signature verification
-
-### Decision Framework
-
-| Situation | Approach |
-|-----------|----------|
-| Need filesystem access | Scope to specific directories, never root |
-| Need shell execution | Disable by default, use allowlist if required |
-| Need network access | Specify allowed domains in CSP |
-| Custom IPC commands | Validate all inputs, check permissions |
-| Sensitive operations | Require origin verification |
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Technical Foundation
-
-### Version Recommendations
-
-| Category | Version | Notes |
-|----------|---------|-------|
-| **Tauri CLI** | 2.0+ | Use 2.x for new projects |
-| **Tauri Core** | 2.0+ | Significant security improvements over 1.x |
-| **Rust** | 1.77.2+ | CVE-2024-24576 fix |
-| **Node.js** | 20 LTS | For build tooling |
-
-### Security Configuration Files
-
-```
-src-tauri/
-├── Cargo.toml
-├── tauri.conf.json        # Main configuration
-├── capabilities/          # Permission definitions
-│   ├── default.json
-│   └── admin.json
-└── src/
-    └── main.rs
-```
-
----
-
-## 6. Implementation Workflow (TDD)
-
-**Rust Backend Test:**
 ```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+// ❌ WRONG - Command injection from frontend
+#[tauri::command]
+fn run_command(cmd: String) -> Result<String, String> {
+    std::process::Command::new("sh")
+        .arg("-c")
+        .arg(&cmd)  // Frontend controls the command!
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+        .map_err(|e| e.to_string())
+}
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+// ✅ CORRECT - Allowlist of commands
+const ALLOWED_COMMANDS: &[&str] = &["git", "npm", "node"];
 
----
-## 7. Core Security Patterns
-
-### Pattern 1: Minimal Capability Configuration
-
-```json
-// src-tauri/capabilities/default.json
-{
-  "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
-  "description": "Default permissions for standard users",
-  "windows": ["main"],
-  "permissions": [
-    "core:event:default",
-    "core:window:default",
-    {
-      "identifier": "fs:read-files",
-      "allow": ["$APPDATA/*", "$RESOURCE/*"]
-    },
-    {
-      "identifier": "fs:write-files",
-      "allow": ["$APPDATA/*"]
+#[tauri::command]
+fn run_allowed_command(cmd: String, args: Vec<String>) -> Result<String, String> {
+    if !ALLOWED_COMMANDS.contains(&cmd.as_str()) {
+        return Err("Command not allowed".into());
     }
-  ]
+    std::process::Command::new(&cmd)
+        .args(&args)  // Args as list, not shell string
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).to_string())
+        .map_err(|e| e.to_string())
 }
 ```
 
-### Pattern 2: Secure CSP Configuration
+### 1.2 Input Validation (CWE-20)
+
+**Principle:** Validate all input at Tauri command boundaries. Frontend is untrusted.
+
+```rust
+use serde::Deserialize;
+use validator::Validate;
+
+// ❌ WRONG - No validation at IPC boundary
+#[tauri::command]
+fn save_file(path: String, content: String) -> Result<(), String> {
+    std::fs::write(&path, &content).map_err(|e| e.to_string())
+}
+
+// ✅ CORRECT - Validate at boundary with typed input
+#[derive(Deserialize, Validate)]
+pub struct SaveFileInput {
+    #[validate(length(min = 1, max = 255))]
+    filename: String,  // Just filename, not path
+    #[validate(length(max = 10_000_000))]  // 10MB limit
+    content: String,
+}
+
+#[tauri::command]
+fn save_file(
+    input: SaveFileInput,
+    app: tauri::AppHandle,
+) -> Result<(), String> {
+    input.validate().map_err(|e| e.to_string())?;
+
+    // Construct safe path within app data directory
+    let base = app.path().app_data_dir()
+        .map_err(|e| e.to_string())?;
+    let path = base.join(&input.filename);
+
+    // Verify path is within base (path traversal prevention)
+    let canonical = dunce::canonicalize(&path).map_err(|e| e.to_string())?;
+    if !canonical.starts_with(&base) {
+        return Err("Invalid path".into());
+    }
+
+    std::fs::write(&canonical, &input.content).map_err(|e| e.to_string())
+}
+```
+
+### 1.3 Path Traversal Prevention (CWE-22)
+
+**Principle:** Always canonicalize paths and verify containment.
+
+```rust
+use std::path::{Path, PathBuf};
+use dunce::canonicalize;
+
+// ❌ WRONG - Path traversal possible
+#[tauri::command]
+fn read_user_file(filename: String, app: tauri::AppHandle) -> Result<String, String> {
+    let path = app.path().app_data_dir()?.join(&filename);
+    std::fs::read_to_string(path).map_err(|e| e.to_string())
+}
+
+// ✅ CORRECT - Canonicalize and verify containment
+#[tauri::command]
+fn read_user_file(filename: String, app: tauri::AppHandle) -> Result<String, String> {
+    let base = canonicalize(app.path().app_data_dir()?)
+        .map_err(|e| e.to_string())?;
+
+    // Join and canonicalize the full path
+    let requested = canonicalize(base.join(&filename))
+        .map_err(|_| "File not found")?;
+
+    // Verify the resolved path is under base
+    if !requested.starts_with(&base) {
+        return Err("Access denied".into());
+    }
+
+    std::fs::read_to_string(&requested).map_err(|e| e.to_string())
+}
+```
+
+### 1.4 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never hardcode secrets. Use OS keychain or environment.
+
+```rust
+use keyring::Entry;
+
+// ❌ WRONG - Hardcoded secret
+const API_KEY: &str = "sk-1234567890";
+
+// ❌ WRONG - Secret in frontend code
+// const API_KEY = "sk-1234567890";  // In JavaScript
+
+// ✅ CORRECT - From OS keychain
+#[tauri::command]
+fn get_api_key(service: String) -> Result<String, String> {
+    let entry = Entry::new(&service, "api_key")
+        .map_err(|e| e.to_string())?;
+    entry.get_password().map_err(|_| "API key not found".into())
+}
+
+// ✅ CORRECT - Store secret in keychain
+#[tauri::command]
+fn store_api_key(service: String, key: String) -> Result<(), String> {
+    let entry = Entry::new(&service, "api_key")
+        .map_err(|e| e.to_string())?;
+    entry.set_password(&key).map_err(|e| e.to_string())
+}
+```
+
+### 1.5 Fail Secure (CWE-636)
+
+**Principle:** Default deny. On error, deny access. Never fail open.
+
+### 1.6 Least Privilege (CWE-250)
+
+**Principle:** Minimum Tauri capabilities. Disable unused APIs.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```toml
+[dependencies]
+tauri = { version = "2.0", features = ["protocol-asset"] }
+serde = { version = "1.0", features = ["derive"] }
+validator = { version = "0.16", features = ["derive"] }
+keyring = "2.3"
+dunce = "1.0"
+thiserror = "1.0"
+
+[build-dependencies]
+tauri-build = "2.0"
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating Tauri commands
+
+```rust
+use serde::{Deserialize, Serialize};
+use validator::Validate;
+use tauri::State;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum AppError {
+    #[error("Validation error")]
+    Validation(#[from] validator::ValidationErrors),
+    #[error("Not found")]
+    NotFound,
+    #[error("Access denied")]
+    AccessDenied,
+    #[error("Internal error")]
+    Internal(String),
+}
+
+// Serialize safely - never expose internal details
+impl Serialize for AppError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where S: serde::Serializer {
+        serializer.serialize_str(match self {
+            AppError::Validation(_) => "Invalid input",
+            AppError::NotFound => "Not found",
+            AppError::AccessDenied => "Access denied",
+            AppError::Internal(_) => "Internal error",
+        })
+    }
+}
+
+#[derive(Deserialize, Validate)]
+pub struct CreateItemInput {
+    #[validate(length(min = 1, max = 100))]
+    name: String,
+    #[validate(range(min = 0, max = 1000))]
+    quantity: u32,
+}
+
+#[tauri::command]
+async fn create_item(
+    input: CreateItemInput,
+    db: State<'_, DbPool>,
+) -> Result<Item, AppError> {
+    // Validate at boundary
+    input.validate()?;
+
+    // Process with validated input
+    let item = db.create_item(&input.name, input.quantity).await
+        .map_err(|e| {
+            log::error!("Database error: {}", e);  // Log internally
+            AppError::Internal("Failed to create item".into())  // Generic to user
+        })?;
+
+    Ok(item)
+}
+```
+
+### 3.2 WHEN configuring Tauri capabilities (tauri.conf.json)
 
 ```json
-// tauri.conf.json
 {
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MyApp",
+  "version": "1.0.0",
+  "identifier": "com.example.myapp",
+  "build": {
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
   "app": {
     "security": {
-      "csp": {
-        "default-src": "'self'",
-        "script-src": "'self'",
-        "style-src": "'self' 'unsafe-inline'",
-        "connect-src": "'self' https://api.example.com",
-        "object-src": "'none'",
-        "frame-ancestors": "'none'"
-      },
-      "freezePrototype": true
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'",
+      "dangerousDisableAssetCspModification": false
+    },
+    "windows": [
+      {
+        "title": "MyApp",
+        "width": 800,
+        "height": 600
+      }
+    ]
+  },
+  "plugins": {
+    "fs": {
+      "scope": ["$APPDATA/*", "$RESOURCE/*"]
+    },
+    "shell": {
+      "open": true,
+      "scope": []
     }
   }
 }
 ```
 
-### Pattern 3: Secure IPC Commands
+### 3.3 WHEN handling state management
 
 ```rust
-use tauri::{command, AppHandle};
-use validator::Validate;
+use std::sync::Mutex;
+use tauri::Manager;
 
-#[derive(serde::Deserialize, Validate)]
-pub struct FileRequest {
-    #[validate(length(min = 1, max = 255))]
-    path: String,
+pub struct AppState {
+    pub db: DbPool,
+    pub cache: Mutex<HashMap<String, String>>,
 }
 
-#[command]
-pub async fn read_file(request: FileRequest, app: AppHandle) -> Result<String, String> {
-    request.validate().map_err(|e| format!("Validation error: {}", e))?;
-    let app_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
-    let canonical = dunce::canonicalize(app_dir.join(&request.path)).map_err(|_| "Invalid path")?;
-    i## 7. Core Security Patterns
-
-## 7. Core Security Patterns
-
-📚 **For complete details**: See `references/core-security-patterns.md`
-
----
-
-    #[validate(range(min = 1, max = 1000))]
-    pub count: u32,
-    #[validate(custom(function = "validate_path"))]
-    pub file_path: Option<String>,
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            let db = DbPool::new()?;
+            app.manage(AppState {
+                db,
+                cache: Mutex::new(HashMap::new()),
+            });
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![
+            create_item,
+            get_item,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error running tauri application");
 }
 
-fn validate_path(path: &str) -> Result<(), validator::ValidationError> {
-    if path.contains("..") || path.contains("~") {
-        return Err(validator::ValidationError::new("invalid_path"));
-    }
-    Ok(())
+#[tauri::command]
+fn get_cached_value(key: String, state: State<'_, AppState>) -> Option<String> {
+    let cache = state.cache.lock().unwrap();
+    cache.get(&key).cloned()
 }
 ```
 
-### 7.4 Secrets Management
-
-```typescript
-// NEVER: { "envPrefix": ["VITE_", "TAURI_"] }  // Leaks TAURI_PRIVATE_KEY!
-// ALWAYS: { "envPrefix": ["VITE_"] }          // Only expose VITE_ variables
-```
+### 3.4 WHEN handling file dialogs
 
 ```rust
-fn get_api_key() -> Result<String, Error> {
-    std::env::var("API_KEY").map_err(|_| Error::Configuration("API_KEY not set".into()))
-}
-```
+use tauri::api::dialog::FileDialogBuilder;
 
-### 7.5 Error Handling
+#[tauri::command]
+async fn open_file_dialog(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let file = FileDialogBuilder::new()
+        .add_filter("Text Files", &["txt", "md"])
+        .add_filter("All Files", &["*"])
+        .set_directory(app.path().document_dir()?)
+        .pick_file();
 
-```rust
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum AppError {
-    #[error("Invalid input")]
-    Validation(#[from] validator::ValidationErrors),
-    #[error("Operation not permitted")]
-    PermissionDenied,
-    #[error("Internal error")]
-    Internal(#[source] anyhow::Error),
-}
-
-impl serde::Serialize for AppError {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where S: serde::Serializer {
-        tracing::error!("Error: {:?}", self);
-        serializer.serialize_str(&self.to_string())
+    match file {
+        Some(path) => {
+            // Validate path is within allowed directories
+            let content = std::fs::read_to_string(&path)
+                .map_err(|e| e.to_string())?;
+            Ok(Some(content))
+        }
+        None => Ok(None),
     }
 }
 ```
 
-> **See `references/threat-model.md` for attack scenarios; `references/anti-patterns.md` for common mistakes**
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Pass shell commands from frontend to backend
+- Trust frontend input without validation
+- Expose internal error details to frontend
+- Use `unwrap()` in command handlers
+- Store secrets in localStorage or frontend code
+- Disable CSP without explicit security review
 
 ---
 
-## 9. Pre-Deployment Checklist
+## 5. Testing
 
-### Security Checklist
+**ALWAYS write security tests:**
 
-- [ ] Tauri 2.0+ with latest patches
-- [ ] Rust 1.77.2+ (CVE-2024-24576 fix)
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_path_traversal_blocked() {
+        let attacks = [
+            "../../../etc/passwd",
+            "..\\..\\windows\\system32",
+            "foo/../../etc/passwd",
+            "/etc/passwd",
+        ];
+
+        for attack in attacks {
+            let result = validate_path(attack);
+            assert!(result.is_err(), "Path traversal not blocked: {}", attack);
+        }
+    }
+
+    #[test]
+    fn test_command_injection_blocked() {
+        let attacks = [
+            "; rm -rf /",
+            "| cat /etc/passwd",
+            "$(whoami)",
+            "`id`",
+        ];
+
+        for attack in attacks {
+            let input = SaveFileInput {
+                filename: attack.to_string(),
+                content: "test".to_string(),
+            };
+            assert!(input.validate().is_err());
+        }
+    }
+
+    #[test]
+    fn test_input_validation() {
+        let valid = CreateItemInput {
+            name: "test".to_string(),
+            quantity: 10,
+        };
+        assert!(valid.validate().is_ok());
+
+        let invalid = CreateItemInput {
+            name: "".to_string(),  // Too short
+            quantity: 10000,       // Too large
+        };
+        assert!(invalid.validate().is_err());
+    }
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any Tauri code:**
+
+- [ ] Commands validate all input at boundary (validator crate)
+- [ ] Paths canonicalized and containment verified (dunce crate)
+- [ ] No shell command construction from frontend data
+- [ ] Secrets stored in OS keychain, not code
+- [ ] Errors serialized without internal details
 - [ ] CSP configured restrictively
-- [ ] `freezePrototype: true` enabled
-- [ ] Capabilities use minimal permissions
-- [ ] Filesystem scopes are explicit paths
-- [ ] Shell execution disabled or allowlisted
-- [ ] No TAURI_ in frontend envPrefix
-- [ ] Auto-updater uses signature verification
-- [ ] All IPC commands validate input
-- [ ] Origin verification for sensitive ops
-- [ ] `cargo audit` passes
-
-### Runtime Checklist
-
-- [ ] Debug mode disabled in production
-- [ ] DevTools disabled in production
-- [ ] Remote debugging disabled
-- [ ] Update checks working
-
----
-
-## 10. References
-
-This skill provides comprehensive reference documentation:
-
-### Core References
-- **`references/advanced-patterns.md`**: Advanced Tauri patterns, plugin development, and complex scenarios
-- **`references/security-examples.md`**: Complete CVE details, OWASP implementations, and security test examples
-- **`references/threat-model.md`**: Attack scenarios, STRIDE analysis, and threat mitigation strategies
-
-### Implementation References
-- **`references/ipc-patterns.md`**: IPC communication patterns, command design, and type-safe patterns
-- **`references/performance-optimization.md`**: Performance patterns, optimization strategies, and resource management
-- **`references/anti-patterns.md`**: Common mistakes and anti-patterns to avoid
-
-### Testing & Validation
-- **`references/testing-guide.md`**: Comprehensive test## 8. Security Standards
-
-## 8. Security Standards
-
-📚 **For complete details**: See `references/security-standards.md`
-
----
+- [ ] Capabilities minimized in tauri.conf.json
+- [ ] No `unwrap()` in command handlers
+- [ ] State properly managed with Mutex for shared data
+- [ ] Tests cover path traversal and input validation

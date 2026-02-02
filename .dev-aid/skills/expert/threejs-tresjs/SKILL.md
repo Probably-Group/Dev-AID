@@ -1,537 +1,507 @@
 ---
 name: threejs-tresjs
-description: 3D HUD rendering with Three.js and TresJS for JARVIS AI Assistant
+version: 2.0.0
+description: "3D rendering with Three.js and TresJS for Vue with scene management and optimization."
 risk_level: MEDIUM
-version: 1.0.0
 ---
 
-# Three.js / TresJS Development Skill
-
-> **File Organization**: This skill uses split structure. See `references/` for detailed patterns, examples, and guides.
+# Three.js / TresJS - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: WebGL DoS, GPU fingerprinting, XSS via 3D models
-- Requires continuous monitoring of security advisories
+**CWE-79: XSS via 3D Content**
+- NEVER: Load GLTF/textures from user URLs without validation
+- ALWAYS: Allowlist origins, validate content types
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-400: Scene Complexity DoS**
+- NEVER: Load unbounded user models directly
+- ALWAYS: Limit polygon count, texture size, object count
 
-### 0.3 Hallucination Prevention Checklist
+### 0.3 Risk Level: MEDIUM
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER load untrusted 3D models
-- ❌ NEVER allow unlimited scene complexity
-- ❌ ALWAYS validate asset sources
-- ❌ ALWAYS implement resource limits
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Three.js/TresJS code**
-
-### Verification Requirements
-
-When using this skill to implement 3D rendering features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Three.js documentation at threejs.org
-   - ✅ Confirm TresJS API methods at tresjs.org
-   - ✅ Validate WebGL best practices against official guides
-   - ❌ Never guess Three.js API methods
-   - ❌ Never invent geometry/material properties
-   - ❌ Never assume compatibility without checking versions
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for 3D patterns
-   - 🔍 Grep: Search for similar Three.js implementations
-   - 🔍 WebSearch: Verify Three.js API documentation
-   - 🔍 WebFetch: Read official Three.js/TresJS docs
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Three.js feature/API/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in 3D rendering can cause GPU crashes, memory leaks, security vulnerabilities
-
-4. **Common Three.js Hallucination Traps** (AVOID)
-   - ❌ Inventing Three.js class methods that don't exist
-   - ❌ Confusing Three.js versions (APIs change between versions)
-   - ❌ Making up TresJS component props
-   - ❌ Assuming automatic resource disposal (must call .dispose())
-   - ❌ Inventing shader uniform names
-   - ❌ Guessing geometry constructor parameters
-
-### Self-Check Checklist
-
-Before EVERY response with Three.js/TresJS code:
-- [ ] All Three.js classes/methods verified against official docs
-- [ ] TresJS component props verified against TresJS docs
-- [ ] Resource disposal (geometry/material) included
-- [ ] Color inputs validated (ReDoS prevention)
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Three.js code with hallucinated APIs causes runtime errors, GPU memory leaks, and security vulnerabilities. Always verify.
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Model Loading Validation (CWE-20, CWE-400)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**Principle:** External 3D models can be malicious. Validate and sanitize before loading.
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+```typescript
+// ❌ WRONG - Loading arbitrary models without validation
+async function loadModel(url: string) {
+  const loader = new GLTFLoader();
+  return await loader.loadAsync(url);
+}
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+// ✅ CORRECT - Validate model source and size
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
----
+interface ModelConfig {
+  allowedOrigins: string[];
+  maxFileSizeMB: number;
+  maxTriangles: number;
+}
 
-## 1. Overview
+const DEFAULT_CONFIG: ModelConfig = {
+  allowedOrigins: ['https://cdn.example.com'],
+  maxFileSizeMB: 50,
+  maxTriangles: 1_000_000,
+};
 
-This skill provides expertise for building 3D HUD interfaces using Three.js and TresJS (Vue 3 integration). It focuses on creating performant, visually stunning holographic displays for the JARVIS AI Assistant.
+async function loadModelSafe(
+  url: string,
+  config: ModelConfig = DEFAULT_CONFIG
+): Promise<THREE.Group> {
+  // Validate origin
+  const urlObj = new URL(url);
+  if (!config.allowedOrigins.some(origin => url.startsWith(origin))) {
+    throw new Error(`Untrusted model origin: ${urlObj.origin}`);
+  }
 
-**Risk Level**: MEDIUM - GPU resource consumption, potential ReDoS in color parsing, WebGL security considerations
+  // Check file size with HEAD request
+  const headRes = await fetch(url, { method: 'HEAD' });
+  const contentLength = parseInt(headRes.headers.get('content-length') || '0');
+  if (contentLength > config.maxFileSizeMB * 1024 * 1024) {
+    throw new Error(`Model too large: ${contentLength} bytes`);
+  }
 
-**Primary Use Cases**:
-- Rendering 3D holographic HUD panels
-- Animated status indicators and gauges
-- Particle effects for system visualization
-- Real-time metric displays with 3D elements
+  const loader = new GLTFLoader();
+  const gltf = await loader.loadAsync(url);
 
-### Key Technologies
+  // Validate triangle count
+  let triangleCount = 0;
+  gltf.scene.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      const geometry = child.geometry as THREE.BufferGeometry;
+      triangleCount += geometry.index
+        ? geometry.index.count / 3
+        : geometry.attributes.position.count / 3;
+    }
+  });
 
-| Package | Version | Purpose |
-|---------|---------|---------|
-| three | ^0.160.0+ | Core 3D rendering engine |
-| @tresjs/core | ^4.0.0 | Vue 3 integration |
-| @tresjs/cientos | ^3.0.0 | Component library |
-| postprocessing | ^6.0.0 | Visual effects |
+  if (triangleCount > config.maxTriangles) {
+    throw new Error(`Model too complex: ${triangleCount} triangles`);
+  }
 
-**Security Note**: Always use Three.js >= 0.137.0 to avoid known XSS and ReDoS vulnerabilities.
+  return gltf.scene;
+}
+```
 
----
+### 1.2 Resource Management (CWE-400, CWE-401)
 
-## 2. Core Responsibilities
+**Principle:** WebGL resources must be explicitly disposed. Memory leaks crash browsers.
 
-### 2.1 Fundamental Principles
+```typescript
+// ❌ WRONG - No cleanup
+function createScene() {
+  const geometry = new THREE.BoxGeometry();
+  const material = new THREE.MeshBasicMaterial();
+  return new THREE.Mesh(geometry, material);
+}
 
-1. **TDD First**: Write tests before implementation - verify 3D components render correctly
-2. **Performance Aware**: Optimize for 60fps with instancing, LOD, and efficient render loops
-3. **Resource Management**: Always dispose of geometries, materials, and textures to prevent memory leaks
-4. **Vue Reactivity Integration**: Use TresJS for seamless Vue 3 composition API integration
-5. **Safe Color Parsing**: Validate color inputs to prevent ReDoS attacks (CVE-2020-28496)
-6. **GPU Protection**: Implement safeguards against GPU resource exhaustion
-7. **Accessibility**: Provide fallbacks for devices without WebGL support
+// ✅ CORRECT - Proper disposal pattern
+class SceneManager {
+  private disposables: Set<THREE.Object3D | THREE.Material | THREE.Texture> = new Set();
+  private scene: THREE.Scene;
 
-### 2.2 Security Priorities
+  constructor() {
+    this.scene = new THREE.Scene();
+  }
 
-**Critical Vulnerabilities to Mitigate**:
-- **CVE-2020-28496** (HIGH): ReDoS in color parsing - validate all color inputs
-- **CVE-2022-0177** (MEDIUM): XSS in documentation - keep dependencies updated
-- **GPU Resource Exhaustion**: Limit triangle count and draw calls
-- **Memory Leaks**: Always dispose Three.js objects on component unmount
+  createMesh(
+    geometry: THREE.BufferGeometry,
+    material: THREE.Material
+  ): THREE.Mesh {
+    const mesh = new THREE.Mesh(geometry, material);
+    this.disposables.add(mesh);
+    this.disposables.add(material);
+    this.scene.add(mesh);
+    return mesh;
+  }
 
----
+  dispose(): void {
+    this.disposables.forEach((obj) => {
+      if (obj instanceof THREE.Mesh) {
+        obj.geometry.dispose();
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(m => m.dispose());
+        } else {
+          obj.material.dispose();
+        }
+      } else if ('dispose' in obj) {
+        (obj as THREE.Material | THREE.Texture).dispose();
+      }
+    });
+    this.disposables.clear();
+    this.scene.clear();
+  }
+}
+```
 
-## 3. Implementation Workflow (TDD)
+### 1.3 XSS Prevention in 3D Labels (CWE-79)
 
-### Quick TDD Process
+**Principle:** Text rendered in 3D (CSS2DRenderer, TextGeometry) must be sanitized.
 
-1. **Write Failing Test First**
-   ```typescript
-   it('renders HUD panel with correct dimensions', () => {
-     const wrapper = mount(HUDPanel, { props: { width: 2, height: 1 } })
-     expect(wrapper.exists()).toBe(true)
-   })
-   ```
+```typescript
+// ❌ WRONG - Rendering user text directly
+function createLabel(text: string): CSS2DObject {
+  const div = document.createElement('div');
+  div.innerHTML = text; // XSS!
+  return new CSS2DObject(div);
+}
 
-2. **Implement Minimum Code**
-   ```vue
-   <template>
-     <TresMesh>
-       <TresPlaneGeometry :args="[props.width, props.height]" />
-       <TresMeshBasicMaterial color="#001122" />
-     </TresMesh>
-   </template>
-   ```
-
-3. **Refactor & Optimize**
-   - Add resource disposal
-   - Implement performance optimizations
-   - Add error handling
-
-4. **Verify**
-   ```bash
-   npm test && npm run typecheck
-   ```
-
-**See `references/testing-guide.md` for comprehensive TDD patterns**
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+// ✅ CORRECT - Sanitize text content
+function createLabelSafe(text: string): CSS2DObject {
+  const div = document.createElement('div');
+  div.textContent = text; // Safe - escapes HTML
+  div.className = 'scene-label';
+  return new CSS2DObject(div);
+}
+```
 
 ---
 
-## 5. Quick Start Patterns
+## 2. Version Requirements
 
-### 4.1 Basic Scene Setup
+```
+three>=0.160.0
+@tresjs/core>=4.0.0
+@tresjs/cientos>=3.8.0
+@types/three>=0.160.0
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN using TresJS with Vue 3, use proper component structure
 
 ```vue
-<script setup lang="ts">
-import { TresCanvas } from '@tresjs/core'
-
-const gl = {
-  clearColor: '#000011',
-  alpha: true,
-  antialias: true,
-  powerPreference: 'high-performance'
-}
+<!-- ❌ WRONG - Missing reactive cleanup -->
+<script setup>
+const geometry = new BoxGeometry();
+const material = new MeshBasicMaterial({ color: 'red' });
 </script>
 
 <template>
-  <TresCanvas v-bind="gl">
-    <TresPerspectiveCamera :position="[0, 0, 5]" />
-    <TresAmbientLight :intensity="0.5" />
-    <TresDirectionalLight :position="[5, 5, 5]" />
+  <TresCanvas>
+    <TresMesh :geometry="geometry" :material="material" />
+  </TresCanvas>
+</template>
 
-    <HUDPanels />
+<!-- ✅ CORRECT - Reactive with cleanup -->
+<script setup lang="ts">
+import { TresCanvas, useRenderLoop } from '@tresjs/core';
+import { OrbitControls, Box } from '@tresjs/cientos';
+import { shallowRef, onUnmounted } from 'vue';
+import * as THREE from 'three';
+
+// Use shallowRef for Three.js objects (not reactive internally)
+const boxRef = shallowRef<THREE.Mesh | null>(null);
+
+const { onLoop } = useRenderLoop();
+
+onLoop(({ delta }) => {
+  if (boxRef.value) {
+    boxRef.value.rotation.y += delta;
+  }
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (boxRef.value) {
+    boxRef.value.geometry.dispose();
+    (boxRef.value.material as THREE.Material).dispose();
+  }
+});
+</script>
+
+<template>
+  <TresCanvas clear-color="#1a1a1a">
+    <TresPerspectiveCamera :position="[3, 3, 3]" />
+    <OrbitControls />
+
+    <Box ref="boxRef" :args="[1, 1, 1]">
+      <TresMeshStandardMaterial color="orange" />
+    </Box>
+
+    <TresAmbientLight :intensity="0.5" />
+    <TresDirectionalLight :position="[5, 5, 5]" :intensity="1" />
   </TresCanvas>
 </template>
 ```
 
-### 4.2 Safe Color Handling (ReDoS Prevention)
+### WHEN loading textures, use proper async handling
 
 ```typescript
-// ✅ SECURE - Validated color parsing
-export function safeParseColor(input: string): Color {
-  const hexPattern = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
+// ❌ WRONG - Synchronous texture loading blocks render
+const texture = new THREE.TextureLoader().load('/texture.jpg');
+material.map = texture;
 
-  if (!hexPattern.test(input)) {
-    console.warn('Invalid color, using default')
-    return new Color(0x00ff00)
-  }
+// ✅ CORRECT - Async texture loading with loading manager
+import { useTexture, useProgress } from '@tresjs/core';
 
-  return new Color(input)
+// In Vue component
+const { progress, isLoading } = useProgress();
+
+// Load texture asynchronously
+const texture = await useTexture('/texture.jpg');
+
+// Or with loading manager for multiple assets
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onProgress = (url, loaded, total) => {
+  console.log(`Loading: ${(loaded / total * 100).toFixed(0)}%`);
+};
+loadingManager.onError = (url) => {
+  console.error(`Failed to load: ${url}`);
+};
+
+const textureLoader = new THREE.TextureLoader(loadingManager);
+
+async function loadTextures(urls: string[]): Promise<THREE.Texture[]> {
+  return Promise.all(
+    urls.map(url => new Promise<THREE.Texture>((resolve, reject) => {
+      textureLoader.load(url, resolve, undefined, reject);
+    }))
+  );
 }
-
-// ❌ DANGEROUS - Never do this
-// const color = new Color(userInput)  // ReDoS vulnerability!
 ```
 
-### 4.3 Memory-Safe Component
+### WHEN implementing animation loops, use proper timing
 
-```vue
-<script setup lang="ts">
-import { onUnmounted, shallowRef } from 'vue'
-import { Mesh } from 'three'
+```typescript
+// ❌ WRONG - Using Date.now() for animations (inconsistent)
+let lastTime = Date.now();
+function animate() {
+  const now = Date.now();
+  const delta = now - lastTime;
+  object.rotation.y += 0.01 * delta;
+  lastTime = now;
+  requestAnimationFrame(animate);
+}
 
-// ✅ Use shallowRef for Three.js objects
-const meshRef = shallowRef<Mesh | null>(null)
+// ✅ CORRECT - Using Three.js Clock with frame limiting
+import { Clock } from 'three';
+import { useRenderLoop } from '@tresjs/core';
 
-// ✅ Always cleanup on unmount
-onUnmounted(() => {
-  if (meshRef.value) {
-    meshRef.value.geometry.dispose()
-    if (Array.isArray(meshRef.value.material)) {
-      meshRef.value.material.forEach(m => m.dispose())
-    } else {
-      meshRef.value.material.dispose()
+// TresJS approach (preferred)
+const { onLoop, pause, resume } = useRenderLoop();
+
+onLoop(({ delta, elapsed, clock }) => {
+  // delta is already calculated correctly
+  mesh.rotation.y += delta;
+
+  // Pause when tab not visible
+  if (document.hidden) {
+    pause();
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) {
+    resume();
+  }
+});
+
+// Pure Three.js approach
+class AnimationController {
+  private clock = new Clock();
+  private rafId: number | null = null;
+  private targetFPS = 60;
+  private frameInterval = 1000 / 60;
+  private lastFrameTime = 0;
+
+  start(callback: (delta: number) => void): void {
+    const animate = (currentTime: number) => {
+      this.rafId = requestAnimationFrame(animate);
+
+      const elapsed = currentTime - this.lastFrameTime;
+      if (elapsed < this.frameInterval) return;
+
+      this.lastFrameTime = currentTime - (elapsed % this.frameInterval);
+      const delta = this.clock.getDelta();
+
+      callback(Math.min(delta, 0.1)); // Cap delta to prevent jumps
+    };
+
+    this.rafId = requestAnimationFrame(animate);
+  }
+
+  stop(): void {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
   }
-})
-</script>
-
-<template>
-  <TresMesh ref="meshRef">
-    <TresBoxGeometry :args="[1, 1, 1]" />
-    <TresMeshStandardMaterial color="#00ff41" />
-  </TresMesh>
-</template>
-```
-
-**See `references/implementation-patterns.md` for more patterns**
-
----
-
-## 6. Performance Guidelines
-
-### Key Optimization Strategies
-
-1. **Use Instancing** - Render 1000+ objects as efficiently as 1 object
-2. **Implement LOD** - Reduce detail for distant objects
-3. **Object Pooling** - Reuse objects instead of creating/destroying
-4. **Frustum Culling** - Don't render off-screen objects
-5. **Minimize Allocations** - Never create objects in render loop
-6. **Share Resources** - Reuse geometries and materials
-
-### Quick Performance Check
-
-```typescript
-// ❌ BAD - Creates new objects every frame
-function animate() {
-  mesh.position.add(new Vector3(0, 0.01, 0))  // GC pressure!
-}
-
-// ✅ GOOD - Reuse objects
-const velocity = new Vector3(0, 0.01, 0)
-function animate() {
-  mesh.position.add(velocity)
 }
 ```
 
-**See `references/performance-optimization.md` for detailed strategies**
-
----
-
-## 7. Security Best Practices
-
-### Critical Security Checks
-
-- [ ] Three.js version >= 0.137.0 (XSS fix)
-- [ ] All color inputs validated before parsing
-- [ ] No user input directly to `new Color()`
-- [ ] Resource limits enforced (max triangles, draw calls)
-- [ ] All geometries/materials disposed on unmount
-- [ ] Text content sanitized before rendering
-
-### GPU Resource Limits
+### WHEN implementing post-processing, manage render targets
 
 ```typescript
-export function useResourceLimit() {
-  const MAX_TRIANGLES = 1_000_000
-  const MAX_DRAW_CALLS = 100
+// ❌ WRONG - Creating render targets without size management
+const renderTarget = new THREE.WebGLRenderTarget(1920, 1080);
 
-  function checkGeometry(geometry: BufferGeometry): boolean {
-    const triangles = geometry.index
-      ? geometry.index.count / 3
-      : geometry.attributes.position.count / 3
+// ✅ CORRECT - Responsive render targets with proper disposal
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass';
 
-    if (triangles > MAX_TRIANGLES) {
-      console.error('Triangle limit exceeded')
-      return false
-    }
-    return true
+class PostProcessingManager {
+  private composer: EffectComposer;
+  private renderer: THREE.WebGLRenderer;
+  private resizeObserver: ResizeObserver;
+
+  constructor(
+    renderer: THREE.WebGLRenderer,
+    scene: THREE.Scene,
+    camera: THREE.Camera
+  ) {
+    this.renderer = renderer;
+
+    // Create composer with proper pixel ratio
+    const pixelRatio = Math.min(window.devicePixelRatio, 2);
+    const size = renderer.getSize(new THREE.Vector2());
+
+    this.composer = new EffectComposer(renderer);
+    this.composer.setPixelRatio(pixelRatio);
+    this.composer.setSize(size.x, size.y);
+
+    // Add passes
+    this.composer.addPass(new RenderPass(scene, camera));
+    this.composer.addPass(new UnrealBloomPass(
+      new THREE.Vector2(size.x, size.y),
+      1.5, // strength
+      0.4, // radius
+      0.85 // threshold
+    ));
+
+    // Handle resize
+    this.resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        this.composer.setSize(width, height);
+      }
+    });
+    this.resizeObserver.observe(renderer.domElement.parentElement!);
   }
 
-  return { checkGeometry }
+  render(): void {
+    this.composer.render();
+  }
+
+  dispose(): void {
+    this.resizeObserver.disconnect();
+    this.composer.dispose();
+  }
 }
 ```
 
-**See `references/security-examples.md` for comprehensive security patterns**
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Load 3D models from untrusted sources without validation
+- Create geometries/materials without disposal plan
+- Use innerHTML for 3D text labels (XSS risk)
+- Skip pixel ratio capping (performance issues on high-DPI)
+- Create render targets without resize handling
+- Use Date.now() for animations (use Clock)
+- Block main thread with synchronous loading
 
 ---
 
-## 8. Common Mistakes to Avoid
-
-### Critical Anti-Patterns
-
-| Anti-Pattern | Impact | Solution |
-|--------------|--------|----------|
-| Parse user colors directly | ReDoS vulnerability | Use `safeParseColor()` |
-| Skip resource disposal | Memory leaks | Always dispose in `onUnmounted()` |
-| Create objects in render loop | GC pressure | Pre-allocate and reuse |
-| Clone unnecessarily | GPU memory waste | Share resources or use instancing |
-| Use reactive refs | Performance overhead | Use `shallowRef()` |
-
-### Quick Anti-Pattern Check
+## 5. Testing
 
 ```typescript
-// ❌ DANGEROUS
-const color = new Color(userInput)  // ReDoS!
-const mesh = ref(new Mesh())        // Reactive overhead!
+import { describe, it, expect, afterEach, vi } from 'vitest';
+import * as THREE from 'three';
 
-// ✅ SECURE
-const color = safeParseColor(userInput)
-const mesh = shallowRef(new Mesh())
+describe('SceneManager', () => {
+  let manager: SceneManager;
+
+  afterEach(() => {
+    manager?.dispose();
+  });
+
+  it('should dispose all resources on cleanup', () => {
+    manager = new SceneManager();
+
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshBasicMaterial();
+    const mesh = manager.createMesh(geometry, material);
+
+    const geometryDispose = vi.spyOn(geometry, 'dispose');
+    const materialDispose = vi.spyOn(material, 'dispose');
+
+    manager.dispose();
+
+    expect(geometryDispose).toHaveBeenCalled();
+    expect(materialDispose).toHaveBeenCalled();
+  });
+
+  it('should reject untrusted model origins', async () => {
+    await expect(
+      loadModelSafe('https://malicious.com/model.glb')
+    ).rejects.toThrow('Untrusted model origin');
+  });
+
+  it('should reject oversized models', async () => {
+    // Mock fetch to return large content-length
+    global.fetch = vi.fn().mockResolvedValue({
+      headers: { get: () => '100000000' }, // 100MB
+    });
+
+    await expect(
+      loadModelSafe('https://cdn.example.com/model.glb')
+    ).rejects.toThrow('Model too large');
+  });
+});
+
+describe('Animation timing', () => {
+  it('should cap delta to prevent large jumps', () => {
+    const controller = new AnimationController();
+    const deltas: number[] = [];
+
+    controller.start((delta) => {
+      deltas.push(delta);
+      if (deltas.length >= 5) controller.stop();
+    });
+
+    // All deltas should be <= 0.1 (100ms cap)
+    deltas.forEach(d => expect(d).toBeLessThanOrEqual(0.1));
+  });
+});
 ```
 
-**See `references/anti-patterns.md` for detailed anti-patterns and solutions**
-
 ---
 
-## 9. Testing Strategy
+## 6. Pre-Generation Checklist
 
-### Test Coverage Requirements
+**BEFORE generating Three.js/TresJS code:**
 
-1. **Component Tests**: Verify rendering, props, disposal
-2. **Performance Tests**: Ensure 60fps with target load
-3. **Security Tests**: Validate input sanitization
-4. **Resource Tests**: Verify cleanup on unmount
-
-### Example Test
-
-```typescript
-describe('HUDPanel', () => {
-  it('disposes resources on unmount', () => {
-    const wrapper = mount(HUDPanel)
-    const disposeSpy = vi.spyOn(wrapper.vm.meshRef.geometry, 'dispose')
-
-    wrapper.unmount()
-
-    expect(disposeSpy).toHaveBeenCalled()
-  })
-})
-```
-
-**See `references/testing-guide.md` for comprehensive testing patterns**
-
----
-
-## 10. Pre-Deployment Checklist
-
-### Security Verification
-- [ ] Three.js version >= 0.137.0
-- [ ] All color inputs validated
-- [ ] Resource limits enforced
-- [ ] No unvalidated text rendering
-
-### Performance Verification
-- [ ] All resources disposed on unmount
-- [ ] Instancing used for repeated objects (>10)
-- [ ] No object creation in render loop
-- [ ] LOD implemented for complex scenes
-- [ ] Frame rate >= 60fps under target load
-
-### Code Quality
-- [ ] All tests passing
-- [ ] TypeScript errors resolved
-- [ ] ESLint warnings addressed
-- [ ] Components separated by concern
-
----
-
-## 11. References
-
-### Detailed Documentation
-
-- **`references/implementation-patterns.md`** - Complete implementation examples for HUD panels, instancing, text rendering
-- **`references/testing-guide.md`** - TDD workflow, component tests, performance tests, resource disposal tests
-- **`references/performance-optimization.md`** - Instancing, LOD, frustum culling, object pooling, shader optimization
-- **`references/security-examples.md`** - Security standards, ReDoS prevention, GPU protection, vulnerability mitigation
-- **`references/anti-patterns.md`** - Common mistakes, security anti-patterns, performance anti-patterns, Vue integration issues
-- **`references/3d-patterns.md`** - HUD interface patterns, particle systems, camera animations, post-processing
-- **`references/advanced-patterns.md`** - Custom shaders, post-processing effects, physics integration
-
-### Official Documentation
-
-- Three.js: https://threejs.org/docs/
-- TresJS: https://tresjs.org/
-- WebGL Best Practices: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
-
----
-
-## 12. Quick Reference
-
-### Common Operations
-
-```typescript
-// Create and dispose mesh
-const mesh = new Mesh(geometry, material)
-scene.add(mesh)
-
-// Later: ALWAYS dispose
-mesh.geometry.dispose()
-mesh.material.dispose()
-
-// Update uniforms
-material.uniforms.time.value = clock.getElapsedTime()
-
-// Instance multiple objects
-const instances = new InstancedMesh(geometry, material, 1000)
-```
-
-### Troubleshooting
-
-**Problem**: Memory usage keeps increasing
-**Solution**: Check that all geometries/materials are disposed on unmount
-
-**Problem**: Frame rate drops below 60fps
-**Solution**: Use instancing, implement LOD, reduce draw calls
-
-**Problem**: Browser freezes on color input
-**Solution**: Validate color input before passing to `new Color()`
-
-**Problem**: Components not updating reactively
-**Solution**: Use `shallowRef()` for Three.js objects, not `ref()`
-
----
-
-## 13. Summary
-
-Three.js/TresJS provides powerful 3D rendering for the JARVIS HUD:
-
-1. **Security**: Validate all inputs, especially colors to prevent ReDoS
-2. **Memory**: Always dispose resources on component unmount
-3. **Performance**: Use instancing, avoid allocations in render loop
-4. **Integration**: TresJS provides seamless Vue 3 reactivity
-
-**Remember**: WebGL has direct GPU access - always validate inputs and manage resources carefully. Test thoroughly before deployment.
+- [ ] Model loading: Origin validation, size limits, triangle count
+- [ ] Resource disposal: All geometries, materials, textures tracked
+- [ ] Text rendering: Using textContent, not innerHTML
+- [ ] Pixel ratio: Capped at 2 for performance
+- [ ] Render targets: Resize handling implemented
+- [ ] Animation timing: Using Clock, delta capped
+- [ ] Texture loading: Async with loading manager
+- [ ] Vue integration: shallowRef for Three.js objects

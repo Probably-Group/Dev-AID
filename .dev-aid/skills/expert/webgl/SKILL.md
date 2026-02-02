@@ -1,459 +1,595 @@
 ---
 name: webgl
-description: WebGL shaders and effects for JARVIS 3D HUD
+version: 2.0.0
+description: "WebGL rendering patterns with shaders, buffers, textures, and performance optimization."
 risk_level: MEDIUM
-version: 1.0.0
 ---
 
-# WebGL Development Skill
-
-> **File Organization**: This skill uses split structure. See `references/` for advanced patterns and security examples.
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# WebGL - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in medium-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Memory exhaustion, GPU fingerprinting, Shader DoS
-- Requires security awareness and best practices
+**CWE-119: Shader Buffer Overflow**
+- NEVER: Unbounded array access in shaders
+- ALWAYS: Bounds checking, validate array indices
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-400: GPU Resource Exhaustion**
+- NEVER: Unlimited texture size or draw calls from user input
+- ALWAYS: Limit texture dimensions, max vertices, monitor GPU memory
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+---
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+## 1. Security Principles
 
-   - **WEBGL-MEMORY-LEAK** (CVSS N/A): WebGL memory leaks
-     Source: https://www.khronos.org/webgl/security/
-   - **GPU-FINGERPRINTING** (CVSS N/A): GPU fingerprinting attacks
-     Source: https://browserleaks.com/webgl
-   - **SHADER-DOS** (CVSS N/A): DoS via malicious shaders
-     Source: https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
+### 1.1 Shader Compilation Validation (CWE-20)
 
-**Step 3: Common Attack Patterns**
-
-   - Memory exhaustion
-   - GPU fingerprinting
-   - Shader DoS
-   - Cross-origin texture leaks
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER render untrusted content in WebGL
-- ❌ NEVER allow unlimited texture sizes
-- ❌ ALWAYS validate shader complexity
-- ❌ ALWAYS use CORS for textures
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-This skill provides WebGL expertise for creating custom shaders and visual effects in the JARVIS AI Assistant HUD. It focuses on GPU-accelerated rendering with security considerations.
-
-**Risk Level**: MEDIUM - Direct GPU access, potential for resource exhaustion, driver vulnerabilities
-
-**Primary Use Cases**:
-- Custom shaders for holographic effects
-- Post-processing effects (bloom, glitch)
-- Particle systems with compute shaders
-- Real-time data visualization
-
-## 2. Core Responsibilities
-
-### 2.1 Fundamental Principles
-
-1. **TDD First**: Write tests before implementation - test shaders, contexts, and resources
-2. **Performance Aware**: Optimize GPU usage - batch draws, reuse buffers, compress textures
-3. **GPU Safety**: Implement timeout mechanisms and resource limits
-4. **Shader Validation**: Validate all shader inputs before compilation
-5. **Context Management**: Handle context loss gracefully
-6. **Performance Budgets**: Set strict limits on draw calls and triangles
-7. **Fallback Strategy**: Provide non-WebGL fallbacks
-8. **Memory Management**: Track and limit texture/buffer usage
-
-## 3. Technology Stack & Versions
-
-### 3.1 Browser Support
-
-| Browser | WebGL 2.0 | Notes |
-|---------|-----------|-------|
-| Chrome | 56+ | Full support |
-| Firefox | 51+ | Full support |
-| Safari | 15+ | WebGL 2.0 support |
-| Edge | 79+ | Chromium-based |
-
-### 3.2 Security Considerations
+**Principle:** Shader code can crash the browser. Always check compilation status.
 
 ```typescript
-// Check WebGL support and capabilities
-function getWebGLContext(canvas: HTMLCanvasElement): WebGL2RenderingContext | null {
-  const gl = canvas.getContext('webgl2', {
-    alpha: true,
-    antialias: true,
-    powerPreference: 'high-performance',
-    failIfMajorPerformanceCaveat: true  // Fail if software rendering
-  })
-
-  if (!gl) {
-    console.warn('WebGL 2.0 not supported')
-    return null
-  }
-
-  return gl
+// ❌ WRONG - No error checking
+function createShader(gl: WebGLRenderingContext, source: string, type: number) {
+  const shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+  return shader;
 }
-```
 
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-// ✅ Safe shader compilation with error handling
-export function compileShader(
-  gl: WebGL2RenderingContext,
+// ✅ CORRECT - Comprehensive error handling
+function createShaderSafe(
+  gl: WebGLRenderingContext,
   source: string,
   type: number
-): WebGLShader | null {
-  const shader = gl.createShader(type)
-  if (!shader) return null
+): WebGLShader {
+  const shader = gl.createShader(type);
+  if (!shader) {
+    throw new Error('Failed to create shader');
+  }
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
 
----
-## 6. Implementation Workflow (TDD)
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    const info = gl.getShaderInfoLog(shader);
+    gl.deleteShader(shader);
+    throw new Error(`Shader compilation failed: ${info}`);
+  }
 
-### 5.1 Step-by-Step Process
+  return shader;
+}
 
-1. **Write failing test** -> 2. **Implement minimum** -> 3. **Refactor** -> 4. **Verify**
+function createProgramSafe(
+  gl: WebGLRenderingContext,
+  vertexShader: WebGLShader,
+  fragmentShader: WebGLShader
+): WebGLProgram {
+  const program = gl.createProgram();
+  if (!program) {
+    throw new Error('Failed to create program');
+  }
+
+  gl.attachShader(program, vertexShader);
+  gl.attachShader(program, fragmentShader);
+  gl.linkProgram(program);
+
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+    const info = gl.getProgramInfoLog(program);
+    gl.deleteProgram(program);
+    throw new Error(`Program linking failed: ${info}`);
+  }
+
+  return program;
+}
+```
+
+### 1.2 Context Loss Handling (CWE-754)
+
+**Principle:** WebGL context can be lost at any time. Handle gracefully.
 
 ```typescript
-// Step 1: tests/webgl/shaderCompilation.test.ts
-import { describe, it, expect, beforeEach } from 'vitest'
-import { compileShader } from '@/utils/shaderUtils'
+// ❌ WRONG - No context loss handling
+class Renderer {
+  private gl: WebGLRenderingContext;
 
-describe('WebGL Shader Compilation', () => {
-  let gl: WebGL2RenderingContext
+  init(canvas: HTMLCanvasElement) {
+    this.gl = canvas.getContext('webgl')!;
+    this.setupScene();
+  }
+
+  render() {
+    // Crashes if context lost
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+  }
+}
+
+// ✅ CORRECT - Proper context loss handling
+class SafeRenderer {
+  private gl: WebGLRenderingContext | null = null;
+  private canvas: HTMLCanvasElement;
+  private isContextLost = false;
+  private resources: WebGLResource[] = [];
+
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
+
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.isContextLost = true;
+      console.warn('WebGL context lost');
+    });
+
+    canvas.addEventListener('webglcontextrestored', () => {
+      this.isContextLost = false;
+      this.initGL();
+      console.info('WebGL context restored');
+    });
+
+    this.initGL();
+  }
+
+  private initGL(): void {
+    this.gl = this.canvas.getContext('webgl', {
+      alpha: false,
+      antialias: true,
+      depth: true,
+      failIfMajorPerformanceCaveat: true,
+      powerPreference: 'default',
+      preserveDrawingBuffer: false,
+    });
+
+    if (!this.gl) {
+      throw new Error('WebGL not supported');
+    }
+
+    this.recreateResources();
+  }
+
+  private recreateResources(): void {
+    // Re-create all shaders, buffers, textures after context restore
+    for (const resource of this.resources) {
+      resource.recreate(this.gl!);
+    }
+  }
+
+  render(): void {
+    if (this.isContextLost || !this.gl) {
+      return; // Silently skip if context lost
+    }
+
+    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    // ... render scene
+  }
+}
+```
+
+### 1.3 Resource Limits (CWE-400)
+
+**Principle:** WebGL has hardware-specific limits. Check before allocating.
+
+```typescript
+// ❌ WRONG - Assuming unlimited resources
+function createLargeTexture(gl: WebGLRenderingContext) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 8192, 8192, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+}
+
+// ✅ CORRECT - Check limits before allocation
+interface WebGLLimits {
+  maxTextureSize: number;
+  maxCubeMapSize: number;
+  maxRenderbufferSize: number;
+  maxVertexAttribs: number;
+  maxTextureUnits: number;
+}
+
+function getWebGLLimits(gl: WebGLRenderingContext): WebGLLimits {
+  return {
+    maxTextureSize: gl.getParameter(gl.MAX_TEXTURE_SIZE),
+    maxCubeMapSize: gl.getParameter(gl.MAX_CUBE_MAP_TEXTURE_SIZE),
+    maxRenderbufferSize: gl.getParameter(gl.MAX_RENDERBUFFER_SIZE),
+    maxVertexAttribs: gl.getParameter(gl.MAX_VERTEX_ATTRIBS),
+    maxTextureUnits: gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS),
+  };
+}
+
+function createTextureSafe(
+  gl: WebGLRenderingContext,
+  width: number,
+  height: number,
+  limits: WebGLLimits
+): WebGLTexture {
+  if (width > limits.maxTextureSize || height > limits.maxTextureSize) {
+    throw new Error(
+      `Texture size ${width}x${height} exceeds maximum ${limits.maxTextureSize}`
+    );
+  }
+
+  const texture = gl.createTexture();
+  if (!texture) {
+    throw new Error('Failed to create texture');
+  }
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+  // Check for GL errors
+  const error = gl.getError();
+  if (error !== gl.NO_ERROR) {
+    gl.deleteTexture(texture);
+    throw new Error(`Texture creation failed with GL error: ${error}`);
+  }
+
+  return texture;
+}
+```
+
+---
+
+## 2. Version Requirements
+
+```
+# WebGL is native - no npm packages required for core
+# For GLSL syntax and utilities:
+glslify>=7.1.0
+glsl-noise>=0.0.0
+# For testing:
+gl>=6.0.0  # Headless WebGL for Node.js
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN writing shaders, use precision qualifiers
+
+```glsl
+// ❌ WRONG - No precision specified
+varying vec2 vUv;
+uniform sampler2D uTexture;
+
+void main() {
+  gl_FragColor = texture2D(uTexture, vUv);
+}
+
+// ✅ CORRECT - Explicit precision for mobile compatibility
+precision mediump float;
+
+varying vec2 vUv;
+uniform sampler2D uTexture;
+
+void main() {
+  vec4 color = texture2D(uTexture, vUv);
+
+  // Clamp output to prevent artifacts
+  gl_FragColor = clamp(color, 0.0, 1.0);
+}
+```
+
+### WHEN managing WebGL state, use a state machine wrapper
+
+```typescript
+// ❌ WRONG - Global state pollution
+function renderMesh(gl: WebGLRenderingContext, mesh: Mesh) {
+  gl.enable(gl.DEPTH_TEST);
+  gl.enable(gl.BLEND);
+  // Render...
+  // Forgot to restore state!
+}
+
+// ✅ CORRECT - State machine with restoration
+class GLState {
+  private gl: WebGLRenderingContext;
+  private stateStack: Map<number, boolean>[] = [];
+
+  constructor(gl: WebGLRenderingContext) {
+    this.gl = gl;
+  }
+
+  push(): void {
+    const state = new Map<number, boolean>();
+    const capabilities = [
+      this.gl.DEPTH_TEST,
+      this.gl.BLEND,
+      this.gl.CULL_FACE,
+      this.gl.SCISSOR_TEST,
+    ];
+
+    for (const cap of capabilities) {
+      state.set(cap, this.gl.isEnabled(cap));
+    }
+
+    this.stateStack.push(state);
+  }
+
+  pop(): void {
+    const state = this.stateStack.pop();
+    if (!state) return;
+
+    for (const [cap, enabled] of state) {
+      if (enabled) {
+        this.gl.enable(cap);
+      } else {
+        this.gl.disable(cap);
+      }
+    }
+  }
+
+  withState(config: Partial<GLStateConfig>, fn: () => void): void {
+    this.push();
+
+    if (config.depthTest !== undefined) {
+      config.depthTest ? this.gl.enable(this.gl.DEPTH_TEST) : this.gl.disable(this.gl.DEPTH_TEST);
+    }
+    if (config.blend !== undefined) {
+      config.blend ? this.gl.enable(this.gl.BLEND) : this.gl.disable(this.gl.BLEND);
+    }
+    if (config.cullFace !== undefined) {
+      config.cullFace ? this.gl.enable(this.gl.CULL_FACE) : this.gl.disable(this.gl.CULL_FACE);
+    }
+
+    try {
+      fn();
+    } finally {
+      this.pop();
+    }
+  }
+}
+```
+
+### WHEN loading textures, handle async and compression
+
+```typescript
+// ❌ WRONG - Synchronous, no compression support
+function loadTexture(gl: WebGLRenderingContext, url: string) {
+  const image = new Image();
+  image.src = url;
+  // Texture not ready!
+  return createTextureFromImage(gl, image);
+}
+
+// ✅ CORRECT - Async loading with compression support
+interface TextureOptions {
+  minFilter?: number;
+  magFilter?: number;
+  wrapS?: number;
+  wrapT?: number;
+  generateMipmaps?: boolean;
+}
+
+async function loadTexture(
+  gl: WebGLRenderingContext,
+  url: string,
+  options: TextureOptions = {}
+): Promise<WebGLTexture> {
+  const texture = gl.createTexture();
+  if (!texture) {
+    throw new Error('Failed to create texture');
+  }
+
+  // Bind placeholder while loading
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+    new Uint8Array([255, 0, 255, 255]) // Magenta placeholder
+  );
+
+  const image = await loadImage(url);
+
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+
+  // Set filtering
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
+    options.minFilter ?? gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER,
+    options.magFilter ?? gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S,
+    options.wrapS ?? gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T,
+    options.wrapT ?? gl.CLAMP_TO_EDGE);
+
+  if (options.generateMipmaps !== false && isPowerOf2(image.width) && isPowerOf2(image.height)) {
+    gl.generateMipmap(gl.TEXTURE_2D);
+  }
+
+  return texture;
+}
+
+function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+    image.src = url;
+  });
+}
+
+function isPowerOf2(value: number): boolean {
+  return (value & (value - 1)) === 0;
+}
+```
+
+### WHEN handling uniforms, cache locations
+
+```typescript
+// ❌ WRONG - Looking up locations every frame
+function render(gl: WebGLRenderingContext, program: WebGLProgram) {
+  const uTime = gl.getUniformLocation(program, 'uTime'); // Expensive!
+  gl.uniform1f(uTime, performance.now());
+}
+
+// ✅ CORRECT - Cache uniform and attribute locations
+class ShaderProgram {
+  private gl: WebGLRenderingContext;
+  private program: WebGLProgram;
+  private uniforms = new Map<string, WebGLUniformLocation>();
+  private attributes = new Map<string, number>();
+
+  constructor(gl: WebGLRenderingContext, vertexSource: string, fragmentSource: string) {
+    this.gl = gl;
+    this.program = this.compile(vertexSource, fragmentSource);
+    this.cacheLocations();
+  }
+
+  private compile(vertexSource: string, fragmentSource: string): WebGLProgram {
+    const vertexShader = createShaderSafe(this.gl, vertexSource, this.gl.VERTEX_SHADER);
+    const fragmentShader = createShaderSafe(this.gl, fragmentSource, this.gl.FRAGMENT_SHADER);
+    return createProgramSafe(this.gl, vertexShader, fragmentShader);
+  }
+
+  private cacheLocations(): void {
+    const gl = this.gl;
+
+    // Cache all active uniforms
+    const uniformCount = gl.getProgramParameter(this.program, gl.ACTIVE_UNIFORMS);
+    for (let i = 0; i < uniformCount; i++) {
+      const info = gl.getActiveUniform(this.program, i);
+      if (info) {
+        const location = gl.getUniformLocation(this.program, info.name);
+        if (location) {
+          this.uniforms.set(info.name, location);
+        }
+      }
+    }
+
+    // Cache all active attributes
+    const attributeCount = gl.getProgramParameter(this.program, gl.ACTIVE_ATTRIBUTES);
+    for (let i = 0; i < attributeCount; i++) {
+      const info = gl.getActiveAttrib(this.program, i);
+      if (info) {
+        const location = gl.getAttribLocation(this.program, info.name);
+        this.attributes.set(info.name, location);
+      }
+    }
+  }
+
+  setUniform1f(name: string, value: number): void {
+    const location = this.uniforms.get(name);
+    if (location) {
+      this.gl.uniform1f(location, value);
+    }
+  }
+
+  setUniformMatrix4fv(name: string, value: Float32Array): void {
+    const location = this.uniforms.get(name);
+    if (location) {
+      this.gl.uniformMatrix4fv(location, false, value);
+    }
+  }
+
+  getAttribute(name: string): number {
+    return this.attributes.get(name) ?? -1;
+  }
+
+  use(): void {
+    this.gl.useProgram(this.program);
+  }
+
+  dispose(): void {
+    this.gl.deleteProgram(this.program);
+    this.uniforms.clear();
+    this.attributes.clear();
+  }
+}
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Skip shader compilation error checking
+- Ignore WebGL context loss events
+- Create textures larger than MAX_TEXTURE_SIZE
+- Look up uniform/attribute locations every frame
+- Forget to unbind/restore GL state
+- Use synchronous texture loading
+- Skip precision qualifiers in fragment shaders
+
+---
+
+## 5. Testing
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import createContext from 'gl';
+
+describe('WebGL utilities', () => {
+  let gl: WebGLRenderingContext;
 
   beforeEach(() => {
-    gl = document.createElement('canvas').getContext('webgl2')!
-  })
+    gl = createContext(800, 600);
+  });
 
-  it('should compile valid shader', () => {
-    const source = `#version 300 es
-      in vec4 aPosition;
-      void main() { gl_Position = aPosition; }`
-    expect(compileShader(gl, source, gl.VERTEX_SHADER)).not.toBeNull()
-  })
+  afterEach(() => {
+    gl.getExtension('STACKGL_destroy_context')?.destroy();
+  });
 
-  it('should return null for invalid shader', () => {
-    expect(compileShader(gl, 'invalid', gl.FRAGMENT_SHADER)).toBeNull()
-  })
-})
+  describe('createShaderSafe', () => {
+    it('should throw on invalid shader', () => {
+      const invalidSource = 'this is not valid GLSL';
+      expect(() => {
+        createShaderSafe(gl, invalidSource, gl.FRAGMENT_SHADER);
+      }).toThrow('Shader compilation failed');
+    });
 
-// Step 2-3: Implement and refactor (see section 4.1)
-// Step 4: npm test && npm run typecheck && npm run build
+    it('should compile valid shader', () => {
+      const source = `
+        precision mediump float;
+        void main() { gl_FragColor = vec4(1.0); }
+      `;
+      const shader = createShaderSafe(gl, source, gl.FRAGMENT_SHADER);
+      expect(shader).toBeTruthy();
+    });
+  });
+
+  describe('getWebGLLimits', () => {
+    it('should return reasonable limits', () => {
+      const limits = getWebGLLimits(gl);
+      expect(limits.maxTextureSize).toBeGreaterThanOrEqual(1024);
+      expect(limits.maxTextureUnits).toBeGreaterThanOrEqual(8);
+    });
+  });
+
+  describe('createTextureSafe', () => {
+    it('should reject oversized textures', () => {
+      const limits = getWebGLLimits(gl);
+      expect(() => {
+        createTextureSafe(gl, limits.maxTextureSize + 1, 1, limits);
+      }).toThrow('exceeds maximum');
+    });
+  });
+});
 ```
-
-### 5.2 Testing Context and Resources
-
-```typescript
-describe('WebGL Context', () => {
-  it('should handle context loss', async () => {
-    const { gl, contextLost } = useWebGL(ref(canvas))
-    gl.value?.getExtension('WEBGL_lose_context')?.loseContext()
-    await nextTick()
-    expect(contextLost.value).toBe(true)
-  })
-})
-
-describe('Resource Manager', () => {
-  it('should enforce memory limits', () => {
-    const manager = new WebGLResourceManager(gl)
-    expect(manager.createTexture(1024, 1024)).not.toBeNull()
-    expect(manager.createTexture(16384, 16384)).toBeNull() // Exceeds limit
-  })
-})
-```
-
-## 7. Performance Patterns
-
-### 6.1 Buffer Reuse
-
-```typescript
-// Bad - Creates new buffer every frame
-const buffer = gl.createBuffer()
-gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW)
-gl.deleteBuffer(buffer)
-
-// Good - Reuse buffer, update only data
-gl.bufferSubData(gl.ARRAY_BUFFER, 0, data)  // Update existing buffer
-```
-
-### 6.2 Draw Call Batching
-
-```typescript
-// Bad - One draw call per object
-objects.forEach(obj => {
-  gl.useProgram(obj.program)
-  gl.drawElements(...)
-})
-
-// Good - Batch by material/shader
-const batches = groupByMaterial(objects)
-batches.forEach(batch => {
-  gl.useProgram(batch.program)
-  batch.objects.forEach(obj => gl.drawElements(...))
-})
-```
-
-### 6.3 Texture Compression
-
-```typescript
-// Bad - Always uncompressed RGBA
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
-
-// Good - Use compressed formats when available
-const ext = gl.getExtension('WEBGL_compressed_texture_s3tc')
-if (ext) gl.compressedTexImage2D(gl.TEXTURE_2D, 0, ext.COMPRESSED_RGBA_S3TC_DXT5_EXT, ...)
-```
-
-### 6.4 Instanced Rendering
-
-```typescript
-// Bad - Individual draw calls for particles
-particles.forEach(p => {
-  gl.uniform3fv(uPosition, p.position)
-  gl.drawArrays(gl.TRIANGLES, 0, 6)
-})
-
-// Good - Single instanced draw call
-gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, particles.length)
-```
-
-### 6.5 VAO Usage
-
-```typescript
-// Bad - Rebind attributes every frame
-gl.enableVertexAttribArray(0)
-gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0)
-
-// Good - Use VAO to store attribute state
-const vao = gl.createVertexArray()
-gl.bindVertexArray(vao)
-// Set up once, then just bind VAO for rendering
-```
-
-## 8. Security Standards
-
-### 7.1 Known Vulnerabilities
-
-| CVE | Severity | Description | Mitigation |
-|-----|----------|-------------|------------|
-| CVE-2024-11691 | HIGH | Apple M series memory corruption | Update browser, OS patches |
-| CVE-2023-1531 | HIGH | Chrome use-after-free | Update Chrome |
-
-### 7.2 OWASP Top 10 Coverage
-
-| OWASP Category | Risk | Mitigation |
-|----------------|------|------------|
-| A06 Vulnerable Components | HIGH | Keep browsers updated |
-| A10 SSRF | LOW | Context isolation by browser |
-
-### 7.3 GPU Resource Protection
-
-```typescript
-// ✅ Implement resource limits
-const LIMITS = {
-  maxDrawCalls: 100,
-  maxTriangles: 1_000_000,
-  maxTextures: 32,
-  maxTextureSize: 4096
-}
-
-function checkLimits(stats: RenderStats): boolean {
-  if (stats.drawCalls > LIMITS.maxDrawCalls) {
-    console.error('Draw call limit exceeded')
-    return false
-  }
-  if (stats.triangles > LIMITS.maxTriangles) {
-    console.error('Triangle limit exceeded')
-    return false
-  }
-  return true
-}
-```
-
-## 9. Common Mistakes & Anti-Patterns
-
-### 8.1 Critical Security Anti-Patterns
-
-#### Never: Skip Context Loss Handling
-
-```typescript
-// ❌ DANGEROUS - App crashes on context loss
-const gl = canvas.getContext('webgl2')
-// No context loss handler!
-
-// ✅ SECURE - Handle gracefully
-canvas.addEventListener('webglcontextlost', handleLoss)
-canvas.addEventListener('webglcontextrestored', handleRestore)
-```
-
-#### Never: Unlimited Resource Allocation
-
-```typescript
-// ❌ DANGEROUS - GPU memory exhaustion
-for (let i = 0; i < userCount; i++) {
-  textures.push(gl.createTexture())
-}
-
-// ✅ SECURE - Enforce limits
-if (textureCount < MAX_TEXTURES) {
-  textures.push(gl.createTexture())
-}
-```
-
-### 8.2 Performance Anti-Patterns
-
-#### Avoid: Excessive State Changes
-
-```typescript
-// ❌ BAD - Unbatched draw calls
-objects.forEach(obj => {
-  gl.useProgram(obj.program)
-  gl.bindTexture(gl.TEXTURE_2D, obj.texture)
-  gl.drawElements(...)
-})
-
-// ✅ GOOD - Batch by material
-batches.forEach(batch => {
-  gl.useProgram(batch.program)
-  gl.bindTexture(gl.TEXTURE_2D, batch.texture)
-  batch.objects.forEach(obj => gl.drawElements(...))
-})
-```
-
-## 10. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Write failing tests for shaders, context, and resources
-- [ ] Define performance budgets (draw calls <100, memory <256MB)
-- [ ] Identify required WebGL extensions
-
-### Phase 2: During Implementation
-- [ ] Context loss handling with recovery
-- [ ] Resource limits and memory tracking
-- [ ] Shader validation before compilation
-- [ ] Use VAOs, batch draws, reuse buffers
-- [ ] Instanced rendering for particles
-
-##### 7. Performance Patterns
-
-// Good - Reuse buffer, update only data
-gl.bufferSubData(gl.ARRAY_BUFFER, 0, data)  // Update existing buffer
-```
-
-📚 **For complete details**: See `references/performance-patterns.md`
 
 ---
-## 9. Common Mistakes & Anti-Patterns
 
-## 9. Common Mistakes & Anti-Patterns
+## 6. Pre-Generation Checklist
 
-📚 **For complete details**: See `references/common-mistakes-anti-patterns.md`
+**BEFORE generating WebGL code:**
 
----
+- [ ] Shader compilation: Error checking on compile and link
+- [ ] Context loss: Event listeners, resource recreation
+- [ ] Resource limits: Check MAX_TEXTURE_SIZE before allocation
+- [ ] Uniform caching: Locations cached at program creation
+- [ ] State management: Push/pop or explicit restoration
+- [ ] Texture loading: Async with placeholder, power-of-2 checks
+- [ ] Precision: mediump/highp specified in fragment shaders
+- [ ] GL errors: Check getError() after critical operations

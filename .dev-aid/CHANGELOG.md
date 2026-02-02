@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.12] - 2026-02-02
+
+### Added
+- `talos-cluster-ops` skill - Comprehensive K8s/Talos cluster operations for troubleshooting, upgrades, and health monitoring
+- `nuxt4` skill - Nuxt 4 full-stack patterns with server routes, useFetch, hybrid rendering, and runtime config security
+- `vue3` skill - Pure Vue 3 Composition API patterns with reactivity, composables, provide/inject, and XSS prevention
+
+### Changed
+- **BREAKING**: Replaced all 69 shared expert skills with improved dotfiles versions
+  - More concise CWE-based security patterns (NEVER/ALWAYS format)
+  - 2-3x more code examples and patterns per skill
+  - Removed verbose CVE research protocols in favor of timeless vulnerability classes
+  - All skills now follow unified v2.0.0 template
+
+### Removed
+- `async-programming` skill (consolidated into `async-expert`)
+- `typescript` skill (consolidated into `typescript-expert`)
+- `fastapi` skill (consolidated into `fastapi-expert`)
+- `vue-nuxt` skill (consolidated into `vue3` and `nuxt4`)
+- `vue-nuxt-expert` skill (consolidated into `vue3` and `nuxt4`)
+- `docker-expert` skill (not in dotfiles, was redundant)
+
+### Notes
+- Expert skills count: 72 → 73 (removed 4 duplicates, added 3 new)
+- All skills synced from personal dotfiles for improved quality
+- Skills registry updated to match new skill set
+
+---
+
 ## [1.3.0-beta.11] - 2026-02-02
 
 ### Added

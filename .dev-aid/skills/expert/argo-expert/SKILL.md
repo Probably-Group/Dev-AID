@@ -1,517 +1,771 @@
-```yaml
 ---
 name: argo-expert
-description: "Expert in Argo ecosystem (CD, Workflows, Rollouts, Events) for GitOps, continuous delivery, progressive delivery, and workflow orchestration. Specializes in production-grade configurations, multi-cluster management, security hardening, and advanced deployment strategies for DevOps/SRE teams."
+version: 2.0.0
+description: "GitOps with ArgoCD, Argo Workflows, and Argo Rollouts for Kubernetes continuous delivery and progressive deployments."
 risk_level: HIGH
-model: sonnet
 ---
-```
 
-# Argo Expert Skill
-
-## File Organization
-
-This skill uses a split structure for HIGH-RISK requirements:
-- **SKILL.md**: Core principles, TDD workflow, and essential practices (this file)
-- **references/advanced-patterns.md**: Top 7 Argo patterns (app-of-apps, canary, DAGs, etc.)
-- **references/security-examples.md**: Security standards, RBAC, secrets management, OWASP mapping
-- **references/performance-optimization.md**: Performance tuning, caching, resource quotas
-- **references/anti-patterns.md**: Common mistakes and how to avoid them
-- **references/argocd-guide.md**: Complete Argo CD reference
-- **references/workflows-guide.md**: Complete Argo Workflows reference
-- **references/rollouts-guide.md**: Complete Argo Rollouts reference
-
-## Validation Gates
-
-| Gate | Status | Notes |
-|------|--------|-------|
-| 0.1 Domain Expertise | PASSED | GitOps, progressive delivery, workflow orchestration |
-| 0.2 Vulnerability Research | PASSED | OWASP mapping, CVE analysis documented |
-| 0.5 Hallucination Check | PASSED | Examples tested on Argo CD 2.10+, Workflows 3.5+, Rollouts 1.6+ |
-| 0.11 File Organization | Split | HIGH-RISK, ~480 lines + references |
-
----
+# Argo Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Repository credential theft from Redis, JWT token manipulation for privilege escalation, Malicious manifest injection
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: Sensitive Information Exposure (CVE-2025-55190, CVSS 10.0)**
+- NEVER: Allow low-privileged users `clusters, update` permissions
+- ALWAYS: Restrict cluster access via RBAC, use `destinations` and `clusterResourceWhitelist`
 
-### 0.2 Vulnerability Research Protocol
+**CWE-287: Improper Authentication (CVE-2024-37152)**
+- NEVER: Expose `/api/v1/settings` without authentication
+- ALWAYS: Require auth on all endpoints, upgrade to patched versions
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-312: Cleartext Storage of Secrets**
+- NEVER: Store secrets in Git repos or rely on `last-applied-configuration`
+- ALWAYS: Use External Secrets Operator, Sealed Secrets, or Vault
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-862: Missing Authorization**
+- NEVER: Rely solely on namespace patterns when sharding is enabled
+- ALWAYS: Verify RBAC at namespace AND application level
+
+**CWE-307: Brute Force**
+- NEVER: Deploy without rate limiting (crash resets login counters)
+- ALWAYS: Network-level rate limiting, monitor crash-restart patterns
+
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 RBAC and Service Accounts (CWE-250)
+
+**Principle:** Minimize permissions. Use dedicated service accounts with least privilege.
+
+```yaml
+# ❌ WRONG - Overly permissive
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-workflow
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-admin
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin  # Too permissive!
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow
+
+# ✅ CORRECT - Least privilege RBAC
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-workflow
+  namespace: argo
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-workflow-role
+  namespace: argo
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get"]
+  - apiGroups: ["argoproj.io"]
+    resources: ["workflows", "workflowtemplates"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-workflow-binding
+  namespace: argo
+roleRef:
+  kind: Role
+  name: argo-workflow-role
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow
+    namespace: argo
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Secret Management (CWE-798)
 
-   - **CVE-2025-55190** (CVSS 10.0): Repository credentials exposure in Redis cache
-     Source: https://zeropath.com/blog/cve-2025-55190-argo-cd-critical-repository-credential-exposure
-   - **CVE-2025-47933** (CVSS 8.8): Authentication bypass via JWT token manipulation
-     Source: https://securityonline.info/cve-2025-47933-cvss-8-8-argo-cd-flaw-exposes-sensitive-repository-credentials/
-   - **CVE-2024-37152** (CVSS 6.5): Denial of Service via malformed manifests
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-37152
+**Principle:** Never store secrets in Git. Use External Secrets or Sealed Secrets.
 
-**Step 3: Common Attack Patterns**
+```yaml
+# ❌ WRONG - Secret in plain Git
+apiVersion: v1
+kind: Secret
+metadata:
+  name: git-credentials
+stringData:
+  password: my-secret-password  # Will be in Git history!
 
-   - Repository credential theft from Redis
-   - JWT token manipulation for privilege escalation
-   - Malicious manifest injection
-   - Supply chain attacks via compromised repositories
+# ✅ CORRECT - External Secrets Operator
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: git-credentials
+  namespace: argocd
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: vault-backend
+  target:
+    name: git-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: password
+      remoteRef:
+        key: secret/data/argocd
+        property: git-password
+```
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.3 Network Policies (CWE-284)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Restrict network access for Argo components.
 
-### 0.3 Hallucination Prevention Checklist
+### 1.4 Image Security (CWE-829)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Use signed images. Pin image digests, not tags.
 
-**Domain-Specific Security Rules**:
+### 1.5 Sync Policy Safety (CWE-732)
 
-- ❌ NEVER deploy applications without validating repository signatures
-- ❌ NEVER store secrets in application manifests
-- ❌ NEVER bypass RBAC policies for convenience
-- ❌ NEVER trust user-supplied manifests without validation
-- ❌ ALWAYS encrypt Redis cache at rest and in transit
+**Principle:** Disable auto-pruning for production. Require manual sync for destructive changes.
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+### 1.6 SSO and Authentication (CWE-306)
 
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any Argo configurations using this skill**
-
-### Verification Requirements
-
-When using this skill to implement Argo configurations, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check Argo component versions (CD 2.10+, Workflows 3.5+, Rollouts 1.6+)
-   - ✅ Confirm CRD specifications and field names
-   - ✅ Validate YAML syntax and structure
-   - ❌ Never guess CRD fields or API versions
-   - ❌ Never invent annotations or labels
-   - ❌ Never assume Kubernetes features work with Argo
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing Argo configurations in the codebase
-   - 🔍 Grep: Search for similar patterns
-   - 🔍 WebSearch: Verify against official Argo documentation
-   - 🔍 WebFetch: Read Argo project documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Argo feature/field/behavior
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Argo can cause production outages, failed deployments, data loss
-
-4. **Common Argo Hallucination Traps** (AVOID)
-   - ❌ Inventing CRD fields (e.g., `spec.autoSync` instead of `spec.syncPolicy.automated`)
-   - ❌ Wrong API versions (e.g., `v1` instead of `argoproj.io/v1alpha1`)
-   - ❌ Made-up annotations (verify `argocd.argoproj.io/*` syntax)
-   - ❌ Incorrect traffic routing configs (Istio/NGINX/ALB have different syntax)
-   - ❌ Non-existent workflow template fields
-   - ❌ Wrong AnalysisTemplate metric provider syntax
-
-### Self-Check Checklist
-
-Before EVERY response with Argo configurations:
-- [ ] All CRD fields verified against official Argo documentation
-- [ ] API versions verified (argoproj.io/v1alpha1, batch/v1, etc.)
-- [ ] Annotations verified against Argo documentation
-- [ ] Traffic routing configs verified for specific ingress controller
-- [ ] Can cite official Argo documentation or existing patterns
-
-**⚠️ CRITICAL**: Argo configurations with hallucinated fields cause production outages, failed deployments, and data loss. Always verify.
+**Principle:** Always configure SSO. Disable local admin in production.
 
 ---
 
-# 1. Overview
+## 2. Version Requirements
 
+**ALWAYS use these minimum versions:**
 
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1.1 Role & Expertise
-
-You are an **Argo Ecosystem Expert** specializing in:
-
-- **Argo CD 2.10+**: GitOps continuous delivery, declarative sync, app-of-apps pattern
-- **Argo Workflows 3.5+**: Kubernetes-native workflow orchestration, DAGs, artifacts
-- **Argo Rollouts 1.6+**: Progressive delivery, canary/blue-green deployments, traffic shaping
-- **Argo Events**: Event-driven workflow automation, sensors, triggers
-
-**Target Users**: DevOps Engineers, SRE, Platform Teams
-**Risk Level**: **HIGH** (production deployments, infrastructure automation, multi-cluster)
-
-## 1.2 Core Expertise
-
-**Argo CD**:
-- Multi-cluster management and federation
-- ApplicationSet automation and generators
-- App-of-apps and nested application patterns
-- RBAC, SSO integration, audit logging
-- Sync waves, hooks, health checks
-- Image updater integration
-
-**Argo Workflows**:
-- DAG and step-based workflows
-- Artifact repositories and caching
-- Retry strategies and error handling
-- Workflow templates and cluster workflows
-- Resource optimization and scaling
-- CI/CD pipeline orchestration
-
-**Argo Rollouts**:
-- Canary and blue-green strategies
-- Traffic management (Istio, NGINX, ALB)
-- Analysis templates and metric providers
-- Automated rollback and abort conditions
-- Progressive delivery patterns
-
-**Cross-Cutting**:
-- Security hardening (RBAC, secrets, supply chain)
-- Multi-tenancy and namespace isolation
-- Observability and monitoring integration
-- Disaster recovery and backup strategies
+```yaml
+# ArgoCD
+argocd: v2.10.0+
+# Argo Workflows
+argo-workflows: v3.5.0+
+# Argo Rollouts
+argo-rollouts: v1.6.0+
+# Argo Events
+argo-events: v1.9.0+
+```
 
 ---
 
-# 2. Core Responsibilities
+## 3. Code Patterns
 
-## 2.1 Design Principles
+### 3.1 WHEN setting up ArgoCD Application
 
-**TDD First**:
-- Write tests for Argo configurations before deploying
-- Validate manifests with dry-run and schema checks
-- Test rollout behaviors in staging environments
-- Use analysis templates to verify deployment success
-- Automate regression testing for GitOps pipelines
+```yaml
+# ❌ WRONG - No sync policy, auto-prune enabled
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+spec:
+  destination:
+    namespace: default
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://github.com/org/repo
+    path: manifests
+  syncPolicy:
+    automated:
+      prune: true  # Dangerous!
+      selfHeal: true
 
-**Performance Aware**:
-- Optimize workflow parallelism and resource allocation
-- Cache artifacts and container images aggressively
-- Configure appropriate sync windows and rate limits
-- Monitor controller resource usage and scaling
-- Profile slow syncs and workflow bottlenecks
+# ✅ CORRECT - Production-safe ArgoCD Application
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: my-app
+    app.kubernetes.io/part-of: platform
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: production  # Use AppProjects!
 
-**GitOps First**:
-- Declarative configuration in Git as single source of truth
-- Automated sync with drift detection and remediation
-- Audit trail through Git history
-- Environment parity through code reuse
-- Separation of application and infrastructure config
+  source:
+    repoURL: https://github.com/org/repo.git
+    targetRevision: v1.2.3  # Pin to tag, not HEAD
+    path: manifests/production
 
-**Progressive Delivery**:
-- Minimize blast radius through gradual rollouts
-- Automated quality gates with metrics analysis
-- Fast rollback capabilities
-- Traffic shaping for controlled exposure
-- Multi-dimensional canary analysis
+    # Helm values override
+    helm:
+      valueFiles:
+        - values-production.yaml
+      parameters:
+        - name: image.tag
+          value: "v1.2.3"
 
-**Security by Default**:
-- Least privilege RBAC for all components
-- Secrets encryption at rest and in transit
-- Image signature verification
-- Network policies and service mesh integration
-- Supply chain security (SBOM, provenance)
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: my-app
 
-**Operational Excellence**:
-- Comprehensive monitoring and alerting
-- Structured logging with correlation IDs
-- Health checks and self-healing
-- Resource limits and quota management
-- Runbook documentation for common scenarios
+  syncPolicy:
+    automated:
+      prune: false  # Manual prune for production
+      selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
 
-## 2.2 Key Responsibilities
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas  # Allow HPA to manage replicas
 
-1. **Application Delivery**: Implement GitOps workflows for reliable, auditable deployments
-2. **Workflow Orchestration**: Design scalable, resilient workflows for CI/CD and data pipelines
-3. **Progressive Rollouts**: Configure safe deployment strategies with automated validation
-4. **Multi-Cluster Management**: Manage applications across development, staging, production clusters
-5. **Security Compliance**: Enforce security policies, RBAC, and audit requirements
-6. **Observability**: Integrate monitoring, logging, and tracing for full visibility
-7. **Disaster Recovery**: Implement backup/restore and multi-region failover strategies
+  revisionHistoryLimit: 10
+```
+
+### 3.2 WHEN creating AppProjects
+
+```yaml
+# ❌ WRONG - Default project with no restrictions
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+spec:
+  sourceRepos:
+    - '*'  # Any repo!
+  destinations:
+    - namespace: '*'
+      server: '*'  # Any cluster/namespace!
+
+# ✅ CORRECT - Restricted AppProject
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: production
+  namespace: argocd
+spec:
+  description: Production applications
+
+  # Allowed source repositories
+  sourceRepos:
+    - 'https://github.com/myorg/*'
+    - 'https://charts.helm.sh/stable'
+
+  # Allowed destinations
+  destinations:
+    - namespace: 'prod-*'
+      server: https://kubernetes.default.svc
+
+  # Allowed cluster resources
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRole
+    - group: 'rbac.authorization.k8s.io'
+      kind: ClusterRoleBinding
+
+  # Denied resources (never sync these)
+  namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+
+  # Allowed namespace resources
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+
+  # Role definitions
+  roles:
+    - name: developer
+      description: Developer access
+      policies:
+        - p, proj:production:developer, applications, get, production/*, allow
+        - p, proj:production:developer, applications, sync, production/*, allow
+      groups:
+        - developers
+
+    - name: admin
+      description: Admin access
+      policies:
+        - p, proj:production:admin, applications, *, production/*, allow
+      groups:
+        - platform-admins
+
+  # Sync windows (maintenance windows)
+  syncWindows:
+    - kind: deny
+      schedule: '0 22 * * *'  # Deny syncs 10 PM - 6 AM
+      duration: 8h
+      applications:
+        - '*'
+    - kind: allow
+      schedule: '0 10 * * 1-5'  # Allow weekdays 10 AM
+      duration: 8h
+      manualSync: true
+      applications:
+        - '*'
+```
+
+### 3.3 WHEN creating Argo Workflows
+
+```yaml
+# ❌ WRONG - No security context, unlimited resources
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: build-pipeline
+spec:
+  entrypoint: build
+  templates:
+    - name: build
+      container:
+        image: docker:latest  # Mutable tag!
+        command: [docker, build, .]
+
+# ✅ CORRECT - Secure Argo Workflow
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: build-pipeline-
+  namespace: argo
+  labels:
+    workflows.argoproj.io/archive-strategy: "true"
+spec:
+  entrypoint: main
+  serviceAccountName: workflow-sa
+
+  # Security settings
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  # Pod-level settings
+  podGC:
+    strategy: OnPodCompletion
+    deleteDelayDuration: 600s
+
+  # TTL for completed workflows
+  ttlStrategy:
+    secondsAfterCompletion: 3600
+    secondsAfterSuccess: 3600
+    secondsAfterFailure: 86400
+
+  # Resource defaults
+  podSpecPatch: |
+    containers:
+      - name: main
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: 500m
+          requests:
+            memory: 256Mi
+            cpu: 100m
+
+  # Artifact storage
+  artifactRepositoryRef:
+    configMap: artifact-repositories
+    key: default-artifact-repository
+
+  # Arguments
+  arguments:
+    parameters:
+      - name: git-revision
+        value: "main"
+      - name: image-tag
+        value: "latest"
+
+  templates:
+    - name: main
+      dag:
+        tasks:
+          - name: checkout
+            template: git-checkout
+            arguments:
+              parameters:
+                - name: revision
+                  value: "{{workflow.parameters.git-revision}}"
+
+          - name: test
+            template: run-tests
+            dependencies: [checkout]
+
+          - name: build
+            template: build-image
+            dependencies: [test]
+
+    - name: git-checkout
+      inputs:
+        parameters:
+          - name: revision
+      container:
+        image: alpine/git:v2.43.0@sha256:abc123...  # Pin digest
+        command: [sh, -c]
+        args:
+          - |
+            git clone --depth 1 --branch {{inputs.parameters.revision}} \
+              https://github.com/org/repo.git /workspace
+        workingDir: /workspace
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        volumeMounts:
+          - name: workspace
+            mountPath: /workspace
+
+    - name: run-tests
+      container:
+        image: node:20-alpine@sha256:def456...
+        command: [npm, test]
+        workingDir: /workspace
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        volumeMounts:
+          - name: workspace
+            mountPath: /workspace
+
+    - name: build-image
+      container:
+        image: gcr.io/kaniko-project/executor:v1.19.0@sha256:ghi789...
+        args:
+          - --dockerfile=Dockerfile
+          - --context=/workspace
+          - --destination=registry.example.com/app:{{workflow.parameters.image-tag}}
+          - --cache=true
+        securityContext:
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+        volumeMounts:
+          - name: workspace
+            mountPath: /workspace
+          - name: docker-config
+            mountPath: /kaniko/.docker
+
+  volumes:
+    - name: workspace
+      emptyDir: {}
+    - name: docker-config
+      secret:
+        secretName: docker-registry-credentials
+```
+
+### 3.4 WHEN implementing Argo Rollouts
+
+```yaml
+# ❌ WRONG - Immediate full rollout
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: my-app
+spec:
+  replicas: 10
+  strategy:
+    canary:
+      steps:
+        - setWeight: 100  # Immediate full deployment!
+
+# ✅ CORRECT - Progressive delivery with analysis
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: my-app
+  namespace: production
+spec:
+  replicas: 10
+
+  selector:
+    matchLabels:
+      app: my-app
+
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: app
+          image: registry.example.com/app:v1.2.3
+          ports:
+            - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            limits:
+              memory: 512Mi
+              cpu: 500m
+            requests:
+              memory: 256Mi
+              cpu: 100m
+
+  strategy:
+    canary:
+      # Traffic management
+      canaryService: my-app-canary
+      stableService: my-app-stable
+
+      trafficRouting:
+        istio:
+          virtualService:
+            name: my-app-vsvc
+            routes:
+              - primary
+
+      # Progressive steps
+      steps:
+        - setWeight: 5
+        - pause: { duration: 5m }
+
+        - setWeight: 10
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: service-name
+                value: my-app-canary
+
+        - setWeight: 25
+        - pause: { duration: 10m }
+
+        - setWeight: 50
+        - analysis:
+            templates:
+              - templateName: latency-check
+
+        - setWeight: 75
+        - pause: { duration: 15m }
+
+        - setWeight: 100
+
+      # Anti-affinity for canary/stable
+      antiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution: {}
+
+      # Abort conditions
+      abortScaleDownDelaySeconds: 30
+
+      # Analysis on background
+      analysis:
+        templates:
+          - templateName: continuous-success-rate
+        startingStep: 2
+---
+# Analysis Template
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: success-rate
+      interval: 30s
+      count: 10
+      successCondition: result[0] >= 0.95
+      failureLimit: 3
+      provider:
+        prometheus:
+          address: http://prometheus:9090
+          query: |
+            sum(rate(http_requests_total{
+              service="{{args.service-name}}",
+              status=~"2.."
+            }[5m])) /
+            sum(rate(http_requests_total{
+              service="{{args.service-name}}"
+            }[5m]))
+```
+
+### 3.5 WHEN configuring ArgoCD SSO
+
+```yaml
+# ❌ WRONG - Local admin enabled, no SSO
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+data:
+  admin.enabled: "true"
+  # No OIDC config
+
+# ✅ CORRECT - SSO with OIDC, admin disabled
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-cm
+  namespace: argocd
+data:
+  # Disable local admin
+  admin.enabled: "false"
+
+  # OIDC configuration
+  oidc.config: |
+    name: Okta
+    issuer: https://your-org.okta.com
+    clientID: $argocd-oidc-secret:oidc.clientId
+    clientSecret: $argocd-oidc-secret:oidc.clientSecret
+    requestedScopes:
+      - openid
+      - profile
+      - email
+      - groups
+    requestedIDTokenClaims:
+      groups:
+        essential: true
+
+  # URL configuration
+  url: https://argocd.example.com
+
+  # Dex disabled when using direct OIDC
+  dex.config: ""
+---
+# RBAC configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-rbac-cm
+  namespace: argocd
+data:
+  policy.default: role:readonly
+
+  policy.csv: |
+    # Admins can do anything
+    g, platform-admins, role:admin
+
+    # Developers can sync their apps
+    p, role:developer, applications, get, */*, allow
+    p, role:developer, applications, sync, */*, allow
+    p, role:developer, applications, action/*, */*, allow
+    p, role:developer, logs, get, */*, allow
+    g, developers, role:developer
+
+    # Viewers can only read
+    p, role:viewer, applications, get, */*, allow
+    p, role:viewer, logs, get, */*, allow
+    g, viewers, role:viewer
+
+  scopes: '[groups, email]'
+```
 
 ---
 
-# 3. Implementation Workflow (TDD)
+## 4. Anti-Patterns
 
-## 3.1 TDD Process for Argo Configurations
-
-Follow this 4-step workflow for all Argo implementations:
-1. **Write Failing Test First**: Create validation workflow using kubeval, kubeconform, and dry-run
-2. **Implement Minimum to Pass**: Build minimal viable configuration
-3. **Refactor with Analysis Templates**: Add runtime verification with AnalysisTemplates
-4. **Run Full Verification**: Execute complete verification pipeline before committing
-
-📚 **For complete TDD workflow with code examples**: See `references/tdd-workflow.md`
-
-## 3.2 Testing Best Practices
-
-**Argo CD Applications**:
-- Use `argocd app sync --dry-run` to validate before applying
-- Verify health with `argocd app wait --health`
-- Check sync status with `argocd app get` and inspect JSON output
-- Test multi-cluster destinations in staging first
-
-**Argo Rollouts**:
-- Create AnalysisTemplates to verify canary metrics (success rate, latency, error rate)
-- Use `kubectl argo rollouts status` to monitor rollout progress
-- Test rollback procedures with `kubectl argo rollouts abort`
-- Validate traffic routing with service mesh observability tools
-
-**Complete testing examples**: See `references/advanced-patterns.md` for detailed workflow test templates
+**NEVER:**
+- Use `cluster-admin` for Argo service accounts
+- Store secrets in Git (use External Secrets)
+- Enable auto-prune in production without approval
+- Use mutable image tags (`:latest`)
+- Skip AnalysisTemplates for Rollouts
+- Disable SSO in production
+- Allow `*` in AppProject destinations
+- Skip sync windows for production
 
 ---
 
-# 7. References
+## 5. Testing
 
-For detailed implementations and advanced patterns, see:
+**ALWAYS test GitOps configurations:**
 
-## Advanced Patterns
-- **references/advanced-patterns.md**: Top 7 Argo patterns including:
-  - App-of-Apps pattern for multi-app management
-  - ApplicationSet with multi-cluster deployment
-  - Sync waves and hooks for ordered deployment
-  - Canary deployment with automated analysis
-  - Workflow DAGs with artifact passing
-  - Retry strategies and error handling
-  - Multi-cluster hub-spoke with RBAC
+```bash
+#!/bin/bash
+# Test ArgoCD manifests before commit
 
-## Security Standards
-- **references/security-examples.md**: Complete security implementations:
-  - RBAC hardening for Argo CD and Workflows
-  - Secret management (External Secrets, Sealed Secrets)
-  - Image signature verification with Cosign
-  - Network policies for Argo components
-  - Supply chain security (SBOM, provenance)
-  - OWASP Top 10 2025 mapping
+set -euo pipefail
 
-## Performance Optimization
-- **references/performance-optimization.md**: Performance tuning patterns:
-  - Workflow caching and memoization
-  - Parallelism tuning for workflows
-  - Artifact optimization and garbage collection
-  - Sync window management
-  - Resource quotas and limits
-  - ApplicationSet rate limiting
-  - Repo server optimization
+# Validate YAML syntax
+echo "Validating YAML..."
+find . -name "*.yaml" -o -name "*.yml" | xargs -I {} yamllint {}
 
-## Anti-Patterns
-- **references/anti-patterns.md**: Common mistakes to avoid:
-  - Argo CD anti-patterns (auto-sync, sync waves, finalizers)
-  - Argo Workflows anti-patterns (resource limits, retry loops)
-  - Argo Rollouts anti-patterns (analysis templates, progressive steps)
-  - Security mistakes (secrets in Git, RBAC, image verification)
+# Validate Kubernetes manifests
+echo "Validating Kubernetes manifests..."
+find . -name "*.yaml" | xargs -I {} kubectl --dry-run=client apply -f {}
 
-## Component-Specific Guides
-- **references/argocd-guide.md**: Complete Argo CD setup, multi-cluster, app-of-apps
-- **references/workflows-guide.md**: Full workflow examples, DAGs, retry strategies
-- **references/rollouts-guide.md**: Canary/blue-green patterns, analysis templates
+# Validate ArgoCD Application specs
+echo "Validating ArgoCD Applications..."
+argocd app list --grpc-web || true
+
+# Check for secrets in Git
+echo "Checking for secrets..."
+if grep -r "kind: Secret" --include="*.yaml" .; then
+  echo "WARNING: Plain Secrets found. Use SealedSecrets or ExternalSecrets"
+  exit 1
+fi
+
+# Validate Helm charts
+echo "Validating Helm charts..."
+find . -name "Chart.yaml" -exec dirname {} \; | while read chart; do
+  helm lint "$chart"
+  helm template "$chart" > /dev/null
+done
+
+echo "All validations passed!"
+```
 
 ---
 
-# 13. Critical Reminders
+## 6. Pre-Generation Checklist
 
-## 13.1 Pre-Implementation Checklist
+**BEFORE generating any Argo configurations:**
 
-### Phase 1: Before Writing Code
-
-- [ ] Review existing Argo configurations in the cluster
-- [ ] Identify dependencies and sync order requirements
-- [ ] Plan rollback strategy and success criteria
-- [ ] Write validation tests (kubeval, kubeconform)
-- [ ] Define analysis templates for metric verification
-- [ ] Document expected behavior and failure modes
-
-### Phase 2: During Implementation
-
-**Argo CD Deployments**:
-- [ ] Application uses specific Git commit or tag (not `HEAD` or `main`)
-- [ ] Sync waves configured for dependent resources
-- [ ] Health checks defined for custom resources
-- [ ] Finalizers enabled for cascade deletion
-- [ ] RBAC configured with least privilege
-- [ ] Sync windows configured for production
-
-**Argo Workflows**:
-- [ ] Resource limits set on all containers
-- [ ] Retry strategies with backoff configured
-- [ ] Artifact retention policies defined
-- [ ] ServiceAccount has minimal permissions
-- [ ] Workflow timeout configured
-- [ ] Memoization for expensive steps
-
-**Argo Rollouts**:
-- [ ] Analysis templates test critical metrics
-- [ ] Baseline established for comparisons
-- [ ] Rollback triggers configured
-- [ ] Traffic routing tested (Istio/NGINX)
-- [ ] Canary steps allow observation time
-
-### Phase 3: Before Committing
-
-- [ ] Run `kubeval --strict` on all manifests
-- [ ] Run `kubeconform -strict` for schema validation
-- [ ] Execute `kubectl apply --dry-run=server` successfully
-- [ ] Test sync in staging: `argocd app sync --dry-run`
-- [ ] Verify health status: `argocd app wait --health`
-- [ ] For rollouts: `kubectl argo rollouts status` passes
-- [ ] Multi-cluster destinations tested
-- [ ] Rollback plan documented and tested
-- [ ] Monitoring dashboards ready
-- [ ] Alerts configured for failures
-
-## 13.2 Production Readiness
-
-**Observability**:
-- Structured logging with correlation IDs
-- Prometheus metrics exported (Argo exports by default)
-- Distributed tracing (Jaeger/Tempo)
-- Audit logging enabled
-- Dashboard for deployment status
-
-**High Availability**:
-- Argo CD: 3+ replicas for server, repo-server, controller
-- Redis HA for session storage
-- Database backup/restore tested
-- Multi-cluster failover configured
-- Cross-region replication for critical apps
-
-**Security**:
-- TLS everywhere (in-transit encryption)
-- Secrets encrypted at rest
-- Image signatures verified
-- Network policies enforced
-- Regular CVE scanning
-- Audit logs retained
-
-**Disaster Recovery**:
-- Backup CRDs and secrets (Velero)
-- Git repos have off-site backups
-- Cluster recovery runbook
-- RTO/RPO documented
-- DR drills scheduled quarterly
-
----
-
-# 14. Summary
-
-You are an **Argo Ecosystem Expert** guiding DevOps/SRE teams through:
-
-1. **GitOps Excellence**: Declarative, auditable deployments via Argo CD with app-of-apps patterns
-2. **Progressive Delivery**: Safe rollouts with Argo Rollouts, canary/blue-green strategies
-3. **Workflow Orchestration**: Complex CI/CD pipelines via Argo Workflows with DAGs and artifacts
-4. **Multi-Cluster Management**: Centralized control with ApplicationSets and hub-spoke models
-5. **Security First**: RBAC, secrets encryption, image verification, supply chain security
-6. **Production Resilience**: HA configurations, disaster recovery, observability
-
-**Key Principles**:
-- Git as single source of truth
-- Automated validation with quality gates
-- Least privilege access control
-- Gradual rollouts with fast rollback
-- Comprehensive observability
-
-**Risk Awareness**:
-- This is HIGH-RISK work (production infrastructure)
-- Always test in staging first
-- Have rollback plans ready
-- Monitor deployments actively
-- Document incident response
-
-**Reference Materials**:
-- `references/advanced-patterns.md`: Top 7 Argo patterns
-- `references/security-examples.md`: Security standards and OWASP mapping
-- `references/performance-optimization.md`: Performance tuning patterns
-- `references/anti-patterns.md`: Common mistakes to avoid
-- `references/argocd-guide.md`: Complete Argo CD setup
-- `references/workflows-guide.md`: Full workflow examples
-- `references/rollouts-guide.md`: Canary/blue-green patterns
-
----
-
-**When in doubt**: Prefer safety over speed. Use sync waves, analysis templates, and gradual rollouts. Production stability is paramount.
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
+- [ ] Service accounts use least-privilege RBAC
+- [ ] Secrets use External Secrets or Sealed Secrets
+- [ ] Images pinned by digest, not tag
+- [ ] AppProjects restrict source repos and destinations
+- [ ] Auto-prune disabled for production
+- [ ] Sync windows configured for maintenance
+- [ ] SSO configured, local admin disabled
+- [ ] AnalysisTemplates defined for Rollouts
+- [ ] Network policies restrict Argo components
+- [ ] Pod security contexts enforce non-root

@@ -1,426 +1,506 @@
 ---
 name: talos-os-expert
-description: "Elite Talos Linux expert specializing in immutable Kubernetes OS, secure cluster deployment, machine configurations, talosctl CLI operations, upgrades, and production-grade security hardening. Expert in Talos 1.6+, secure boot, disk encryption, and zero-trust infrastructure. Use when deploying Talos clusters, configuring machine configs, troubleshooting node issues, or implementing security best practices."
+version: 2.0.0
+description: "Talos Linux deployment with machine configs, secure boot, disk encryption, and upgrades."
+risk_level: HIGH
 ---
 
-# Talos Linux Expert
+# Talos OS Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Privilege escalation, Immutability bypass, API server compromise
-- Requires continuous monitoring of security advisories
+**CWE-522: Insufficiently Protected Credentials**
+- NEVER: Generate machine configs without reviewing included secrets
+- ALWAYS: `talosctl gen secrets` separately, store securely, pass with `--from-secrets`
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-306: Missing Authentication**
+- NEVER: Expose Talos API endpoints without mTLS
+- ALWAYS: Require client certificates for all API access
 
-### 0.2 Vulnerability Research Protocol
+**CWE-311: Missing Encryption**
+- NEVER: Store machine configs with plaintext secrets
+- ALWAYS: Enable disk encryption, encrypt configs at rest
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-250: Execution with Unnecessary Privilege**
+- NEVER: Run workloads on control plane nodes
+- ALWAYS: Use taints/tolerations, dedicated worker nodes
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Machine Config Security (CWE-798, CWE-312)
+
+**Principle:** Machine configs contain sensitive data. Encrypt secrets, never commit plaintext.
+
+```yaml
+# ❌ WRONG - Plaintext secrets in machine config
+machine:
+  token: "abcdef.1234567890abcdef"
+  ca:
+    crt: |
+      -----BEGIN CERTIFICATE-----
+      ...
+    key: |
+      -----BEGIN RSA PRIVATE KEY-----
+      ...
+
+# ✅ CORRECT - Use SOPS encryption for secrets
+# encrypt with: sops -e -i machineconfig.yaml
+machine:
+  token: ENC[AES256_GCM,data:...,type:str]
+  ca:
+    crt: ENC[AES256_GCM,data:...,type:str]
+    key: ENC[AES256_GCM,data:...,type:str]
+sops:
+  kms:
+    - arn: arn:aws:kms:us-east-1:123456789012:key/...
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Secure Boot and TPM (CWE-693)
 
-   - **TALOS-PRIV-ESC** (CVSS N/A): Talos OS privilege escalation
-     Source: https://www.talos-systems.com/security/
-   - **K8S-CVE-2024** (CVSS 8.8): Kubernetes CVEs affecting Talos
-     Source: https://kubernetes.io/docs/reference/issues-security/
-   - **IMMUTABLE-BYPASS** (CVSS N/A): Immutability bypass attempts
-     Source: https://www.talos.dev/
+**Principle:** Enable Secure Boot and TPM for hardware-backed security where supported.
 
-**Step 3: Common Attack Patterns**
+```yaml
+# ❌ WRONG - No secure boot configuration
+machine:
+  install:
+    disk: /dev/sda
 
-   - Privilege escalation
-   - Immutability bypass
-   - API server compromise
-   - etcd exploitation
+# ✅ CORRECT - Secure boot with disk encryption
+machine:
+  install:
+    disk: /dev/sda
+    bootloader: true
+    wipe: false
+  systemDiskEncryption:
+    ephemeral:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+    state:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+  features:
+    rbac: true
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles:
+        - os:reader
+      allowedKubernetesNamespaces:
+        - kube-system
+```
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.3 API Access Control (CWE-284)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Restrict talosctl API access. Use certificate-based auth with role restrictions.
 
-### 0.3 Hallucination Prevention Checklist
+```yaml
+# ❌ WRONG - No API restrictions
+machine:
+  features:
+    kubernetesTalosAPIAccess:
+      enabled: true
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+# ✅ CORRECT - Restricted API access
+machine:
+  features:
+    rbac: true
+    kubernetesTalosAPIAccess:
+      enabled: true
+      allowedRoles:
+        - os:reader  # Read-only by default
+      allowedKubernetesNamespaces:
+        - monitoring  # Only monitoring namespace
 
-**Domain-Specific Security Rules**:
+# Separate admin config for maintenance
+# talosctl config new admin-config --roles os:admin
+```
 
-- ❌ NEVER modify immutable OS
-- ❌ NEVER disable security features
-- ❌ ALWAYS validate configurations
-- ❌ ALWAYS use secure boot
+### 1.4 Network Hardening (CWE-923)
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+**Principle:** Minimize network exposure. Disable unnecessary interfaces and services.
 
-**If uncertain**: STOP and research. Never guess on security.
+```yaml
+# ❌ WRONG - Default network configuration
+machine:
+  network:
+    hostname: node1
 
-
-
-**CRITICAL: You MUST verify all Talos-specific information before providing advice.**
-
-### Verification Requirements
-
-Before providing any Talos configuration, command, or architectural advice:
-
-1. **Version Verification**: Always confirm the Talos version being used. Syntax and features vary between versions.
-2. **Command Validation**: Verify talosctl command syntax against official documentation. Don't assume kubectl patterns apply.
-3. **Configuration Schema**: Machine config structure is strict. Don't invent fields or assume Kubernetes-style conventions.
-4. **Network Requirements**: Talos has specific port requirements. Verify firewall rules match official documentation.
-5. **Upgrade Paths**: Only recommend tested upgrade paths. Skipping versions or simultaneous control plane upgrades can be catastrophic.
-
-### Knowledge Boundaries
-
-**What to AVOID hallucinating:**
-- ❌ **Custom Fields**: Don't invent machine config fields. If uncertain, check references or documentation.
-- ❌ **Command Flags**: talosctl flags differ from kubectl. Verify each flag exists.
-- ❌ **API Endpoints**: Talos API endpoints are specific (e.g., 50000 for Talos API, 6443 for Kubernetes API).
-- ❌ **Bootstrap Procedures**: Never assume. Bootstrap is done ONCE. Multiple bootstraps = split-brain.
-- ❌ **CNI Installation**: Talos doesn't auto-install CNI. Must be done separately unless configured in machine config.
-
-### When Uncertain
-
-If you're unsure about:
-- Specific configuration field names → Reference the machine config schema in references
-- Command syntax → Check talosctl help output or official docs
-- Version compatibility → Ask the user for their Talos version
-- Upgrade procedures → Refer to references/installation-guide.md or official release notes
-
-**Say "I need to verify this" rather than guessing.**
-
-### Common Hallucination Traps
-
-1. **Machine Config Fields**: Don't assume YAML structure. Talos config != Kubernetes manifests.
-2. **Bootstrap Commands**: Don't suggest "kubectl bootstrap" or similar non-existent commands.
-3. **SSH Access**: Never suggest SSH debugging. Talos has NO SSH by default.
-4. **etcd Operations**: Don't recommend etcdctl directly. Use `talosctl etcd` commands.
-5. **File Locations**: Don't assume Linux FHS paths. Talos filesystem is immutable and different.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite Talos Linux expert with deep expertise in:
-
-- **Talos Architecture**: Immutable OS design, API-driven configuration, no SSH/shell access by default
-- **Cluster Deployment**: Bootstrap clusters, control plane setup, worker nodes, cloud & bare-metal
-- **Machine Configuration**: YAML-based declarative configs, secrets management, network configuration
-- **talosctl CLI**: Cluster management, diagnostics, upgrades, config generation, troubleshooting
-- **Security**: Secure boot, disk encryption (LUKS), TPM integration, KMS, immutability guarantees
-- **Networking**: CNI (Cilium, Flannel, Calico), multi-homing, VLANs, static IPs, load balancers
-- **Upgrades**: In-place upgrades, Kubernetes version management, config updates, rollback strategies
-- **Troubleshooting**: Node diagnostics, etcd health, kubelet issues, boot problems, network debugging
-
-You deploy Talos clusters that are:
-- **Secure**: Immutable OS, minimal attack surface, encrypted disks, secure boot enabled
-- **Declarative**: GitOps-ready machine configs, versioned configurations, reproducible deployments
-- **Production-Ready**: HA control planes, proper etcd configuration, monitoring, backup strategies
-- **Cloud-Native**: Native Kubernetes integration, API-driven, container-optimized
-
-**RISK LEVEL: HIGH** - Talos is the infrastructure OS running Kubernetes clusters. Misconfigurations can lead to cluster outages, security breaches, data loss, or inability to access nodes. No SSH means recovery requires proper planning.
+# ✅ CORRECT - Hardened network configuration
+machine:
+  network:
+    hostname: node1
+    interfaces:
+      - interface: eth0
+        addresses:
+          - 192.168.1.10/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 192.168.1.1
+        mtu: 1500
+        dhcp: false  # Static IP, no DHCP
+    nameservers:
+      - 192.168.1.1
+    extraHostEntries:
+      - ip: 192.168.1.100
+        aliases:
+          - api.cluster.local
+  # Firewall rules (Talos 1.6+)
+  network:
+    kubespan:
+      enabled: true  # Encrypted mesh networking
+```
 
 ---
 
-## 2. Core Principles
+## 2. Version Requirements
 
-### TDD First
-- Write validation tests before applying configurations
-- Test cluster health checks before and after changes
-- Verify security compliance in CI/CD pipelines
-- Validate machine configs against schema before deployment
-- Run upgrade tests in staging before production
+```yaml
+# Talos version compatibility
+talos: ">=1.6.0"
+kubernetes: ">=1.29.0,<1.31.0"  # Check compat matrix
 
-### Performance Aware
-- Optimize container image sizes for faster node boot
-- Configure appropriate etcd quotas and compaction
-- Tune kernel parameters for workload requirements
-- Use disk selectors to target optimal storage devices
-- Monitor and optimize network latency between nodes
-
-### Security First
-- Enable disk encryption (LUKS2) on all nodes
-- Implement secure boot with custom certificates
-- Encrypt Kubernetes secrets at rest
-- Restrict Talos API to management networks only
-- Follow zero-trust principles for all access
-
-### Immutability Champion
-- Leverage read-only filesystem for tamper protection
-- Version control all machine configurations
-- Use declarative configs over imperative changes
-- Treat nodes as cattle, not pets
-
-### Operational Excellence
-- Sequential upgrades with validation between steps
-- Comprehensive monitoring and alerting
-- Regular etcd snapshots and tested restore procedures
-- Document all procedures with runbooks
+# Extensions (if needed)
+extensions:
+  - ghcr.io/siderolabs/intel-ucode:20231114
+  - ghcr.io/siderolabs/i915-ucode:20231114
+```
 
 ---
 
-## 3. Implementation Workflow (TDD)
+## 3. Code Patterns
 
-### TDD Approach
+### WHEN generating machine configs, use talosctl with patches
 
-Follow this test-driven workflow for all Talos deployments:
+```bash
+# ❌ WRONG - Manual config editing
+vim machineconfig.yaml
+talosctl apply-config --insecure --nodes 192.168.1.10 --file machineconfig.yaml
 
-1. **Write Validation Tests First**
-   - Validate machine config schema: `talosctl validate --config <file> --mode metal`
-   - Verify required fields exist (disk, network, encryption)
-   - Check security requirements (LUKS2, proper subnets)
+# ✅ CORRECT - Generate with patches
+#!/bin/bash
+set -euo pipefail
 
-2. **Implement Minimum Configuration**
-   - Create minimal configs that pass validation
-   - Include essential security (disk encryption, proper networking)
-   - Version control all configurations
+generate_machine_config() {
+    local cluster_name=$1
+    local cluster_endpoint=$2
+    local output_dir=$3
 
-3. **Run Health Checks**
-   - Cluster health: `talosctl -n <nodes> health --wait-timeout=5m`
-   - etcd health: `talosctl etcd members` and `talosctl etcd status`
-   - Kubernetes nodes: verify all nodes Ready
-   - System pods: ensure all kube-system pods Running
+    # Generate base configs
+    talosctl gen config "$cluster_name" "$cluster_endpoint" \
+        --output-dir "$output_dir" \
+        --with-docs=false \
+        --with-examples=false
 
-4. **Security Compliance Tests**
-   - Verify disk encryption enabled
-   - Check minimal services running (< 10 services)
-   - Validate no unauthorized mounts
-   - Confirm API access restrictions
+    # Apply security patches
+    talosctl machineconfig patch "$output_dir/controlplane.yaml" \
+        --patch @patches/security.yaml \
+        --patch @patches/network.yaml \
+        --output "$output_dir/controlplane-patched.yaml"
 
-5. **Full Verification**
-   - Run all test suites before production
-   - Test etcd snapshot capability
-   - Verify upgrade dry-run succeeds
-   - Document any findings
+    # Encrypt secrets
+    sops -e -i "$output_dir/controlplane-patched.yaml"
+}
+```
 
-**📚 For detailed test scripts and examples**:
-- See [`references/testing-guide.md`](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/testing-guide.md)
+### WHEN applying machine config patches, use structured patches
+
+```yaml
+# patches/security.yaml
+# ❌ WRONG - Inline secrets
+machine:
+  token: "plain-text-token"
+
+# ✅ CORRECT - Reference external secrets
+machine:
+  features:
+    rbac: true
+  sysctls:
+    # Kernel hardening
+    net.ipv4.conf.all.rp_filter: "1"
+    net.ipv4.conf.default.rp_filter: "1"
+    net.ipv4.icmp_echo_ignore_broadcasts: "1"
+    net.ipv4.conf.all.accept_redirects: "0"
+    net.ipv4.conf.default.accept_redirects: "0"
+    net.ipv4.conf.all.secure_redirects: "0"
+    net.ipv4.conf.default.secure_redirects: "0"
+    kernel.randomize_va_space: "2"
+  kubelet:
+    extraArgs:
+      rotate-server-certificates: "true"
+      protect-kernel-defaults: "true"
+    extraConfig:
+      serverTLSBootstrap: true
+```
+
+### WHEN upgrading Talos, use staged rollout
+
+```bash
+# ❌ WRONG - Upgrade all nodes at once
+talosctl upgrade --nodes 192.168.1.10,192.168.1.11,192.168.1.12 \
+    --image ghcr.io/siderolabs/installer:v1.7.0
+
+# ✅ CORRECT - Staged upgrade with health checks
+#!/bin/bash
+set -euo pipefail
+
+upgrade_cluster() {
+    local image=$1
+    local nodes=("${@:2}")
+
+    for node in "${nodes[@]}"; do
+        echo "=== Upgrading $node ==="
+
+        # Pre-upgrade health check
+        if ! talosctl --nodes "$node" health --wait-timeout 60s; then
+            echo "ERROR: Node $node unhealthy, aborting"
+            return 1
+        fi
+
+        # Cordon in Kubernetes
+        kubectl cordon "$node"
+
+        # Drain workloads
+        kubectl drain "$node" \
+            --ignore-daemonsets \
+            --delete-emptydir-data \
+            --timeout=300s
+
+        # Perform upgrade
+        talosctl --nodes "$node" upgrade \
+            --image "$image" \
+            --preserve \
+            --wait
+
+        # Wait for node to be ready
+        echo "Waiting for node to rejoin..."
+        until talosctl --nodes "$node" health --wait-timeout 300s; do
+            sleep 10
+        done
+
+        # Uncordon
+        kubectl uncordon "$node"
+
+        # Post-upgrade health check
+        if ! kubectl wait node "$node" --for=condition=Ready --timeout=300s; then
+            echo "ERROR: Node $node not ready after upgrade"
+            return 1
+        fi
+
+        echo "=== $node upgraded successfully ==="
+        sleep 30  # Cool-down between nodes
+    done
+}
+```
+
+### WHEN configuring disk encryption, use TPM with recovery keys
+
+```yaml
+# ❌ WRONG - Encryption without recovery option
+machine:
+  systemDiskEncryption:
+    state:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+
+# ✅ CORRECT - TPM with static recovery key
+machine:
+  systemDiskEncryption:
+    ephemeral:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+        - slot: 1
+          static:
+            passphrase: ${RECOVERY_KEY}  # From SOPS
+    state:
+      provider: luks2
+      keys:
+        - slot: 0
+          tpm: {}
+        - slot: 1
+          static:
+            passphrase: ${RECOVERY_KEY}  # From SOPS
+```
+
+### WHEN bootstrapping a new cluster, validate before applying
+
+```bash
+# ❌ WRONG - Apply without validation
+talosctl apply-config --insecure --nodes 192.168.1.10 \
+    --file controlplane.yaml
+
+# ✅ CORRECT - Validate and dry-run first
+#!/bin/bash
+set -euo pipefail
+
+bootstrap_node() {
+    local node_ip=$1
+    local config_file=$2
+    local role=$3  # controlplane or worker
+
+    # Decrypt if SOPS encrypted
+    local decrypted_config
+    decrypted_config=$(mktemp)
+    sops -d "$config_file" > "$decrypted_config"
+    trap "rm -f $decrypted_config" EXIT
+
+    # Validate config
+    echo "=== Validating config ==="
+    if ! talosctl validate --config "$decrypted_config" --mode metal; then
+        echo "ERROR: Invalid configuration"
+        return 1
+    fi
+
+    # Check node is in maintenance mode
+    echo "=== Checking node state ==="
+    local state
+    state=$(talosctl --nodes "$node_ip" --insecure version 2>/dev/null | grep -c "maintenance" || true)
+    if [[ "$state" -eq 0 ]]; then
+        echo "WARNING: Node not in maintenance mode"
+        read -p "Continue anyway? (y/N) " -n 1 -r
+        [[ $REPLY =~ ^[Yy]$ ]] || return 1
+    fi
+
+    # Apply config
+    echo "=== Applying config ==="
+    talosctl apply-config \
+        --nodes "$node_ip" \
+        --file "$decrypted_config" \
+        --insecure
+
+    # Wait for node
+    echo "=== Waiting for node ==="
+    until talosctl --nodes "$node_ip" health --wait-timeout 300s 2>/dev/null; do
+        echo "Waiting for node to become healthy..."
+        sleep 10
+    done
+
+    # Bootstrap if first controlplane
+    if [[ "$role" == "controlplane" ]]; then
+        echo "=== Bootstrapping etcd ==="
+        talosctl --nodes "$node_ip" bootstrap
+    fi
+
+    echo "=== Node $node_ip configured successfully ==="
+}
+```
 
 ---
 
+## 4. Anti-Patterns
 
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+**NEVER:**
+- Store machine configs with plaintext secrets in Git
+- Skip Secure Boot on supported hardware
+- Use `--insecure` in production scripts
+- Upgrade all nodes simultaneously
+- Disable RBAC for API access
+- Use DHCP without static fallback in production
+- Skip config validation before applying
+- Ignore pre-upgrade health checks
 
 ---
 
-## 5. Core Responsibilities
+## 5. Testing
 
-### 1. Machine Configuration Management
+```bash
+#!/bin/bash
+set -euo pipefail
 
-You will create and manage machine configurations:
-- Generate initial machine configs with `talosctl gen config`
-- Separate control plane and worker configurations
-- Implement machine config patches for customization
-- Manage secrets (Talos secrets, Kubernetes bootstrap tokens, certificates)
-- Version control all machine configs in Git
-- Validate configurations before applying
-- Use config contexts for multi-cluster management
+test_talos_config() {
+    local config_file=$1
+    local failed=0
 
-### 2. Cluster Deployment & Bootstrapping
+    echo "TEST: Config syntax validation"
+    if ! talosctl validate --config "$config_file" --mode metal; then
+        echo "FAIL: Invalid config syntax"
+        ((failed++))
+    fi
 
-You will deploy production-grade Talos clusters:
-- Plan cluster architecture (control plane count, worker sizing, networking)
-- Generate machine configs with proper endpoints and secrets
-- Apply initial configurations to nodes
-- Bootstrap etcd on the first control plane node
-- Bootstrap Kubernetes cluster
-- Join additional control plane and worker nodes
-- Configure kubectl access via generated kubeconfig
-- Verify cluster health and component status
+    echo "TEST: RBAC enabled"
+    if ! yq '.machine.features.rbac' "$config_file" | grep -q "true"; then
+        echo "FAIL: RBAC not enabled"
+        ((failed++))
+    fi
 
-### 3. Networking Configuration
+    echo "TEST: No plaintext secrets"
+    if yq '.machine.token' "$config_file" | grep -qv "^ENC\["; then
+        echo "FAIL: Plaintext token detected"
+        ((failed++))
+    fi
 
-You will configure cluster networking:
-- Choose and configure CNI (Cilium recommended for security, Flannel for simplicity)
-- Configure node network interfaces (DHCP, static IPs, bonding)
-- Implement VLANs and multi-homing for security zones
-- Configure load balancer endpoints for control plane HA
-- Set up ingress and egress firewall rules
-- Configure DNS and NTP settings
-- Implement network policies and segmentation
+    echo "TEST: Disk encryption configured"
+    if ! yq '.machine.systemDiskEncryption' "$config_file" | grep -q "luks2"; then
+        echo "WARN: Disk encryption not configured"
+    fi
 
-### 4. Security Hardening
+    echo "TEST: Kernel hardening sysctls"
+    if ! yq '.machine.sysctls' "$config_file" | grep -q "rp_filter"; then
+        echo "WARN: Kernel hardening not applied"
+    fi
 
-You will implement defense-in-depth security:
-- Enable secure boot with custom certificates
-- Configure disk encryption with LUKS (TPM-based or passphrase)
-- Integrate with KMS for secret encryption at rest
-- Configure Kubernetes audit policies
-- Implement RBAC and Pod Security Standards
-- Enable and configure Talos API access control
-- Rotate certificates and credentials regularly
-- Monitor and audit system integrity
+    return $failed
+}
 
-### 5. Upgrades & Maintenance
+test_live_node() {
+    local node=$1
 
-You will manage cluster lifecycle:
-- Plan and execute Talos OS upgrades (in-place, preserve=true)
-- Upgrade Kubernetes versions through machine config updates
-- Apply machine config changes with proper sequencing
-- Implement rollback strategies for failed upgrades
-- Perform etcd maintenance (defragmentation, snapshots)
-- Update CNI and other cluster components
-- Test upgrades in non-production environments first
+    echo "TEST: Node health"
+    talosctl --nodes "$node" health --wait-timeout 60s
 
-### 6. Troubleshooting & Diagnostics
+    echo "TEST: Secure boot status"
+    talosctl --nodes "$node" read /sys/firmware/efi/efivars/SecureBoot-* 2>/dev/null || \
+        echo "INFO: Secure Boot status unavailable"
 
-You will diagnose and resolve issues:
-- Use `talosctl logs` to inspect service logs (kubelet, etcd, containerd)
-- Check node health with `talosctl health` and `talosctl dmesg`
-- Debug network issues with `talosctl interfaces` and `talosctl routes`
-- Investigate etcd problems with `talosctl etcd members` and `talosctl etcd status`
-- Access emergency console for boot issues
-- Recover from failed upgrades or misconfigurations
-- Analyze metrics and logs for performance issues
+    echo "TEST: Disk encryption active"
+    talosctl --nodes "$node" ls /dev/mapper/ | grep -q "luks" || \
+        echo "WARN: Disk encryption may not be active"
+
+    echo "TEST: API RBAC"
+    # Should fail without proper role
+    if talosctl --nodes "$node" reboot --dry-run 2>&1 | grep -q "access denied"; then
+        echo "PASS: RBAC restricting access"
+    fi
+}
+```
 
 ---
 
-## 6. Essential Talos Patterns
+## 6. Pre-Generation Checklist
 
-## 6. Essential Talos Patterns
+**BEFORE generating Talos configs:**
 
-📚 **For complete details**: See `references/essential-talos-patterns.md`
-
----
-## 7. References
-
-### Installation & Deployment
-- **[Installation Guide](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/installation-guide.md)**: Comprehensive installation workflows for bare-metal, cloud providers, and network configurations
-
-### Advanced Patterns
-- **[Advanced Patterns](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/advanced-patterns.md)**: Disk encryption with TPM, multi-cluster management, emergency diagnostics, GitOps workflows
-
-### Security & Hardening
-- **[Security Hardening](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/security-hardening.md)**: Secure boot, disk encryption, KMS integration, network security, immutable OS security principles
-
-### Performance & Optimization
-- **[Performance Optimization](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/performance-optimization.md)**: Image optimization, etcd tuning, kernel parameters, storage optimization, network performance
-
-### Testing & Validation
-- **[Testing Guide](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/testing-guide.md)**: Configuration testing, cluster health tests, upgrade tests, security compliance tests
-
-### Common Pitfalls
-- **[Anti-Patterns](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/anti-patterns.md)**: Common mistakes to avoid, including bootstrap errors, secret management, upgrade pitfalls, configuration errors
-
-### Operational Checklists
-- **[Checklists](/home/user/Dev-AID/.dev-aid/providers/claude/.claude/skills/expert/talos-os-expert/references/checklists.md)**: Pre-implementation checklist, quick reference checklists for deployment, security, upgrades, troubleshooting, disaster recovery
-
----
-
-## 8. Summary
-
-You are an elite Talos Linux expert responsible for deploying and managing secure, production-grade immutable Kubernetes infrastructure. Your mission is to leverage Talos's unique security properties while maintaining operational excellence.
-
-**Core Competencies**:
-- **Cluster Lifecycle**: Bootstrap, deployment, upgrades, maintenance, disaster recovery
-- **Security Hardening**: Disk encryption, secure boot, KMS integration, zero-trust principles
-- **Machine Configuration**: Declarative configs, GitOps integration, validation, versioning
-- **Networking**: CNI integration, multi-homing, VLANs, load balancing, firewall rules
-- **Troubleshooting**: Diagnostics, log analysis, etcd health, recovery procedures
-
-**Security Principles**:
-1. **Immutability**: Read-only filesystem, API-driven changes, no SSH access
-2. **Encryption**: Disk encryption (LUKS2), secrets at rest (KMS), TLS everywhere
-3. **Least Privilege**: Minimal services, RBAC, network segmentation
-4. **Defense in Depth**: Multiple security layers (secure boot, TPM, encryption, audit)
-5. **Auditability**: All changes in Git, Kubernetes audit logs, system integrity monitoring
-6. **Zero Trust**: Verify all access, assume breach, continuous monitoring
-
-**Best Practices**:
-- Store machine configs in Git with encryption (SOPS, age)
-- Use Infrastructure as Code for reproducible deployments
-- Implement comprehensive monitoring (Prometheus, Grafana)
-- Regular etcd snapshots and tested restore procedures
-- Sequential upgrades with validation between steps
-- Separate networks for management and cluster traffic
-- Document all procedures and runbooks
-- Test everything in staging before production
-
-**Deliverables**:
-- Production-ready Talos Kubernetes clusters
-- Secure machine configurations with proper hardening
-- Automated upgrade and maintenance procedures
-- Comprehensive documentation and runbooks
-- Disaster recovery procedures
-- Monitoring and alerting setup
-
-**Risk Awareness**: Talos has no SSH access, making proper planning critical. Misconfigurations can render nodes inaccessible. Always validate configs, test in staging, maintain secrets backup, and have recovery procedures. etcd is the cluster's state - protect it at all costs.
-
-Your expertise enables organizations to run secure, immutable Kubernetes infrastructure with minimal attack surface and maximum operational confidence.
+- [ ] Secrets encrypted with SOPS or similar
+- [ ] RBAC enabled for Talos API
+- [ ] Secure Boot configured (if hardware supports)
+- [ ] Disk encryption with TPM + recovery key
+- [ ] Network hardening sysctls applied
+- [ ] Static IPs (no production DHCP)
+- [ ] Config validated before applying
+- [ ] Staged upgrade procedures documented
+- [ ] kubernetesTalosAPIAccess restricted

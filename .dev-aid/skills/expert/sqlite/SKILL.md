@@ -1,470 +1,490 @@
 ---
-name: SQLite Database Expert
+name: sqlite
+version: 2.0.0
+description: "SQLite patterns for desktop/Tauri apps with WAL mode, FTS5, and connection pooling."
 risk_level: HIGH
-description: Expert in SQLite embedded database development for Tauri/desktop applications with focus on SQL injection prevention, migrations, FTS search, and secure data handling
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [database, sqlite, sql, embedded, migrations, fts, security]
-model: claude-sonnet-4-5-20250929
 ---
 
-# SQLite Database Expert
-
-## 0. Mandatory Reading Protocol
-
-**CRITICAL**: Before implementing ANY database operation, you MUST read the relevant reference files:
-
-### Trigger Conditions for Reference Files
-
-**Read `references/advanced-patterns.md` WHEN**:
-- Implementing database migrations
-- Setting up Full-Text Search (FTS5)
-- Designing complex queries with CTEs or window functions
-- Implementing connection pooling or WAL mode
-- Performance optimization tasks
-
-**Read `references/security-examples.md` WHEN**:
-- Writing ANY SQL query with user input
-- Implementing parameterized queries
-- Setting up database encryption considerations
-- Handling sensitive data storage
-- Implementing input validation for database operations
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# SQLite Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Memory corruption via complex queries, DoS via malformed JSON, Integer overflow exploitation
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-89: SQL Injection**
+- NEVER: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
+- ALWAYS: `db.execute("SELECT * FROM users WHERE id = ?", [id])`
 
-### 0.2 Vulnerability Research Protocol
+**CWE-732: Database File Permissions**
+- NEVER: World-readable SQLite files (0644 or worse)
+- ALWAYS: `chmod 600 database.db`, restrict to application user
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-311: Missing Encryption**
+- NEVER: Store sensitive data in plain SQLite for sensitive apps
+- ALWAYS: Use SQLCipher for encryption at rest if needed
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-662: Improper Synchronization**
+- NEVER: Multiple writers without WAL mode
+- ALWAYS: Enable WAL mode, use proper connection pooling with serialized access
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: HIGH
 
-   - **CVE-2025-6965** (CVSS 9.8): Memory corruption when aggregate terms exceed max columns (AI-discovered)
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2025-6965
-   - **CVE-2025-29087** (CVSS 8.1): Integer overflow in concatws() function leading to memory corruption
-     Source: https://www.wiz.io/vulnerability-database/cve/cve-2025-29087
-   - **CVE-2024-0232** (CVSS 5.5): Heap use-after-free in jsonParseAddNodeArray()
-     Source: https://www.wiz.io/vulnerability-database/cve/cve-2024-0232
-
-**Step 3: Common Attack Patterns**
-
-   - Memory corruption via complex queries
-   - DoS via malformed JSON
-   - Integer overflow exploitation
-   - Malicious database file injection
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER allow untrusted CREATE TABLE statements
-- ❌ NEVER open untrusted SQLite database files
-- ❌ NEVER use SQLite < 3.50.2
-- ❌ ALWAYS validate query complexity
-- ❌ ALWAYS sanitize input for dynamic SQL
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level: MEDIUM**
-
-**Justification**: SQLite databases in desktop applications handle user data locally, present SQL injection risks if queries aren't properly parameterized, and require careful migration management to prevent data loss.
-
-You are an expert in SQLite embedded database development, specializing in:
-- **Secure SQL patterns** with parameterized queries to prevent SQL injection
-- **Database migrations** with version control and rollback capabilities
-- **Full-Text Search (FTS5)** for efficient text searching
-- **Performance optimization** including indexing, WAL mode, and connection management
-- **Rust/Tauri integration** using rusqlite and sea-query
-
-### Core Principles
-
-1. **TDD First** - Write tests before implementation; use in-memory SQLite for fast test execution
-2. **Performance Aware** - Optimize with WAL mode, prepared statements, batch operations, and proper indexing
-3. **Security First** - Always use parameterized queries; never concatenate user input
-4. **Transaction Safety** - Wrap related operations in transactions for atomicity
-5. **Migration Discipline** - Version all schema changes with rollback capability
-
-### Primary Use Cases
-- Local data persistence for desktop applications
-- Offline-first application data storage
-- Full-text search implementation
-- Configuration and settings storage
-- Cache and temporary data management
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### 2.1 Security-First Database Operations
+### 1.1 Data ≠ Code (CWE-89)
 
-1. **ALWAYS use parameterized queries** - Never concatenate user input into SQL strings
-2. **Validate all inputs** before database operations
-3. **Implement proper error handling** without exposing database internals
-4. **Use transactions** for data integrity
-5. **Apply principle of least privilege** for database access
-
-### 2.2 Data Integrity Principles
-
-1. **Schema versioning** with migration tracking
-2. **Foreign key enforcement** with `PRAGMA foreign_keys = ON`
-3. **Constraint validation** at database level
-4. **Backup strategies** before destructive operations
-
----
-
-## 3. Technical Foundation
-
-### 3.1 Version Recommendations
-
-| Component | Recommended | Minimum | Notes |
-|-----------|-------------|---------|-------|
-| SQLite | 3.45+ | 3.35 | FTS5, JSON functions |
-| rusqlite | 0.31+ | 0.29 | Bundled SQLite support |
-| sea-query | 0.30+ | 0.28 | Query builder |
-| r2d2 | 0.8+ | 0.8 | Connection pooling |
-
-### 3.2 Required Dependencies (Cargo.toml)
-
-```toml
-[dependencies]
-rusqlite = { version = "0.31", features = ["bundled", "backup", "functions"] }
-sea-query = "0.30"
-sea-query-rusqlite = "0.5"
-r2d2 = "0.8"
-r2d2_sqlite = "0.24"
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-## 5. Implementation Patterns
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Security Standards
-
-### 5.1 Key Vulnerabilities
-
-**Mitigation**: Update to SQLite 3.44.0+ and always use parameterized queries.
-
-### 5.2 OWASP Mapping
-
-| OWASP Category | Risk | Key Controls |
-|----------------|------|--------------|
-| A03 - Injection | Critical | Parameterized queries, input validation |
-| A04 - Insecure Design | Medium | Schema constraints, foreign keys |
-| A05 - Misconfiguration | Medium | Secure PRAGMAs, file permissions (600) |
-
-### 5.3 SQL Injection Prevention
-
-**Critical Rules** (see `references/security-examples.md`):
-1. NEVER use string formatting for SQL queries
-2. ALWAYS use `?` positional or `:name` named parameters
-3. Whitelist column/table names for dynamic queries
-
-```rust
-// Dynamic column selection - SAFE approach
-pub fn get_user_fields(&self, user_id: i64, fields: &[&str]) -> Result<HashMap<String, String>> {
-    const ALLOWED: &[&str] = &["id", "name", "email", "created_at"];
-    let safe_fields: Vec<&str> = fields.iter()
-        .filter(|f| ALLOWED.contains(f)).copied().collect();
-    if safe_fields.is_empty() { return Err(rusqlite::Error::InvalidQuery); }
-    let query = format!("SELECT {} FROM users WHERE id = ?1", safe_fields.join(", "));
-    let mut stmt = self.conn.prepare(&query)?;
-    // ...
-}
-```
-
----
-
-## 7. Testing Standards
-
-### 6.1 Rust Testing Pattern
-
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rusqlite::Connection;
-
-    fn setup_test_db() -> Database {
-        let conn = Connection::open_in_memory().unwrap();
-        let db = Database { conn };
-        db.run_migrations().unwrap();
-        db
-    }
-
-    #[test]
-    fn test_sql_injection_prevented() {
-        let db = setup_test_db();
-        let result = db.search_users("'; DROP TABLE users; --", "active");
-        assert!(result.is_ok());
-        assert!(db.get_user_by_id(1).is_ok()); // Table still exists
-    }
-}
-```
-
----
-
-## 8. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Never construct SQL from untrusted data via string operations.
 
 ```python
-# tests/test_user_repository.py
+# ❌ WRONG - SQL injection
+user_id = request.args.get('id')
+cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+cursor.execute("SELECT * FROM users WHERE id = " + user_id)
+
+# ✅ CORRECT - Parameterized query (Python)
+cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+
+# ✅ CORRECT - Named parameters
+cursor.execute(
+    "SELECT * FROM users WHERE name = :name AND age > :age",
+    {"name": name, "age": age}
+)
+```
+
+```rust
+// ❌ WRONG - SQL injection (Rust)
+let query = format!("SELECT * FROM users WHERE id = {}", user_id);
+conn.execute(&query, [])?;
+
+// ✅ CORRECT - Parameterized query (rusqlite)
+conn.execute("SELECT * FROM users WHERE id = ?1", [&user_id])?;
+
+// ✅ CORRECT - With sqlx
+sqlx::query!("SELECT * FROM users WHERE id = $1", user_id)
+    .fetch_one(&pool)
+    .await?;
+```
+
+```typescript
+// ❌ WRONG - SQL injection (better-sqlite3)
+const user = db.prepare(`SELECT * FROM users WHERE id = ${userId}`).get();
+
+// ✅ CORRECT - Parameterized query
+const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+
+// ✅ CORRECT - Named parameters
+const user = db.prepare('SELECT * FROM users WHERE id = @id').get({ id: userId });
+```
+
+### 1.2 Input Validation (CWE-20)
+
+**Principle:** Validate all input. Use database constraints as second layer.
+
+```sql
+-- ❌ WRONG - No constraints
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    email TEXT,
+    age INTEGER
+);
+
+-- ✅ CORRECT - With constraints
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE CHECK(length(email) <= 255 AND email LIKE '%@%.%'),
+    age INTEGER CHECK(age >= 0 AND age <= 150),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    CONSTRAINT email_format CHECK(email GLOB '*@*.*')
+);
+```
+
+### 1.3 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never store unencrypted secrets. Use SQLCipher for sensitive data.
+
+```python
+# ❌ WRONG - Plaintext password storage
+cursor.execute("INSERT INTO users (password) VALUES (?)", (password,))
+
+# ✅ CORRECT - Hash passwords with Argon2
+from argon2 import PasswordHasher
+ph = PasswordHasher()
+hash = ph.hash(password)
+cursor.execute("INSERT INTO users (password_hash) VALUES (?)", (hash,))
+
+# ✅ CORRECT - Use SQLCipher for sensitive databases
+import sqlcipher3
+conn = sqlcipher3.connect('encrypted.db')
+conn.execute(f"PRAGMA key = '{key}'")  # Key from secure source
+```
+
+### 1.4 Fail Secure (CWE-636)
+
+**Principle:** Use transactions. Rollback on any error.
+
+```python
+# ❌ WRONG - No transaction, partial updates possible
+cursor.execute("UPDATE accounts SET balance = balance - 100 WHERE id = 1")
+cursor.execute("UPDATE accounts SET balance = balance + 100 WHERE id = 2")
+
+# ✅ CORRECT - Transaction with rollback
+try:
+    conn.execute("BEGIN TRANSACTION")
+    conn.execute("UPDATE accounts SET balance = balance - 100 WHERE id = ?", (from_id,))
+    conn.execute("UPDATE accounts SET balance = balance + 100 WHERE id = ?", (to_id,))
+    conn.commit()
+except Exception:
+    conn.rollback()
+    raise
+```
+
+### 1.5 Least Privilege (CWE-250)
+
+**Principle:** Read-only connections where possible. Minimal permissions.
+
+### 1.6 Defense in Depth
+
+**Principle:** Application validation + database constraints + encrypted storage.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```
+# Python
+sqlite3 (stdlib)
+sqlcipher3>=0.5.0    # For encryption
+
+# Rust
+rusqlite>=0.31.0
+sqlx>=0.7.0
+
+# Node.js
+better-sqlite3>=9.4.0
+sql.js>=1.10.0
+
+# Tauri
+tauri-plugin-sql>=2.0.0
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating database schema
+
+```sql
+-- Enable WAL mode for better concurrency
+PRAGMA journal_mode = WAL;
+
+-- Enable foreign keys (off by default!)
+PRAGMA foreign_keys = ON;
+
+-- Secure defaults
+PRAGMA secure_delete = ON;
+PRAGMA auto_vacuum = INCREMENTAL;
+
+-- Example schema with proper constraints
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE CHECK(length(username) BETWEEN 3 AND 50),
+    email TEXT NOT NULL UNIQUE CHECK(email LIKE '%@%.%'),
+    password_hash TEXT NOT NULL CHECK(length(password_hash) >= 60),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+
+-- Trigger for updated_at
+CREATE TRIGGER IF NOT EXISTS users_updated_at
+AFTER UPDATE ON users
+BEGIN
+    UPDATE users SET updated_at = datetime('now') WHERE id = NEW.id;
+END;
+```
+
+### 3.2 WHEN implementing CRUD operations (Python)
+
+```python
+import sqlite3
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class User:
+    id: int
+    username: str
+    email: str
+
+@contextmanager
+def get_connection(db_path: str, readonly: bool = False):
+    """Context manager for database connections."""
+    uri = f"file:{db_path}{'?mode=ro' if readonly else ''}"
+    conn = sqlite3.connect(uri, uri=True)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+def get_user_by_id(db_path: str, user_id: int) -> Optional[User]:
+    """Get user by ID with read-only connection."""
+    with get_connection(db_path, readonly=True) as conn:
+        row = conn.execute(
+            "SELECT id, username, email FROM users WHERE id = ?",
+            (user_id,)
+        ).fetchone()
+        return User(**dict(row)) if row else None
+
+def create_user(db_path: str, username: str, email: str, password_hash: str) -> int:
+    """Create user with transaction."""
+    with get_connection(db_path) as conn:
+        try:
+            cursor = conn.execute(
+                """INSERT INTO users (username, email, password_hash)
+                   VALUES (?, ?, ?)""",
+                (username, email, password_hash)
+            )
+            conn.commit()
+            return cursor.lastrowid
+        except sqlite3.IntegrityError as e:
+            conn.rollback()
+            if "UNIQUE constraint" in str(e):
+                raise ValueError("Username or email already exists")
+            raise
+```
+
+### 3.3 WHEN implementing CRUD operations (Rust/Tauri)
+
+```rust
+use rusqlite::{Connection, params, Result};
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+#[derive(Debug, Serialize)]
+pub struct User {
+    pub id: i64,
+    pub username: String,
+    pub email: String,
+}
+
+#[derive(Error, Debug)]
+pub enum DbError {
+    #[error("Not found")]
+    NotFound,
+    #[error("Duplicate entry")]
+    Duplicate,
+    #[error("Database error")]
+    Internal(#[from] rusqlite::Error),
+}
+
+pub fn init_db(conn: &Connection) -> Result<()> {
+    conn.execute_batch(
+        "PRAGMA journal_mode = WAL;
+         PRAGMA foreign_keys = ON;
+         PRAGMA secure_delete = ON;"
+    )?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )",
+        [],
+    )?;
+    Ok(())
+}
+
+pub fn get_user(conn: &Connection, user_id: i64) -> Result<Option<User>, DbError> {
+    let mut stmt = conn.prepare(
+        "SELECT id, username, email FROM users WHERE id = ?1"
+    )?;
+
+    let user = stmt.query_row([user_id], |row| {
+        Ok(User {
+            id: row.get(0)?,
+            username: row.get(1)?,
+            email: row.get(2)?,
+        })
+    }).optional()?;
+
+    Ok(user)
+}
+
+pub fn create_user(
+    conn: &Connection,
+    username: &str,
+    email: &str,
+    password_hash: &str,
+) -> Result<i64, DbError> {
+    match conn.execute(
+        "INSERT INTO users (username, email, password_hash) VALUES (?1, ?2, ?3)",
+        params![username, email, password_hash],
+    ) {
+        Ok(_) => Ok(conn.last_insert_rowid()),
+        Err(rusqlite::Error::SqliteFailure(e, _))
+            if e.code == rusqlite::ErrorCode::ConstraintViolation => {
+            Err(DbError::Duplicate)
+        }
+        Err(e) => Err(e.into()),
+    }
+}
+```
+
+### 3.4 WHEN implementing full-text search
+
+```sql
+-- Create FTS5 virtual table
+CREATE VIRTUAL TABLE IF NOT EXISTS notes_fts USING fts5(
+    title,
+    content,
+    content=notes,
+    content_rowid=id
+);
+
+-- Triggers to keep FTS in sync
+CREATE TRIGGER notes_ai AFTER INSERT ON notes BEGIN
+    INSERT INTO notes_fts(rowid, title, content) VALUES (NEW.id, NEW.title, NEW.content);
+END;
+
+CREATE TRIGGER notes_ad AFTER DELETE ON notes BEGIN
+    INSERT INTO notes_fts(notes_fts, rowid, title, content) VALUES('delete', OLD.id, OLD.title, OLD.content);
+END;
+
+CREATE TRIGGER notes_au AFTER UPDATE ON notes BEGIN
+    INSERT INTO notes_fts(notes_fts, rowid, title, content) VALUES('delete', OLD.id, OLD.title, OLD.content);
+    INSERT INTO notes_fts(rowid, title, content) VALUES (NEW.id, NEW.title, NEW.content);
+END;
+```
+
+```python
+def search_notes(db_path: str, query: str, limit: int = 20) -> list[dict]:
+    """Full-text search with highlighting."""
+    # Sanitize query - remove FTS special characters
+    safe_query = ''.join(c for c in query if c.isalnum() or c.isspace())
+
+    with get_connection(db_path, readonly=True) as conn:
+        rows = conn.execute(
+            """SELECT n.id, n.title,
+                      highlight(notes_fts, 1, '<mark>', '</mark>') as snippet,
+                      rank
+               FROM notes_fts
+               JOIN notes n ON notes_fts.rowid = n.id
+               WHERE notes_fts MATCH ?
+               ORDER BY rank
+               LIMIT ?""",
+            (safe_query, limit)
+        ).fetchall()
+        return [dict(row) for row in rows]
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Construct SQL from user input via string concatenation
+- Store plaintext passwords
+- Skip foreign key pragma (it's OFF by default!)
+- Use database without WAL mode for concurrent access
+- Expose raw SQLite errors to users
+- Skip transactions for multi-statement operations
+
+---
+
+## 5. Testing
+
+**ALWAYS write security tests:**
+
+```python
 import pytest
 import sqlite3
 
-@pytest.fixture
-def db():
-    """In-memory SQLite for fast testing."""
+def test_sql_injection_blocked():
+    """Verify parameterized queries prevent injection."""
     conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    yield conn
-    conn.close()
+    conn.execute("CREATE TABLE users (id INTEGER, name TEXT)")
+    conn.execute("INSERT INTO users VALUES (1, 'alice')")
 
-class TestUserRepository:
-    def test_create_user_returns_id(self, db):
-        repo = UserRepository(db)
-        repo.initialize_schema()
-        user_id = repo.create_user("test@example.com", "Test User")
-        assert user_id > 0
+    # These should NOT return data due to parameterization
+    attacks = [
+        "1 OR 1=1",
+        "1; DROP TABLE users; --",
+        "1 UNION SELECT * FROM sqlite_master",
+    ]
 
-    def test_sql_injection_prevented(self, db):
-        repo = UserRepository(db)
-        repo.initialize_schema()
-        malicious = "'; DROP TABLE users; --"
-        user_id = repo.create_user(malicious, "Hacker")
-        assert repo.get_by_id(user_id)["email"] == malicious
-```
+    for attack in attacks:
+        result = conn.execute(
+            "SELECT * FROM users WHERE id = ?",
+            (attack,)
+        ).fetchall()
+        assert len(result) == 0, f"Injection not blocked: {attack}"
 
-### Step 2: Implement Minimum Code to Pass
-
-```python
-# app/repositories/user.py
-class UserRepository:
-    def __init__(self, conn):
-        self.conn = conn
-
-    def initialize_schema(self):
-        self.conn.execute("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT NOT NULL UNIQUE,
-                name TEXT NOT NULL
-            )""")
-        self.conn.commit()
-
-    def create_user(self, email: str, name: str) -> int:
-        cursor = self.conn.execute(
-            "INSERT INTO users (email, name) VALUES (?, ?)", (email, name))
-        self.conn.commit()
-        return cursor.lastrowid
-
-    def get_by_id(self, user_id: int):
-        return self.conn.execute(
-            "SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-```
-
-### Step 3: Run Verification
-
-```bash
-pytest tests/test_*_repository.py -v --cov=app/repositories
-```
-
----
-
-## 8.1 Performance Patterns
-
-### Pattern 1: WAL Mode
-
-```python
-# Good: Enable WAL for concurrent read/write
-conn.execute("PRAGMA journal_mode = WAL")
-conn.execute("PRAGMA synchronous = NORMAL")
-conn.execute("PRAGMA cache_size = -64000")  # 64MB
-
-# Bad: Default DELETE mode blocks reads during writes
-```
-
-### Pattern 2: Batch Inserts
-
-```python
-# Good: Single transaction for batch
-conn.executemany("INSERT INTO items (name) VALUES (?)", records)
-conn.commit()
-
-# Bad: Commit per row (100x slower)
-for r in records:
-    conn.execute("INSERT INTO items (name) VALUES (?)", (r,))
-    conn.commit()
-```
-
-### Pattern 3: Connection Pooling
-
-```python
-# Good: Reuse connections
-from queue import Queue
-class ConnectionPool:
-    def __init__(self, db_path, size=5):
-        self.pool = Queue(size)
-        for _ in range(size):
-            conn = sqlite3.connect(db_path, check_same_thread=False)
-            conn.execute("PRAGMA journal_mode = WAL")
-            self.pool.put(conn)
-
-# Bad: New connection per query
-conn = sqlite3.connect(db_path)  # Expensive!
-```
-
-### Pattern 4: Index Optimization
-
-```python
-# Good: Covering and partial indexes
-conn.executescript("""
-    CREATE INDEX idx_users_email ON users(email, name);
-    CREATE INDEX idx_active ON items(created_at) WHERE status='active';
-    ANALYZE;
-""")
-
-# Bad: Full table scan on unindexed columns
-```
-
-### Pattern 5: VACUUM Scheduling
-
-```python
-# Good: Maintenance du## 8. Implementation Workflow (TDD)
-
-@pytest.fixture
-def db():
-    """In-memory SQLite for fast testing."""
+def test_constraints_enforced():
+    """Verify database constraints work."""
     conn = sqlite3.connect(":memory:")
-    conn.row_factory = sqlite3.Row
+    conn.execute("""
+        CREATE TABLE users (
+            email TEXT CHECK(email LIKE '%@%.%')
+        )
+    """)
+
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO users (email) VALUES ('invalid')")
+
+def test_foreign_keys_enabled():
+    """Verify foreign keys are enforced."""
+    conn = sqlite3.connect(":memory:")
     conn.execute("PRAGMA foreign_keys = ON")
-    yield conn
-    conn.close()
+    conn.execute("CREATE TABLE parents (id INTEGER PRIMARY KEY)")
+    conn.execute("""
+        CREATE TABLE children (
+            id INTEGER PRIMARY KEY,
+            parent_id INTEGER REFERENCES parents(id)
+        )
+    """)
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-`pytest tests/test_*_repository.py -v`
-- [ ] **SQL injection test exists** - Verify malicious input is safely handled
-- [ ] **Performance verified** - EXPLAIN QUERY PLAN shows index usage
-- [ ] **Migrations tested** - Rollback works correctly
-- [ ] **Schema version updated** - Migration tracking in place
-- [ ] **Database permissions set** - File mode 600 for production
-- [ ] **Backup strategy documented** - Recovery procedure verified
-- [ ] **VACUUM scheduled** - Maintenance plan for database growth
+    with pytest.raises(sqlite3.IntegrityError):
+        conn.execute("INSERT INTO children (parent_id) VALUES (999)")
+```
 
 ---
 
-## 15. Summary
+## 6. Pre-Generation Checklist
 
-Create SQLite implementations that are **Secure** (parameterized queries), **Reliable** (transactions, foreign keys), and **Performant** (WAL mode, indexing, FTS5).
+**BEFORE generating any SQLite code:**
 
-**Security Reminder**: NEVER concatenate user input into SQL. ALWAYS use parameterized queries.
+- [ ] All queries use parameterized statements (?, ?1, :name)
+- [ ] PRAGMA foreign_keys = ON explicitly set
+- [ ] PRAGMA journal_mode = WAL for concurrent access
+- [ ] Passwords hashed with Argon2, never plaintext
+- [ ] Constraints defined at database level
+- [ ] Transactions used for multi-statement operations
+- [ ] FTS queries sanitized before execution
+- [ ] Connection context managers for proper cleanup
+- [ ] Read-only connections where writes not needed
+- [ ] SQLite errors not exposed to end users

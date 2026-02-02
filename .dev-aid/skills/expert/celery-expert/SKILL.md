@@ -1,425 +1,366 @@
 ---
 name: celery-expert
-description: "Expert Celery distributed task queue engineer specializing in async task processing, workflow orchestration, broker configuration (Redis/RabbitMQ), Celery Beat scheduling, and production monitoring. Deep expertise in task patterns (chains, groups, chords), retries, rate limiting, Flower monitoring, and security best practices. Use when designing distributed task systems, implementing background job processing, building workflow orchestration, or optimizing task queue performance."
+version: 2.0.0
+description: "Distributed task queues with Celery, Redis/RabbitMQ backends, Flower monitoring, and beat scheduling."
+risk_level: MEDIUM
 ---
 
-# Celery Distributed Task Queue Expert
+# Celery Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Command injection via task metadata, Broker compromise for code execution, Deserialization attacks
-- Requires continuous monitoring of security advisories
+**CWE-502: Insecure Deserialization**
+- NEVER: `accept_content = ['pickle']` in Celery config
+- ALWAYS: `accept_content = ['json']`, avoid pickle serialization
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-94: Code Injection via Task Names**
+- NEVER: Dynamic task names from user input
+- ALWAYS: Whitelist allowed task names, validate before dispatch
 
-### 0.2 Vulnerability Research Protocol
+**CWE-400: Resource Exhaustion**
+- NEVER: Unlimited task retries or no timeouts
+- ALWAYS: `@task(max_retries=3, time_limit=300, soft_time_limit=240)`
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-285: Improper Authorization**
+- NEVER: Trust task arguments for authorization decisions
+- ALWAYS: Re-validate permissions inside task, fetch fresh user context
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Data ≠ Code (CWE-502, CWE-94)
+
+**Principle:** Never deserialize untrusted data into executable code.
+
+**NEVER** use pickle serialization (CWE-502):
+```python
+# ❌ WRONG - Pickle allows arbitrary code execution
+app.conf.update(
+    task_serializer='pickle',
+    result_serializer='pickle',
+    accept_content=['pickle'],
+)
+
+# ❌ WRONG - Accepting pickle in content types
+accept_content=['json', 'pickle']  # pickle is dangerous
+
+# ✅ CORRECT - JSON-only serialization
+app.conf.update(
+    task_serializer='json',
+    result_serializer='json',
+    accept_content=['json'],  # Only accept JSON
+)
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Input Validation (CWE-20)
 
-   - **CVE-2021-23727** (CVSS 7.5): Command injection via deserialized backend metadata
-     Source: https://github.com/advisories/GHSA-q4xr-rc97-m4xx
-   - **CELERY-BROKER-INJECTION** (CVSS 8.8): Command injection when attacker controls broker
-     Source: https://moldstud.com/articles/p-are-there-any-known-security-vulnerabilities-in-celery
-   - **CELERY-DESERIALIZATION** (CVSS 9.0): Arbitrary code execution via pickle deserialization
-     Source: https://security.snyk.io/package/pip/celery
-
-**Step 3: Common Attack Patterns**
-
-   - Command injection via task metadata
-   - Broker compromise for code execution
-   - Deserialization attacks
-   - Task queue poisoning
-   - Result backend tampering
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use Celery < 5.2.2
-- ❌ NEVER trust task results from backend without validation
-- ❌ NEVER allow direct broker access to untrusted users
-- ❌ ALWAYS secure broker with authentication
-- ❌ ALWAYS use message signing
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any Celery code**
-
-### Verification Requirements
-
-When using this skill to implement Celery features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official Celery documentation (https://docs.celeryq.dev/)
-   - ✅ Confirm task patterns and configuration are current for Celery version
-   - ✅ Validate broker compatibility (Redis vs RabbitMQ)
-   - ❌ Never guess configuration options
-   - ❌ Never invent task decorator parameters
-   - ❌ Never assume broker features without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for Celery patterns
-   - 🔍 Grep: Search for similar task implementations
-   - 🔍 WebSearch: Verify current Celery API in official docs
-   - 🔍 WebFetch: Read official documentation for specific features
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Celery configuration/pattern/API
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in task queues can cause data loss, task duplication, or system outages
-
-4. **Common Celery Hallucination Traps** (AVOID)
-   - ❌ Invented task decorator parameters (e.g., `@task(queue_priority=10)` - doesn't exist)
-   - ❌ Non-existent configuration options (e.g., `task_auto_scale=True`)
-   - ❌ Made-up workflow primitives (only chain, group, chord, map, starmap, chunks exist)
-   - ❌ Incorrect retry parameters (e.g., `retry_exponential=True` - use `retry_backoff=True`)
-   - ❌ Wrong serialization formats (only json, pickle, yaml, msgpack supported)
-
-### Self-Check Checklist
-
-Before EVERY response with Celery code:
-- [ ] All task decorator parameters verified against official docs
-- [ ] Configuration options verified against current Celery version
-- [ ] Broker features (Redis/RabbitMQ) verified for compatibility
-- [ ] Workflow patterns (chain/group/chord) verified for correct usage
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Celery code with hallucinated configurations causes production failures, task loss, and data corruption. Always verify.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite Celery engineer with deep expertise in:
-
-- **Core Celery**: Task definition, async execution, result backends, task states, routing
-- **Workflow Patterns**: Chains, groups, chords, canvas primitives, complex workflows
-- **Brokers**: Redis vs RabbitMQ trade-offs, connection pools, broker failover
-- **Result Backends**: Redis, database, memcached, result expiration, state tracking
-- **Task Reliability**: Retries, exponential backoff, acks late, task rejection, idempotency
-- **Scheduling**: Celery Beat, crontab schedules, interval tasks, solar schedules
-- **Performance**: Prefetch multiplier, concurrency models (prefork, gevent, eventlet), autoscaling
-- **Monitoring**: Flower, Prometheus metrics, task inspection, worker management
-- **Security**: Task signature validation, secure serialization (no pickle), message signing
-- **Error Handling**: Dead letter queues, task timeouts, exception handling, logging
-
-### Core Principles
-
-1. **TDD First** - Write tests before implementation; verify task behavior with pytest-celery
-2. **Performance Aware** - Optimize for throughput with chunking, pooling, and proper prefetch
-3. **Reliability** - Task retries, acknowledgment strategies, no task loss
-4. **Scalability** - Distributed workers, routing, autoscaling, queue prioritization
-5. **Security** - Signed tasks, safe serialization, broker authentication
-6. **Observable** - Comprehensive monitoring, metrics, tracing, alerting
-
-**Risk Level**: MEDIUM
-- Task processing failures can impact business operations
-- Improper serialization (pickle) can lead to code execution vulnerabilities
-- Missing retries/timeouts can cause task accumulation and system degradation
-- Broker misconfigurations can lead to task loss or message exposure
-
----
-
-## 2. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Validate all task arguments at trust boundaries.
 
 ```python
-# tests/test_tasks.py
-import pytest
-from celery.contrib.testing.tasks import ping
-from celery.result import EagerResult
+# ❌ WRONG - No validation of task arguments
+@app.task
+def process_user(user_id, action):
+    # user_id could be anything, action could be SQL injection
+    db.execute(f"UPDATE users SET {action} WHERE id = {user_id}")
 
-@pytest.fixture
-def celery_config():
-    return {
-        'broker_url': 'memory://',
-        'result_backend': 'cache+memory://',
-        'task_always_eager': True,
-        'task_eager_propagates': True,
-    }
+# ✅ CORRECT - Pydantic validation
+from pydantic import BaseModel, Field
+from typing import Literal
 
-class TestProcessOrder:
-    def test_process_order_success(self, celery_app, celery_worker):
-        """Test order processing returns correct result"""
-        from myapp.tasks import process_order
+class ProcessUserArgs(BaseModel):
+    user_id: int = Field(gt=0)
+    action: Literal["activate", "deactivate", "suspend"]
 
-        # Execute task
-        result = process_order.delay(order_id=123)
-
-        # Assert expected behavior
-        assert result.get(timeout=10) == {
-            'order_id': 123,
-            'status': 'success'
-        }
-
-    def test_process_order_idempotent(self, celery_app, celery_worker):
-        """Test task is idempotent - safe to retry"""
-        from myapp.tasks import process_order
-
-        # Run twice
-        result1 = process_order.delay(order_id=123).get(timeout=10)
-        result2 = process_order.delay(order_id=123).get(timeout=10)
-
-        # Should be safe to retry
-        assert result1['status'] in ['success', 'already_processed']
-        assert result2['status'] in ['success', 'already_processed']
-
-    def test_process_order_retry_on_failure(self, celery_app, celery_worker, mocker):
-        """Test task retries on temporary failure"""
-        from myapp.tasks import process_order
-
-        # Mock to fail first, succeed second
-        mock_process = mocker.patch('myapp.tasks.perform_order_processing')
-        mock_process.side_effect = [TemporaryError("Timeout"), {'result': 'ok'}]
-
-        result = process_order.delay(order_id=123)
-
-        assert result.get(timeout=10)['status'] == 'success'
-        assert mock_process.call_count == 2
+@app.task(bind=True)
+def process_user(self, user_id: int, action: str):
+    args = ProcessUserArgs(user_id=user_id, action=action)  # Validates
+    db.execute(
+        "UPDATE users SET status = :action WHERE id = :id",
+        {"action": args.action, "id": args.user_id}
+    )
 ```
 
-### Step 2: Implement Minimum to Pass
+### 1.3 Idempotency (CWE-362, CWE-367)
+
+**Principle:** Tasks MUST be safe to retry without unintended side effects.
 
 ```python
-# myapp/tasks.py
-from celery import Celery
+# ❌ WRONG - Non-idempotent: double-sends email on retry
+@app.task
+def send_email(user_id: int):
+    user = get_user(user_id)
+    email_service.send(user.email, "Welcome!")  # Sends again on retry!
 
-app = Celery('tasks', broker='redis://localhost:6379/0')
+# ✅ CORRECT - Idempotent with deduplication
+@app.task(bind=True)
+def send_email(self, user_id: int, idempotency_key: str):
+    # Check if already processed
+    if redis.exists(f"sent:{idempotency_key}"):
+        return {"status": "already_sent"}
 
-@app.task(bind=True, max_retries=3)
-def process_order(self, order_id: int):
+    user = get_user(user_id)
+    email_service.send(user.email, "Welcome!")
+
+    # Mark as processed (with TTL)
+    redis.setex(f"sent:{idempotency_key}", 86400, "1")
+    return {"status": "sent"}
+```
+
+### 1.4 Fail Secure (CWE-636)
+
+**Principle:** Tasks should fail safely and not lose data.
+
+```python
+# ❌ WRONG - Silent failure, task not retried
+@app.task
+def process_payment(payment_id: int):
     try:
-        order = get_order(order_id)
-        if order.status == 'processed':
-            return {'order_id': order_id, 'status': 'already_processed'}
+        process(payment_id)
+    except Exception:
+        pass  # Payment lost!
 
-        result = perform_order_processing(order)
-        return {'order_id': order_id, 'status': 'success'}
+# ✅ CORRECT - Explicit retry with acks_late
+@app.task(
+    bind=True,
+    max_retries=5,
+    acks_late=True,  # Only ack after success
+    reject_on_worker_lost=True,  # Re-queue if worker dies
+)
+def process_payment(self, payment_id: int):
+    try:
+        process(payment_id)
     except TemporaryError as exc:
         raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+    except PermanentError as exc:
+        # Log and move to dead letter queue
+        logger.error(f"Payment {payment_id} failed permanently: {exc}")
+        move_to_dlq(payment_id, str(exc))
+        return {"status": "failed", "reason": "permanent_error"}
 ```
 
-### Step 3: Refactor Following Patterns
+### 1.5 Secrets ≠ Code (CWE-798)
 
-Add proper error handling, time limits, and observability. See `references/task-patterns.md` for complete examples.
+**Principle:** Never hardcode broker credentials or API keys.
 
-### Step 4: Run Full Verification
+```python
+# ❌ WRONG - Hardcoded credentials
+app = Celery(
+    'tasks',
+    broker='redis://:mysecretpassword@localhost:6379/0'
+)
 
-```bash
-# Run all Celery tests
-pytest tests/test_tasks.py -v
+# ❌ WRONG - Credentials in task code
+@app.task
+def call_api():
+    api_key = "sk-123456789"
+    requests.get(url, headers={"Authorization": api_key})
 
-# Run with coverage
-pytest tests/test_tasks.py --cov=myapp.tasks --cov-report=term-missing
+# ✅ CORRECT - From environment
+import os
 
-# Test workflow patterns
-pytest tests/test_workflows.py -v
+app = Celery(
+    'tasks',
+    broker=os.environ['CELERY_BROKER_URL'],
+    backend=os.environ['CELERY_RESULT_BACKEND'],
+)
 
-# Integration test with real broker
-pytest tests/integration/ --broker=redis://localhost:6379/0
+@app.task
+def call_api():
+    api_key = os.environ['API_KEY']
+    requests.get(url, headers={"Authorization": api_key})
+```
+
+### 1.6 Time Limits (CWE-400)
+
+**Principle:** Always set time limits to prevent resource exhaustion.
+
+```python
+# ❌ WRONG - No time limit, can run forever
+@app.task
+def process_data(data_id: int):
+    # Could hang indefinitely
+
+# ✅ CORRECT - Explicit time limits
+@app.task(
+    time_limit=300,       # Hard limit: kill after 5 min
+    soft_time_limit=240,  # Soft limit: raise exception after 4 min
+)
+def process_data(self, data_id: int):
+    try:
+        process(data_id)
+    except SoftTimeLimitExceeded:
+        logger.warning(f"Task {self.request.id} approaching timeout")
+        save_checkpoint(data_id)  # Save progress
+        raise  # Re-raise to be retried
+```
+
+### 1.7 Result Expiration (CWE-400, CWE-772)
+
+**Principle:** Always expire results to prevent memory exhaustion.
+
+```python
+# ❌ WRONG - Results never expire, memory leak
+app.conf.update(
+    result_backend='redis://localhost:6379/1',
+    # No result_expires set - leaks memory!
+)
+
+# ✅ CORRECT - Results expire after 1 hour
+app.conf.update(
+    result_backend='redis://localhost:6379/1',
+    result_expires=3600,  # 1 hour
+)
+
+# ✅ CORRECT - Fire-and-forget tasks ignore results entirely
+@app.task(ignore_result=True)
+def log_event(event_data: dict):
+    logger.info(f"Event: {event_data}")
+```
+
+### 1.8 Broker Authentication
+
+**Principle:** Always authenticate broker connections.
+
+```python
+# ❌ WRONG - No authentication
+broker_url='redis://localhost:6379/0'
+
+# ✅ CORRECT - Redis with password
+broker_url='redis://:password@localhost:6379/0'
+
+# ✅ CORRECT - RabbitMQ with credentials and TLS
+broker_url='amqps://user:password@broker.example.com:5671/vhost'
+broker_use_ssl={
+    'keyfile': '/path/to/client.key',
+    'certfile': '/path/to/client.crt',
+    'ca_certs': '/path/to/ca.crt',
+}
 ```
 
 ---
 
-## 3. Core Responsibilities
+## 2. Version Requirements
 
-### 1. Task Design & Workflow Orchestration
-- Define tasks with proper decorators (`@app.task`, `@shared_task`)
-- Implement idempotent tasks (safe to retry)
-- Use chains for sequential execution, groups for parallel, chords for map-reduce
-- Design task routing to specific queues/workers
-- Avoid long-running tasks (break into subtasks)
+**ALWAYS use these minimum versions:**
+```
+celery>=5.3.0           # Security fixes, Python 3.12 support
+redis>=4.5.0            # Async support, security fixes
+kombu>=5.3.0            # Message transport
+pydantic>=2.0.0         # Task argument validation
+flower>=2.0.0           # Monitoring
+```
 
-### 2. Broker Configuration & Management
-- Choose Redis for simplicity, RabbitMQ for reliability
-- Configure connection pools, heartbeats, and failover
-- Enable broker authentication and encryption (TLS)
-- Monitor broker health and connection states
-
-### 3. Task Reliability & Error Handling
-- Implement retry logic with exponential backoff
-- Use `acks_late=True` for critical tasks
-- Set appropriate task time limits (soft/hard)
-- Handle exceptions gracefully with error callbacks
-- Implement dead letter queues for failed tasks
-- Design idempotent tasks to handle retries safely
-
-### 4. Result Backends & State Management
-- Choose appropriate result backend (Redis, database, RPC)
-- Set result expiration to prevent memory leaks
-- Use `ignore_result=True` for fire-and-forget tasks
-- Store minimal data in results (use external storage)
-
-### 5. Celery Beat Scheduling
-- Define crontab schedules for recurring tasks
-- Use interval schedules for simple periodic tasks
-- Configure Beat scheduler persistence (database backend)
-- Avoid scheduling conflicts with task locks
-
-### 6. Monitoring & Observability
-- Deploy Flower for real-time monitoring
-- Export Prometheus metrics for alerting
-- Track task success/failure rates and queue lengths
-- Implement distributed tracing (correlation IDs)
-- Log task execution with context
+**WHEN generating requirements.txt** → pin these exact versions or higher.
 
 ---
 
+## 3. Code Patterns
 
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Quick Start Examples
-
-### Basic Task Definition
+### 3.1 WHEN defining a production task
 
 ```python
 from celery import Celery
+from celery.exceptions import SoftTimeLimitExceeded
+from pydantic import BaseModel, Field
 import logging
+import os
 
-app = Celery('tasks', broker='redis://localhost:6379/0')
+app = Celery('tasks', broker=os.environ['CELERY_BROKER_URL'])
 logger = logging.getLogger(__name__)
+
+class ProcessOrderArgs(BaseModel):
+    order_id: int = Field(gt=0)
 
 @app.task(
     bind=True,
-    max_retries=3,
+    max_retries=5,
     time_limit=300,
     soft_time_limit=240,
+    acks_late=True,
+    reject_on_worker_lost=True,
 )
-def process_data(self, data_id: int):
-    """Process data with proper error handling"""
+def process_order(self, order_id: int):
+    # Validate input
+    args = ProcessOrderArgs(order_id=order_id)
+
+    # Log with correlation ID
+    logger.info(
+        f"Processing order {args.order_id}",
+        extra={'task_id': self.request.id, 'order_id': args.order_id}
+    )
+
     try:
-        logger.info(f"Processing {data_id}", extra={'task_id': self.request.id})
-        result = perform_processing(data_id)
-        return {'status': 'success', 'result': result}
+        result = do_processing(args.order_id)
+        return {'status': 'success', 'order_id': args.order_id}
     except TemporaryError as exc:
-        raise self.retry(exc=exc, countdown=2 ** self.request.retries)
+        countdown = 2 ** self.request.retries
+        logger.warning(f"Retrying in {countdown}s: {exc}")
+        raise self.retry(exc=exc, countdown=countdown)
+    except SoftTimeLimitExceeded:
+        save_checkpoint(args.order_id)
+        raise
 ```
 
-### Workflow Example
+### 3.2 WHEN creating workflow (chain/group/chord)
 
 ```python
 from celery import chain, group, chord
 
 # Sequential: fetch -> process -> notify
 workflow = chain(
-    fetch_data.s('https://api.example.com/data'),
+    fetch_data.s(url='https://api.example.com/data'),
     process_item.s(),
     send_notification.s()
 )
+result = workflow.apply_async()
 
-# Parallel processing with aggregation
+# Parallel with aggregation (chord)
 workflow = chord(
-    group(process_item.s(item) for item in items)
+    group(process_item.s(item_id) for item_id in item_ids)
 )(aggregate_results.s())
+
+# Error handling in chains
+@app.task(bind=True)
+def on_workflow_error(self, request, exc, traceback):
+    logger.error(f"Workflow failed: {exc}", extra={
+        'task_id': request.id,
+        'exception': str(exc),
+    })
 ```
 
-### Production Configuration
+### 3.3 WHEN configuring production app
 
 ```python
+import os
+
 app.conf.update(
-    broker_url='redis://localhost:6379/0',
-    result_backend='redis://localhost:6379/1',
+    # Broker
+    broker_url=os.environ['CELERY_BROKER_URL'],
+    broker_connection_retry_on_startup=True,
+
+    # Results
+    result_backend=os.environ['CELERY_RESULT_BACKEND'],
     result_expires=3600,
 
-    # Security
+    # Security - JSON ONLY
     task_serializer='json',
     result_serializer='json',
     accept_content=['json'],
@@ -436,89 +377,171 @@ app.conf.update(
 )
 ```
 
----
+### 3.4 WHEN implementing Celery Beat scheduling
 
-## 6. References
+```python
+from celery.schedules import crontab
 
-See `references/` directory for detailed patterns and examples:
+app.conf.beat_schedule = {
+    'cleanup-daily': {
+        'task': 'myapp.tasks.cleanup_old_data',
+        'schedule': crontab(hour=2, minute=0),  # 2:00 AM daily
+        'options': {'queue': 'maintenance'},
+    },
+    'sync-every-5-min': {
+        'task': 'myapp.tasks.sync_external_data',
+        'schedule': 300.0,  # Every 5 minutes
+    },
+}
 
-- **[task-patterns.md](references/task-patterns.md)** - Complete task implementation patterns, workflow orchestration (chains, groups, chords), retry strategies, Celery Beat scheduling, and task locking
-- **[performance-optimization.md](references/performance-optimization.md)** - Task chunking, prefetch tuning, result backend optimization, connection pooling, and queue routing strategies
-- **[security-examples.md](references/security-examples.md)** - Secure serialization, broker authentication, TLS configuration, input validation, Flower security, and secrets management
-- **[anti-patterns.md](references/anti-patterns.md)** - Common mistakes and how to avoid them: pickle usage, non-idempotent tasks, missing time limits, result storage issues, and more
+# Prevent overlapping runs with locking
+@app.task(bind=True)
+def sync_external_data(self):
+    lock_id = 'sync_external_data_lock'
+    lock = redis.lock(lock_id, timeout=300)
+    if not lock.acquire(blocking=False):
+        logger.info("Task already running, skipping")
+        return
 
----
-
-## 7. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Write failing test for task behavior
-- [ ] Define task idempotency strategy
-- [ ] Choose queue routing for task priority
-- [ ] Determine result storage needs (ignore_result?)
-- [ ] Plan retry strategy and error handling
-- [ ] Review security requirements (serialization, auth)
-
-### Phase 2: During Implementation
-
-- [ ] Task has time limits (soft and hard)
-- [ ] Task uses `acks_late=True` for critical work
-- [ ] Task validates inputs with Pydantic
-- [ ] Task logs with correlation ID
-- [ ] Connection pools configured for DB/Redis
-- [ ] Results stored externally if large
-
-### Phase 3: Before Committing
-
-- [ ] All tests pass: `pytest tests/test_tasks.py -v`
-- [ ] Coverage adequate: `pytest --cov=myapp.tasks`
-- [ ] Serialization set to JSON (not pickle)
-- [ ] Broker authentication configured
-- [ ] Result expiration set
-- [ ] Monitoring configured (Flower/Prometheus)
-- [ ] Task routes documented
-- [ ] Dead letter queue handling implemented
+    try:
+        do_sync()
+    finally:
+        lock.release()
+```
 
 ---
 
-## 8. Critical Reminders
+## 4. Anti-Patterns
 
-### NEVER
+### 4.1 Pickle Serialization
 
-- Use pickle serialization
-- Run without time limits
-- Store large data in results
-- Create non-idempotent tasks
-- Run without broker authentication
-- Expose Flower without authentication
+**NEVER** use pickle (CWE-502):
+```python
+# ❌ WRONG - Remote code execution vulnerability
+task_serializer='pickle'
+accept_content=['pickle']
 
-### ALWAYS
+# ✅ CORRECT - JSON only
+task_serializer='json'
+accept_content=['json']
+```
 
-- Use JSON serialization
-- Set time limits (soft and hard)
-- Make tasks idempotent
-- Use `acks_late=True` for critical tasks
-- Set result expiration
-- Implement retry logic with backoff
-- Monitor with Flower/Prometheus
-- Validate task inputs
-- Log with correlation IDs
+### 4.2 Non-Idempotent Tasks
+
+**NEVER** create tasks that cause duplicate side effects:
+```python
+# ❌ WRONG - Double charges on retry
+@app.task
+def charge_customer(customer_id, amount):
+    payment_service.charge(customer_id, amount)  # Charges again on retry!
+
+# ✅ CORRECT - Idempotent with payment ID
+@app.task(bind=True)
+def charge_customer(self, customer_id, amount, payment_id):
+    if payment_service.exists(payment_id):
+        return {"status": "already_charged"}
+    payment_service.charge(customer_id, amount, payment_id)
+```
+
+### 4.3 Missing Time Limits
+
+**NEVER** run without time limits (CWE-400):
+```python
+# ❌ WRONG - Can hang forever
+@app.task
+def process():
+    while True:
+        ...  # Worker stuck
+
+# ✅ CORRECT - Always set limits
+@app.task(time_limit=300, soft_time_limit=240)
+def process():
+    ...
+```
+
+### 4.4 Large Results
+
+**NEVER** store large data in result backend:
+```python
+# ❌ WRONG - 100MB in Redis
+@app.task
+def process_file():
+    return {"data": large_file_contents}  # Redis OOM!
+
+# ✅ CORRECT - Store externally, return reference
+@app.task
+def process_file():
+    result_key = store_in_s3(large_file_contents)
+    return {"result_key": result_key}  # Small reference
+```
 
 ---
 
-## 9. Summary
+## 5. Testing
 
-You are a Celery expert focused on:
-1. **TDD First** - Write tests before implementation
-2. **Performance** - Chunking, pooling, prefetch tuning, routing
-3. **Reliability** - Retries, acks_late, idempotency
-4. **Security** - JSON serialization, message signing, broker auth
-5. **Observability** - Flower monitoring, Prometheus metrics, tracing
+**ALWAYS write tests before implementation:**
+```python
+import pytest
+from celery.contrib.testing.tasks import ping
 
-**Key Principles**:
-- Tasks must be idempotent - safe to retry without side effects
-- TDD ensures task behavior is verified before deployment
-- Performance tuning - prefetch, chunking, connection pooling, routing
-- Security first - never use pickle, always authenticate
-- Monitor everything - queue lengths, task latency, failure rates
+@pytest.fixture
+def celery_config():
+    return {
+        'broker_url': 'memory://',
+        'result_backend': 'cache+memory://',
+        'task_always_eager': True,
+        'task_eager_propagates': True,
+        'task_serializer': 'json',
+        'accept_content': ['json'],
+    }
+
+class TestProcessOrder:
+    def test_task_success(self, celery_app, celery_worker):
+        from myapp.tasks import process_order
+        result = process_order.delay(order_id=123)
+        assert result.get(timeout=10)['status'] == 'success'
+
+    def test_task_idempotent(self, celery_app, celery_worker):
+        from myapp.tasks import process_order
+        r1 = process_order.delay(order_id=123).get(timeout=10)
+        r2 = process_order.delay(order_id=123).get(timeout=10)
+        # Both should succeed without duplicate processing
+
+    def test_task_validates_input(self, celery_app, celery_worker):
+        from myapp.tasks import process_order
+        from pydantic import ValidationError
+        with pytest.raises(ValidationError):
+            process_order.delay(order_id=-1).get(timeout=10)
+
+    def test_task_retries_on_temporary_error(self, celery_app, celery_worker, mocker):
+        from myapp.tasks import process_order
+        mock = mocker.patch('myapp.tasks.do_processing')
+        mock.side_effect = [TemporaryError(), {'result': 'ok'}]
+        result = process_order.delay(order_id=123).get(timeout=10)
+        assert result['status'] == 'success'
+        assert mock.call_count == 2
+```
+
+**Test coverage requirements:**
+- [ ] Task success path
+- [ ] Task idempotency (safe retry)
+- [ ] Input validation
+- [ ] Retry on temporary errors
+- [ ] Timeout handling
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any Celery code:**
+
+- [ ] Serialization: JSON only, never pickle
+- [ ] Time limits: Both soft_time_limit and time_limit set
+- [ ] Idempotency: Task safe to retry without side effects
+- [ ] Acks late: `acks_late=True` for critical tasks
+- [ ] Result expiration: `result_expires` configured
+- [ ] Input validation: Pydantic for task arguments
+- [ ] Retry logic: Exponential backoff with max_retries
+- [ ] Error handling: Explicit handling, move to DLQ if permanent
+- [ ] Broker auth: Credentials from environment
+- [ ] Logging: Correlation ID (task_id) in all logs

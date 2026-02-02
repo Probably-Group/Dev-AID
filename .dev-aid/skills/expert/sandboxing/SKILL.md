@@ -1,405 +1,682 @@
-# Sandboxing Skill
-
 ---
 name: sandboxing
-version: 1.0.0
-domain: security/isolation
+version: 2.0.0
+description: "Application sandboxing patterns for process isolation, capability restrictions, and secure containment."
 risk_level: HIGH
-languages: [python, c, rust, go]
-frameworks: [seccomp, apparmor, selinux, bubblewrap]
-requires_security_review: true
-compliance: [SOC2, FedRAMP]
-last_updated: 2025-01-15
 ---
 
-> **MANDATORY READING PROTOCOL**: Before implementing sandboxing, read `references/advanced-patterns.md` for defense-in-depth strategies and `references/threat-model.md` for container escape scenarios.
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Sandboxing Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Container escape, Namespace breakout, Seccomp bypass
-- Requires continuous monitoring of security advisories
+**CWE-269: Privilege Escalation**
+- NEVER: Sandbox with root/admin capabilities
+- ALWAYS: Drop privileges, use capability restrictions
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-284: Improper Access Control**
+- NEVER: Shared filesystem/network with host
+- ALWAYS: Minimal mounts, network isolation, seccomp filters
 
-### 0.2 Vulnerability Research Protocol
+**CWE-693: Sandbox Escape**
+- NEVER: Trust sandboxed code to stay sandboxed
+- ALWAYS: Defense in depth, monitor for escape attempts
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+### 0.3 Risk Level: HIGH
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **SANDBOX-ESCAPE** (CVSS 9.8): Container escape vulnerabilities
-     Source: https://nvd.nist.gov/
-   - **CVE-2024-27082** (CVSS 8.8): Seccomp bypass
-     Source: https://nvd.nist.gov/
-   - **NAMESPACE-BREAKOUT** (CVSS 9.0): Namespace escape attacks
-     Source: https://kubernetes.io/docs/concepts/security/
-
-**Step 3: Common Attack Patterns**
-
-   - Container escape
-   - Namespace breakout
-   - Seccomp bypass
-   - Privilege escalation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER run containers as root
-- ❌ NEVER disable security profiles
-- ❌ ALWAYS use strict seccomp
-- ❌ ALWAYS implement AppArmor/SELinux
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-### 1.1 Purpose and Scope
-
-This skill provides process isolation and sandboxing for JARVIS components:
-
-- **Linux**: seccomp-bpf, AppArmor/SELinux, namespaces, cgroups
-- **Windows**: AppContainer, Job Objects, Restricted Tokens
-- **macOS**: sandbox-exec, App Sandbox entitlements
-- **Containers**: Docker/Podman security contexts, Kubernetes SecurityContext
-
-### 1.2 Risk Assessment
-
-**Risk Level**: HIGH
-
-**Justification**:
-- Sandbox escapes allow full system compromise
-- Misconfigurations negate all isolation benefits
-- Kernel vulnerabilities bypass userspace controls
-- Plugin/extension execution requires strong isolation
-
-**Attack Surface**:
-- Syscall filtering gaps
-- Namespace escape vectors
-- Capability misconfigurations
-- Resource exhaustion attacks
-
-## 2. Core Responsibilities
-
-### 2.1 Primary Functions
-
-1. **Isolate untrusted code** execution from host system
-2. **Restrict syscalls** to minimum required set
-3. **Limit resources** (CPU, memory, network, filesystem)
-4. **Enforce security policies** via MAC (AppArmor/SELinux)
-5. **Contain failures** to prevent cascade effects
-
-### 2.2 Core Principles
-
-- **TDD First**: Write tests for sandbox restrictions before implementation
-- **Performance Aware**: Cache permissions, lazy-load capabilities, minimize syscall overhead
-- **Defense in Depth**: Layer multiple isolation mechanisms
-- **Least Privilege**: Grant minimum permissions required
-- **Fail Secure**: Default deny all access
-
-### 2.3 Security Principles
-
-- **NEVER** run untrusted code without syscall filtering
-- **NEVER** grant CAP_SYS_ADMIN to sandboxed processes
-- **ALWAYS** drop all capabilities not explicitly required
-- **ALWAYS** use read-only root filesystem where possible
-- **ALWAYS** apply defense-in-depth (multiple layers)
-
-## 3. Technology Stack
-
-| Platform | Primary | Secondary | MAC |
-|----------|---------|-----------|-----|
-| Linux | seccomp-bpf | namespaces | AppArmor/SELinux |
-| Windows | AppContainer | Job Objects | WDAC |
-| macOS | sandbox-exec | Entitlements | TCC |
-| Containers | securityContext | RuntimeClass | Pod Security |
-
-**Recommended Tools**: bubblewrap, firejail, nsjail, gVisor
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 5. Implementation Patterns
+## 1. Security Principles
 
-def create_minimal_sandbox():
-    """Create minimal seccomp sandbox for untrusted code."""
-    filter = seccomp.SyscallFilter(defaction=seccomp.KILL)
+### 1.1 Principle of Least Privilege (CWE-250)
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+**Principle:** Grant minimum permissions. Drop privileges immediately after acquisition.
+
+```rust
+// ❌ WRONG - Running with full privileges
+fn process_untrusted_data(data: &[u8]) {
+    // Processing with full system access!
+    let result = parse(data);
+}
+
+// ✅ CORRECT - Drop privileges before processing
+use caps::{CapSet, Capability, set};
+
+fn process_untrusted_data(data: &[u8]) -> Result<(), Error> {
+    // Drop all capabilities
+    set(None, CapSet::Effective, &[])?;
+    set(None, CapSet::Permitted, &[])?;
+
+    // Now process with minimal privileges
+    let result = parse(data)?;
+    Ok(())
+}
+```
+
+### 1.2 Defense in Depth (CWE-636)
+
+**Principle:** Multiple isolation layers. Don't rely on single sandbox mechanism.
+
+```rust
+// ❌ WRONG - Single layer of isolation
+fn sandbox_process() {
+    chroot("/sandbox");  // Only filesystem isolation
+    run_untrusted_code();
+}
+
+// ✅ CORRECT - Multiple isolation layers
+fn sandbox_process() -> Result<(), Error> {
+    // 1. Filesystem isolation
+    chroot("/sandbox")?;
+
+    // 2. Namespace isolation
+    unshare(CloneFlags::CLONE_NEWPID | CloneFlags::CLONE_NEWNET)?;
+
+    // 3. Seccomp filtering
+    apply_seccomp_filter()?;
+
+    // 4. Capability dropping
+    drop_all_capabilities()?;
+
+    // 5. Resource limits
+    set_resource_limits()?;
+
+    // Now run with multiple protection layers
+    run_untrusted_code()
+}
+```
+
+### 1.3 Fail Secure (CWE-636)
+
+**Principle:** On sandbox setup failure, abort. Never run untrusted code without sandbox.
+
+```rust
+// ❌ WRONG - Fallback to unsandboxed execution
+fn execute(code: &str) {
+    if sandbox_setup().is_err() {
+        // Running without sandbox!
+        run(code);
+    }
+}
+
+// ✅ CORRECT - Abort on sandbox failure
+fn execute(code: &str) -> Result<Output, Error> {
+    sandbox_setup()?;  // Propagate error, don't run if fails
+    run(code)
+}
+```
+
+### 1.4 Input Validation (CWE-20)
+
+**Principle:** Validate all data crossing sandbox boundaries. Sanitize before deserialization.
+
+### 1.5 No Escape Paths (CWE-284)
+
+**Principle:** Close all file descriptors except allowed. No symlink following.
+
+### 1.6 Resource Limits (CWE-400)
+
+**Principle:** Set CPU, memory, file descriptor limits. Prevent DoS from inside sandbox.
 
 ---
-## 6. Implementation Workflow (TDD)
 
-### Step 1: Write Failing Test First
+## 2. Version Requirements
 
-```python
-import pytest
-from sandbox import SandboxManager
+**ALWAYS use these minimum versions:**
 
-class TestSandboxRestrictions:
-    """Test sandbox isolation before implementation."""
+```toml
+# Rust
+[dependencies]
+seccompiler = "0.4"
+nix = "0.29"
+caps = "0.5"
+landlock = "0.3"  # Linux 5.13+
 
-    @pytest.fixture
-    def sandbox(self):
-        return SandboxManager()
+# Python
+seccomp>=2.5.0
+pyprctl>=1.8.0
 
-    def test_network_blocked(self, sandbox):
-        """WRITE FIRST: Network access must be blocked."""
-        result = sandbox.run(['curl', '-s', 'http://example.com'])
-        assert result.returncode != 0, "Network should be blocked"
-
-    def test_filesystem_readonly(self, sandbox):
-        """WRITE FIRST: Root filesystem must be read-only."""
-        result = sandbox.run(['touch', '/test-file'])
-        assert result.returncode != 0, "Root FS should be read-only"
-
-    def test_capabilities_dropped(self, sandbox):
-        """WRITE FIRST: All capabilities must be dropped."""
-        result = sandbox.run(['cat', '/proc/self/status'])
-        assert 'CapEff:\t0000000000000000' in result.stdout
-
-    def test_syscall_blocked(self, sandbox):
-        """WRITE FIRST: Dangerous syscalls must be blocked."""
-        # ptrace should be blocked by seccomp
-        result = sandbox.run(['strace', 'ls'])
-        assert result.returncode != 0, "ptrace should be blocked"
-
-    def test_escape_attempt_fails(self, sandbox):
-        """WRITE FIRST: Container escape must fail."""
-        result = sandbox.run(['ls', '/proc/1/root'])
-        assert result.returncode != 0, "Namespace escape blocked"
+# Node.js
+isolated-vm>=4.7.0
 ```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-class SandboxManager:
-    def __init__(self):
-        self._bwrap_args = ['bwrap', '--unshare-net', '--ro-bind', '/', '/',
-                           '--cap-drop', 'ALL', '--seccomp', '3']
-
-    def run(self, command, timeout=30):
-        import subprocess
-        return subprocess.run(self._bwrap_args + ['--'] + command,
-                              capture_output=True, text=True, timeout=timeout)
-```
-
-### Step 3: Refactor with Defense-in-Depth
-
-```python
-class SandboxManager:
-    def __init__(self, profile: str = 'strict'):
-        self._bwrap_args = ['bwrap', '--unshare-all']
-        if profile == 'network': self._bwrap_args.append('--share-net')
-        self._bwrap_args.extend(['--ro-bind', '/usr', '/usr', '--tmpfs', '/tmp',
-                                 '--cap-drop', 'ALL', '--seccomp', '3'])
-```
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all sandbox tests
-pytest tests/sandbox/ -v --tb=short
-
-# Test specific isolation features
-pytest tests/sandbox/test_network.py -v
-pytest tests/sandbox/test_capabilities.py -v
-pytest tests/sandbox/test_escapes.py -v
-
-# Security audit
-python -m security_audit --sandbox
-```
-
-## 7. Performance Patterns
-
-### 6.1 Permission Caching
-
-```python
-# Bad: Load permissions from disk on every operation
-def run_sandboxed(command):
-    permissions = load_permissions_from_disk()  # Slow I/O every time
-    return execute(command)
-
-# Good:## 6. Implementation Workflow (TDD)
-
-class TestSandboxRestrictions:
-    """Test sandbox isolation before implementation."""
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
 
 ---
-----------|------|----------------|
-| A01: Broken Access Control | Critical | Namespace isolation, MAC |
-| A04: Insecure Design | High | Defense in depth |
-| A05: Security Misconfiguration | Critical | Secure defaults |
 
-### 7.3 Defense-in-Depth Layers
+## 3. Code Patterns
 
-1. **Seccomp**: Syscall filtering
-2. **Namespaces**: Resource isolation
-3. **Capabilities**: Privilege reduction
-4. **MAC**: Mandatory access control (AppArmor/SELinux)
-5. **Cgroups**: Resource limits
+### 3.1 WHEN implementing Linux seccomp filter (Rust)
 
-**📚 For detailed OWASP coverage**:
-- See `references/security-examples.md`
+```rust
+use seccompiler::{
+    BpfMap, SeccompAction, SeccompFilter, SeccompRule,
+    TargetArch, SeccompCmpOp, SeccompCmpArgLen,
+};
+use std::collections::BTreeMap;
 
-## 9. Testing Requirements
+/// Create restrictive seccomp filter for untrusted code
+pub fn create_sandbox_filter() -> Result<BpfMap, Error> {
+    let mut rules: BTreeMap<i64, Vec<SeccompRule>> = BTreeMap::new();
 
-```python
-class TestSandboxSecurity:
-    def test_network_isolated(self, sandbox):
-        assert sandbox.run(['curl', '-s', 'https://example.com']).returncode != 0
-    def test_capabilities_dropped(self, sandbox):
-        assert 'CapEff:\t0' in sandbox.run(['cat', '/proc/self/status']).stdout
-    def test_escape_attempts_blocked(self, sandbox):
-        assert sandbox.run(['ls', '/proc/1/root']).returncode != 0
+    // Allow basic operations
+    let allowed_syscalls = [
+        libc::SYS_read,
+        libc::SYS_write,
+        libc::SYS_exit,
+        libc::SYS_exit_group,
+        libc::SYS_brk,
+        libc::SYS_mmap,
+        libc::SYS_munmap,
+        libc::SYS_clock_gettime,
+    ];
+
+    for syscall in allowed_syscalls {
+        rules.insert(syscall, vec![SeccompRule::new(vec![])]);
+    }
+
+    // Allow write only to stdout/stderr (fd 1, 2)
+    rules.insert(
+        libc::SYS_write,
+        vec![
+            SeccompRule::new(vec![
+                seccompiler::SeccompCondition::new(
+                    0,  // arg0 = fd
+                    SeccompCmpArgLen::Dword,
+                    SeccompCmpOp::Eq,
+                    1,  // stdout
+                )?,
+            ]),
+            SeccompRule::new(vec![
+                seccompiler::SeccompCondition::new(
+                    0,
+                    SeccompCmpArgLen::Dword,
+                    SeccompCmpOp::Eq,
+                    2,  // stderr
+                )?,
+            ]),
+        ],
+    );
+
+    // Build filter - default action is KILL
+    let filter = SeccompFilter::new(
+        rules,
+        SeccompAction::KillProcess,  // Kill on disallowed syscall
+        SeccompAction::Allow,
+        TargetArch::x86_64,
+    )?;
+
+    Ok(filter.try_into()?)
+}
+
+/// Apply seccomp filter to current process
+pub fn apply_seccomp() -> Result<(), Error> {
+    let filter = create_sandbox_filter()?;
+
+    // Apply filter - no going back after this
+    seccompiler::apply_filter(&filter)?;
+
+    Ok(())
+}
 ```
 
-**📚 For complete test suite**: See `references/security-examples.md#testing`
+### 3.2 WHEN implementing Linux namespaces isolation (Rust)
 
-## 10. Common Mistakes
+```rust
+use nix::sched::{unshare, CloneFlags};
+use nix::unistd::{chroot, chdir, setuid, setgid, Uid, Gid};
+use nix::mount::{mount, MsFlags};
+use std::fs;
 
-### Critical Anti-Patterns
+pub struct SandboxConfig {
+    pub root_dir: PathBuf,
+    pub uid: u32,
+    pub gid: u32,
+    pub memory_limit_mb: u64,
+    pub cpu_time_limit_secs: u64,
+}
 
-```yaml
-# ❌ NEVER: runAsUser: 0 (root)          ✅ ALWAYS: runAsNonRoot: true, runAsUser: 1000
-# ❌ NEVER: add: [SYS_ADMIN]              ✅ ALWAYS: drop: [ALL], add only needed
-# ❌ NEVER: privileged: true              ✅ ALWAYS: privileged: false
-# ❌ NEVER: No seccomp profile            ✅ ALWAYS: seccompProfile: RuntimeDefault
+/// Create isolated sandbox using Linux namespaces
+pub fn create_namespace_sandbox(config: &SandboxConfig) -> Result<(), Error> {
+    // 1. Create new namespaces
+    unshare(
+        CloneFlags::CLONE_NEWUSER |   // User namespace
+        CloneFlags::CLONE_NEWPID |    // PID namespace
+        CloneFlags::CLONE_NEWNET |    // Network namespace
+        CloneFlags::CLONE_NEWNS |     // Mount namespace
+        CloneFlags::CLONE_NEWIPC |    // IPC namespace
+        CloneFlags::CLONE_NEWUTS      // UTS namespace
+    )?;
+
+    // 2. Set up minimal filesystem
+    setup_sandbox_filesystem(&config.root_dir)?;
+
+    // 3. Chroot into sandbox
+    chroot(&config.root_dir)?;
+    chdir("/")?;
+
+    // 4. Drop to unprivileged user
+    setgid(Gid::from_raw(config.gid))?;
+    setuid(Uid::from_raw(config.uid))?;
+
+    // 5. Set resource limits
+    set_rlimits(config)?;
+
+    Ok(())
+}
+
+fn setup_sandbox_filesystem(root: &Path) -> Result<(), Error> {
+    // Create minimal directory structure
+    fs::create_dir_all(root.join("tmp"))?;
+    fs::create_dir_all(root.join("dev"))?;
+
+    // Mount minimal /dev
+    mount(
+        Some("devtmpfs"),
+        &root.join("dev"),
+        Some("devtmpfs"),
+        MsFlags::MS_NOSUID | MsFlags::MS_NOEXEC,
+        None::<&str>,
+    )?;
+
+    // Create /dev/null, /dev/zero, /dev/urandom
+    create_device_node(&root.join("dev/null"), 1, 3)?;
+    create_device_node(&root.join("dev/zero"), 1, 5)?;
+    create_device_node(&root.join("dev/urandom"), 1, 9)?;
+
+    // Make root read-only
+    mount(
+        None::<&str>,
+        root,
+        None::<&str>,
+        MsFlags::MS_REMOUNT | MsFlags::MS_RDONLY,
+        None::<&str>,
+    )?;
+
+    Ok(())
+}
+
+fn set_rlimits(config: &SandboxConfig) -> Result<(), Error> {
+    use nix::sys::resource::{setrlimit, Resource};
+
+    // Memory limit
+    let mem_bytes = config.memory_limit_mb * 1024 * 1024;
+    setrlimit(Resource::RLIMIT_AS, mem_bytes, mem_bytes)?;
+
+    // CPU time limit
+    setrlimit(
+        Resource::RLIMIT_CPU,
+        config.cpu_time_limit_secs,
+        config.cpu_time_limit_secs,
+    )?;
+
+    // File descriptor limit
+    setrlimit(Resource::RLIMIT_NOFILE, 64, 64)?;
+
+    // No core dumps
+    setrlimit(Resource::RLIMIT_CORE, 0, 0)?;
+
+    // No new processes
+    setrlimit(Resource::RLIMIT_NPROC, 0, 0)?;
+
+    Ok(())
+}
 ```
 
-```yaml
-# Example secure configuration
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  privileged: false
-  allowPrivilegeEscalation: false
-  capabilities: {drop: [ALL]}
-  seccompProfile: {type: RuntimeDefault}
+### 3.3 WHEN implementing Landlock filesystem sandbox (Rust)
+
+```rust
+use landlock::{
+    Access, AccessFs, PathBeneath, PathFd, Ruleset,
+    RulesetAttr, RulesetCreatedAttr, ABI,
+};
+
+/// Create Landlock sandbox restricting filesystem access
+pub fn create_landlock_sandbox(
+    read_paths: &[&Path],
+    write_paths: &[&Path],
+) -> Result<(), Error> {
+    // Check Landlock support
+    let abi = ABI::V3;  // Linux 6.2+
+
+    // Create ruleset - deny all by default
+    let mut ruleset = Ruleset::new()
+        .handle_access(AccessFs::from_all(abi))?
+        .create()?;
+
+    // Allow read access to specific paths
+    for path in read_paths {
+        let path_fd = PathFd::new(path)?;
+        ruleset = ruleset.add_rule(PathBeneath::new(
+            path_fd,
+            AccessFs::ReadFile | AccessFs::ReadDir | AccessFs::Execute,
+        ))?;
+    }
+
+    // Allow write access to specific paths
+    for path in write_paths {
+        let path_fd = PathFd::new(path)?;
+        ruleset = ruleset.add_rule(PathBeneath::new(
+            path_fd,
+            AccessFs::from_write(abi),
+        ))?;
+    }
+
+    // Enforce ruleset - no going back
+    ruleset.restrict_self()?;
+
+    Ok(())
+}
+
+// Usage example
+fn sandbox_code_execution() -> Result<(), Error> {
+    // Only allow reading from /usr and writing to /tmp
+    create_landlock_sandbox(
+        &[Path::new("/usr"), Path::new("/lib")],
+        &[Path::new("/tmp/sandbox")],
+    )?;
+
+    // Now filesystem access is restricted
+    execute_untrusted_code()
+}
 ```
 
-**📚 For complete anti-patterns**: See `references/advanced-patterns.md#anti-patterns`
+### 3.4 WHEN implementing macOS sandbox (Rust)
 
-## 11. Pre-Implementation Checklist
+```rust
+use std::process::Command;
 
-### Phase 1: Before Writing Code
-- [ ] Identify isolation requirements from PRD
-- [ ] Review threat model for attack vectors
-- [ ] Define minimal capability set needed
-- [ ] Choose appropriate isolation layers
-- [ ] Write failing tests for all restrictions
+/// macOS sandbox profile for untrusted code
+const SANDBOX_PROFILE: &str = r#"
+(version 1)
+(deny default)
 
-### Phase 2: During Implementation
-- [ ] Implement defense-in-depth layers
-- [ ] Drop all capabilities, add back only required
-- [ ] Apply seccomp filters for syscall blocking
-- [ ] Configure namespace isolation
-- [ ] Set up resource limits (cgroups)
-- [ ] Use read-only root filesystem
-- [ ] Run tests after each layer added
+;; Allow read-only access to system libraries
+(allow file-read*
+    (subpath "/usr/lib")
+    (subpath "/System/Library/Frameworks")
+    (subpath "/Library/Frameworks"))
 
-### Phase 3: Before Committing
-- [ ] All sandbox restriction tests pass
-- [ ] Escape attempt tests verified
--## 7. Performance Patterns
+;; Allow read/write to sandbox directory only
+(allow file-read* file-write*
+    (subpath "/tmp/sandbox"))
 
-## 7. Performance Patterns
+;; Allow basic process operations
+(allow process-fork)
+(allow signal (target self))
 
-📚 **For complete details**: See `references/performance-patterns.md`
+;; Deny network access
+(deny network*)
+
+;; Deny hardware access
+(deny iokit*)
+"#;
+
+/// Execute code in macOS sandbox
+pub fn execute_in_sandbox(command: &str, args: &[&str]) -> Result<Output, Error> {
+    let output = Command::new("sandbox-exec")
+        .arg("-p")
+        .arg(SANDBOX_PROFILE)
+        .arg(command)
+        .args(args)
+        .output()?;
+
+    Ok(output)
+}
+```
+
+### 3.5 WHEN implementing WebAssembly sandbox
+
+```rust
+use wasmtime::*;
+
+pub struct WasmSandbox {
+    engine: Engine,
+    store: Store<SandboxState>,
+    linker: Linker<SandboxState>,
+}
+
+struct SandboxState {
+    memory_used: usize,
+    fuel_remaining: u64,
+}
+
+impl WasmSandbox {
+    pub fn new(memory_limit_mb: usize, fuel_limit: u64) -> Result<Self, Error> {
+        let mut config = Config::new();
+
+        // Enable fuel-based execution limits
+        config.consume_fuel(true);
+
+        // Memory limits
+        config.max_wasm_stack(1024 * 1024);  // 1MB stack
+
+        let engine = Engine::new(&config)?;
+
+        let mut store = Store::new(
+            &engine,
+            SandboxState {
+                memory_used: 0,
+                fuel_remaining: fuel_limit,
+            },
+        );
+
+        // Set fuel limit
+        store.set_fuel(fuel_limit)?;
+
+        let mut linker = Linker::new(&engine);
+
+        // Only link safe, controlled imports
+        linker.func_wrap("env", "print", |caller: Caller<'_, SandboxState>, ptr: i32, len: i32| {
+            // Controlled print function - no filesystem access
+            let mem = caller.get_export("memory")
+                .and_then(|e| e.into_memory())
+                .ok_or(anyhow::anyhow!("no memory"))?;
+
+            let data = mem.data(&caller);
+            let msg = std::str::from_utf8(&data[ptr as usize..(ptr + len) as usize])?;
+            println!("WASM: {}", msg);
+            Ok(())
+        })?;
+
+        Ok(Self { engine, store, linker })
+    }
+
+    pub fn execute(&mut self, wasm_bytes: &[u8]) -> Result<Vec<Val>, Error> {
+        // Validate WASM module
+        let module = Module::new(&self.engine, wasm_bytes)?;
+
+        // Instantiate with limited imports
+        let instance = self.linker.instantiate(&mut self.store, &module)?;
+
+        // Get and call main function
+        let main = instance
+            .get_typed_func::<(), ()>(&mut self.store, "_start")?;
+
+        main.call(&mut self.store, ())?;
+
+        // Check fuel consumption
+        let fuel_used = self.store.get_data().fuel_remaining - self.store.get_fuel()?;
+        println!("Fuel used: {}", fuel_used);
+
+        Ok(vec![])
+    }
+}
+```
+
+### 3.6 WHEN implementing Node.js isolated-vm sandbox
+
+```typescript
+import ivm from 'isolated-vm';
+
+interface SandboxOptions {
+  memoryLimitMb: number;
+  timeoutMs: number;
+}
+
+export class JavaScriptSandbox {
+  private isolate: ivm.Isolate;
+  private context: ivm.Context;
+
+  constructor(options: SandboxOptions) {
+    // Create isolate with memory limit
+    this.isolate = new ivm.Isolate({
+      memoryLimit: options.memoryLimitMb,
+    });
+
+    // Create context (separate global)
+    this.context = this.isolate.createContextSync();
+
+    // Set up safe globals
+    this.setupSafeGlobals();
+  }
+
+  private setupSafeGlobals(): void {
+    const jail = this.context.global;
+
+    // Expose safe console.log
+    jail.setSync('log', new ivm.Callback((msg: string) => {
+      console.log('Sandbox:', msg);
+    }));
+
+    // NO access to: require, process, fs, network, etc.
+  }
+
+  async execute(code: string, timeoutMs: number): Promise<unknown> {
+    // Compile in isolate
+    const script = await this.isolate.compileScript(code);
+
+    // Run with timeout
+    const result = await script.run(this.context, {
+      timeout: timeoutMs,
+    });
+
+    return result;
+  }
+
+  dispose(): void {
+    this.context.release();
+    this.isolate.dispose();
+  }
+}
+
+// Usage
+async function runUntrustedCode(userCode: string) {
+  const sandbox = new JavaScriptSandbox({
+    memoryLimitMb: 128,
+    timeoutMs: 5000,
+  });
+
+  try {
+    const result = await sandbox.execute(userCode, 5000);
+    return result;
+  } finally {
+    sandbox.dispose();
+  }
+}
+```
 
 ---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Run untrusted code without sandbox setup
+- Fall back to unsandboxed execution on errors
+- Allow sandbox to access network (unless required)
+- Use chroot alone (not a security boundary)
+- Keep file descriptors open in sandbox
+- Trust data from sandboxed process without validation
+- Skip resource limits (CPU, memory, file descriptors)
+
+---
+
+## 5. Testing
+
+**ALWAYS test sandbox escapes:**
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_sandbox_blocks_file_access() {
+        let sandbox = create_sandbox("/tmp/test").unwrap();
+
+        // Should not be able to read outside sandbox
+        let result = sandbox.execute("cat /etc/passwd");
+        assert!(result.is_err() || result.unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_sandbox_blocks_network() {
+        let sandbox = create_sandbox("/tmp/test").unwrap();
+
+        let result = sandbox.execute("curl http://example.com");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_sandbox_respects_memory_limit() {
+        let sandbox = create_sandbox_with_limits(
+            "/tmp/test",
+            SandboxLimits { memory_mb: 10, .. }
+        ).unwrap();
+
+        // Attempt to allocate more than limit
+        let result = sandbox.execute("dd if=/dev/zero bs=1M count=100");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_sandbox_respects_cpu_limit() {
+        let sandbox = create_sandbox_with_limits(
+            "/tmp/test",
+            SandboxLimits { cpu_secs: 1, .. }
+        ).unwrap();
+
+        // Infinite loop should be killed
+        let result = sandbox.execute("while true; do :; done");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_sandbox_blocks_syscalls() {
+        apply_seccomp().unwrap();
+
+        // Should not be able to fork
+        let result = std::process::Command::new("echo").spawn();
+        assert!(result.is_err());
+    }
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any sandboxing code:**
+
+- [ ] Multiple isolation layers (namespace + seccomp + capabilities)
+- [ ] Fail secure - abort if sandbox setup fails
+- [ ] Resource limits set (CPU, memory, file descriptors)
+- [ ] Network access denied by default
+- [ ] Filesystem access minimal and read-only where possible
+- [ ] All file descriptors closed except required
+- [ ] No symlink following in sandbox
+- [ ] Capabilities dropped after setup
+- [ ] Data from sandbox validated before use
+- [ ] Platform-specific mechanisms used (Landlock/seccomp on Linux, sandbox-exec on macOS)

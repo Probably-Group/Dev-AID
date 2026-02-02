@@ -1,444 +1,535 @@
 ---
 name: applescript
+version: 2.0.0
+description: "macOS automation with AppleScript and JavaScript for Automation (JXA) for system scripting and app control."
 risk_level: MEDIUM
-description: "Expert in AppleScript and JavaScript for Automation (JXA) for macOS system scripting. Specializes in secure script execution, application automation, and system integration. HIGH-RISK skill due to shell command execution and system-wide control capabilities."
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# AppleScript & JXA Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in high-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: AppleScript injection, osascript RCE, Automation permission abuse
-- Requires security awareness and best practices
+**CWE-78: Command Injection**
+- NEVER: `do shell script userInput`
+- ALWAYS: Escape with `quoted form of`, validate inputs
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-732: Permission Escalation**
+- NEVER: Unnecessary `administrator privileges`
+- ALWAYS: Minimal permissions, prompt only when needed
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: MEDIUM
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
-
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **APPLESCRIPT-CODE-INJECTION** (CVSS N/A): AppleScript code injection attacks
-     Source: https://developer.apple.com/library/archive/documentation/AppleScript/
-   - **OSASCRIPT-RCE** (CVSS 9.0): Remote code execution via osascript
-     Source: https://www.apple.com/security/
-   - **AUTOMATION-ABUSE** (CVSS N/A): macOS automation privilege abuse
-     Source: https://support.apple.com/guide/mac-help/
-
-**Step 3: Common Attack Patterns**
-
-   - AppleScript injection
-   - osascript RCE
-   - Automation permission abuse
-   - System Events manipulation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER execute untrusted AppleScript
-- ❌ NEVER allow user input in osascript commands
-- ❌ ALWAYS validate automation permissions
-- ❌ ALWAYS sanitize dynamic AppleScript
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: HIGH - Shell command execution, application control, file system access
-
-You are an expert in AppleScript automation with deep expertise in:
-
-- **AppleScript Language**: Script composition, application scripting dictionaries
-- **JavaScript for Automation (JXA)**: Modern alternative with JavaScript syntax
-- **osascript Execution**: Command-line script execution and security
-- **Sandboxing Considerations**: App sandbox restrictions and automation permissions
-
-### Core Expertise Areas
-
-1. **Script Composition**: Secure AppleScript/JXA patterns
-2. **Application Automation**: Scriptable app interaction
-3. **Security Controls**: Input sanitization, command filtering
-4. **Process Management**: Safe execution with timeouts
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Responsibilities
+## 1. Security Principles
 
-### 2.1 Core Principles
+### 1.1 Script Injection Prevention (CWE-94)
 
-When creating or executing AppleScripts:
-- **TDD First** - Write tests before implementing AppleScript automation
-- **Performance Aware** - Cache scripts, batch operations, minimize app activations
-- **Sanitize all inputs** before script interpolation
-- **Block dangerous commands** (rm, sudo, curl piped to sh)
-- **Validate target applications** against blocklist
-- **Enforce execution timeouts**
-- **Log all script executions**
+**Principle:** Never construct AppleScript from untrusted data. Use JXA with proper escaping.
 
-### 2.2 Security-First Approach
+```applescript
+-- ❌ WRONG - Script injection vulnerability
+set userInput to "test\" & (do shell script \"rm -rf ~\") & \""
+do shell script "echo " & userInput
 
-Every script execution MUST:
-1. Sanitize user-provided inputs
-2. Check for dangerous patterns
-3. Validate target applications
-4. Execute with timeout limits
-5. Log execution details
-
-### 2.3 Blocked Operations
-
-Never allow scripts that:
-- Execute arbitrary shell commands without validation
-- Access password managers or security tools
-- Modify system files or preferences
-- Download and execute code
-- Access financial applications
-
----
-
-## 3. Technical Foundation
-
-### 3.1 Execution Methods
-
-**Command Line**: `osascript`
-```bash
-osascript -e 'tell application "Finder" to activate'
-osascript script.scpt
-osascript -l JavaScript -e 'Application("Finder").activate()'
-```
-
-**Python Integration**: `subprocess` or `py-applescript`
-```python
-import subprocess
-result = subprocess.run(['osascript', '-e', script], capture_output=True)
-```
-
-### 3.2 Key Security Considerations
-
-| Risk Area | Mitigation | Priority |
-|-----------|------------|----------|
-| Command injection | Input sanitization | CRITICAL |
-| Shell escape | Use `quoted form of` | CRITICAL |
-| Privilege escalation | Block `do shell script` with admin | HIGH |
-| Data exfiltration | Block network commands | HIGH |
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-class SecureAppleScriptRunner:
-    BLOCKED_PATTERNS = [
-        r'do shell script.*with administrator',
-        r'do shell script.*sudo',
-        r'do shell script.*(rm -rf|rm -r)',
-        r'do shell script.*curl.*\|.*sh',
-        r'keystroke.*password',
-    ]
-    BLOCKED_APPS = ['Keychain Access',...
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-import pytest
-
-class TestSecureAppleScriptRunner:
-    def test_simple_script_execution(self):
-        runner = SecureAppleScriptRunner()
-        stdout, stderr = runner.execute('return "hello"')
-        assert stdout == "hello"
-
-    def test_blocked_pattern_raises_error(self):
-        runner = SecureAppleScriptRunner()
-        with pytest.raises(SecurityError):
-            runner.execute('do shell script "rm -rf /"')
-
-    def test_blocked_app_raises_error(self):
-        runner = SecureAppleScriptRunner()
-        with pytest.raises(SecurityError):
-            runner.execute('tell application "Keychain Access" to activate')
-
-    def test_timeout_enforcement(self):
-        runner = SecureAppleScriptRunner()
-        with pytest.raises(TimeoutError):
-            runner.execute('delay 10', timeout=1)
-```
-
-### Step 2: Implement Minimum to Pass
-
-```python
-class SecureAppleScriptRunner:
-    def execute(self, script: str, timeout: int = 30):
-        self._check_blocked_patterns(script)
-        self._check_blocked_apps(script)
-        result = subprocess.run(['osascript', '-e', script],
-            capture_output=True, text=True, timeout=timeout)
-        return result.stdout.strip(), result.stderr.strip()
-```
-
-### Step 3: Refactor and Verify
-
-```bash
-pytest tests/test_applescript.py -v
-pytest tests/test_applescript.py -k "blocked or security" -v
-```
-
----
-
-## 7. Performance Patterns
-
-### Pattern 1: Script Caching
-
-```python
-# BAD: Recompile script every execution
-result = subprocess.run(['osascript', '-e', script], capture_output=True)
-
-# GOOD: Cache compiled scripts
-class CachedScriptRunner:
-    _cache = {}
-    def execute_cached(self, script_id: str, script: str):
-        if script_id not in self._cache:
-            import tempfile
-            _, path = tempfile.mkstemp(suffix='.scpt')
-            subprocess.run(['osacompile', '-o', path, '-e', script])
-            self._cache[script_id] = path
-        return subprocess.run(['osascript', self._cache[script_id]], capture_output=True)
-```
-
-### Pattern 2: Batch Operations
-
-```python
-# BAD: Multiple separate script calls
-subprocess.run(['osascript', '-e', f'tell app "{app}" to set bounds...'])
-subprocess.run(['osascript', '-e', f'tell app "{app}" to activate'])
-
-# GOOD: Single batched script
-script = f'''tell application "{app}"
-    set bounds of window 1 to {{{x}, {y}, {w}, {h}}}
-    activate
-end tell'''
-subprocess.run(['osascript', '-e', script], capture_output=True)
-```
-
-### Pattern 3: Async Execution
-
-```python
-# BAD: Blocking execution
-result = subprocess.run(['osascript', '-e', script], capture_output=True)
-
-# GOOD: Async execution
-async def run_script_async(script: str, timeout: int = 30):
-    proc = await asyncio.create_subprocess_exec('osascript', '-e', script,
-        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
-    stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout)
-    return stdout.decode().strip(), stderr.decode().strip()
-```
-
-### Pattern 4: Result Filtering
-
-```python
-# BAD: Return full unfiltered output
-script = 'tell app "System Events" to get properties of every window of every process'
-
-# GOOD: Filter in AppleScript
-script = '''tell application "System Events"
-    set windowList to {}
-    repeat with proc in (processes whose visible is true)
-        set end of windowList to name of window 1 of proc
-    end repeat
-    return windowList
-end tell'''
-```
-
-### Pattern 5: Minimal App Activation
-
-```python
-# BAD: Activate app for every operation
-subprocess.run(['osascript', '-e', f'tell app "{app}" to activate'])
-
-# GOOD: Use background operations via System Events
-script = f'''tell application "System Events"
-    tell process "{app}"
-        click button "{button}" of window 1
-    end tell
-end tell'''
-```
-
----
-
-## 8. Security Standards
-
-### 7.1 Critical Vulnerabilities
-
-#### 1. Command Injection (CWE-78)
-- **Severity**: CRITICAL
-- **Description**: Unsanitized input in `do shell script`
-- **Mitigation**: Always use `quoted form of`, validate inputs
-
-#### 2. Privilege Escalation (CWE-269)
-- **Severity## 6. Implementation Workflow (TDD)
-
-class TestSecureAppleScriptRunner:
-    def test_simple_script_execution(self):
-        runner = SecureAppleScriptRunner()
-        stdout, stderr = runner.execute('return "hello"')
-        assert stdout == "hello"
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
- privilege requests
-if 'with administrator' in script:
-    raise SecurityError("Administrator privileges blocked")
-```
-
-### Never: Execute User-Provided Scripts
-
-```python
-# BAD: Execute arbitrary user script
-user_script = request.body['script']
-runner.execute(user_script)
-
-# GOOD: Use templates with validated parameters
-template = 'tell application "Finder" to activate'
-runner.execute(template)
-```
-
----
-
-## 14. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-- [ ] Write failing tests for security controls
-- [ ] Write failing tests for expected functionality
-- [ ] Review blocked patterns list for completeness
-- [ ] Identify which applications will be scripted
-- [ ] Plan input sanitization approach
-
-### Phase 2: During Implementation
-- [ ] Input sanitization for all user data
-- [ ] Blocked pattern detection enabled
-- [ ] Application blocklist configured
-- [ ] Command allowlist for shell scripts
-- [ ] Timeout enforcement
-- [ ] Audit logging enabled
-- [ ] Use `quoted form of` for all shell arguments
-- [ ] Cache compiled scripts for reuse
-
-### Phase 3: Before Committing
-- [ ] All tests pass: ## 7. Performance Patterns
-
-## 7. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
-## 9. Common Mistakes
-
--- GOOD: Use quoted form of
-set userInput to "test; rm -rf /"
+-- ✅ CORRECT - Use quoted form
+set userInput to "untrusted data"
 do shell script "echo " & quoted form of userInput
 ```
 
-📚 **For complete details**: See `references/common-mistakes.md`
+```javascript
+// ❌ WRONG - JXA injection
+const app = Application.currentApplication();
+app.doShellScript(`echo ${userInput}`);
+
+// ✅ CORRECT - JXA with proper escaping
+const app = Application.currentApplication();
+const escapedInput = userInput.replace(/'/g, "'\\''");
+app.doShellScript(`echo '${escapedInput}'`);
+```
+
+### 1.2 Application Scripting Safety (CWE-20)
+
+**Principle:** Validate application availability and permissions before automation.
+
+```javascript
+// ❌ WRONG - No permission check
+const finder = Application('Finder');
+finder.selection();
+
+// ✅ CORRECT - Check application with permission handling
+function getApp(name) {
+  try {
+    const app = Application(name);
+    app.includeStandardAdditions = true;
+    // Test accessibility
+    app.name();
+    return app;
+  } catch (e) {
+    throw new Error(`Cannot access ${name}: ${e.message}`);
+  }
+}
+```
+
+### 1.3 File Path Validation (CWE-22)
+
+**Principle:** Validate all paths. Use POSIX paths with proper expansion.
+
+```javascript
+// ❌ WRONG - Path traversal possible
+const file = `${userDir}/${filename}`;
+
+// ✅ CORRECT - Validate path bounds
+function safePath(basePath, filename) {
+  const ObjC = $.NSString.alloc;
+  const base = ObjC.initWithString(basePath).stringByStandardizingPath.js;
+  const full = ObjC.initWithString(`${basePath}/${filename}`)
+    .stringByStandardizingPath.js;
+
+  if (!full.startsWith(base)) {
+    throw new Error('Path traversal detected');
+  }
+  return full;
+}
+```
+
+### 1.4 Secrets ≠ Code (CWE-798)
+
+**Principle:** Use Keychain for secrets. Never hardcode credentials.
+
+### 1.5 Privilege Escalation (CWE-269)
+
+**Principle:** Avoid `with administrator privileges` unless absolutely necessary.
+
+### 1.6 Shell Command Safety (CWE-78)
+
+**Principle:** Always use `quoted form of` for shell arguments.
 
 ---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```
+macOS: 10.15+ (Catalina) for JXA stability
+osascript: System default
+JavaScript for Automation (JXA): Preferred over AppleScript
+```
+
+**Recommended:** Use JXA (JavaScript for Automation) over AppleScript for better error handling and modern syntax.
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN creating JXA applications
+
+```javascript
+#!/usr/bin/env osascript -l JavaScript
+
+// ❌ WRONG - No error handling, global pollution
+Application('Finder').selection();
+
+// ✅ CORRECT - Proper JXA structure
+function run(argv) {
+  'use strict';
+
+  ObjC.import('Foundation');
+
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+
+  try {
+    return main(argv);
+  } catch (e) {
+    console.log(`Error: ${e.message}`);
+    return 1;
+  }
+}
+
+function main(argv) {
+  // Parse arguments safely
+  const config = parseArgs(argv);
+
+  // Validate inputs
+  if (!config.valid) {
+    throw new Error(`Invalid arguments: ${config.error}`);
+  }
+
+  // Execute with proper error handling
+  return execute(config);
+}
+
+function parseArgs(argv) {
+  if (argv.length < 1) {
+    return { valid: false, error: 'Missing required argument' };
+  }
+
+  return {
+    valid: true,
+    input: argv[0],
+  };
+}
+```
+
+### 3.2 WHEN automating Finder operations
+
+```javascript
+// ❌ WRONG - No validation, unsafe operations
+const finder = Application('Finder');
+finder.delete(finder.selection());
+
+// ✅ CORRECT - Safe Finder automation
+function safeFinderOperation(operation) {
+  const finder = Application('Finder');
+  finder.includeStandardAdditions = true;
+
+  const selection = finder.selection();
+
+  if (selection.length === 0) {
+    throw new Error('No items selected');
+  }
+
+  // Validate items before operation
+  const items = selection.map(item => {
+    const path = decodeURI(item.url()).replace('file://', '');
+
+    // Prevent operations on system directories
+    const protectedPaths = ['/System', '/Library', '/usr', '/bin', '/sbin'];
+    if (protectedPaths.some(p => path.startsWith(p))) {
+      throw new Error(`Cannot operate on protected path: ${path}`);
+    }
+
+    return { item, path };
+  });
+
+  // Execute operation
+  return items.map(({ item, path }) => {
+    try {
+      return operation(finder, item, path);
+    } catch (e) {
+      return { path, error: e.message };
+    }
+  });
+}
+
+// Usage
+const results = safeFinderOperation((finder, item, path) => {
+  // Move to trash instead of delete
+  finder.delete(item);
+  return { path, success: true };
+});
+```
+
+### 3.3 WHEN executing shell commands
+
+```javascript
+// ❌ WRONG - Command injection vulnerability
+function runCommand(input) {
+  const app = Application.currentApplication();
+  return app.doShellScript(`echo ${input}`);
+}
+
+// ✅ CORRECT - Safe shell command execution
+function safeShellCommand(command, args = [], options = {}) {
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+
+  // Escape arguments
+  const escapedArgs = args.map(arg => {
+    if (typeof arg !== 'string') {
+      throw new Error('Arguments must be strings');
+    }
+    // Use single quotes with escaped single quotes inside
+    return `'${arg.replace(/'/g, "'\\''")}'`;
+  });
+
+  // Build command safely
+  const fullCommand = [command, ...escapedArgs].join(' ');
+
+  // Execute with options
+  const shellOptions = {};
+
+  if (options.asAdmin) {
+    shellOptions.administratorPrivileges = true;
+  }
+
+  if (options.timeout) {
+    // JXA doesn't support timeout natively, use timeout command
+    return app.doShellScript(
+      `timeout ${options.timeout} ${fullCommand}`,
+      shellOptions
+    );
+  }
+
+  return app.doShellScript(fullCommand, shellOptions);
+}
+
+// Usage
+const output = safeShellCommand('grep', ['-r', searchTerm, directory]);
+```
+
+### 3.4 WHEN working with Keychain
+
+```javascript
+// ❌ WRONG - Hardcoded credentials
+const password = 'secret123';
+
+// ✅ CORRECT - Use Keychain for secrets
+function getKeychainPassword(service, account) {
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+
+  try {
+    // Use security command to access keychain
+    const cmd = `/usr/bin/security find-generic-password -s '${
+      service.replace(/'/g, "'\\''")
+    }' -a '${
+      account.replace(/'/g, "'\\''")
+    }' -w`;
+
+    return app.doShellScript(cmd);
+  } catch (e) {
+    throw new Error(`Keychain access failed: ${e.message}`);
+  }
+}
+
+function setKeychainPassword(service, account, password) {
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+
+  // Delete existing entry first (ignore errors)
+  try {
+    safeShellCommand('/usr/bin/security', [
+      'delete-generic-password',
+      '-s', service,
+      '-a', account,
+    ]);
+  } catch (e) {
+    // Entry may not exist
+  }
+
+  // Add new entry
+  return safeShellCommand('/usr/bin/security', [
+    'add-generic-password',
+    '-s', service,
+    '-a', account,
+    '-w', password,
+    '-U',  // Update if exists
+  ]);
+}
+```
+
+### 3.5 WHEN using Objective-C bridge
+
+```javascript
+// ❌ WRONG - No memory management awareness
+function processFiles(paths) {
+  paths.forEach(path => {
+    const data = $.NSData.dataWithContentsOfFile(path);
+    // Memory leak potential
+  });
+}
+
+// ✅ CORRECT - Proper ObjC bridge usage
+function processFilesSafely(paths) {
+  ObjC.import('Foundation');
+
+  return paths.map(path => {
+    // Use autoreleasepool for memory management
+    const pool = $.NSAutoreleasePool.alloc.init;
+
+    try {
+      const nsPath = $.NSString.alloc.initWithUTF8String(path);
+      const fileManager = $.NSFileManager.defaultManager;
+
+      // Check file exists
+      if (!fileManager.fileExistsAtPath(nsPath)) {
+        return { path, error: 'File not found' };
+      }
+
+      // Read file safely
+      const data = $.NSData.dataWithContentsOfFile(nsPath);
+      if (data.isNil()) {
+        return { path, error: 'Could not read file' };
+      }
+
+      // Convert to string
+      const content = $.NSString.alloc
+        .initWithDataEncoding(data, $.NSUTF8StringEncoding).js;
+
+      return { path, content, size: data.length };
+    } finally {
+      pool.drain;
+    }
+  });
+}
+```
+
+### 3.6 WHEN creating dialogs and user interaction
+
+```javascript
+// ❌ WRONG - No input validation from dialogs
+const app = Application.currentApplication();
+const input = app.displayDialog('Enter value:').textReturned;
+executeCommand(input);
+
+// ✅ CORRECT - Validate dialog input
+function getValidatedInput(prompt, validator) {
+  const app = Application.currentApplication();
+  app.includeStandardAdditions = true;
+
+  const maxAttempts = 3;
+
+  for (let i = 0; i < maxAttempts; i++) {
+    try {
+      const result = app.displayDialog(prompt, {
+        defaultAnswer: '',
+        buttons: ['Cancel', 'OK'],
+        defaultButton: 'OK',
+        cancelButton: 'Cancel',
+        withTitle: 'Input Required',
+        hiddenAnswer: false,
+      });
+
+      const input = result.textReturned.trim();
+
+      // Validate input
+      const validation = validator(input);
+      if (validation.valid) {
+        return validation.value;
+      }
+
+      // Show error and retry
+      app.displayAlert('Invalid Input', {
+        message: validation.error,
+        as: 'warning',
+      });
+    } catch (e) {
+      // User cancelled
+      if (e.errorNumber === -128) {
+        return null;
+      }
+      throw e;
+    }
+  }
+
+  throw new Error('Maximum input attempts exceeded');
+}
+
+// Usage
+const filename = getValidatedInput('Enter filename:', input => {
+  if (!input) {
+    return { valid: false, error: 'Filename cannot be empty' };
+  }
+  if (!/^[\w\-. ]+$/.test(input)) {
+    return { valid: false, error: 'Invalid characters in filename' };
+  }
+  if (input.includes('..')) {
+    return { valid: false, error: 'Path traversal not allowed' };
+  }
+  return { valid: true, value: input };
+});
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Use `do shell script` without `quoted form of`
+- Construct AppleScript strings from user input
+- Use `with administrator privileges` unnecessarily
+- Store credentials in scripts
+- Ignore errors from application calls
+- Use `eval()` or dynamic script generation
+- Access system paths without validation
+
+---
+
+## 5. Testing
+
+**ALWAYS write tests for automation scripts:**
+
+```javascript
+// Test framework for JXA
+function runTests() {
+  const tests = [
+    testSafePathValidation,
+    testShellCommandEscaping,
+    testInputValidation,
+    testApplicationAccess,
+  ];
+
+  const results = tests.map(test => {
+    try {
+      test();
+      return { name: test.name, passed: true };
+    } catch (e) {
+      return { name: test.name, passed: false, error: e.message };
+    }
+  });
+
+  const passed = results.filter(r => r.passed).length;
+  console.log(`Tests: ${passed}/${results.length} passed`);
+
+  results.filter(r => !r.passed).forEach(r => {
+    console.log(`FAILED: ${r.name} - ${r.error}`);
+  });
+
+  return results.every(r => r.passed);
+}
+
+function testSafePathValidation() {
+  // Test path traversal prevention
+  try {
+    safePath('/Users/test', '../../../etc/passwd');
+    throw new Error('Should have thrown');
+  } catch (e) {
+    if (!e.message.includes('traversal')) {
+      throw new Error('Wrong error type');
+    }
+  }
+}
+
+function testShellCommandEscaping() {
+  // Test that special characters are escaped
+  const result = safeShellCommand('echo', ["test'; rm -rf /; echo '"]);
+  if (result.includes('rm -rf')) {
+    throw new Error('Command injection possible');
+  }
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any AppleScript/JXA code:**
+
+- [ ] Using JXA instead of AppleScript where possible
+- [ ] Shell commands use `quoted form of` or proper escaping
+- [ ] No string concatenation with user input
+- [ ] Paths validated against traversal
+- [ ] Keychain used for credentials
+- [ ] Application permissions verified before access
+- [ ] Error handling for all operations
+- [ ] Protected paths checked before file operations
+- [ ] `administrator privileges` justified if used
+- [ ] Input validation for all dialogs

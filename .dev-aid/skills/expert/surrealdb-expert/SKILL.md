@@ -1,492 +1,456 @@
 ---
 name: surrealdb-expert
-description: "Expert SurrealDB developer specializing in multi-model database design, graph relations, document storage, SurrealQL queries, row-level security, and real-time subscriptions. Use when building SurrealDB applications, designing graph schemas, implementing secure data access patterns, or optimizing query performance."
+version: 2.0.0
+description: "SurrealDB multi-model database with SurrealQL, graph queries, and real-time subscriptions."
+risk_level: MEDIUM
 ---
 
-# SurrealDB Expert
+# SurrealDB Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: SurrealQL injection, WebSocket authentication bypass, Record-level permission bypass
-- Requires continuous monitoring of security advisories
+**CWE-89: SurrealQL Injection (GHSA-ccj3-5p93-8p42)**
+- NEVER: Concatenate user input into SurrealQL with string interpolation
+- ALWAYS: Use `bind` method or `vars` argument for parameters
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-200: LIVE Query Exposure (CVE-2025-11060)**
+- NEVER: Allow untrusted users LIVE query subscriptions without restrictions
+- ALWAYS: Fine-grained DEFINE TABLE/FIELD permissions, restrict by role
 
-### 0.2 Vulnerability Research Protocol
+**CWE-674: Parser Stack Overflow**
+- NEVER: Accept deeply nested SurrealQL without depth limits
+- ALWAYS: Upgrade to 1.1.0+, implement query complexity limits
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-284: Backup Import Injection**
+- NEVER: Import backups from untrusted sources
+- ALWAYS: Validate backup integrity, audit imported data
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Permission System (CWE-284, CWE-639)
+
+**Principle:** SurrealDB has a powerful RBAC system. Always define proper PERMISSIONS on tables.
+
+```surql
+-- ❌ WRONG - No permissions (full access by default)
+DEFINE TABLE users SCHEMAFULL;
+
+-- ✅ CORRECT - Explicit permissions
+DEFINE TABLE users SCHEMAFULL
+    PERMISSIONS
+        FOR select WHERE id = $auth.id OR $auth.role = 'admin'
+        FOR create WHERE $auth.role = 'admin'
+        FOR update WHERE id = $auth.id OR $auth.role = 'admin'
+        FOR delete WHERE $auth.role = 'admin';
+
+-- Define field-level permissions
+DEFINE FIELD email ON users
+    PERMISSIONS
+        FOR select WHERE id = $auth.id OR $auth.role = 'admin'
+        FOR update WHERE id = $auth.id;
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Input Validation with Schema (CWE-20)
 
-   - **SURREALQL-INJECTION** (CVSS N/A): SurrealQL injection similar to SQL injection
-     Source: https://surrealdb.com/docs/security
-   - **NOSQL-INJECTION** (CVSS N/A): NoSQL injection patterns in SurrealDB
-     Source: https://owasp.org/www-community/attacks/NoSQL_Injection
-   - **WEBSOCKET-AUTH-BYPASS** (CVSS N/A): Authentication bypass in WebSocket connections
-     Source: https://surrealdb.com/docs/integration/websocket
+**Principle:** Use SCHEMAFULL tables with ASSERT constraints. Never trust client data.
 
-**Step 3: Common Attack Patterns**
+```surql
+-- ❌ WRONG - Schemaless, no constraints
+DEFINE TABLE posts SCHEMALESS;
 
-   - SurrealQL injection
-   - WebSocket authentication bypass
-   - Record-level permission bypass
-   - Query complexity DoS
-   - LIVE query abuse
+-- ✅ CORRECT - Strict schema with assertions
+DEFINE TABLE posts SCHEMAFULL;
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+DEFINE FIELD title ON posts TYPE string
+    ASSERT string::len($value) >= 1 AND string::len($value) <= 200;
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+DEFINE FIELD content ON posts TYPE string
+    ASSERT string::len($value) <= 50000;
 
-### 0.3 Hallucination Prevention Checklist
+DEFINE FIELD author ON posts TYPE record<users>
+    ASSERT $value != NONE;
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+DEFINE FIELD status ON posts TYPE string
+    ASSERT $value IN ['draft', 'published', 'archived'];
 
-**Domain-Specific Security Rules**:
+DEFINE FIELD created_at ON posts TYPE datetime
+    VALUE time::now()
+    READONLY;
+```
 
-- ❌ NEVER concatenate user input into SurrealQL
-- ❌ NEVER skip record-level permissions
-- ❌ NEVER allow unauthenticated WebSocket connections
-- ❌ ALWAYS use parameterized queries
-- ❌ ALWAYS validate LIVE query subscriptions
+### 1.3 Authentication Scopes (CWE-287)
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+**Principle:** Define authentication scopes with proper session duration and validation.
 
-**If uncertain**: STOP and research. Never guess on security.
+```surql
+-- ❌ WRONG - Weak authentication
+DEFINE SCOPE user SESSION 1y
+    SIGNIN (SELECT * FROM users WHERE email = $email);
 
+-- ✅ CORRECT - Proper password verification
+DEFINE SCOPE user SESSION 24h
+    SIGNUP {
+        LET $hashed = crypto::argon2::generate($password);
+        CREATE users SET
+            email = $email,
+            password = $hashed,
+            created_at = time::now()
+    }
+    SIGNIN {
+        SELECT * FROM users
+        WHERE email = $email
+            AND crypto::argon2::compare(password, $password)
+    };
 
+-- Use token-based auth for APIs
+DEFINE TOKEN api_token ON SCOPE user TYPE HS512 VALUE $secret;
+```
 
-**🚨 MANDATORY: Read before implementing any SurrealDB code**
+### 1.4 Parameterized Queries (CWE-89)
 
-### Verification Requirements
+**Principle:** Always use parameters. Never interpolate user data into queries.
 
-When using this skill to implement SurrealDB features, you MUST:
+```python
+# ❌ WRONG - String interpolation (SurrealQL injection)
+async def get_user(db, user_id: str):
+    result = await db.query(f"SELECT * FROM users WHERE id = '{user_id}'")
+    return result
 
-1. **Verify Before Implementing**
-   - ✅ Check official SurrealDB documentation (https://surrealdb.com/docs)
-   - ✅ Confirm SurrealQL syntax is current for the version being used
-   - ✅ Validate security patterns against official security guides
-   - ❌ Never guess configuration options or permissions syntax
-   - ❌ Never invent SurrealQL functions or methods
-   - ❌ Never assume compatibility between versions without checking
+# ✅ CORRECT - Parameterized query
+async def get_user(db, user_id: str) -> dict | None:
+    result = await db.query(
+        "SELECT * FROM users WHERE id = $user_id",
+        {"user_id": user_id}
+    )
+    return result[0]["result"][0] if result[0]["result"] else None
 
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for SurrealDB patterns
-   - 🔍 Grep: Search for similar implementations and schema definitions
-   - 🔍 WebSearch: Verify SurrealQL syntax in official docs
-   - 🔍 WebFetch: Read official SurrealDB documentation pages
+# ✅ CORRECT - Using record ID directly
+from surrealdb import RecordID
 
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY SurrealDB feature/syntax/permission pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in SurrealDB can cause security vulnerabilities, data loss, or unauthorized access
-
-4. **Common SurrealDB Hallucination Traps** (AVOID)
-   - ❌ Invented PERMISSIONS clauses or conditions
-   - ❌ Made-up crypto functions or hash algorithms
-   - ❌ Non-existent graph traversal operators
-   - ❌ Incorrect DEFINE TABLE/FIELD/INDEX syntax
-   - ❌ Invalid SCOPE or authentication patterns
-   - ❌ Wrong ASSERT validation syntax
-
-### Self-Check Checklist
-
-Before EVERY response with SurrealDB code:
-- [ ] All PERMISSIONS verified against official docs
-- [ ] Graph traversal syntax verified against current version
-- [ ] Crypto functions verified (crypto::argon2, crypto::bcrypt)
-- [ ] DEFINE statements verified for correctness
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: SurrealDB code with hallucinated patterns causes security vulnerabilities and data integrity issues. Always verify.
+async def get_user_by_record(db, user_id: str) -> dict | None:
+    # RecordID validates format automatically
+    record_id = RecordID("users", user_id)
+    result = await db.select(record_id)
+    return result
+```
 
 ---
 
+## 2. Version Requirements
 
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+```
+surrealdb>=1.0.0
+pysurrealdb>=0.3.0
+# Or official SDK
+surrealdb[http]>=0.3.0
+surrealdb[websocket]>=0.3.0
+```
 
 ---
 
-## 1. Overview
+## 3. Code Patterns
 
-**Risk Level**: HIGH (Database system with security implications)
+### WHEN connecting to SurrealDB, use connection pooling and error handling
 
-You are an elite SurrealDB developer with deep expertise in:
+```python
+# ❌ WRONG - No connection management
+from surrealdb import Surreal
 
-- **Multi-Model Database**: Graph relations, documents, key-value, time-series
-- **SurrealQL**: SELECT, CREATE, UPDATE, RELATE, DEFINE statements
-- **Graph Modeling**: Edges, traversals, bidirectional relationships
-- **Security**: RBAC, permissions, row-level security, authentication
-- **Schema Design**: DEFINE TABLE, FIELD, INDEX with strict typing
-- **Real-Time**: LIVE queries, WebSocket subscriptions, change feeds
-- **SDKs**: Rust, JavaScript/TypeScript, Python, Go clients
-- **Performance**: Indexing strategies, query optimization, caching
+async def query_data():
+    db = Surreal("ws://localhost:8000/rpc")
+    await db.signin({"user": "root", "pass": "root"})
+    return await db.query("SELECT * FROM users")
 
-You build SurrealDB applications that are:
-- **Secure**: Row-level permissions, parameterized queries, RBAC
-- **Scalable**: Optimized indexes, efficient graph traversals
-- **Type-Safe**: Strict schema definitions, field validation
-- **Real-Time**: Live query subscriptions for reactive applications
+# ✅ CORRECT - Connection pool with context manager
+from surrealdb import Surreal
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+import os
 
-**Vulnerability Research Date**: 2025-11-18
+@dataclass
+class SurrealConfig:
+    url: str
+    namespace: str
+    database: str
+    username: str
+    password: str
 
-**Critical SurrealDB Vulnerabilities (2024)**:
-1. **GHSA-gh9f-6xm2-c4j2**: Improper authentication when changing databases (v1.5.4+ fixed)
-2. **GHSA-7vm2-j586-vcvc**: Unauthorized data exposure via LIVE queries (v2.3.8+ fixed)
-3. **GHSA-64f8-pjgr-9wmr**: Untrusted query object evaluation in RPC API
-4. **GHSA-x5fr-7hhj-34j3**: Full table permissions by default (v1.0.1+ fixed)
-5. **GHSA-5q9x-554g-9jgg**: SSRF via redirect bypass of deny-net flags
+    @classmethod
+    def from_env(cls) -> "SurrealConfig":
+        return cls(
+            url=os.environ["SURREAL_URL"],
+            namespace=os.environ["SURREAL_NS"],
+            database=os.environ["SURREAL_DB"],
+            username=os.environ["SURREAL_USER"],
+            password=os.environ["SURREAL_PASS"],
+        )
+
+class SurrealPool:
+    def __init__(self, config: SurrealConfig, pool_size: int = 10):
+        self._config = config
+        self._pool: list[Surreal] = []
+        self._pool_size = pool_size
+        self._semaphore = asyncio.Semaphore(pool_size)
+
+    async def _create_connection(self) -> Surreal:
+        db = Surreal(self._config.url)
+        await db.connect()
+        await db.signin({
+            "user": self._config.username,
+            "pass": self._config.password,
+        })
+        await db.use(self._config.namespace, self._config.database)
+        return db
+
+    @asynccontextmanager
+    async def acquire(self):
+        async with self._semaphore:
+            if self._pool:
+                db = self._pool.pop()
+            else:
+                db = await self._create_connection()
+            try:
+                yield db
+            finally:
+                self._pool.append(db)
+```
+
+### WHEN using graph relationships, use proper RELATE with validation
+
+```surql
+-- ❌ WRONG - Manual foreign keys
+CREATE follows SET
+    follower = 'users:alice',
+    following = 'users:bob';
+
+-- ✅ CORRECT - Graph edge with RELATE
+RELATE users:alice->follows->users:bob SET
+    created_at = time::now();
+
+-- Define the relation table with permissions
+DEFINE TABLE follows SCHEMAFULL
+    PERMISSIONS
+        FOR select FULL
+        FOR create WHERE in = $auth.id
+        FOR delete WHERE in = $auth.id;
+
+DEFINE FIELD in ON follows TYPE record<users>;
+DEFINE FIELD out ON follows TYPE record<users>;
+DEFINE FIELD created_at ON follows TYPE datetime VALUE time::now();
+
+-- Query with graph traversal
+SELECT id, name, ->follows->users AS following FROM users WHERE id = $auth.id;
+
+-- Reverse traversal
+SELECT id, name, <-follows<-users AS followers FROM users WHERE id = $auth.id;
+```
+
+### WHEN implementing live queries, handle connection lifecycle
+
+```python
+# ❌ WRONG - No cleanup of live queries
+async def watch_posts(db):
+    live_id = await db.live("posts")
+    async for notification in db.live_notifications(live_id):
+        print(notification)
+
+# ✅ CORRECT - Proper lifecycle management
+from dataclasses import dataclass
+from typing import AsyncIterator, Callable
+import asyncio
+
+@dataclass
+class LiveQueryHandle:
+    db: Surreal
+    query_id: str
+    _cancelled: bool = False
+
+    async def cancel(self):
+        if not self._cancelled:
+            await self.db.kill(self.query_id)
+            self._cancelled = True
+
+class LiveQueryManager:
+    def __init__(self, pool: SurrealPool):
+        self._pool = pool
+        self._handles: list[LiveQueryHandle] = []
+
+    async def subscribe(
+        self,
+        table: str,
+        callback: Callable[[dict], None],
+    ) -> LiveQueryHandle:
+        """Subscribe to live updates with automatic cleanup."""
+        async with self._pool.acquire() as db:
+            query_id = await db.live(table)
+            handle = LiveQueryHandle(db, query_id)
+            self._handles.append(handle)
+
+            async def process_notifications():
+                try:
+                    async for notification in db.live_notifications(query_id):
+                        if handle._cancelled:
+                            break
+                        await callback(notification)
+                except asyncio.CancelledError:
+                    await handle.cancel()
+
+            asyncio.create_task(process_notifications())
+            return handle
+
+    async def cleanup(self):
+        """Cancel all live queries."""
+        for handle in self._handles:
+            await handle.cancel()
+        self._handles.clear()
+```
+
+### WHEN using transactions, ensure atomicity
+
+```python
+# ❌ WRONG - Multiple queries without transaction
+async def transfer_credits(db, from_user: str, to_user: str, amount: int):
+    await db.query(
+        "UPDATE users SET credits -= $amount WHERE id = $from_user",
+        {"from_user": from_user, "amount": amount}
+    )
+    await db.query(
+        "UPDATE users SET credits += $amount WHERE id = $to_user",
+        {"to_user": to_user, "amount": amount}
+    )
+
+# ✅ CORRECT - Atomic transaction
+async def transfer_credits(
+    db,
+    from_user: str,
+    to_user: str,
+    amount: int,
+) -> bool:
+    """Transfer credits atomically with validation."""
+    result = await db.query("""
+        BEGIN TRANSACTION;
+
+        -- Check sufficient balance
+        LET $sender = (SELECT credits FROM users WHERE id = $from_user);
+        IF $sender.credits < $amount THEN
+            THROW "Insufficient credits";
+        END;
+
+        -- Perform transfer
+        UPDATE users SET credits -= $amount WHERE id = $from_user;
+        UPDATE users SET credits += $amount WHERE id = $to_user;
+
+        -- Log transaction
+        CREATE transactions SET
+            from = $from_user,
+            to = $to_user,
+            amount = $amount,
+            created_at = time::now();
+
+        COMMIT TRANSACTION;
+    """, {
+        "from_user": from_user,
+        "to_user": to_user,
+        "amount": amount,
+    })
+
+    return not any(r.get("status") == "ERR" for r in result)
+```
 
 ---
 
-## 2. Core Principles
+## 4. Anti-Patterns
 
-1. **TDD First** - Write tests before implementation. Every database operation, query, and permission must have tests that fail first, then pass.
-
-2. **Performance Aware** - Optimize for efficiency. Use indexes, connection pooling, batch operations, and efficient graph traversals.
-
-3. **Security by Default** - Explicit permissions on all tables, parameterized queries, hashed passwords, row-level security.
-
-4. **Type Safety** - Use SCHEMAFULL with ASSERT validation for all critical data.
-
-5. **Clean Resource Management** - Always clean up LIVE subscriptions, connections, and implement proper pooling.
+**NEVER:**
+- Use SCHEMALESS tables in production (use SCHEMAFULL)
+- Skip PERMISSIONS on tables
+- Interpolate user data into SurrealQL queries
+- Use root credentials in application code
+- Create sessions without expiration (SESSION 1y)
+- Store passwords without crypto::argon2
+- Ignore live query cleanup (memory leaks)
 
 ---
 
-## 3. Implementation Workflow (TDD)
+## 5. Testing
+
+```python
+import pytest
+from surrealdb import Surreal
 
 @pytest.fixture
 async def db():
-    """Set up test database connection."""
-    client = Surreal("ws://localhost:8000/rpc")
-    await client.connect()
-    await client.use("test", "test_db")
-    await client.signin({"user": "root", "pass": "root"})
-    yield client
-    await client.query("DELETE user...
+    """Test database with isolated namespace."""
+    db = Surreal("ws://localhost:8000/rpc")
+    await db.connect()
+    await db.signin({"user": "root", "pass": "root"})
+    await db.use("test", f"test_{uuid.uuid4().hex[:8]}")
+    yield db
+    # Cleanup
+    await db.query("REMOVE DATABASE IF EXISTS $db", {"db": db._database})
+    await db.close()
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+class TestPermissions:
+    async def test_user_cannot_access_other_users(self, db):
+        """Users should only see their own data."""
+        # Setup
+        await db.query("""
+            DEFINE TABLE users SCHEMAFULL
+                PERMISSIONS FOR select WHERE id = $auth.id;
+        """)
+        await db.query("CREATE users:alice SET name = 'Alice'")
+        await db.query("CREATE users:bob SET name = 'Bob'")
 
----
-## 4. Quality Assurance Checklist
+        # Authenticate as Alice
+        await db.authenticate(alice_token)
 
-**Before implementing this skill, ensure**:
+        # Should only see Alice
+        result = await db.query("SELECT * FROM users")
+        assert len(result[0]["result"]) == 1
+        assert result[0]["result"][0]["id"] == "users:alice"
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Patterns
-
-### Pattern 1: Secure Table Definition with Row-Level Security
-
-```surreal
--- ✅ SECURE: Explicit permissions with row-level security
-DEFINE TABLE user SCHEMAFULL
-    PERMISSIONS
-        FOR select, update, delete WHERE id = $auth.id
-        FOR create WHERE $auth.role = 'admin';
-
-DEFINE FIELD email ON TABLE user TYPE string ASSERT string::is::email($value);
-DEFINE FIELD password ON TABLE user TYPE string VALUE crypto::argon2::generate($value);
-DEFINE FIELD role ON TABLE user TYPE string DEFAULT 'user' ASSERT $value IN ['user', 'admin'];
-DEFINE FIELD created ON TABLE user TYPE datetime DEFAULT time::now();
-
-DEFINE INDEX unique_email ON TABLE user COLUMNS email UNIQUE;
-
--- ❌ UNSAFE: No permissions defined (relies on default)
-DEFINE TABLE user SCHEMAFULL;
-DEFINE FIELD password ON TABLE user TYPE string; -- Not hashed!
+    async def test_injection_prevented(self, db):
+        """SurrealQL injection should be prevented."""
+        malicious_input = "'; DELETE users; --"
+        result = await db.query(
+            "SELECT * FROM users WHERE name = $name",
+            {"name": malicious_input}
+        )
+        # Should return empty, not execute injection
+        assert result[0]["status"] == "OK"
 ```
 
 ---
 
-### Pattern 2: Parameterized Queries for Injection Prevention
+## 6. Pre-Generation Checklist
 
-```surreal
--- ✅ SAFE: Parameterized query
-LET $user_email = "user@example.com";
-SELECT * FROM user WHERE email = $user_email;
+**BEFORE generating SurrealDB code:**
 
--- With SDK (JavaScript)
-const email = req.body.email;
-const result = await db.query(
-    'SELECT * FROM user WHERE email = $email',
-    { email }
-);
-
--- ❌ UNSAFE: String concatenation (NEVER DO THIS)
-const query = `SELECT * FROM user WHERE email = "${userInput}"`;
-```
-
----
-
-### Pattern 3: Indexing for Performance
-
-```surreal
--- ✅ Good: Index on frequently queried fields
-DEFINE INDEX email_idx ON TABLE user COLUMNS email UNIQUE;
-DEFINE INDEX created_idx ON TABLE post COLUMNS created_at;
-DEFINE INDEX composite_idx ON TABLE order COLUMNS user_id, status;
-
--- ✅ Good: Full-text search index
-DEFINE INDEX search_idx ON TABLE article
-    COLUMNS title, content
-    SEARCH ANALYZER simple BM25;
-
--- Query using search index
-SELECT * FROM article WHERE title @@ 'database' OR content @@ 'performance';
-```
-
----
-
-### Pattern 4: Graph Traversal Optimization
-
-```surreal
--- ✅ Good: Single query with graph traversal (avoids N+1)
-SELECT
-    *,
-    ->authored->post.* AS posts,
-    ->follows->user.name AS following
-FROM user:john;
-
--- ✅ Good: Use FETCH for eager loading
-SELECT * FROM user FETCH ->authored->post, ->follows->user;
-
--- ✅ Good: Limit traversal depth
-SELECT ->follows->user[0:10].name FROM user:john;
-
--- ❌ Bad: N+1 que## 5. Core Patterns
-
-DEFINE FIELD email ON TABLE user TYPE string ASSERT string::is::email($value);
-DEFINE FIELD password ON TABLE user TYPE string VALUE crypto::argon2::generate($value);
-DEFINE FIELD role ON TABLE user TYPE string DEFAULT 'user' ASSERT $value IN ['user', 'admin'];
-DEFINE FIELD created ON TABLE user TYP...
-
-📚 **For complete details**: See `references/core-patterns.md`
-
----
-ently queried fields
-- ❌ Use SCHEMALESS without security review
-
-### ALWAYS
-
-- ✅ Use parameterized queries ($variables)
-- ✅ Hash passwords with crypto::argon2 or crypto::bcrypt
-- ✅ Define explicit PERMISSIONS on every table
-- ✅ Use row-level security (WHERE $auth.id)
-- ✅ Implement RBAC with least privilege
-- ✅ Validate fields with TYPE and ASSERT
-- ✅ Create indexes on queried fields
-- ✅ Use SCHEMAFULL for critical tables
-- ✅ Set SESSION expiration on scopes
-- ✅ Monitor security advisories (github.com/surrealdb/surrealdb/security)
-- ✅ Clean up LIVE query subscriptions
-- ✅ Use graph traversal to avoid N+1 queries
-- ✅ Restrict network access with --allow-net
-
----
-
-## 8. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Read existing schema definitions and understand data model
-- [ ] Identify all tables that need explicit PERMISSIONS
-- [ ] Plan indexes for all fields that will be queried
-- [ ] Design RBAC roles with least privilege principle
-- [ ] Write failing tests for all database operations
-- [ ] Review SurrealDB security advisories for latest version
-
-### Phase 2: During Implementation
-
-- [ ] All tables have explicit PERMISSIONS defined
-- [ ] All queries use parameterized $variables
-- [ ] Passwords hashed with crypto::argon2::generate()
-- [ ] SCHEMAFULL used for all tables with sensitive data
-- [ ] ASSERT validation on all critical fields
-- [ ] Indexes created on all frequently queried fields
-- [ ] Graph traversals have depth limits and filters
-- [ ] LIVE queries include permission WHERE clauses
-- [ ] Connection pooling implemented
-- [ ] All LIVE subscriptions have cleanup handlers
-
-### Phase 3: Before Committing
-
-- [ ] All tests pass: `pytest tests/test_surrealdb/ -v`
-- [ ] Test coverage adequate: `pytest --cov=src/repositories`
-- [ ] RBAC tested with different user roles
-- [ ] Row-level security tested with different $auth contexts
-- [ ] Performance tested with realistic data volumes
-- [ ] SESSION expiration set (≤2 hours for record users)
-- [ ] Network access restricted (--allow-net, --deny-net)
-- [ ] No credentials in code (use environment variables)
-- [ ] Security advisories reviewed
-- [ ] Backup strategy implemented
-
----
-
-## 9. Testing
-
-All database operations must have comprehensive tests:
-- **Unit Tests**: Test repository methods, schema definitions, validation
-- **Integration Tests**: Test permissions, RBAC, row-level security
-- **Performance Tests**: Benchmark indexes, connection pooling, query optimization
-
-See `references/advanced-patterns.md` for complete testing examples.
-
----
-
-## 10. References
-
-See `references/` directory for detailed documentation:
-
-- **`advanced-patterns.md`** - Graph relations, LIVE queries, RBAC, batch operations
-- **`security-examples.md`** - Vulnerability examples, OWASP mapping, security checklist
-- **`performance-optimization.md`** - Indexing, caching, connection pooling, monitoring
-- **`anti-patterns.md`** - Common mistakes and how to avoid them
-- **`query-guide.md`** - Comprehensive SurrealQL query reference and examples
-
----
-
-## 11. Quick Reference
-
-### Common Commands
-
-```surreal
--- Parameterized select
-SELECT * FROM user WHERE email = $email;
-
--- Create with hash
-CREATE user CONTENT {
-    email: $email,
-    password: crypto::argon2::generate($password)
-};
-
--- Update with MERGE
-UPDATE user:john MERGE { last_login: time::now() };
-
--- Graph traversal
-SELECT ->authored->post.* FROM user:john;
-
--- Pagination
-SELECT * FROM post ORDER BY created_at DESC LIMIT 20;
-
--- Transaction
-BEGIN TRANSACTION;
--- operations
-COMMIT TRANSACTION;
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest tests/test_surrealdb/ -v --asyncio-mode=auto
-
-# With coverage
-pytest tests/test_surrealdb/ --cov=src/repositories
-
-# Specific test
-pytest tests/test_user_repository.py::test_create_user_hashes_password -v
-```
-
----
-
-## 12. Summary
-
-You are a SurrealDB expert focused on:
-1. **Security-first design** - Explicit permissions, RBAC, row-level security
-2. **Multi-model mastery** - Graph relations, documents, flexible schemas
-3. **Query optimization** - Indexes, graph traversal, avoiding N+1
-4. **Real-time patterns** - LIVE queries with proper cleanup
-5. **Type safety** - SCHEMAFULL, ASSERT validation, strict typing
-
-**Key principles**:
-- Always use parameterized queries to prevent injection
-- Define explicit PERMISSIONS on every table (default NONE)
-- Hash passwords with crypto::argon2 or stronger
-- Optimize with indexes and graph traversals
-- Clean up LIVE query subscriptions
-- Follow least privilege principle for RBAC
-- Monitor security advisories and keep updated
-
-**SurrealDB Security Resources**:
-- Security advisories: https://github.com/surrealdb/surrealdb/security
-- Documentation: https://surrealdb.com/docs/surrealdb/security
-- Best practices: https://surrealdb.com/docs/surrealdb/reference-guide/security-best-practices
-
-SurrealDB combines power and flexibility. Use security features to protect data integrity.
+- [ ] Tables use SCHEMAFULL with ASSERT constraints
+- [ ] PERMISSIONS defined on all tables
+- [ ] Authentication scopes have reasonable SESSION duration
+- [ ] Passwords hashed with crypto::argon2
+- [ ] All queries use parameters (not string interpolation)
+- [ ] Graph relations use RELATE (not manual foreign keys)
+- [ ] Live queries have cleanup handlers
+- [ ] Transactions used for multi-step operations
+- [ ] No root credentials in application code

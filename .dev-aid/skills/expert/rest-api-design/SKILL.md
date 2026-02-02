@@ -1,390 +1,818 @@
-# REST API Design Skill
-
-```yaml
-name: rest-api-design-expert
+---
+name: rest-api-design
+version: 2.0.0
+description: "RESTful API design with resource modeling, HATEOAS, pagination, and HTTP semantics."
 risk_level: MEDIUM
-description: Expert in RESTful API design, resource modeling, HTTP semantics, pagination, versioning, and secure API implementation
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [api, rest, http, design, web-services]
-```
-
 ---
 
+# REST API Design - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: OWASP API Top 10 2023 attacks, IDOR attacks via predictable IDs, Rate limit bypass techniques
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-285: IDOR (Insecure Direct Object Reference)**
+- NEVER: `/api/users/123/orders` without verifying user 123 is requester
+- ALWAYS: Check ownership/permissions for every resource access
 
-### 0.2 Vulnerability Research Protocol
+**CWE-359: Mass Assignment**
+- NEVER: `user.update(**request.json())` - updating all fields from input
+- ALWAYS: Whitelist allowed fields, use DTOs/schemas
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-204: Information Exposure in Response**
+- NEVER: Return internal IDs, stack traces, or sensitive fields
+- ALWAYS: Explicit response schemas, filter sensitive data
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-400: Unbounded Resource Consumption**
+- NEVER: Return unlimited results: `GET /users` returning 1M records
+- ALWAYS: Pagination with max page size, cursor-based for large datasets
+
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Authentication Required (CWE-306)
+
+**Principle:** All API endpoints must require authentication except public documentation.
+
+```yaml
+# ❌ WRONG - No authentication
+paths:
+  /api/users:
+    get:
+      responses:
+        200:
+          description: List users
+
+# ✅ CORRECT - Authentication required
+paths:
+  /api/users:
+    get:
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List users
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 Authorization on Resources (CWE-862)
 
-   - **OWASP-API-2023-01** (CVSS N/A): BOLA (Broken Object Level Authorization) - 40% of attacks
-     Source: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
-   - **OWASP-API-2023-06** (CVSS N/A): Unrestricted access to business flows (NEW in 2023)
-     Source: https://owasp.org/API-Security/editions/2023/en/0xa6-unrestricted-access-to-sensitive-business-flows/
-   - **OWASP-API-2023-07** (CVSS N/A): Server-Side Request Forgery (NEW in 2023)
-     Source: https://owasp.org/API-Security/editions/2023/en/0xa7-server-side-request-forgery/
+**Principle:** Check authorization on every resource access. Never rely on URL obscurity.
 
-**Step 3: Common Attack Patterns**
+### 1.3 Input Validation (CWE-20)
 
-   - OWASP API Top 10 2023 attacks
-   - IDOR attacks via predictable IDs
-   - Rate limit bypass techniques
-   - Mass assignment vulnerabilities
-   - SSRF via webhook callbacks
+**Principle:** Define schemas for all request bodies and parameters. Reject invalid requests.
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+### 1.4 Rate Limiting (CWE-770)
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+**Principle:** Rate limit all endpoints. Stricter limits on auth endpoints.
 
-### 0.3 Hallucination Prevention Checklist
+### 1.5 CORS Security (CWE-346)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Strict origin allowlists. Never use `*` in production.
 
-**Domain-Specific Security Rules**:
+### 1.6 Error Disclosure (CWE-209)
 
-- ❌ NEVER use sequential IDs for resources
-- ❌ NEVER expose internal endpoints publicly
-- ❌ NEVER trust HTTP headers for authorization
-- ❌ ALWAYS implement object-level authorization
-- ❌ ALWAYS validate and sanitize webhook URLs
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+**Principle:** Return consistent error shapes. Never expose stack traces or internal details.
 
 ---
 
-## 1. Overview
+## 2. Version Requirements
 
-**Risk Level**: MEDIUM-RISK
+**ALWAYS use these API standards:**
 
-**Justification**: REST APIs expose business logic, handle authentication, and process user data. Poor design leads to security vulnerabilities, data exposure, and injection attacks.
-
-You are an expert in **RESTful API design**. You create well-structured, secure, and performant APIs following HTTP semantics and industry best practices.
-
-### Core Expertise
-- Resource modeling, URI design, HTTP semantics
-- Pagination, filtering, versioning
-- Security best practices (BOLA, injection, validation)
-
-### Primary Use Cases
-- Designing and refactoring REST APIs
-- API documentation and security hardening
-
-**File Organization**: Core concepts here; see `references/security-examples.md` for CVE mitigations and detailed patterns.
-
----
-
-## 2. Core Responsibilities
-
-### Core Principles
-1. **TDD First**: Write API tests before implementation
-2. **Performance Aware**: Optimize for latency, throughput, and efficiency
-3. **Security by Design**: Protect endpoints from common attacks
-4. **Resource-Oriented**: Model resources, not actions
-
-### Fundamental Duties
-1. **Resource-Oriented Design**: Model resources, not actions
-2. **HTTP Semantics**: Use correct methods and status codes
-3. **Consistent Conventions**: Follow naming and structure patterns
-4. **Security by Design**: Protect endpoints from common attacks
-
-### Design Principles
-- **Nouns, not verbs**: `/users/{id}` not `/getUser/{id}`
-- **Plural resources**: `/users` not `/user`
-- **Hierarchical relationships**: `/users/{id}/orders`
-- **Stateless operations**: No server-side session state
-
----
-
-## 3. Technical Foundation
-
-### HTTP Methods
-
-| Method | Purpose | Idempotent | Safe | Request Body |
-|--------|---------|------------|------|--------------|
-| GET | Retrieve resource | Yes | Yes | No |
-| POST | Create resource | No | No | Yes |
-| PUT | Replace resource | Yes | No | Yes |
-| PATCH | Partial update | No | No | Yes |
-| DELETE | Remove resource | Yes | No | No |
-
-### Status Codes
-
-**Success (2xx)**: `200 OK`, `201 Created`, `204 No Content`
-
-**Client Error (4xx)**: `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `422 Unprocessable Entity`, `429 Too Many Requests`
-
-**Server Error (5xx)**: `500 Internal Server Error`, `503 Service Unavailable`
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-// Instance operations
-GET    /api/v1/users/{id}         // Get user
-PUT    /api/v1/users/{id}         // Replace user
-PATCH  /api/v1/users/{id}         // Update user
-DELETE /api/v1/users/{id}         // Delete user
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Implementation Workflow (TDD)
-
-### Step-by-Step TDD Process
-
-Follow this workflow for every API endpoint:
-
-#### Step 1: Write Failing Test First
-
-```python
-# tests/test_users_api.py
-import pytest
-from httpx import AsyncClient
-from app.main import app
-
-@pytest.mark.asyncio
-async def test_create_user_returns_201():
-    async with AsyncClient(app=app, base_url="http://testserver") as client:
-        response = await client.post("/api/v1/users", json={"name": "John", "email": "john@example.com"})
-    assert response.status_code == 201
-    assert "id" in response.json()["data"]
-
-@pytest.mark.asyncio
-async def test_create_user_validates_email():
-    async with AsyncClient(app=app, base_url="http://testserver") as client:
-        response = await client.post("/api/v1/users", json={"name": "John", "email": "invalid"})
-    assert response.status_code == 422
-
-@pytest.mark.asyncio
-async def test_get_user_requires_auth():
-    async with AsyncClient(app=app, base_url="http://testserver") as client:
-        response = await client.get("/api/v1/users/123")
-    assert response.status_code == 401
+```yaml
+openapi: 3.1.0
+info:
+  title: API Name
+  version: 1.0.0
 ```
 
-#### Step 2: Implement Minimum to Pass
-
-```python
-# app/routers/users.py
-from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel, EmailStr
-
-router = APIRouter(prefix="/api/v1/users", tags=["users"])
-
-class CreateUserRequest(BaseModel):
-    name: str
-    email: EmailStr
-
-@router.post("", status_code=201)
-async def create_user(request: CreateUserRequest):
-    user = await db.users.create(request.model_dump())
-    return {"data": {"id": user.id, "name": user.name, "email": user.email}}
-```
-
-#### Step 3: Refactor and Add Edge Cases
-
-```python
-@pytest.mark.asyncio
-async def test_get_user_prevents_bola():
-    async with AsyncClient(app=app, base_url="http://testserver") as clien## 6. Implementation Workflow (TDD)
-
-## 6. Implementation Workflow (TDD)
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-press responses > 1KB
-```
-
-### 6.4 Rate Limiting
-
-```python
-# BAD: No rate limiting
-@router.post("/api/auth/login")
-async def login(credentials: LoginRequest):
-    return await authenticate(credentials)
-
-# GOOD: Tiered rate limiting with slowapi
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
-
-@router.post("/api/auth/login")
-@limiter.limit("5/minute")  # Strict for auth
-async def login(request: Request, credentials: LoginRequest):
-    return await authenticate(credentials)
-
-@router.get("/api/v1/users")
-@limiter.limit("100/minute")  # Standard for API
-async def list_users(request: Request):
-    return await get_users()
-```
-
-### 6.5 Connection Keep-Alive
-
-```python
-# BAD: Creating new connections per request
-async def call_external_api():
-    async with httpx.AsyncClient() as client:  # New connection each time
-        return await client.get("https://api.example.com/data")
-
-# GOOD: App-level client with connection pooling
-http_client: httpx.AsyncClient | None = None
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    global http_client
-    http_client = httpx.AsyncClient(
-        limits=httpx.Limits(max_keepalive_connections=20, max_connections=100)
-    )
-    yield
-    await http_client.aclose()
-
-app = FastAPI(lifespan=lifespan)
-```
+**Versioning:** URL path versioning (e.g., `/api/v1/`)
 
 ---
 
-## 8. Security Standards
+## 3. Code Patterns
 
-> **See** `references/security-examples.md` for complete CVE details and mitigation patterns.
+### 3.1 WHEN designing resource URLs
 
-### Top API Vulnerabilities
-- **BOLA**: Accessing other users' resources without authorization
-- **Mass Assignment**: Updating protected fields via request body
-- **Injection**: SQL/NoSQL injection via parameters
-- **Excessive Data Exposure**: Returning sensitive fields
+```yaml
+# ❌ WRONG - Verbs in URLs, inconsistent naming
+paths:
+  /api/getUsers:
+  /api/createUser:
+  /api/user/delete/{id}:
+  /api/fetch-all-orders:
 
-### Input Validation & Authorization
+# ✅ CORRECT - Noun resources, consistent plural naming
+paths:
+  # Collection resources
+  /api/v1/users:
+    get:
+      summary: List users
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+      responses:
+        200:
+          description: User list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+    post:
+      summary: Create user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        201:
+          description: User created
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Individual resources
+  /api/v1/users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: Get user
+      operationId: getUser
+      responses:
+        200:
+          $ref: '#/components/responses/User'
+        404:
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update user
+      operationId: updateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      responses:
+        200:
+          $ref: '#/components/responses/User'
+    delete:
+      summary: Delete user
+      operationId: deleteUser
+      responses:
+        204:
+          description: User deleted
+
+  # Nested resources
+  /api/v1/users/{userId}/orders:
+    get:
+      summary: List user's orders
+      operationId: listUserOrders
+```
+
+### 3.2 WHEN defining request/response schemas
+
+```yaml
+components:
+  schemas:
+    # Base entity with timestamps
+    User:
+      type: object
+      required:
+        - id
+        - email
+        - name
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        email:
+          type: string
+          format: email
+          example: "user@example.com"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: "John Doe"
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    # Create request (no ID, no read-only fields)
+    CreateUser:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          format: password
+          minLength: 8
+          writeOnly: true
+
+    # Update request (all optional)
+    UpdateUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    # Paginated list response
+    UserList:
+      type: object
+      required:
+        - data
+        - meta
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    PaginationMeta:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - totalPages
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+        totalPages:
+          type: integer
+          minimum: 0
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+```
+
+### 3.3 WHEN defining error responses
+
+```yaml
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+          example: "VALIDATION_ERROR"
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        requestId:
+          type: string
+          description: Request ID for debugging
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Validation failed"
+            code: "VALIDATION_ERROR"
+            details:
+              - field: "email"
+                message: "Invalid email format"
+
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Authentication required"
+            code: "UNAUTHORIZED"
+
+    Forbidden:
+      description: Access denied
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "You don't have permission to access this resource"
+            code: "FORBIDDEN"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "User not found"
+            code: "NOT_FOUND"
+
+    TooManyRequests:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Too many requests"
+            code: "RATE_LIMITED"
+```
+
+### 3.4 WHEN implementing HTTP methods correctly
+
+```yaml
+# ❌ WRONG - Using GET for mutations
+paths:
+  /api/users/{id}/activate:
+    get:  # GET shouldn't change state
+      summary: Activate user
+
+# ✅ CORRECT - Proper method usage
+paths:
+  /api/users/{id}:
+    # GET - Retrieve (safe, cacheable, idempotent)
+    get:
+      summary: Get a specific user
+      responses:
+        200:
+          description: User details
+        304:
+          description: Not modified (cached)
+
+    # PUT - Replace entire resource (idempotent)
+    put:
+      summary: Replace user
+      description: Replaces all user fields. Missing fields are cleared.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        200:
+          description: User replaced
+        201:
+          description: User created (if didn't exist)
+
+    # PATCH - Partial update (not necessarily idempotent)
+    patch:
+      summary: Update user fields
+      description: Updates only provided fields.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUser'
+      responses:
+        200:
+          description: User updated
+
+    # DELETE - Remove resource (idempotent)
+    delete:
+      summary: Delete user
+      responses:
+        204:
+          description: User deleted
+        404:
+          description: User not found
+
+  # Actions as sub-resources
+  /api/users/{id}/actions/activate:
+    post:  # POST for non-idempotent actions
+      summary: Activate user account
+      responses:
+        200:
+          description: User activated
+```
+
+### 3.5 WHEN implementing pagination
+
+```yaml
+# ❌ WRONG - No pagination limits
+paths:
+  /api/users:
+    get:
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer  # No max limit!
+
+# ✅ CORRECT - Bounded pagination
+components:
+  parameters:
+    Page:
+      name: page
+      in: query
+      description: Page number (1-indexed)
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      description: Items per page
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      description: Cursor for cursor-based pagination
+      schema:
+        type: string
+
+paths:
+  /api/users:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Limit'
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, name, email]
+            default: createdAt
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        200:
+          description: Paginated user list
+          headers:
+            Link:
+              schema:
+                type: string
+              description: |
+                Links to related pages:
+                <https://api.example.com/users?page=2>; rel="next",
+                <https://api.example.com/users?page=10>; rel="last"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+```
+
+### 3.6 WHEN implementing filtering and search
+
+```yaml
+paths:
+  /api/users:
+    get:
+      summary: List users with filtering
+      parameters:
+        # Exact match filters
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive, pending]
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [user, admin]
+
+        # Range filters
+        - name: createdAfter
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: createdBefore
+          in: query
+          schema:
+            type: string
+            format: date-time
+
+        # Full-text search
+        - name: q
+          in: query
+          description: Search query (searches name and email)
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 100
+
+        # Multiple values
+        - name: ids
+          in: query
+          description: Filter by multiple IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            maxItems: 50
+          style: form
+          explode: false  # ids=1,2,3
+
+  # Complex search as POST
+  /api/users/search:
+    post:
+      summary: Advanced user search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filters:
+                  type: array
+                  items:
+                    type: object
+                    required: [field, operator, value]
+                    properties:
+                      field:
+                        type: string
+                        enum: [name, email, createdAt, role]
+                      operator:
+                        type: string
+                        enum: [eq, ne, gt, gte, lt, lte, contains]
+                      value:
+                        oneOf:
+                          - type: string
+                          - type: number
+                          - type: boolean
+                sort:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      field:
+                        type: string
+                      order:
+                        type: string
+                        enum: [asc, desc]
+```
+
+### 3.7 WHEN implementing versioning
+
+```yaml
+# URL Path Versioning (Recommended)
+servers:
+  - url: https://api.example.com/v1
+    description: Version 1 (current)
+  - url: https://api.example.com/v2
+    description: Version 2 (beta)
+
+paths:
+  /users:  # Full path: /v1/users
+    get:
+      summary: List users (v1)
+      deprecated: false
+
+# Deprecation headers
+components:
+  headers:
+    Deprecation:
+      schema:
+        type: string
+        format: date-time
+      description: When this endpoint will be removed
+    Sunset:
+      schema:
+        type: string
+        format: date-time
+      description: When this endpoint will stop working
+    Link:
+      schema:
+        type: string
+      description: Link to newer version
+
+# Example deprecated endpoint
+paths:
+  /users:
+    get:
+      deprecated: true
+      summary: List users (deprecated - use v2)
+      responses:
+        200:
+          headers:
+            Deprecation:
+              schema:
+                type: string
+              example: "2024-06-01T00:00:00Z"
+            Sunset:
+              schema:
+                type: string
+              example: "2025-01-01T00:00:00Z"
+            Link:
+              schema:
+                type: string
+              example: "</v2/users>; rel=\"successor-version\""
+```
+
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Use verbs in resource URLs (`/getUsers`, `/createUser`)
+- Return 200 for all responses (use proper status codes)
+- Return different error shapes
+- Skip pagination on list endpoints
+- Allow unlimited page sizes
+- Use query params for sensitive data
+- Include passwords in responses
+- Expose internal IDs or implementation details
+
+---
+
+## 5. Testing
+
+**ALWAYS write API contract tests:**
 
 ```typescript
-import { z } from "zod";
+import { describe, it, expect } from 'vitest';
 
-const CreateUserSchema = z.object({
-  name: z.string().min(1).max(100),
-  email: z.string().email(),
-  password: z.string().min(12).max(100)
+describe('REST API Contract', () => {
+  describe('GET /api/v1/users', () => {
+    it('returns paginated list', async () => {
+      const response = await fetch('/api/v1/users?page=1&limit=10');
+      expect(response.status).toBe(200);
+
+      const body = await response.json();
+      expect(body).toHaveProperty('data');
+      expect(body).toHaveProperty('meta');
+      expect(body.meta).toHaveProperty('page', 1);
+      expect(body.meta).toHaveProperty('limit', 10);
+      expect(body.meta).toHaveProperty('total');
+    });
+
+    it('enforces max limit', async () => {
+      const response = await fetch('/api/v1/users?limit=1000');
+      expect(response.status).toBe(200);
+
+      const body = await response.json();
+      expect(body.meta.limit).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe('POST /api/v1/users', () => {
+    it('creates user with 201', async () => {
+      const response = await fetch('/api/v1/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'test@example.com',
+          name: 'Test User',
+          password: 'securePassword123',
+        }),
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.headers.get('Location')).toMatch(/\/users\/[\w-]+/);
+    });
+
+    it('returns 400 for invalid data', async () => {
+      const response = await fetch('/api/v1/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: 'invalid' }),
+      });
+
+      expect(response.status).toBe(400);
+      const body = await response.json();
+      expect(body.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('DELETE /api/v1/users/{id}', () => {
+    it('returns 204 on success', async () => {
+      const response = await fetch('/api/v1/users/123', { method: 'DELETE' });
+      expect(response.status).toBe(204);
+    });
+
+    it('is idempotent (204 even if not found)', async () => {
+      const response = await fetch('/api/v1/users/nonexistent', { method: 'DELETE' });
+      expect([204, 404]).toContain(response.status);
+    });
+  });
 });
-
-app.post("/api/v1/users", async (req, res) => {
-  const validation = CreateUserSchema.safeParse(req.body);
-  if (!validation.success) {
-    return res.status(422).json({ error: { code: "VALIDATION_ERROR", details: validation.error.errors }});
-  }
-  res.status(201).json({ data: await createUser(validation.data) });
-});
-
-// BOLA prevention - always check obje## 7. Performance Patterns
-
-## 7. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
+```
 
 ---
-s
-- [ ] Authentication and error codes documented
-- [ ] CORS configured restrictively, HTTPS enforced
-- [ ] Performance tested with expected load
 
----
+## 6. Pre-Generation Checklist
 
-## 12. Summary
+**BEFORE generating any REST API design:**
 
-Design REST APIs that are **Intuitive** (REST conventions, HTTP semantics), **Secure** (validate inputs, authorize access, filter outputs), and **Consistent** (uniform responses, errors, pagination).
-
-**Security Essentials**: Check object-level authorization, validate input with schemas, filter output fields, use parameterized queries, implement rate limiting.
-
-Build APIs that are secure by default and easy to use correctly.
+- [ ] Authentication required on all endpoints
+- [ ] Authorization checked per resource
+- [ ] Proper HTTP methods (GET safe, PUT/DELETE idempotent)
+- [ ] Consistent resource naming (nouns, plural)
+- [ ] Pagination with max limit enforced
+- [ ] Standard error response shape
+- [ ] Proper status codes (201 create, 204 delete, etc.)
+- [ ] Request/response schemas defined
+- [ ] Rate limiting configured
+- [ ] API versioning strategy defined

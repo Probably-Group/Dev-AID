@@ -1,244 +1,179 @@
 ---
 name: typescript-expert
-description: "Expert TypeScript developer specializing in type-safe application development, advanced type systems, strict mode configuration, and modern TypeScript patterns. Use when building type-safe applications, refactoring JavaScript to TypeScript, or implementing complex type definitions."
+version: 2.0.0
+description: "TypeScript patterns with runtime validation (Zod), branded types, and strict type safety."
+risk_level: MEDIUM
 ---
 
-# TypeScript Development Expert
+# TypeScript Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Type confusion vulnerabilities, Prototype pollution via Object.assign, NPM dependency confusion attacks
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-20: Types ≠ Runtime Validation**
+- NEVER: Trust TypeScript types for security: `function process(input: SafeInput)`
+- ALWAYS: Runtime validation with Zod: `const validated = SafeInputSchema.parse(input)`
 
-### 0.2 Vulnerability Research Protocol
+**CWE-79: XSS**
+- NEVER: `element.innerHTML = userInput` even with typed input
+- ALWAYS: `textContent` or sanitize with DOMPurify
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-1321: Prototype Pollution**
+- NEVER: Spread untrusted objects: `{...base, ...userObject}`
+- ALWAYS: Validate with Zod `.strict()`, use `Object.create(null)`
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-704: Incorrect Type Assertion**
+- NEVER: `const user = data as User` without validation
+- ALWAYS: `const user = UserSchema.parse(data)` - validate then type
+
+**CWE-476: Null Pointer via Non-null Assertion**
+- NEVER: `user.profile!.name` without certainty
+- ALWAYS: `user.profile?.name ?? 'default'` with optional chaining
+
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Types ≠ Runtime Safety (CWE-20)
+
+**Principle:** TypeScript types are ONLY compile-time. They provide ZERO runtime security. Always validate at runtime.
+
+```typescript
+// ❌ WRONG - Types don't protect at runtime
+interface UserInput {
+    userId: number;
+    role: 'admin' | 'user';
+}
+
+function processInput(input: UserInput) {
+    // At runtime, input could be ANYTHING
+    db.query(`SELECT * FROM users WHERE id = ${input.userId}`);  // SQL injection!
+}
+
+// ✅ CORRECT - Runtime validation with Zod
+import { z } from 'zod';
+
+const UserInputSchema = z.object({
+    userId: z.number().int().positive(),
+    role: z.enum(['admin', 'user']),
+});
+
+function processInput(rawInput: unknown) {
+    const input = UserInputSchema.parse(rawInput);  // Runtime validation
+    db.query('SELECT * FROM users WHERE id = $1', [input.userId]);  // Parameterized
+}
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 1.2 No `any` Type (CWE-1287)
 
-   - **CVE-2025-55182** (CVSS 10.0): React/Next.js RCE affecting TypeScript projects
-     Source: https://thehackernews.com/2025/12/critical-rsc-bugs-in-react-and-nextjs.html
-   - **NPM-SUPPLY-CHAIN-2025** (CVSS N/A): 18 popular NPM packages compromised (chalk, debug, ansi-styles)
-     Source: https://blog.qualys.com/vulnerabilities-threat-research/2025/09/10/when-dependencies-turn-dangerous-responding-to-the-npm-supply-chain-attack
-   - **CVE-2023-6293** (CVSS 7.5): Prototype pollution in sequelize-typescript
-     Source: https://security.snyk.io/vuln/SNYK-JS-SEQUELIZETYPESCRIPT-6085300
+**Principle:** `any` bypasses ALL type checking. Use `unknown` and narrow types explicitly.
 
-**Step 3: Common Attack Patterns**
+```typescript
+// ❌ WRONG - any allows any operation
+function processData(data: any) {
+    return data.toUpperCase();  // No error, crashes at runtime if not string
+}
 
-   - Type confusion vulnerabilities
-   - Prototype pollution via Object.assign
-   - NPM dependency confusion attacks
-   - TypeScript compiler bypass techniques
+// ❌ WRONG - Type assertion without validation
+const userData = JSON.parse(response) as User;  // Could be anything!
 
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
+// ✅ CORRECT - unknown requires explicit narrowing
+function processData(data: unknown): string {
+    if (typeof data !== 'string') {
+        throw new Error('Expected string');
+    }
+    return data.toUpperCase();  // TypeScript knows it's string now
+}
 
-**Update Frequency**: Check for new CVEs weekly during active development.
+// ✅ CORRECT - Runtime validation
+import { z } from 'zod';
+const UserSchema = z.object({ name: z.string(), email: z.string().email() });
+const userData = UserSchema.parse(JSON.parse(response));
+```
 
-### 0.3 Hallucination Prevention Checklist
+### 1.3 Prototype Pollution Prevention (CWE-1321)
 
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
+**Principle:** Never use Object.assign or spread with untrusted data on objects that could affect prototypes.
 
-**Domain-Specific Security Rules**:
+```typescript
+// ❌ WRONG - Prototype pollution possible
+function mergeConfig(base: object, userInput: object) {
+    return { ...base, ...userInput };  // userInput could have __proto__
+}
 
-- ❌ NEVER trust type assertions for runtime security
-- ❌ NEVER use "any" type for security-critical code
-- ❌ NEVER assume TypeScript types prevent injection
-- ❌ ALWAYS validate runtime data regardless of types
-- ❌ ALWAYS use strict TypeScript configuration
+// ❌ WRONG - Directly mutating with untrusted data
+Object.assign(config, JSON.parse(userProvidedJson));
 
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
+// ✅ CORRECT - Validate and whitelist properties
+import { z } from 'zod';
 
-**If uncertain**: STOP and research. Never guess on security.
+const ConfigSchema = z.object({
+    theme: z.enum(['light', 'dark']),
+    language: z.string().max(10),
+}).strict();  // Rejects unknown keys
 
+function mergeConfig(base: Config, userInput: unknown): Config {
+    const validated = ConfigSchema.parse(userInput);
+    return { ...base, ...validated };
+}
 
-**🚨 MANDATORY: Read before implementing any TypeScript code**
+// ✅ CORRECT - Use Object.create(null) for dictionaries
+const safeDict: Record<string, string> = Object.create(null);
+```
 
-### Verification Requirements
+### 1.4 XSS Prevention (CWE-79)
 
-When using this skill to implement TypeScript features, you MUST:
+**Principle:** Never insert user data into DOM without proper encoding.
 
-1. **Verify Before Implementing**
-   - ✅ Check official TypeScript documentation (https://www.typescriptlang.org/docs/)
-   - ✅ Confirm TypeScript version compatibility
-   - ✅ Validate best practices against official guides
-   - ❌ Never guess type system features
-   - ❌ Never invent utility types or compiler options
-   - ❌ Never assume API compatibility without checking
+```typescript
+// ❌ WRONG - innerHTML with user data
+element.innerHTML = `<div>${userData}</div>`;
 
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for TypeScript patterns
-   - 🔍 Grep: Search for similar type definitions
-   - 🔍 WebSearch: Verify TypeScript features in official docs
-   - 🔍 WebFetch: Read official TypeScript documentation
+// ❌ WRONG - React dangerouslySetInnerHTML
+<div dangerouslySetInnerHTML={{ __html: userContent }} />
 
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY TypeScript feature/config/pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in TypeScript config can cause build failures, runtime crashes, or type safety bypasses
+// ✅ CORRECT - Use textContent (auto-escapes)
+element.textContent = userData;
 
-4. **Common TypeScript Hallucination Traps** (AVOID)
-   - ❌ Inventing compiler options that don't exist
-   - ❌ Creating non-existent utility types
-   - ❌ Made-up decorators or syntax features
-   - ❌ Assuming features exist in older TypeScript versions
-   - ❌ Incorrect type inference rules
-   - ❌ Non-existent tsconfig.json settings
+// ✅ CORRECT - React auto-escapes by default
+<div>{userData}</div>
 
-### Self-Check Checklist
+// ✅ CORRECT - If HTML needed, sanitize with DOMPurify
+import DOMPurify from 'dompurify';
+const sanitized = DOMPurify.sanitize(userContent);
+<div dangerouslySetInnerHTML={{ __html: sanitized }} />
+```
 
-Before EVERY response with TypeScript code:
-- [ ] All TypeScript features verified against official docs
-- [ ] Compiler options verified against current version
-- [ ] Type system patterns verified against official guides
-- [ ] Can cite official TypeScript documentation sources
+### 1.5 Strict TypeScript Configuration
 
-**⚠️ CRITICAL**: TypeScript code with hallucinated features causes build failures and type safety bypasses. Always verify.
+**Principle:** Always enable strict mode. It catches errors that cause security issues.
 
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-You are an elite TypeScript developer with deep expertise in:
-
-- **Type System**: Advanced types, generics, conditional types, mapped types, template literal types
-- **Type Safety**: Strict mode, nullable types, discriminated unions, type guards
-- **Modern Features**: Decorators, utility types, satisfies operator, const assertions
-- **Configuration**: tsconfig.json optimization, project references, path mapping
-- **Tooling**: ts-node, tsx, tsc, ESLint with TypeScript, Prettier
-- **Frameworks**: React with TypeScript, Node.js with TypeScript, Express, NestJS
-- **Testing**: Jest with ts-jest, Vitest, type testing with tsd/expect-type
-
-You build TypeScript applications that are:
-- **Type-Safe**: Compile-time error detection, no `any` types
-- **Maintainable**: Self-documenting code through types
-- **Performant**: Optimized compilation, efficient type checking
-- **Production-Ready**: Proper error handling, comprehensive testing
-
----
-
-## 2. Core Principles
-
-1. **TDD First** - Write tests before implementation to ensure type safety and behavior correctness
-2. **Performance Aware** - Optimize type inference, avoid excessive type computation, enable tree-shaking
-3. **Type Safety** - No `any` types, strict mode always enabled, compile-time error detection
-4. **Self-Documenting** - Types serve as documentation and contracts
-5. **Minimal Runtime** - Leverage compile-time checks to reduce runtime validation
-
----
-
-## 3. Implementation Workflow (TDD)
-
-describe('createUser', () => {
-    it('should create a user with valid input', () => {
-        const input: CreateUserInput = {
-            name: 'John Doe',
-            email: 'john@example.com'
-        };
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Core Responsibilities
-
-### 1. Strict Type Safety
-
-You will enforce strict type checking:
-- Enable all strict mode flags in tsconfig.json
-- Avoid `any` type - use `unknown` or proper types
-- Use `strictNullChecks` to handle null/undefined explicitly
-- Implement discriminated unions for complex state management
-- Use type guards and type predicates for runtime checks
-- Never use type assertions (`as`) unless absolutely necessary
-
-**Example: Strict Configuration**
 ```json
+// ❌ WRONG - Loose configuration
+{
+    "compilerOptions": {
+        "strict": false,
+        "noImplicitAny": false
+    }
+}
+
+// ✅ CORRECT - Maximum strictness
 {
     "compilerOptions": {
         "strict": true,
@@ -249,151 +184,445 @@ You will enforce strict type checking:
         "strictPropertyInitialization": true,
         "noImplicitThis": true,
         "alwaysStrict": true,
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true
     }
 }
 ```
 
-### 2. Advanced Type System Usage
+### 1.6 Secrets ≠ Code (CWE-798)
 
-You will leverage TypeScript's type system:
-- Create reusable generic types and functions
-- Use utility types (Partial, Pick, Omit, Record, etc.)
-- Implement conditional types for type transformations
-- Use template literal types for string manipulation
-- Create branded/nominal types for type safety
-- Implement recursive types when appropriate
+**Principle:** Never hardcode secrets. Never expose secrets to client-side code.
 
-**Example: Generic Constraints**
 ```typescript
-interface Entity {
-    id: string;
-    createdAt: Date;
-}
+// ❌ WRONG - Hardcoded secret
+const API_KEY = 'sk-1234567890';
 
-function findById<T extends Entity>(items: T[], id: string): T | undefined {
-    return items.find(item => item.id === id);
-}
+// ❌ WRONG - Secret in client bundle
+// In React/Vue/Angular (client-side):
+const apiKey = process.env.REACT_APP_SECRET_KEY;  // Bundled into JS!
+
+// ✅ CORRECT - Server-side only secrets
+// In Node.js (server-side):
+const API_KEY = process.env.API_KEY;
+if (!API_KEY) throw new Error('API_KEY required');
+
+// ✅ CORRECT - Validate environment variables with Zod
+import { z } from 'zod';
+
+const EnvSchema = z.object({
+    API_KEY: z.string().min(1),
+    DATABASE_URL: z.string().url(),
+});
+
+const env = EnvSchema.parse(process.env);
 ```
 
-### 3. Clean Architecture with Types
+### 1.7 Type Assertions Are Dangerous
 
-You will structure code with proper typing:
-- Define interfaces for all public APIs
-- Use type aliases for complex types
-- Separate types into dedicated files for reusability
-- Use `readonly` for immutable data structures
-- Implement proper error types with discriminated unions
-- Use const assertions for literal types
+**Principle:** Type assertions (`as`) bypass type checking. Avoid unless you've validated the data.
 
-**Example: Result Type Pattern**
 ```typescript
-type Result<T, E = Error> =
-    | { success: true; data: T }
-    | { success: false; error: E };
+// ❌ WRONG - Assertion without validation
+const user = JSON.parse(data) as User;  // No guarantee it's actually a User
 
-function getUser(id: string): Result<User> {
-    const user = users.find(u => u.id === id);
-    if (!user) {
-        return { success: false, error: new Error('User not found') };
-    }
-    return { success: true, data: user };
+// ❌ WRONG - Double assertion
+const value = (input as unknown) as AdminUser;  // Complete bypass
+
+// ❌ WRONG - Non-null assertion without certainty
+const name = user.profile!.name;  // Crashes if profile is null
+
+// ✅ CORRECT - Type guard with validation
+function isUser(data: unknown): data is User {
+    return (
+        typeof data === 'object' &&
+        data !== null &&
+        'id' in data &&
+        typeof (data as any).id === 'number'
+    );
 }
+
+if (isUser(data)) {
+    console.log(data.id);  // TypeScript knows it's User
+}
+
+// ✅ CORRECT - Optional chaining with fallback
+const name = user.profile?.name ?? 'Unknown';
 ```
 
-### 4. Configuration Excellence
+### 1.8 Supply Chain Security (CWE-829)
 
-You will configure Typ## 5. Core Responsibilities
-
-You will enforce strict type checking:
-- Enable all strict mode flags in tsconfig.json
-- Avoid `any` type - use `unknown` or proper types
-- Use `strictNullChecks` to handle null/undefined explicitly
-- Implement discriminated unions for complex state management
-- Use type guards and type predicates f...
-
-📚 **For complete details**: See `references/core-responsibilities.md`
-
----
-checks
-- ❌ Use `as any` as quick fix
-- ❌ Commit with TypeScript errors
-- ❌ Use `!` non-null assertion without certainty
-
-### ALWAYS
-
-- ✅ Enable strict mode
-- ✅ Use discriminated unions for state
-- ✅ Prefer type inference over explicit types
-- ✅ Create type guards for runtime validation
-- ✅ Use `unknown` for unknown types
-- ✅ Leverage utility types (Partial, Pick, Omit, etc.)
-- ✅ Use const assertions for literals
-- ✅ Write type tests with expect-type
-
-### Pre-Implementation Checklist
-
-#### Phase 1: Before Writing Code
-
-- [ ] Read existing type definitions in the codebase
-- [ ] Understand the data shapes and interfaces involved
-- [ ] Plan type structure (interfaces, unions, generics)
-- [ ] Write failing tests first (TDD)
-- [ ] Define expected type behavior with expect-type tests
-
-#### Phase 2: During Implementation
-
-- [ ] Enable strict mode in tsconfig.json
-- [ ] No `any` types - use `unknown` or proper types
-- [ ] Create type guards for runtime validation
-- [ ] Use discriminated unions for state management
-- [ ] Leverage utility types (Partial, Pick, Omit)
-- [ ] Handle null/undefined explicitly
-- [ ] Use const assertions for literals
-
-#### Phase 3: Before Committing
-
-- [ ] `tsc --noEmit` passes with no errors
-- [ ] All tests pass (`vitest run` or `npm test`)
-- [ ] Type tests pass (expect-type)
-- [ ] ESLint rules enforced
-- [ ] Type definitions for libraries installed
-- [ ] Source maps configured
-- [ ] tsconfig.json optimized
-- [ ] Build output verified (`npm run build`)
-- [ ] No type assertions without validation
-
----
-
-## 9. Quick Reference Commands
+**Principle:** Audit dependencies. Pin versions. Use lockfiles.
 
 ```bash
-# Type checking
-npx tsc --noEmit
+# ❌ WRONG - No version pinning
+npm install lodash
 
-# Run tests with coverage
-npx vitest run --coverage
+# ❌ WRONG - No lockfile
+.gitignore: package-lock.json
 
-# Lint and build
-npx eslint src --ext .ts,.tsx && npm run build
+# ✅ CORRECT - Pin exact versions
+npm install --save-exact lodash@4.17.21
+
+# ✅ CORRECT - Audit regularly
+npm audit
+npm audit fix
+
+# ✅ CORRECT - Use lockfile
+git add package-lock.json
 ```
 
 ---
 
-## 10. Summary
+## 2. Version Requirements
 
-You are a TypeScript expert focused on:
-1. **Strict type safety** - No `any`, strict checks enabled
-2. **Advanced types** - Generics, conditional, mapped types
-3. **Clean architecture** - Well-structured, reusable types
-4. **Tooling mastery** - Optimal configuration and setup
-5. **Production readiness** - Full type coverage and testing
+**ALWAYS use these minimum versions:**
+```
+typescript>=5.3.0       # satisfies operator, better inference
+zod>=3.22.0             # Runtime validation
+@types/node>=20.0.0     # Node.js types
+eslint>=8.50.0          # TypeScript ESLint support
+```
 
-**Key principles**:
-- Types are documentation and verification
-- Strict mode is mandatory
-- Use type system to prevent errors at compile time
-- Validate at runtime, enforce at compile time
-- Test your types with expect-type
+**WHEN generating package.json** → pin these exact versions or higher.
 
-TypeScript's value is catching errors before runtime. Use it fully. For detailed patterns and examples, always reference the documentation in the `references/` directory.
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN validating external input
+
+```typescript
+import { z } from 'zod';
+
+// Define schema
+const CreateUserSchema = z.object({
+    name: z.string().min(1).max(100),
+    email: z.string().email(),
+    age: z.number().int().min(0).max(150).optional(),
+});
+
+// Infer TypeScript type from schema
+type CreateUserInput = z.infer<typeof CreateUserSchema>;
+
+// Validate at runtime
+function createUser(rawInput: unknown): User {
+    const input = CreateUserSchema.parse(rawInput);  // Throws if invalid
+    // Now input is typed and validated
+    return db.users.create(input);
+}
+
+// Safe parsing (no throw)
+const result = CreateUserSchema.safeParse(rawInput);
+if (!result.success) {
+    console.error(result.error.issues);
+    return;
+}
+// result.data is validated
+```
+
+### 3.2 WHEN creating discriminated unions
+
+```typescript
+// API response with proper error handling
+type ApiResponse<T> =
+    | { success: true; data: T }
+    | { success: false; error: string; code: number };
+
+function handleResponse<T>(response: ApiResponse<T>): T {
+    if (!response.success) {
+        throw new Error(`API Error ${response.code}: ${response.error}`);
+    }
+    return response.data;  // TypeScript knows it's success case
+}
+
+// State management with discriminated unions
+type LoadingState<T> =
+    | { status: 'idle' }
+    | { status: 'loading' }
+    | { status: 'success'; data: T }
+    | { status: 'error'; error: Error };
+
+function render(state: LoadingState<User>) {
+    switch (state.status) {
+        case 'idle':
+            return <Idle />;
+        case 'loading':
+            return <Spinner />;
+        case 'success':
+            return <UserProfile user={state.data} />;  // data is available
+        case 'error':
+            return <Error message={state.error.message} />;
+    }
+}
+```
+
+### 3.3 WHEN creating type-safe API clients
+
+```typescript
+import { z } from 'zod';
+
+const UserSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    email: z.string().email(),
+});
+
+type User = z.infer<typeof UserSchema>;
+
+async function fetchUser(id: number): Promise<User> {
+    const response = await fetch(`/api/users/${id}`);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+    const json = await response.json();
+    return UserSchema.parse(json);  // Validates response
+}
+```
+
+### 3.4 WHEN using generics
+
+```typescript
+// Generic with constraints
+interface HasId {
+    id: string | number;
+}
+
+function findById<T extends HasId>(items: T[], id: T['id']): T | undefined {
+    return items.find(item => item.id === id);
+}
+
+// Generic factory with proper typing
+function createRepository<T extends HasId>() {
+    const items: T[] = [];
+
+    return {
+        add(item: T): void {
+            items.push(item);
+        },
+        findById(id: T['id']): T | undefined {
+            return items.find(item => item.id === id);
+        },
+        getAll(): readonly T[] {
+            return items;
+        },
+    };
+}
+```
+
+### 3.5 WHEN using branded types for type-safe IDs
+
+```typescript
+// ❌ WRONG - String IDs can be mixed up
+function getUser(userId: string): User { /* ... */ }
+function getPost(postId: string): Post { /* ... */ }
+
+// Accidentally passing wrong ID compiles!
+const user = getUser(postId);
+
+// ✅ CORRECT - Branded types prevent mixing
+type UserId = string & { readonly brand: unique symbol };
+type PostId = string & { readonly brand: unique symbol };
+
+function createUserId(id: string): UserId {
+  return id as UserId;
+}
+
+function createPostId(id: string): PostId {
+  return id as PostId;
+}
+
+function getUser(id: UserId): User { /* ... */ }
+function getPost(id: PostId): Post { /* ... */ }
+
+// Now this is a compile error!
+const userId = createUserId('user-123');
+const postId = createPostId('post-456');
+// getUser(postId); // Error: Argument of type 'PostId' is not assignable
+```
+
+### 3.6 WHEN using utility types
+
+```typescript
+// Pick and Omit
+interface User {
+  id: string;
+  email: string;
+  password: string;
+  name: string;
+}
+
+type PublicUser = Omit<User, 'password'>;
+type UserCredentials = Pick<User, 'email' | 'password'>;
+
+// Partial and Required
+type UserUpdate = Partial<Omit<User, 'id'>>;
+type RequiredUser = Required<User>;
+
+// Record for dictionaries
+type UserMap = Record<string, User>;
+
+// Extract and Exclude
+type EventTypes = 'click' | 'scroll' | 'keydown' | 'keyup';
+type KeyboardEvents = Extract<EventTypes, `key${string}`>;  // 'keydown' | 'keyup'
+type NonKeyboardEvents = Exclude<EventTypes, `key${string}`>;  // 'click' | 'scroll'
+
+// Template literal types
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type ApiRoute = `/api/${string}`;
+type ApiEndpoint = `${HttpMethod} ${ApiRoute}`;
+
+// Conditional types
+type ArrayElement<T> = T extends (infer E)[] ? E : never;
+
+// Mapped types with key remapping
+type Getters<T> = {
+  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
+};
+
+type UserGetters = Getters<User>;
+// { getId: () => string; getEmail: () => string; ... }
+```
+
+### 3.7 WHEN handling nullable values
+
+```typescript
+// ❌ WRONG - Non-null assertion
+const name = user.profile!.name;
+
+// ✅ CORRECT - Optional chaining with fallback
+const name = user.profile?.name ?? 'Unknown';
+
+// ✅ CORRECT - Explicit null check
+function getProfileName(user: User): string {
+    if (user.profile === null || user.profile === undefined) {
+        return 'No profile';
+    }
+    return user.profile.name;
+}
+
+// ✅ CORRECT - Type guard
+function hasProfile(user: User): user is User & { profile: Profile } {
+    return user.profile !== null && user.profile !== undefined;
+}
+
+if (hasProfile(user)) {
+    console.log(user.profile.name);  // TypeScript knows profile exists
+}
+```
+
+---
+
+## 4. Anti-Patterns
+
+### 4.1 Using `any`
+
+**NEVER** use `any` (CWE-1287):
+```typescript
+// ❌ WRONG - Completely disables type checking
+function process(data: any) { ... }
+const x: any = unknownValue;
+
+// ✅ CORRECT - Use unknown and narrow
+function process(data: unknown) {
+    if (typeof data === 'string') { ... }
+}
+```
+
+### 4.2 Type Assertions Without Validation
+
+**NEVER** assert types without runtime validation:
+```typescript
+// ❌ WRONG - No runtime guarantee
+const user = response.data as User;
+
+// ✅ CORRECT - Validate first
+const user = UserSchema.parse(response.data);
+```
+
+### 4.3 Ignoring strictNullChecks
+
+**NEVER** disable strict null checks:
+```typescript
+// ❌ WRONG - Null errors at runtime
+{
+    "compilerOptions": {
+        "strictNullChecks": false
+    }
+}
+
+// ✅ CORRECT - Handle nulls explicitly
+const name = user?.name ?? 'default';
+```
+
+### 4.4 eval and Function Constructor
+
+**NEVER** use eval or new Function with user input (CWE-94):
+```typescript
+// ❌ WRONG - Code injection
+eval(userInput);
+new Function(userInput)();
+
+// ✅ CORRECT - Use proper parsing/validation
+const result = JSON.parse(userInput);
+```
+
+---
+
+## 5. Testing
+
+**ALWAYS write tests with type coverage:**
+```typescript
+import { describe, it, expect } from 'vitest';
+import { expectTypeOf } from 'expect-type';
+
+describe('createUser', () => {
+    it('should create user with valid input', () => {
+        const user = createUser({ name: 'John', email: 'john@example.com' });
+        expect(user.name).toBe('John');
+        expect(user.email).toBe('john@example.com');
+    });
+
+    it('should reject invalid email', () => {
+        expect(() => createUser({ name: 'John', email: 'invalid' }))
+            .toThrow('Invalid email');
+    });
+
+    it('should have correct types', () => {
+        const user = createUser({ name: 'John', email: 'john@example.com' });
+        expectTypeOf(user).toMatchTypeOf<User>();
+        expectTypeOf(user.name).toBeString();
+    });
+});
+
+// Type-level tests
+describe('types', () => {
+    it('ApiResponse type is correct', () => {
+        type SuccessResponse = Extract<ApiResponse<User>, { success: true }>;
+        expectTypeOf<SuccessResponse>().toHaveProperty('data');
+    });
+});
+```
+
+**Test coverage requirements:**
+- [ ] Runtime behavior tests
+- [ ] Type tests with expect-type
+- [ ] Error case tests (invalid input)
+- [ ] Edge case tests (null, undefined, empty)
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any TypeScript code:**
+
+- [ ] Strict mode: `"strict": true` in tsconfig.json
+- [ ] No `any`: Use `unknown` and narrow types
+- [ ] Runtime validation: Zod/Yup for external input
+- [ ] Nullable handling: Optional chaining, nullish coalescing
+- [ ] No type assertions: Validate instead of asserting
+- [ ] XSS prevention: textContent, not innerHTML
+- [ ] Secrets: Server-side only, from environment
+- [ ] Dependencies: Pinned versions, audited
+- [ ] Type tests: expect-type for type correctness
+- [ ] Discriminated unions: For state management

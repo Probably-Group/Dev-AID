@@ -1,389 +1,646 @@
 ---
 name: websocket
-description: Real-time bidirectional communication with security focus on CSWSH prevention, authentication, and message validation
+version: 2.0.0
+description: "WebSocket implementation with connection management, heartbeats, and CSWSH prevention."
 risk_level: HIGH
 ---
 
-# WebSocket Security Skill
-
-## File Organization
-
-- **SKILL.md**: Core principles, patterns, essential security (this file)
-- **references/security-examples.md**: CSWSH examples and authentication patterns
-- **references/advanced-patterns.md**: Connection management, scaling patterns
-- **references/threat-model.md**: Attack scenarios including CSWSH
-
-## Validation Gates
-
-**Gate 0.2**: PASSED (5+ vulnerabilities documented) - CVE-2024-23898, CVE-2024-26135, CVE-2023-0957
-
----
-
+# WebSocket Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: MEDIUM
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Authentication bypass via upgrade header manipulation, Message flooding for DoS, Cross-site WebSocket hijacking (CSWSH)
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-1275: CSWSH (Cross-Site WebSocket Hijacking)**
+- NEVER: Accept connections without origin validation
+- ALWAYS: Check Origin header against allowlist on connection
 
-### 0.2 Vulnerability Research Protocol
+**CWE-306: Missing Authentication**
+- NEVER: Open WebSocket without authentication
+- ALWAYS: Authenticate before upgrade, validate token in handshake
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-400: Resource Exhaustion**
+- NEVER: Unlimited message size or connection count
+- ALWAYS: Max message size, per-IP connection limits, heartbeat timeouts
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+**CWE-20: Message Validation**
+- NEVER: Trust message content/structure
+- ALWAYS: Validate/sanitize all incoming messages, use schema validation
+
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Cross-Site WebSocket Hijacking Prevention (CWE-352)
+
+**Principle:** Always verify Origin header. Use CSRF tokens for WebSocket connections.
+
+```typescript
+// ❌ WRONG - No origin check
+wss.on('connection', (ws, req) => {
+  // Anyone can connect!
+  handleConnection(ws);
+});
+
+// ✅ CORRECT - Verify origin
+const ALLOWED_ORIGINS = ['https://myapp.com', 'https://www.myapp.com'];
+
+wss.on('connection', (ws, req) => {
+  const origin = req.headers.origin;
+
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
+    ws.close(4003, 'Forbidden origin');
+    return;
+  }
+
+  handleConnection(ws);
+});
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2024-55591** (CVSS 9.6): ws library - Authentication bypass via upgrade request manipulation
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-55591
-   - **CVE-2025-52882** (CVSS 8.8): socket.io - Remote code execution via deserialization
-     Source: https://github.com/socketio/socket.io/security/advisories
-   - **CVE-2024-47764** (CVSS 7.5): WebSocket message flooding DoS
-     Source: https://nvd.nist.gov/vuln/detail/CVE-2024-47764
-
-**Step 3: Common Attack Patterns**
-
-   - Authentication bypass via upgrade header manipulation
-   - Message flooding for DoS
-   - Cross-site WebSocket hijacking (CSWSH)
-   - Deserialization attacks
-   - Origin validation bypass
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER skip origin validation
-- ❌ NEVER trust client-side connection state
-- ❌ NEVER deserialize untrusted message payloads
-- ❌ ALWAYS implement per-connection rate limiting
-- ❌ ALWAYS use secure WebSocket (wss://) in production
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level**: HIGH
-
-**Justification**: WebSocket connections bypass Same-Origin Policy protections, making them vulnerable to Cross-Site WebSocket Hijacking (CSWSH). Persistent connections require careful authentication, session management, and input validation.
-
-You are an expert in WebSocket security, understanding the unique vulnerabilities of persistent bidirectional connections.
-
-### Core Expertise Areas
-- CSWSH (Cross-Site WebSocket Hijacking) prevention
-- Origin header validation and token-based authentication
-- Message validation and per-message authorization
-- Rate limiting and connection lifecycle security
-
----
-
-## 2. Core Responsibilities
-
-### Fundamental Principles
-
-1. **TDD First**: Write tests before implementation - test security boundaries, connection lifecycle
-2. **Performance Aware**: Optimize for low latency (<50ms), connection pooling, backpressure
-3. **Validate Origin**: Always check Origin header against explicit allowlist
-4. **Authenticate First**: Verify identity before accepting messages
-5. **Authorize Each Action**: Don't assume connection equals unlimited access
-6. **Validate All Messages**: Treat WebSocket messages as untrusted input
-7. **Limit Resources**: Rate limit messages, timeout idle connections
-
-### Security Decision Framework
-
-| Situation | Approach |
-|-----------|----------|
-| New connection | Validate Origin, require authentication token |
-| Each message | Validate format, check authorization for action |
-| Sensitive operations | Re-verify session, log action |
-| Idle connection | Timeout after inactivity period |
-| Error condition | Close connection, log details |
-
----
-
-## 3. Technical Foundation
-
-### Version Recommendations
-
-| Component | Version | Notes |
-|-----------|---------|-------|
-| **FastAPI/Starlette** | 0.115+ | WebSocket support |
-| **websockets** | 12.0+ | Python WebSocket library |
-
-### Security Configuration
-
 ```python
-WEBSOCKET_CONFIG = {
-    "max_message_size": 1024 * 1024,  # 1MB
-    "max_connections_per_ip": 10,
-    "idle_timeout_seconds": 300,
-    "messages_per_minute": 60,
+# ❌ WRONG - No origin validation (FastAPI)
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()  # Accepts any origin!
+
+# ✅ CORRECT - Validate origin
+ALLOWED_ORIGINS = {"https://myapp.com", "https://www.myapp.com"}
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    origin = websocket.headers.get("origin")
+
+    if origin not in ALLOWED_ORIGINS:
+        await websocket.close(code=4003)
+        return
+
+    await websocket.accept()
+```
+
+### 1.2 Authentication on Connection (CWE-306)
+
+**Principle:** Authenticate before accepting WebSocket connection. Use tokens, not cookies alone.
+
+```typescript
+// ❌ WRONG - No authentication
+wss.on('connection', (ws) => {
+  // No auth check - anyone can connect!
+});
+
+// ✅ CORRECT - Token authentication
+import jwt from 'jsonwebtoken';
+
+wss.on('connection', async (ws, req) => {
+  // Get token from query string or header
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const token = url.searchParams.get('token');
+
+  if (!token) {
+    ws.close(4001, 'Authentication required');
+    return;
+  }
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!);
+    ws.userId = payload.sub;
+    ws.isAuthenticated = true;
+  } catch (err) {
+    ws.close(4001, 'Invalid token');
+    return;
+  }
+});
+```
+
+### 1.3 Input Validation (CWE-20)
+
+**Principle:** Validate all incoming WebSocket messages. Use structured message formats.
+
+```typescript
+import { z } from 'zod';
+
+// Define message schemas
+const MessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('chat'),
+    content: z.string().min(1).max(1000),
+    roomId: z.string().uuid(),
+  }),
+  z.object({
+    type: z.literal('ping'),
+  }),
+  z.object({
+    type: z.literal('subscribe'),
+    channel: z.string().regex(/^[a-zA-Z0-9_-]+$/),
+  }),
+]);
+
+// ❌ WRONG - No validation
+ws.on('message', (data) => {
+  const msg = JSON.parse(data);
+  processMessage(msg);  // Trusting raw input!
+});
+
+// ✅ CORRECT - Validate every message
+ws.on('message', (data) => {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(data.toString());
+  } catch {
+    ws.send(JSON.stringify({ error: 'Invalid JSON' }));
+    return;
+  }
+
+  const result = MessageSchema.safeParse(parsed);
+  if (!result.success) {
+    ws.send(JSON.stringify({
+      error: 'Invalid message format',
+      details: result.error.flatten(),
+    }));
+    return;
+  }
+
+  processMessage(result.data);
+});
+```
+
+### 1.4 Rate Limiting (CWE-770)
+
+**Principle:** Limit messages per connection to prevent DoS.
+
+```typescript
+// ❌ WRONG - No rate limiting
+ws.on('message', (data) => {
+  processMessage(data);  // Can be flooded!
+});
+
+// ✅ CORRECT - Rate limiting
+const rateLimits = new Map<WebSocket, { count: number; resetAt: number }>();
+
+function checkRateLimit(ws: WebSocket): boolean {
+  const now = Date.now();
+  let limit = rateLimits.get(ws);
+
+  if (!limit || now > limit.resetAt) {
+    limit = { count: 0, resetAt: now + 1000 };  // 1 second window
+    rateLimits.set(ws, limit);
+  }
+
+  limit.count++;
+
+  if (limit.count > 100) {  // 100 messages per second max
+    return false;
+  }
+
+  return true;
 }
 
-# NEVER use "*" for origins
-ALLOWED_ORIGINS = ["https://app.example.com", "https://admin.example.com"]
+ws.on('message', (data) => {
+  if (!checkRateLimit(ws)) {
+    ws.send(JSON.stringify({ error: 'Rate limit exceeded' }));
+    return;
+  }
+
+  processMessage(data);
+});
+```
+
+### 1.5 Secrets ≠ Code (CWE-798)
+
+**Principle:** Never send secrets over WebSocket. Use secure token exchange.
+
+### 1.6 Connection Limits
+
+**Principle:** Limit total connections and connections per user/IP.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```json
+{
+  "dependencies": {
+    "ws": "^8.16.0",
+    "socket.io": "^4.7.0",
+    "zod": "^3.22.0",
+    "jsonwebtoken": "^9.0.0"
+  }
+}
+```
+
+```
+# Python
+websockets>=12.0
+fastapi>=0.109.0
+python-jose>=3.3.0
 ```
 
 ---
 
+## 3. Code Patterns
 
-## 4. Quality Assurance Checklist
+### 3.1 WHEN creating WebSocket server (Node.js/ws)
 
-**Before implementing this skill, ensure**:
+```typescript
+import { WebSocketServer, WebSocket } from 'ws';
+import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
+interface AuthenticatedWebSocket extends WebSocket {
+  userId?: string;
+  isAuthenticated?: boolean;
+  lastActivity?: number;
+}
 
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
+const ALLOWED_ORIGINS = new Set([
+  'https://myapp.com',
+  'https://www.myapp.com',
+]);
 
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
+const wss = new WebSocketServer({ noServer: true });
 
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
+// Upgrade handler with authentication
+server.on('upgrade', async (request, socket, head) => {
+  // Check origin
+  const origin = request.headers.origin;
+  if (!origin || !ALLOWED_ORIGINS.has(origin)) {
+    socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+    socket.destroy();
+    return;
+  }
 
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
+  // Authenticate
+  const url = new URL(request.url!, `http://${request.headers.host}`);
+  const token = url.searchParams.get('token');
 
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
+  if (!token) {
+    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+    socket.destroy();
+    return;
+  }
 
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!) as { sub: string };
 
----
+    wss.handleUpgrade(request, socket, head, (ws: AuthenticatedWebSocket) => {
+      ws.userId = payload.sub;
+      ws.isAuthenticated = true;
+      ws.lastActivity = Date.now();
+      wss.emit('connection', ws, request);
+    });
+  } catch {
+    socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+    socket.destroy();
+  }
+});
 
-## 5. Implementation Workflow (TDD)
+// Connection handler
+wss.on('connection', (ws: AuthenticatedWebSocket) => {
+  console.log(`User ${ws.userId} connected`);
 
-## 5. Implementation Workflow (TDD)
+  ws.on('message', (data) => {
+    ws.lastActivity = Date.now();
 
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
+    if (!checkRateLimit(ws)) {
+      ws.send(JSON.stringify({ type: 'error', message: 'Rate limit exceeded' }));
+      return;
+    }
 
----
-## 6. Performance Patterns
+    handleMessage(ws, data);
+  });
 
-### Pattern 1: Connection Pooling
+  ws.on('close', () => {
+    console.log(`User ${ws.userId} disconnected`);
+  });
 
-```python
-# BAD - Create new connection for each request
-ws = await create_connection(user_id)  # Expensive!
+  // Send heartbeat
+  const heartbeat = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.ping();
+    }
+  }, 30000);
 
-# GOOD - Reuse connections from pool
-class ConnectionPool:
-    def __init__(self, max_size: int = 100):
-        self.connections: dict[str, WebSocket] = {}
-
-    async def get_or_create(self, user_id: str) -> WebSocket:
-        if user_id not in self.connections:
-            self.connections[user_id] = await create_connection(user_id)
-        return self.connections[user_id]
+  ws.on('close', () => clearInterval(heartbeat));
+});
 ```
 
-### Pattern 2: Message Batching
+### 3.2 WHEN creating WebSocket server (Python/FastAPI)
 
 ```python
-# BAD - Send messages one at a time
-for item in items:
-    await websocket.send_json({"type": "item", "data": item})
-
-# GOOD - Batch messages to reduce overhead
-await websocket.send_json({"type": "batch", "data": items[:50]})
-```
-
-### Pattern 3: Binary Protocols
-
-```python
-# BAD - JSON for high-frequency data (~80 bytes)
-await websocket.send_json({"x": 123.456, "y": 789.012, "z": 456.789})
-
-# GOOD - Binary format (20 bytes)
-import struct
-await websocket.send_bytes(struct.pack('!3f', 123.456, 789.012, 456.789))
-```
-
-### Pattern 4: Heartbeat Optimization
-
-```python
-# BAD - Fixed frequent heartbeats
-HEARTBEAT_INTERVAL = 5  # Every 5 seconds
-
-# GOOD - Adaptive heartbeats based on activity
-interval = 60 if (time() - last_activity) < 60 else 30
-```
-
-### Pattern 5: Backpressure Handling
-
-```python
-# BAD - Blocks on slow clients
-await ws.send_json(message)
-
-# GOOD - Timeout and bounded queue
-from collections import deque
-queue = deque(maxlen=100)  # Drop oldest when full
-try:
-    await asyncio.wait_for(ws.send_json(message), timeout=1.0)
-except asyncio.TimeoutError:
-    pass  # Client too slow
-```
-
----
-
-## 7. Implementation Patterns
-
-### Pattern 1: Origin Validation (Critical for CSWSH Prevention)
-
-```python
-from fastapi import WebSocket
-
-async def validate_origin(websocket: WebSocket) -> bool:
-    """Va## 6. Performance Patterns
-
-## 6. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
-ept ValueError:
-        await websocket.send_json({"error": "Invalid message format"})
-        return
-
-    if not user.has_permission(f"ws:{message.action}"):
-        await websocket.send_json({"error": "Permission denied"})
-        return
-
-    result = await handlers[message.action](user, message.data)
-    await websocket.send_json(result)
-```
-
-### Pattern 4: Connection Manager with Rate Limiting
-
-```python
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query, HTTPException
+from fastapi.websockets import WebSocketState
+from pydantic import BaseModel, Field
+from jose import jwt, JWTError
+from typing import Optional
+import asyncio
 from collections import defaultdict
-from time import time
+import time
 
-class SecureConnectionManager:
+app = FastAPI()
+
+# Configuration
+ALLOWED_ORIGINS = {"https://myapp.com", "https://www.myapp.com"}
+JWT_SECRET = os.environ["JWT_SECRET"]
+MAX_CONNECTIONS_PER_USER = 5
+RATE_LIMIT_MESSAGES = 100
+RATE_LIMIT_WINDOW = 1.0  # seconds
+
+# Connection manager
+class ConnectionManager:
     def __init__(self):
-        self.connections: dict[str, WebSocket] = {}
-        self.message_counts: dict[str, list[float]] = defaultdict(list)
-        self.connections_per_ip: dict[str, int] = defaultdict(int)
+        self.active_connections: dict[str, list[WebSocket]] = defaultdict(list)
+        self.rate_limits: dict[WebSocket, tuple[int, float]] = {}
 
-    async def connect(self, websocket: WebSocket, user_id: str, ip: str) -> bool:
-        if self.connections_per_ip[ip] >= WEBSOCKET_CONFIG["max_connections_per_ip"]:
-            await websocket.close(code=4029, reason="Too many connections")
+    async def connect(self, websocket: WebSocket, user_id: str) -> bool:
+        # Check connection limit per user
+        if len(self.active_connections[user_id]) >= MAX_CONNECTIONS_PER_USER:
             return False
+
         await websocket.accept()
-        self.connections[user_id] = websocket
-        self.connections_per_ip[ip] += 1
+        self.active_connections[user_id].append(websocket)
         return True
 
-    def check_rate_limit(self, user_id: str) -> bool:
-        now = time()
-        self.message_counts[user_id] = [
-            ts for ts in self.message_counts[user_id] if ts > now - 60
-        ]
-        if len(self.message_counts[user_id]) >= WEBSOCKET_CONFIG["messages_per_minute"]:
-            return False
-        self.message_counts[user_id].append(now)
-        return True
+    def disconnect(self, websocket: WebSocket, user_id: str):
+        if user_id in self.active_connections:
+            self.active_connections[user_id] = [
+                ws for ws in self.active_connections[user_id] if ws != websocket
+            ]
+
+    def check_rate_limit(self, websocket: WebSocket) -> bool:
+        now = time.time()
+        count, reset_at = self.rate_limits.get(websocket, (0, now + RATE_LIMIT_WINDOW))
+
+        if now > reset_at:
+            count = 0
+            reset_at = now + RATE_LIMIT_WINDOW
+
+        count += 1
+        self.rate_limits[websocket] = (count, reset_at)
+
+        return count <= RATE_LIMIT_MESSAGES
+
+manager = ConnectionManager()
+
+# Message schemas
+class ChatMessage(BaseModel):
+    type: str = "chat"
+    content: str = Field(min_length=1, max_length=1000)
+    room_id: str
+
+class PingMessage(BaseModel):
+    type: str = "ping"
+
+@app.websocket("/ws")
+async def websocket_endpoint(
+    websocket: WebSocket,
+    token: str = Query(...),
+):
+    # Validate origin
+    origin = websocket.headers.get("origin")
+    if origin not in ALLOWED_ORIGINS:
+        await websocket.close(code=4003)
+        return
+
+    # Authenticate token
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        user_id = payload.get("sub")
+        if not user_id:
+            await websocket.close(code=4001)
+            return
+    except JWTError:
+        await websocket.close(code=4001)
+        return
+
+    # Connect
+    if not await manager.connect(websocket, user_id):
+        await websocket.close(code=4002, reason="Too many connections")
+        return
+
+    try:
+        while True:
+            # Rate limiting
+            if not manager.check_rate_limit(websocket):
+                await websocket.send_json({"type": "error", "message": "Rate limit exceeded"})
+                continue
+
+            data = await websocket.receive_json()
+
+            # Validate message
+            msg_type = data.get("type")
+            if msg_type == "chat":
+                try:
+                    msg = ChatMessage(**data)
+                    await handle_chat_message(websocket, user_id, msg)
+                except ValueError as e:
+                    await websocket.send_json({"type": "error", "message": str(e)})
+            elif msg_type == "ping":
+                await websocket.send_json({"type": "pong"})
+            else:
+                await websocket.send_json({"type": "error", "message": "Unknown message type"})
+
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, user_id)
 ```
 
-### Pattern 5: Complete Secure Handler
+### 3.3 WHEN implementing secure message broadcasting
 
-```python
-@app.websocket("/w## 7. Implementation Patterns
+```typescript
+// Room-based broadcasting with authorization
+class RoomManager {
+  private rooms = new Map<string, Set<AuthenticatedWebSocket>>();
 
-async def validate_origin(websocket: WebSocket) -> bool:
-    """Validate WebSocket origin against allowlist."""
-    origin = websocket.headers.get("origin")
-    if not origin or origin not in ALLOWED_ORIGINS:
-        await websocket.close(code=4003, reason="Invalid origin")
-        return False
-    ...
+  async join(ws: AuthenticatedWebSocket, roomId: string): Promise<boolean> {
+    // Check if user is authorized for this room
+    const canJoin = await checkRoomAuthorization(ws.userId!, roomId);
+    if (!canJoin) {
+      return false;
+    }
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+    if (!this.rooms.has(roomId)) {
+      this.rooms.set(roomId, new Set());
+    }
+    this.rooms.get(roomId)!.add(ws);
+    return true;
+  }
+
+  leave(ws: AuthenticatedWebSocket, roomId: string) {
+    this.rooms.get(roomId)?.delete(ws);
+  }
+
+  broadcast(roomId: string, message: object, excludeWs?: WebSocket) {
+    const room = this.rooms.get(roomId);
+    if (!room) return;
+
+    const data = JSON.stringify(message);
+    for (const ws of room) {
+      if (ws !== excludeWs && ws.readyState === WebSocket.OPEN) {
+        ws.send(data);
+      }
+    }
+  }
+}
+```
+
+### 3.4 WHEN handling reconnection
+
+```typescript
+// Client-side reconnection with exponential backoff
+class WebSocketClient {
+  private ws: WebSocket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 10;
+  private baseDelay = 1000;
+
+  connect(url: string, token: string) {
+    this.ws = new WebSocket(`${url}?token=${token}`);
+
+    this.ws.onopen = () => {
+      console.log('Connected');
+      this.reconnectAttempts = 0;  // Reset on successful connection
+    };
+
+    this.ws.onclose = (event) => {
+      if (event.code === 4001) {
+        // Auth error - don't reconnect, refresh token
+        this.onAuthError();
+        return;
+      }
+
+      this.scheduleReconnect(url, token);
+    };
+
+    this.ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+  }
+
+  private scheduleReconnect(url: string, token: string) {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('Max reconnect attempts reached');
+      return;
+    }
+
+    // Exponential backoff with jitter
+    const delay = Math.min(
+      this.baseDelay * Math.pow(2, this.reconnectAttempts) + Math.random() * 1000,
+      30000  // Max 30 seconds
+    );
+
+    this.reconnectAttempts++;
+    console.log(`Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+
+    setTimeout(() => this.connect(url, token), delay);
+  }
+}
+```
 
 ---
-/ -v`
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Accept connections without origin validation
+- Skip authentication on WebSocket upgrade
+- Trust message content without validation
+- Allow unlimited messages (no rate limiting)
+- Send sensitive data without encryption (use WSS)
+- Keep stale connections (implement heartbeat)
+- Broadcast to all without room authorization
 
 ---
 
-## 11. Summary
+## 5. Testing
 
-**Security Goals**:
-- **CSWSH-Resistant**: Origin validation, token auth
-- **Properly Authorized**: Per-message permission checks
-- **Rate Limited**: Prevent message flooding
-- **Validated**: All messages treated as untrusted
+**ALWAYS write security tests:**
 
-**Critical Reminders**: ALWAYS validate Origin, use token auth (not cookies), authorize EACH message, use WSS in production.
-## 9. Common Mistakes & Anti-Patterns
+```typescript
+import WebSocket from 'ws';
 
-## 9. Common Mistakes & Anti-Patterns
+describe('WebSocket Security', () => {
+  test('rejects invalid origin', (done) => {
+    const ws = new WebSocket('ws://localhost:3000/ws', {
+      headers: { origin: 'https://evil.com' },
+    });
 
-📚 **For complete details**: See `references/common-mistakes-anti-patterns.md`
+    ws.on('close', (code) => {
+      expect(code).toBe(4003);
+      done();
+    });
+  });
+
+  test('rejects missing token', (done) => {
+    const ws = new WebSocket('ws://localhost:3000/ws');
+
+    ws.on('close', (code) => {
+      expect(code).toBe(4001);
+      done();
+    });
+  });
+
+  test('rejects invalid token', (done) => {
+    const ws = new WebSocket('ws://localhost:3000/ws?token=invalid');
+
+    ws.on('close', (code) => {
+      expect(code).toBe(4001);
+      done();
+    });
+  });
+
+  test('rate limits excessive messages', async () => {
+    const ws = await connectWithAuth();
+
+    // Send 150 messages rapidly
+    for (let i = 0; i < 150; i++) {
+      ws.send(JSON.stringify({ type: 'ping' }));
+    }
+
+    // Should receive rate limit error
+    const response = await waitForMessage(ws);
+    expect(response.type).toBe('error');
+    expect(response.message).toContain('Rate limit');
+  });
+
+  test('validates message format', async () => {
+    const ws = await connectWithAuth();
+
+    ws.send(JSON.stringify({ type: 'invalid' }));
+
+    const response = await waitForMessage(ws);
+    expect(response.type).toBe('error');
+  });
+});
+```
 
 ---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any WebSocket code:**
+
+- [ ] Origin validation on upgrade (CSWSH prevention)
+- [ ] Token authentication before accepting connection
+- [ ] Message validation with Zod/Pydantic schemas
+- [ ] Rate limiting per connection
+- [ ] Connection limits per user/IP
+- [ ] Heartbeat/ping-pong for connection health
+- [ ] Room authorization before broadcast
+- [ ] WSS (TLS) in production
+- [ ] Reconnection with exponential backoff on client
+- [ ] No sensitive data in URL query parameters (except tokens)

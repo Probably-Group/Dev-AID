@@ -1,354 +1,597 @@
-# Motion Design Skill
-
-```yaml
-name: motion-design-expert
+---
+name: motion-design
+version: 2.0.0
+description: "Motion design principles for UI animations, transitions, easing curves, and micro-interactions."
 risk_level: LOW
-description: Expert in HUD animations, timing tokens, spring physics, reduced motion support, and creating purposeful interface animations
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [design, animation, motion, transitions, hud]
-```
-
 ---
 
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# Motion Design - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE providing guidance:**
+1. Verify claims against authoritative sources
+2. Distinguish between established practices and opinions
+3. Never invent statistics, studies, or references
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: LOW
+### 0.2 Risk Level: LOW
 
-**Key Risk Factors**:
-- Security concerns in low-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: SVG XSS, Animation DoS, Canvas manipulation
-- Requires security awareness and best practices
-
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use unsanitized SVG
-- ❌ NEVER create infinite animations
-- ❌ ALWAYS validate animation data
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level**: LOW-RISK
-
-**Justification**: Motion design produces animation specifications and CSS/JS without direct code execution or data processing.
-
-You are an expert in **motion design** for interfaces. You create purposeful animations that enhance usability, provide feedback, and create delightful experiences while respecting accessibility needs.
-
-### Core Expertise
-- Timing and easing functions
-- Spring physics animations
-- Micro-interactions
-- State transitions
-- Reduced motion support
-
-### Primary Use Cases
-- HUD interface animations
-- Loading and progress indicators
-- State change transitions
-- Attention-drawing effects
+**Verification requirements:**
+- Cross-reference recommendations with industry standards
+- Cite sources when making specific claims
+- Acknowledge when best practices vary by context
 
 ---
 
-## 2. Core Principles
+## 1. Security Principles
 
-1. **TDD First**: Write animation tests before implementation
-2. **Performance Aware**: Target 60fps, use GPU-accelerated properties only
-3. **Purposeful Motion**: Every animation serves a function
-4. **Accessibility**: Support reduced motion preferences
-5. **Consistency**: Use standardized timing tokens
+### 1.1 DOM Manipulation Safety (CWE-79)
 
-### Motion Guidelines
-- **Inform hierarchy**: Motion shows relationships
-- **Provide feedback**: Users know actions registered
-- **Guide attention**: Direct focus appropriately
-- **Maintain context**: Preserve spatial understanding
-
----
-
-## 3. Technical Foundation
-
-### Timing Tokens
-
-```css
-:root {
-  /* Duration scale */
-  --duration-instant: 0ms;
-  --duration-fast: 100ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
-  --duration-slower: 500ms;
-
-  /* Easing functions */
-  --ease-in: cubic-bezier(0.4, 0, 1, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Spring-like easing */
-  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-```
-
-### Usage Guidelines
-
-| Animation Type | Duration | Easing |
-|----------------|----------|--------|
-| Micro-interaction | 100-200ms | ease-out |
-| State change | 200-300ms | ease-in-out |
-| Enter/reveal | 300-500ms | ease-out |
-| Exit/hide | 200-300ms | ease-in |
-| Complex choreography | 500-800ms | custom |
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Patterns
-
-/* Usage */
-.element-enter {
-  animation: slideUpFadeIn var(--duration-normal) var(--ease-out) forwards;
-}
-```
-
-📚 **For complete details**: See `references/implementation-patterns.md`
-
----
-## 6. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
+**Principle:** Animation libraries manipulate DOM. Never animate user-controlled content without sanitization.
 
 ```typescript
-// tests/animations/modal.test.ts
-import { describe, it, expect, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
-import AnimatedModal from '~/components/AnimatedModal.vue'
-
-describe('AnimatedModal', () => {
-  it('applies enter animation classes on mount', async () => {
-    const wrapper = mount(AnimatedModal, {
-      props: { isOpen: true }
-    })
-
-    expect(wrapper.classes()).toContain('modal-enter-active')
-  })
-
-  it('respects reduced motion preference', async () => {
-    // Mock matchMedia
-    window.matchMedia = vi.fn().mockImplementation(query => ({
-      matches: query === '(prefers-reduced-motion: reduce)',
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
-    }))
-
-    const wrapper = mount(AnimatedModal, {
-      props: { isOpen: true }
-    })
-
-    expect(wrapper.classes()).toContain('reduced-motion')
-  })
-
-  it('completes animation within duration threshold', async () => {
-    const wrapper = mount(AnimatedModal, {
-      props: { isOpen: true }
-    })
-
-    const style = getComputedStyle(wrapper.element)
-    const duration = parseFloat(style.animationDuration) * 1000
-
-    expect(duration).toBeLessThanOrEqual(300) // Max 300ms for modals
-  })
-})
-```
-
-### Step 2: Implement Minimum to Pass
-
-```vue
-<template>
-  <Transition name="modal">
-    <div
-      v-if="isOpen"
-   ## 6. Implementation Workflow (TDD)
-
-describe('AnimatedModal', () => {
-  it('applies enter animation classes on mount', async () => {
-    const wrapper = mount(AnimatedModal, {
-      props: { isOpen: true }
-    })
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-m: 'translateY(20px)', opacity: 0 },
-    { transform: 'translateY(0)', opacity: 1 }
-  ], { duration: 300 })
+// ❌ WRONG - Animating unsanitized content
+function animateText(userInput: string) {
+  element.innerHTML = userInput;  // XSS vulnerability
+  gsap.from(element, { opacity: 0 });
 }
 
-/* GOOD: Respect preference with fallback */
-function animateElement(el: HTMLElement) {
-  const prefersReduced = window.matchMedia(
-    '(prefers-reduced-motion: reduce)'
-  ).matches
+// ✅ CORRECT - Use textContent for user data
+function animateText(userInput: string) {
+  element.textContent = userInput;  // Safe
+  gsap.from(element, { opacity: 0 });
+}
+```
 
-  if (prefersReduced) {
-    el.style.opacity = '1'
-    return
+### 1.2 Resource Exhaustion Prevention (CWE-400)
+
+**Principle:** Unbounded animations can freeze the browser. Always limit concurrent animations.
+
+```typescript
+// ❌ WRONG - Unbounded animation creation
+items.forEach(item => {
+  gsap.to(item, { x: 100 });  // Thousands of animations
+});
+
+// ✅ CORRECT - Batch with stagger or limit
+const MAX_CONCURRENT = 50;
+gsap.to(items.slice(0, MAX_CONCURRENT), {
+  x: 100,
+  stagger: 0.02,  // Spread load
+});
+```
+
+### 1.3 Accessibility Compliance (WCAG 2.3.3)
+
+**Principle:** Animations must respect user preferences and avoid seizure-inducing patterns.
+
+---
+
+## 2. Version Requirements
+
+```json
+{
+  "gsap": "^3.12.0",
+  "framer-motion": "^11.0.0",
+  "@vueuse/motion": "^2.1.0",
+  "animejs": "^3.2.2"
+}
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN implementing animations, always respect prefers-reduced-motion
+
+```typescript
+// ❌ WRONG - Ignoring user preferences
+const animate = () => {
+  gsap.to(element, { rotation: 360, duration: 1 });
+};
+
+// ✅ CORRECT - Check reduced motion preference
+const prefersReducedMotion = window.matchMedia(
+  '(prefers-reduced-motion: reduce)'
+).matches;
+
+const animate = () => {
+  if (prefersReducedMotion) {
+    // Instant state change, no animation
+    gsap.set(element, { rotation: 360 });
+    return;
+  }
+  gsap.to(element, { rotation: 360, duration: 1 });
+};
+
+// React hook for reduced motion
+import { useReducedMotion } from 'framer-motion';
+
+function AnimatedComponent() {
+  const shouldReduceMotion = useReducedMotion();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.5,
+      }}
+    />
+  );
+}
+```
+
+### WHEN using easing functions, apply appropriate curves for context
+
+```typescript
+// ❌ WRONG - Linear easing for UI (feels robotic)
+gsap.to(modal, { y: 0, ease: 'none' });
+
+// ❌ WRONG - Bounce for important UI (distracting)
+gsap.to(errorMessage, { scale: 1, ease: 'bounce' });
+
+// ✅ CORRECT - Context-appropriate easing
+import { gsap } from 'gsap';
+
+// Standard easing tokens aligned with design system
+const EASING = {
+  // Enter: Start fast, end slow (elements appearing)
+  enter: 'power2.out',       // cubic-bezier(0.33, 1, 0.68, 1)
+
+  // Exit: Start slow, end fast (elements leaving)
+  exit: 'power2.in',         // cubic-bezier(0.32, 0, 0.67, 0)
+
+  // Standard: Symmetric for state changes
+  standard: 'power2.inOut',  // cubic-bezier(0.65, 0, 0.35, 1)
+
+  // Emphasized: More pronounced for important UI
+  emphasized: 'power3.out',  // cubic-bezier(0.16, 1, 0.3, 1)
+
+  // Spring: Natural feel for interactive elements
+  spring: 'elastic.out(1, 0.5)',
+} as const;
+
+// Duration tokens (in seconds)
+const DURATION = {
+  instant: 0.1,    // Micro-interactions
+  fast: 0.2,       // Small UI elements
+  normal: 0.3,     // Standard transitions
+  slow: 0.5,       // Large elements, emphasis
+  deliberate: 0.8, // Dramatic, storytelling
+} as const;
+
+// Usage
+gsap.to(modal, {
+  y: 0,
+  opacity: 1,
+  duration: DURATION.normal,
+  ease: EASING.enter,
+});
+```
+
+### WHEN creating scroll-linked animations, use intersection observer pattern
+
+```typescript
+// ❌ WRONG - Scroll event listener (performance killer)
+window.addEventListener('scroll', () => {
+  elements.forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) {
+      gsap.to(el, { opacity: 1 });
+    }
+  });
+});
+
+// ✅ CORRECT - IntersectionObserver with GSAP ScrollTrigger
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
+
+// Reveal animation on scroll
+function createScrollReveal(
+  elements: HTMLElement[],
+  options: { stagger?: number; threshold?: number } = {}
+) {
+  const { stagger = 0.1, threshold = 0.2 } = options;
+
+  gsap.set(elements, { opacity: 0, y: 30 });
+
+  elements.forEach((element, index) => {
+    gsap.to(element, {
+      opacity: 1,
+      y: 0,
+      duration: DURATION.normal,
+      ease: EASING.enter,
+      delay: index * stagger,
+      scrollTrigger: {
+        trigger: element,
+        start: `top ${100 - threshold * 100}%`,
+        once: true,  // Animate only once
+      },
+    });
+  });
+}
+
+// Parallax with performance guard
+function createParallax(element: HTMLElement, speed: number = 0.5) {
+  // Respect reduced motion
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
   }
 
-  el.animate([
-    { transform: 'translateY(20px)', opacity: 0 },
-    { transform: 'translateY(0)', opacity: 1 }
-  ], { duration: 300 })
+  gsap.to(element, {
+    yPercent: -50 * speed,
+    ease: 'none',
+    scrollTrigger: {
+      trigger: element,
+      start: 'top bottom',
+      end: 'bottom top',
+      scrub: true,
+    },
+  });
 }
 ```
 
-### Pattern 5: Animation Batching
+### WHEN animating with Framer Motion, use layout animations efficiently
+
+```tsx
+// ❌ WRONG - Animating width/height (triggers layout)
+<motion.div
+  animate={{ width: isOpen ? 300 : 0 }}  // Layout thrashing
+/>
+
+// ✅ CORRECT - Use layout animations for size changes
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+
+function ExpandableCard({ isExpanded, children }: Props) {
+  return (
+    <motion.div
+      layout
+      transition={{
+        layout: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+      }}
+      style={{
+        overflow: 'hidden',
+        borderRadius: 12,
+      }}
+    >
+      <motion.div layout="position">
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Shared element transitions
+function ImageGrid({ items, selectedId, onSelect }) {
+  return (
+    <LayoutGroup>
+      <div className="grid">
+        {items.map(item => (
+          <motion.div
+            key={item.id}
+            layoutId={`card-${item.id}`}
+            onClick={() => onSelect(item.id)}
+          >
+            <motion.img
+              layoutId={`image-${item.id}`}
+              src={item.src}
+            />
+          </motion.div>
+        ))}
+      </div>
+
+      <AnimatePresence>
+        {selectedId && (
+          <motion.div
+            layoutId={`card-${selectedId}`}
+            className="modal"
+          >
+            <motion.img
+              layoutId={`image-${selectedId}`}
+              src={items.find(i => i.id === selectedId)?.src}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </LayoutGroup>
+  );
+}
+```
+
+### WHEN creating complex sequences, use timeline composition
 
 ```typescript
-/* BAD: Multiple reflows */
-function animateItems(items: HTMLElement[]) {
-  items.forEach((item, i) => {
-    item.style.transform = `translateY(${i * 10}px)`
-    item.style.opacity = '0'
-  })
+// ❌ WRONG - Nested callbacks (callback hell)
+gsap.to(a, {
+  x: 100,
+  onComplete: () => {
+    gsap.to(b, {
+      y: 50,
+      onComplete: () => {
+        gsap.to(c, { opacity: 0 });
+      },
+    });
+  },
+});
+
+// ✅ CORRECT - Timeline composition with labels
+import { gsap } from 'gsap';
+
+interface SequenceStep {
+  targets: gsap.TweenTarget;
+  vars: gsap.TweenVars;
+  position?: string | number;
 }
 
-/* GOOD: Batch reads and writes */
-function animateItems(items: HTMLElement[]) {
-  // Read phase - batch all measurements
-  const positions = items.map(item => item.getBoundingClientRect())
+function createSequence(
+  steps: SequenceStep[],
+  options: { paused?: boolean; onComplete?: () => void } = {}
+): gsap.core.Timeline {
+  const tl = gsap.timeline({
+    paused: options.paused ?? false,
+    onComplete: options.onComplete,
+  });
 
-  // Write phase - batch all mutations
-  requestAnimationFrame(() => {
-    items.forEach((item, i) => {
-      item.style.transform = `translateY(${i * 10}px)`
-      item.style.opacity = '0'
-    })
-  })
+  steps.forEach(({ targets, vars, position }) => {
+    tl.to(targets, vars, position);
+  });
+
+  return tl;
 }
 
-/* GOOD: Use Web Animations API for batching */
-function animateItems(items: HTMLElement[]) {
-  const animations = items.map((item, i) =>
-    item.animate([
-      { transform: 'translateY(0)', opacity: 0 },
-      { transform: 'translateY(0)', opacity: 1 }
-    ], {
-      duration: 300,
-      delay: i * 50,
-      fill: 'forwards'
-    })
-  )
+// Complex modal animation
+function createModalAnimation(modal: HTMLElement) {
+  const overlay = modal.querySelector('.overlay');
+  const content = modal.querySelector('.content');
+  const items = modal.querySelectorAll('.item');
 
-  return Promise.all(animations.map(a => a.finished))
+  return gsap.timeline({ paused: true })
+    // Phase 1: Overlay fade
+    .to(overlay, {
+      opacity: 1,
+      duration: DURATION.fast,
+    })
+    // Phase 2: Content scale up (at 50% of overlay)
+    .fromTo(content,
+      { scale: 0.9, opacity: 0 },
+      {
+        scale: 1,
+        opacity: 1,
+        duration: DURATION.normal,
+        ease: EASING.emphasized,
+      },
+      '-=0.1'  // Overlap slightly
+    )
+    // Label for items
+    .addLabel('itemsStart')
+    // Phase 3: Staggered items
+    .from(items, {
+      y: 20,
+      opacity: 0,
+      duration: DURATION.fast,
+      stagger: 0.05,
+      ease: EASING.enter,
+    }, 'itemsStart');
+}
+
+// Usage
+const modalAnim = createModalAnimation(modalElement);
+modalAnim.play();  // Open
+modalAnim.reverse();  // Close
+```
+
+### WHEN implementing micro-interactions, use GPU-accelerated properties
+
+```typescript
+// ❌ WRONG - Animating expensive properties
+gsap.to(element, {
+  left: 100,      // Triggers layout
+  width: 200,     // Triggers layout
+  boxShadow: '0 10px 20px rgba(0,0,0,0.2)',  // Expensive
+});
+
+// ✅ CORRECT - GPU-accelerated transforms and opacity
+import { gsap } from 'gsap';
+
+// Prefer transform and opacity (compositor-only)
+const SAFE_PROPERTIES = [
+  'x', 'y', 'z',           // translateX/Y/Z
+  'rotation', 'rotationX', 'rotationY', 'rotationZ',
+  'scale', 'scaleX', 'scaleY',
+  'opacity',
+] as const;
+
+// Button press effect
+function createPressEffect(button: HTMLElement) {
+  const state = { pressed: false };
+
+  const handleDown = () => {
+    if (state.pressed) return;
+    state.pressed = true;
+
+    gsap.to(button, {
+      scale: 0.95,
+      duration: 0.1,
+      ease: 'power2.out',
+    });
+  };
+
+  const handleUp = () => {
+    if (!state.pressed) return;
+    state.pressed = false;
+
+    gsap.to(button, {
+      scale: 1,
+      duration: 0.2,
+      ease: EASING.spring,
+    });
+  };
+
+  button.addEventListener('pointerdown', handleDown);
+  button.addEventListener('pointerup', handleUp);
+  button.addEventListener('pointerleave', handleUp);
+
+  // Cleanup function
+  return () => {
+    button.removeEventListener('pointerdown', handleDown);
+    button.removeEventListener('pointerup', handleUp);
+    button.removeEventListener('pointerleave', handleUp);
+  };
+}
+
+// Hover magnetic effect
+function createMagneticEffect(
+  element: HTMLElement,
+  strength: number = 0.3
+) {
+  const prefersReducedMotion = window.matchMedia(
+    '(prefers-reduced-motion: reduce)'
+  ).matches;
+
+  if (prefersReducedMotion) return () => {};
+
+  const handleMove = (e: PointerEvent) => {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    const deltaX = (e.clientX - centerX) * strength;
+    const deltaY = (e.clientY - centerY) * strength;
+
+    gsap.to(element, {
+      x: deltaX,
+      y: deltaY,
+      duration: 0.3,
+      ease: 'power2.out',
+    });
+  };
+
+  const handleLeave = () => {
+    gsap.to(element, {
+      x: 0,
+      y: 0,
+      duration: 0.5,
+      ease: EASING.spring,
+    });
+  };
+
+  element.addEventListener('pointermove', handleMove);
+  element.addEventListener('pointerleave', handleLeave);
+
+  return () => {
+    element.removeEventListener('pointermove', handleMove);
+    element.removeEventListener('pointerleave', handleLeave);
+  };
 }
 ```
 
 ---
 
-## 8. Quality Standards
+## 4. Anti-Patterns
 
-### Performance Requirements
-- Target 60fps (16.67ms per frame)
-- Use `transform` and `opacity` for animations
-- Avoid animating `width`, `height`, `margin`, `padding`
-- Use `will-change` sparingly
-
-```css
-/* ✅ GPU-accelerated properties */
-.animated {
-  trans## 7. Performance Patterns
-
-/* GOOD: Apply only when animating */
-.animated-element:hover,
-.animated-element:focus,
-.animated-element.is-animating {
-  will-change: transform, opacity;
-}
-
-📚 **For complete details**: See `references/performance-patterns.md`
+**NEVER:**
+- Animate `left`/`top`/`width`/`height` when transform works
+- Ignore `prefers-reduced-motion` media query
+- Create unbounded animation loops without kill conditions
+- Use `scroll` event listener instead of IntersectionObserver
+- Chain animations with nested callbacks
+- Animate more than 50 elements simultaneously
+- Use flash/strobe effects faster than 3Hz (seizure risk)
 
 ---
+
+## 5. Testing
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { gsap } from 'gsap';
+
+describe('Motion Design Patterns', () => {
+  beforeEach(() => {
+    // Reset GSAP
+    gsap.killTweensOf('*');
+  });
+
+  it('respects prefers-reduced-motion', () => {
+    // Mock reduced motion preference
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    const element = document.createElement('div');
+    animate(element);
+
+    // Should use gsap.set instead of gsap.to
+    expect(gsap.getTweensOf(element)).toHaveLength(0);
+  });
+
+  it('cleans up event listeners on unmount', () => {
+    const button = document.createElement('button');
+    const removeEventListenerSpy = vi.spyOn(button, 'removeEventListener');
+
+    const cleanup = createPressEffect(button);
+    cleanup();
+
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function));
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerup', expect.any(Function));
+  });
+
+  it('limits concurrent animations', () => {
+    const items = Array.from({ length: 100 }, () => document.createElement('div'));
+
+    // Should batch/limit animations
+    createScrollReveal(items);
+
+    // Verify stagger is applied, not 100 simultaneous
+    const tweens = gsap.getTweensOf(items);
+    expect(tweens.length).toBeLessThanOrEqual(100);
+  });
+
+  it('timeline can be reversed', async () => {
+    const modal = document.createElement('div');
+    modal.innerHTML = '<div class="overlay"></div><div class="content"></div>';
+    document.body.appendChild(modal);
+
+    const anim = createModalAnimation(modal);
+
+    // Play forward
+    anim.play();
+    await anim.then();
+
+    // Reverse
+    anim.reverse();
+    await anim.then();
+
+    // Overlay should be hidden
+    const overlay = modal.querySelector('.overlay') as HTMLElement;
+    expect(gsap.getProperty(overlay, 'opacity')).toBe(0);
+
+    document.body.removeChild(modal);
+  });
+});
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating animation code:**
+
+- [ ] Reduced motion: `prefers-reduced-motion` check implemented
+- [ ] GPU properties: Using transform/opacity over layout properties
+- [ ] Resource limits: Max 50 concurrent animations
+- [ ] Scroll handling: IntersectionObserver, not scroll events
+- [ ] Easing tokens: Context-appropriate curves from design system
+- [ ] Duration tokens: Consistent timing from design system
+- [ ] Cleanup: Event listeners removed on unmount
+- [ ] Timeline pattern: Using timelines for sequences, not callbacks
+- [ ] Seizure safety: No flashing > 3Hz

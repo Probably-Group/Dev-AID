@@ -1,547 +1,760 @@
 ---
 name: graph-database-expert
-description: "Expert in graph database design and development with deep knowledge of graph modeling, traversals, query optimization, and relationship patterns. Specializes in SurrealDB but applies generic graph database concepts. Use when designing graph schemas, optimizing graph queries, implementing complex relationships, or building graph-based applications."
+version: 2.0.0
+description: "Graph database design with traversal queries, relationship modeling, and query optimization."
+risk_level: MEDIUM
 ---
 
-# Graph Database Expert
+# Graph Database Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: MEDIUM
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Cypher injection attacks, Unbounded traversal DoS, Node/relationship injection
-- Requires continuous monitoring of security advisories
+**CWE-943: Cypher/Gremlin Injection**
+- NEVER: Build queries with string concatenation: `"MATCH (n) WHERE n.id = '" + input + "'"`
+- ALWAYS: Parameterized queries: `MATCH (n) WHERE n.id = $id` with params
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-918: SSRF via LOAD CSV**
+- NEVER: Allow user-controlled URLs in `LOAD CSV FROM` statements
+- ALWAYS: Whitelist sources, disable `apoc.import.file.use_neo4j_config=false`
 
-### 0.2 Vulnerability Research Protocol
+**CWE-400: Traversal DoS**
+- NEVER: Unbounded traversals: `MATCH path=(n)-[*]->(m)` without limits
+- ALWAYS: Set `dbms.cypher.max_plan_depth`, use LIMIT, query timeouts
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-611: XXE in GraphML (CVE-2023-23926)**
+- NEVER: Use `apoc.import.graphml` without secure parser config
+- ALWAYS: Upgrade APOC to 5.5.0+, disable external entity resolution
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+### 0.3 Risk Level: MEDIUM
+
+**Verification requirements for MEDIUM risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Security Principles
+
+### 1.1 Cypher/Query Injection Prevention (CWE-89)
+
+**Principle:** Never construct graph queries from untrusted input. Use parameterized queries.
+
+```javascript
+// ❌ WRONG - Cypher injection vulnerability
+const query = `MATCH (u:User {name: '${userName}'}) RETURN u`;
+await session.run(query);
+
+// ✅ CORRECT - Parameterized Cypher query
+const query = `MATCH (u:User {name: $name}) RETURN u`;
+await session.run(query, { name: userName });
 ```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CYPHER-INJECTION** (CVSS N/A): Cypher injection similar to SQL injection in graph databases
-     Source: https://neo4j.com/developer/kb/protecting-against-cypher-injection/
-   - **NOSQL-INJECTION** (CVSS N/A): NoSQL injection patterns in graph database queries
-     Source: https://owasp.org/www-community/attacks/NoSQL_Injection
-   - **GRAPH-TRAVERSAL-DOS** (CVSS N/A): DoS via unbounded graph traversals
-     Source: https://neo4j.com/docs/operations-manual/current/security/
-
-**Step 3: Common Attack Patterns**
-
-   - Cypher injection attacks
-   - Unbounded traversal DoS
-   - Node/relationship injection
-   - Query complexity exploitation
-   - Authentication bypass
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER concatenate user input into Cypher queries
-- ❌ NEVER allow unbounded MATCH queries
-- ❌ NEVER trust client-supplied relationship IDs
-- ❌ ALWAYS use parameterized queries
-- ❌ ALWAYS implement query complexity limits
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any graph database code**
-
-### Verification Requirements
-
-When using this skill to implement graph database features, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official SurrealDB/Neo4j/graph database documentation
-   - ✅ Confirm query syntax and operators are current
-   - ✅ Validate best practices against official guides
-   - ❌ Never guess graph query syntax
-   - ❌ Never invent traversal operators
-   - ❌ Never assume database features without checking
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for graph patterns
-   - 🔍 Grep: Search for similar graph implementations
-   - 🔍 WebSearch: Verify syntax in official docs
-   - 🔍 WebFetch: Read official documentation pages
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY graph query syntax, operator, or pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in graph queries can cause performance issues, data corruption, or security vulnerabilities
-
-4. **Common Graph Database Hallucination Traps** (AVOID)
-   - ❌ Inventing traversal operators (e.g., `->*[..]->*` variations)
-   - ❌ Made-up SurrealQL syntax (e.g., non-existent GRAPH clause)
-   - ❌ Incorrect depth limit syntax (e.g., `[...5]` instead of `[..5]`)
-   - ❌ Non-existent RELATE clause options
-   - ❌ Assuming Neo4j Cypher syntax works in SurrealDB
-   - ❌ Inventing edge property filters without verification
-
-### Self-Check Checklist
-
-Before EVERY response with graph database code:
-- [ ] All query operators verified against official docs
-- [ ] Traversal syntax confirmed for specific database
-- [ ] Depth limit syntax verified
-- [ ] Edge filtering syntax confirmed
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Graph database code with hallucinated syntax causes query failures, performance degradation, and potential data corruption. Always verify.
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
-
-## 1. Overview
-
-**Risk Level**: MEDIUM (Data modeling and query performance)
-
-You are an elite graph database expert with deep expertise in:
-
-- **Graph Theory**: Nodes, edges, paths, cycles, graph algorithms
-- **Graph Modeling**: Entity-relationship mapping, schema design, denormalization strategies
-- **Query Languages**: SurrealQL, Cypher, Gremlin, SPARQL patterns
-- **Graph Traversals**: Depth-first, breadth-first, shortest path, pattern matching
-- **Relationship Design**: Bidirectional edges, typed relationships, properties on edges
-- **Performance**: Indexing strategies, query optimization, traversal depth limits
-- **Multi-Model**: Document storage, time-series, key-value alongside graph
-- **SurrealDB**: RELATE statements, graph operators, record links
-
-You design graph databases that are:
-- **Intuitive**: Natural modeling of connected data and relationships
-- **Performant**: Optimized indexes, efficient traversals, bounded queries
-- **Flexible**: Schema evolution, dynamic relationships, multi-model support
-- **Scalable**: Proper indexing, query planning, connection management
-
-**When to Use Graph Databases**:
-- Social networks (friends, followers, connections)
-- Knowledge graphs (entities, concepts, relationships)
-- Recommendation engines (user preferences, similar items)
-- Fraud detection (transaction patterns, network analysis)
-- Access control (role hierarchies, permission inheritance)
-- Network topology (infrastructure, dependencies, routes)
-- Content management (taxonomies, references, versions)
-
-**When NOT to Use Graph Databases**:
-- Simple CRUD with minimal relationships
-- Heavy aggregation/analytics workloads (use OLAP)
-- Unconnected data with no traversal needs
-- Time-series at scale (use specialized TSDB)
-
-**Graph Database Landscape**:
-- **Neo4j**: Market leader, Cypher query language, ACID compliance
-- **SurrealDB**: Multi-model, graph + documents, SurrealQL
-- **ArangoDB**: Multi-model, AQL query language, distributed
-- **Amazon Neptune**: Managed service, Gremlin + SPARQL
-- **JanusGraph**: Distributed, scalable, multiple backends
-
----
-
-## 2. Core Principles
-
-### TDD First
-- Write tests for graph queries before implementation
-- Validate traversal results match expected patterns
-- Test edge cases: cycles, deep traversals, missing nodes
-- Use test fixtures for consistent graph state
-
-### Performance Aware
-- Profile all queries with explain plans
-- Set depth limits on every traversal
-- Index properties before they become bottlenecks
-- Monitor memory usage for large result sets
-
-### Security Conscious
-- Always use parameterized queries
-- Implement row-level security on nodes and edges
-- Limit data exposure in traversal results
-- Validate all user inputs before query construction
-
-### Schema Evolution Ready
-- Design for relationship type additions
-- Plan for property changes on nodes and edges
-- Use versioning for audit trails
-- Document schema changes
-
-### Query Pattern Driven
-- Model schema based on access patterns
-- Optimize for most frequent traversals
-- Design relationship direction for common queries
-- Balance normalization vs query performance
-
----
-
-## 3. Core Responsibilities
-
-### 1. Graph Schema Design
-
-You will design optimal graph schemas:
-- Model entities as nodes/vertices with appropriate properties
-- Define relationships as edges with semantic meaning
-- Choose between embedding vs linking based on access patterns
-- Design bidirectional relationships when needed
-- Use typed edges for different relationship kinds
-- Add properties to edges for relationship metadata
-- Balance normalization vs denormalization for query performance
-- Plan for schema evolution and relationship changes
-- See: `references/modeling-guide.md` for detailed patterns
-- See: `references/query-patterns.md` for common query patterns
-
-### 2. Query Optimization
-
-You will optimize graph queries for performance:
-- Create indexes on frequently queried node properties
-- Index edge types and relationship properties
-- Use appropriate traversal algorithms (BFS, DFS, shortest path)
-- Set depth limits to prevent runaway queries
-- Avoid Cartesian products in pattern matching
-- Use query hints and explain plans
-- Implement pagination for large result sets
-- Cache frequent traversal results
-- See: `references/query-optimization.md` for detailed strategies
-- See: `references/performance-optimization.md` for performance patterns
-
-### 3. Relationship Modeling
-
-You will design effective relationship patterns:
-- Choose relationship direction based on query patterns
-- Model many-to-many with junction edges
-- Implement hierarchies (trees, DAGs) efficiently
-- Design temporal relationships (valid from/to)
-- Handle relationship cardinality (one-to-one, one-to-many, many-to-many)
-- Add metadata to edges (weight, timestamp, properties)
-- Implement soft deletes on relationships
-- Version relationships for audit trails
-- See: `references/query-patterns.md` for relationship patterns
-
-### 4. Performance and Scalability
-
-You will ensure graph database performance:
-- Monitor query execution plans
-- Identify slow traversals and optimize
-- Use connection pooling
-- Implement appropriate caching strategies
-- Set reasonable traversal depth limits
-- Batch operations where possible
-- Monitor memory usage for large traversals
-- Use pagination and cursors for large result sets
-- See: `references/performance-optimization.md` for detailed patterns
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
 
 ```python
-@pytest.mark.asyncio
-async def test_multi_hop_traversal(db):
-    """Test that multi-hop traversal returns correct results."""
-    # Arrange: Create test graph
-    await db.query("""
-        CREATE person:alice, person:bob, person:charlie;
-        RELATE person:alice->follows->person:bob;
-        RELATE person:bob->follows->person:charlie;
-    """)
+# ❌ WRONG - Gremlin string injection
+query = f"g.V().has('name', '{name}')"
 
-    # Act: Traverse 2 hops
-    result = await db.query("SELECT ->follows[..2]->person.name FROM person:alice")
-
-    # Assert: Should find Bob and Charlie
-    assert 'Bob' in result and 'Charlie' in result
+# ✅ CORRECT - Parameterized Gremlin
+g.V().has('name', name)  # Python driver handles parameterization
 ```
 
-### Step 2: Implement Minimum to Pass
+### 1.2 Traversal Depth Limits (CWE-400)
+
+**Principle:** Always limit traversal depth to prevent resource exhaustion.
+
+```cypher
+// ❌ WRONG - Unbounded traversal
+MATCH path = (a)-[*]-(b) RETURN path
+
+// ✅ CORRECT - Bounded traversal
+MATCH path = (a)-[*1..5]-(b) RETURN path LIMIT 100
+```
+
+### 1.3 Authorization on Graph Access (CWE-862)
+
+**Principle:** Implement row-level security. Users should only traverse accessible nodes.
+
+### 1.4 Connection Security (CWE-319)
+
+**Principle:** Always use TLS for database connections. Verify certificates.
+
+### 1.5 Credential Management (CWE-798)
+
+**Principle:** Never hardcode database credentials. Use environment or secret managers.
+
+### 1.6 Query Timeouts (CWE-770)
+
+**Principle:** Set query timeouts to prevent long-running queries from consuming resources.
+
+---
+
+## 2. Version Requirements
+
+**ALWAYS use these minimum versions:**
+
+```yaml
+# Neo4j
+neo4j: "5.15+"
+neo4j-driver: "5.15+"
+
+# Amazon Neptune
+neptune: "1.3.0+"
+
+# ArangoDB
+arangodb: "3.11+"
+
+# SurrealDB
+surrealdb: "1.2+"
+
+# Drivers
+py2neo: "2021.1+"
+gremlinpython: "3.7+"
+```
+
+---
+
+## 3. Code Patterns
+
+### 3.1 WHEN modeling graph schemas
+
+```cypher
+// ❌ WRONG - No constraints, no indexes
+CREATE (u:User {name: 'Alice'})
+
+// ✅ CORRECT - Neo4j schema with constraints and indexes
+// Create uniqueness constraints
+CREATE CONSTRAINT user_email_unique IF NOT EXISTS
+FOR (u:User) REQUIRE u.email IS UNIQUE;
+
+CREATE CONSTRAINT user_id_unique IF NOT EXISTS
+FOR (u:User) REQUIRE u.id IS UNIQUE;
+
+// Create existence constraints
+CREATE CONSTRAINT user_email_exists IF NOT EXISTS
+FOR (u:User) REQUIRE u.email IS NOT NULL;
+
+// Create indexes for common lookups
+CREATE INDEX user_name_index IF NOT EXISTS
+FOR (u:User) ON (u.name);
+
+CREATE INDEX user_created_index IF NOT EXISTS
+FOR (u:User) ON (u.createdAt);
+
+// Composite index for common query patterns
+CREATE INDEX user_status_created IF NOT EXISTS
+FOR (u:User) ON (u.status, u.createdAt);
+
+// Full-text index for search
+CREATE FULLTEXT INDEX user_search IF NOT EXISTS
+FOR (u:User) ON EACH [u.name, u.bio];
+```
+
+### 3.2 WHEN implementing a Neo4j repository in TypeScript
+
+```typescript
+// ❌ WRONG - No parameterization, no error handling
+async function findUser(name: string) {
+  const result = await session.run(`MATCH (u:User {name: '${name}'}) RETURN u`);
+  return result.records[0];
+}
+
+// ✅ CORRECT - Type-safe Neo4j repository
+import neo4j, { Driver, Session, Transaction } from 'neo4j-driver';
+import { z } from 'zod';
+
+// Schema validation
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  name: z.string().min(1).max(100),
+  createdAt: z.date(),
+});
+
+type User = z.infer<typeof UserSchema>;
+
+interface GraphConfig {
+  uri: string;
+  username: string;
+  password: string;
+  database?: string;
+  maxConnectionPoolSize?: number;
+  connectionTimeout?: number;
+}
+
+class Neo4jRepository {
+  private driver: Driver;
+  private database: string;
+
+  constructor(config: GraphConfig) {
+    this.driver = neo4j.driver(
+      config.uri,
+      neo4j.auth.basic(config.username, config.password),
+      {
+        maxConnectionPoolSize: config.maxConnectionPoolSize ?? 50,
+        connectionTimeout: config.connectionTimeout ?? 30000,
+        encrypted: 'ENCRYPTION_ON',
+        trust: 'TRUST_SYSTEM_CA_SIGNED_CERTIFICATES',
+      }
+    );
+    this.database = config.database ?? 'neo4j';
+  }
+
+  async findUserById(id: string): Promise<User | null> {
+    const session = this.driver.session({ database: this.database });
+    try {
+      const result = await session.run(
+        `MATCH (u:User {id: $id})
+         RETURN u {.id, .email, .name, .createdAt} AS user`,
+        { id }
+      );
+
+      if (result.records.length === 0) return null;
+
+      const record = result.records[0].get('user');
+      return UserSchema.parse({
+        ...record,
+        createdAt: new Date(record.createdAt),
+      });
+    } finally {
+      await session.close();
+    }
+  }
+
+  async findUserConnections(
+    userId: string,
+    relationshipType: string,
+    maxDepth: number = 3,
+    limit: number = 100
+  ): Promise<User[]> {
+    // Validate inputs
+    if (maxDepth > 5) {
+      throw new Error('Max depth cannot exceed 5');
+    }
+    if (limit > 1000) {
+      throw new Error('Limit cannot exceed 1000');
+    }
+
+    // Allowlist relationship types
+    const allowedRelTypes = ['FOLLOWS', 'FRIENDS_WITH', 'WORKS_WITH'];
+    if (!allowedRelTypes.includes(relationshipType)) {
+      throw new Error(`Invalid relationship type: ${relationshipType}`);
+    }
+
+    const session = this.driver.session({ database: this.database });
+    try {
+      const result = await session.run(
+        `MATCH (start:User {id: $userId})
+         MATCH path = (start)-[:${relationshipType}*1..${maxDepth}]-(connected:User)
+         WHERE connected.id <> $userId
+         RETURN DISTINCT connected {.id, .email, .name, .createdAt} AS user
+         LIMIT $limit`,
+        { userId, limit: neo4j.int(limit) }
+      );
+
+      return result.records.map(record => {
+        const data = record.get('user');
+        return UserSchema.parse({
+          ...data,
+          createdAt: new Date(data.createdAt),
+        });
+      });
+    } finally {
+      await session.close();
+    }
+  }
+
+  async createUserWithTransaction(user: Omit<User, 'createdAt'>): Promise<User> {
+    const session = this.driver.session({ database: this.database });
+    const tx = session.beginTransaction();
+
+    try {
+      // Create user
+      const result = await tx.run(
+        `CREATE (u:User {
+          id: $id,
+          email: $email,
+          name: $name,
+          createdAt: datetime()
+        })
+        RETURN u {.id, .email, .name, .createdAt} AS user`,
+        user
+      );
+
+      // Create audit log
+      await tx.run(
+        `MATCH (u:User {id: $userId})
+         CREATE (log:AuditLog {
+           action: 'USER_CREATED',
+           entityId: $userId,
+           timestamp: datetime()
+         })
+         CREATE (u)-[:HAS_AUDIT]->(log)`,
+        { userId: user.id }
+      );
+
+      await tx.commit();
+
+      const record = result.records[0].get('user');
+      return UserSchema.parse({
+        ...record,
+        createdAt: new Date(record.createdAt),
+      });
+    } catch (error) {
+      await tx.rollback();
+      throw error;
+    } finally {
+      await session.close();
+    }
+  }
+
+  async close(): Promise<void> {
+    await this.driver.close();
+  }
+}
+
+// Factory with config from environment
+function createNeo4jRepository(): Neo4jRepository {
+  return new Neo4jRepository({
+    uri: process.env.NEO4J_URI!,
+    username: process.env.NEO4J_USERNAME!,
+    password: process.env.NEO4J_PASSWORD!,
+    database: process.env.NEO4J_DATABASE,
+  });
+}
+```
+
+### 3.3 WHEN implementing graph traversal algorithms
+
+```cypher
+// ❌ WRONG - No depth limit, inefficient
+MATCH path = shortestPath((a:User)-[*]-(b:User))
+WHERE a.id = $startId AND b.id = $endId
+RETURN path
+
+// ✅ CORRECT - Optimized shortest path with limits
+MATCH (start:User {id: $startId}), (end:User {id: $endId})
+CALL apoc.algo.dijkstra(start, end, 'CONNECTED_TO', 'weight') YIELD path, weight
+WHERE length(path) <= 10
+RETURN path, weight
+LIMIT 1
+```
 
 ```python
-class GraphQueryService:
-    def __init__(self, db: Surreal):
-        self.db = db
+# ✅ CORRECT - Python graph traversal with safeguards
+from neo4j import GraphDatabase
+from typing import Generator, Optional
+from dataclasses import dataclass
 
-    async def get_connections(self, node_id: str, relationship: str, depth: int = 2) -> list[dict]:
-        """Get connected nodes with depth limit."""
-        if depth > 5:
-            raise ValueError("Maximum depth is 5 to prevent runaway queries")
+@dataclass
+class TraversalConfig:
+    max_depth: int = 5
+    max_results: int = 1000
+    timeout_seconds: int = 30
+    relationship_types: list[str] | None = None
 
-        query = f"SELECT ->{relationship}[..{depth}]->*.* FROM $node_id"
-        result = await self.db.query(query, {"node_id": node_id})
-        return result[0]['result']
+class GraphTraverser:
+    def __init__(self, driver: GraphDatabase.driver):
+        self.driver = driver
+
+    def bfs_traverse(
+        self,
+        start_node_id: str,
+        config: TraversalConfig,
+    ) -> Generator[dict, None, None]:
+        """Breadth-first traversal with configurable limits."""
+
+        # Build relationship filter
+        rel_filter = ""
+        if config.relationship_types:
+            # Allowlist validation
+            allowed = {'FOLLOWS', 'FRIENDS_WITH', 'WORKS_WITH', 'REPORTS_TO'}
+            invalid = set(config.relationship_types) - allowed
+            if invalid:
+                raise ValueError(f"Invalid relationship types: {invalid}")
+            rel_filter = ":" + "|".join(config.relationship_types)
+
+        query = f"""
+        MATCH (start {{id: $startId}})
+        CALL apoc.path.subgraphNodes(start, {{
+            relationshipFilter: '{rel_filter}',
+            maxLevel: $maxDepth,
+            limit: $maxResults
+        }}) YIELD node
+        RETURN node {{.*}} AS n
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                startId=start_node_id,
+                maxDepth=min(config.max_depth, 10),  # Hard cap
+                maxResults=min(config.max_results, 10000),  # Hard cap
+                timeout=config.timeout_seconds,
+            )
+
+            for record in result:
+                yield dict(record["n"])
+
+    def find_shortest_paths(
+        self,
+        start_id: str,
+        end_id: str,
+        max_paths: int = 5,
+        max_depth: int = 10,
+    ) -> list[list[str]]:
+        """Find multiple shortest paths between nodes."""
+
+        query = """
+        MATCH (start {id: $startId}), (end {id: $endId})
+        CALL apoc.algo.allSimplePaths(start, end, '', $maxDepth)
+        YIELD path
+        WITH path
+        ORDER BY length(path)
+        LIMIT $maxPaths
+        RETURN [node IN nodes(path) | node.id] AS nodeIds
+        """
+
+        with self.driver.session() as session:
+            result = session.run(
+                query,
+                startId=start_id,
+                endId=end_id,
+                maxDepth=min(max_depth, 15),
+                maxPaths=min(max_paths, 100),
+            )
+
+            return [record["nodeIds"] for record in result]
+
+    def pagerank(
+        self,
+        label: str,
+        relationship_type: str,
+        top_n: int = 100,
+    ) -> list[tuple[str, float]]:
+        """Calculate PageRank for nodes."""
+
+        # Validate label (prevent injection)
+        if not label.isalnum():
+            raise ValueError("Label must be alphanumeric")
+        if not relationship_type.isalnum():
+            raise ValueError("Relationship type must be alphanumeric")
+
+        query = f"""
+        CALL gds.pageRank.stream({{
+            nodeProjection: '{label}',
+            relationshipProjection: '{relationship_type}',
+            maxIterations: 20,
+            dampingFactor: 0.85
+        }})
+        YIELD nodeId, score
+        RETURN gds.util.asNode(nodeId).id AS id, score
+        ORDER BY score DESC
+        LIMIT $topN
+        """
+
+        with self.driver.session() as session:
+            result = session.run(query, topN=min(top_n, 1000))
+            return [(record["id"], record["score"]) for record in result]
 ```
 
-### Step 3: Refactor for Performance
+### 3.4 WHEN implementing Gremlin queries for Neptune/TinkerPop
 
 ```python
-# Add caching after tests pass
-class GraphQueryService:
-    def __init__(self, db: Surreal):
-        self.db = db
-        self._cache = {}
+# ❌ WRONG - No error handling, string concatenation
+def find_user(g, name):
+    return g.V().has('name', name).next()
 
-    async def get_connections_cached(self, node_id: str, relationship: str, depth: int = 2):
-        cache_key = f"{node_id}:{relationship}:{depth}"
-        if cache_key not in self._cache:
-            self._cache[cache_key] = await self.get_connections(node_id, relationship, depth)
-        return self._cache[cache_key]
+# ✅ CORRECT - Type-safe Gremlin traversals
+from gremlin_python.process.anonymous_traversal import traversal
+from gremlin_python.driver.driver_remote_connection import DriverRemoteConnection
+from gremlin_python.process.graph_traversal import GraphTraversalSource, __
+from gremlin_python.process.traversal import T, P, Order
+from typing import Optional, TypedDict
+from contextlib import contextmanager
+import ssl
+
+class VertexData(TypedDict):
+    id: str
+    label: str
+    properties: dict
+
+class NeptuneConfig:
+    endpoint: str
+    port: int = 8182
+    use_ssl: bool = True
+    region: str = "us-east-1"
+
+class NeptuneRepository:
+    def __init__(self, config: NeptuneConfig):
+        self.config = config
+        self._connection: Optional[DriverRemoteConnection] = None
+
+    @contextmanager
+    def _get_traversal(self):
+        """Context manager for graph traversal with connection cleanup."""
+        connection_string = f"wss://{self.config.endpoint}:{self.config.port}/gremlin"
+
+        # SSL context for Neptune
+        ssl_context = ssl.create_default_context()
+
+        connection = DriverRemoteConnection(
+            connection_string,
+            'g',
+            transport_factory=lambda: ssl_context,
+        )
+
+        try:
+            g = traversal().withRemote(connection)
+            yield g
+        finally:
+            connection.close()
+
+    def find_vertex_by_id(self, vertex_id: str) -> Optional[VertexData]:
+        """Find vertex by ID with property map."""
+        with self._get_traversal() as g:
+            result = (
+                g.V(vertex_id)
+                .project('id', 'label', 'properties')
+                .by(T.id)
+                .by(T.label)
+                .by(__.valueMap(True))
+                .toList()
+            )
+
+            if not result:
+                return None
+
+            return result[0]
+
+    def find_connected_vertices(
+        self,
+        start_id: str,
+        edge_label: str,
+        max_depth: int = 3,
+        limit: int = 100,
+    ) -> list[VertexData]:
+        """Find vertices connected within max_depth hops."""
+
+        # Validate edge_label (prevent injection)
+        allowed_edges = {'follows', 'friends_with', 'works_with'}
+        if edge_label not in allowed_edges:
+            raise ValueError(f"Invalid edge label: {edge_label}")
+
+        # Cap limits
+        max_depth = min(max_depth, 5)
+        limit = min(limit, 1000)
+
+        with self._get_traversal() as g:
+            return (
+                g.V(start_id)
+                .repeat(__.out(edge_label).simplePath())
+                .times(max_depth)
+                .emit()
+                .dedup()
+                .limit(limit)
+                .project('id', 'label', 'properties')
+                .by(T.id)
+                .by(T.label)
+                .by(__.valueMap(True))
+                .toList()
+            )
+
+    def create_vertex_with_edges(
+        self,
+        label: str,
+        properties: dict,
+        edges: list[tuple[str, str, str]],  # (edge_label, direction, target_id)
+    ) -> str:
+        """Atomically create vertex with edges."""
+
+        # Validate label
+        if not label.isalnum():
+            raise ValueError("Label must be alphanumeric")
+
+        with self._get_traversal() as g:
+            # Start with vertex creation
+            t = g.addV(label)
+
+            # Add properties
+            for key, value in properties.items():
+                if not key.isalnum():
+                    raise ValueError(f"Property key must be alphanumeric: {key}")
+                t = t.property(key, value)
+
+            # Store vertex for edge creation
+            t = t.as_('new_vertex')
+
+            # Add edges
+            for edge_label, direction, target_id in edges:
+                if not edge_label.isalnum():
+                    raise ValueError(f"Edge label must be alphanumeric: {edge_label}")
+
+                if direction == 'out':
+                    t = t.addE(edge_label).to(__.V(target_id)).from_('new_vertex')
+                elif direction == 'in':
+                    t = t.addE(edge_label).from_(__.V(target_id)).to('new_vertex')
+                else:
+                    raise ValueError(f"Invalid direction: {direction}")
+
+            # Return to vertex and get ID
+            result = t.select('new_vertex').id_().next()
+            return str(result)
+
+    def upsert_vertex(
+        self,
+        label: str,
+        key_property: str,
+        key_value: str,
+        properties: dict,
+    ) -> str:
+        """Upsert vertex by key property."""
+
+        with self._get_traversal() as g:
+            result = (
+                g.V()
+                .has(label, key_property, key_value)
+                .fold()
+                .coalesce(
+                    __.unfold(),
+                    __.addV(label).property(key_property, key_value)
+                )
+                .as_('v')
+            )
+
+            # Update properties
+            for key, value in properties.items():
+                result = result.property(key, value)
+
+            return str(result.id_().next())
 ```
 
-### Step 4: Run Tests
+### 3.5 WHEN implementing graph search
 
-```bash
-pytest tests/test_graph_queries.py -v --cov=src/graph
+```cypher
+-- ❌ WRONG - Full scan without index
+MATCH (u:User)
+WHERE u.name CONTAINS $searchTerm
+RETURN u
+
+-- ✅ CORRECT - Full-text search with Neo4j
+CALL db.index.fulltext.queryNodes('user_search', $searchTerm + '~')
+YIELD node, score
+WHERE score > 0.5
+RETURN node {.id, .name, .email} AS user, score
+ORDER BY score DESC
+LIMIT 20
 ```
 
 ---
 
-## 6. Common Graph Patterns
+## 4. Anti-Patterns
 
-See `references/query-patterns.md` for detailed examples of:
+**NEVER:**
+- Construct Cypher/Gremlin queries from user input
+- Allow unbounded graph traversals
+- Skip connection encryption (TLS)
+- Hardcode database credentials
+- Return unlimited result sets
+- Allow arbitrary relationship types in traversals
+- Skip query timeouts
+- Expose internal node IDs to clients
 
-1. **Entity Nodes with Typed Relationships** - Basic graph modeling
-2. **Multi-Hop Traversal** - Following edges across multiple hops
-3. **Bidirectional Relationships** - Symmetric connections
-4. **Hierarchical Data** - Trees and DAGs
-5. **Temporal Relationships** - Time-based edges
-6. **Weighted Relationships** - Graph algorithms with weights
-7. **Avoiding N+1 Queries** - Efficient single-query patterns
+---
 
-### Quick Example: Multi-Hop Traversal
+## 5. Testing
 
-```surreal
--- Always set depth limits
-SELECT ->follows[..3]->person.name FROM person:alice;
+**ALWAYS test graph database code:**
 
--- Filter during traversal
-SELECT ->follows[WHERE weight > 0.5][..2]->person.* FROM person:alice;
+```typescript
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
--- DON'T: Unbounded traversal
--- SELECT ->follows->person.* FROM person:alice;  -- Dangerous!
+describe('Neo4jRepository', () => {
+  let repo: Neo4jRepository;
+
+  beforeAll(async () => {
+    repo = new Neo4jRepository({
+      uri: process.env.NEO4J_TEST_URI!,
+      username: 'neo4j',
+      password: 'test',
+      database: 'test',
+    });
+  });
+
+  afterAll(async () => {
+    await repo.close();
+  });
+
+  it('prevents Cypher injection', async () => {
+    const maliciousInput = "' OR 1=1 --";
+    const result = await repo.findUserById(maliciousInput);
+    expect(result).toBeNull(); // Should not find anything
+  });
+
+  it('enforces traversal depth limits', async () => {
+    await expect(
+      repo.findUserConnections('user-1', 'FOLLOWS', 10)
+    ).rejects.toThrow('Max depth cannot exceed 5');
+  });
+
+  it('validates relationship types', async () => {
+    await expect(
+      repo.findUserConnections('user-1', 'MALICIOUS_REL', 2)
+    ).rejects.toThrow('Invalid relationship type');
+  });
+
+  it('respects result limits', async () => {
+    const results = await repo.findUserConnections('user-1', 'FOLLOWS', 3, 10);
+    expect(results.length).toBeLessThanOrEqual(10);
+  });
+
+  it('handles transactions correctly', async () => {
+    const user = await repo.createUserWithTransaction({
+      id: crypto.randomUUID(),
+      email: 'test@example.com',
+      name: 'Test User',
+    });
+
+    expect(user.id).toBeDefined();
+
+    // Verify audit log was created
+    const session = repo['driver'].session();
+    try {
+      const result = await session.run(
+        `MATCH (u:User {id: $id})-[:HAS_AUDIT]->(log:AuditLog)
+         RETURN log`,
+        { id: user.id }
+      );
+      expect(result.records.length).toBe(1);
+    } finally {
+      await session.close();
+    }
+  });
+});
 ```
 
 ---
 
-## 7. Testing
+## 6. Pre-Generation Checklist
 
-Test all graph queries with:
-- **Depth limits**: Verify max depth enforcement
-- **Traversal results**: Validate correct paths returned
-- **Edge cases**: Test cycles, missing nodes, deep traversals
-- **Performance**: Benchmark query execution time
+**BEFORE generating any graph database code:**
 
-See `references/performance-optimization.md` for detailed testing patterns
-
----
-
-## 8. Security
-
-### Key Security Principles
-
-1. **Always use parameterized queries** - Prevent injection
-2. **Set depth limits** - Prevent DoS via deep traversals
-3. **Implement row-level security** - Control node/edge access
-4. **Filter sensitive fields** - Don't expose private data in traversals
-5. **Rate limit queries** - Prevent resource exhaustion
-
-### Quick Examples
-
-```surreal
--- SECURE: Parameterized queries
-SELECT ->follows->person.* FROM $person_id;
-
--- SECURE: Depth limits
-SELECT ->follows[..3]->person.* FROM person:alice LIMIT 100;
-
--- SECURE: Filter sensitive fields
-SELECT name, public_bio, ->follows->person.{name, public_bio}
-FROM person:alice;
-```
-
-See `references/security-examples.md` for comprehensive security patterns
-
----
-
-## 9. Common Mistakes
-
-Avoid these anti-patterns:
-
-1. **Unbounded Traversals** - Always set depth limits (`[..3]`)
-2. **Missing Indexes** - Index frequently queried properties
-3. **Wrong Relationship Direction** - Model edges for common query direction
-4. **N+1 Query Pattern** - Use single traversal instead of loops
-5. **Over-Normalizing** - Embed simple properties, don't create nodes
-6. **Not Handling Cycles** - Use depth limits and visited tracking
-7. **Ignoring Query Plans** - Profile queries with EXPLAIN
-
-See `references/anti-patterns.md` for detailed examples and solutions
-
----
-
-## 10. Pre-Implementation Checklist
-
-### Phase 1: Before Writing Code
-
-- [ ] Read the PRD section for graph requirements
-- [ ] Identify entities (nodes) and relationships (edges)
-- [ ] Design schema based on query patterns
-- [ ] Plan indexes for frequently queried properties
-- [ ] Determine traversal depth limits
-- [ ] Review security requirements (permissions, data exposure)
-- [ ] Write failing tests for expected query behavior
-
-### Phase 2: During Implementation
-
-- [ ] Use parameterized queries (prevent injection)
-- [ ] Set depth limits on all traversals (max 5-10)
-- [ ] Implement pagination for large result sets
-- [ ] Add caching for frequent queries
-- [ ] Use batch operations for bulk inserts
-- [ ] Monitor query performance with explain plans
-- [ ] Filter sensitive fields in traversal results
-
-### Phase 3: Before Committing
-
-- [ ] All graph query tests pass
-- [ ] Integration tests with real database pass
-- [ ] Performance tests meet latency requirements
-- [ ] No unbounded traversals in codebase
-- [ ] All queried properties have indexes
-- [ ] Security review for data exposure
-- [ ] Documentation updated for schema changes
-
----
-
-## 11. Reference Documentation
-
-### Main References
-- **Query Patterns**: `references/query-patterns.md` - 7 essential graph patterns
-- **Modeling Guide**: `references/modeling-guide.md` - Schema design strategies
-- **Query Optimization**: `references/query-optimization.md` - Performance tuning
-- **Performance Patterns**: `references/performance-optimization.md` - Caching, pooling, batching
-- **Security Examples**: `references/security-examples.md` - Security patterns and vulnerabilities
-- **Anti-Patterns**: `references/anti-patterns.md` - Common mistakes to avoid
-
-### External Resources
-- **SurrealDB Docs**: https://surrealdb.com/docs
-- **Neo4j Graph Academy**: https://neo4j.com/graphacademy/
-- **Graph Database Theory**: https://neo4j.com/docs/getting-started/appendix/graphdb-concepts/
-
----
-
-## 12. Summary
-
-You are a graph database expert focused on:
-
-1. **Graph Modeling** - Entities as nodes, relationships as edges, typed connections
-2. **Query Optimization** - Indexes, depth limits, explain plans, efficient traversals
-3. **Relationship Design** - Bidirectional edges, temporal data, weighted connections
-4. **Performance** - Avoid N+1, bounded traversals, proper indexing
-5. **Security** - Row-level permissions, injection prevention, data exposure
-
-**Key Principles**:
-- Model queries first, then design your graph schema
-- Always set depth limits on recursive traversals (max 5-10)
-- Use graph traversal instead of joins or multiple queries
-- Index both node properties and edge properties
-- Add metadata to edges (timestamps, weights, properties)
-- Design relationship direction based on common queries
-- Monitor query performance with explain plans
-
-**Remember**: Graph databases excel at connected data. Model relationships as first-class citizens and leverage traversal operators for powerful, efficient queries.
-
-**Always verify syntax** against official documentation before implementing graph queries. When uncertain, use WebSearch or WebFetch to confirm operators and patterns.
+- [ ] All queries use parameterization (no string concatenation)
+- [ ] Traversal depth is bounded (max 5-10 levels)
+- [ ] Result sets are limited
+- [ ] Query timeouts configured
+- [ ] Connection uses TLS encryption
+- [ ] Credentials from environment variables
+- [ ] Relationship types validated against allowlist
+- [ ] Indexes created for common query patterns
+- [ ] Constraints enforce data integrity
+- [ ] Node IDs are UUIDs (not internal IDs)

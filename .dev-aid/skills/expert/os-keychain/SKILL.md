@@ -1,547 +1,543 @@
-# OS Keychain Skill
-
 ---
 name: os-keychain
-version: 1.1.0
-domain: security/credential-storage
+version: 2.0.0
+description: "OS keychain integration for secure credential storage on macOS Keychain, Windows Credential Manager, and Linux Secret Service."
 risk_level: HIGH
-languages: [python, typescript, rust, go]
-frameworks: [keyring, security-framework, libsecret]
-requires_security_review: true
-compliance: [GDPR, HIPAA, PCI-DSS, SOC2]
-last_updated: 2025-01-15
 ---
 
-> **MANDATORY READING PROTOCOL**: Before implementing credential storage, read `references/advanced-patterns.md` for cross-platform patterns and `references/security-examples.md` for platform-specific implementations.
+# OS Keychain Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-## 0. Anti-Hallucination Protocol
+### 0.1 Mandatory Verification
 
-### 0.1 Quick Risk Assessment
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Risk Level**: HIGH
+### 0.2 Security Patterns (NEVER violate)
 
-**Key Risk Factors**:
-- Security concerns in high-risk domain
-- 3 security issues/patterns identified
-- Common attack vectors: Keychain credential theft, Export/import abuse, Weak encryption exploitation
-- Requires security awareness and best practices
+**CWE-522: Weak Credential Storage**
+- NEVER: Store secrets in plaintext files or environment
+- ALWAYS: OS keychain APIs (Keychain, Credential Manager, Secret Service)
 
-**Immediate Security Actions**:
-1. Review security concerns below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-311: Missing Access Control**
+- NEVER: Store credentials accessible to all apps
+- ALWAYS: Per-app isolation, require user auth for sensitive items
 
-### 0.2 Vulnerability Research Protocol
+### 0.3 Risk Level: HIGH
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
-
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
-
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **KEYCHAIN-EXPORT-VULN** (CVSS N/A): Keychain export vulnerabilities
-     Source: https://developer.apple.com/documentation/security/keychain_services
-   - **CREDENTIAL-THEFT** (CVSS 9.0): Credential extraction from keychain
-     Source: https://www.apple.com/security/
-   - **WEAK-ENCRYPTION** (CVSS N/A): Weak keychain encryption
-     Source: https://support.apple.com/guide/security/
-
-**Step 3: Common Attack Patterns**
-
-   - Keychain credential theft
-   - Export/import abuse
-   - Weak encryption exploitation
-   - Unauthorized access
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER store highly sensitive data in default keychain
-- ❌ NEVER export keychain without user consent
-- ❌ ALWAYS use SecItemAdd with proper access controls
-- ❌ ALWAYS validate keychain permissions
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-
-**🚨 MANDATORY: Read before implementing any code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement credential storage, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check official keyring/platform documentation
-   - ✅ Confirm keychain APIs are current for target OS
-   - ✅ Validate security patterns against official guides
-   - ❌ Never guess keychain service names or formats
-   - ❌ Never invent keyring backend names
-   - ❌ Never assume cross-platform compatibility without testing
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing codebase for credential patterns
-   - 🔍 Grep: Search for keyring usage examples
-   - 🔍 WebSearch: Verify keyring library APIs
-   - 🔍 WebFetch: Read official platform documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY keychain API, backend, or pattern
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in credential storage expose all dependent systems
-
-4. **Common Keychain Hallucination Traps** (AVOID)
-   - ❌ Inventing keyring backend names (e.g., "SystemKeyring", "OSKeyring")
-   - ❌ Making up keyring library methods (e.g., `keyring.list_passwords()`)
-   - ❌ Assuming all platforms support same features
-   - ❌ Invented service name formats or conventions
-   - ❌ Non-existent security features (e.g., automatic encryption levels)
-
-### Self-Check Checklist
-
-Before EVERY response with keychain code:
-- [ ] All keyring APIs verified against current library docs
-- [ ] Platform-specific features verified (macOS/Windows/Linux)
-- [ ] Backend detection logic verified against keyring documentation
-- [ ] Can cite official documentation sources
-
-**⚠️ CRITICAL**: Keychain code with hallucinated APIs causes credential exposure and system compromise. Always verify.
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
+## 1. Security Principles
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 1.1 Never Store Secrets in Code (CWE-798)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**Principle:** Use OS keychain for all secrets. Never hardcode.
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+```rust
+// ❌ WRONG - Hardcoded secret
+const API_KEY: &str = "sk-1234567890";
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+// ❌ WRONG - Environment variable in desktop app
+let api_key = std::env::var("API_KEY")?;  // Users don't set env vars
+
+// ✅ CORRECT - OS keychain
+use keyring::Entry;
+
+fn get_api_key() -> Result<String, keyring::Error> {
+    let entry = Entry::new("com.myapp", "api_key")?;
+    entry.get_password()
+}
+
+fn set_api_key(key: &str) -> Result<(), keyring::Error> {
+    let entry = Entry::new("com.myapp", "api_key")?;
+    entry.set_password(key)
+}
+```
+
+### 1.2 Unique Service Identifiers (CWE-522)
+
+**Principle:** Use reverse-domain service names. Never share keychain entries.
+
+```rust
+// ❌ WRONG - Generic service name (conflicts with other apps)
+let entry = Entry::new("api-key", "default")?;
+
+// ❌ WRONG - User-controlled service name
+let entry = Entry::new(&user_input, "key")?;  // Can access other apps!
+
+// ✅ CORRECT - Reverse-domain service identifier
+let entry = Entry::new("com.mycompany.myapp", "api_key")?;
+
+// ✅ CORRECT - Separate entries per account
+fn get_credential(account: &str) -> Result<Entry, Error> {
+    // Validate account format
+    if !account.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        return Err(Error::InvalidAccount);
+    }
+    Entry::new("com.mycompany.myapp", account)
+}
+```
+
+### 1.3 Fail Secure (CWE-636)
+
+**Principle:** Handle keychain errors gracefully. Never fall back to insecure storage.
+
+```rust
+// ❌ WRONG - Fallback to plaintext on error
+fn get_secret(name: &str) -> String {
+    match keyring::Entry::new("myapp", name)?.get_password() {
+        Ok(s) => s,
+        Err(_) => std::fs::read_to_string("fallback.txt").unwrap(),  // INSECURE!
+    }
+}
+
+// ✅ CORRECT - Fail if keychain unavailable
+fn get_secret(name: &str) -> Result<String, Error> {
+    let entry = keyring::Entry::new("com.myapp", name)?;
+    entry.get_password().map_err(|e| match e {
+        keyring::Error::NoEntry => Error::SecretNotFound(name.to_string()),
+        keyring::Error::Ambiguous(_) => Error::AmbiguousEntry,
+        _ => Error::KeychainUnavailable,
+    })
+}
+```
+
+### 1.4 Input Validation (CWE-20)
+
+**Principle:** Validate service and key names. Prevent injection.
+
+### 1.5 Least Privilege (CWE-250)
+
+**Principle:** Request minimal keychain access. Don't access other apps' entries.
+
+### 1.6 Defense in Depth
+
+**Principle:** Keychain + memory protection + secure deletion.
 
 ---
 
-## 1. Overview
+## 2. Version Requirements
 
-### 1.1 Purpose and Scope
+**ALWAYS use these minimum versions:**
 
-This skill provides secure credential storage using OS-native keychain services:
+```toml
+# Rust
+[dependencies]
+keyring = "2.3"
+secret-service = "3.0"  # Linux-specific
+security-framework = "2.9"  # macOS-specific
 
-- **Windows**: Credential Manager (DPAPI-backed)
-- **macOS**: Keychain Services (Secure Enclave integration)
-- **Linux**: Secret Service API (GNOME Keyring, KWallet)
+# Python
+keyring>=24.3.0
 
-### 1.2 Risk Assessment
-
-**Risk Level**: HIGH
-
-**Justification**:
-- Master keys and sensitive credentials stored
-- Compromise exposes all dependent systems
-- Platform API misuse leads to insecure storage
-- Privilege escalation can access all credentials
-
-**Attack Surface**:
-- Inter-process communication (D-Bus, XPC)
-- Access control misconfigurations
-- Memory disclosure attacks
-- Privilege escalation to access keychain
-
-## 2. Core Principles
-
-1. **TDD First** - Write tests before implementing credential operations
-2. **Performance Aware** - Cache credentials, batch operations, minimize keychain calls
-3. **Platform-native storage** - Use OS keychain services for all credentials
-4. **Access isolation** - Unique service names prevent cross-contamination
-5. **Secure by default** - Reject insecure backends automatically
-6. **Cross-platform support** - Unified API across Windows, macOS, Linux
-
-### 2.1 Security Principles
-
-- **NEVER** store secrets in environment variables or files
-- **NEVER** log credential values or access patterns with identifiers
-- **ALWAYS** use platform-native keychain services
-- **ALWAYS** validate application identity before credential access
-- **ALWAYS** use unique service names per credential type
-
-## 3. Implementation Workflow (TDD)
-
-### Step 1: Write Failing Test First
-
-```python
-import pytest
-from unittest.mock import MagicMock, patch
-
-class TestCredentialStoreOperations:
-    """TDD tests for credential store - write these FIRST."""
-
-    def test_store_credential_success(self):
-        """Test storing a credential in keychain."""
-        store = SecureCredentialStore("test-service")
-        store.store("api-key", "sk-test-12345")
-
-        assert store.exists("api-key") is True
-        assert store.retrieve("api-key") == "sk-test-12345"
-
-    def test_retrieve_nonexistent_raises_keyerror(self):
-        """Test retrieving nonexistent credential raises KeyError."""
-        store = SecureCredentialStore("test-service")
-
-        with pytest.raises(KeyError, match="Credential not found"):
-            store.retrieve("nonexistent-key")
-
-    def test_credential_isolation_between_namespaces(self):
-        """Test credentials are isolated by namespace."""
-        store1 = SecureCredentialStore("namespace-a")
-        store2 = SecureCredentialStore("namespace-b")
-
-        store1.store("shared-key", "value-a")
-        store2.store("shared-key", "value-b")
-
-        assert store1.retrieve("shared-key") == "value-a"
-        assert store2.retrieve("shared-key") == "value-b"
+# Node.js
+keytar>=7.9.0
 ```
-
-**For complete test suite**: See `references/testing-guide.md`
-
-### Step 2: Implement Minimum to Pass
-
-```python
-import keyring
-from keyring.errors import KeyringError
-import logging
-
-logger = logging.getLogger(__name__)
-
-class SecureCredentialStore:
-    """Minimal implementation to pass tests."""
-
-    SERVICE_PREFIX = "com.jarvis.assistant"
-
-    def __init__(self, namespace: str):
-        self._service = f"{self.SERVICE_PREFIX}.{namespace}"
-        self._verify_backend()
-
-    def _verify_backend(self):
-        backend = keyring.get_keyring()
-        backend_name = type(backend).__name__
-        insecure = ['PlaintextKeyring', 'NullKeyring', 'ChainerBackend']
-        if backend_name in insecure:
-            raise RuntimeError(f"Insecure keyring backend: {backend_name}")
-
-    def store(self, key: str, secret: str) -> None:
-        keyring.set_password(self._service, key, secret)
-
-    def retrieve(self, key: str) -> str:
-        secret = keyring.get_password(self._service, key)
-        if secret is None:
-            raise KeyError(f"Credential not found: {key}")
-        return secret
-
-    def delete(self, key: str) -> None:
-        keyring.delete_password(self._service, key)
-
-    def exists(self, key: str) -> bool:
-        return keyring.get_password(self._service, key) is not None
-```
-
-### Step 3: Refactor with Performance Patterns
-
-After tests pass, add caching and logging. See `references/performance-optimization.md` for:
-- Credential caching with TTL
-- Batch operations
-- Lazy loading
-- Memory-safe handling
-
-### Step 4: Run Full Verification
-
-```bash
-# Run all tests with coverage
-pytest tests/security/test_keychain.py -v --cov=src/security/keychain
-
-# Run security-specific tests
-pytest tests/security/ -k "keychain or credential" -v
-
-# Verify no credential leaks in logs
-grep -r "sk-\|password\|secret" logs/ && echo "FAIL: Credentials in logs"
-```
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
 
 ---
 
-## 5. Core Responsibilities
+## 3. Code Patterns
 
-### 4.1 Primary Functions
+### 3.1 WHEN implementing cross-platform keychain (Rust)
 
-1. **Store secrets securely** using OS-native encryption
-2. **Retrieve secrets** with proper access control verification
-3. **Manage credential lifecycle** including rotation and deletion
-4. **Abstract platform differences** for cross-platform code
-5. **Integrate with encryption skill** for master key storage
+```rust
+use keyring::Entry;
+use thiserror::Error;
 
-## 6. Technology Stack
+const SERVICE_NAME: &str = "com.mycompany.myapp";
 
-### 5.1 Recommended Libraries
+#[derive(Error, Debug)]
+pub enum SecretError {
+    #[error("Secret not found")]
+    NotFound,
+    #[error("Keychain unavailable")]
+    KeychainUnavailable,
+    #[error("Invalid key name")]
+    InvalidKeyName,
+    #[error("Keychain error")]
+    Keychain(#[from] keyring::Error),
+}
 
-| Platform | Library | API | Notes |
-|----------|---------|-----|-------|
-| Python (cross-platform) | `keyring` | Unified | Auto-detects backend |
-| macOS | `Security.framework` | Keychain Services | Native Swift/ObjC |
-| Windows | `Windows.Security.Credentials` | Credential Manager | WinRT API |
-| Linux | `libsecret` | Secret Service D-Bus | GNOME Keyring backend |
+pub struct SecretStore;
 
-### 5.2 Platform Requirements
+impl SecretStore {
+    /// Get secret from OS keychain
+    pub fn get(key: &str) -> Result<String, SecretError> {
+        Self::validate_key(key)?;
 
-- **macOS**: 10.15+ (Keychain Access improvements)
-- **Windows**: 10 1903+ (Credential Guard support)
-- **Linux**: libsecret 0.20+, GNOME Keyring 3.36+
+        let entry = Entry::new(SERVICE_NAME, key)?;
+        entry.get_password().map_err(|e| match e {
+            keyring::Error::NoEntry => SecretError::NotFound,
+            keyring::Error::NoStorageAccess(_) => SecretError::KeychainUnavailable,
+            e => SecretError::Keychain(e),
+        })
+    }
 
-## 7. Implementation Patterns
+    /// Store secret in OS keychain
+    pub fn set(key: &str, value: &str) -> Result<(), SecretError> {
+        Self::validate_key(key)?;
 
-### 6.1 Cross-Platform Python Implementation
+        let entry = Entry::new(SERVICE_NAME, key)?;
+        entry.set_password(value)?;
+        Ok(())
+    }
+
+    /// Delete secret from OS keychain
+    pub fn delete(key: &str) -> Result<(), SecretError> {
+        Self::validate_key(key)?;
+
+        let entry = Entry::new(SERVICE_NAME, key)?;
+        entry.delete_credential().map_err(|e| match e {
+            keyring::Error::NoEntry => SecretError::NotFound,
+            e => SecretError::Keychain(e),
+        })
+    }
+
+    /// Check if secret exists
+    pub fn exists(key: &str) -> Result<bool, SecretError> {
+        match Self::get(key) {
+            Ok(_) => Ok(true),
+            Err(SecretError::NotFound) => Ok(false),
+            Err(e) => Err(e),
+        }
+    }
+
+    fn validate_key(key: &str) -> Result<(), SecretError> {
+        if key.is_empty() || key.len() > 255 {
+            return Err(SecretError::InvalidKeyName);
+        }
+        if !key.chars().all(|c| c.is_alphanumeric() || c == '_' || c == '-') {
+            return Err(SecretError::InvalidKeyName);
+        }
+        Ok(())
+    }
+}
+```
+
+### 3.2 WHEN implementing Tauri keychain commands
+
+```rust
+use tauri::State;
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize)]
+pub struct SecretInput {
+    key: String,
+    value: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct SecretResult {
+    success: bool,
+    error: Option<String>,
+}
+
+#[tauri::command]
+pub fn get_secret(key: String) -> Result<String, String> {
+    SecretStore::get(&key).map_err(|e| match e {
+        SecretError::NotFound => "Secret not found".to_string(),
+        SecretError::KeychainUnavailable => "Keychain unavailable".to_string(),
+        _ => "Failed to retrieve secret".to_string(),  // Generic error
+    })
+}
+
+#[tauri::command]
+pub fn set_secret(key: String, value: String) -> Result<(), String> {
+    // Don't log the value!
+    log::info!("Setting secret for key: {}", key);
+
+    SecretStore::set(&key, &value).map_err(|e| {
+        log::error!("Failed to set secret: {:?}", e);
+        "Failed to store secret".to_string()
+    })
+}
+
+#[tauri::command]
+pub fn delete_secret(key: String) -> Result<(), String> {
+    SecretStore::delete(&key).map_err(|e| match e {
+        SecretError::NotFound => "Secret not found".to_string(),
+        _ => "Failed to delete secret".to_string(),
+    })
+}
+
+#[tauri::command]
+pub fn has_secret(key: String) -> Result<bool, String> {
+    SecretStore::exists(&key).map_err(|_| "Failed to check secret".to_string())
+}
+```
+
+### 3.3 WHEN implementing keychain in Python
 
 ```python
 import keyring
-from keyring.errors import KeyringError
-import logging
+from keyring.errors import KeyringError, PasswordDeleteError
+from typing import Optional
 
-logger = logging.getLogger(__name__)
+SERVICE_NAME = "com.mycompany.myapp"
 
-class SecureCredentialStore:
-    """Cross-platform credential storage using OS keychain."""
+class SecretStore:
+    """Cross-platform secret storage using OS keychain."""
 
-    SERVICE_PREFIX = "com.jarvis.assistant"
+    @staticmethod
+    def get(key: str) -> Optional[str]:
+        """Get secret from keychain. Returns None if not found."""
+        if not SecretStore._validate_key(key):
+            raise ValueError("Invalid key name")
 
-    def __init__(self, namespace: str):
-        self._service = f"{self.SERVICE_PREFIX}.{namespace}"
-        self._verify_backend()
+        try:
+            return keyring.get_password(SERVICE_NAME, key)
+        except KeyringError as e:
+            raise RuntimeError("Keychain unavailable") from e
 
-    def _verify_backend(self):
-        """Verify secure keyring backend is available."""
-        backend = keyring.get_keyring()
-        backend_name = type(backend).__name__
+    @staticmethod
+    def set(key: str, value: str) -> None:
+        """Store secret in keychain."""
+        if not SecretStore._validate_key(key):
+            raise ValueError("Invalid key name")
 
-        insecure_backends = ['PlaintextKeyring', 'NullKeyring', 'ChainerBackend']
-        if backend_name in insecure_backends:
-            raise RuntimeError(f"Insecure keyring backend: {backend_name}")
+        try:
+            keyring.set_password(SERVICE_NAME, key, value)
+        except KeyringError as e:
+            raise RuntimeError("Failed to store secret") from e
 
-        logger.info("keychain.backend.initialized", extra={'backend': backend_name})
+    @staticmethod
+    def delete(key: str) -> None:
+        """Delete secret from keychain."""
+        if not SecretStore._validate_key(key):
+            raise ValueError("Invalid key name")
 
-    def store(self, key: str, secret: str) -> None:
-        """Store a credential securely."""
-        keyring.set_password(self._service, key, secret)
-        logger.info("keychain.credential.stored", extra={'key': key})
+        try:
+            keyring.delete_password(SERVICE_NAME, key)
+        except PasswordDeleteError:
+            pass  # Already deleted
+        except KeyringError as e:
+            raise RuntimeError("Failed to delete secret") from e
 
-    def retrieve(self, key: str) -> str:
-        """Retrieve a credential. Raises KeyError if not found."""
-        secret = keyring.get_password(self._service, key)
-        if secret is None:
-            raise KeyError(f"Credential not found: {key}")
-        return secret
-
-    def delete(self, key: str) -> None:
-        """Delete a credential."""
-        keyring.delete_password(self._service, key)
-        logger.info("keychain.credential.deleted", extra={'key': key})
-
-    def exists(self, key: str) -> bool:
-        """Check if credential exists."""
-        return keyring.get_password(self._service, key) is not None
+    @staticmethod
+    def _validate_key(key: str) -> bool:
+        """Validate key name format."""
+        if not key or len(key) > 255:
+            return False
+        return all(c.isalnum() or c in "_-" for c in key)
 ```
 
-### 6.2 Platform-Specific Implementations
+### 3.4 WHEN implementing keychain in Node.js/TypeScript
 
-For detailed platform-specific implementations with advanced features:
+```typescript
+import keytar from 'keytar';
 
-- **macOS Keychain** (ACLs, Touch ID, Secure Enclave): See `references/security-examples.md#macos-keychain`
-- **Windows Credential Manager** (DPAPI, Credential Guard): See `references/security-examples.md#windows-credential-manager`
-- **Linux Secret Service** (D-Bus, GNOME Keyring): See `references/security-examples.md#linux-secret-service`
+const SERVICE_NAME = 'com.mycompany.myapp';
 
-## 8. Security Standards
+export class SecretStore {
+  private static validateKey(key: string): void {
+    if (!key || key.length > 255) {
+      throw new Error('Invalid key name');
+    }
+    if (!/^[a-zA-Z0-9_-]+$/.test(key)) {
+      throw new Error('Invalid key name');
+    }
+  }
 
-### 7.1 Known Vulnerabilities
+  static async get(key: string): Promise<string | null> {
+    this.validateKey(key);
+    return keytar.getPassword(SERVICE_NAME, key);
+  }
 
-| CVE | Severity | Platform | Mitigation |
-|-----|----------|----------|------------|
-| CVE-2023-21726 | High (7.8) | Windows | Windows Update Jan 2023 |
-| CVE-2024-54490 | High | macOS | Update to macOS 15.2+ |
-| CVE-2024-44162 | High | macOS | Update to macOS 14.7+ |
-| CVE-2024-44243 | High | macOS | Update to macOS 15.2+ |
-| CVE-2024-1086 | High (7.8) | Linux | Kernel 6.6.15+ |
+  static async set(key: string, value: string): Promise<void> {
+    this.validateKey(key);
+    await keytar.setPassword(SERVICE_NAME, key, value);
+  }
 
-### 7.2 OWASP Mapping
+  static async delete(key: string): Promise<boolean> {
+    this.validateKey(key);
+    return keytar.deletePassword(SERVICE_NAME, key);
+  }
 
-| OWASP 2025 | Implementation |
-|------------|----------------|
-| A01: Broken Access Control | OS-level ACLs, app sandboxing |
-| A02: Cryptographic Failures | Platform-native encryption |
-| A04: Insecure Design | Defense in depth, least privilege |
-| A07: Identification Failures | Credential isolation per service |
+  static async has(key: string): Promise<boolean> {
+    const value = await this.get(key);
+    return value !== null;
+  }
 
-### 7.3 Platform Security Features
+  static async getAllKeys(): Promise<string[]> {
+    const credentials = await keytar.findCredentials(SERVICE_NAME);
+    return credentials.map(c => c.account);
+  }
+}
 
-**macOS**: Secure Enclave, per-item ACLs, code signing, Touch ID gating
+// Usage in Electron/Tauri
+export async function getApiKey(): Promise<string> {
+  const key = await SecretStore.get('api_key');
+  if (!key) {
+    throw new Error('API key not configured');
+  }
+  return key;
+}
+```
 
-**Windows**: DPAPI encryption, Credential Guard, virtualization-based security
+### 3.5 WHEN handling first-run setup
 
-**Linux**: D-Bus access control, collection locking, session keyring isolation
+```rust
+use dialoguer::{Input, Password};
 
-For detailed threat analysis, see `references/threat-model.md`.
+pub async fn setup_credentials() -> Result<(), Error> {
+    // Check if already configured
+    if SecretStore::exists("api_key")? {
+        println!("Credentials already configured.");
+        return Ok(());
+    }
 
-## 9. Pre-Implementation Checklist
+    // Prompt for credentials (never log these!)
+    let api_key: String = Password::new()
+        .with_prompt("Enter your API key")
+        .interact()?;
 
-### Phase 1: Before Writing Code
+    // Validate before storing
+    if api_key.len() < 20 {
+        return Err(Error::InvalidApiKey);
+    }
 
-- [ ] Read `references/advanced-patterns.md` for cross-platform patterns
-- [ ] Read `references/security-examples.md` for platform implementations
-- [ ] Read `references/anti-patterns.md` for common mistakes
-- [ ] Review threat model in `references/threat-model.md`
-- [ ] Identify required credential namespaces
-- [ ] Design test cases for credential operations
-- [ ] Plan caching strategy for performance
+    // Store in keychain
+    SecretStore::set("api_key", &api_key)?;
 
-### Phase 2: During Implementation
+    // Clear from memory (best effort)
+    drop(api_key);
 
-- [ ] Write failing tests first (TDD workflow)
-- [ ] Implement minimum code to pass tests
-- [ ] Add credential caching with TTL
-- [ ] Implement batch loading for multiple credentials
-- [ ] Use lazy loading for optional credentials
-- [ ] Add memory-safe handling for sensitive operations
-- [ ] Verify secure keyring backend at startup
-- [ ] Log operations without credential values
+    println!("Credentials stored securely in system keychain.");
+    Ok(())
+}
+```
 
-### Phase 3: Before Committing
+### 3.6 WHEN migrating from insecure storage
 
-- [ ] All tests pass with `pytest -v`
-- [ ] No credentials in test fixtures or logs
-- [ ] Cross-platform tests verified
-- [ ] Memory leak tests pass
-- [ ] Security scan shows no credential leaks
-- [ ] Code review for anti-patterns complete
+```rust
+use std::fs;
+use std::path::PathBuf;
 
-### Platform-Specific Verification
+pub fn migrate_to_keychain(config_path: &PathBuf) -> Result<(), Error> {
+    // Read old config (if exists)
+    let old_config = match fs::read_to_string(config_path) {
+        Ok(c) => c,
+        Err(_) => return Ok(()),  // Nothing to migrate
+    };
 
-- [ ] **macOS**: Code signing verified for Keychain access
-- [ ] **Windows**: Credential Guard compatibility tested
-- [ ] **Linux**: Secret Service daemon running, D-Bus accessible
-- [ ] OS security updates applied (check CVE list above)
+    // Parse and extract secrets
+    let config: OldConfig = toml::from_str(&old_config)?;
 
-## 10. Summary
+    if let Some(api_key) = config.api_key {
+        // Store in keychain
+        SecretStore::set("api_key", &api_key)?;
 
-### Key Objectives
+        // Remove from config file
+        let mut new_config = config.clone();
+        new_config.api_key = None;
 
-1. **TDD workflow**: Write tests before implementing credential operations
-2. **Performance optimization**: Cache credentials, batch operations, lazy loading
-3. **Platform-native storage**: Use OS keychain services for all credentials
-4. **Access isolation**: Unique service names prevent cross-contamination
-5. **Secure by default**: Reject insecure backends automatically
+        // Write sanitized config
+        let sanitized = toml::to_string(&new_config)?;
+        fs::write(config_path, sanitized)?;
 
-### Security Reminders
+        // Securely delete old file (overwrite)
+        let zeros = vec![0u8; old_config.len()];
+        fs::write(config_path.with_extension("old"), zeros)?;
+        fs::remove_file(config_path.with_extension("old"))?;
 
-- Credentials in environment variables are NOT secure
-- File-based credential storage is NOT secure
-- Always verify keyring backend at application startup
-- Log credential operations but NEVER values
-- Keep OS updated to address keychain vulnerabilities
+        log::info!("Migrated secrets to system keychain");
+    }
 
-### Quick Anti-Pattern Check
-
-❌ **NEVER**:
-- Store credentials in environment variables
-- Hardcode credentials in source code
-- Store credentials in plain files (even base64-encoded)
-- Log credential values
-- Use single service name for all credentials
-
-✅ **ALWAYS**:
-- Use OS keychain services
-- Verify secure backend at startup
-- Use unique namespaces per credential type
-- Cache credentials for performance
-- Log metadata only, never values
-
-## 11. References
-
-See `references/` directory for detailed guides:
-
-- **`advanced-patterns.md`** - Cross-platform patterns, migration strategies, advanced usage
-- **`security-examples.md`** - Complete platform-specific implementations (macOS, Windows, Linux)
-- **`threat-model.md`** - Comprehensive threat analysis and attack scenarios
-- **`performance-optimization.md`** - Caching, batching, lazy loading, memory-safe patterns
-- **`anti-patterns.md`** - Common mistakes and how to avoid them
-- **`testing-guide.md`** - Complete testing strategies with TDD examples
+    Ok(())
+}
+```
 
 ---
 
-**The OS keychain is your first line of defense. Misuse negates all downstream encryption.**
+## 4. Anti-Patterns
+
+**NEVER:**
+- Hardcode secrets in source code
+- Store secrets in config files
+- Use generic service names (use reverse-domain)
+- Log secret values
+- Fall back to insecure storage on keychain error
+- Allow user input as service name (injection risk)
+- Store secrets in environment variables for desktop apps
+
+---
+
+## 5. Testing
+
+**ALWAYS write keychain tests:**
+
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_get_delete() {
+        let key = "test_secret";
+        let value = "test_value_123";
+
+        // Set
+        SecretStore::set(key, value).unwrap();
+
+        // Get
+        let retrieved = SecretStore::get(key).unwrap();
+        assert_eq!(retrieved, value);
+
+        // Delete
+        SecretStore::delete(key).unwrap();
+
+        // Verify deleted
+        assert!(matches!(
+            SecretStore::get(key),
+            Err(SecretError::NotFound)
+        ));
+    }
+
+    #[test]
+    fn test_invalid_key_rejected() {
+        assert!(SecretStore::get("").is_err());
+        assert!(SecretStore::get("key with spaces").is_err());
+        assert!(SecretStore::get("key;injection").is_err());
+        assert!(SecretStore::get(&"a".repeat(300)).is_err());
+    }
+
+    #[test]
+    fn test_exists_check() {
+        let key = "existence_test";
+
+        assert!(!SecretStore::exists(key).unwrap());
+
+        SecretStore::set(key, "value").unwrap();
+        assert!(SecretStore::exists(key).unwrap());
+
+        SecretStore::delete(key).unwrap();
+        assert!(!SecretStore::exists(key).unwrap());
+    }
+}
+```
+
+---
+
+## 6. Pre-Generation Checklist
+
+**BEFORE generating any keychain code:**
+
+- [ ] Using reverse-domain service identifier
+- [ ] Key names validated (alphanumeric + underscore/hyphen)
+- [ ] Secrets never logged or exposed in errors
+- [ ] Graceful handling of keychain unavailable
+- [ ] No fallback to insecure storage
+- [ ] Migration path from old insecure storage
+- [ ] Memory cleared after use (best effort)
+- [ ] Platform-specific tests included
+- [ ] First-run setup flow for credentials
+- [ ] Tauri commands return generic errors only

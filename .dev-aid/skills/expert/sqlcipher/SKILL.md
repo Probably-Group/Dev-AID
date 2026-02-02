@@ -1,456 +1,766 @@
 ---
 name: SQLCipher Encrypted Database Expert
+version: 2.0.0
+description: "SQLCipher encrypted database patterns with key management, migration, and secure key derivation."
 risk_level: HIGH
-description: Expert in SQLCipher encrypted database development with focus on encryption key management, key rotation, secure data handling, and cryptographic best practices
-version: 1.0.0
-author: JARVIS AI Assistant
-tags: [database, sqlcipher, encryption, security, key-management, sqlite]
-model: claude-sonnet-4-5-20250929
 ---
 
-# SQLCipher Encrypted Database Expert
-
-## 0. Mandatory Reading Protocol
-
-**CRITICAL**: Before implementing encryption operations, read the relevant reference files:
-
-| Trigger | Reference File |
-|---------|----------------|
-| First-time encryption setup, key derivation, memory handling | `references/security-examples.md` |
-| SQLite migration, custom PRAGMAs, performance tuning, backups | `references/advanced-patterns.md` |
-| Security architecture, threat assessment, key compromise planning | `references/threat-model.md` |
-
----
-
-
-### 0.4 Progressive Disclosure (500-Line Limit)
-
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
-
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
-
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
-
----
+# SQLCipher - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs/security concerns in 2024-2025
-- Common attack vectors: Memory corruption via SQLite bugs, Weak encryption due to OpenSSL CVEs, Key extraction via side-channels
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-321: Hard-coded Encryption Key**
+- NEVER: `PRAGMA key = 'hardcoded-password'` in code
+- ALWAYS: Derive key from user input or secure keychain
 
-### 0.2 Vulnerability Research Protocol
+**CWE-328: Weak Key Derivation**
+- NEVER: Use password directly as key
+- ALWAYS: `PRAGMA kdf_iter = 256000` (or higher), use PBKDF2-SHA256
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-311: Missing Re-keying**
+- NEVER: Keep same key indefinitely
+- ALWAYS: Implement key rotation strategy, use `PRAGMA rekey`
 
-**Step 1: CVE Database Search** (NVD, MITRE)
-```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
-```
+**CWE-89: SQL Injection**
+- NEVER: String concatenation even with encrypted DB
+- ALWAYS: Parameterized queries - encryption doesn't prevent injection
 
-**Step 2: Known Vulnerabilities (2024-2025)**
+### 0.3 Risk Level: HIGH
 
-   - **CVE-2025-6965** (CVSS 9.8): SQLite memory corruption affecting SQLCipher < 4.9.0
-     Source: https://www.zetetic.net/blog/2025/05/15/sqlcipher-4.9.0-release-security-update/
-   - **CVE-2025-0306** (CVSS 7.5): OpenSSL vulnerability in SQLCipher 4.6.1
-     Source: https://discuss.zetetic.net/t/new-vulnerability-detected-in-openssl/6877
-   - **CVE-2024-13176** (CVSS 7.3): OpenSSL vulnerability in SQLCipher dependencies
-     Source: https://discuss.zetetic.net/t/new-vulnerabilities-in-openssl/6530
-
-**Step 3: Common Attack Patterns**
-
-   - Memory corruption via SQLite bugs
-   - Weak encryption due to OpenSSL CVEs
-   - Key extraction via side-channels
-   - Malicious schema exploitation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER use SQLCipher < 4.9.0
-- ❌ NEVER store encryption keys in code
-- ❌ NEVER allow untrusted schema modifications
-- ❌ ALWAYS use latest OpenSSL
-- ❌ ALWAYS validate database integrity before decryption
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-## 1. Overview
-
-**Risk Level: HIGH**
-
-**Justification**: SQLCipher handles encryption of sensitive data at rest. Improper key management can lead to data exposure, weak key derivation enables brute-force attacks, and cryptographic misconfigurations can completely compromise security guarantees.
-
-You are an expert in SQLCipher encrypted database development, specializing in:
-- **Encryption key management** with secure derivation and storage
-- **Key rotation** without data loss or downtime
-- **Cryptographic best practices** for AES-256 configuration
-- **Secure memory handling** to prevent key exposure
-- **Migration strategies** from plain SQLite to encrypted databases
-
-### Primary Use Cases
-- Encrypted local storage for sensitive user data
-- HIPAA/GDPR compliant data storage
-- Secure credential and secret management
-- Privacy-focused applications
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
 
 ---
 
-## 2. Core Principles
+## 1. Security Principles
 
-### 2.1 Development Principles
+### 1.1 Key Management (CWE-321)
 
-1. **TDD First** - Write tests before implementation for all encryption operations
-2. **Performance Aware** - Optimize cipher configuration and page sizes for efficiency
-3. **Use strong key derivation** - PBKDF2 with high iteration counts (256000+)
-4. **Never hardcode encryption keys** - Derive from user input or secure storage
-5. **Secure memory handling** - Zero out keys after use
-6. **Implement key rotation** - Plan for compromised keys
-7. **Monitor dependencies** - Track OpenSSL and SQLite CVEs
-
-### 2.2 Data Protection Principles
-
-1. **Encryption at rest** with AES-256-CBC
-2. **HMAC verification** for integrity checking
-3. **Secure key storage** using OS keychain/credential manager
-4. **Backup encryption** with independent keys
-5. **Secure deletion** with PRAGMA secure_delete
-
----
-
-## 3. Technical Foundation
-
-### 3.1 Version Recommendations
-
-| Component | Recommended | Minimum | Notes |
-|-----------|-------------|---------|-------|
-| SQLCipher | 4.9+ | 4.5 | Security updates |
-| OpenSSL | 3.0+ | 1.1.1 | CVE patches |
-| sqlcipher crate | 0.3+ | 0.3 | Rust bindings |
-
-### 3.2 Required Dependencies (Cargo.toml)
-
-```toml
-[dependencies]
-rusqlite = { version = "0.31", features = ["bundled-sqlcipher"] }
-zeroize = "1.7"  # Secure memory zeroing
-keyring = "2.0"  # OS credential storage
-argon2 = "0.5"   # Optional: stronger KDF
-```
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Implementation Workflow (TDD)
-
-class TestEncryptedDatabase:
-    def test_database_file_is_encrypted(self, tmp_path):
-        db_path = tmp_path / "test.db"
-        key = "x'0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'"
-        db = EncryptedDatabase(db_path, key)
-        db.execute("CREATE TABLE secrets (data...
-
-📚 **For complete details**: See `references/implementation-workflow-tdd.md`
-
----
-## 6. Implementation Patterns
-
-### 5.1 Encrypted Database Initialization
-
-```rust
-use rusqlite::{Connection, Result};
-use zeroize::Zeroizing;
-
-pub struct EncryptedDatabase { conn: Connection }
-
-impl EncryptedDatabase {
-    pub fn new(path: &Path, key: &Zeroizing<String>) -> Result<Self> {
-        let conn = Connection::open(path)?;
-        conn.pragma_update(None, "key", key.as_str())?;  // MUST be first
-
-        conn.execute_batch("
-            PRAGMA cipher_compatibility = 4;
-            PRAGMA cipher_memory_security = ON;
-            PRAGMA foreign_keys = ON;
-            PRAGMA journal_mode = WAL;
-        ")?;
-
-        // Verify encryption is active
-        let page_size: i32 = conn.pragma_query_value(None, "cipher_page_size", |row| row.get(0))?;
-        if page_size == 0 { return Err(rusqlite::Error::InvalidQuery); }
-
-        Ok(Self { conn })
-    }
-}
-```
-
-### 5.2 Secure Key Derivation
-
-```rust
-use argon2::{Argon2, PasswordHasher};
-use zeroize::Zeroizing;
-
-pub fn derive_key_from_password(
-    password: &str,
-    stored_salt: Option<&str>
-) -> Result<(Zeroizing<String>, String), argon2::password_hash::Error> {
-    let salt = match stored_salt {
-        Some(s) => SaltString::from_b64(s)?,
-        None => SaltString::generate(&mut OsRng),
-    };
-
-    let argon2 = Argon2::new(
-        argon2::Algorithm::Argon2id, argon2::Version::V0x13,
-        argon2::Params::new(65536, 3, 4, Some(32)).unwrap()  // 64MB, 3 iter, 4 threads
-    );
-
-    let mut key_bytes = [0u8; 32];
-    argon2.hash_password_into(password.as_bytes(), salt.as_str().as_bytes(), &mut key_bytes)?;
-    let key_hex = Zeroizing::new(format!("x'{}'", hex::encode(key_bytes)));
-    key_bytes.zeroize();
-
-    Ok((key_hex, salt.as_str().to_string()))
-}
-```
-
-### 5.3 OS Keychain Integration
-
-```rust
-use keyring::Entry;
-use zeroize::Zeroizing;
-
-pub struct SecureKeyStorage { service: String }
-
-impl SecureKeyStorage {
-    pub fn new(app_name: &str) -> Self {
-        Self { service: format!("{}-sqlcipher", app_name) }
-    }
-
-    pub fn store_key(&self, user: &str, key: &Zeroizing<String>) -> Result<(), keyring::Error> {
-        Entry::new(&self.service, user)?.set_password(key.as_str())
-    }
-
-    pub fn retrieve_key(&self, user: &str) -> Result<Zeroizing<String>, keyring::Error> {
-        Ok(Zeroizing::new(Entry::new(&self.service, user)?.get_password()?))
-    }
-}
-```
-
-### 5.4 Key Rotation Implementation
-
-```rust
-impl EncryptedDatabase {
-    pub fn rotate_key(&self, new_key: &Zeroizing<String>, backup_path: &Path) -> Result<()> {
-        self.backup_database(backup_path)?;                              // Step 1: Backup
-        self.conn.pragma_update(None, "rekey", new_key.as_str())?;       // Step 2: Re-encrypt
-
-        // Step 3: Verify new key works
-        let test: i32 = self.conn.pragma_query_value(None, "cipher_page_size", |row| row.get(0))?;
-        if test == 0 {
-            std::fs::copy(backup_path, self.path())?;  // Restore on failure
-            return Err(rusqlite::Error::InvalidQuery);
-        }
-        Ok(())
-    }
-}
-```
-
----
-
-## 7. Performance Patterns
-
-### 6.1 Page Size Optimization
+**Principle:** Database encryption is useless if keys are hardcoded or poorly managed.
 
 ```python
-# Good: Optimize page size for workload
-conn.execute("PRAGMA cipher_page_size = 4096")  # Default, good for mixed
-conn.execute("PRAGMA cipher_pag## 6. Implementation Patterns
+# ❌ WRONG - Hardcoded encryption key
+import sqlite3
 
-## 6. Implementation Patterns
+conn = sqlite3.connect("data.db")
+conn.execute("PRAGMA key = 'supersecretkey123'")  # Key in source code!
 
-📚 **For complete details**: See `references/implementation-patterns.md`
+# ✅ CORRECT - Key from secure source
+import os
+from pathlib import Path
+from dataclasses import dataclass
 
----
-)?;
-// CORRECT:
-let (key, salt) = derive_key_from_password(password, stored_salt)?;
-conn.pragma_update(None, "key", key.as_str())?;  // key auto-zeroed on drop
+@dataclass
+class SQLCipherConfig:
+    db_path: Path
+    key_derivation: str = "PBKDF2-HMAC-SHA512"
+    kdf_iterations: int = 256000
+    cipher: str = "AES-256-CBC"
+    page_size: int = 4096
+
+def get_encryption_key() -> str:
+    """Get encryption key from secure source."""
+
+    # Option 1: Environment variable (for server apps)
+    key = os.environ.get("SQLCIPHER_KEY")
+    if key:
+        return key
+
+    # Option 2: OS keychain (for desktop apps)
+    try:
+        import keyring
+        key = keyring.get_password("myapp", "database_key")
+        if key:
+            return key
+    except ImportError:
+        pass
+
+    # Option 3: Hardware security module (HSM)
+    # key = hsm_client.get_key("database_key")
+
+    raise RuntimeError("No encryption key available")
+
+def open_encrypted_db(config: SQLCipherConfig) -> "sqlite3.Connection":
+    """Open SQLCipher database with secure key handling."""
+    import sqlite3
+
+    key = get_encryption_key()
+
+    conn = sqlite3.connect(str(config.db_path))
+
+    # Apply key with proper quoting to prevent injection
+    conn.execute(f"PRAGMA key = \"x'{key}'\"")
+
+    # Configure cipher settings
+    conn.execute(f"PRAGMA cipher_page_size = {config.page_size}")
+    conn.execute(f"PRAGMA kdf_iter = {config.kdf_iterations}")
+    conn.execute(f"PRAGMA cipher = '{config.cipher}'")
+
+    # Verify database is accessible
+    try:
+        conn.execute("SELECT count(*) FROM sqlite_master")
+    except sqlite3.DatabaseError:
+        conn.close()
+        raise ValueError("Invalid encryption key or corrupted database")
+
+    return conn
+```
+
+### 1.2 Key Rotation (CWE-324)
+
+**Principle:** Encryption keys should be rotatable without data loss.
+
+```python
+# ❌ WRONG - No key rotation capability
+# Just change the key and hope for the best
+
+# ✅ CORRECT - Proper key rotation with re-encryption
+import sqlite3
+import tempfile
+import shutil
+from pathlib import Path
+
+def rotate_encryption_key(
+    db_path: Path,
+    old_key: str,
+    new_key: str,
+    backup_dir: Path | None = None,
+) -> None:
+    """Rotate encryption key with backup and verification."""
+
+    # Create backup first
+    if backup_dir:
+        backup_path = backup_dir / f"{db_path.name}.backup"
+        shutil.copy2(db_path, backup_path)
+
+    conn = sqlite3.connect(str(db_path))
+
+    try:
+        # Authenticate with old key
+        conn.execute(f"PRAGMA key = \"x'{old_key}'\"")
+
+        # Verify old key works
+        try:
+            conn.execute("SELECT count(*) FROM sqlite_master")
+        except sqlite3.DatabaseError:
+            raise ValueError("Invalid old encryption key")
+
+        # Re-encrypt with new key
+        conn.execute(f"PRAGMA rekey = \"x'{new_key}'\"")
+
+        # Verify new key works
+        conn.close()
+
+        # Reopen with new key to verify
+        conn = sqlite3.connect(str(db_path))
+        conn.execute(f"PRAGMA key = \"x'{new_key}'\"")
+        conn.execute("SELECT count(*) FROM sqlite_master")
+
+    except Exception as e:
+        # Restore from backup on failure
+        if backup_dir and backup_path.exists():
+            shutil.copy2(backup_path, db_path)
+        raise RuntimeError(f"Key rotation failed: {e}")
+
+    finally:
+        conn.close()
+
+        # Clean up backup after successful rotation
+        if backup_dir and backup_path.exists():
+            backup_path.unlink()
+```
+
+### 1.3 Memory Protection (CWE-316)
+
+**Principle:** Encryption keys and decrypted data should not linger in memory.
+
+```python
+# ❌ WRONG - Key stored in regular string
+key = "mysecretkey"  # String interned, hard to clear
+
+# ✅ CORRECT - Secure key handling with memory clearing
+import ctypes
+from typing import Callable
+from contextlib import contextmanager
+
+class SecureString:
+    """String that can be securely cleared from memory."""
+
+    def __init__(self, value: str):
+        self._bytes = value.encode('utf-8')
+        self._length = len(self._bytes)
+
+    def get(self) -> str:
+        return self._bytes.decode('utf-8')
+
+    def clear(self):
+        """Overwrite memory with zeros."""
+        if self._bytes:
+            ctypes.memset(
+                ctypes.addressof(ctypes.c_char.from_buffer(bytearray(self._bytes))),
+                0,
+                self._length
+            )
+            self._bytes = b''
+
+    def __del__(self):
+        self.clear()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.clear()
+
+@contextmanager
+def secure_connection(
+    db_path: Path,
+    key_provider: Callable[[], str],
+):
+    """Context manager that clears key after use."""
+    import sqlite3
+
+    key = SecureString(key_provider())
+
+    try:
+        conn = sqlite3.connect(str(db_path))
+        conn.execute(f"PRAGMA key = \"x'{key.get()}'\"")
+        yield conn
+    finally:
+        key.clear()
+        if 'conn' in dir():
+            conn.close()
 ```
 
 ---
 
-## 9. Common Mistakes
+## 2. Version Requirements
 
-### Hardcoded Keys
+```
+# SQLCipher Python bindings
+sqlcipher3>=0.5.0
+# Alternative: pysqlcipher3
+pysqlcipher3>=1.2.0
+# For async
+aiosqlite>=0.19.0  # Note: Requires SQLCipher build
+# Key storage
+keyring>=24.0.0
+# For Tauri/desktop
+# Use sqlcipher-sys Rust crate
+```
+
+---
+
+## 3. Code Patterns
+
+### WHEN creating encrypted databases, use proper initialization
+
+```python
+# ❌ WRONG - Create without proper settings
+conn = sqlite3.connect("new.db")
+conn.execute("PRAGMA key = 'mykey'")
+# Uses default cipher settings which may be weak
+
+# ✅ CORRECT - Full initialization with secure defaults
+import sqlite3
+from pathlib import Path
+from dataclasses import dataclass
+from typing import Callable
+
+@dataclass
+class DatabaseSchema:
+    version: int
+    migrations: list[Callable[["sqlite3.Connection"], None]]
+
+def create_encrypted_database(
+    db_path: Path,
+    key_provider: Callable[[], str],
+    schema: DatabaseSchema,
+    cipher_config: SQLCipherConfig | None = None,
+) -> None:
+    """Create new encrypted database with schema."""
+
+    if cipher_config is None:
+        cipher_config = SQLCipherConfig(
+            db_path=db_path,
+            kdf_iterations=256000,  # OWASP recommended minimum
+        )
+
+    if db_path.exists():
+        raise FileExistsError(f"Database already exists: {db_path}")
+
+    conn = sqlite3.connect(str(db_path))
+
+    try:
+        key = key_provider()
+
+        # Set encryption key
+        conn.execute(f"PRAGMA key = \"x'{key}'\"")
+
+        # Configure cipher (must be done before any other operations)
+        conn.execute(f"PRAGMA cipher_page_size = {cipher_config.page_size}")
+        conn.execute(f"PRAGMA kdf_iter = {cipher_config.kdf_iterations}")
+        conn.execute("PRAGMA cipher_memory_security = ON")
+
+        # Create schema version table
+        conn.execute("""
+            CREATE TABLE _schema_version (
+                version INTEGER PRIMARY KEY,
+                applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+            )
+        """)
+
+        # Apply migrations
+        for i, migration in enumerate(schema.migrations, 1):
+            migration(conn)
+            conn.execute(
+                "INSERT INTO _schema_version (version) VALUES (?)",
+                (i,)
+            )
+
+        conn.commit()
+
+        # Verify encryption worked
+        conn.close()
+        conn = sqlite3.connect(str(db_path))
+        conn.execute(f"PRAGMA key = \"x'{key}'\"")
+        conn.execute("SELECT count(*) FROM sqlite_master")
+
+    except Exception:
+        conn.close()
+        db_path.unlink(missing_ok=True)
+        raise
+
+    finally:
+        conn.close()
+
+# Example schema
+def migration_001_users(conn: sqlite3.Connection):
+    conn.execute("""
+        CREATE TABLE users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+
+def migration_002_sessions(conn: sqlite3.Connection):
+    conn.execute("""
+        CREATE TABLE sessions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            token_hash TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    """)
+    conn.execute("CREATE INDEX idx_sessions_user ON sessions(user_id)")
+
+APP_SCHEMA = DatabaseSchema(
+    version=2,
+    migrations=[migration_001_users, migration_002_sessions],
+)
+```
+
+### WHEN querying encrypted databases, use parameterized queries
+
+```python
+# ❌ WRONG - String formatting (SQL injection)
+def get_user(conn, user_id: str):
+    return conn.execute(f"SELECT * FROM users WHERE id = '{user_id}'").fetchone()
+
+# ✅ CORRECT - Parameterized queries with type-safe wrapper
+from dataclasses import dataclass
+from typing import TypeVar, Generic, Iterator
+import sqlite3
+
+T = TypeVar('T')
+
+@dataclass
+class User:
+    id: str
+    email: str
+    password_hash: str
+    created_at: str
+
+class TypedRepository(Generic[T]):
+    def __init__(self, conn: sqlite3.Connection, table: str, model: type[T]):
+        self._conn = conn
+        self._table = table
+        self._model = model
+
+        # Enable row factory for dict-like access
+        self._conn.row_factory = sqlite3.Row
+
+    def get_by_id(self, id: str) -> T | None:
+        cursor = self._conn.execute(
+            f"SELECT * FROM {self._table} WHERE id = ?",
+            (id,)
+        )
+        row = cursor.fetchone()
+        return self._model(**dict(row)) if row else None
+
+    def find_by(self, **kwargs) -> list[T]:
+        conditions = " AND ".join(f"{k} = ?" for k in kwargs.keys())
+        values = tuple(kwargs.values())
+
+        cursor = self._conn.execute(
+            f"SELECT * FROM {self._table} WHERE {conditions}",
+            values
+        )
+        return [self._model(**dict(row)) for row in cursor.fetchall()]
+
+    def insert(self, **data) -> str:
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join("?" for _ in data)
+        values = tuple(data.values())
+
+        self._conn.execute(
+            f"INSERT INTO {self._table} ({columns}) VALUES ({placeholders})",
+            values
+        )
+        self._conn.commit()
+        return data.get("id", "")
+
+    def update(self, id: str, **data) -> bool:
+        if not data:
+            return False
+
+        set_clause = ", ".join(f"{k} = ?" for k in data.keys())
+        values = tuple(data.values()) + (id,)
+
+        cursor = self._conn.execute(
+            f"UPDATE {self._table} SET {set_clause} WHERE id = ?",
+            values
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+    def delete(self, id: str) -> bool:
+        cursor = self._conn.execute(
+            f"DELETE FROM {self._table} WHERE id = ?",
+            (id,)
+        )
+        self._conn.commit()
+        return cursor.rowcount > 0
+
+# Usage
+class UserRepository(TypedRepository[User]):
+    def __init__(self, conn: sqlite3.Connection):
+        super().__init__(conn, "users", User)
+
+    def get_by_email(self, email: str) -> User | None:
+        result = self.find_by(email=email)
+        return result[0] if result else None
+```
+
+### WHEN handling database in Tauri/Rust, use sqlcipher crate
+
 ```rust
-// WRONG: conn.pragma_update(None, "key", "my-secret")?;
-// CORRECT: Use derived key with Zeroizing wrapper
+// ❌ WRONG - Using regular SQLite
+use rusqlite::Connection;
+
+fn open_db(path: &str) -> Result<Connection, rusqlite::Error> {
+    Connection::open(path)  // Not encrypted!
+}
+
+// ✅ CORRECT - SQLCipher with secure key handling
+use rusqlite::Connection;
+use std::path::Path;
+
+/// Configuration for SQLCipher database
+pub struct CipherConfig {
+    pub kdf_iter: u32,
+    pub page_size: u32,
+    pub cipher_memory_security: bool,
+}
+
+impl Default for CipherConfig {
+    fn default() -> Self {
+        Self {
+            kdf_iter: 256000,
+            page_size: 4096,
+            cipher_memory_security: true,
+        }
+    }
+}
+
+/// Open encrypted database with key from keychain
+pub fn open_encrypted_db(
+    path: &Path,
+    key: &str,
+    config: &CipherConfig,
+) -> Result<Connection, rusqlite::Error> {
+    let conn = Connection::open(path)?;
+
+    // Set encryption key (using hex format for binary keys)
+    conn.execute_batch(&format!(
+        "PRAGMA key = \"x'{}'\"",
+        key
+    ))?;
+
+    // Configure cipher settings
+    conn.execute_batch(&format!(
+        "PRAGMA cipher_page_size = {};
+         PRAGMA kdf_iter = {};
+         PRAGMA cipher_memory_security = {};",
+        config.page_size,
+        config.kdf_iter,
+        if config.cipher_memory_security { "ON" } else { "OFF" }
+    ))?;
+
+    // Verify key is correct
+    conn.execute_batch("SELECT count(*) FROM sqlite_master")?;
+
+    Ok(conn)
+}
+
+/// Get encryption key from OS keychain
+pub fn get_key_from_keychain(service: &str, account: &str) -> Result<String, keyring::Error> {
+    let entry = keyring::Entry::new(service, account)?;
+    entry.get_password()
+}
+
+/// Generate and store new encryption key
+pub fn generate_and_store_key(service: &str, account: &str) -> Result<String, Box<dyn std::error::Error>> {
+    use rand::Rng;
+
+    // Generate 256-bit key
+    let key: [u8; 32] = rand::thread_rng().gen();
+    let key_hex = hex::encode(key);
+
+    // Store in keychain
+    let entry = keyring::Entry::new(service, account)?;
+    entry.set_password(&key_hex)?;
+
+    Ok(key_hex)
+}
 ```
 
-### Weak Key Derivation
-```rust
-// WRONG: let key = sha256(password);
-// WRONG: conn.pragma_update(None, "kdf_iter", 10000)?;
-// CORRECT: Argon2id or PBKDF2 with 256000+ iterations
+### WHEN migrating from plain SQLite, use export/import
+
+```python
+# ❌ WRONG - Direct conversion attempt
+# conn.execute("PRAGMA key = 'newkey'")  # Doesn't encrypt existing data
+
+# ✅ CORRECT - Export and re-import with encryption
+import sqlite3
+import tempfile
+from pathlib import Path
+
+def migrate_to_encrypted(
+    plain_db_path: Path,
+    encrypted_db_path: Path,
+    encryption_key: str,
+    cipher_config: SQLCipherConfig | None = None,
+) -> None:
+    """Migrate plain SQLite database to encrypted SQLCipher."""
+
+    if cipher_config is None:
+        cipher_config = SQLCipherConfig(
+            db_path=encrypted_db_path,
+            kdf_iterations=256000,
+        )
+
+    # Open plain database
+    plain_conn = sqlite3.connect(str(plain_db_path))
+
+    # Create new encrypted database
+    enc_conn = sqlite3.connect(str(encrypted_db_path))
+
+    try:
+        # Configure encryption on new database
+        enc_conn.execute(f"PRAGMA key = \"x'{encryption_key}'\"")
+        enc_conn.execute(f"PRAGMA cipher_page_size = {cipher_config.page_size}")
+        enc_conn.execute(f"PRAGMA kdf_iter = {cipher_config.kdf_iterations}")
+
+        # Get schema from plain database
+        cursor = plain_conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+        )
+        tables = []
+        for (sql,) in cursor:
+            if sql:
+                enc_conn.execute(sql)
+                table_name = sql.split("CREATE TABLE")[1].split("(")[0].strip()
+                tables.append(table_name)
+
+        # Get indexes
+        cursor = plain_conn.execute(
+            "SELECT sql FROM sqlite_master WHERE type='index' AND sql IS NOT NULL"
+        )
+        for (sql,) in cursor:
+            enc_conn.execute(sql)
+
+        # Copy data table by table
+        for table in tables:
+            cursor = plain_conn.execute(f"SELECT * FROM {table}")
+            columns = [desc[0] for desc in cursor.description]
+            placeholders = ", ".join("?" for _ in columns)
+
+            for row in cursor:
+                enc_conn.execute(
+                    f"INSERT INTO {table} VALUES ({placeholders})",
+                    row
+                )
+
+        enc_conn.commit()
+
+        # Verify migration
+        for table in tables:
+            plain_count = plain_conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            enc_count = enc_conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            if plain_count != enc_count:
+                raise RuntimeError(f"Row count mismatch in {table}")
+
+    finally:
+        plain_conn.close()
+        enc_conn.close()
 ```
 
-### Missing Verification
-```rust
-// Always verify encryption is active after setting key
-let page_size: i32 = conn.pragma_query_value(None, "cipher_page_size", |row| row.get(0))?;
-if page_size == 0 { return Err(Error::EncryptionNotActive); }
+---
+
+## 4. Anti-Patterns
+
+**NEVER:**
+- Hardcode encryption keys in source code
+- Use weak KDF iterations (< 256000 for PBKDF2)
+- Store keys in the same location as the database
+- Skip key verification after opening database
+- Use string formatting for SQL queries (use parameters)
+- Leave decrypted data in memory after use
+- Use default cipher settings without review
+
+---
+
+## 5. Testing
+
+```python
+import pytest
+import sqlite3
+from pathlib import Path
+from sqlcipher import (
+    create_encrypted_database,
+    open_encrypted_db,
+    rotate_encryption_key,
+    SQLCipherConfig,
+    DatabaseSchema,
+)
+
+class TestSQLCipherEncryption:
+
+    @pytest.fixture
+    def db_path(self, tmp_path):
+        return tmp_path / "test.db"
+
+    @pytest.fixture
+    def test_key(self):
+        return "a" * 64  # 256-bit hex key
+
+    def test_create_encrypted_database(self, db_path, test_key):
+        """Should create encrypted database."""
+        schema = DatabaseSchema(
+            version=1,
+            migrations=[lambda c: c.execute("CREATE TABLE test (id INTEGER)")]
+        )
+
+        create_encrypted_database(
+            db_path,
+            key_provider=lambda: test_key,
+            schema=schema,
+        )
+
+        assert db_path.exists()
+
+        # Verify it's encrypted (can't open without key)
+        conn = sqlite3.connect(str(db_path))
+        with pytest.raises(sqlite3.DatabaseError):
+            conn.execute("SELECT * FROM test")
+        conn.close()
+
+    def test_wrong_key_rejected(self, db_path, test_key):
+        """Should reject wrong encryption key."""
+        schema = DatabaseSchema(version=1, migrations=[])
+        create_encrypted_database(db_path, lambda: test_key, schema)
+
+        config = SQLCipherConfig(db_path=db_path)
+
+        # Opening with wrong key should fail
+        with pytest.raises(ValueError, match="Invalid encryption key"):
+            open_encrypted_db_with_key(config, "wrong_key")
+
+    def test_key_rotation(self, db_path, test_key):
+        """Should rotate encryption key."""
+        new_key = "b" * 64
+
+        schema = DatabaseSchema(
+            version=1,
+            migrations=[lambda c: c.execute("CREATE TABLE test (val TEXT)")]
+        )
+        create_encrypted_database(db_path, lambda: test_key, schema)
+
+        # Insert test data
+        config = SQLCipherConfig(db_path=db_path)
+        conn = open_encrypted_db_with_key(config, test_key)
+        conn.execute("INSERT INTO test VALUES ('secret')")
+        conn.commit()
+        conn.close()
+
+        # Rotate key
+        rotate_encryption_key(db_path, test_key, new_key)
+
+        # Verify old key no longer works
+        with pytest.raises(ValueError):
+            open_encrypted_db_with_key(config, test_key)
+
+        # Verify new key works and data preserved
+        conn = open_encrypted_db_with_key(config, new_key)
+        result = conn.execute("SELECT val FROM test").fetchone()
+        assert result[0] == "secret"
+        conn.close()
+
+class TestSecureString:
+
+    def test_clears_memory_on_exit(self):
+        """SecureString should clear memory when exiting context."""
+        with SecureString("sensitive") as ss:
+            assert ss.get() == "sensitive"
+
+        # After exit, should be cleared (can't easily verify memory,
+        # but at least verify API)
+        assert ss._bytes == b''
+
+    def test_explicit_clear(self):
+        """Should clear memory on explicit call."""
+        ss = SecureString("sensitive")
+        ss.clear()
+        assert ss._bytes == b''
 ```
 
-### Insecure Backups
-```rust
-// WRONG: Export with empty key (unencrypted backup)
-// CORRECT: Use encrypted backup with separate key
-```
-
 ---
 
-## 10. Pre-Implementation Checklist
+## 6. Pre-Generation Checklist
 
-### Phase 1: Before Writing Code
+**BEFORE generating SQLCipher code:**
 
-- [ ] Read threat model in `references/threat-model.md`
-- [ ] Identify encryption requirements (compliance, data sensitivity)
-- [ ] Choose KDF parameters (Argon2id recommended)
-- [ ] Plan key storage strategy (OS keychain, hardware token)
-- [ ] Design key rotation procedure
-- [ ] Write failing tests for all encryption operations
-
-### Phase 2: During Implementation
-
-- [ ] PRAGMA key is first operation after connection
-- [ ] cipher_compatibility = 4, cipher_memory_security = ON
-- [ ] All keys wrapped in Zeroizing containers
-- [ ] Verification query after setting key
-- [ ] Parameterized queries only (no string interpolation)
-- [ ] Performance patterns applied (page size, WAL mode)
-
-### Phase 3: Before Committing
-
-- [ ] All tests pass including encryption verification
-- [ ] No hardcoded keys in codebase
-- [ ] Key derivation uses 256000+ iterations
-- [ ] OpenSSL and SQLite CVEs reviewed
-- [ ] secure_delete = ON for sensitive tables
-- [ ] Backup encryption tested
-- [ ] File permissions set to 600
-- [ ] Key rotation procedure documented and tested
-
----
-
-## 11. Summary
-
-Your goal is to create SQLCipher implementations that are:
-
-- **Test-Driven**: All encryption operations verified by tests first
-- **Performance-Optimized**: Proper page sizes, WAL mode, key caching
-- **Cryptographically Secure**: Strong AES-256 with proper key derivation
-- **Key Management Best Practices**: Secure storage, rotation, memory handling
-- **Resilient**: Planned for key compromise and recovery scenarios
-
-**Security Reminder**: Encryption is only as strong as key management. NEVER hardcode keys. ALWAYS use strong KDF. ALWAYS plan for rotation.
-
----
-
-## References
-
-- **Security Examples**: `references/security-examples.md` - Complete implementations
-- **Advanced Patterns**: `references/advanced-patterns.md` - Migration, performance
-- **Threat Model**: `references/threat-model.md` - Security architecture
-## 7. Performance Patterns
-
-## 7. Performance Patterns
-
-📚 **For complete details**: See `references/performance-patterns.md`
-
----
-## 9. Common Mistakes
-
-## 9. Common Mistakes
-
-📚 **For complete details**: See `references/common-mistakes.md`
-
----
+- [ ] Key source: Key from keychain/HSM, not hardcoded
+- [ ] KDF iterations: >= 256000 for PBKDF2
+- [ ] Key verification: Test query after setting key
+- [ ] Parameterized queries: No string formatting for SQL
+- [ ] Key rotation: Re-encryption capability implemented
+- [ ] Memory security: Keys cleared after use
+- [ ] Backup strategy: Backup before key rotation
+- [ ] Migration path: Export/import for plain->encrypted

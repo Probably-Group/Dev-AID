@@ -1,475 +1,599 @@
 ---
 name: bash-expert
-description: Expert-level Bash scripting emphasizing security, portability, and maintainability for system automation and DevOps
+version: 2.0.0
+description: "Secure bash scripting with shellcheck compliance, proper quoting, error handling, and POSIX compatibility."
 risk_level: HIGH
-model: sonnet
 ---
 
-# Bash Expert Skill
-
-## File Organization
-
-This skill uses a split structure for HIGH-RISK requirements:
-- **SKILL.md**: Core principles, patterns, and essential guidelines (this file)
-- **references/security-examples.md**: Complete security examples and CVE implementations
-- **references/advanced-patterns.md**: Advanced Bash patterns and optimization
-- **references/threat-model.md**: Attack scenarios and security analysis
-- **references/anti-patterns.md**: Common mistakes and anti-patterns to avoid
-- **references/testing-guide.md**: Comprehensive testing strategies and frameworks
-- **references/scripting-patterns.md**: Detailed implementation patterns and templates
-
-## Validation Gates
-
-| Gate | Status | Notes |
-|------|--------|-------|
-| 0.1 Domain Expertise | PASSED | Security, error handling, portability |
-| 0.2 Vulnerability Research | PASSED | Common Bash vulnerabilities documented |
-| 0.5 Hallucination Check | PASSED | Examples tested on Bash 4.0+ |
-| 0.11 File Organization | Split | HIGH-RISK, condensed SKILL.md + 6 reference files |
-
----
+# Bash Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Quick Risk Assessment
+### 0.1 Mandatory Verification
 
-**Risk Level**: HIGH
+**BEFORE generating any code:**
+1. Verify the pattern exists in official documentation
+2. Check version compatibility for all APIs used
+3. Never invent method names or parameters
+4. If unsure, state uncertainty explicitly
 
-**Key Risk Factors**:
-- Active exploitation of critical vulnerabilities in production (CVSS 7.5+)
-- 3 high-severity CVEs discovered in 2024-2025
-- Common attack vectors: Shellshock environment variable injection, Command injection via unsanitized input, Path traversal in file operations
-- Requires continuous monitoring of security advisories
+### 0.2 Security Patterns (NEVER violate)
 
-**Immediate Security Actions**:
-1. Review recent CVEs below before any implementation
-2. Never proceed without understanding attack surface
-3. Implement security controls from § 0.3 as mandatory requirements
+**CWE-78: Command Injection**
+- NEVER: `eval "$user_input"` or backticks with user data
+- NEVER: `cmd="ls $userpath"; $cmd` - indirect execution
+- ALWAYS: Quote variables, use arrays for commands
 
-### 0.2 Vulnerability Research Protocol
+**CWE-20: Unquoted Variables**
+- NEVER: `rm -rf $path` or `[ $var = "value" ]`
+- ALWAYS: `rm -rf "$path"` and `[ "$var" = "value" ]`
 
-**MANDATORY**: Before ANY implementation, research current vulnerabilities.
+**CWE-22: Path Traversal**
+- NEVER: `cat "$userdir/$userfile"` without validation
+- ALWAYS: Validate path doesn't contain `..`, use `realpath` and check prefix
 
-**Step 1: CVE Database Search** (NVD, MITRE)
+**CWE-377: Insecure Temp Files**
+- NEVER: `echo "$data" > /tmp/myfile` - predictable name
+- ALWAYS: `tmpfile=$(mktemp)` or `mktemp -d` for directories
+
+**CWE-732: Insecure Permissions**
+- NEVER: `chmod 777 file` or world-writable scripts
+- ALWAYS: `chmod 600` for sensitive files, `700` for scripts
+
+### 0.3 Risk Level: HIGH
+
+**Verification requirements for HIGH risk:**
+- Test all generated code before presenting
+- Include error handling for edge cases
+- Validate security implications of patterns used
+
+---
+
+## 1. Script Header Requirements
+
+**ALWAYS start every script with:**
 ```bash
-# Search for latest CVEs (update dates for current year)
-https://nvd.nist.gov/vuln/search
-# Keywords: [technology name], [framework version]
+#!/usr/bin/env bash
+set -euo pipefail
+IFS=$'\n\t'
 ```
 
-**Step 2: Known Vulnerabilities (2024-2025)**
-
-   - **CVE-2014-6271** (CVSS 10.0): Shellshock - Command injection via environment variables (still exploited in 2024)
-     Source: https://blog.barracuda.com/2024/03/06/threat-spotlight-shellshock-bugs-miners
-   - **CVE-2014-7169** (CVSS 10.0): Shellshock variant - Incomplete fix bypass
-     Source: https://access.redhat.com/articles/1200223
-   - **COMMAND-INJECTION-2024** (CVSS N/A): Command injection remains top web app vulnerability in 2024
-     Source: https://www.aikido.dev/blog/command-injection-in-2024-unpacked
-
-**Step 3: Common Attack Patterns**
-
-   - Shellshock environment variable injection
-   - Command injection via unsanitized input
-   - Path traversal in file operations
-   - Privilege escalation via SUID scripts
-   - Race conditions in temporary file creation
-
-**Step 4: MITRE ATT&CK Mapping**
-- Tactic: [Initial Access, Execution, Persistence, Privilege Escalation]
-- Review MITRE ATT&CK framework for latest techniques
-
-**Update Frequency**: Check for new CVEs weekly during active development.
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE. Violation = security incident.
-
-**Domain-Specific Security Rules**:
-
-- ❌ NEVER execute user input without validation
-- ❌ NEVER use eval or source with untrusted data
-- ❌ NEVER construct commands via string concatenation
-- ❌ ALWAYS quote variables to prevent word splitting
-- ❌ ALWAYS use array syntax for command arguments
-
-**Before ANY code generation**:
-1. ✅ Verify rule compliance for proposed implementation
-2. ✅ Check if solution introduces any prohibited patterns
-3. ✅ Validate all security assumptions against current CVEs
-4. ✅ Confirm defensive coding practices are applied
-
-**If uncertain**: STOP and research. Never guess on security.
-
-
-**🚨 MANDATORY: Read before implementing any Bash code using this skill**
-
-### Verification Requirements
-
-When using this skill to implement Bash scripts, you MUST:
-
-1. **Verify Before Implementing**
-   - ✅ Check Bash version compatibility (prefer Bash 4.0+)
-   - ✅ Confirm shell built-ins and their options
-   - ✅ Validate syntax against shellcheck
-   - ❌ Never guess command flags or options
-   - ❌ Never invent shell built-ins or operators
-   - ❌ Never assume POSIX when Bash-specific features needed
-
-2. **Use Available Tools**
-   - 🔍 Read: Check existing scripts for patterns
-   - 🔍 Grep: Search for similar implementations
-   - 🔍 WebSearch: Verify command options in man pages
-   - 🔍 WebFetch: Read official Bash documentation
-
-3. **Verify if Certainty < 80%**
-   - If uncertain about ANY Bash feature/syntax/behavior
-   - STOP and verify before implementing
-   - Document verification source in response
-   - Errors in Bash can cause security vulnerabilities, data loss, system damage
-
-4. **Common Bash Hallucination Traps** (AVOID)
-   - ❌ Inventing command flags (e.g., `grep --fancy-option`)
-   - ❌ Wrong parameter expansion syntax (e.g., `${var:default}` vs `${var:-default}`)
-   - ❌ Made-up array operations
-   - ❌ Incorrect regex syntax (Bash vs grep vs sed)
-   - ❌ Non-existent shell options (e.g., `set -fancy`)
-   - ❌ Wrong process substitution syntax
-
-### Self-Check Checklist
-
-Before EVERY response with Bash code:
-- [ ] All commands verified against man pages or existing codebase
-- [ ] Parameter expansions verified against Bash manual
-- [ ] Shell options (set -euo pipefail) verified
-- [ ] Quoting rules followed correctly
-- [ ] Can cite official documentation or man page
-
-**⚠️ CRITICAL**: Bash code with hallucinated syntax causes production failures, security breaches, and data loss. Always verify.
+**What these do:**
+- `set -e` → Exit immediately on error
+- `set -u` → Error on undefined variables
+- `set -o pipefail` → Fail on pipe errors
+- `IFS=$'\n\t'` → Safer word splitting
 
 ---
 
+## 2. Security Rules (CVE-Driven)
 
-### 0.4 Progressive Disclosure (500-Line Limit)
+### 2.1 Command Injection Prevention (CVE-2014-6271 Shellshock, CWE-78)
 
-**⚠️ CRITICAL**: This SKILL.md file MUST stay <500 lines for Claude Code to load it.
+**NEVER** use unquoted variables in commands:
+```bash
+# ❌ WRONG - Command injection possible
+rm -rf $user_input
+curl $url
+eval $command
 
-**If this file is approaching 500 lines**:
-- Move detailed examples to `references/advanced-patterns.md`
-- Move security examples to `references/security-examples.md`
-- Move troubleshooting to `references/troubleshooting.md`
-- Keep only summaries and links in main file
+# ✅ CORRECT - Always quote variables
+rm -rf "${user_input}"
+curl "${url}"
+# NEVER use eval with user input
+```
 
-📚 **For complete progressive disclosure guide**: See `../../../template-references/progressive-disclosure.md`
+**NEVER** use eval, source, or . with untrusted input:
+```bash
+# ❌ WRONG - Arbitrary code execution
+eval "$user_config"
+source "$user_file"
+
+# ✅ CORRECT - Parse config safely
+while IFS='=' read -r key value; do
+    case "$key" in
+        allowed_setting) setting="$value" ;;
+        *) echo "Unknown setting: $key" >&2 ;;
+    esac
+done < "$config_file"
+```
+
+### 2.2 Argument Injection (CWE-88)
+
+**NEVER** pass user input directly to commands that interpret options:
+```bash
+# ❌ WRONG - User can inject -o /etc/passwd
+filename="$1"
+curl "$filename"  # If filename is "-o /etc/passwd http://evil.com"
+
+# ✅ CORRECT - Use -- to end option parsing
+curl -- "${filename}"
+
+# ✅ CORRECT - Validate input
+if [[ "$filename" == -* ]]; then
+    echo "Invalid filename" >&2
+    exit 1
+fi
+```
+
+### 2.3 Path Traversal (CWE-22)
+
+**NEVER** use user input in paths without validation:
+```bash
+# ❌ WRONG - Path traversal possible
+cat "/data/${user_input}"
+
+# ✅ CORRECT - Validate and resolve path
+validate_path() {
+    local base_dir="$1"
+    local user_path="$2"
+    local resolved
+
+    resolved="$(cd "${base_dir}" && realpath -m "${user_path}" 2>/dev/null)" || return 1
+
+    # Check if resolved path is under base_dir
+    if [[ "${resolved}" != "${base_dir}"/* ]]; then
+        echo "Path traversal attempt blocked" >&2
+        return 1
+    fi
+    echo "${resolved}"
+}
+
+safe_path="$(validate_path "/data" "${user_input}")" || exit 1
+cat "${safe_path}"
+```
+
+### 2.4 Temporary File Handling (CWE-377, CWE-367)
+
+**NEVER** use predictable temp file names:
+```bash
+# ❌ WRONG - Race condition, predictable name
+temp_file="/tmp/myapp_temp"
+echo "$data" > "$temp_file"
+
+# ✅ CORRECT - Use mktemp with cleanup trap
+cleanup() {
+    rm -rf "${TEMP_DIR:-}"
+}
+trap cleanup EXIT
+
+TEMP_DIR="$(mktemp -d)"
+temp_file="${TEMP_DIR}/data"
+echo "$data" > "$temp_file"
+```
+
+### 2.5 Privilege Handling
+
+**NEVER** run as root unnecessarily:
+```bash
+# ❌ WRONG - Entire script runs as root
+sudo ./myscript.sh
+
+# ✅ CORRECT - Drop privileges, elevate only when needed
+if [[ $EUID -eq 0 ]]; then
+    echo "Don't run as root" >&2
+    exit 1
+fi
+
+# Only specific commands need sudo
+sudo systemctl restart myservice
+```
 
 ---
 
-## 1. Overview
+## 3. Code Patterns
 
-**Risk Level**: HIGH
-
-**Justification**: Bash scripts execute with shell privileges, handle sensitive data, interact with filesystems, and can invoke arbitrary commands. Vulnerabilities in input validation, command injection, and privilege escalation can lead to system compromise.
-
-You are an elite Bash scripting expert specializing in secure, maintainable, and portable shell scripts.
-
-### Core Expertise Areas
-- Secure scripting practices and input validation
-- Error handling and defensive programming
-- Shell portability (Bash 4.0+, POSIX awareness)
-- Performance optimization and efficiency
-- Process management and job control
-- Text processing and data manipulation
-- System automation and DevOps workflows
-
----
-
-## 2. Core Responsibilities
-
-### Fundamental Principles
-
-1. **Security First**: Validate all inputs, quote all variables, avoid command injection
-2. **Fail Fast**: Use `set -euo pipefail` to catch errors early
-3. **Defensive Programming**: Check preconditions, validate assumptions, handle edge cases
-4. **Portability**: Target Bash 4.0+ with awareness of POSIX constraints
-5. **Readability**: Clear variable names, consistent style, comprehensive comments
-6. **Testability**: Write scripts that can be tested, use functions, avoid global state
-
-### Decision Framework
-
-| Situation | Approach |
-|-----------|----------|
-| User input | Validate format, sanitize, quote all variables |
-| File operations | Check existence, validate paths, use absolute paths |
-| Command execution | Use arrays for commands, quote expansions, avoid eval |
-| Error handling | Check exit codes, use trap for cleanup, log errors |
-| Privilege | Drop privileges ASAP, avoid sudo in scripts when possible |
-| Data processing | Prefer built-ins over external commands for performance |
-
----
-
-## 2.1 Implementation Workflow
-
-### Essential Script Structure
+### 3.1 WHEN processing command line arguments
 
 ```bash
 #!/usr/bin/env bash
-#
-# Script: script-name.sh
-# Description: What this script does
-# Usage: script-name.sh [options] <arguments>
-#
-
-# Strict mode: exit on error, undefined variables, pipe failures
 set -euo pipefail
 
-# Script directory (portable way)
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+usage() {
+    cat << EOF
+Usage: ${0##*/} [OPTIONS] <input_file>
 
-# Cleanup function (always runs on exit)
-cleanup() {
-    local exit_code=$?
-    # Cleanup temporary files, restore state, etc.
-    exit "$exit_code"
+Options:
+    -o, --output FILE    Output file (default: stdout)
+    -v, --verbose        Enable verbose output
+    -h, --help           Show this help
+
+Example:
+    ${0##*/} -o result.txt input.txt
+EOF
 }
-trap cleanup EXIT INT TERM
+
+# Defaults
+output="/dev/stdout"
+verbose=false
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -o|--output)
+            [[ $# -lt 2 ]] && { echo "Missing argument for $1" >&2; exit 1; }
+            output="$2"
+            shift 2
+            ;;
+        -v|--verbose)
+            verbose=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "Unknown option: $1" >&2
+            exit 1
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+# Validate required arguments
+if [[ $# -lt 1 ]]; then
+    echo "Error: Missing input file" >&2
+    usage >&2
+    exit 1
+fi
+
+input_file="$1"
+
+# Validate input file exists
+if [[ ! -f "$input_file" ]]; then
+    echo "Error: File not found: $input_file" >&2
+    exit 1
+fi
 ```
 
-**📖 See `references/scripting-patterns.md` for complete implementation templates**
-
----
-
-## 3. Security Standards
-
-### 3.1 Essential Security Rules
-
-**NEVER:**
-1. ❌ Use `eval` with untrusted input
-2. ❌ Execute commands from string variables
-3. ❌ Use `source` with untrusted files
-4. ❌ Pass unsanitized user input to shell commands
-5. ❌ Use backticks for command substitution (use `$()`)
-6. ❌ Ignore return codes from critical operations
-7. ❌ Store secrets in scripts (use environment or secret managers)
-
-**ALWAYS:**
-1. ✅ Quote all variable expansions: `"$var"` not `$var`
-2. ✅ Use `set -euo pipefail` for error detection
-3. ✅ Validate all external inputs
-4. ✅ Use absolute paths or validate relative paths
-5. ✅ Check command existence before execution
-6. ✅ Use arrays for commands with multiple arguments
-7. ✅ Set restrictive file permissions (600 for sensitive files)
-
-### 3.2 Core Security Patterns
+### 3.2 WHEN reading files line by line
 
 ```bash
-# Input validation
-validate_filename() {
-    local filename="$1"
-    filename="$(basename "$filename")"
-    filename="${filename//[^a-zA-Z0-9._-]/}"
-    [[ -n "$filename" ]] || return 1
-    echo "$filename"
-}
+# ❌ WRONG - Breaks on special characters
+for line in $(cat file.txt); do
+    echo "$line"
+done
 
-# Safe command execution with arrays
-cmd=(ls -la)
-cmd+=("$user_dir")  # Safely add user input
-"${cmd[@]}"
-
-# Path validation
-validate_path_containment() {
-    local file_path="$1"
-    local base_dir="$2"
-    local resolved_file
-    resolved_file="$(realpath -m "$file_path")"
-    local resolved_base
-    resolved_base="$(realpath "$base_dir")"
-    [[ "$resolved_file" != "$resolved_base"* ]] && return 1
-    return 0
-}
-```
-
-**📖 See `references/security-examples.md` for comprehensive security patterns and CVE examples**
-
-**📖 See `references/threat-model.md` for complete threat analysis**
-
----
-
-
-## 4. Quality Assurance Checklist
-
-**Before implementing this skill, ensure**:
-
-### 4.1 Pre-Implementation Setup
-- [ ] Virtual environment created and activated
-- [ ] Dependencies installed from requirements.txt
-- [ ] Pre-commit hooks installed (`pre-commit install`)
-- [ ] Linters installed (black, isort, flake8, mypy, bandit)
-
-### 4.2 Dependency Management
-- [ ] All dependencies pinned with exact versions (==)
-- [ ] No manual transitive dependency pins
-- [ ] Dependencies tested in clean environment
-
-### 4.3 Code Quality Gates (Run BEFORE committing)
-- [ ] `black .` - Code formatted
-- [ ] `isort .` - Imports sorted
-- [ ] `flake8 . --max-line-length=120` - No linting errors
-- [ ] `mypy . --ignore-missing-imports` - Type checking passes
-- [ ] `bandit -r .` - Security scan clean
-
-### 4.4 Security Validation
-- [ ] Input validation for ALL external inputs
-- [ ] Path traversal prevention implemented
-- [ ] Command injection prevention (no shell=True)
-- [ ] SQL injection prevention (parameterized queries)
-- [ ] Secrets not in code or error messages
-
-📚 **For complete security validation guide**: See `../../../template-references/security-framework.md`
-
-### 4.5 Test Coverage Requirements
-- [ ] Tests written BEFORE implementation (TDD)
-- [ ] Unit tests for all public functions
-- [ ] Edge case tests (empty, null, max values)
-- [ ] Security tests (injection, traversal, overflow)
-- [ ] Code coverage >80%
-
-### 4.6 Documentation Requirements
-- [ ] Docstrings for all public functions/classes
-- [ ] Security considerations documented
-- [ ] Examples of correct usage
-- [ ] Known limitations documented
-
----
-
-## 5. Best Practices
-
-## 5. Best Practices
-
-📚 **For complete details**: See `references/best-practices.md`
-
----
-## 6. Common Patterns (Quick Reference)
-
-### Pattern 1: Argument Parsing
-
-```bash
-parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -h|--help)
-                usage; exit 0 ;;
-            -v|--verbose)
-                verbose=true; shift ;;
-            -o|--output)
-                output_file="$2"; shift 2 ;;
-            -*)
-                echo "Error: Unknown option: $1" >&2; exit 1 ;;
-            *)
-                input_file="$1"; shift ;;
-        esac
-    done
-}
-```
-
-### Pattern 2: Logging
-
-```bash
-readonly LOG_ERROR=0
-readonly LOG_WARN=1
-readonly LOG_INFO=2
-LOG_LEVEL=$LOG_INFO
-
-log() {
-    local level="$1"; shift
-    local message="$*"
-    local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
-
-    case "$level" in
-        $LOG_ERROR) [[ $LOG_LEVEL -ge $LOG_ERROR ]] && echo "[$timestamp] ERROR: $message" >&2 ;;
-        $LOG_WARN)  [[ $LOG_LEVEL -ge $LOG_WARN ]] && echo "[$timestamp] WARN:  $message" >&2 ;;
-        $LOG_INFO)  [[ $LOG_LEVEL -## 6. Common Patterns (Quick Reference)
-
-## 6. Common Patterns (Quick Reference)
-
-📚 **For complete details**: See `references/common-patterns-quick-reference.md`
-
----
-ecurity controls matrix |
-| **anti-patterns.md** | 15 common mistakes to avoid with better alternatives |
-| **testing-guide.md** | ShellCheck, BATS framework, unit testing, integration testing, CI/CD |
-| **scripting-patterns.md** | Complete script templates, argument parsing, config loading, logging framework |
-
----
-
-## 9. Quick Reference
-
-### Essential Commands
-
-```bash
-# String operations
-${var#pattern}      # Remove shortest match from beginning
-${var##pattern}     # Remove longest match from beginning
-${var%pattern}      # Remove shortest match from end
-${var%%pattern}     # Remove longest match from end
-${var/pattern/repl} # Replace first match
-${var//pattern/repl}# Replace all matches
-${var:-default}     # Use default if unset
-${var:=default}     # Assign default if unset
-${var:?error}       # Exit with error if unset
-${#var}            # String length
-
-# Array operations
-arr=()             # Initialize empty array
-arr=(a b c)        # Initialize with values
-${arr[0]}          # Access element
-${arr[@]}          # All elements
-${#arr[@]}         # Array length
-arr+=("d")         # Append element
-
-# File tests
-[[ -e file ]]      # Exists
-[[ -f file ]]      # Is regular file
-[[ -d dir ]]       # Is directory
-[[ -r file ]]      # Is readable
-[[ -w file ]]      # Is writable
-[[ -x file ]]      # Is executable
-
-# Safe iteration
-while IFS= read -r line; do
+# ✅ CORRECT - Proper line reading
+while IFS= read -r line || [[ -n "$line" ]]; do
     echo "$line"
 done < file.txt
 
-# Process substitution
-diff <(command1) <(command2)
+# ✅ CORRECT - Process with field splitting
+while IFS=: read -r user _ uid gid _ home shell; do
+    echo "User: $user, UID: $uid, Shell: $shell"
+done < /etc/passwd
 ```
 
-### Troubleshooting
+### 3.3 WHEN handling errors
 
-| Problem | Solution |
-|---------|----------|
-| Script exits unexpectedly | Check `set -e` and add `\|\| true` for commands that may fail safely |
-| Word splitting issues | Quote all variable expansions: `"$var"` not `$var` |
-| Command not found | Use full paths or check $PATH, verify with `command -v` |
-| Works locally but fails in CI/CD | Check environment differences, use explicit paths |
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Error handler with line number
+error_handler() {
+    local line_no="$1"
+    local error_code="$2"
+    echo "Error on line ${line_no}: exit code ${error_code}" >&2
+}
+trap 'error_handler ${LINENO} $?' ERR
+
+# Cleanup handler
+cleanup() {
+    local exit_code=$?
+    rm -rf "${TEMP_DIR:-}"
+    exit "$exit_code"
+}
+trap cleanup EXIT
+
+# Function with error handling
+process_file() {
+    local file="$1"
+
+    if [[ ! -r "$file" ]]; then
+        echo "Cannot read file: $file" >&2
+        return 1
+    fi
+
+    # Process file...
+}
+```
+
+### 3.4 WHEN calling external commands
+
+```bash
+# ❌ WRONG - Assumes command exists
+jq '.data' file.json
+
+# ✅ CORRECT - Check command exists
+require_command() {
+    local cmd="$1"
+    if ! command -v "$cmd" &>/dev/null; then
+        echo "Required command not found: $cmd" >&2
+        exit 1
+    fi
+}
+
+require_command jq
+require_command curl
+
+# ❌ WRONG - Ignores exit code
+output=$(some_command)
+
+# ✅ CORRECT - Check exit code
+if ! output=$(some_command 2>&1); then
+    echo "Command failed: $output" >&2
+    exit 1
+fi
+```
+
+### 3.5 WHEN working with arrays
+
+```bash
+# Declare array
+declare -a files=()
+
+# Add elements
+files+=("file1.txt")
+files+=("file2.txt")
+
+# Iterate safely (handles spaces in names)
+for file in "${files[@]}"; do
+    echo "Processing: $file"
+done
+
+# Check if array is empty
+if [[ ${#files[@]} -eq 0 ]]; then
+    echo "No files to process"
+    exit 0
+fi
+
+# Pass array to function
+process_files() {
+    local -a files=("$@")
+    for file in "${files[@]}"; do
+        echo "$file"
+    done
+}
+process_files "${files[@]}"
+```
+
+### 3.6 WHEN making HTTP requests
+
+```bash
+# ✅ CORRECT - Safe curl usage
+fetch_url() {
+    local url="$1"
+    local output="${2:-/dev/stdout}"
+    local max_time="${3:-30}"
+
+    curl \
+        --fail \
+        --silent \
+        --show-error \
+        --location \
+        --max-time "$max_time" \
+        --output "$output" \
+        -- "$url"
+}
+
+# With retry logic
+fetch_with_retry() {
+    local url="$1"
+    local max_attempts=3
+    local attempt=1
+
+    while [[ $attempt -le $max_attempts ]]; do
+        if fetch_url "$url"; then
+            return 0
+        fi
+        echo "Attempt $attempt failed, retrying..." >&2
+        ((attempt++))
+        sleep $((attempt * 2))
+    done
+
+    echo "Failed after $max_attempts attempts" >&2
+    return 1
+}
+```
 
 ---
 
-## 10. Skill Activation
+## 4. Variable Rules
 
-This skill activates when:
-- Creating or modifying `.sh` files
-- Writing Bash scripts
-- Implementing shell automation
-- DevOps scripting tasks
-- System administration scripts
+**ALWAYS** use braces `{}` and double quotes `""`:
+```bash
+# ❌ WRONG - word splitting, glob expansion, ambiguous
+echo $var
+echo "$var"              # Works but inconsistent style
 
-When activated, follow all security standards and reference the appropriate documentation files for detailed patterns and examples.
-## 9. Quick Reference
+# ✅ CORRECT - always "${var}" (parameter expansion syntax)
+echo "${var}"
+echo "${file_name}"
 
-## 9. Quick Reference
+# WHY braces matter - disambiguation:
+filename="report"
+echo "$filename_final"   # Variable: $filename_final (undefined!)
+echo "${filename}_final" # Variable: $filename, then _final ✓
 
-📚 **For complete details**: See `references/quick-reference.md`
+# Handles embedded quotes, spaces, globs safely:
+var='AA"BB *.txt'
+echo "${var}"            # Output: AA"BB *.txt (literal, no expansion)
+```
+
+**ALWAYS** use `local` in functions:
+```bash
+# ❌ WRONG - Pollutes global scope
+process() {
+    result="done"
+}
+
+# ✅ CORRECT - Local scope
+process() {
+    local result="done"
+    echo "$result"
+}
+```
+
+**ALWAYS** use `readonly` for constants:
+```bash
+readonly CONFIG_DIR="/etc/myapp"
+readonly MAX_RETRIES=3
+readonly -a ALLOWED_EXTENSIONS=("txt" "log" "csv")
+```
 
 ---
+
+## 5. Conditional Rules
+
+**ALWAYS** use `[[` instead of `[`:
+```bash
+# ❌ WRONG - Old test syntax
+if [ "$var" = "value" ]; then
+if [ -z $var ]; then
+
+# ✅ CORRECT - Modern test syntax
+if [[ "$var" == "value" ]]; then
+if [[ -z "${var:-}" ]]; then
+```
+
+**ALWAYS** use pattern matching safely:
+```bash
+# Check if variable matches pattern
+if [[ "$filename" == *.txt ]]; then
+    echo "Text file"
+fi
+
+# Check if variable is integer
+if [[ "$num" =~ ^[0-9]+$ ]]; then
+    echo "Valid number"
+fi
+
+# Check if file exists and is readable
+if [[ -f "$file" && -r "$file" ]]; then
+    cat "$file"
+fi
+```
+
+---
+
+## 6. Logging Pattern
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Log levels
+readonly LOG_ERROR=0
+readonly LOG_WARN=1
+readonly LOG_INFO=2
+readonly LOG_DEBUG=3
+
+LOG_LEVEL="${LOG_LEVEL:-$LOG_INFO}"
+
+log() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp
+    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+
+    if [[ "$level" -le "$LOG_LEVEL" ]]; then
+        case "$level" in
+            "$LOG_ERROR") echo "[$timestamp] ERROR: $message" >&2 ;;
+            "$LOG_WARN")  echo "[$timestamp] WARN:  $message" >&2 ;;
+            "$LOG_INFO")  echo "[$timestamp] INFO:  $message" ;;
+            "$LOG_DEBUG") echo "[$timestamp] DEBUG: $message" ;;
+        esac
+    fi
+}
+
+# Usage
+log "$LOG_INFO" "Starting process"
+log "$LOG_ERROR" "Something went wrong"
+```
+
+---
+
+## 7. Testing Pattern
+
+```bash
+#!/usr/bin/env bash
+# test_myscript.sh
+
+set -euo pipefail
+
+# Source the script being tested (without executing main)
+source ./myscript.sh --source-only 2>/dev/null || true
+
+test_validate_path() {
+    local result
+
+    # Test valid path
+    result="$(validate_path "/data" "file.txt")"
+    [[ "$result" == "/data/file.txt" ]] || { echo "FAIL: valid path"; return 1; }
+
+    # Test path traversal blocked
+    if validate_path "/data" "../etc/passwd" 2>/dev/null; then
+        echo "FAIL: path traversal not blocked"
+        return 1
+    fi
+
+    echo "PASS: validate_path"
+}
+
+test_require_command() {
+    # Test existing command
+    require_command bash || { echo "FAIL: bash not found"; return 1; }
+
+    # Test missing command
+    if require_command nonexistent_command_12345 2>/dev/null; then
+        echo "FAIL: missing command not detected"
+        return 1
+    fi
+
+    echo "PASS: require_command"
+}
+
+# Run tests
+main() {
+    local failed=0
+
+    test_validate_path || ((failed++))
+    test_require_command || ((failed++))
+
+    if [[ $failed -gt 0 ]]; then
+        echo "FAILED: $failed tests"
+        exit 1
+    fi
+
+    echo "All tests passed"
+}
+
+main "$@"
+```
+
+---
+
+## 8. Pre-Generation Checklist
+
+**BEFORE generating any Bash code, verify:**
+
+- [ ] Script starts with `#!/usr/bin/env bash` and `set -euo pipefail`
+- [ ] All variables are quoted: `"${var}"`
+- [ ] All variables in functions use `local`
+- [ ] No `eval`, `source`, or `. ` with user input
+- [ ] All file paths are validated against traversal
+- [ ] Temp files use `mktemp` with cleanup trap
+- [ ] External commands checked with `command -v`
+- [ ] Arguments after `--` to prevent option injection
+- [ ] Error handling with `trap` for cleanup
+- [ ] No running as root unless absolutely required

@@ -267,14 +267,14 @@ jobs:
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
-          pytest tests/test_e2e.py -v -m "not slow"
+          pytest tests/test_e2e.py -v -m "not slow" --no-cov
 
       - name: Run E2E tests (Windows)
         if: runner.os == 'Windows'
         run: |
           cd .dev-aid/orchestration
           .\.venv\Scripts\Activate.ps1
-          pytest tests/test_e2e.py -v -m "not slow"
+          pytest tests/test_e2e.py -v -m "not slow" --no-cov
         shell: pwsh
 
   bash-lint:

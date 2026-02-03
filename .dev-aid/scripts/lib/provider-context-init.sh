@@ -100,13 +100,14 @@ display_provider_pd_detection() {
 }
 
 # Get context file name for provider
-# Args: $1: provider (claude, gemini, openai)
+# Args: $1: provider (claude, gemini, openai, codex)
 get_context_filename() {
     local provider="$1"
     case "$provider" in
         claude) echo "CLAUDE.md" ;;
         gemini) echo "GEMINI.md" ;;
         openai) echo "OPENAI.md" ;;
+        codex) echo "AGENTS.md" ;;
         *) echo "${provider^^}.md" ;;
     esac
 }

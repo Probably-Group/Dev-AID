@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.13] - 2026-02-03
+
+### Added
+- **Codex CLI Support**: Full integration with OpenAI's Codex CLI as a fourth supported AI coding tool
+  - Symlink-based skill sharing (zero duplication with existing 85 skills)
+  - `AGENTS.md` generation from project context detection
+  - Session-start hook for auto-loading relevant skills
+  - Same skill format as Claude Code (YAML frontmatter + Markdown)
+  - New provider directory: `.dev-aid/providers/codex/`
+  - Installation guide and troubleshooting documentation
+
+### Changed
+- Supported AI tools: 3 → 4 (Claude Code, Gemini CLI, Cursor, Codex CLI)
+- Updated `provider-context-init.sh` to support `codex` provider with `AGENTS.md` context file
+- Updated `CROSS-PLATFORM-ROUTER.md` with Codex CLI configuration section
+- Updated README.md to include Codex CLI in supported tools
+
+### Notes
+- Codex CLI uses `AGENTS.md` (not `CODEX.md`) per OpenAI's specification
+- Skills are shared via symlinks - changes to skills propagate to all providers automatically
+- AGENTS.md loading order: `~/.codex/AGENTS.override.md` > `~/.codex/AGENTS.md` > project `AGENTS.md` > subdirectory files
+
+---
+
 ## [1.3.0-beta.12] - 2026-02-02
 
 ### Added

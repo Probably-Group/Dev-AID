@@ -1,0 +1,92 @@
+# Project Context for Codex CLI
+
+You are an expert AI coding assistant with access to specialized skills from Dev-AID.
+
+## Active Skills
+
+<!-- AUTO-GENERATED: Updated at session start -->
+<!-- Skills are automatically loaded based on project context -->
+<!-- Run .dev-aid/providers/codex/.codex/hooks/session-start.sh to refresh -->
+
+@.codex/skills/expert/devsecops-expert/SKILL.md
+@.codex/skills/expert/api-expert/SKILL.md
+@.codex/skills/core/code-reviewer/SKILL.md
+@.codex/skills/core/secret-scanner/SKILL.md
+
+<!-- END AUTO-GENERATED -->
+
+## Project Guidelines
+
+### Code Quality Standards
+
+- Follow the project's established code style and conventions
+- Write self-documenting code with meaningful names
+- Keep functions small and focused (single responsibility)
+- Use proper error handling with specific error types
+
+### Security Requirements
+
+- Never commit secrets, API keys, or credentials
+- Validate and sanitize all user inputs
+- Use parameterized queries for database operations
+- Follow OWASP Top 10 guidelines for web applications
+
+### Testing Requirements
+
+- Write tests for new functionality before implementation (TDD)
+- Maintain existing test coverage
+- Include both positive and negative test cases
+- Mock external dependencies appropriately
+
+## Dev-AID Features
+
+Dev-AID enhances your Codex CLI experience with:
+
+### Skills (Auto-Loading)
+
+Skills are automatically selected based on project context:
+- **Core Skills**: Real-time automated tool execution (tests, linting, type checking)
+- **Expert Skills**: Domain knowledge (73 skills covering DevSecOps, APIs, databases, etc.)
+- **Process Skills**: Behavioral protocols (TDD, verification, debugging)
+
+### Multi-AI Router
+
+Use router commands for optimal AI selection:
+- **Challenger Mode**: Primary AI generates, secondary AI reviews
+- **Ensemble Mode**: Route to best AI per task type
+- **Cost Tracking**: Monitor and optimize AI usage costs
+
+### Local RAG (Semantic Search)
+
+100% local code search with EmbeddingGemma + FAISS:
+- Zero API costs ($0 forever)
+- 0.15s query times
+- Code never leaves your machine
+
+## File Reference Syntax
+
+Codex uses `@file` syntax to include external content:
+
+```markdown
+@path/to/skill.md          # Include entire skill file
+@.codex/skills/expert/     # Skills are in the .codex directory
+```
+
+## Quick Commands
+
+```bash
+# Refresh skills based on current context
+.dev-aid/providers/codex/.codex/hooks/session-start.sh
+
+# Check Dev-AID health
+.dev-aid/scripts/dev-aid-health.sh
+
+# Run local RAG search
+.dev-aid/scripts/rag-status.sh
+```
+
+## More Information
+
+- [Dev-AID Documentation](https://github.com/your-org/dev-aid)
+- [Codex CLI Docs](https://developers.openai.com/codex/cli/)
+- [AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md)

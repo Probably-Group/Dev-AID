@@ -2,19 +2,20 @@
 
 ## Overview
 
-The Dev-AID router system supports **both Claude Code and Gemini CLI** through provider-specific slash command implementations.
+The Dev-AID router system supports **Claude Code, Gemini CLI, and Codex CLI** through provider-specific slash command implementations.
 
-## Why Two Implementations?
+## Why Multiple Implementations?
 
-**Claude Code** and **Gemini CLI** use different slash command formats:
+**Claude Code**, **Gemini CLI**, and **Codex CLI** use different slash command formats:
 
-| Aspect | Claude Code | Gemini CLI |
-|--------|-------------|------------|
-| **File Format** | Markdown (`.md`) | TOML (`.toml`) |
-| **Location** | `.claude/commands/` | `.gemini/commands/` |
-| **Frontmatter** | YAML between `---` | TOML config |
-| **Arguments** | Implicit from user input | Explicit with `{{args}}` |
-| **Shell Commands** | Not supported in prompts | Supported with `!{command}` |
+| Aspect | Claude Code | Gemini CLI | Codex CLI |
+|--------|-------------|------------|-----------|
+| **File Format** | Markdown (`.md`) | TOML (`.toml`) | YAML frontmatter + MD |
+| **Location** | `.claude/commands/` | `.gemini/commands/` | `.codex/skills/` |
+| **Context File** | `CLAUDE.md` | `GEMINI.md` | `AGENTS.md` |
+| **Arguments** | Implicit from user input | Explicit with `{{args}}` | Implicit |
+| **Shell Commands** | Not supported in prompts | Supported with `!{command}` | Not supported |
+| **File References** | `@file` syntax | `@file` syntax | `@file` syntax |
 
 ## File Structure
 
@@ -29,11 +30,21 @@ dev-aid/.dev-aid/
 │   │       ├── aid-router-challenger.md
 │   │       ├── aid-router-ensemble.md
 │   │       └── aid-router-status.md
-│   └── gemini/
-│       └── .gemini/commands/router/
-│           ├── aid-router-challenger.toml
-│           ├── aid-router-ensemble.toml
-│           └── aid-router-status.toml
+│   ├── gemini/
+│   │   └── .gemini/commands/router/
+│   │       ├── aid-router-challenger.toml
+│   │       ├── aid-router-ensemble.toml
+│   │       └── aid-router-status.toml
+│   └── codex/
+│       ├── README.md             # Installation guide
+│       ├── AGENTS.md.template    # Template for project AGENTS.md
+│       └── .codex/
+│           ├── hooks/
+│           │   └── session-start.sh  # Context detection hook
+│           └── skills/           # Symlinks to Dev-AID skills
+│               ├── core -> ../../../../skills/core
+│               ├── expert -> ../../../../skills/expert
+│               └── process -> ../../../../skills/process
 └── logs/
     ├── routing.log           # Shared routing logs
     └── costs.json            # Shared cost tracking
@@ -65,6 +76,22 @@ ln -s dev-aid/.dev-aid/providers/gemini/.gemini .gemini
 ln -s dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 ```
 
+### For Codex CLI
+
+Symlink or copy the Codex configuration to your project:
+
+```bash
+# Project-scoped (recommended for team sharing)
+ln -s dev-aid/.dev-aid/providers/codex/.codex .codex
+
+# Create AGENTS.md (context file for Codex)
+ln -s dev-aid/.dev-aid/providers/codex/.codex/AGENTS.md AGENTS.md
+# Or copy the template:
+cp dev-aid/.dev-aid/providers/codex/AGENTS.md.template AGENTS.md
+```
+
+**Note:** Codex CLI uses `AGENTS.md` (not `CODEX.md`) per OpenAI's specification.
+
 ## Usage
 
 ### Claude Code
@@ -84,6 +111,17 @@ ln -s dev-aid/.dev-aid/providers/gemini/.gemini ~/.gemini
 /dev-aid-router-ensemble Analyze entire codebase for performance issues
 /dev-aid-router-status
 ```
+
+### Codex CLI
+
+```bash
+# In Codex CLI (skills are loaded via AGENTS.md)
+# Use natural language - skills are automatically available
+codex "Implement OAuth2 authentication using the devsecops-expert skill"
+codex "Review this code for security issues"
+```
+
+**Note:** Codex CLI doesn't use slash commands for routing. Instead, skills are loaded via `@file` references in AGENTS.md and are available as context for all prompts.
 
 ## Command Reference
 
@@ -419,6 +457,63 @@ export OPENAI_API_KEY="your-key-here"
 - Model performance analytics
 - Cost anomaly detection
 
+## Codex CLI Integration
+
+### Key Differences
+
+Codex CLI differs from Claude Code and Gemini CLI in several ways:
+
+1. **Context File**: Uses `AGENTS.md` instead of `CLAUDE.md` or `GEMINI.md`
+2. **No Slash Commands**: Skills are loaded via `@file` references, not `/commands`
+3. **Same Skill Format**: Uses identical YAML frontmatter + Markdown format as Claude Code
+4. **Session Hooks**: Configure via `config.toml` instead of `hooks.json`
+
+### AGENTS.md Loading Order
+
+From [Codex documentation](https://developers.openai.com/codex/guides/agents-md):
+
+1. `~/.codex/AGENTS.override.md` (highest priority)
+2. `~/.codex/AGENTS.md` (global base)
+3. Project root `AGENTS.md`
+4. Subdirectory `AGENTS.md` files (walked toward CWD)
+
+Files are concatenated with blank lines, max 32 KiB.
+
+### Using Skills in Codex
+
+Reference Dev-AID skills in your AGENTS.md:
+
+```markdown
+## Active Skills
+
+@.codex/skills/expert/fastapi-expert/SKILL.md
+@.codex/skills/expert/devsecops-expert/SKILL.md
+@.codex/skills/core/code-reviewer/SKILL.md
+```
+
+### Auto-Loading Skills
+
+Run the session-start hook to automatically detect and load relevant skills:
+
+```bash
+.dev-aid/providers/codex/.codex/hooks/session-start.sh
+```
+
+This:
+1. Detects project context (tech stack, files)
+2. Selects top 5 most relevant skills
+3. Generates AGENTS.md with `@file` references
+4. Reports loaded skills
+
+### Codex Hooks Configuration
+
+Add to `.codex/config.toml`:
+
+```toml
+[hooks]
+session_start = ".codex/hooks/session-start.sh"
+```
+
 ## References
 
 **Claude Code Documentation:**
@@ -430,8 +525,14 @@ export OPENAI_API_KEY="your-key-here"
 - [Official GitHub](https://github.com/google-gemini/gemini-cli)
 - [Google Codelabs](https://codelabs.developers.google.com/gemini-cli-hands-on)
 
+**Codex CLI Documentation:**
+- [Codex CLI](https://developers.openai.com/codex/cli/)
+- [AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md)
+- [Skills Creation](https://developers.openai.com/codex/skills/create-skill)
+- [GitHub Repository](https://github.com/openai/codex)
+
 ---
 
-**Last Updated:** 2025-11-28
-**Version:** 1.0.0
-**Status:** Production-ready for both platforms
+**Last Updated:** 2026-02-03
+**Version:** 1.1.0
+**Status:** Production-ready for Claude Code, Gemini CLI, and Codex CLI

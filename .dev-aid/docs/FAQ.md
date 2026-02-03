@@ -330,7 +330,7 @@ OPENAI_API_KEY=your-key-here
 
 **Team-Shared (in Git):**
 - Configuration (routing.json, models.json)
-- Expert skills (all 65 skills)
+- Expert skills (all 85 skills - core, expert, process)
 - Memory bank (team knowledge, ADRs)
 - Scripts (setup, automation)
 

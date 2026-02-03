@@ -25,7 +25,7 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 │   │   │       └── testing-guide.md
 │   │   ├── devsecops-expert/
 │   │   ├── typescript-expert/
-│   │   └── ... (66 total expert skills)
+│   │   └── ... (73 total expert skills)
 │   └── registry/                    # 🆕 Hook-based auto-loading system
 │       └── skills-index.json        # Activation metadata (keywords, patterns, scores)
 │
@@ -45,6 +45,13 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 │   │   ├── GEMINI.md                # 🆕 Auto-generated skill references
 │   │   └── hooks/
 │   │       └── session-start.sh     # 🆕 Updates GEMINI.md at session start
+│   ├── codex/.codex/                # 🆕 Codex CLI support
+│   │   ├── skills/                  # Symlinks to shared skills
+│   │   │   ├── core -> ../../../../skills/core
+│   │   │   ├── expert -> ../../../../skills/expert
+│   │   │   └── process -> ../../../../skills/process
+│   │   └── hooks/
+│   │       └── session-start.sh     # 🆕 Updates AGENTS.md at session start
 │   └── openai/.openai/
 │       └── skills -> ../../../skills  # Symlink to shared skills (future)
 │
@@ -73,6 +80,11 @@ Providers access skills via symlinks:
 
 # Gemini provider
 .dev-aid/providers/gemini/.gemini/skills -> ../../../skills
+
+# Codex provider (uses directory symlinks for each skill category)
+.dev-aid/providers/codex/.codex/skills/core -> ../../../../skills/core
+.dev-aid/providers/codex/.codex/skills/expert -> ../../../../skills/expert
+.dev-aid/providers/codex/.codex/skills/process -> ../../../../skills/process
 
 # Future providers follow same pattern
 .dev-aid/providers/openai/.openai/skills -> ../../../skills
@@ -187,9 +199,10 @@ Result:         Gemini has no expert knowledge
 
 ### After (Shared)
 ```
-Shared skills:  .dev-aid/skills/expert/ (66 skills)
+Shared skills:  .dev-aid/skills/expert/ (73 skills)
 Claude:         ✅ Access via symlink
 Gemini:         ✅ Access via symlink
+Codex:          ✅ Access via symlink
 OpenAI:         ✅ Access via symlink (future)
 Result:         All providers have same expertise
 ```
@@ -402,6 +415,7 @@ echo "✅ GEMINI.md updated and will be loaded with every prompt"
 **Key difference**:
 - Claude displays skills (user can activate manually)
 - Gemini updates GEMINI.md (skills auto-loaded with every prompt)
+- Codex updates AGENTS.md (skills loaded via @file references)
 
 ### Configuration
 
@@ -547,5 +561,5 @@ Core skills: 2
 
 ---
 
-**Last Updated:** 2025-12-05
-**Architecture Version:** 3.0 (Hook-Based Auto-Loading + Shared Skills)
+**Last Updated:** 2026-02-03
+**Architecture Version:** 3.1 (Hook-Based Auto-Loading + Shared Skills + Codex CLI Support)

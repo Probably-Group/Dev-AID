@@ -168,7 +168,7 @@ First mention:
 
 Subsequent mentions:
 ```markdown
-Dev-AID integrates with Claude Code, Cursor, and Gemini CLI...
+Dev-AID integrates with Claude Code, Cursor, Gemini CLI, and Codex CLI...
 ```
 
 ### Technical References

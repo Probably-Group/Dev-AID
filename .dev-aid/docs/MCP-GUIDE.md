@@ -33,7 +33,7 @@ Dev-AID uses a **two-layer MCP architecture**:
              │
              ↓
 ┌─────────────────────────────────────────┐
-│  LLM CLI (Claude Code, Gemini CLI)      │
+│  LLM CLI (Claude Code, Gemini CLI, Codex)│
 │  • Natively supports MCP                │
 │  • Uses MCP servers directly            │
 └────────────┬────────────────────────────┘

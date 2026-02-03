@@ -1,5 +1,24 @@
 # What's New in Dev-AID v1.3.0
 
+## New Provider Support
+
+### Codex CLI Integration (NEW!)
+OpenAI's Codex CLI is now fully supported as the fourth AI coding tool:
+- **Zero-Conversion Skills**: Same SKILL.md format as Claude Code (YAML frontmatter + Markdown)
+- **Symlink-Based Sharing**: All 85 Dev-AID skills work out of the box
+- **AGENTS.md Generation**: Auto-generates context file from project detection
+- **Session-Start Hook**: Auto-loads relevant skills at session start
+- **ROI**: Use the same skills across Claude Code, Gemini CLI, Cursor, and Codex CLI
+- Documentation: [Codex Provider README](.dev-aid/providers/codex/README.md)
+
+**Supported AI Tools (4 total):**
+- Claude Code (Anthropic)
+- Gemini CLI (Google)
+- Cursor
+- Codex CLI (OpenAI) - NEW!
+
+---
+
 ## Performance & Architecture
 - **10x Faster Context Detection**: Optimized from 2s+ to <200ms with new Python implementation
 - **Dynamic Skill Loading**: Patterns now loaded from skills-index.json (no hardcoded lists)

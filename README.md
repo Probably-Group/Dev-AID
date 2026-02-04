@@ -121,23 +121,37 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 **Dev-AID is not a replacement — it's an enhancement layer that works WITH your existing tools.**
 
-| Capability | Dev-AID | [Superpowers](https://github.com/obra/superpowers) | [Cursor](https://cursor.sh) | [GitHub Copilot](https://github.com/features/copilot) | [Aider](https://aider.chat) | [Windsurf](https://windsurf.com) |
-|------------|---------|-------------|--------|----------------|-------|----------|
-| **Type** | Enhancement layer | Skills framework | Full IDE | IDE extension | CLI tool | Full IDE |
-| **Works with existing tools** | ✅ Claude Code, Cursor, Gemini | ⚠️ Claude Code only | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
-| **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ❌ | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
-| **Dual-AI review (Challenger)** | ✅ Claude generates → Gemini reviews | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ❌ | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
-| **Expert skills (72)** | ✅ Auto-loading | ⚠️ ~15 skills | ❌ | ❌ | ❌ | ❌ |
-| **Process skills (TDD, verification)** | ✅ 7 behavioral protocols | ✅ Core strength | ❌ | ❌ | ❌ | ❌ |
-| **Automated security (5 tools)** | ✅ Pre-commit hooks | ❌ | ❌ | ⚠️ Basic | ❌ | ❌ |
-| **Git worktrees** | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| **Persistent memory** | ✅ Git-synced, team-shared | ⚠️ Memory notes | ❌ | ❌ | ❌ | ❌ |
-| **MCP integration** | ✅ Databases, GitHub, APIs | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Issue auto-resolution** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Conflict auto-resolution** | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Cost** | **Free** (open source) | Free | $20/mo | $10-19/mo | Free (BYOK) | $15-60/mo |
-| **Privacy** | ✅ 100% local option | ⚠️ API-dependent | ❌ Cloud | ❌ Cloud | ✅ Local option | ❌ Cloud |
+#### vs. Standalone AI Coding Tools
+
+| Capability | Dev-AID | [Cursor](https://cursor.sh) | [GitHub Copilot](https://github.com/features/copilot) | [Aider](https://aider.chat) | [Windsurf](https://windsurf.com) |
+|------------|---------|--------|----------------|-------|----------|
+| **Type** | Enhancement layer | Full IDE | IDE extension | CLI tool | Full IDE |
+| **Works with existing tools** | ✅ Claude, Cursor, Gemini, Codex | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
+| **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
+| **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
+| **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
+| **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
+| **Automated security (5 tools)** | ✅ Pre-commit hooks | ❌ | ⚠️ Basic | ❌ | ❌ |
+| **Cost** | **Free** (open source) | $20/mo | $10-19/mo | Free (BYOK) | $15-60/mo |
+| **Privacy** | ✅ 100% local option | ❌ Cloud | ❌ Cloud | ✅ Local option | ❌ Cloud |
+
+#### vs. Claude Code Enhancement Frameworks
+
+| Capability | Dev-AID | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | [agents](https://github.com/wshobson/agents) | [Superpowers](https://github.com/obra/superpowers) | [claude-context](https://github.com/zilliztech/claude-context) | [my-claude-code-setup](https://github.com/centminmod/my-claude-code-setup) |
+|------------|---------|----------------------|--------|-------------|----------------|---------------------|
+| **GitHub Stars** | ~100 | **39.4K** ⭐ | **27.7K** ⭐ | ~2K | 5.3K | 1.8K |
+| **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
+| **Multi-provider support** | ✅ Claude, Gemini, Cursor, Codex | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
+| **Expert skills/agents** | 73 + 7 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
+| **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
+| **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
+| **Security automation** | ✅ 5 tools (pre-commit) | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
+| **Workflow orchestrators** | ⚠️ Router modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
+| **Process skills (TDD)** | ✅ 7 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
+| **Memory bank** | ✅ Git-synced | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ |
+| **MCP integration** | ✅ Extensible | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
+| **Cost tracking** | ✅ Built-in | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Token optimization** | ✅ TOON format (40-60%) | ⚠️ Progressive disclosure | ✅ Progressive disclosure | ❌ | ✅ 40% reduction | ❌ |
 
 **Legend:** ✅ = Full support | ⚠️ = Partial/Limited | ❌ = Not available
 
@@ -145,14 +159,14 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
-| **Enhancement layer, not replacement** | Keep using Claude Code, Cursor, or Gemini CLI — Dev-AID makes them all smarter |
+| **Multi-provider (only one)** | Works with Claude Code, Cursor, Gemini CLI, AND Codex — competitors are Claude-only |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → 23% fewer bugs reach production |
-| **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. |
-| **73 expert + 7 process skills** | Auto-loads domain expertise (FastAPI, TDD, DevSecOps) based on your project |
+| **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. (claude-context uses cloud) |
 | **5-tool security automation** | Gitleaks, Trivy, Opengrep, Hadolint, Checkov — runs automatically on every commit |
+| **Cost tracking + routing** | Built-in budget limits and smart routing to cheapest capable model |
 | **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
 
-> 💡 **Bottom line:** Other tools make you choose. Dev-AID lets you use the best of everything.
+> 💡 **Bottom line:** Other frameworks lock you into Claude. Dev-AID lets you use the best of everything.
 
 ### How It Works
 

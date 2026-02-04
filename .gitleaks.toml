@@ -1,0 +1,65 @@
+# Gitleaks v8+ configuration for Dev-AID
+# https://github.com/gitleaks/gitleaks#configuration
+
+title = "Dev-AID Gitleaks Config"
+
+# Path exclusions - these paths contain intentional example/fake credentials
+[allowlist]
+description = "Exclude test files, documentation examples, and vendored code"
+
+# Path patterns to exclude
+paths = [
+    # Test files with fake API keys
+    '''.dev-aid/orchestration/tests/.*''',
+    '''.*test_.*\.py$''',
+    '''.*conftest\.py$''',
+
+    # Documentation with intentional anti-pattern examples
+    '''.*anti-patterns\.md$''',
+    '''.*security-examples\.md$''',
+    '''.*core-implementation-patterns\.md$''',
+
+    # Skill files with example code
+    '''.*SKILL\.md$''',
+    '''.*SKILL\.md\.backup.*''',
+
+    # Vendored/venv code
+    '''.*venv/.*''',
+    '''.*\.venv/.*''',
+    '''node_modules/.*''',
+
+    # Log files (shouldn't be committed anyway)
+    '''.*\.log$''',
+
+    # Backup files
+    '''.*\.backup$''',
+    '''.*\.backup-.*''',
+
+    # Template files
+    '''.*SKILL_AGENT_TEMPLATE\.md$''',
+
+    # Documentation commands
+    '''.dev-aid/providers/claude/.claude/commands/documentation/.*''',
+    '''.dev-aid/providers/claude/.claude/agents/documentation/.*''',
+]
+
+# Regex patterns to allow (for specific known false positives)
+regexes = [
+    # Test API keys that are clearly fake
+    '''test-api-key-.*''',
+    '''example-.*-key''',
+    '''EXAMPLE_.*_KEY''',
+    '''fake-.*-token''',
+    '''placeholder-.*''',
+]
+
+# Stop words - strings that indicate a finding is likely a false positive
+stopwords = [
+    "example",
+    "test",
+    "fake",
+    "placeholder",
+    "changeme",
+    "your-key-here",
+    "xxx",
+]

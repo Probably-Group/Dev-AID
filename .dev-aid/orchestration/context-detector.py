@@ -206,8 +206,8 @@ class SkillSelector:
         sorted_skills = sorted(scores.items(), key=lambda x: x[1], reverse=True)
 
         # Select top skills respecting exclusions
-        selected = []
-        selected_set = set()
+        selected: List[str] = []
+        selected_set: Set[str] = set()
 
         for skill_name, score in sorted_skills:
             # Check exclusions

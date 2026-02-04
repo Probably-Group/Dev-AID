@@ -63,7 +63,7 @@ class DataFactory:
         ]
         self.states = ["CA", "NY", "TX", "FL", "IL", "PA", "OH", "GA", "NC", "MI"]
 
-    def generate_string(self, constraints: Dict = None) -> str:
+    def generate_string(self, constraints: Optional[Dict[Any, Any]] = None) -> str:
         """Generate random string with constraints"""
         constraints = constraints or {}
         min_length = constraints.get("minLength", 1)
@@ -87,14 +87,14 @@ class DataFactory:
         length = random.randint(min_length, max_length)
         return "".join(random.choices(string.ascii_letters, k=length))
 
-    def generate_int(self, constraints: Dict = None) -> int:
+    def generate_int(self, constraints: Optional[Dict[Any, Any]] = None) -> int:
         """Generate random integer with constraints"""
         constraints = constraints or {}
         minimum = constraints.get("minimum", 0)
         maximum = constraints.get("maximum", 1000)
         return random.randint(minimum, maximum)
 
-    def generate_float(self, constraints: Dict = None) -> float:
+    def generate_float(self, constraints: Optional[Dict[Any, Any]] = None) -> float:
         """Generate random float with constraints"""
         constraints = constraints or {}
         minimum = constraints.get("minimum", 0.0)
@@ -105,7 +105,7 @@ class DataFactory:
         """Generate random boolean"""
         return random.choice([True, False])
 
-    def generate_datetime(self, constraints: Dict = None) -> str:
+    def generate_datetime(self, constraints: Optional[Dict[Any, Any]] = None) -> str:
         """Generate random datetime"""
         constraints = constraints or {}
         days_ago = random.randint(0, 365)
@@ -146,7 +146,7 @@ class DataFactory:
         # Generate field value based on type
         for field_name, field_schema in properties.items():
             field_type = field_schema.get("type")
-            field_value = None
+            field_value: Any = None
 
             if field_type == "string":
                 if field_schema.get("format") == "email":

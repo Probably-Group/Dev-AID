@@ -11,7 +11,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 
 class ArchitectureMapper:
@@ -20,10 +20,10 @@ class ArchitectureMapper:
     def __init__(self, project_dir: Path):
         self.project_dir = project_dir
         self.output_dir = project_dir / "docs" / "architecture"
-        self.classes = {}
-        self.functions = {}
-        self.imports = defaultdict(set)
-        self.calls = defaultdict(set)
+        self.classes: Dict[str, Dict[str, Any]] = {}
+        self.functions: Dict[str, Dict[str, Any]] = {}
+        self.imports: Dict[str, Set[str]] = defaultdict(set)
+        self.calls: Dict[str, Set[str]] = defaultdict(set)
 
     def analyze_python_file(self, file_path: Path):
         """Analyze a Python file using AST"""
@@ -99,7 +99,7 @@ class ArchitectureMapper:
         except Exception as e:
             print(f"Warning: Could not parse {file_path}: {e}")
 
-    def scan_directory(self, directory: Path, extensions: List[str] = None):
+    def scan_directory(self, directory: Path, extensions: Optional[List[str]] = None) -> int:
         """Scan directory for code files"""
         if extensions is None:
             extensions = [".py", ".ts", ".tsx", ".js", ".jsx"]

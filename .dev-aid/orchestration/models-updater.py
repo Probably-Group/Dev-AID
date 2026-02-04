@@ -199,7 +199,7 @@ class ModelDiscovery:
 
     def find_latest_models(self, models: List[ModelInfo]) -> Dict[str, ModelInfo]:
         """Find the latest version of each tier"""
-        latest = {}
+        latest: Dict[str, ModelInfo] = {}
 
         for model in models:
             key = f"{model.provider}:{model.tier}"
@@ -299,7 +299,7 @@ class ModelDiscovery:
             return
 
         # Save changes
-        self.save_config()
+        self._save_config()
         print("\n✅ Model configuration updated successfully!")
         print(f"\nUpdated {len(changes)} model(s) to latest versions.")
 

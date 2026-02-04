@@ -180,40 +180,40 @@ class HybridSearcher:
         chunk_scores: Dict[str, Dict[str, Any]] = {}
 
         # Process vector results
-        for result in vector_results:
-            chunk_id = self._chunk_id(result.chunk)
-            rrf_score = 1.0 / (k + result.rank)
+        for vec_result in vector_results:
+            chunk_id = self._chunk_id(vec_result.chunk)
+            rrf_score = 1.0 / (k + vec_result.rank)
 
             if chunk_id not in chunk_scores:
                 chunk_scores[chunk_id] = {
-                    "chunk": result.chunk,
+                    "chunk": vec_result.chunk,
                     "vector_rrf": 0.0,
                     "bm25_rrf": 0.0,
-                    "vector_score": result.score,
+                    "vector_score": vec_result.score,
                     "bm25_score": 0.0,
                     "matched_terms": []
                 }
             chunk_scores[chunk_id]["vector_rrf"] = rrf_score
-            chunk_scores[chunk_id]["vector_score"] = result.score
+            chunk_scores[chunk_id]["vector_score"] = vec_result.score
 
         # Process BM25 results
-        for result in bm25_results:
-            chunk_id = self._chunk_id(result.chunk)
-            rrf_score = 1.0 / (k + result.rank)
+        for bm25_result in bm25_results:
+            chunk_id = self._chunk_id(bm25_result.chunk)
+            rrf_score = 1.0 / (k + bm25_result.rank)
 
             if chunk_id not in chunk_scores:
                 chunk_scores[chunk_id] = {
-                    "chunk": result.chunk,
+                    "chunk": bm25_result.chunk,
                     "vector_rrf": 0.0,
                     "bm25_rrf": 0.0,
                     "vector_score": 0.0,
-                    "bm25_score": result.score,
-                    "matched_terms": result.matched_terms
+                    "bm25_score": bm25_result.score,
+                    "matched_terms": bm25_result.matched_terms
                 }
             else:
                 chunk_scores[chunk_id]["bm25_rrf"] = rrf_score
-                chunk_scores[chunk_id]["bm25_score"] = result.score
-                chunk_scores[chunk_id]["matched_terms"] = result.matched_terms
+                chunk_scores[chunk_id]["bm25_score"] = bm25_result.score
+                chunk_scores[chunk_id]["matched_terms"] = bm25_result.matched_terms
 
         # Calculate combined scores
         results = []
@@ -264,13 +264,13 @@ class HybridSearcher:
         chunk_scores: Dict[str, Dict[str, Any]] = {}
 
         # Process vector results
-        for result in vector_results:
-            chunk_id = self._chunk_id(result.chunk)
-            norm_score = result.score / vector_max if vector_max > 0 else 0
+        for vec_result in vector_results:
+            chunk_id = self._chunk_id(vec_result.chunk)
+            norm_score = vec_result.score / vector_max if vector_max > 0 else 0
 
             if chunk_id not in chunk_scores:
                 chunk_scores[chunk_id] = {
-                    "chunk": result.chunk,
+                    "chunk": vec_result.chunk,
                     "vector_score": norm_score,
                     "bm25_score": 0.0,
                     "matched_terms": []
@@ -279,20 +279,20 @@ class HybridSearcher:
                 chunk_scores[chunk_id]["vector_score"] = norm_score
 
         # Process BM25 results
-        for result in bm25_results:
-            chunk_id = self._chunk_id(result.chunk)
-            norm_score = result.score / bm25_max if bm25_max > 0 else 0
+        for bm25_result in bm25_results:
+            chunk_id = self._chunk_id(bm25_result.chunk)
+            norm_score = bm25_result.score / bm25_max if bm25_max > 0 else 0
 
             if chunk_id not in chunk_scores:
                 chunk_scores[chunk_id] = {
-                    "chunk": result.chunk,
+                    "chunk": bm25_result.chunk,
                     "vector_score": 0.0,
                     "bm25_score": norm_score,
-                    "matched_terms": result.matched_terms
+                    "matched_terms": bm25_result.matched_terms
                 }
             else:
                 chunk_scores[chunk_id]["bm25_score"] = norm_score
-                chunk_scores[chunk_id]["matched_terms"] = result.matched_terms
+                chunk_scores[chunk_id]["matched_terms"] = bm25_result.matched_terms
 
         # Calculate combined scores
         results = []

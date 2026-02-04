@@ -65,7 +65,7 @@ class MultiLanguageChunker:
         extension = file_path_obj.suffix.lower()
         language = self.LANGUAGE_MAP.get(extension, 'text')
 
-        chunks = []
+        chunks: List[CodeChunk] = []
 
         try:
             # SECURITY: Try UTF-8 first (strict), fallback to detection if needed

@@ -67,6 +67,8 @@ class CodeSearchServer:
             project_dir = self.storage.get_project_dir(project_path)
 
             self._ensure_embedder()
+            if self.embedder is None:
+                raise AppError("Embedder not initialized")
             self.index = CodeSearchIndex(
                 index_dir=str(project_dir),
                 embedding_dim=self.embedder.embedding_dim
@@ -97,9 +99,13 @@ class CodeSearchServer:
                 self.index_directory(project_path)
 
             # Generate query embedding
+            if self.embedder is None:
+                raise AppError("Embedder not initialized")
             query_embedding = self.embedder.embed_query(query)
 
             # Search
+            if self.index is None:
+                raise AppError("Index not initialized")
             results = self.index.search(query_embedding, top_k=top_k)
 
             # Format results
@@ -156,11 +162,15 @@ class CodeSearchServer:
             # Generate embeddings
             logger.info("Generating embeddings...")
             chunk_texts = [chunk.content for chunk in chunks]
+            if self.embedder is None:
+                raise AppError("Embedder not initialized")
             embeddings = self.embedder.embed(chunk_texts)
 
             # Build index
             logger.info("Building search index...")
             self._ensure_index(directory)
+            if self.index is None:
+                raise AppError("Index not initialized")
             self.index.build(chunks, embeddings)
 
             # Save index
@@ -322,7 +332,7 @@ class MCPRequestHandler:
             ]
         }
 
-    def handle_tools_call(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_tools_call(self, params: Dict[str, Any]) -> Any:
         """Handle tools/call request with Pydantic validation"""
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
@@ -330,27 +340,25 @@ class MCPRequestHandler:
         try:
             if tool_name == "search_code":
                 # SECURITY: Validate with Pydantic
-                validated = SearchCodeRequest(**arguments)
-                result = self.server.search_code(
-                    query=validated.query,
-                    project_path=validated.project_path,
-                    top_k=validated.top_k
+                search_req = SearchCodeRequest(**arguments)
+                return self.server.search_code(
+                    query=search_req.query,
+                    project_path=search_req.project_path,
+                    top_k=search_req.top_k
                 )
             elif tool_name == "index_directory":
-                validated = IndexDirectoryRequest(**arguments)
-                result = self.server.index_directory(directory=validated.directory)
+                index_req = IndexDirectoryRequest(**arguments)
+                return self.server.index_directory(directory=index_req.directory)
             elif tool_name == "get_index_status":
-                validated = GetIndexStatusRequest(**arguments)
-                result = self.server.get_index_status(project_path=validated.project_path)
+                status_req = GetIndexStatusRequest(**arguments)
+                return self.server.get_index_status(project_path=status_req.project_path)
             elif tool_name == "list_projects":
-                result = self.server.list_projects()
+                return self.server.list_projects()
             elif tool_name == "clear_index":
-                validated = ClearIndexRequest(**arguments)
-                result = self.server.clear_index(project_path=validated.project_path)
+                clear_req = ClearIndexRequest(**arguments)
+                return self.server.clear_index(project_path=clear_req.project_path)
             else:
                 raise ValueError(f"Unknown tool: {tool_name}")
-
-            return result
 
         except ValidationError as e:
             # Pydantic validation error

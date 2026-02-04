@@ -10,7 +10,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class DocSync:
@@ -18,7 +18,7 @@ class DocSync:
 
     def __init__(self, project_dir: Path):
         self.project_dir = project_dir
-        self.issues = []
+        self.issues: List[Dict[str, Any]] = []
 
     def extract_truth_from_package_json(self) -> Dict:
         """Extract ground truth from package.json"""
@@ -64,12 +64,12 @@ class DocSync:
 
         return {"package_manager": package_manager, "is_python": True}
 
-    def extract_truth_from_docker(self) -> Dict:
+    def extract_truth_from_docker(self) -> Dict[str, Any]:
         """Extract truth from Docker files"""
         docker_file = self.project_dir / "Dockerfile"
         compose_file = self.project_dir / "docker-compose.yml"
 
-        truth = {}
+        truth: Dict[str, Any] = {}
         if docker_file.exists():
             truth["has_dockerfile"] = True
             # Extract exposed ports
@@ -121,9 +121,9 @@ class DocSync:
 
         return commands
 
-    def check_package_manager_consistency(self, readme_path: Path) -> List[str]:
+    def check_package_manager_consistency(self, readme_path: Path) -> List[Dict[str, Any]]:
         """Check if README uses correct package manager"""
-        issues = []
+        issues: List[Dict[str, Any]] = []
 
         # Get ground truth
         node_truth = self.extract_truth_from_package_json()
@@ -172,9 +172,9 @@ class DocSync:
 
         return issues
 
-    def check_docker_port_consistency(self, readme_path: Path) -> List[str]:
+    def check_docker_port_consistency(self, readme_path: Path) -> List[Dict[str, Any]]:
         """Check if documented ports match Dockerfile"""
-        issues = []
+        issues: List[Dict[str, Any]] = []
         docker_truth = self.extract_truth_from_docker()
 
         if docker_truth.get("exposed_ports"):
@@ -195,9 +195,9 @@ class DocSync:
 
         return issues
 
-    def check_script_consistency(self, readme_path: Path) -> List[str]:
+    def check_script_consistency(self, readme_path: Path) -> List[Dict[str, Any]]:
         """Check if package.json scripts are documented"""
-        issues = []
+        issues: List[Dict[str, Any]] = []
         node_truth = self.extract_truth_from_package_json()
 
         if node_truth.get("scripts"):

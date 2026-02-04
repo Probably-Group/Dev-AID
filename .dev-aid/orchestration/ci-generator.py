@@ -18,7 +18,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 class CIGenerator:
@@ -28,9 +28,9 @@ class CIGenerator:
         self.project_dir = project_dir
         self.templates_dir = Path(__file__).parent.parent / "templates" / "ci"
 
-    def detect_project_type(self) -> Dict[str, any]:
+    def detect_project_type(self) -> Dict[str, Any]:
         """Detect project type and build configuration"""
-        context = {
+        context: Dict[str, Any] = {
             "language": None,
             "package_manager": None,
             "build_tool": None,
@@ -216,7 +216,7 @@ class CIGenerator:
 
         return context
 
-    def get_frequency_config(self, frequency: str) -> Dict[str, any]:
+    def get_frequency_config(self, frequency: str) -> Dict[str, Any]:
         """Get CI execution frequency configuration
 
         Args:
@@ -263,7 +263,7 @@ class CIGenerator:
 
         return configs[frequency]
 
-    def _apply_frequency_config(self, workflow: str, freq_config: Dict[str, any]) -> str:
+    def _apply_frequency_config(self, workflow: str, freq_config: Dict[str, Any]) -> str:
         """Apply frequency configuration to workflow YAML
 
         Args:
@@ -349,7 +349,7 @@ class CIGenerator:
 
     def generate_workflow(
         self,
-        context: Dict[str, any],
+        context: Dict[str, Any],
         output_path: Optional[Path] = None,
         optimize: bool = False,
         frequency: str = "balanced",

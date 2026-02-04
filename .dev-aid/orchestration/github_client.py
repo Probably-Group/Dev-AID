@@ -27,7 +27,7 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -111,7 +111,7 @@ class GitHubClient:
 
         return repo
 
-    def _make_request(self, url: str, timeout: int = 10) -> dict:
+    def _make_request(self, url: str, timeout: int = 10) -> Any:
         """
         Make authenticated GitHub API request
 
@@ -376,13 +376,14 @@ class GitHubClient:
         }
 
     @staticmethod
-    def _format_size(bytes: int) -> str:
+    def _format_size(size_bytes: int) -> str:
         """Format byte size as human-readable string"""
+        size: float = float(size_bytes)
         for unit in ["B", "KB", "MB", "GB"]:
-            if bytes < 1024.0:
-                return f"{bytes:.1f} {unit}"
-            bytes /= 1024.0
-        return f"{bytes:.1f} TB"
+            if size < 1024.0:
+                return f"{size:.1f} {unit}"
+            size /= 1024.0
+        return f"{size:.1f} TB"
 
     @staticmethod
     def _show_progress(downloaded: int, total: int, percent: float) -> None:

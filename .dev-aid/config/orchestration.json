@@ -98,6 +98,91 @@
     }
   },
 
+  "architect": {
+    "description": "Two-agent pattern: Architect plans, Implementer executes",
+    "enabled": false,
+    "optional": true,
+
+    "architect_model": "claude-opus-4.5",
+    "implementer_model": "claude-sonnet-4.5",
+
+    "triggers": {
+      "auto_activate": {
+        "enabled": false,
+        "conditions": {
+          "estimated_file_changes_gt": 5,
+          "keywords": ["implement feature", "build", "create system", "refactor", "redesign"],
+          "complexity": "high"
+        }
+      },
+      "manual_activate": {
+        "command": "/architect",
+        "description": "User explicitly requests architect mode"
+      }
+    },
+
+    "workflow": {
+      "type": "sequential",
+      "steps": [
+        {
+          "role": "architect",
+          "model": "claude-opus-4.5",
+          "task": "analyze_and_plan",
+          "output": "implementation_plan",
+          "focus": [
+            "Understand requirements fully",
+            "Identify affected files and components",
+            "Design approach with rationale",
+            "Define clear implementation steps",
+            "Identify risks and edge cases",
+            "Set success criteria"
+          ],
+          "constraints": [
+            "NO code writing - planning only",
+            "Must produce structured plan",
+            "Must identify all affected files"
+          ]
+        },
+        {
+          "role": "user_approval",
+          "task": "review_plan",
+          "description": "User reviews and approves the plan before implementation",
+          "options": ["approve", "modify", "reject"]
+        },
+        {
+          "role": "implementer",
+          "model": "claude-sonnet-4.5",
+          "task": "execute_plan",
+          "input": "implementation_plan",
+          "focus": [
+            "Follow plan precisely",
+            "Write clean, tested code",
+            "Report deviations if necessary"
+          ]
+        }
+      ],
+      "fallback": {
+        "on_architect_unavailable": "solo_mode",
+        "on_plan_rejected": "revise_plan"
+      }
+    },
+
+    "plan_format": {
+      "required_sections": [
+        "## Summary",
+        "## Affected Files",
+        "## Implementation Steps",
+        "## Success Criteria",
+        "## Risks & Mitigations"
+      ],
+      "optional_sections": [
+        "## Alternative Approaches",
+        "## Dependencies",
+        "## Testing Strategy"
+      ]
+    }
+  },
+
   "challenger": {
     "description": "Primary model generates, challenger reviews",
     "enabled": false,

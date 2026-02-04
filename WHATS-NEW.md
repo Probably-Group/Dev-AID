@@ -1,4 +1,62 @@
-# What's New in Dev-AID v1.3.0
+# What's New in Dev-AID
+
+## v1.4.0 - Competitor Feature Adoption
+
+### Hybrid Search (BM25 + Vector) 🆕
+Combines lexical (BM25) and semantic (vector) search for best-of-both-worlds code discovery:
+- **Reciprocal Rank Fusion (RRF)**: Intelligent result merging from both search methods
+- **Configurable Alpha**: Tune keyword vs semantic weighting (0.0-1.0)
+- **Code-Aware Tokenizer**: Handles camelCase, snake_case, special characters
+- **$0 Forever**: Fully local, no API costs
+- Configuration: `.dev-aid/config/search.json`
+- Code: `.dev-aid/local-search/search/bm25.py`, `hybrid_scorer.py`
+
+### Two-Agent Architect Mode 🆕
+Separates planning from implementation for complex tasks:
+- **Architect Agent**: Analyzes requirements, creates structured implementation plan
+- **User Approval**: Review and approve plan before any code is written
+- **Implementer Agent**: Executes approved plan precisely
+- **Model-Agnostic**: Works with any provider (Claude, Gemini, OpenAI)
+- **Deviation Protocol**: Implementer reports if plan needs changes
+- Configuration: `.dev-aid/config/orchestration.json` (set `mode: "architect"`)
+- Skill: `.dev-aid/skills/process/architect-protocol/SKILL.md`
+
+### Git Worktree Isolation 🆕
+Parallel development with safeguards against merge conflicts:
+- **Scope Declarations**: Document what each worktree modifies
+- **Architecture Locks**: Protect critical code during major refactoring
+- **Conflict Detection**: Pre-merge checks for overlapping changes
+- **Clean Workflow**: `create-worktree.sh` and `sync-worktrees.sh` scripts
+- Documentation: `.dev-aid/docs/WORKTREE-GUIDE.md`
+
+### Session Persistence 🆕
+Auto-save progress on session end, restore context on restart:
+- **Cross-Provider**: Works with Claude, Gemini, and Codex
+- **Git-Aware**: Captures branch, modified files, staged changes
+- **Task Preservation**: Saves pending todos and active context
+- **Automatic**: Hooks handle save/load automatically
+- Scripts: `.dev-aid/scripts/save-session-progress.sh`, `load-session-progress.sh`
+
+### TDD Enforcement Gate (Enhanced) 🆕
+Configurable enforcement of test-first development:
+- **Strict Mode**: Blocks code generation until test exists and fails
+- **Warning Mode**: Reminds but allows proceeding
+- **Off Mode**: No enforcement
+- **Gate Check Script**: `.dev-aid/scripts/tdd-gate-check.sh`
+- Configuration: `.dev-aid/config/process-skills.json`
+
+### Comparison with Competitors (Now Matching)
+| Feature | Dev-AID | Anthropic Quickstarts | Superpowers | Claude-Context |
+|---------|---------|----------------------|-------------|----------------|
+| Session Persistence | ✅ Now matches | ✅ | ❌ | ❌ |
+| TDD Enforcement | ✅ Now matches | ❌ | ✅ | ❌ |
+| Hybrid Search | ✅ Now matches | ❌ | ❌ | ✅ (Zilliz) |
+| Git Worktree | ✅ Now matches (with safeguards) | ❌ | ✅ | ❌ |
+| Architect Mode | ✅ Unique | ❌ | ❌ | ❌ |
+
+---
+
+# v1.3.0 - Performance & Provider Expansion
 
 ## New Provider Support
 

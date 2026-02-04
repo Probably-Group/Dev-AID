@@ -4,5 +4,15 @@
       "command": "./.dev-aid/scripts/check-updates.sh --silent",
       "description": "Check for Dev-AID updates (weekly, cached)"
     }
+  ],
+  "on_stop": [
+    {
+      "command": "DEV_AID_PROVIDER=claude ./.dev-aid/scripts/save-session-progress.sh",
+      "description": "Save session progress for persistence"
+    },
+    {
+      "command": "./.dev-aid/providers/claude/.claude/hooks/stop-quality-gates.sh",
+      "description": "Run quality gates before session ends"
+    }
   ]
 }

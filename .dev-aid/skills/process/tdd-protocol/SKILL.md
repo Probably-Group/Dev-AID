@@ -126,26 +126,78 @@ When you think one of these, STOP:
 
 ## 4. Integration with Dev-AID
 
-### 4.1 Local Search Integration
+### 4.1 Enforcement Gate Logic
+
+**When TDD gate is triggered (new feature/bug fix request):**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ GATE CHECK: Is there a failing test for this change?            │
+├─────────────────────────────────────────────────────────────────┤
+│ 1. SCAN: Look for test files related to target code             │
+│    → Pattern: *test*, *spec*, __tests__/                        │
+│    → Check recent git changes for test files                    │
+├─────────────────────────────────────────────────────────────────┤
+│ 2. VERIFY: If test exists, has it been run and failed?          │
+│    → Check test output in terminal/logs                         │
+│    → Must see actual failure, not just test file exists         │
+├─────────────────────────────────────────────────────────────────┤
+│ 3. ENFORCE based on level:                                      │
+│    → strict: BLOCK code generation, require test first          │
+│    → warning: WARN but allow proceeding with reminder           │
+│    → off: No enforcement                                        │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Enforcement behavior by level:**
+
+| Level | On Implementation Request | Message |
+|-------|--------------------------|---------|
+| `strict` | **BLOCK** - Must write and run failing test first | "TDD Gate: Write a failing test first. I cannot generate production code until I see a test that fails for the expected reason." |
+| `warning` | **WARN** - Show reminder, allow proceeding | "TDD Reminder: Consider writing a test first. Proceeding without test, but TDD improves reliability." |
+| `off` | No message | - |
+
+### 4.2 Gate Bypass Conditions
+
+The gate allows proceeding WITHOUT test first when:
+- Task is explicitly marked as "refactoring only" (no behavior change)
+- Modifying existing well-tested code with high coverage
+- Documentation-only changes
+- Configuration changes
+- User explicitly says "skip TDD for this"
+
+### 4.3 Local Search Integration
+
 Use FAISS to find similar existing tests:
 ```
 Search: "test + [function_name] + [similar_behavior]"
 → Show 3 most similar tests as templates
 ```
 
-### 4.2 Test Templates
+### 4.4 Test Templates
 
 See `references/test-templates.md` for language-specific templates.
 
-### 4.3 Enforcement Levels
+### 4.5 Configuration
 
-| Level | Behavior |
-|-------|----------|
-| `strict` | Block any code generation until test exists |
-| `warning` | Warn but allow proceeding |
-| `off` | No enforcement (not recommended) |
+Configure enforcement in `.dev-aid/config/process-skills.json`:
 
-Configure in `.dev-aid/config/process-skills.json`
+```json
+{
+  "enforcement": {
+    "tdd-protocol": {
+      "level": "strict",     // strict | warning | off
+      "autoTrigger": true,   // auto-activate on implementation requests
+      "tokenBudget": 400
+    }
+  }
+}
+```
+
+**Profiles available:**
+- `strict` profile: TDD level=strict, autoTrigger=true
+- `balanced` profile: TDD level=warning, autoTrigger=false
+- `minimal` profile: TDD level=off
 
 ---
 

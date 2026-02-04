@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.3.0--beta.13-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.4.0--beta.1-brightgreen.svg)](.dev-aid/VERSION)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with context-aware expertise that auto-loads based on your work, dual-AI review that catches what you'd miss, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
@@ -59,9 +59,12 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI, Codex 
 
 - **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
 - **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
-- **🔍 Local Code Search** - 100% private, $0 forever, 0.15s queries
+- **🔍 Local Code Search** - Hybrid BM25 + Vector search, 100% private, $0 forever 🆕
 - **🎓 73 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
-- **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging 🆕
+- **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging
+- **🏗️ Architect Mode** - Two-agent pattern: plan before implementation 🆕
+- **📂 Git Worktree Isolation** - Parallel development with conflict detection 🆕
+- **💾 Session Persistence** - Auto-save/restore progress across restarts 🆕
 - **🔒 Security Automation** - 5 tools run on every commit
 
 **No new CLI to learn.** Works inside the tools you already use.
@@ -148,6 +151,10 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Security automation** | ✅ 5 tools (pre-commit) | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Workflow orchestrators** | ⚠️ Router modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
 | **Process skills (TDD)** | ✅ 7 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
+| **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
+| **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ Zilliz-based | ❌ |
+| **Git worktree isolation** | ✅ With safeguards | ❌ | ❌ | ✅ Basic | ❌ | ❌ |
 | **Memory bank** | ✅ Git-synced | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ |
 | **MCP integration** | ✅ Extensible | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
 | **Cost tracking** | ✅ Built-in | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -161,7 +168,11 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 |---------------------------|----------------|
 | **Multi-provider (only one)** | Works with Claude Code, Cursor, Gemini CLI, AND Codex — competitors are Claude-only |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → 23% fewer bugs reach production |
+| **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
+| **Hybrid Search (BM25+Vector)** | Combines keyword + semantic search with reciprocal rank fusion — better than either alone |
 | **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. (claude-context uses cloud) |
+| **Git Worktree Isolation** | Parallel development with scope declarations and conflict detection — avoids merge nightmares |
+| **Session Persistence** | Auto-saves progress on session end, restores context on restart — never lose your place |
 | **5-tool security automation** | Gitleaks, Trivy, Opengrep, Hadolint, Checkov — runs automatically on every commit |
 | **Cost tracking + routing** | Built-in budget limits and smart routing to cheapest capable model |
 | **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
@@ -225,8 +236,11 @@ Real-World Examples:
 
 | Feature | What It Does | Key Benefits | Impact |
 |---------|-------------|--------------|--------|
-| **🔍 Local Semantic Search** | 100% local code search with embeddings (EmbeddingGemma + FAISS) | • $0 forever (no API costs)<br>• 0.15s queries<br>• Private (never leaves machine)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
+| **🔍 Hybrid Search** 🆕 | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
+| **🏗️ Architect Mode** 🆕 | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐⭐ |
+| **📂 Git Worktree Isolation** 🆕 | Parallel development with scope declarations and conflict detection | • Scope declarations prevent overlap<br>• Architecture locks protect critical code<br>• Pre-merge conflict detection<br>• Clear cleanup workflow | ⭐⭐⭐⭐⭐ |
+| **💾 Session Persistence** 🆕 | Auto-save progress on session end, restore on restart | • Never lose your place<br>• Cross-provider support<br>• Git-aware (tracks branch, changes)<br>• Task/todo preservation | ⭐⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐⭐ |
@@ -663,15 +677,20 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ---
 
-## 🆕 What's New in v1.3.0
+## 🆕 What's New in v1.4.0
 
 **Highlights:**
-- **10x faster** context detection (2s+ → <200ms)
-- **7 process skills** for TDD, verification, systematic debugging
-- **Deep Research MCP** with Gemini/Perplexity/Tavily
-- **TOON format** for 40-60% token reduction
-- **Local CI validation** - catch failures before pushing
-- **26 issues resolved**
+- **Hybrid Search** - BM25 + Vector with Reciprocal Rank Fusion
+- **Two-Agent Architect Mode** - Plan before you code with user approval
+- **Git Worktree Isolation** - Parallel development with conflict detection
+- **Session Persistence** - Auto-save/restore progress across all providers
+- **TDD Enforcement Gate** - Configurable strict/warning/off per project
+
+**v1.3.0 Highlights:**
+- 10x faster context detection (2s+ → <200ms)
+- 7 process skills for TDD, verification, systematic debugging
+- Deep Research MCP with Gemini/Perplexity/Tavily
+- TOON format for 40-60% token reduction
 
 📖 **[See full release notes →](./WHATS-NEW.md)** | **[Changelog](./.dev-aid/CHANGELOG.md)**
 

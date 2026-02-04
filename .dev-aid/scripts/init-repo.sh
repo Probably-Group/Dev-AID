@@ -200,6 +200,53 @@ else
     echo "  You can install it later with: ./.dev-aid/scripts/setup-rag.sh"
 fi
 
+# ============================================================================
+# Optional: Security Tools Installation
+# ============================================================================
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}   Optional Feature: Security Scanning Tools${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Dev-AID includes 5 security tools for pre-commit scanning:"
+echo "  • Gitleaks  - Secret detection"
+echo "  • Trivy     - Vulnerability scanning"
+echo "  • Hadolint  - Dockerfile linting"
+echo "  • Checkov   - IaC security"
+echo "  • Opengrep  - SAST code analysis"
+echo ""
+echo -e "${BLUE}Requirements:${NC}"
+echo "  • Homebrew (macOS) or curl (Linux)"
+echo "  • ~500MB disk space"
+echo "  • 2-5 minutes installation"
+echo ""
+read -p "Install security scanning tools? (Y/n) " -n 1 -r SECURITY_REPLY
+echo
+
+if [[ $SECURITY_REPLY =~ ^[Yy]$ ]] || [[ -z $SECURITY_REPLY ]]; then
+    echo ""
+    echo -e "${GREEN}Installing security tools...${NC}"
+    if [ -f ".dev-aid/automation/tools/install-security-tools.sh" ]; then
+        ./.dev-aid/automation/tools/install-security-tools.sh
+    else
+        echo -e "${YELLOW}⚠ install-security-tools.sh not found${NC}"
+        echo "  Attempting Homebrew installation..."
+        if command -v brew &> /dev/null; then
+            brew install gitleaks trivy hadolint 2>/dev/null || true
+            brew install pipx && pipx install checkov 2>/dev/null || true
+            echo -e "${GREEN}✓ Installed via Homebrew${NC}"
+        else
+            echo -e "${RED}✗ Please install manually:${NC}"
+            echo "  brew install gitleaks trivy hadolint"
+            echo "  pipx install checkov"
+            echo "  curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash"
+        fi
+    fi
+else
+    echo -e "${BLUE}→ Skipped security tools installation${NC}"
+    echo "  You can install later with: ./.dev-aid/automation/tools/install-security-tools.sh"
+fi
+
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║      Dev-AID Initialization Complete!      ║${NC}"
@@ -214,6 +261,9 @@ if [[ $ROUTER_SETUP_REPLY =~ ^[Yy]$ ]] || [[ -z $ROUTER_SETUP_REPLY ]]; then
 fi
 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo "  ✓ Dev-AID Local Search"
+fi
+if [[ $SECURITY_REPLY =~ ^[Yy]$ ]] || [[ -z $SECURITY_REPLY ]]; then
+    echo "  ✓ Security scanning tools (Gitleaks, Trivy, Hadolint, Checkov, Opengrep)"
 fi
 echo ""
 echo -e "${BLUE}Available router commands:${NC}"

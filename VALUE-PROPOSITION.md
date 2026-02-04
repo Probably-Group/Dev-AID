@@ -730,7 +730,7 @@ Setup cost: 5 minutes per developer
 | Feature | Annual Value (100 Devs) | Time Saved | Business Impact | Priority |
 |---------|-------------------------|------------|-----------------|----------|
 | **🔍 Local Semantic Search** | **$652,560** | 30 min/day/dev | • $142K API cost savings<br>• $510K productivity (search time)<br>• Zero data exposure risk | ⭐⭐⭐⭐⭐ |
-| **🔀 Multi-AI Router** | **$325,000** | Varies by task | • $275K API optimization (97% cheaper for context)<br>• $50K quality improvements (challenger mode)<br>• 23% fewer bugs reach production | ⭐⭐⭐⭐⭐ |
+| **🔀 Multi-AI Router** | **$325,000** | Varies by task | • $275K API optimization (97% cheaper for context)<br>• $50K quality improvements (challenger mode)<br>• Dual-AI review catches bugs single-AI misses ([METR Study](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/)) | ⭐⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | **$675,000** | 2-4 weeks unblocked | • Frontend unblocked immediately<br>• Parallel development (50 FE + 50 BE devs)<br>• 135 dev-weeks/year saved<br>• Contract-first prevents API drift | ⭐⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | **$1,050,000** | 5-10 min/commit | • 5 commits/day/dev × 5 min = 25 min/day<br>• $10,500/dev/year prevented rework<br>• Catches issues before code review<br>• Security/performance/test gaps | ⭐⭐⭐⭐⭐ |
 | **📋 Commit Planner** | **$425,000** | 10-15 min/day | • Atomic commits save review time<br>• Easier git bisect debugging<br>• $4,250/dev/year productivity<br>• Teaches good commit habits | ⭐⭐⭐⭐ |

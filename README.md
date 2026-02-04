@@ -149,7 +149,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
 | **Security automation** | ✅ 5 tools (pre-commit) | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
-| **Workflow orchestrators** | ⚠️ Router modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
+| **Workflow orchestrators** | ✅ Architect + 5 modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
 | **Process skills (TDD)** | ✅ 7 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
 | **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -167,7 +167,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
 | **Multi-provider (only one)** | Works with Claude Code, Cursor, Gemini CLI, AND Codex — competitors are Claude-only |
-| **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → 23% fewer bugs reach production |
+| **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → catches issues single-AI misses |
 | **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
 | **Hybrid Search (BM25+Vector)** | Combines keyword + semantic search with reciprocal rank fusion — better than either alone |
 | **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. (claude-context uses cloud) |

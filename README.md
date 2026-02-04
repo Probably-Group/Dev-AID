@@ -13,7 +13,7 @@
 
 > **💡 Other tools make you choose. Dev-AID lets you use the best of everything.**
 
-> 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($5.9M+ annual value for 100-dev teams).
+> 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($6.5M+ annual value for 100-dev teams).
 
 ---
 

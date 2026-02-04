@@ -15,7 +15,7 @@ import json
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional, cast
 
 
 class PlanStatus(Enum):
@@ -35,10 +35,10 @@ class ImplementationPlan:
     """Structured implementation plan from architect."""
 
     summary: str
-    affected_files: list[dict]
+    affected_files: list[dict[str, Any]]
     implementation_steps: list[str]
     success_criteria: list[str]
-    risks: list[dict] = field(default_factory=list)
+    risks: list[dict[str, Any]] = field(default_factory=list)
     alternatives: list[str] = field(default_factory=list)
     testing_strategy: str = ""
     status: PlanStatus = PlanStatus.DRAFT
@@ -87,7 +87,7 @@ class ImplementationPlan:
         return "\n".join(md)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "ImplementationPlan":
+    def from_dict(cls, data: dict[str, Any]) -> "ImplementationPlan":
         """Create plan from dictionary."""
         return cls(
             summary=data.get("summary", ""),
@@ -112,7 +112,7 @@ class ArchitectMode:
         self.config = self._load_config(config_path)
         self.current_plan: Optional[ImplementationPlan] = None
 
-    def _load_config(self, config_path: Optional[Path] = None) -> dict:
+    def _load_config(self, config_path: Optional[Path] = None) -> dict[str, Any]:
         """Load orchestration config."""
         if config_path is None:
             # Find project root
@@ -125,8 +125,9 @@ class ArchitectMode:
 
         if config_path and config_path.exists():
             with open(config_path) as f:
-                full_config = json.load(f)
-                return full_config.get("architect", {})
+                full_config: dict[str, Any] = json.load(f)
+                result: dict[str, Any] = full_config.get("architect", {})
+                return result
 
         # Default config
         return {
@@ -138,17 +139,17 @@ class ArchitectMode:
     @property
     def is_enabled(self) -> bool:
         """Check if architect mode is enabled."""
-        return self.config.get("enabled", False)
+        return cast(bool, self.config.get("enabled", False))
 
     @property
     def architect_model(self) -> str:
         """Get architect model identifier."""
-        return self.config.get("architect_model", "claude-opus-4.5")
+        return cast(str, self.config.get("architect_model", "claude-opus-4.5"))
 
     @property
     def implementer_model(self) -> str:
         """Get implementer model identifier."""
-        return self.config.get("implementer_model", "claude-sonnet-4.5")
+        return cast(str, self.config.get("implementer_model", "claude-sonnet-4.5"))
 
     def should_activate(self, task_description: str, estimated_files: int = 0) -> bool:
         """
@@ -344,7 +345,7 @@ Begin implementing the plan."""
         return issues
 
 
-def main():
+def main() -> None:
     """CLI interface for architect mode."""
     import argparse
 

@@ -115,9 +115,9 @@ class TestInputSanitization:
         """Test handling of unicode edge cases"""
         # Various unicode tricks that could bypass validation
         tricky_inputs = [
-            "test\u202E",  # Right-to-left override
-            "test\uFEFF",  # Zero-width no-break space
-            "test\u200B",  # Zero-width space
+            "test\u202e",  # Right-to-left override
+            "test\ufeff",  # Zero-width no-break space
+            "test\u200b",  # Zero-width space
         ]
 
         for inp in tricky_inputs:

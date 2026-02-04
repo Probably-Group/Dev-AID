@@ -660,12 +660,15 @@ class TestMCPRegistry:
             }
         }
 
-        with patch.object(registry, "_read_claude_config", return_value=mock_config):
-            servers = registry._discover_claude()
+        # Mock subprocess.run to raise FileNotFoundError (simulating claude CLI not found)
+        # This ensures the fallback path that reads config directly is used
+        with patch("subprocess.run", side_effect=FileNotFoundError("claude not found")):
+            with patch.object(registry, "_read_claude_config", return_value=mock_config):
+                servers = registry._discover_claude()
 
-            assert "test-server" in servers
-            assert servers["test-server"].command == "npx"
-            assert servers["test-server"].source == "claude"
+                assert "test-server" in servers
+                assert servers["test-server"].command == "npx"
+                assert servers["test-server"].source == "claude"
 
     def test_discover_gemini_success(self, registry, tmp_path):
         """Test successful Gemini discovery"""

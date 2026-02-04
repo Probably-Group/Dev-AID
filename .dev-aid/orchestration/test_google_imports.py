@@ -2,6 +2,7 @@
 """
 Verify google-genai SDK imports and client instantiation
 """
+
 import sys
 from pathlib import Path
 

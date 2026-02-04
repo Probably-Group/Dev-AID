@@ -11,7 +11,7 @@ from ..context_builder import ContextBuilder, build_system_prompt
 class SoloMode:
     """Solo mode: Single default model handles everything"""
 
-    def __init__(self, config_loader, context_builder: ContextBuilder):
+    def __init__(self, config_loader: Any, context_builder: ContextBuilder) -> None:
         """
         Initialize solo mode
 
@@ -22,7 +22,7 @@ class SoloMode:
         self.config = config_loader
         self.context_builder = context_builder
 
-    def execute(self, request: str, **kwargs) -> Dict[str, Any]:
+    def execute(self, request: str, **kwargs: Any) -> Dict[str, Any]:
         """
         Execute request in solo mode
 

@@ -14,15 +14,17 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, TypeVar, cast
 
 from .auth_detector import AuthCredentials
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 # Configure logger
 logger = logging.getLogger(__name__)
 
 
-def track_api_call(func: Callable) -> Callable:
+def track_api_call(func: F) -> F:
     """
     Decorator to track API call timing and handle errors consistently.
 
@@ -33,7 +35,7 @@ def track_api_call(func: Callable) -> Callable:
     """
 
     @wraps(func)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         start_time = time.time()
 
         try:
@@ -59,7 +61,7 @@ def track_api_call(func: Callable) -> Callable:
             # Raise safe error to user (no sensitive details)
             raise APIClientError("Failed to communicate with AI provider. Please try again.")
 
-    return wrapper
+    return cast(F, wrapper)
 
 
 class APIClientError(Exception):
@@ -112,7 +114,7 @@ class BaseAIClient(ABC):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs,
+        **kwargs: Any,
     ) -> APIResponse:
         """
         Send request to AI provider
@@ -143,8 +145,8 @@ class BaseAIClient(ABC):
         input_cost_per_m = costs.get("input", 0)
         output_cost_per_m = costs.get("output", 0)
 
-        input_cost = (input_tokens / 1_000_000) * input_cost_per_m
-        output_cost = (output_tokens / 1_000_000) * output_cost_per_m
+        input_cost = (input_tokens / 1_000_000) * cast(float, input_cost_per_m)
+        output_cost = (output_tokens / 1_000_000) * cast(float, output_cost_per_m)
 
         return input_cost + output_cost
 
@@ -191,7 +193,7 @@ class AnthropicClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs,
+        **kwargs: Any,
     ) -> APIResponse:
         """Send request to Anthropic API"""
 
@@ -275,13 +277,13 @@ class GoogleClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs,
+        **kwargs: Any,
     ) -> APIResponse:
         """Send request to Google Gemini API"""
 
         # Convert messages to Gemini format
         # Gemini uses a different format - combine messages into conversation
-        conversation_parts = []
+        conversation_parts: List[Dict[str, Any]] = []
         system_instruction = None
 
         for msg in messages:
@@ -415,7 +417,7 @@ class OpenAIClient(BaseAIClient):
         model: str,
         max_tokens: int = 4096,
         temperature: float = 0.7,
-        **kwargs,
+        **kwargs: Any,
     ) -> APIResponse:
         """Send request to OpenAI API"""
 
@@ -425,7 +427,7 @@ class OpenAIClient(BaseAIClient):
         # Make API call (timing and error handling via decorator)
         response = self.client.chat.completions.create(
             model=model,
-            messages=api_messages,  # type: ignore
+            messages=api_messages,  # type: ignore[arg-type]
             max_tokens=max_tokens,
             temperature=temperature,
             **kwargs,

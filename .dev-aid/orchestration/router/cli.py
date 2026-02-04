@@ -11,6 +11,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from typing import Any, cast
 
 from pydantic import ValidationError
 
@@ -32,7 +33,7 @@ class SafeError(Exception):
     """Error that is safe to display to users"""
 
 
-def cmd_execute(args):
+def cmd_execute(args: Any) -> int:
     """Execute a request with routing"""
     try:
         # Validate inputs with Pydantic
@@ -70,7 +71,7 @@ def cmd_execute(args):
         return 1
 
 
-def cmd_status(args):
+def cmd_status(args: Any) -> int:
     """Show router status"""
     try:
         executor = RouterExecutor(Path(args.root) if args.root else None)
@@ -140,7 +141,7 @@ def cmd_status(args):
         return 1
 
 
-def cmd_test(args):
+def cmd_test(args: Any) -> int:
     """Test configuration"""
     try:
         print("🔍 Testing Dev-AID Router Configuration...\n")
@@ -201,7 +202,7 @@ def cmd_test(args):
         return 1
 
 
-def cmd_auth_status(args):
+def cmd_auth_status(args: Any) -> int:
     """Show authentication status for all providers"""
     try:
         print("🔐 Authentication Status for Dev-AID Router\n")
@@ -259,7 +260,7 @@ def cmd_auth_status(args):
         return 1
 
 
-def cmd_mcp_discover(args):
+def cmd_mcp_discover(args: Any) -> int:
     """Discover available MCP servers"""
     try:
         print("🔍 Discovering MCP servers...\n")
@@ -295,7 +296,7 @@ def cmd_mcp_discover(args):
         return 1
 
 
-def cmd_mcp_enable(args):
+def cmd_mcp_enable(args: Any) -> int:
     """Enable MCP server for router"""
     try:
         registry = MCPRegistry()
@@ -323,7 +324,7 @@ def cmd_mcp_enable(args):
         return 1
 
 
-def cmd_mcp_disable(args):
+def cmd_mcp_disable(args: Any) -> int:
     """Disable MCP server for router"""
     try:
         registry = MCPRegistry()
@@ -346,7 +347,7 @@ def cmd_mcp_disable(args):
         return 1
 
 
-def cmd_mcp_list(args):
+def cmd_mcp_list(args: Any) -> int:
     """List MCP servers"""
     try:
         registry = MCPRegistry()
@@ -360,7 +361,7 @@ def cmd_mcp_list(args):
         return 1
 
 
-def cmd_mcp_sync(args):
+def cmd_mcp_sync(args: Any) -> int:
     """Re-scan and sync MCP configuration"""
     try:
         print("🔄 Syncing MCP configuration...\n")
@@ -380,7 +381,7 @@ def cmd_mcp_sync(args):
         return 1
 
 
-def main():
+def main() -> int:
     """Main CLI entry point"""
     parser = argparse.ArgumentParser(
         description="Dev-AID Router - Multi-AI Orchestration CLI",
@@ -481,7 +482,7 @@ Examples:
         parser.print_help()
         return 1
 
-    return args.func(args)
+    return cast(int, args.func(args))
 
 
 if __name__ == "__main__":

@@ -26,7 +26,8 @@ def encode(data: Any) -> str:
         age: 30
     """
     try:
-        return toon_encode(data)
+        result: str = toon_encode(data)
+        return result
     except (TypeError, ValueError) as e:
         raise ValueError(f"Cannot serialize data to TOON: {e}")
     except Exception as e:

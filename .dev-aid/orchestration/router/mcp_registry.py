@@ -11,7 +11,7 @@ import json
 import os
 import subprocess
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -23,10 +23,10 @@ class MCPServerInfo:
     args: List[str]
     env: Optional[Dict[str, str]] = None
     source: str = "unknown"  # "claude", "gemini", "devaid"
-    capabilities: List[str] = None  # ["database", "github", "search", etc.]
+    capabilities: Optional[List[str]] = None  # ["database", "github", "search", etc.]
     enabled_for_router: bool = False
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.capabilities is None:
             self.capabilities = []
 
@@ -128,7 +128,7 @@ class MCPRegistry:
 
         return servers
 
-    def _read_claude_config(self) -> Optional[Dict]:
+    def _read_claude_config(self) -> Optional[Dict[str, Any]]:
         """Read Claude Code configuration file"""
         config_paths = [
             os.path.expanduser("~/.claude-code/config.json"),
@@ -139,7 +139,8 @@ class MCPRegistry:
             if os.path.exists(path):
                 try:
                     with open(path, "r") as f:
-                        return json.load(f)
+                        result: Dict[str, Any] = json.load(f)
+                        return result
                 except Exception:
                     continue
 
@@ -286,7 +287,9 @@ class MCPRegistry:
         return [
             server
             for server in self.servers.values()
-            if capability in server.capabilities and server.enabled_for_router
+            if server.capabilities
+            and capability in server.capabilities
+            and server.enabled_for_router
         ]
 
     def sync(self) -> Dict[str, MCPServerInfo]:
@@ -298,7 +301,7 @@ class MCPRegistry:
         """
         return self.discover_all()
 
-    def _load_config(self):
+    def _load_config(self) -> None:
         """Load saved configuration"""
         if os.path.exists(self.config_path):
             try:
@@ -313,9 +316,9 @@ class MCPRegistry:
             except Exception as e:
                 print(f"Failed to load MCP config: {e}")
 
-    def _save_config(self):
+    def _save_config(self) -> None:
         """Save configuration"""
-        config = {"version": "1.0.0", "servers": {}}
+        config: Dict[str, Any] = {"version": "1.0.0", "servers": {}}
 
         for name, server in self.servers.items():
             config["servers"][name] = {

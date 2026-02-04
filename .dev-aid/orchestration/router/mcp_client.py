@@ -9,7 +9,7 @@ import asyncio
 import json
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 
 @dataclass
@@ -112,7 +112,7 @@ class MCPClient:
             print(f"Failed to connect to MCP server {self.config.name}: {e}")
             return False
 
-    async def disconnect(self):
+    async def disconnect(self) -> None:
         """Disconnect from MCP server"""
         if self.process:
             self.process.terminate()
@@ -145,7 +145,7 @@ class MCPClient:
         if "error" in response:
             raise RuntimeError(f"MCP tool error: {response['error']}")
 
-        return response.get("result", {})
+        return cast(Dict[str, Any], response.get("result", {}))
 
     async def _send_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -157,7 +157,7 @@ class MCPClient:
         Returns:
             JSON-RPC response
         """
-        if not self.process:
+        if not self.process or not self.process.stdin or not self.process.stdout:
             raise RuntimeError("Not connected to MCP server")
 
         # Send request
@@ -167,7 +167,7 @@ class MCPClient:
 
         # Read response
         response_line = await self.process.stdout.readline()
-        response = json.loads(response_line.decode())
+        response: Dict[str, Any] = json.loads(response_line.decode())
 
         return response
 
@@ -184,7 +184,7 @@ class MCPClient:
 class MCPClientPool:
     """Pool of MCP clients for multiple servers"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize MCP client pool"""
         self.clients: Dict[str, MCPClient] = {}
 
@@ -208,7 +208,7 @@ class MCPClientPool:
 
         return False
 
-    async def remove_server(self, name: str):
+    async def remove_server(self, name: str) -> None:
         """
         Remove MCP server from pool
 
@@ -247,7 +247,7 @@ class MCPClientPool:
         """
         return {name: client.get_tools() for name, client in self.clients.items()}
 
-    async def disconnect_all(self):
+    async def disconnect_all(self) -> None:
         """Disconnect from all servers"""
         for client in self.clients.values():
             await client.disconnect()

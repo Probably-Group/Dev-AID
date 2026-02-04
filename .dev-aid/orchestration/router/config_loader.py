@@ -14,7 +14,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 
 from dotenv import load_dotenv
 
@@ -185,15 +185,15 @@ class ConfigLoader:
 
     def get_orchestration_mode(self) -> str:
         """Get current orchestration mode (solo, ensemble, challenger)"""
-        return self.settings.get("orchestration_mode", "solo")
+        return cast(str, self.settings.get("orchestration_mode", "solo"))
 
     def get_default_model(self) -> str:
         """Get default model name"""
-        return self.settings.get("default_model", "claude-sonnet-4.5")
+        return cast(str, self.settings.get("default_model", "claude-sonnet-4.5"))
 
     def get_enabled_providers(self) -> List[str]:
         """Get list of enabled providers"""
-        return self.settings.get("enabled_providers", ["claude"])
+        return cast(List[str], self.settings.get("enabled_providers", ["claude"]))
 
     def is_provider_enabled(self, provider: str) -> bool:
         """Check if a provider is enabled"""
@@ -319,20 +319,23 @@ class ConfigLoader:
 
     def get_mode_config(self, mode: str) -> Dict[str, Any]:
         """Get configuration for a specific mode"""
-        return self.routing.get("modes", {}).get(mode, {})
+        return cast(Dict[str, Any], self.routing.get("modes", {}).get(mode, {}))
 
     def get_fallback_chain(self) -> List[str]:
         """Get fallback model chain"""
-        return self.routing.get("fallback_chain", ["claude-sonnet", "gpt-4o", "gemini-flash"])
+        return cast(
+            List[str],
+            self.routing.get("fallback_chain", ["claude-sonnet", "gpt-4o", "gemini-flash"]),
+        )
 
     def get_cost_limit(self) -> float:
         """Get daily cost limit"""
-        return self.routing.get("cost_limit_per_day", 100.0)
+        return cast(float, self.routing.get("cost_limit_per_day", 100.0))
 
     def get_memory_bank_files(self) -> List[str]:
         """Get list of memory bank files to auto-load"""
         memory_config = self.settings.get("memory_bank", {})
-        return memory_config.get("auto_load", ["activeContext.md"])
+        return cast(List[str], memory_config.get("auto_load", ["activeContext.md"]))
 
     def get_memory_bank_path(self) -> Path:
         """Get path to memory bank directory"""

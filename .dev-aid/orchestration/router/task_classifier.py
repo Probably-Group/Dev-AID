@@ -12,7 +12,7 @@ Classifies user requests into task types to route to appropriate model:
 
 import re
 from enum import Enum
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple, cast
 
 
 class TaskType(str, Enum):
@@ -132,12 +132,12 @@ class TaskClassifier:
             return TaskType.CODE_GENERATION, ["default"], 0.5
 
         # Get task type with highest score
-        best_task = max(scores, key=scores.get)
+        best_task = max(scores, key=lambda k: scores[k])
         confidence = min(scores[best_task] / 3.0, 1.0)  # Normalize to 0-1
 
         return best_task, matched_keywords[best_task], confidence
 
-    def get_model_for_task(self, task_type: TaskType, routing_config: dict) -> str:
+    def get_model_for_task(self, task_type: TaskType, routing_config: Dict[str, Any]) -> str:
         """
         Get recommended model for task type
 
@@ -160,7 +160,7 @@ class TaskClassifier:
             TaskType.COMPLEX_REASONING: "claude-opus",
         }
 
-        return task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet"))
+        return cast(str, task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet")))
 
     def explain_classification(
         self, task_type: TaskType, matched_keywords: List[str], confidence: float
@@ -208,10 +208,12 @@ if __name__ == "__main__":
     print("=" * 70)
 
     for request in test_requests:
-        task_type, keywords, confidence = classifier.classify(request)
-        explanation = classifier.explain_classification(task_type, keywords, confidence)
+        task_type_result, keywords, confidence = classifier.classify(request)
+        explanation = classifier.explain_classification(
+            TaskType(task_type_result), keywords, confidence
+        )
 
         print(f'\nRequest: "{request}"')
-        print(f"  → Task Type: {task_type}")
+        print(f"  → Task Type: {task_type_result}")
         print(f"  → Explanation: {explanation}")
         print(f"  → Matched Patterns: {len(keywords)}")

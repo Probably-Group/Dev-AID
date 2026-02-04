@@ -35,7 +35,7 @@ class AuthCredentials:
 class AuthDetector:
     """Detect and manage authentication across multiple providers"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.home = Path.home()
 
     def detect_all(self) -> Dict[str, Optional[AuthCredentials]]:

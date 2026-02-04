@@ -65,7 +65,7 @@ class RouterExecutor:
         }
 
     async def _execute_async(
-        self, request: str, mode: str, context_size: int = 0, **kwargs
+        self, request: str, mode: str, context_size: int = 0, **kwargs: Any
     ) -> Dict[str, Any]:
         """
         Async execution helper
@@ -98,7 +98,9 @@ class RouterExecutor:
         mode_handler = self.modes[mode]
 
         try:
-            result = mode_handler.execute(request, context_size=context_size, **kwargs)
+            result: Dict[str, Any] = mode_handler.execute(
+                request, context_size=context_size, **kwargs
+            )
 
             # Log decision if successful
             if result.get("success"):
@@ -107,10 +109,11 @@ class RouterExecutor:
             return result
 
         except Exception as e:
-            return {"success": False, "mode": mode, "error": str(e)}
+            error_result: Dict[str, Any] = {"success": False, "mode": mode, "error": str(e)}
+            return error_result
 
     def execute(
-        self, request: str, mode: Optional[str] = None, context_size: int = 0, **kwargs
+        self, request: str, mode: Optional[str] = None, context_size: int = 0, **kwargs: Any
     ) -> Dict[str, Any]:
         """
         Execute a request with routing
@@ -143,7 +146,7 @@ class RouterExecutor:
         # Run async execution in single event loop
         return asyncio.run(self._execute_async(request, mode, context_size, **kwargs))
 
-    async def _initialize_mcp_servers(self):
+    async def _initialize_mcp_servers(self) -> None:
         """Initialize MCP server connections"""
         if not self.mcp_registry or not self.mcp_pool:
             return
@@ -165,7 +168,7 @@ class RouterExecutor:
                 except Exception as e:
                     print(f"Warning: Failed to connect to MCP server {server_name}: {e}")
 
-    def _log_decision(self, result: Dict[str, Any], mode: str, request: str):
+    def _log_decision(self, result: Dict[str, Any], mode: str, request: str) -> None:
         """Log routing decision and cost"""
 
         # Extract data from result
@@ -330,7 +333,7 @@ def execute_request(
     verbose: bool = False,
     use_mcp: bool = True,
     dev_aid_root: Optional[Path] = None,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
     """
     Convenience function to execute a request and return formatted output

@@ -4,6 +4,8 @@ Ensemble Mode - Route to best model based on task type
 
 from typing import Any, Dict, Tuple
 
+from ..task_classifier import TaskType
+
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 from ..task_classifier import TaskClassifier
@@ -12,7 +14,7 @@ from ..task_classifier import TaskClassifier
 class EnsembleMode:
     """Ensemble mode: Intelligent routing based on task type"""
 
-    def __init__(self, config_loader, context_builder: ContextBuilder):
+    def __init__(self, config_loader: Any, context_builder: ContextBuilder) -> None:
         """
         Initialize ensemble mode
 
@@ -24,7 +26,7 @@ class EnsembleMode:
         self.context_builder = context_builder
         self.classifier = TaskClassifier()
 
-    def execute(self, request: str, context_size: int = 0, **kwargs) -> Dict[str, Any]:
+    def execute(self, request: str, context_size: int = 0, **kwargs: Any) -> Dict[str, Any]:
         """
         Execute request in ensemble mode
 
@@ -43,7 +45,7 @@ class EnsembleMode:
         routing_config = self.config.get_routing_config()
 
         # Get recommended model for task type
-        recommended_model = self.classifier.get_model_for_task(task_type, routing_config)
+        recommended_model = self.classifier.get_model_for_task(TaskType(task_type), routing_config)
 
         # Get model configuration
         model_config = self.config.get_model_config(recommended_model)
@@ -113,7 +115,9 @@ class EnsembleMode:
             response = client.send_request(messages=messages, model=model_id, **kwargs)
 
             # Get explanation
-            explanation = self.classifier.explain_classification(task_type, keywords, confidence)
+            explanation = self.classifier.explain_classification(
+                TaskType(task_type), keywords, confidence
+            )
 
             return {
                 "success": True,

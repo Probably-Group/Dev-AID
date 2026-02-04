@@ -11,7 +11,7 @@ from ..context_builder import ContextBuilder, build_system_prompt
 class ChallengerMode:
     """Challenger mode: Two-model review workflow"""
 
-    def __init__(self, config_loader, context_builder: ContextBuilder):
+    def __init__(self, config_loader: Any, context_builder: ContextBuilder) -> None:
         """
         Initialize challenger mode
 
@@ -22,7 +22,7 @@ class ChallengerMode:
         self.config = config_loader
         self.context_builder = context_builder
 
-    def execute(self, request: str, force_challenge: bool = False, **kwargs) -> Dict[str, Any]:
+    def execute(self, request: str, force_challenge: bool = False, **kwargs: Any) -> Dict[str, Any]:
         """
         Execute request in challenger mode
 
@@ -66,7 +66,7 @@ class ChallengerMode:
         return False
 
     def _execute_primary_only(
-        self, request: str, primary_model_name: str, **kwargs
+        self, request: str, primary_model_name: str, **kwargs: Any
     ) -> Dict[str, Any]:
         """Execute with primary model only (no challenge)"""
 
@@ -140,7 +140,7 @@ class ChallengerMode:
         primary_model_name: str,
         challenger_model_name: str,
         challenger_config: Dict[str, Any],
-        **kwargs,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Execute full two-model challenger workflow"""
 
@@ -229,7 +229,7 @@ class ChallengerMode:
         }
 
     def _execute_with_model(
-        self, request: str, model_name: str, role: str = "primary", **kwargs
+        self, request: str, model_name: str, role: str = "primary", **kwargs: Any
     ) -> Dict[str, Any]:
         """Execute request with a specific model"""
 
@@ -364,7 +364,7 @@ If no issues found, respond with:
         primary_response: str,
         challenger_review: str,
         primary_model_name: str,
-        **kwargs,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         """Execute refinement step based on challenger feedback"""
 

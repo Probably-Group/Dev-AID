@@ -2,6 +2,7 @@
 """
 Quick test script to verify google-genai migration works
 """
+
 import os
 import sys
 from pathlib import Path

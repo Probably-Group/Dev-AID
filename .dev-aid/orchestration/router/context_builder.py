@@ -28,7 +28,7 @@ class DevAIDContext:
 class ContextBuilder:
     """Builds context from Dev-AID configuration and state"""
 
-    def __init__(self, config_loader, mcp_pool=None):
+    def __init__(self, config_loader: Any, mcp_pool: Any = None) -> None:
         """
         Initialize context builder
 

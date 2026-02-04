@@ -13,7 +13,7 @@ import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, cast
 
 
 @dataclass
@@ -56,14 +56,15 @@ class CostTracker:
         if self.costs_file.exists():
             try:
                 with open(self.costs_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    data: Dict[str, Any] = json.load(f)
+                    return data
             except (json.JSONDecodeError, IOError):
                 pass
 
         # Default structure
         return {"total_all_time": 0.0, "by_date": {}, "by_model": {}, "by_provider": {}}
 
-    def _save_costs(self):
+    def _save_costs(self) -> None:
         """Save cost data to JSON"""
         try:
             with open(self.costs_file, "w", encoding="utf-8") as f:
@@ -82,7 +83,7 @@ class CostTracker:
         tokens_output: int,
         latency_ms: float,
         request: str,
-    ):
+    ) -> None:
         """
         Log a routing decision
 
@@ -117,7 +118,7 @@ class CostTracker:
         # Update cost tracking
         self._update_costs(decision)
 
-    def _write_routing_log(self, decision: RoutingDecision):
+    def _write_routing_log(self, decision: RoutingDecision) -> None:
         """Write routing decision to log file"""
         try:
             with open(self.routing_log_file, "a", encoding="utf-8") as f:
@@ -136,7 +137,7 @@ class CostTracker:
         except IOError as e:
             print(f"Warning: Could not write routing log: {e}")
 
-    def _update_costs(self, decision: RoutingDecision):
+    def _update_costs(self, decision: RoutingDecision) -> None:
         """Update cost tracking data"""
         today = datetime.now().strftime("%Y-%m-%d")
 
@@ -187,13 +188,13 @@ class CostTracker:
         """Get total cost for today"""
         today = datetime.now().strftime("%Y-%m-%d")
         day_data = self.costs["by_date"].get(today, {})
-        return day_data.get("total", 0.0)
+        return cast(float, day_data.get("total", 0.0))
 
     def get_today_requests(self) -> int:
         """Get number of requests today"""
         today = datetime.now().strftime("%Y-%m-%d")
         day_data = self.costs["by_date"].get(today, {})
-        return day_data.get("requests", 0)
+        return cast(int, day_data.get("requests", 0))
 
     def is_over_budget(self, daily_limit: float) -> bool:
         """Check if today's cost exceeds daily limit"""
@@ -217,7 +218,7 @@ class CostTracker:
         """Get per-model statistics for today"""
         today = datetime.now().strftime("%Y-%m-%d")
         day_data = self.costs["by_date"].get(today, {})
-        return day_data.get("by_model", {})
+        return cast(Dict[str, Dict[str, Any]], day_data.get("by_model", {}))
 
     def get_recent_decisions(self, limit: int = 10) -> List[Dict[str, Any]]:
         """

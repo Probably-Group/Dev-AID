@@ -1,25 +1,21 @@
 # Testing Strategies & Coverage
 
-**Purpose**: Testing approach and coverage tracking
-**Load Strategy**: On-demand
-**Update Frequency**: Weekly or after test refactoring
+**Purpose**: Testing approach and coverage tracking (team-shared)
+**Note**: For personal AI notes, use Claude's built-in memory (`~/.claude/projects/*/memory/`)
 
 ---
 
-## 🎯 Coverage Goals
+## Coverage Goals
 
 | Type | Target | Current | Status |
 |------|--------|---------|--------|
-| Unit | >80% | 82% | ✅ Good |
-| Integration | >70% | 68% | ⚠️ Close |
-| E2E | Critical paths | 85% | ✅ Good |
-| Mutation | >70% | 65% | ⚠️ Needs work |
-
-**Last Updated**: 2025-11-25
+| Unit | >80% | --% | -- |
+| Integration | >70% | --% | -- |
+| E2E | Critical paths | --% | -- |
 
 ---
 
-## 🧪 Test Strategy
+## Test Strategy
 
 ### Test Pyramid
 ```
@@ -33,17 +29,20 @@
 ```
 
 ### What to Test
-- ✅ Business logic (pure functions)
-- ✅ API endpoints (contract tests)
-- ✅ Database queries
-- ✅ Error handling
-- ✅ Edge cases
-- ❌ Implementation details
-- ❌ Third-party libraries
+- Business logic (pure functions)
+- API endpoints (contract tests)
+- Database queries
+- Error handling
+- Edge cases
+
+### What NOT to Test
+- Implementation details
+- Third-party libraries
+- Simple getters/setters
 
 ---
 
-## 📋 Test Patterns
+## Test Patterns
 
 ### Unit Test Template
 ```typescript
@@ -62,11 +61,6 @@ describe('calculateTotal', () => {
   it('should handle empty array', () => {
     expect(calculateTotal([])).toBe(0);
   });
-
-  it('should throw on negative prices', () => {
-    expect(() => calculateTotal([{ price: -10 }]))
-      .toThrow('Price cannot be negative');
-  });
 });
 ```
 
@@ -84,63 +78,20 @@ describe('POST /api/users', () => {
 
     expect(response.status).toBe(201);
     expect(response.body).toHaveProperty('id');
-
-    const user = await db.users.findUnique({
-      where: { email: 'test@example.com' }
-    });
-    expect(user).toBeDefined();
   });
 });
 ```
 
 ---
 
-## 🐛 Flaky Tests Tracking
-
-### FLAKY-001: User List E2E Test
-**Test**: `e2e/users.spec.ts:45`
-**Issue**: Race condition in DB seed
-**Frequency**: 15% failure rate
-**Fix**: Add await for seed completion
-**Status**: Fixed 2025-11-20
-
----
-
-## 🔄 TDD Workflow
-
-1. **RED**: Write failing test
-2. **GREEN**: Write minimal code to pass
-3. **REFACTOR**: Improve code quality
-
-**Example**:
-```typescript
-// 1. RED - Test fails
-test('should validate email', () => {
-  expect(isValidEmail('invalid')).toBe(false);
-});
-
-// 2. GREEN - Make it pass
-function isValidEmail(email) {
-  return email.includes('@');
-}
-
-// 3. REFACTOR - Improve
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-```
-
----
-
-## 📊 Test Metrics
+## Test Metrics
 
 **Run Frequency**:
 - Unit: On every save (watch mode)
 - Integration: Pre-commit hook
 - E2E: CI/CD pipeline
-- Load: Weekly scheduled
 
-**Performance**:
+**Performance Targets**:
 - Unit suite: <5 seconds
 - Integration suite: <30 seconds
 - E2E suite: <3 minutes
@@ -149,4 +100,3 @@ function isValidEmail(email) {
 
 **Usage**: Reference for test strategies and patterns.
 Update coverage weekly.
-Track and fix flaky tests immediately.

@@ -1,15 +1,14 @@
-# Security Patterns & Threats
+# Security Patterns & Guidelines
 
-**Purpose**: Security knowledge base
-**Load Strategy**: On-demand (when working on security)
-**Update Frequency**: After security reviews or incidents
+**Purpose**: Security knowledge base (team-shared)
+**Note**: For personal AI notes, use Claude's built-in memory (`~/.claude/projects/*/memory/`)
 
 ---
 
-## 🛡️ Security Architecture
+## Security Architecture
 
 ### Authentication
-- **Pattern**: JWT with refresh token rotation
+- **Pattern**: [JWT/Sessions/OAuth2]
 - **Implementation**: `src/auth/`
 - **Key Controls**: Short-lived tokens, HTTP-only cookies, HTTPS only
 
@@ -25,90 +24,43 @@
 
 ---
 
-## ⚠️ Known Vulnerabilities & Fixes
+## Known Vulnerabilities & Fixes
 
-### VULN-001: SQL Injection in Legacy Code
-**Date Discovered**: 2025-11-15
-**Severity**: High
-**Status**: Fixed
+### VULN-001: [Description]
+**Date Discovered**: YYYY-MM-DD
+**Severity**: Critical | High | Medium | Low
+**Status**: Open | Fixed
 
-**Issue**:
-```typescript
-// BAD - vulnerable
-db.query(`SELECT * FROM users WHERE id = ${userId}`);
-```
+**Issue**: Description of the vulnerability
 
-**Fix**:
-```typescript
-// GOOD - parameterized
-db.query('SELECT * FROM users WHERE id = $1', [userId]);
-```
+**Fix**: How it was fixed
 
-**Files Fixed**: `src/legacy/user.service.ts`
-**Prevention**: Always use parameterized queries
+**Files Fixed**: `path/to/file.ts`
+**Prevention**: How to prevent in future
 
 ---
 
-## 🔒 OWASP Top 10 Coverage
+## OWASP Top 10 Coverage
 
 ### A01 - Broken Access Control
-- ✅ RBAC implemented
-- ✅ Route-level authorization
-- ✅ JWT validation
-- ⚠️ TODO: Fine-grained permissions
+- [ ] RBAC implemented
+- [ ] Route-level authorization
+- [ ] JWT validation
 
 ### A02 - Cryptographic Failures
-- ✅ HTTPS enforced
-- ✅ Passwords hashed (bcrypt, salt rounds: 12)
-- ✅ Secrets in environment variables
-- ✅ No sensitive data in logs
+- [ ] HTTPS enforced
+- [ ] Passwords properly hashed
+- [ ] Secrets in environment variables
+- [ ] No sensitive data in logs
 
 ### A03 - Injection
-- ✅ Parameterized queries
-- ✅ Input validation (Zod)
-- ✅ Output encoding
-- ✅ CSP headers
-
-### A04 - Insecure Design
-- ✅ Threat modeling done
-- ✅ Security reviews in SDLC
-- ⚠️ TODO: Formal security requirements
-
-### A05 - Security Misconfiguration
-- ✅ Security headers (Helmet.js)
-- ✅ CORS configured
-- ✅ Error messages don't leak info
-- ⚠️ TODO: Security scanning in CI
-
-### A06 - Vulnerable Components
-- ✅ Dependency scanning (Snyk)
-- ✅ Auto-updates for security patches
-- ⚠️ TODO: SCA in CI/CD
-
-### A07 - Authentication Failures
-- ✅ MFA available
-- ✅ Rate limiting on login
-- ✅ Account lockout after failures
-- ✅ Strong password policy
-
-### A08 - Software & Data Integrity
-- ✅ Code signing
-- ✅ Integrity checks
-- ⚠️ TODO: Supply chain security
-
-### A09 - Logging & Monitoring Failures
-- ✅ Security events logged
-- ✅ Alerts configured
-- ⚠️ TODO: SIEM integration
-
-### A10 - SSRF
-- ✅ URL validation
-- ✅ Whitelist for external calls
-- ✅ Network segmentation
+- [ ] Parameterized queries
+- [ ] Input validation
+- [ ] Output encoding
 
 ---
 
-## 🔐 Secrets Management
+## Secrets Management
 
 **Never Commit**:
 - API keys
@@ -118,42 +70,18 @@ db.query('SELECT * FROM users WHERE id = $1', [userId]);
 
 **How We Store**:
 - Development: `.env` (gitignored)
-- Production: AWS Secrets Manager / Vault
-- CI/CD: GitHub Secrets
-
-**Rotation Schedule**:
-- API keys: Quarterly
-- DB passwords: Monthly
-- JWT secret: Monthly
-- SSL certs: Auto (Let's Encrypt)
+- Production: Secrets manager
+- CI/CD: GitHub/GitLab Secrets
 
 ---
 
-## 🚨 Threat Models
+## Security Tools
 
-### Threat: Account Takeover
-**Attack Vectors**:
-1. Credential stuffing
-2. Phishing
-3. Session hijacking
+**Gitleaks**: Secret scanning (git history + current)
+**Trivy**: CVE + Misconfig + Secrets
+**Opengrep**: SAST with 340+ rules
 
-**Mitigations**:
-- Rate limiting ✓
-- MFA ✓
-- HTTP-only cookies ✓
-- Short session timeout ✓
-
----
-
-## 📊 Security Metrics
-
-**Current State** (as of 2025-11-25):
-- Critical vulnerabilities: 0
-- High vulnerabilities: 0
-- Medium vulnerabilities: 2 (accepted risk)
-- Dependency scan: Daily
-- Last pentest: 2025-10-15
-- Next pentest: 2026-01-15
+See: `.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md`
 
 ---
 

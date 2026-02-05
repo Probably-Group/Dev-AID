@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.4.0--beta.1-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.0--beta.1-brightgreen.svg)](.dev-aid/VERSION)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with context-aware expertise that auto-loads based on your work, dual-AI review that catches what you'd miss, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
@@ -37,6 +37,10 @@
 ### TL;DR - One Command Examples
 
 ```bash
+# 🏠 Setup local AI (zero-cost, 100% private) - NEW!
+./.dev-aid/scripts/setup-local-llm.sh
+# → Detects hardware, recommends best model, installs Ollama
+
 # Resolve that annoying merge conflict
 dev-aid-fix-conflicts --strategy smart
 
@@ -61,12 +65,13 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI, Codex 
 
 - **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
 - **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
-- **🔍 Local Code Search** - Hybrid BM25 + Vector search, 100% private, $0 forever 🆕
+- **🏠 Local LLM Support** - Offline, private, zero-cost AI via Ollama/LM Studio 🆕
+- **🔍 Local Code Search** - Hybrid BM25 + Vector search, 100% private, $0 forever
 - **🎓 73 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
 - **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging
-- **🏗️ Architect Mode** - Two-agent pattern: plan before implementation 🆕
-- **📂 Git Worktree Isolation** - Parallel development with conflict detection 🆕
-- **💾 Session Persistence** - Auto-save/restore progress across restarts 🆕
+- **🏗️ Architect Mode** - Two-agent pattern: plan before implementation
+- **📂 Git Worktree Isolation** - Parallel development with conflict detection
+- **💾 Session Persistence** - Auto-save/restore progress across restarts
 - **🔒 Security Automation** - CVE, SAST, secrets, misconfig scanning on every commit
 
 **No new CLI to learn.** Works inside the tools you already use.
@@ -133,6 +138,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Type** | Enhancement layer | Full IDE | IDE extension | CLI tool | Full IDE |
 | **Works with existing tools** | ✅ Claude, Cursor, Gemini, Codex | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
 | **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
+| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Limited | ❌ | ✅ Any model | ⚠️ Limited |
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
 | **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
@@ -168,6 +174,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
+| **🏠 Local LLM Support** 🆕 | Run AI 100% offline via Ollama/LM Studio/llama.cpp — **$0 forever, complete privacy** |
 | **Multi-provider (only one)** | Works with Claude Code, Cursor, Gemini CLI, AND Codex — competitors are Claude-only |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → catches issues single-AI misses |
 | **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
@@ -238,7 +245,8 @@ Real-World Examples:
 
 | Feature | What It Does | Key Benefits | Impact |
 |---------|-------------|--------------|--------|
-| **🔍 Hybrid Search** 🆕 | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
+| **🏠 Local LLM Support** 🆕 | Run AI locally via Ollama/LM Studio/llama.cpp | • **$0 forever** (no API costs)<br>• 100% private (code stays local)<br>• Works offline<br>• Auto hardware detection | ⭐⭐⭐⭐⭐ |
+| **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
 | **🏗️ Architect Mode** 🆕 | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐⭐ |
 | **📂 Git Worktree Isolation** 🆕 | Parallel development with scope declarations and conflict detection | • Scope declarations prevent overlap<br>• Architecture locks protect critical code<br>• Pre-merge conflict detection<br>• Clear cleanup workflow | ⭐⭐⭐⭐⭐ |
@@ -290,14 +298,90 @@ Real-World Examples:
 - **MCP native** - Works with Claude Code, Gemini CLI, Cursor & Codex CLI
 - **Based on** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local) (embedded fork)
 
-### 🔀 **Multi-AI Router** (NEW!)
+### 🔀 **Multi-AI Router**
 - **Challenger mode** - Claude generates, Gemini reviews
 - **Ensemble mode** - Route to best AI for each task
 - **Cost optimization** - Gemini for large context (97% cheaper)
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
 
-### 🛡️ **5 Core Skills** - Automated Checking (NEW!)
+### 🏠 **Local LLM Support** (NEW! 🆕)
+
+**Run AI models locally for offline, private, zero-cost inference.**
+
+| Feature | Description |
+|---------|-------------|
+| **Privacy** | Your code never leaves your machine |
+| **Offline** | Works without internet connection |
+| **Zero Cost** | No API fees, no usage limits |
+| **Auto-Detection** | Detects your GPU/VRAM automatically |
+| **Smart Recommendations** | Suggests best model for your hardware |
+
+**Inference Runtimes** (software that runs models on your hardware):
+- **[Ollama](https://ollama.ai)** - Easy CLI tool with built-in model library (recommended)
+- **[LM Studio](https://lmstudio.ai)** - GUI app with visual model browser
+- **[llama.cpp](https://github.com/ggerganov/llama.cpp)** - C++ runtime, maximum control
+
+> **Clarification:** Ollama, LM Studio, and llama.cpp are **runtimes** (like Docker for containers), not models themselves. They run open-source models like Qwen, Phi, Codestral, etc.
+
+**Recommended Models (2026 Benchmarks):**
+
+| Model | Score | VRAM | Best For |
+|-------|-------|------|----------|
+| **Phi-4-Mini** | 58 | 3GB | Entry-level, fast iterations |
+| **Codestral 22B** | 72 | 14GB | Mid-tier excellence |
+| **Qwen2.5-Coder 32B** | 68 | 20GB | ⭐ Best bang-for-buck |
+| **GLM-4.7 Thinking** | 74 | 48GB | Deep reasoning |
+| **Kimi-K2-Thinking** | 83 | 80GB | Best-in-class |
+
+**Quick Start:**
+```bash
+# Interactive setup wizard
+./.dev-aid/scripts/setup-local-llm.sh
+
+# Or manually with Ollama
+ollama pull qwen2.5-coder:32b
+# Enable in .dev-aid/config/models.json
+```
+
+**Hardware Guide:**
+
+| Tier | VRAM | RAM | Recommended Model |
+|------|------|-----|-------------------|
+| Entry | 4-8GB | 16GB | Phi-4-Mini |
+| Mid | 14-16GB | 24GB | Codestral 22B |
+| High | 20-24GB | 32GB | Qwen2.5-Coder 32B |
+| Pro | 48GB+ | 64GB | GLM-4.7 Thinking |
+| Enterprise | 80GB+ | 128GB | Kimi-K2-Thinking |
+| CPU-only | N/A | 32GB+ | Phi-4-Mini (slow) |
+
+**How Local LLM Integrates with Dev-AID:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Dev-AID Router                             │
+│  Routes requests to optimal provider based on task type      │
+└──────┬──────────────┬──────────────┬──────────────┬─────────┘
+       │              │              │              │
+       ▼              ▼              ▼              ▼
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+│  Claude  │   │  Gemini  │   │  OpenAI  │   │  Local   │
+│   API    │   │   API    │   │   API    │   │   LLM    │
+│          │   │          │   │          │   │ (Ollama) │
+└──────────┘   └──────────┘   └──────────┘   └──────────┘
+   Cloud          Cloud          Cloud         Your GPU
+```
+
+- **Dev-AID Router** can route tasks to local LLMs alongside cloud providers
+- **Simple tasks** → Route to local (free, private)
+- **Complex reasoning** → Route to cloud (Claude Opus)
+- **Massive context** → Route to Gemini (1M+ tokens)
+
+> **Note:** Local LLM support works through Dev-AID's router, not as a backend for Claude Code or Gemini CLI directly. Those tools use their own proprietary APIs.
+
+📖 **[Complete Local LLM Guide](.dev-aid/docs/LOCAL-LLM-GUIDE.md)** | **[Developer Guide](.dev-aid/docs/LOCAL-LLM-DEVELOPER-GUIDE.md)**
+
+### 🛡️ **5 Core Skills** - Automated Checking
 **Purpose**: Real-time automated tool execution on file save
 
 Core skills **actually run tools** automatically (tests, linters, type checkers) and provide immediate feedback:
@@ -679,14 +763,28 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ---
 
-## 🆕 What's New in v1.4.0
+## 🆕 What's New in v1.5.0
 
-**Highlights:**
-- **Hybrid Search** - BM25 + Vector with Reciprocal Rank Fusion
-- **Two-Agent Architect Mode** - Plan before you code with user approval
-- **Git Worktree Isolation** - Parallel development with conflict detection
-- **Session Persistence** - Auto-save/restore progress across all providers
-- **TDD Enforcement Gate** - Configurable strict/warning/off per project
+**🏠 Local LLM Support - The Big One!**
+- **Offline AI** - Run models locally via Ollama, LM Studio, or llama.cpp
+- **Hardware Auto-Detection** - Detects NVIDIA, Apple Silicon, AMD GPUs
+- **Smart Recommendations** - Suggests best model for your hardware
+- **Zero Cost** - No API fees, complete privacy
+- **Setup Wizard** - Interactive script for first-time setup
+
+**Best Models for Coding (2026):**
+| Model | Score | VRAM | Notes |
+|-------|-------|------|-------|
+| Qwen2.5-Coder 32B | 68 | 20GB | ⭐ Best "Bang for Buck" |
+| Codestral 22B | 72 | 14GB | Great mid-tier option |
+| Phi-4-Mini | 58 | 3GB | Ultra-light entry level |
+
+**v1.4.0 Highlights:**
+- Hybrid Search - BM25 + Vector with Reciprocal Rank Fusion
+- Two-Agent Architect Mode - Plan before you code with user approval
+- Git Worktree Isolation - Parallel development with conflict detection
+- Session Persistence - Auto-save/restore progress across all providers
+- TDD Enforcement Gate - Configurable strict/warning/off per project
 
 **v1.3.0 Highlights:**
 - 10x faster context detection (2s+ → <200ms)
@@ -742,6 +840,22 @@ cd your-project
 ./.dev-aid/scripts/setup-rag.sh
 
 # 5 minutes later: Local Search ready!
+```
+
+### Option 4: Setup Local LLM (Zero-Cost AI)
+
+```bash
+# Run the interactive setup wizard
+./.dev-aid/scripts/setup-local-llm.sh
+
+# Wizard will:
+# 1. Detect your GPU/VRAM automatically
+# 2. Recommend the best model for your hardware
+# 3. Install Ollama if needed
+# 4. Download and configure the model
+# 5. Enable local provider in Dev-AID
+
+# Now use AI without API costs!
 ```
 
 ---
@@ -1172,6 +1286,31 @@ Additional savings: $11.70/month
 Total savings: $35/month (78% reduction)
 ```
 
+### With Local LLM (Zero-Cost Mode) 🆕
+
+```
+# Cloud API approach
+100 requests × 150k tokens × $3/M = $45/month
+
+# With Local LLM (Ollama + Qwen2.5-Coder)
+100 requests × 150k tokens = $0/month
+
+Total savings: $45/month (100% reduction)
+
+One-time cost: ~$800-1500 for GPU (RTX 4090)
+ROI: 2-3 months if you use AI heavily
+```
+
+**When to use Local vs Cloud:**
+| Scenario | Recommendation |
+|----------|---------------|
+| Sensitive/proprietary code | ✅ Local LLM |
+| No internet access | ✅ Local LLM |
+| Cost optimization | ✅ Local LLM |
+| Maximum quality needed | Cloud (Claude/GPT) |
+| No GPU available | Cloud (any provider) |
+| Complex reasoning | Cloud (Claude Opus) |
+
 ---
 
 ## 🎓 Expert Skills (65 Skills)
@@ -1300,6 +1439,7 @@ Skills auto-activate based on file patterns:
 - **[ISSUE-AUTOMATION-PROPOSAL.md](.dev-aid/docs/ISSUE-AUTOMATION-PROPOSAL.md)** - Original feature design
 
 ### Setup Guides
+- **[LOCAL-LLM-GUIDE.md](.dev-aid/docs/LOCAL-LLM-GUIDE.md)** - Complete local LLM setup guide (Ollama, LM Studio, llama.cpp)
 - **[RAG-SETUP.md](.dev-aid/RAG-SETUP.md)** - Complete RAG setup guide
 - **[ROUTER-INSTALL.md](.dev-aid/orchestration/ROUTER-INSTALL.md)** - Router installation with venv setup
 - **[VENV-INFO.md](.dev-aid/orchestration/VENV-INFO.md)** - Virtual environment deep-dive

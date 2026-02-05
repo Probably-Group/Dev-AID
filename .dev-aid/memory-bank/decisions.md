@@ -1,92 +1,92 @@
 # Architecture Decision Records (ADRs)
 
-**Purpose**: Document important architectural and technical decisions (team-shared)
-**Note**: For personal AI notes, use Claude's built-in memory (`~/.claude/projects/*/memory/`)
+**Purpose**: Document architectural decisions so AI assistants understand WHY things are built this way
+**Used by**: Claude, Gemini, Cursor, and other AI coding assistants
+**Update**: When significant technical decisions are made
 
 ---
 
-## ADR Format
+## How to Use This File
 
-Each decision follows this structure:
-- **Date**: When decided
-- **Status**: Proposed | Accepted | Deprecated | Superseded
-- **Context**: Why we needed to decide
-- **Decision**: What we chose
-- **Alternatives**: What else we considered
-- **Consequences**: Impacts (positive and negative)
+AI assistants should:
+1. **Read before suggesting changes** - Understand existing decisions
+2. **Respect decisions** - Don't suggest alternatives to accepted decisions
+3. **Reference when relevant** - Cite ADRs when explaining code structure
+4. **Suggest updates** - If a decision should be revisited, note it
 
 ---
 
-## ADR-001: [Decision Title]
-
-**Date**: YYYY-MM-DD
-**Status**: Accepted
-**Deciders**: [Who decided]
-
-### Context
-Why did we need to make this decision?
-- Problem statement
-- Constraints
-- Requirements
-
-### Decision
-What did we choose?
-
-**Implementation**:
-```
-Technical details
-```
-
-### Alternatives Considered
-
-**Option A**: Description
-- Pros: X
-- Cons: Y
-- Why rejected: Z
-
-**Option B**: Description
-- Pros: X
-- Cons: Y
-- Why rejected: Z
-
-### Consequences
-
-**Positive**:
-- Benefit 1
-- Benefit 2
-
-**Negative**:
-- Trade-off 1
-- Trade-off 2
-
-**Risks**:
-- Risk 1 and mitigation
-- Risk 2 and mitigation
-
----
-
-## Template for New ADRs
+## ADR Template
 
 ```markdown
 ## ADR-XXX: [Title]
 
 **Date**: YYYY-MM-DD
-**Status**: Proposed | Accepted | Deprecated
+**Status**: Proposed | Accepted | Deprecated | Superseded by ADR-XXX
 
 ### Context
-Problem and constraints
+What is the issue or requirement?
 
 ### Decision
-What we chose
+What did we decide?
 
-### Alternatives
-Options considered and why rejected
+### Alternatives Considered
+What else was considered and why rejected?
 
 ### Consequences
-Positive, negative, risks, mitigations
+- **Positive**: Benefits
+- **Negative**: Trade-offs
+- **Risks**: What could go wrong
 ```
 
 ---
 
-**Usage**: Add new ADR when making significant technical decisions.
-This file is committed to git and shared with the team.
+## Decisions
+
+### ADR-001: [Your First Decision Title]
+
+**Date**: YYYY-MM-DD
+**Status**: Accepted
+
+#### Context
+Describe the situation that required a decision.
+
+#### Decision
+We will use [X] because [Y].
+
+#### Alternatives Considered
+- **Option A**: Why rejected
+- **Option B**: Why rejected
+
+#### Consequences
+- **Positive**: What we gain
+- **Negative**: What we trade off
+
+---
+
+### ADR-002: [Add More Decisions Here]
+
+**Date**: YYYY-MM-DD
+**Status**: Accepted
+
+#### Context
+[Describe the context]
+
+#### Decision
+[What was decided]
+
+---
+
+## Quick Reference
+
+| ADR | Decision | Status |
+|-----|----------|--------|
+| 001 | [Short description] | Accepted |
+| 002 | [Short description] | Accepted |
+
+---
+
+**AI Instructions**: When working on this codebase:
+- Check this file for relevant decisions before suggesting architectural changes
+- If a suggestion conflicts with an ADR, explain the conflict
+- Propose new ADRs for significant changes rather than just making them

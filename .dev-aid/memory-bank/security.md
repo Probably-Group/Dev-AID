@@ -1,89 +1,179 @@
-# Security Patterns & Guidelines
+# Security Guidelines
 
-**Purpose**: Security knowledge base (team-shared)
-**Note**: For personal AI notes, use Claude's built-in memory (`~/.claude/projects/*/memory/`)
-
----
-
-## Security Architecture
-
-### Authentication
-- **Pattern**: [JWT/Sessions/OAuth2]
-- **Implementation**: `src/auth/`
-- **Key Controls**: Short-lived tokens, HTTP-only cookies, HTTPS only
-
-### Authorization
-- **Pattern**: RBAC (Role-Based Access Control)
-- **Roles**: admin, user, guest
-- **Enforcement**: Middleware at route level
-
-### Input Validation
-- **Library**: Zod/Joi
-- **Where**: All API endpoints
-- **Pattern**: Validate at boundary, sanitize before use
+**Purpose**: Security requirements for AI assistants to follow when generating code
+**Used by**: Claude, Gemini, Cursor, and other AI coding assistants
+**Update**: After security reviews or when requirements change
 
 ---
 
-## Known Vulnerabilities & Fixes
+## Security Rules for AI
 
-### VULN-001: [Description]
-**Date Discovered**: YYYY-MM-DD
-**Severity**: Critical | High | Medium | Low
-**Status**: Open | Fixed
+When generating code, AI assistants MUST:
 
-**Issue**: Description of the vulnerability
-
-**Fix**: How it was fixed
-
-**Files Fixed**: `path/to/file.ts`
-**Prevention**: How to prevent in future
+1. **Never hardcode secrets** - Use environment variables
+2. **Always validate input** - At API boundaries
+3. **Use parameterized queries** - Never string concatenation for SQL
+4. **Escape output** - Prevent XSS
+5. **Check authorization** - Before every sensitive operation
 
 ---
 
-## OWASP Top 10 Coverage
+## Input Validation
 
-### A01 - Broken Access Control
-- [ ] RBAC implemented
-- [ ] Route-level authorization
-- [ ] JWT validation
+```typescript
+// ✅ Always validate at API boundaries
+import { z } from 'zod';
 
-### A02 - Cryptographic Failures
-- [ ] HTTPS enforced
-- [ ] Passwords properly hashed
-- [ ] Secrets in environment variables
-- [ ] No sensitive data in logs
+const UserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  age: z.number().int().positive().max(150),
+});
 
-### A03 - Injection
-- [ ] Parameterized queries
-- [ ] Input validation
-- [ ] Output encoding
+// In route handler
+const validated = UserSchema.parse(req.body);
+```
+
+---
+
+## Database Queries
+
+```typescript
+// ❌ NEVER do this - SQL injection vulnerability
+const query = `SELECT * FROM users WHERE id = ${userId}`;
+
+// ✅ Always use parameterized queries
+const user = await db.query('SELECT * FROM users WHERE id = $1', [userId]);
+
+// ✅ Or use ORM with proper escaping
+const user = await prisma.user.findUnique({ where: { id: userId } });
+```
+
+---
+
+## Authentication
+
+```typescript
+// ✅ Secure password handling
+import bcrypt from 'bcrypt';
+
+// Hashing (minimum 12 rounds)
+const hash = await bcrypt.hash(password, 12);
+
+// Verification
+const isValid = await bcrypt.compare(password, hash);
+
+// ❌ Never store plain text passwords
+// ❌ Never log passwords
+// ❌ Never return passwords in API responses
+```
 
 ---
 
 ## Secrets Management
 
-**Never Commit**:
-- API keys
-- Database passwords
-- Private keys
-- OAuth secrets
+```typescript
+// ✅ Use environment variables
+const apiKey = process.env.API_KEY;
 
-**How We Store**:
-- Development: `.env` (gitignored)
-- Production: Secrets manager
-- CI/CD: GitHub/GitLab Secrets
+// ❌ Never hardcode
+const apiKey = 'sk-1234567890abcdef';
+
+// ❌ Never commit .env files
+// .env should be in .gitignore
+```
+
+**Required in .gitignore**:
+```
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+credentials.json
+```
 
 ---
 
-## Security Tools
+## Output Encoding
 
-**Gitleaks**: Secret scanning (git history + current)
-**Trivy**: CVE + Misconfig + Secrets
-**Opengrep**: SAST with 340+ rules
+```typescript
+// ✅ React automatically escapes (safe)
+return <div>{userInput}</div>;
 
-See: `.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md`
+// ❌ Dangerous - XSS vulnerability
+return <div dangerouslySetInnerHTML={{ __html: userInput }} />;
+
+// If you must use dangerouslySetInnerHTML, sanitize first
+import DOMPurify from 'dompurify';
+return <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userInput) }} />;
+```
 
 ---
 
-**Usage**: Reference when implementing security features.
-Update after security reviews, pentests, or incidents.
+## Authorization
+
+```typescript
+// ✅ Always check authorization
+async function deleteUser(requesterId: string, targetUserId: string) {
+  const requester = await getUser(requesterId);
+
+  // Check permission BEFORE action
+  if (requester.role !== 'admin' && requesterId !== targetUserId) {
+    throw new ForbiddenError('Not authorized to delete this user');
+  }
+
+  await db.users.delete(targetUserId);
+}
+```
+
+---
+
+## API Security Headers
+
+```typescript
+// Use helmet.js or set headers manually
+app.use(helmet());
+
+// Or manually:
+res.setHeader('X-Content-Type-Options', 'nosniff');
+res.setHeader('X-Frame-Options', 'DENY');
+res.setHeader('X-XSS-Protection', '1; mode=block');
+res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+```
+
+---
+
+## Rate Limiting
+
+```typescript
+// ✅ Protect sensitive endpoints
+import rateLimit from 'express-rate-limit';
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per window
+  message: 'Too many login attempts, try again later'
+});
+
+app.post('/login', loginLimiter, loginHandler);
+```
+
+---
+
+## Security Scanning
+
+This project uses automated security scanning:
+- **Gitleaks**: Secret detection in git history
+- **Trivy**: CVE + misconfig + secrets scanning
+- **Opengrep**: SAST with 340+ rules
+
+Run manually: `./.dev-aid/scripts/security-scan.sh`
+
+---
+
+**AI Instructions**: When generating code:
+- Follow these security patterns without exception
+- If you're unsure about security implications, flag it
+- Never suggest disabling security features "for simplicity"
+- Always validate untrusted input, even in internal functions

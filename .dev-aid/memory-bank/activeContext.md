@@ -1,46 +1,67 @@
-# Active Context - Team Shared Project State
+# Active Context
 
-**Purpose**: Team-shared project context that gets committed to git.
-**Note**: For personal AI notes, use Claude's built-in memory (`~/.claude/projects/*/memory/MEMORY.md`).
+**Purpose**: Current project state for AI assistants (Claude, Gemini, Cursor, etc.)
+**Auto-loaded**: At session start to provide immediate context
+**Update**: When sprint goals change or significant progress is made
 
 ---
 
-## Current Sprint/Milestone
+## Current Sprint/Focus
 
 ### Active Work
-- [ ] Feature/task currently in progress
-- [ ] Blocked items awaiting resolution
+- [ ] Current feature/task in progress
+- [ ] Next priority item
 
-### Recent Decisions
-- **2026-02-05**: Decision about X - chose Y because Z
-
----
-
-## Known Issues & Blockers
-
-### Open Issues
-1. **Issue**: Description
-   - **Impact**: What's affected
-   - **Workaround**: Temporary solution if any
-
-### Pending Decisions
-1. **Decision needed**: Should we use X or Y?
-   - **Context**: Why we need to decide
-   - **Options**: A, B, C
-   - **Owner**: Who decides
+### Recent Changes
+- **YYYY-MM-DD**: What changed and why
 
 ---
 
 ## Quick Reference
 
-**Key Files**:
-- `path/to/important/file.ts` - What it does
+### Key Commands
+```bash
+# Development
+npm run dev          # Start dev server
+npm run test         # Run tests
+npm run lint         # Lint code
 
-**Environment Setup**:
-- Required env vars: `VAR1`, `VAR2`
-- Local dev command: `npm run dev`
+# Security
+./.dev-aid/scripts/security-scan.sh  # Full security scan
+```
+
+### Important Files
+- `src/config/` - Configuration files
+- `src/api/` - API endpoints
+- `.env.example` - Required environment variables
+
+### Environment Setup
+- Node.js: v20+
+- Package manager: pnpm
+- Required env vars: See `.env.example`
 
 ---
 
-**Update this file**: When sprint goals change or blockers arise.
-**See also**: `decisions.md` for ADRs, `patterns.md` for code patterns.
+## Current Blockers/Issues
+
+### Open Issues
+1. **Issue**: Description
+   - **Workaround**: Temporary solution if any
+
+### Decisions Needed
+1. **Question**: What needs to be decided?
+   - **Context**: Why it matters
+
+---
+
+## Session Notes
+
+Use this section for temporary notes during active development.
+Move permanent knowledge to `patterns.md` or `decisions.md`.
+
+---
+
+**See also**:
+- `patterns.md` - Coding conventions and patterns
+- `decisions.md` - Architecture decisions (ADRs)
+- `security.md` - Security guidelines

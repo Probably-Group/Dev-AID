@@ -314,7 +314,7 @@ Core skills **actually run tools** automatically (tests, linters, type checkers)
 - **Minimal** (default): code-reviewer + secret-scanner = 500 tokens (0.25%)
 - **Maximum** (all enabled): 1,250 tokens (0.625%)
 
-### 🎓 **72 Expert Skills** - Domain Expertise (🆕 Hook-Based Auto-Loading)
+### 🎓 **73 Expert Skills** - Domain Expertise (🆕 Hook-Based Auto-Loading)
 **Purpose**: Provide knowledge, best practices, and architectural guidance
 
 Expert skills **give advice** (not automated execution) and auto-load based on context:
@@ -325,7 +325,7 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - **Universal architecture** - Same auto-loading logic across all AI providers
 - **Manual activation** - Still available via skill name when needed
 - **Custom skills** - Generate new skills with `/dev-aid-build-skill`
-- **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](/.dev-aid/providers/claude/.claude/skills/expert)
+- **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](.dev-aid/providers/claude/.claude/skills/expert)
 
 **Key Difference:**
 - **Core skills** → Execute tools: "❌ Type error at line 45"
@@ -393,7 +393,7 @@ dev-aid-resolve-issue --issue 123 --mode ensemble
 dev-aid-fix-conflicts --strategy smart
 
 # Install git hooks for automatic conflict detection
-.dev-aid/automation/git-hooks/install-hooks.sh
+.dev-aid/automation/git-hooks/install.sh
 ```
 
 ### 🚀 **Productivity Tools** (NEW!)
@@ -770,6 +770,12 @@ AI: *uses local RAG, returns relevant code*
 > 💡 **How does the AI know to use local search?** See [How Local Search Works](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md) for the complete explanation of MCP integration and automatic tool selection.
 
 ### 🔀 **Router Commands** (Multi-AI Orchestration)
+
+> **Note**: Command names vary by AI provider:
+> - **Claude Code**: `/dev-aid-router-*` (e.g., `/dev-aid-router-challenger`)
+> - **Gemini CLI**: `aid-router-*` (e.g., `aid-router-challenger`)
+>
+> Examples below use Claude Code format.
 
 #### `/dev-aid-router-challenger`
 **Two-AI review workflow**

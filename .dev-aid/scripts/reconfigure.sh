@@ -350,21 +350,19 @@ You are the **primary code generator** in this setup.
 ### Active Sprint Goals
 See: \`.dev-aid/memory-bank/activeContext.md\`
 
-## 🧠 Memory Bank (Institutional Knowledge)
+## 🧠 Project Knowledge Base
 
-The project maintains a **Memory Bank** for persistent context across sessions:
+**IMPORTANT**: Before starting work, read the memory-bank files for project conventions:
 
-| File | Purpose | Auto-Load |
-|------|---------|-----------|
-| \`activeContext.md\` | Current sprint/session state | ✅ Yes |
-| \`patterns.md\` | Proven code patterns & anti-patterns | On-demand |
-| \`decisions.md\` | Architecture Decision Records (ADRs) | On-demand |
-| \`security.md\` | Security context, OWASP coverage | On-demand |
-| \`performance.md\` | Performance baselines & bottlenecks | On-demand |
-| \`testing.md\` | Test strategies, coverage goals, TDD | On-demand |
-| \`chaos.md\` | Chaos experiments, resilience tests | On-demand |
+@.dev-aid/memory-bank/patterns.md - Coding conventions (MUST follow)
+@.dev-aid/memory-bank/security.md - Security rules (MUST follow)
+@.dev-aid/memory-bank/decisions.md - Architecture decisions (respect these)
 
-**Location**: \`.dev-aid/memory-bank/\`
+**Optional context** (read when relevant):
+- \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
+- \`.dev-aid/memory-bank/testing.md\` - Testing standards
+- \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+- \`.dev-aid/memory-bank/chaos.md\` - Error handling patterns
 
 ## 🛡️ Security & Quality Standards
 
@@ -448,21 +446,20 @@ You are the **massive context specialist** in this setup.
 ### Key Dependencies
 $DEPENDENCIES
 
-## 🧠 Memory Bank (Institutional Knowledge)
+## 🧠 Project Knowledge Base (READ FIRST)
 
-The project maintains a **Memory Bank** for persistent context across sessions:
+Before starting work, read these memory-bank files for project conventions:
 
-| File | Purpose |
-|------|---------|
-| `activeContext.md` | Current sprint/session state |
-| `patterns.md` | Proven code patterns & anti-patterns |
-| `decisions.md` | Architecture Decision Records (ADRs) |
-| `security.md` | Security context, OWASP coverage |
-| `performance.md` | Performance baselines & bottlenecks |
-| `testing.md` | Test strategies, coverage goals |
-| `chaos.md` | Chaos experiments, resilience tests |
+**MUST READ**:
+- \`.dev-aid/memory-bank/patterns.md\` - Coding conventions and style guide
+- \`.dev-aid/memory-bank/security.md\` - Security rules (non-negotiable)
+- \`.dev-aid/memory-bank/decisions.md\` - Architecture decisions (ADRs)
 
-**Location**: \`.dev-aid/memory-bank/\`
+**Read when relevant**:
+- \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
+- \`.dev-aid/memory-bank/testing.md\` - Testing standards
+- \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+- \`.dev-aid/memory-bank/chaos.md\` - Error handling patterns
 
 ## 💡 When to Use Your Strengths
 
@@ -541,21 +538,20 @@ You are the **documentation and general tasks specialist** in this setup.
 - Tone: Technical and clear
 - Format: Markdown (GitHub-flavored)
 
-## 🧠 Memory Bank (Institutional Knowledge)
+## 🧠 Project Knowledge Base (READ FIRST)
 
-The project maintains a **Memory Bank** for persistent context across sessions:
+Before starting work, read these memory-bank files for project conventions:
 
-| File | Purpose |
-|------|---------|
-| `activeContext.md` | Current sprint/session state |
-| `patterns.md` | Proven code patterns & anti-patterns |
-| `decisions.md` | Architecture Decision Records (ADRs) |
-| `security.md` | Security context, OWASP coverage |
-| `performance.md` | Performance baselines & bottlenecks |
-| `testing.md` | Test strategies, coverage goals |
-| `chaos.md` | Chaos experiments, resilience tests |
+**MUST READ**:
+- \`.dev-aid/memory-bank/patterns.md\` - Coding conventions and style guide
+- \`.dev-aid/memory-bank/security.md\` - Security rules (non-negotiable)
+- \`.dev-aid/memory-bank/decisions.md\` - Architecture decisions (ADRs)
 
-**Location**: \`.dev-aid/memory-bank/\`
+**Read when relevant**:
+- \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
+- \`.dev-aid/memory-bank/testing.md\` - Testing standards
+- \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+- \`.dev-aid/memory-bank/chaos.md\` - Error handling patterns
 
 ## 💡 When to Use Your Strengths
 

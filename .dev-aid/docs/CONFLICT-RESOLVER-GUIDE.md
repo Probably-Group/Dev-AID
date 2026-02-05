@@ -163,7 +163,7 @@ Dev-AID provides git hooks that automatically detect conflicts.
 
 ```bash
 # Install hooks
-.dev-aid/automation/git-hooks/install-hooks.sh
+.dev-aid/automation/git-hooks/install.sh
 ```
 
 ### Automatic Detection

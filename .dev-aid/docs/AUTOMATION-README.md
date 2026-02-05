@@ -33,7 +33,7 @@ Local hooks that enhance your development workflow with automatic conflict detec
 ### 1. Install Git Hooks
 
 ```bash
-.dev-aid/automation/git-hooks/install-hooks.sh
+.dev-aid/automation/git-hooks/install.sh
 ```
 
 ### 2. Resolve an Issue
@@ -169,7 +169,7 @@ Dev-AID Automation
 │
 ├── Git Hooks
 │   ├── post-merge               # Conflict detection
-│   └── install-hooks.sh         # Installation script
+│   └── install.sh         # Installation script
 │
 ├── GitHub Actions
 │   ├── auto-triage-issues.yml   # Issue triage
@@ -339,7 +339,7 @@ echo $GOOGLE_API_KEY
 
 Reinstall:
 ```bash
-.dev-aid/automation/git-hooks/install-hooks.sh
+.dev-aid/automation/git-hooks/install.sh
 ```
 
 Verify installation:

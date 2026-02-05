@@ -13,8 +13,8 @@ The architect scans for:
 *   `package.json` -> Node.js workflows (npm test, npm audit).
 *   `pyproject.toml` -> Python workflows (pytest, ruff, mypy).
 *   `Cargo.toml` -> Rust workflows (cargo test, clippy).
-*   `Dockerfile` -> Container scanning (trivy, hadolint).
-*   `terraform/` -> IaC scanning (checkov).
+*   `Dockerfile` -> Container + misconfig scanning (Trivy).
+*   `terraform/` -> IaC misconfig scanning (Trivy).
 
 ## Generated Components
 1.  **PR Check (`pr-check.yml`)**:

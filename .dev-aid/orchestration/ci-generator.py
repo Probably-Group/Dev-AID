@@ -3,12 +3,10 @@
 Auto-Generate CI/CD Workflows
 
 Detects project context and generates production-ready GitHub Actions workflows
-with comprehensive, auto-updating security scanning (5 tools):
-- Gitleaks (secrets, 160+ patterns)
-- Opengrep (SAST, OWASP Top 10)
-- Trivy (3-in-1: vulnerabilities + misconfigurations + secrets)
-- Hadolint (Dockerfile linting, warnings + errors)
-- Checkov (IaC security with external modules)
+with comprehensive, auto-updating security scanning (3 tools):
+- Gitleaks (secrets, git history + current files, 160+ patterns)
+- Trivy (CVE + Misconfig + Secrets: dependencies, Dockerfiles, IaC)
+- Opengrep (SAST with 340+ rules: OWASP Top 10, CWE Top 25, CI/CD security)
 
 All critical findings FAIL the workflow (no continue-on-error bypasses).
 All tools auto-update their databases/rules for latest threat detection.
@@ -472,12 +470,10 @@ class CIGenerator:
             print(f"   {cmd_type}: {cmd}")
 
         print("\n✅ Done! Workflow includes:")
-        print("   - 🔒 Comprehensive security scanning (5 tools, auto-updating):")
-        print("     • Gitleaks - Secret scanning (160+ patterns, auto-updates)")
-        print("     • Opengrep - SAST (OWASP Top 10, auto-fetches rules)")
-        print("     • Trivy - 3-in-1: vulnerabilities + misconfigurations + secrets")
-        print("     • Hadolint - Dockerfile linting (catches warnings + errors)")
-        print("     • Checkov - IaC security (with external modules)")
+        print("   - 🔒 Comprehensive security scanning (3 tools, auto-updating):")
+        print("     • Gitleaks - Secret scanning (git history + current, 160+ patterns)")
+        print("     • Trivy - CVE + Misconfig + Secrets (deps, Dockerfiles, IaC)")
+        print("     • Opengrep - SAST with 340+ rules (OWASP, CWE Top 25, CI/CD)")
         print("   - 🔍 Linting and type checking")
         print("   - 🧪 Testing across multiple versions")
         if context["has_docker"]:

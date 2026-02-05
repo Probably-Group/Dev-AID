@@ -107,11 +107,9 @@ check_tool() {
     fi
 }
 
-check_tool "opengrep" "Opengrep"
 check_tool "gitleaks" "Gitleaks"
 check_tool "trivy" "Trivy"
-check_tool "hadolint" "Hadolint (optional)"
-check_tool "checkov" "Checkov (optional)"
+check_tool "opengrep" "Opengrep"
 echo ""
 
 if [[ $TOOLS_MISSING -gt 0 ]]; then

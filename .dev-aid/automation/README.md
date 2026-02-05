@@ -21,7 +21,7 @@ Automated security and quality checks for your development workflow.
 ```
 automation/
 ├── tools/
-│   └── install-security-tools.sh    # Installs Opengrep, Gitleaks, Trivy, Hadolint, Checkov
+│   └── install-security-tools.sh    # Installs Gitleaks, Trivy, Opengrep
 ├── git-hooks/
 │   ├── pre-commit                   # Fast checks (~10s)
 │   ├── pre-push                     # Thorough checks (~60s)
@@ -33,13 +33,11 @@ automation/
 
 ## Security Tools
 
-| Tool | Purpose | Speed |
-|------|---------|-------|
-| **Opengrep** | SAST (code vulnerabilities) | Fast |
-| **Gitleaks** | Secret scanning | Very Fast |
-| **Trivy** | Dependencies + Containers + IaC | Fast |
-| **Hadolint** | Dockerfile linting | Very Fast |
-| **Checkov** | IaC scanning | Medium |
+| Tool | Purpose | Scan Types |
+|------|---------|------------|
+| **Gitleaks** | Secret scanning | Git history + current files |
+| **Trivy** | Multi-scanner | CVE, Misconfig, Secrets (deps, Dockerfiles, IaC) |
+| **Opengrep** | SAST (340+ rules) | OWASP Top 10, CWE Top 25, CI/CD security |
 
 ## Automation Tiers
 
@@ -50,16 +48,14 @@ automation/
 
 ### Tier 2: Pre-Push (~60s)
 - ✅ Full secret scan + git history
-- ✅ Complete SAST scan
-- ✅ Dependency scan (HIGH + CRITICAL)
-- ✅ Dockerfile lint
+- ✅ Complete SAST scan (340+ rules)
+- ✅ CVE + Misconfig scan (HIGH + CRITICAL)
 
 ### Tier 3: CI/CD (~3-5 min)
 - ✅ All above checks
-- ✅ Container scanning
-- ✅ IaC scanning (Checkov)
+- ✅ Full misconfig scan (Dockerfiles, IaC)
 - ✅ License compliance
-- ✅ SBOM generation
+- ✅ SBOM generation (CycloneDX + SPDX)
 
 ## Documentation
 

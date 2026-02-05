@@ -1,4 +1,5 @@
 # Dev-AID Security Scan for GitLab CI
+# Tools: Gitleaks (secrets), Trivy (CVE + misconfig + secrets), Opengrep (SAST 340+ rules)
 # Copy this file to .gitlab-ci.yml in your project root
 
 stages:
@@ -7,7 +8,6 @@ stages:
 variables:
   # Tool versions
   GITLEAKS_VERSION: "8.18.4"
-  HADOLINT_VERSION: "2.12.0"
 
 # Secret Scanning with Gitleaks
 gitleaks:
@@ -36,40 +36,26 @@ gitleaks:
     expire_in: 30 days
   allow_failure: false
 
-# SAST with Opengrep
-opengrep:
-  stage: security
-  image: python:3.11-slim
-  before_script:
-    - curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
-    - export PATH="$HOME/.local/bin:$PATH"
-  script:
-    - opengrep scan --config=auto --json --output opengrep-report.json .
-    - opengrep scan --config=auto --sarif --output gl-sast-report.json .
-  artifacts:
-    reports:
-      sast: gl-sast-report.json
-    paths:
-      - opengrep-report.json
-      - gl-sast-report.json
-    expire_in: 30 days
-  allow_failure: false
-
-# Dependency Vulnerability Scanning with Trivy
-trivy-dependencies:
+# CVE + Misconfig + Secrets Scanning with Trivy
+trivy-comprehensive:
   stage: security
   image:
     name: aquasec/trivy:latest
     entrypoint: [""]
   script:
-    - trivy fs --scanners vuln --severity HIGH,CRITICAL --format json --output trivy-fs-report.json .
-    - trivy fs --scanners vuln --severity HIGH,CRITICAL --format template --template "@contrib/gitlab.tpl" --output gl-dependency-scanning-report.json .
+    - trivy fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --format json --output trivy-fs-report.json .
+    - trivy fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --format template --template "@contrib/gitlab.tpl" --output gl-dependency-scanning-report.json .
     - |
       VULNS=$(cat trivy-fs-report.json | jq '[.Results[]?.Vulnerabilities[]?] | length')
-      if [ "$VULNS" -gt 0 ]; then
-        echo "⚠️ $VULNS vulnerability(ies) found"
-      else
-        echo "✅ No vulnerabilities found"
+      MISCONFIGS=$(cat trivy-fs-report.json | jq '[.Results[]?.Misconfigurations[]?] | length')
+      SECRETS=$(cat trivy-fs-report.json | jq '[.Results[]?.Secrets[]?] | length')
+      echo "🛡️ Trivy: $VULNS CVEs, $MISCONFIGS misconfigs, $SECRETS secrets"
+
+      # Fail on critical CVEs or any secrets
+      CRITICAL_CVE=$(cat trivy-fs-report.json | jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length')
+      if [ "$CRITICAL_CVE" -gt 0 ] || [ "$SECRETS" -gt 0 ]; then
+        echo "❌ Critical issues found!"
+        exit 1
       fi
   artifacts:
     reports:
@@ -78,7 +64,7 @@ trivy-dependencies:
       - trivy-fs-report.json
       - gl-dependency-scanning-report.json
     expire_in: 30 days
-  allow_failure: true
+  allow_failure: false
 
 # Container Scanning with Trivy
 trivy-container:
@@ -97,8 +83,8 @@ trivy-container:
     - |
       if [ -f "Dockerfile" ]; then
         docker build -t $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA .
-        trivy image --severity HIGH,CRITICAL --format json --output trivy-image-report.json $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
-        trivy image --severity HIGH,CRITICAL --format template --template "@contrib/gitlab.tpl" --output gl-container-scanning-report.json $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+        trivy image --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --format json --output trivy-image-report.json $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
+        trivy image --scanners vuln,misconfig,secret --severity HIGH,CRITICAL --format template --template "@contrib/gitlab.tpl" --output gl-container-scanning-report.json $CI_PROJECT_NAME:$CI_COMMIT_SHORT_SHA
       else
         echo "No Dockerfile found, skipping container scan"
       fi
@@ -114,56 +100,37 @@ trivy-container:
       - Dockerfile
   allow_failure: true
 
-# Dockerfile Linting with Hadolint
-hadolint:
-  stage: security
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache wget
-    - wget -q https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64 -O hadolint
-    - chmod +x hadolint
-    - mv hadolint /usr/local/bin/
-  script:
-    - hadolint Dockerfile --format json > hadolint-report.json || true
-    - |
-      ERRORS=$(cat hadolint-report.json | jq '[.[] | select(.level == "error")] | length')
-      if [ "$ERRORS" -gt 0 ]; then
-        echo "❌ $ERRORS Dockerfile error(s)"
-        exit 1
-      else
-        echo "✅ Dockerfile looks good"
-      fi
-  artifacts:
-    paths:
-      - hadolint-report.json
-    expire_in: 30 days
-  only:
-    exists:
-      - Dockerfile
-  allow_failure: true
-
-# IaC Scanning with Checkov
-checkov:
+# SAST with Opengrep (340+ rules)
+opengrep:
   stage: security
   image: python:3.11-slim
   before_script:
-    - pip install checkov
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+    - export PATH="$HOME/.local/bin:$HOME/.opengrep/bin:$PATH"
   script:
-    - checkov -d . --quiet --compact --output json > checkov-report.json || true
-    - checkov -d . --quiet --output junitxml --output-file checkov-junit.xml || true
     - |
-      if [ -f "checkov-report.json" ]; then
-        FAILED=$(cat checkov-report.json | jq '.summary.failed')
-        echo "ℹ️ Checkov: $FAILED check(s) failed"
+      opengrep scan \
+        --config=p/default \
+        --config=p/security-audit \
+        --config=p/secrets \
+        --config=p/ci \
+        --config=p/cwe-top-25 \
+        --json --output opengrep-report.json .
+    - |
+      FINDINGS=$(cat opengrep-report.json | jq '.results | length')
+      ERRORS=$(cat opengrep-report.json | jq '[.results[] | select(.extra.severity == "ERROR")] | length')
+      echo "🔍 Opengrep: $FINDINGS finding(s) ($ERRORS critical)"
+
+      if [ "$ERRORS" -gt 0 ]; then
+        echo "❌ Critical code vulnerabilities found!"
+        exit 1
       fi
   artifacts:
-    reports:
-      junit: checkov-junit.xml
     paths:
-      - checkov-report.json
-      - checkov-junit.xml
+      - opengrep-report.json
     expire_in: 30 days
-  allow_failure: true
+  allow_failure: false
 
 # Security Summary Job
 security-summary:
@@ -171,14 +138,14 @@ security-summary:
   image: alpine:latest
   needs:
     - gitleaks
+    - trivy-comprehensive
     - opengrep
-    - trivy-dependencies
   before_script:
     - apk add --no-cache jq
   script:
     - |
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-      echo "  🔒 Security Scan Summary"
+      echo "  🔒 Security Scan Summary (3 tools)"
       echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       echo ""
 
@@ -193,17 +160,20 @@ security-summary:
         fi
       fi
 
-      # Opengrep
-      if [ -f "opengrep-report.json" ]; then
-        FINDINGS=$(cat opengrep-report.json | jq '.results | length')
-        echo "🔍 Opengrep: $FINDINGS finding(s)"
-      fi
-
       # Trivy
       if [ -f "trivy-fs-report.json" ]; then
         VULNS=$(cat trivy-fs-report.json | jq '[.Results[]?.Vulnerabilities[]?] | length')
+        MISCONFIGS=$(cat trivy-fs-report.json | jq '[.Results[]?.Misconfigurations[]?] | length')
+        SECRETS=$(cat trivy-fs-report.json | jq '[.Results[]?.Secrets[]?] | length')
         CRITICAL=$(cat trivy-fs-report.json | jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length')
-        echo "🛡️ Trivy: $VULNS vulnerability(ies) ($CRITICAL critical)"
+        echo "🛡️ Trivy: $VULNS CVEs ($CRITICAL critical), $MISCONFIGS misconfigs, $SECRETS secrets"
+      fi
+
+      # Opengrep
+      if [ -f "opengrep-report.json" ]; then
+        FINDINGS=$(cat opengrep-report.json | jq '.results | length')
+        ERRORS=$(cat opengrep-report.json | jq '[.results[] | select(.extra.severity == "ERROR")] | length')
+        echo "🔍 Opengrep: $FINDINGS finding(s) ($ERRORS critical) - 340+ rules"
       fi
 
       echo ""

@@ -1,6 +1,7 @@
 name: Dev-AID Security Scan
 
 # Comprehensive security scan for releases and post-merge validation
+# Tools: Gitleaks (secrets), Trivy (CVE + misconfig + secrets), Opengrep (SAST 340+ rules)
 # For PR checks, see pr-check.yml (faster, lighter validation)
 on:
   push:
@@ -26,19 +27,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install Security Tools
+      - name: Install Opengrep
         run: |
-          pip install checkov semgrep
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
           echo "$HOME/.local/bin" >> $GITHUB_PATH
+          echo "$HOME/.opengrep/bin" >> $GITHUB_PATH
 
       - name: Run Gitleaks (Secret Scanning)
         id: gitleaks
@@ -46,20 +43,16 @@ jobs:
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_VERSION: "latest"
 
-      - name: Run Semgrep (SAST)
-        id: semgrep
-        continue-on-error: true
-        run: |
-          semgrep scan --config=auto --sarif --output=semgrep.sarif .
-          semgrep scan --config=auto --json --output=semgrep.json .
-
-      - name: Run Trivy (Dependency Scanning - JSON)
-        uses: aquasecurity/trivy-action@master
+      - name: Run Trivy (CVE + Misconfig + Secrets)
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: latest
           scan-type: 'fs'
           scan-ref: '.'
+          scanners: 'vuln,misconfig,secret'
           format: 'json'
           output: 'trivy-fs.json'
           severity: 'HIGH,CRITICAL'
@@ -69,32 +62,30 @@ jobs:
         continue-on-error: true
         run: docker build -t temp-image:latest .
 
-      - name: Run Trivy (Container Scanning - JSON)
+      - name: Run Trivy (Container Scanning)
         if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
+          version: latest
           scan-type: 'image'
           image-ref: 'temp-image:latest'
+          scanners: 'vuln,misconfig,secret'
           format: 'json'
           output: 'trivy-image.json'
           severity: 'HIGH,CRITICAL'
 
-      - name: Run Hadolint (Dockerfile Linting)
-        id: hadolint
-        uses: hadolint/hadolint-action@v3.1.0
-        continue-on-error: true
-        if: hashFiles('Dockerfile') != ''
-        with:
-          dockerfile: Dockerfile
-          format: json
-          no-fail: true
-
-      - name: Run Checkov (IaC Scanning)
-        id: checkov
+      - name: Run Opengrep (SAST - 340+ rules)
+        id: opengrep
         continue-on-error: true
         run: |
-          checkov -d . --quiet --compact --output json > checkov-report.json || true
+          opengrep \
+            --config=p/default \
+            --config=p/security-audit \
+            --config=p/secrets \
+            --config=p/ci \
+            --config=p/cwe-top-25 \
+            --json --output=opengrep.json .
 
       # Disabled SARIF upload for private repo compatibility
       # - name: Upload SARIF results
@@ -108,7 +99,6 @@ jobs:
           name: security-reports
           path: |
             *-report.json
-            *.sarif
             *.json
           retention-days: 30
 
@@ -128,28 +118,18 @@ jobs:
             fi
           fi
 
-          # Semgrep
-          if [ -f "semgrep.json" ]; then
-            FINDINGS=$(jq '.results | length' semgrep.json)
-            echo "## 🔍 Semgrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
-          fi
-
           # Trivy
           if [ -f "trivy-fs.json" ]; then
             VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy-fs.json)
-            echo "## 🛡️ Trivy: $VULNS vulnerability(ies)" >> $GITHUB_STEP_SUMMARY
+            MISCONFIGS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-fs.json)
+            SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-fs.json)
+            echo "## 🛡️ Trivy: $VULNS CVEs, $MISCONFIGS misconfigs, $SECRETS secrets" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Hadolint
-          if [ -f "hadolint-report.json" ]; then
-            ISSUES=$(jq 'length' hadolint-report.json)
-            echo "## 🐳 Hadolint: $ISSUES Dockerfile issue(s)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Checkov
-          if [ -f "checkov-report.json" ]; then
-            FAILED=$(jq 'if type == "array" then length else .summary.failed // 0 end' checkov-report.json)
-            echo "## ☸️ Checkov: $FAILED IaC check(s) failed" >> $GITHUB_STEP_SUMMARY
+          # Opengrep
+          if [ -f "opengrep.json" ]; then
+            FINDINGS=$(jq '.results | length' opengrep.json)
+            echo "## 🔍 Opengrep: $FINDINGS finding(s) (340+ rules)" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Check for critical issues
@@ -158,25 +138,42 @@ jobs:
           CRITICAL_ISSUES=0
 
           # Check Gitleaks
-          if [ "$GITLEAKS_FAILED" = "true" ]; then
-            echo "❌ Secrets found!"
+          if [ -f "gitleaks-report.json" ]; then
+            LEAKS=$(jq 'length' gitleaks-report.json)
+            if [ "$LEAKS" -gt 0 ]; then
+              echo "❌ $LEAKS secret(s) found!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+          elif [ "${{ steps.gitleaks.outcome }}" = "failure" ]; then
+            echo "❌ Gitleaks scan failed!"
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Semgrep for ERROR severity
-          if [ -f "semgrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
-            if [ "$CRITICAL" -gt 0 ]; then
-              echo "❌ $CRITICAL critical code vulnerabilities!"
+          # Check Trivy for CRITICAL CVEs, misconfigs, secrets
+          if [ -f "trivy-fs.json" ]; then
+            CRITICAL_CVE=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            CRITICAL_MISCONFIG=$(jq -r '[.Results[]?.Misconfigurations[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            SECRETS=$(jq -r '[.Results[]?.Secrets[]?] | length' trivy-fs.json)
+
+            if [ "$CRITICAL_CVE" -gt 0 ]; then
+              echo "❌ $CRITICAL_CVE critical CVEs!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+            if [ "$CRITICAL_MISCONFIG" -gt 0 ]; then
+              echo "❌ $CRITICAL_MISCONFIG critical misconfigurations!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+            if [ "$SECRETS" -gt 0 ]; then
+              echo "❌ $SECRETS secrets found in files!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
             fi
           fi
 
-          # Check Trivy for CRITICAL CVEs
-          if [ -f "trivy-fs.json" ]; then
-            CRITICAL_CVE=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
-            if [ "$CRITICAL_CVE" -gt 0 ]; then
-              echo "❌ $CRITICAL_CVE critical CVEs!"
+          # Check Opengrep for ERROR severity
+          if [ -f "opengrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "❌ $CRITICAL critical code vulnerabilities!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
             fi
           fi

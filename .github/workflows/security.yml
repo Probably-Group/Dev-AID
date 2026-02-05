@@ -3,6 +3,7 @@ name: Dev-AID Security Scan
 # Comprehensive security scan for releases, version tags, and scheduled maintenance
 # Runs on: releases, version tags, manual trigger, and weekly schedule
 # For PR checks, see pr-check.yml (faster, lighter validation)
+# Tools: Gitleaks (secrets), Trivy (CVE + misconfig + secrets), Opengrep (SAST 340+ rules)
 on:
   push:
     tags:
@@ -44,15 +45,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.11'
-
-      - name: Install Security Tools
+      - name: Install Opengrep
         run: |
-          # Install Checkov (latest stable)
-          pip install checkov
           # Install Opengrep (open-source fork of Semgrep OSS) via official method - latest
           curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
           # Add to PATH
@@ -67,30 +61,32 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_VERSION: "latest"
 
-      - name: Run Opengrep (SAST)
+      - name: Run Opengrep (SAST - 340+ rules)
         id: opengrep
         continue-on-error: true
         run: |
-          # Use explicit, strict rulesets instead of --config=auto
-          # This ensures high-value security and quality checks specific to our stack
-          # Note: SARIF format excluded (requires GitHub Advanced Security license)
-          # Opengrep is the open-source fork of Semgrep OSS, maintaining compatibility with existing rules
+          # Comprehensive rulesets (340+ rules):
+          # - p/default: Semgrep curated defaults
+          # - p/security-audit: Comprehensive security patterns
+          # - p/secrets: Hardcoded credentials
+          # - p/ci: CI/CD security (GitHub Actions)
+          # - p/cwe-top-25: MITRE CWE Top 25
           opengrep \
+            --config=p/default \
             --config=p/security-audit \
-            --config=p/python \
-            --config=p/bash \
-            --config=p/owasp-top-10 \
             --config=p/secrets \
-            --json --output=semgrep.json .
+            --config=p/ci \
+            --config=p/cwe-top-25 \
+            --json --output=opengrep.json .
 
-      - name: Run Trivy (Dependency Scanning - JSON)
+      - name: Run Trivy (CVE + Misconfig + Secrets)
         uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
         with:
           version: latest
           scan-type: 'fs'
           scan-ref: '.'
-          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
+          scanners: 'vuln,misconfig,secret'  # Comprehensive: CVEs + Dockerfiles/IaC + secrets
           format: 'json'
           output: 'trivy-fs.json'
           severity: 'HIGH,CRITICAL'
@@ -100,7 +96,7 @@ jobs:
         continue-on-error: true
         run: docker build -t temp-image:latest .
 
-      - name: Run Trivy (Container Scanning - JSON)
+      - name: Run Trivy (Container Scanning)
         if: hashFiles('Dockerfile') != ''
         uses: aquasecurity/trivy-action@0.33.1
         continue-on-error: true
@@ -108,27 +104,10 @@ jobs:
           version: latest
           scan-type: 'image'
           image-ref: 'temp-image:latest'
-          scanners: 'vuln,config,secret'  # Comprehensive: vulnerabilities + misconfigurations + secrets
+          scanners: 'vuln,misconfig,secret'
           format: 'json'
           output: 'trivy-image.json'
           severity: 'HIGH,CRITICAL'
-
-      - name: Run Hadolint (Dockerfile Linting)
-        id: hadolint
-        uses: hadolint/hadolint-action@v3.3.0
-        continue-on-error: true
-        if: hashFiles('Dockerfile') != ''
-        with:
-          dockerfile: Dockerfile
-          format: json
-          no-fail: true
-          failure-threshold: warning  # Catch warnings + errors (not just errors)
-
-      - name: Run Checkov (IaC Scanning)
-        id: checkov
-        continue-on-error: true
-        run: |
-          checkov -d . --download-external-modules --quiet --compact --output json > checkov-report.json || true
 
       # Disabled SARIF upload for private repo compatibility
       # - name: Upload SARIF results
@@ -161,28 +140,18 @@ jobs:
             fi
           fi
 
-          # Opengrep
-          if [ -f "semgrep.json" ]; then
-            FINDINGS=$(jq '.results | length' semgrep.json)
-            echo "## 🔍 Opengrep: $FINDINGS finding(s)" >> $GITHUB_STEP_SUMMARY
-          fi
-
           # Trivy
           if [ -f "trivy-fs.json" ]; then
             VULNS=$(jq '[.Results[]?.Vulnerabilities[]?] | length' trivy-fs.json)
-            echo "## 🛡️ Trivy: $VULNS vulnerability(ies)" >> $GITHUB_STEP_SUMMARY
+            MISCONFIGS=$(jq '[.Results[]?.Misconfigurations[]?] | length' trivy-fs.json)
+            SECRETS=$(jq '[.Results[]?.Secrets[]?] | length' trivy-fs.json)
+            echo "## 🛡️ Trivy: $VULNS CVEs, $MISCONFIGS misconfigs, $SECRETS secrets" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Hadolint
-          if [ -f "hadolint-report.json" ]; then
-            ISSUES=$(jq 'length' hadolint-report.json)
-            echo "## 🐳 Hadolint: $ISSUES Dockerfile issue(s)" >> $GITHUB_STEP_SUMMARY
-          fi
-
-          # Checkov
-          if [ -f "checkov-report.json" ]; then
-            FAILED=$(jq 'if type == "array" then length else .summary.failed // 0 end' checkov-report.json)
-            echo "## ☸️ Checkov: $FAILED IaC check(s) failed" >> $GITHUB_STEP_SUMMARY
+          # Opengrep
+          if [ -f "opengrep.json" ]; then
+            FINDINGS=$(jq '.results | length' opengrep.json)
+            echo "## 🔍 Opengrep: $FINDINGS finding(s) (340+ rules)" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Check for critical issues
@@ -202,45 +171,32 @@ jobs:
             CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
           fi
 
-          # Check Opengrep for ERROR severity
-          if [ -f "semgrep.json" ]; then
-            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' semgrep.json)
-            if [ "$CRITICAL" -gt 0 ]; then
-              echo "❌ $CRITICAL critical code vulnerabilities!"
-              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
-            fi
-          fi
-
-          # Check Trivy for CRITICAL CVEs
+          # Check Trivy for CRITICAL CVEs and secrets
           if [ -f "trivy-fs.json" ]; then
             CRITICAL_CVE=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            CRITICAL_MISCONFIG=$(jq -r '[.Results[]?.Misconfigurations[]? | select(.Severity == "CRITICAL")] | length' trivy-fs.json)
+            SECRETS=$(jq -r '[.Results[]?.Secrets[]?] | length' trivy-fs.json)
+
             if [ "$CRITICAL_CVE" -gt 0 ]; then
               echo "❌ $CRITICAL_CVE critical CVEs!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
             fi
-          fi
-
-          # Check Hadolint for ERROR severity issues
-          if [ -f "hadolint-report.json" ]; then
-            # Hadolint JSON format: array of issues with "level" field
-            ERRORS=$(jq -r '[.[] | select(.level == "error")] | length' hadolint-report.json 2>/dev/null || echo "0")
-            if [ "$ERRORS" -gt 0 ]; then
-              echo "❌ $ERRORS critical Dockerfile issue(s)!"
+            if [ "$CRITICAL_MISCONFIG" -gt 0 ]; then
+              echo "❌ $CRITICAL_MISCONFIG critical misconfigurations!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
+            fi
+            if [ "$SECRETS" -gt 0 ]; then
+              echo "❌ $SECRETS secrets found in files!"
               CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
             fi
           fi
 
-          # Check Checkov for CRITICAL/HIGH severity failures
-          if [ -f "checkov-report.json" ]; then
-            # Checkov can output array or object format, handle both
-            CHECKOV_TYPE=$(jq -r 'type' checkov-report.json)
-            if [ "$CHECKOV_TYPE" = "object" ]; then
-              # Object format: check summary.failed and results for severity
-              CRITICAL_IaC=$(jq -r '[.results.failed_checks[]? | select(.severity == "CRITICAL" or .severity == "HIGH")] | length' checkov-report.json 2>/dev/null || echo "0")
-              if [ "$CRITICAL_IaC" -gt 0 ]; then
-                echo "❌ $CRITICAL_IaC critical/high IaC issue(s)!"
-                CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
-              fi
+          # Check Opengrep for ERROR severity
+          if [ -f "opengrep.json" ]; then
+            CRITICAL=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep.json)
+            if [ "$CRITICAL" -gt 0 ]; then
+              echo "❌ $CRITICAL critical code vulnerabilities!"
+              CRITICAL_ISSUES=$((CRITICAL_ISSUES + 1))
             fi
           fi
 

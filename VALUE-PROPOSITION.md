@@ -1420,8 +1420,8 @@ dev-aid-fix-conflicts --strategy smart
 **Pre-push hooks:**
 - Full SAST scan
 - Git history scan
-- Container security (Hadolint + Trivy)
-- IaC security (Checkov)
+- CVE + Misconfig scanning (Trivy)
+- SAST with 340+ rules (Opengrep)
 
 **Isolated dependencies:**
 - Router: `.dev-aid/orchestration/.venv/`
@@ -2088,7 +2088,7 @@ Built on excellent open-source foundations:
 - [FAISS](https://github.com/facebookresearch/faiss) by Meta AI - Vector search
 
 **Security Tools:**
-- [Opengrep](https://www.opengrep.dev/), [Gitleaks](https://gitleaks.io/), [Trivy](https://trivy.dev/), [Hadolint](https://hadolint.github.io/hadolint/), [Checkov](https://www.checkov.io/)
+- [Gitleaks](https://gitleaks.io/), [Trivy](https://trivy.dev/), [Opengrep](https://www.opengrep.dev/)
 
 **AI Platforms:**
 - [Claude Code](https://claude.ai/code) by Anthropic, [Gemini](https://ai.google.dev/) by Google, [Cursor](https://cursor.sh/)

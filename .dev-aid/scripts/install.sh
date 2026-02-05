@@ -862,11 +862,9 @@ ask_security_automation() {
     echo "  • CI/CD templates: Complete security suite"
     echo ""
     echo "  🛡️ Security Tools (all open source):"
-    echo "  • Opengrep - SAST (code vulnerabilities)"
-    echo "  • Gitleaks - Secret scanning"
-    echo "  • Trivy - Dependencies + containers + IaC"
-    echo "  • Hadolint - Dockerfile linting"
-    echo "  • Checkov - Infrastructure-as-Code scanning"
+    echo "  • Gitleaks - Secret scanning (git history + current)"
+    echo "  • Trivy - CVE + Misconfig + Secrets (deps, Dockerfiles, IaC)"
+    echo "  • Opengrep - SAST with 340+ rules (OWASP, CWE Top 25)"
     echo ""
     echo "  ✨ Benefits:"
     echo "  • Never forget to run security checks"
@@ -976,7 +974,7 @@ show_summary() {
         print_color "$CYAN" "🔒 Security Automation:"
         echo ""
         if [ "$SECURITY_TOOLS_INSTALLED" = true ]; then
-            echo "  ✅ Security tools installed (Opengrep, Gitleaks, Trivy, Hadolint, Checkov)"
+            echo "  ✅ Security tools installed (Gitleaks, Trivy, Opengrep)"
         fi
         if [ "$SECURITY_HOOKS_INSTALLED" = true ]; then
             echo "  ✅ Git hooks installed (pre-commit, pre-push)"

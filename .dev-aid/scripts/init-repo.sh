@@ -232,13 +232,12 @@ if [[ $SECURITY_REPLY =~ ^[Yy]$ ]] || [[ -z $SECURITY_REPLY ]]; then
         echo -e "${YELLOW}⚠ install-security-tools.sh not found${NC}"
         echo "  Attempting Homebrew installation..."
         if command -v brew &> /dev/null; then
-            brew install gitleaks trivy hadolint 2>/dev/null || true
-            brew install pipx && pipx install checkov 2>/dev/null || true
+            brew install gitleaks trivy 2>/dev/null || true
+            curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash 2>/dev/null || true
             echo -e "${GREEN}✓ Installed via Homebrew${NC}"
         else
             echo -e "${RED}✗ Please install manually:${NC}"
-            echo "  brew install gitleaks trivy hadolint"
-            echo "  pipx install checkov"
+            echo "  brew install gitleaks trivy"
             echo "  curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash"
         fi
     fi

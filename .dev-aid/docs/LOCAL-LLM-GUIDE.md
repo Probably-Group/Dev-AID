@@ -4,15 +4,39 @@ Complete guide to running AI models locally for offline, private, and cost-free 
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Hardware Requirements](#hardware-requirements)
-3. [Quick Start](#quick-start)
-4. [Backend Comparison](#backend-comparison)
-5. [Model Selection](#model-selection)
-6. [Setup Walkthrough](#setup-walkthrough)
-7. [Configuration](#configuration)
-8. [Troubleshooting](#troubleshooting)
-9. [Performance Tips](#performance-tips)
+1. [Key Terminology](#key-terminology)
+2. [Overview](#overview)
+3. [Hardware Requirements](#hardware-requirements)
+4. [Quick Start](#quick-start)
+5. [Inference Runtimes](#inference-runtimes)
+6. [Model Selection](#model-selection)
+7. [Setup Walkthrough](#setup-walkthrough)
+8. [Configuration](#configuration)
+9. [Troubleshooting](#troubleshooting)
+10. [Performance Tips](#performance-tips)
+
+## Key Terminology
+
+> **Important:** Understanding the difference between runtimes and models prevents confusion.
+
+| Term | What It Is | Examples |
+|------|------------|----------|
+| **Inference Runtime** | Software that loads and runs AI models on your hardware. Think of it like a "player" for models. | Ollama, LM Studio, llama.cpp, vLLM |
+| **Model** | The actual AI "brain" - weights trained on data that generate responses. | Qwen2.5-Coder, Phi-4, Codestral, Llama 3 |
+| **GGUF** | A file format for storing quantized models. Like MP3 for audio. | `qwen2.5-coder-32b.Q4_K_M.gguf` |
+| **Quantization** | Compression that reduces model size/VRAM at slight quality cost. | Q4_K_M (small), Q8_0 (large), FP16 (huge) |
+
+**Analogy:**
+```
+Inference Runtime  =  Video Player (VLC, QuickTime)
+Model              =  Video File (movie.mp4)
+GGUF               =  File Format (MP4, MKV)
+Quantization       =  Compression (720p, 1080p, 4K)
+```
+
+**Common Misconception:**
+- ❌ "I'm using Ollama" (implies Ollama is a model)
+- ✅ "I'm using Ollama to run Qwen2.5-Coder" (correct - runtime + model)
 
 ## Overview
 
@@ -107,34 +131,46 @@ ollama pull qwen2.5-coder:32b
 echo "LOCAL_INFERENCE_BACKEND=ollama" >> .dev-aid/config/.env
 ```
 
-## Backend Comparison
+## Inference Runtimes
+
+> **Remember:** These are **runtimes** (software to run models), not models themselves.
+> You download models separately and run them through these runtimes.
+
+| Runtime | Type | Port | Best For |
+|---------|------|------|----------|
+| **Ollama** | CLI + Server | 11434 | Most users, easy setup |
+| **LM Studio** | GUI App | 1234 | Visual model browsing |
+| **llama.cpp** | C++ Library | 8080 | Maximum control, performance |
+| **vLLM** | Python Server | 8000 | Production, high throughput |
 
 ### Ollama (Recommended)
 
-**Best for:** Most users, easy setup, good model library
+**What it is:** A CLI tool and server that makes running local models as easy as `docker pull`.
+
+**Best for:** Most users, easy setup, integrated model library
 
 ```bash
-# Install
+# Install the Ollama runtime
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Start
+# Start the Ollama server (runtime)
 ollama serve
 
-# Download models
-ollama pull phi4-mini
-ollama pull codestral:22b
-ollama pull qwen2.5-coder:32b
+# Download models (these are the actual AI models, not Ollama itself)
+ollama pull phi4-mini           # Small, fast model
+ollama pull codestral:22b       # Mid-tier coding model
+ollama pull qwen2.5-coder:32b   # Large coding model
 
-# List models
+# List downloaded models
 ollama list
 
-# Run model directly
+# Run a model directly (Ollama runtime + Qwen model)
 ollama run qwen2.5-coder:32b "Write a Python function"
 ```
 
 **Pros:**
 - Easiest to use
-- Built-in model library
+- Built-in model library (downloads from ollama.com/library)
 - Auto-manages quantization
 - Good community support
 
@@ -144,11 +180,13 @@ ollama run qwen2.5-coder:32b "Write a Python function"
 
 ### LM Studio
 
+**What it is:** A desktop GUI application for downloading and running local models.
+
 **Best for:** Users who prefer GUI, browsing models visually
 
 1. Download from [lmstudio.ai](https://lmstudio.ai)
 2. Launch application
-3. Browse and download models
+3. Browse and download models (from HuggingFace)
 4. Start local server (port 1234)
 
 **Pros:**

@@ -317,10 +317,12 @@ Real-World Examples:
 | **Auto-Detection** | Detects your GPU/VRAM automatically |
 | **Smart Recommendations** | Suggests best model for your hardware |
 
-**Supported Backends:**
-- **[Ollama](https://ollama.ai)** - Easy setup, great model library (recommended)
+**Inference Runtimes** (software that runs models on your hardware):
+- **[Ollama](https://ollama.ai)** - Easy CLI tool with built-in model library (recommended)
 - **[LM Studio](https://lmstudio.ai)** - GUI app with visual model browser
-- **[llama.cpp](https://github.com/ggerganov/llama.cpp)** - Maximum control, lightweight
+- **[llama.cpp](https://github.com/ggerganov/llama.cpp)** - C++ runtime, maximum control
+
+> **Clarification:** Ollama, LM Studio, and llama.cpp are **runtimes** (like Docker for containers), not models themselves. They run open-source models like Qwen, Phi, Codestral, etc.
 
 **Recommended Models (2026 Benchmarks):**
 

@@ -9,13 +9,24 @@ Run AI models locally for offline, private, and cost-free inference.
 ./.dev-aid/scripts/setup-local-llm.sh
 ```
 
-## Supported Backends
+## Key Concepts
 
-| Backend | Port | Best For |
+| Term | Description |
+|------|-------------|
+| **Inference Runtime** | Software that runs models on your GPU (Ollama, LM Studio, llama.cpp) |
+| **Model** | The actual AI (Qwen, Phi, Codestral) - downloaded and run by the runtime |
+
+> **Example:** "Running Qwen2.5-Coder using Ollama" = Model + Runtime
+
+## Inference Runtimes
+
+These are **runtimes** (like Docker for containers) that run AI models:
+
+| Runtime | Port | Best For |
 |---------|------|----------|
-| [Ollama](https://ollama.ai) | 11434 | Easy setup, great model library |
+| [Ollama](https://ollama.ai) | 11434 | Easy CLI, integrated model library |
 | [LM Studio](https://lmstudio.ai) | 1234 | GUI app, visual model browser |
-| [llama.cpp](https://github.com/ggerganov/llama.cpp) | 8080 | Maximum control, lightweight |
+| [llama.cpp](https://github.com/ggerganov/llama.cpp) | 8080 | C++ runtime, maximum control |
 
 ## Recommended Models
 

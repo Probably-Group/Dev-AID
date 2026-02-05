@@ -261,7 +261,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - ✅ Virtual environment isolation
 - ✅ Gitignored secrets (`.env`, API keys)
 - ✅ Local git hooks (pre-commit security scans)
-- ✅ Security tools: Gitleaks, Trivy, Opengrep, Hadolint, Checkov
+- ✅ Security tools: Gitleaks, Trivy, Opengrep (3-tool comprehensive stack)
 
 **What's missing**:
 - [ ] **SCA (Software Composition Analysis)** in CI/CD

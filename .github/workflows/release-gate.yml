@@ -53,27 +53,78 @@ jobs:
       #   with:
       #     sarif_file: 'trivy-release-fs.sarif'
 
+      - name: Install Opengrep
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Run Opengrep SAST (340+ Rules)
+        continue-on-error: true
+        run: |
+          # Comprehensive SAST with 5 rulesets (340+ rules):
+          # - p/default: Semgrep curated defaults
+          # - p/security-audit: Comprehensive security patterns
+          # - p/secrets: Hardcoded credentials
+          # - p/ci: CI/CD security (GitHub Actions, etc)
+          # - p/cwe-top-25: MITRE CWE Top 25 vulnerabilities
+          $HOME/.local/bin/opengrep scan \
+            --config p/default \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/ci \
+            --config p/cwe-top-25 \
+            --json --output opengrep-release.json . || true
+
       - name: Security Summary
         if: always()
         run: |
           echo "# 🔒 Release Security Scan" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
+          # Trivy Results
           if [ -f "trivy-release-fs.json" ]; then
             CRITICAL=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-release-fs.json)
             HIGH=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-release-fs.json)
             MEDIUM=$(jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "MEDIUM")] | length' trivy-release-fs.json)
 
-            echo "## 📊 Vulnerability Count" >> $GITHUB_STEP_SUMMARY
+            echo "## 📊 Trivy - Vulnerability Count" >> $GITHUB_STEP_SUMMARY
             echo "- 🔴 Critical: $CRITICAL" >> $GITHUB_STEP_SUMMARY
             echo "- 🟠 High: $HIGH" >> $GITHUB_STEP_SUMMARY
             echo "- 🟡 Medium: $MEDIUM" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
 
             if [ "$CRITICAL" -gt 0 ]; then
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "❌ **RELEASE BLOCKED**: Critical vulnerabilities found!" >> $GITHUB_STEP_SUMMARY
-              exit 1
+              echo "❌ **RELEASE BLOCKED**: Critical CVEs found!" >> $GITHUB_STEP_SUMMARY
+              TRIVY_BLOCK=1
             fi
+          fi
+
+          # Opengrep Results
+          if [ -f "opengrep-release.json" ]; then
+            SAST_TOTAL=$(jq -r '.results | length' opengrep-release.json 2>/dev/null || echo "0")
+            SAST_ERROR=$(jq -r '[.results[] | select(.extra.severity == "ERROR")] | length' opengrep-release.json 2>/dev/null || echo "0")
+            SAST_WARNING=$(jq -r '[.results[] | select(.extra.severity == "WARNING")] | length' opengrep-release.json 2>/dev/null || echo "0")
+
+            echo "## 🔍 Opengrep - SAST Findings (340+ rules)" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔴 Error: $SAST_ERROR" >> $GITHUB_STEP_SUMMARY
+            echo "- 🟡 Warning: $SAST_WARNING" >> $GITHUB_STEP_SUMMARY
+            echo "- Total: $SAST_TOTAL" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$SAST_ERROR" -gt 0 ]; then
+              echo "⚠️ **Warning**: $SAST_ERROR SAST error(s) found (review recommended)" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "## 🔍 Opengrep - SAST" >> $GITHUB_STEP_SUMMARY
+            echo "✅ No SAST findings or scan did not run" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Final verdict
+          if [ "${TRIVY_BLOCK:-0}" = "1" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **RELEASE BLOCKED**: Critical security issues found!" >> $GITHUB_STEP_SUMMARY
+            exit 1
           fi
 
   cross-platform-tests:

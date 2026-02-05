@@ -208,12 +208,12 @@ echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━�
 echo -e "${YELLOW}   Optional Feature: Security Scanning Tools${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
-echo "Dev-AID includes 5 security tools for pre-commit scanning:"
-echo "  • Gitleaks  - Secret detection"
-echo "  • Trivy     - Vulnerability scanning"
-echo "  • Hadolint  - Dockerfile linting"
-echo "  • Checkov   - IaC security"
-echo "  • Opengrep  - SAST code analysis"
+echo "Dev-AID includes automated security scanning:"
+echo "  • Gitleaks  - Secret detection (git history + current files)"
+echo "  • Trivy     - CVE + Misconfig + Secrets (deps, Dockerfiles, IaC)"
+echo "  • Opengrep  - SAST with 340+ rules (OWASP, CWE Top 25, CI/CD)"
+echo ""
+echo "Scan coverage: secrets, CVEs, misconfigurations, SAST, IaC, Dockerfiles"
 echo ""
 echo -e "${BLUE}Requirements:${NC}"
 echo "  • Homebrew (macOS) or curl (Linux)"
@@ -263,7 +263,7 @@ if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
     echo "  ✓ Dev-AID Local Search"
 fi
 if [[ $SECURITY_REPLY =~ ^[Yy]$ ]] || [[ -z $SECURITY_REPLY ]]; then
-    echo "  ✓ Security scanning tools (Gitleaks, Trivy, Hadolint, Checkov, Opengrep)"
+    echo "  ✓ Security scanning (Gitleaks, Trivy, Opengrep)"
 fi
 echo ""
 echo -e "${BLUE}Available router commands:${NC}"

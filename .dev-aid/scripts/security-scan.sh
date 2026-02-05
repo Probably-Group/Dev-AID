@@ -1,17 +1,15 @@
 #!/bin/bash
 # Dev-AID Security Scan Script
-# Runs all 5 security tools with best-practice configurations
+# Runs 3 security tools with comprehensive configurations
 #
 # Usage:
 #   ./security-scan.sh              # Full scan
 #   ./security-scan.sh --quick      # Quick scan (skip slow checks)
-#   ./security-scan.sh --fix        # Auto-fix where possible
+#   ./security-scan.sh --sbom       # Generate SBOM after scan
 #
 # Tools & Configurations:
-#   • Gitleaks  - Secret detection with .gitleaks.toml config
-#   • Trivy     - Vulnerability + secret + misconfig scanning
-#   • Hadolint  - Dockerfile linting (if Dockerfiles exist)
-#   • Checkov   - IaC security for Terraform/K8s/GitHub Actions
+#   • Gitleaks  - Secret detection (git history + current files)
+#   • Trivy     - CVE + Misconfig + Secret scanning (Dockerfile, IaC, deps)
 #   • Opengrep  - Comprehensive SAST with 340+ rules:
 #       - p/default        (Semgrep curated defaults)
 #       - p/security-audit (comprehensive security)
@@ -23,7 +21,6 @@
 #   https://semgrep.dev/r (rule registry)
 #   https://aquasecurity.github.io/trivy/
 #   https://github.com/gitleaks/gitleaks
-#   https://www.checkov.io/
 
 set -e
 
@@ -41,18 +38,18 @@ CRITICAL_FINDINGS=0
 
 # Parse arguments
 QUICK_MODE=false
-AUTO_FIX=false
+GENERATE_SBOM=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --quick) QUICK_MODE=true; shift ;;
-        --fix) AUTO_FIX=true; shift ;;
+        --sbom) GENERATE_SBOM=true; shift ;;
         *) shift ;;
     esac
 done
 
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║           Dev-AID Security Scan                        ║${NC}"
-echo -e "${BLUE}║   5 Tools • OWASP Top 10 • Best Practices              ║${NC}"
+echo -e "${BLUE}║   3 Tools • CVE + SAST + Secrets • Misconfig           ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -75,8 +72,6 @@ echo -e "${CYAN}Checking tools...${NC}"
 MISSING_TOOLS=0
 check_tool gitleaks || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_tool trivy || MISSING_TOOLS=$((MISSING_TOOLS + 1))
-check_tool hadolint || MISSING_TOOLS=$((MISSING_TOOLS + 1))
-check_tool checkov || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_tool opengrep || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 
 if [ $MISSING_TOOLS -gt 0 ]; then
@@ -92,21 +87,26 @@ echo ""
 # 1. GITLEAKS - Secret Detection
 # ============================================================================
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}1/5 GITLEAKS - Secret Detection${NC}"
+echo -e "${CYAN}1/3 GITLEAKS - Secret Detection${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 if command -v gitleaks &> /dev/null; then
-    echo "Config: .gitleaks.toml (path exclusions for test/docs)"
+    echo "Scanning: git history + current files"
     echo ""
 
     GITLEAKS_OUTPUT=$(gitleaks detect --source . --no-git 2>&1) || true
     if echo "$GITLEAKS_OUTPUT" | grep -q "no leaks found"; then
         echo -e "${GREEN}✓ No secrets detected${NC}"
     else
-        LEAK_COUNT=$(echo "$GITLEAKS_OUTPUT" | grep -oP 'leaks found: \K\d+' || echo "0")
-        echo -e "${RED}✗ Found $LEAK_COUNT potential secrets${NC}"
-        TOTAL_FINDINGS=$((TOTAL_FINDINGS + LEAK_COUNT))
-        CRITICAL_FINDINGS=$((CRITICAL_FINDINGS + LEAK_COUNT))
+        LEAK_COUNT=$(echo "$GITLEAKS_OUTPUT" | grep -o 'leaks found: [0-9]*' | head -1 | grep -o '[0-9]*' || echo "0")
+        [ -z "$LEAK_COUNT" ] && LEAK_COUNT=0
+        if [ "$LEAK_COUNT" -gt 0 ]; then
+            echo -e "${RED}✗ Found $LEAK_COUNT potential secrets${NC}"
+            TOTAL_FINDINGS=$((TOTAL_FINDINGS + LEAK_COUNT))
+            CRITICAL_FINDINGS=$((CRITICAL_FINDINGS + LEAK_COUNT))
+        else
+            echo -e "${GREEN}✓ No secrets detected${NC}"
+        fi
     fi
 else
     echo -e "${YELLOW}⚠ Skipped (gitleaks not installed)${NC}"
@@ -115,37 +115,54 @@ fi
 echo ""
 
 # ============================================================================
-# 2. TRIVY - Vulnerability & Misconfiguration Scanning
+# 2. TRIVY - CVE + Misconfig + Secret Scanning
 # ============================================================================
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}2/5 TRIVY - Vulnerability Scanning${NC}"
+echo -e "${CYAN}2/3 TRIVY - Vulnerability & Misconfiguration Scanning${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 if command -v trivy &> /dev/null; then
-    echo "Scanners: vuln, misconfig"
+    echo "Scanners: vuln, misconfig, secret"
     echo "Severity: HIGH, CRITICAL"
-    echo "Skip: venv, node_modules, .git"
+    echo "Covers: Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions"
     echo ""
 
-    TRIVY_ARGS="fs --scanners vuln,misconfig --severity HIGH,CRITICAL"
+    TRIVY_ARGS="fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL"
     TRIVY_ARGS="$TRIVY_ARGS --skip-dirs venv --skip-dirs .venv --skip-dirs node_modules --skip-dirs .git"
 
     if $QUICK_MODE; then
         TRIVY_ARGS="$TRIVY_ARGS --skip-dirs .dev-aid/local-search/venv"
     fi
 
-    TRIVY_OUTPUT=$(trivy $TRIVY_ARGS . 2>&1) || true
+    TRIVY_OUTPUT=$(trivy $TRIVY_ARGS --format json . 2>&1) || true
 
-    # Count HIGH/CRITICAL findings (handle empty/zero gracefully)
-    VULN_COUNT=$(echo "$TRIVY_OUTPUT" | grep -cE "HIGH|CRITICAL" 2>/dev/null || echo "0")
-    VULN_COUNT=$(echo "$VULN_COUNT" | tr -d '[:space:]')
+    # Count findings by type
+    VULN_COUNT=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Vulnerabilities[]?] | length' 2>/dev/null || echo "0")
+    MISCONFIG_COUNT=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Misconfigurations[]?] | length' 2>/dev/null || echo "0")
+    SECRET_COUNT=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Secrets[]?] | length' 2>/dev/null || echo "0")
+
+    # Count critical
+    CRITICAL_VULNS=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' 2>/dev/null || echo "0")
+    CRITICAL_MISCONFIGS=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Misconfigurations[]? | select(.Severity == "CRITICAL")] | length' 2>/dev/null || echo "0")
+
     [ -z "$VULN_COUNT" ] && VULN_COUNT=0
+    [ -z "$MISCONFIG_COUNT" ] && MISCONFIG_COUNT=0
+    [ -z "$SECRET_COUNT" ] && SECRET_COUNT=0
+    [ -z "$CRITICAL_VULNS" ] && CRITICAL_VULNS=0
+    [ -z "$CRITICAL_MISCONFIGS" ] && CRITICAL_MISCONFIGS=0
 
-    if [ "$VULN_COUNT" -eq 0 ]; then
-        echo -e "${GREEN}✓ No HIGH/CRITICAL vulnerabilities${NC}"
+    TOTAL_TRIVY=$((VULN_COUNT + MISCONFIG_COUNT + SECRET_COUNT))
+    TOTAL_CRITICAL_TRIVY=$((CRITICAL_VULNS + CRITICAL_MISCONFIGS + SECRET_COUNT))
+
+    if [ "$TOTAL_TRIVY" -eq 0 ]; then
+        echo -e "${GREEN}✓ No HIGH/CRITICAL vulnerabilities, misconfigs, or secrets${NC}"
     else
-        echo -e "${YELLOW}⚠ Found $VULN_COUNT HIGH/CRITICAL items${NC}"
-        TOTAL_FINDINGS=$((TOTAL_FINDINGS + VULN_COUNT))
+        echo -e "${YELLOW}Found: $VULN_COUNT CVEs, $MISCONFIG_COUNT misconfigs, $SECRET_COUNT secrets${NC}"
+        if [ "$TOTAL_CRITICAL_TRIVY" -gt 0 ]; then
+            echo -e "${RED}  Critical: $CRITICAL_VULNS CVEs, $CRITICAL_MISCONFIGS misconfigs, $SECRET_COUNT secrets${NC}"
+        fi
+        TOTAL_FINDINGS=$((TOTAL_FINDINGS + TOTAL_TRIVY))
+        CRITICAL_FINDINGS=$((CRITICAL_FINDINGS + TOTAL_CRITICAL_TRIVY))
     fi
 else
     echo -e "${YELLOW}⚠ Skipped (trivy not installed)${NC}"
@@ -154,79 +171,10 @@ fi
 echo ""
 
 # ============================================================================
-# 3. HADOLINT - Dockerfile Linting
+# 3. OPENGREP - Comprehensive SAST (340+ rules)
 # ============================================================================
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}3/5 HADOLINT - Dockerfile Linting${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-DOCKERFILES=$(find . -name "Dockerfile*" -not -path "./.git/*" -not -path "*/venv/*" 2>/dev/null)
-
-if [ -z "$DOCKERFILES" ]; then
-    echo -e "${BLUE}ℹ No Dockerfiles found${NC}"
-elif command -v hadolint &> /dev/null; then
-    HADOLINT_ERRORS=0
-    for df in $DOCKERFILES; do
-        echo "Scanning: $df"
-        HADOLINT_OUTPUT=$(hadolint --failure-threshold error "$df" 2>&1) || true
-        if [ -n "$HADOLINT_OUTPUT" ]; then
-            echo "$HADOLINT_OUTPUT"
-            HADOLINT_ERRORS=$((HADOLINT_ERRORS + 1))
-        fi
-    done
-
-    if [ $HADOLINT_ERRORS -eq 0 ]; then
-        echo -e "${GREEN}✓ All Dockerfiles pass${NC}"
-    else
-        echo -e "${YELLOW}⚠ $HADOLINT_ERRORS Dockerfile(s) have issues${NC}"
-        TOTAL_FINDINGS=$((TOTAL_FINDINGS + HADOLINT_ERRORS))
-    fi
-else
-    echo -e "${YELLOW}⚠ Skipped (hadolint not installed)${NC}"
-fi
-
-echo ""
-
-# ============================================================================
-# 4. CHECKOV - IaC Security
-# ============================================================================
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}4/5 CHECKOV - Infrastructure as Code Security${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-if command -v checkov &> /dev/null; then
-    echo "Scanning: .github/workflows, .dev-aid/templates"
-    echo "Framework: GitHub Actions, Kubernetes, Terraform"
-    echo ""
-
-    CHECKOV_DIRS=""
-    [ -d ".github" ] && CHECKOV_DIRS="$CHECKOV_DIRS -d .github"
-    [ -d ".dev-aid/templates" ] && CHECKOV_DIRS="$CHECKOV_DIRS -d .dev-aid/templates"
-
-    if [ -n "$CHECKOV_DIRS" ]; then
-        CHECKOV_OUTPUT=$(checkov $CHECKOV_DIRS --quiet --compact 2>&1) || true
-        CHECKOV_FAILED=$(echo "$CHECKOV_OUTPUT" | grep -c "FAILED" || echo "0")
-
-        if [ "$CHECKOV_FAILED" -eq 0 ]; then
-            echo -e "${GREEN}✓ IaC security checks pass${NC}"
-        else
-            echo -e "${YELLOW}⚠ $CHECKOV_FAILED IaC issues found${NC}"
-            TOTAL_FINDINGS=$((TOTAL_FINDINGS + CHECKOV_FAILED))
-        fi
-    else
-        echo -e "${BLUE}ℹ No IaC directories found${NC}"
-    fi
-else
-    echo -e "${YELLOW}⚠ Skipped (checkov not installed)${NC}"
-fi
-
-echo ""
-
-# ============================================================================
-# 5. OPENGREP - Comprehensive SAST (340+ rules)
-# ============================================================================
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}5/5 OPENGREP - Static Application Security Testing${NC}"
+echo -e "${CYAN}3/3 OPENGREP - Static Application Security Testing${NC}"
 echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 OPENGREP_CMD="opengrep"
@@ -249,14 +197,10 @@ if command -v $OPENGREP_CMD &> /dev/null; then
     OPENGREP_ARGS="$OPENGREP_ARGS --config p/ci"
     OPENGREP_ARGS="$OPENGREP_ARGS --config p/cwe-top-25"
 
-    if $AUTO_FIX; then
-        OPENGREP_ARGS="$OPENGREP_ARGS --autofix"
-    fi
-
     echo "Running scan (this may take 1-2 minutes)..."
     OPENGREP_OUTPUT=$($OPENGREP_CMD $OPENGREP_ARGS . 2>&1) || true
 
-    # Parse findings count and rules count (macOS compatible - no grep -P)
+    # Parse findings count (macOS compatible - no grep -P)
     OPENGREP_COUNT=$(echo "$OPENGREP_OUTPUT" | grep -o '[0-9]* findings' | head -1 | grep -o '[0-9]*' || echo "0")
     RULES_COUNT=$(echo "$OPENGREP_OUTPUT" | grep -o 'Ran [0-9]*' | head -1 | grep -o '[0-9]*' || echo "340+")
     [ -z "$OPENGREP_COUNT" ] && OPENGREP_COUNT=0
@@ -279,6 +223,39 @@ fi
 echo ""
 
 # ============================================================================
+# SBOM Generation (Optional)
+# ============================================================================
+if $GENERATE_SBOM; then
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${CYAN}SBOM - Software Bill of Materials${NC}"
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+
+    if command -v trivy &> /dev/null; then
+        echo "Generating SBOM in CycloneDX format..."
+        trivy fs --format cyclonedx --output sbom-cyclonedx.json . 2>/dev/null || true
+
+        if [ -f "sbom-cyclonedx.json" ]; then
+            COMPONENT_COUNT=$(jq -r '.components | length' sbom-cyclonedx.json 2>/dev/null || echo "0")
+            echo -e "${GREEN}✓ SBOM generated: sbom-cyclonedx.json ($COMPONENT_COUNT components)${NC}"
+        else
+            echo -e "${YELLOW}⚠ SBOM generation failed${NC}"
+        fi
+
+        echo ""
+        echo "Generating SBOM in SPDX format..."
+        trivy fs --format spdx-json --output sbom-spdx.json . 2>/dev/null || true
+
+        if [ -f "sbom-spdx.json" ]; then
+            echo -e "${GREEN}✓ SBOM generated: sbom-spdx.json${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠ Trivy required for SBOM generation${NC}"
+    fi
+
+    echo ""
+fi
+
+# ============================================================================
 # Summary
 # ============================================================================
 echo -e "${BLUE}╔════════════════════════════════════════════════════════╗${NC}"
@@ -290,11 +267,9 @@ if [ $TOTAL_FINDINGS -eq 0 ]; then
     echo -e "${GREEN}✅ All security scans passed!${NC}"
     echo ""
     echo "Your codebase has no detected issues from:"
-    echo "  • Gitleaks (secrets)"
-    echo "  • Trivy (vulnerabilities)"
-    echo "  • Hadolint (Dockerfiles)"
-    echo "  • Checkov (IaC)"
-    echo "  • Opengrep (OWASP Top 10)"
+    echo "  • Gitleaks (secrets in git history)"
+    echo "  • Trivy (CVEs, misconfigs, secrets)"
+    echo "  • Opengrep (SAST with 340+ rules)"
     EXIT_CODE=0
 else
     echo -e "${YELLOW}⚠ Total findings: $TOTAL_FINDINGS${NC}"
@@ -304,8 +279,7 @@ else
     echo ""
     echo "Run individual tools for details:"
     echo "  gitleaks detect --source . --no-git -v"
-    echo "  trivy fs --scanners vuln,misconfig ."
-    echo "  checkov -d .github --compact"
+    echo "  trivy fs --scanners vuln,misconfig,secret ."
     echo "  opengrep scan --config p/security-audit ."
     EXIT_CODE=1
 fi

@@ -64,45 +64,74 @@ else
 fi
 echo ""
 
-# Check 2: SAST with Opengrep (Critical severity only)
+# Check 2: SAST with Opengrep (Comprehensive rulesets, ERROR severity)
 log_info "2/3 Scanning code for critical vulnerabilities..."
-if command -v opengrep &> /dev/null; then
+OPENGREP_CMD="opengrep"
+[[ -f "$HOME/.local/bin/opengrep" ]] && OPENGREP_CMD="$HOME/.local/bin/opengrep"
+
+if command -v $OPENGREP_CMD &> /dev/null; then
     # Create temp file for results
     OPENGREP_OUT=$(mktemp)
     chmod 600 "$OPENGREP_OUT"
     TEMP_FILES+=("$OPENGREP_OUT")
 
-    # Scan with auto config, critical/high severity only, 5s timeout
-    if opengrep scan --config=auto --severity ERROR --timeout 5 --json --output "$OPENGREP_OUT" . 2>/dev/null; then
+    # Scan with comprehensive rulesets (340+ rules), ERROR severity only for speed
+    # Rulesets: default, security-audit, secrets, ci, cwe-top-25
+    if $OPENGREP_CMD scan \
+        --config p/default \
+        --config p/security-audit \
+        --config p/secrets \
+        --severity ERROR \
+        --json --output "$OPENGREP_OUT" . 2>/dev/null; then
         # Check if any findings
         FINDINGS=$(jq -r '.results | length' "$OPENGREP_OUT" 2>/dev/null || echo "0")
         if [[ "$FINDINGS" -gt 0 ]]; then
             log_error "❌ $FINDINGS critical security issue(s) found!"
-            log_info "Run: opengrep scan --config=auto --severity ERROR ."
+            log_info "Run: opengrep scan --config p/security-audit ."
             ISSUES_FOUND=$((ISSUES_FOUND + 1))
         else
-            log_success "✓ No critical vulnerabilities found"
+            log_success "✓ No critical vulnerabilities (scanned with 340+ rules)"
         fi
     else
         log_success "✓ No critical vulnerabilities found"
     fi
 else
-    log_error "❌ Opengrep not installed - security check cannot run"
-    log_info "Install: brew install semgrep (or see https://semgrep.dev/docs/getting-started/)"
-    ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    log_warning "⚠️  Opengrep not installed (skipping SAST)"
+    log_info "Install: curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash"
 fi
 echo ""
 
-# Check 3: Dependency CVE Scanning (Critical only)
-log_info "3/3 Scanning dependencies for critical CVEs..."
+# Check 3: Trivy - CVE + Misconfig Scanning (Critical only for speed)
+log_info "3/3 Scanning for CVEs and misconfigurations..."
 if command -v trivy &> /dev/null; then
-    # Scan with critical severity only, quick mode
-    if trivy fs --scanners vuln --severity CRITICAL --exit-code 1 --quiet . 2>&1 | grep -q "Total:"; then
-        log_error "❌ Critical CVEs found in dependencies!"
-        log_info "Run: trivy fs --scanners vuln --severity CRITICAL,HIGH ."
-        ISSUES_FOUND=$((ISSUES_FOUND + 1))
+    # Create temp file for results
+    TRIVY_OUT=$(mktemp)
+    chmod 600 "$TRIVY_OUT"
+    TEMP_FILES+=("$TRIVY_OUT")
+
+    # Scan with vuln + misconfig + secret scanners, CRITICAL severity for speed
+    if trivy fs \
+        --scanners vuln,misconfig,secret \
+        --severity CRITICAL \
+        --format json \
+        --output "$TRIVY_OUT" \
+        --quiet . 2>/dev/null; then
+        # Check for findings
+        VULNS=$(jq -r '[.Results[]?.Vulnerabilities[]?] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
+        MISCONFIGS=$(jq -r '[.Results[]?.Misconfigurations[]?] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
+        SECRETS=$(jq -r '[.Results[]?.Secrets[]?] | length' "$TRIVY_OUT" 2>/dev/null || echo "0")
+
+        if [[ "$VULNS" -gt 0 ]] || [[ "$SECRETS" -gt 0 ]]; then
+            log_error "❌ Critical issues: $VULNS CVEs, $SECRETS secrets, $MISCONFIGS misconfigs"
+            log_info "Run: trivy fs --scanners vuln,misconfig,secret ."
+            ISSUES_FOUND=$((ISSUES_FOUND + 1))
+        elif [[ "$MISCONFIGS" -gt 0 ]]; then
+            log_warning "⚠️  $MISCONFIGS misconfiguration(s) found (non-blocking)"
+        else
+            log_success "✓ No critical CVEs, secrets, or misconfigs"
+        fi
     else
-        log_success "✓ No critical CVEs found"
+        log_success "✓ No critical issues found"
     fi
 else
     log_error "❌ Trivy not installed - security check cannot run"

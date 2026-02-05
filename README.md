@@ -13,6 +13,8 @@
 
 > **💡 Other tools make you choose. Dev-AID lets you use the best of everything.**
 
+> **🎯 "Vibe coding" means surrendering control — accepting AI output without understanding it. Dev-AID is the opposite: expert skills that guide AI behavior, verification gates that demand proof, and dual-AI review that catches what single-model "vibe coding" misses. Structure over chaos. Evidence over faith.**
+
 > 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($6.5M+ annual value for 100-dev teams).
 
 ---
@@ -25,7 +27,7 @@
 | **GitHub issues** | 15-45 min to analyze & fix | AI proposes complete solution with code | 80% |
 | **Writing tests** | Hours per feature | AI generates comprehensive test suites | 70-85% |
 | **PR descriptions** | 5-10 min each | Auto-generated from git diff | 95% |
-| **Security reviews** | 30+ min manual checks | 5 tools run automatically on commit | 100% |
+| **Security reviews** | 30+ min manual checks | Automated on every commit (CVE, SAST, secrets) | 100% |
 | **Debugging** | 30-45 min root cause | AI diagnosis in <10 min | 70% |
 | **Code reviews** | Waiting for reviewers | Dual-AI review catches bugs instantly | 60% |
 | **CI/CD setup** | Days of YAML hell | Auto-generated, optimized workflows | 90% |
@@ -65,7 +67,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI, Codex 
 - **🏗️ Architect Mode** - Two-agent pattern: plan before implementation 🆕
 - **📂 Git Worktree Isolation** - Parallel development with conflict detection 🆕
 - **💾 Session Persistence** - Auto-save/restore progress across restarts 🆕
-- **🔒 Security Automation** - 5 tools run on every commit
+- **🔒 Security Automation** - CVE, SAST, secrets, misconfig scanning on every commit
 
 **No new CLI to learn.** Works inside the tools you already use.
 
@@ -134,7 +136,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
 | **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
-| **Automated security (5 tools)** | ✅ Pre-commit hooks | ❌ | ⚠️ Basic | ❌ | ❌ |
+| **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ⚠️ Basic | ❌ | ❌ |
 | **Cost** | **Free** (open source) | $20/mo | $10-19/mo | Free (BYOK) | $15-60/mo |
 | **Privacy** | ✅ 100% local option | ❌ Cloud | ❌ Cloud | ✅ Local option | ❌ Cloud |
 
@@ -148,7 +150,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **Expert skills/agents** | 73 + 7 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
 | **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
-| **Security automation** | ✅ 5 tools (pre-commit) | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
+| **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Workflow orchestrators** | ✅ Architect + 5 modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
 | **Process skills (TDD)** | ✅ 7 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
 | **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
@@ -173,7 +175,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. (claude-context uses cloud) |
 | **Git Worktree Isolation** | Parallel development with scope declarations and conflict detection — avoids merge nightmares |
 | **Session Persistence** | Auto-saves progress on session end, restores context on restart — never lose your place |
-| **5-tool security automation** | Gitleaks, Trivy, Opengrep, Hadolint, Checkov — runs automatically on every commit |
+| **Comprehensive security scanning** | CVE + SAST + Secrets + Misconfig + IaC — runs automatically on every commit |
 | **Cost tracking + routing** | Built-in budget limits and smart routing to cheapest capable model |
 | **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
 
@@ -201,7 +203,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 │  • MCP integration (databases, GitHub, etc) │
 │  • 5 core + 73 expert + 7 process skills    │
 │  • Persistent memory (ADRs, patterns)       │
-│  • Automated security (5 tools, git hooks)  │
+│  • Automated security (CVE+SAST+secrets)    │
 │  • Specialized workflows (slash commands)   │
 └─────────────────────────────────────────────┘
 
@@ -244,7 +246,7 @@ Real-World Examples:
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐⭐ |
-| **🔒 Automated Security** | Pre-commit/pre-push hooks (5 tools: Gitleaks, Trivy, Opengrep, etc.) | • 10s pre-commit scan<br>• Catches secrets before push<br>• Isolated dependencies | ⭐⭐⭐⭐⭐ |
+| **🔒 Automated Security** | Pre-commit/pre-push hooks with CVE, SAST, secrets, misconfig scanning | • 10s pre-commit scan<br>• Catches secrets before push<br>• Covers: deps, Dockerfiles, IaC, code | ⭐⭐⭐⭐⭐ |
 | **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
@@ -368,7 +370,7 @@ Process skills **enforce how you work**, not just what you know:
 ### 🔒 **Automated Security**
 - **Pre-commit hooks**: Secrets scan, SAST, Critical CVEs (~10s)
 - **Pre-push hooks**: Full SAST, git history scan (~60s)
-- **5 Security tools**: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
+- **Security scanning**: CVE, SAST, secrets, misconfig (Trivy + Opengrep + Gitleaks)
 - **Isolated dependencies**: Virtual environments, zero system pollution ([details](./.dev-aid/docs/DEPENDENCY-ISOLATION.md))
 
 ### 🤖 **Intelligent Automation** (NEW!)
@@ -898,13 +900,13 @@ dev-aid-fix-conflicts --dry-run
 ### 🛠️ **Development Commands**
 
 #### `/dev-aid-audit`
-Security audit with 5 tools
+Comprehensive security audit
 
 ```bash
 /dev-aid-audit
 ```
 
-Runs: Opengrep, Gitleaks, Trivy, Hadolint, Checkov
+Runs: Gitleaks (secrets), Trivy (CVE + misconfig), Opengrep (SAST)
 
 ---
 
@@ -1223,16 +1225,15 @@ Skills auto-activate based on file patterns:
 - ✅ Full SAST (Opengrep)
 - ✅ Git history scan (Gitleaks)
 - ✅ Dependency audit (Trivy)
-- ✅ Container scan (Trivy + Hadolint)
-- ✅ IaC scan (Checkov)
+- ✅ Container + IaC scan (Trivy misconfig)
 
 ### Security Tools
 
-1. **Opengrep** - SAST (OWASP Top 10)
-2. **Gitleaks** - Secrets detection
-3. **Trivy** - Vulnerability scanning
-4. **Hadolint** - Dockerfile linting
-5. **Checkov** - IaC security
+| Tool | Scan Type | Coverage |
+|------|-----------|----------|
+| **Gitleaks** | Secrets | Git history + current files |
+| **Trivy** | CVE + Misconfig + Secrets | Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions |
+| **Opengrep** | SAST (340+ rules) | OWASP Top 10, CWE Top 25, CI/CD security, code patterns |
 
 ---
 
@@ -1429,8 +1430,6 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 - **[Opengrep (fork of Semgrep OSS)](https://www.opengrep.dev/)** - SAST for OWASP Top 10
 - **[Gitleaks](https://gitleaks.io/)** - Secrets detection
 - **[Trivy](https://trivy.dev/)** - Vulnerability scanning
-- **[Hadolint](https://hadolint.github.io/hadolint/)** - Dockerfile linting
-- **[Checkov](https://www.checkov.io/)** - IaC security
 
 ---
 

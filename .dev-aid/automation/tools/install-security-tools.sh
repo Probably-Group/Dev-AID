@@ -112,77 +112,12 @@ install_trivy() {
     fi
 }
 
-# Install Hadolint
-install_hadolint() {
-    log_info "Installing Hadolint..."
-
-    if is_installed hadolint; then
-        log_warning "Hadolint already installed: $(hadolint --version)"
-        return 0
-    fi
-
-    VERSION="2.12.0"
-
-    case "$OS_TYPE" in
-        linux)
-            BINARY_URL="https://github.com/hadolint/hadolint/releases/download/v${VERSION}/hadolint-Linux-${ARCH}"
-            ;;
-        darwin)
-            BINARY_URL="https://github.com/hadolint/hadolint/releases/download/v${VERSION}/hadolint-Darwin-${ARCH}"
-            ;;
-    esac
-
-    log_info "Downloading Hadolint v${VERSION}..."
-    curl -sL "$BINARY_URL" -o "$INSTALL_DIR/hadolint"
-    chmod +x "$INSTALL_DIR/hadolint"
-
-    log_success "Hadolint v${VERSION} installed to $INSTALL_DIR/hadolint"
-}
-
-# Install Checkov
-install_checkov() {
-    log_info "Installing Checkov..."
-
-    if is_installed checkov; then
-        log_warning "Checkov already installed: $(checkov --version)"
-        return 0
-    fi
-
-    # Prefer pipx for CLI tools (works with PEP 668 / externally-managed Python)
-    if command -v pipx &> /dev/null; then
-        pipx install checkov
-        log_success "Checkov installed successfully via pipx"
-        return 0
-    fi
-
-    # Try installing pipx first if on macOS with Homebrew
-    if [ "$OS_TYPE" = "darwin" ] && command -v brew &> /dev/null; then
-        log_info "Installing pipx via Homebrew (recommended for Python CLI tools)..."
-        brew install pipx
-        pipx ensurepath
-        pipx install checkov
-        log_success "Checkov installed successfully via pipx"
-        return 0
-    fi
-
-    # Fallback for Linux or non-Homebrew systems
-    if command -v pip3 &> /dev/null; then
-        # Check if we're in an externally-managed environment (PEP 668)
-        if pip3 install --user --dry-run checkov 2>&1 | grep -q "externally-managed-environment"; then
-            log_warning "Python is externally managed (PEP 668)"
-            log_info "Please install pipx: brew install pipx && pipx install checkov"
-            log_info "Skipping Checkov installation (optional tool)"
-            return 0
-        fi
-        pip3 install --user checkov
-        log_success "Checkov installed successfully"
-    elif command -v pip &> /dev/null; then
-        pip install --user checkov
-        log_success "Checkov installed successfully"
-    else
-        log_error "pip/pip3 not found. Please install Python and pip first."
-        log_info "Skipping Checkov installation (optional tool)"
-        return 0
+# Update Trivy database
+update_trivy_db() {
+    log_info "Updating Trivy vulnerability database..."
+    if is_installed trivy; then
+        trivy image --download-db-only 2>/dev/null || true
+        log_success "Trivy database updated"
     fi
 }
 
@@ -221,8 +156,6 @@ verify_tools() {
         "opengrep:Opengrep:required"
         "gitleaks:Gitleaks:required"
         "trivy:Trivy:required"
-        "hadolint:Hadolint:optional"
-        "checkov:Checkov:optional"
     )
 
     SUCCESS_COUNT=0
@@ -277,10 +210,7 @@ main() {
     install_trivy
     echo ""
 
-    install_hadolint
-    echo ""
-
-    install_checkov
+    update_trivy_db
     echo ""
 
     update_path

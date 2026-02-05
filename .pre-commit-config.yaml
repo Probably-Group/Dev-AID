@@ -1,4 +1,21 @@
 repos:
+  # ============================================================================
+  # SECURITY SCANNING (Fast checks - ~10 seconds)
+  # ============================================================================
+
+  # Gitleaks - Secret detection (CRITICAL: prevents credential exposure)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+        name: gitleaks (secrets)
+        description: Detect hardcoded secrets, API keys, and credentials
+        args: ['--no-git', '--verbose']
+
+  # ============================================================================
+  # CODE QUALITY
+  # ============================================================================
+
   # Shellcheck for bash scripts (using system shellcheck)
   - repo: local
     hooks:
@@ -49,6 +66,17 @@ repos:
         args: ['--max-line-length=120', '--extend-ignore=E203,W503']
         files: \.py$
         exclude: '(\.venv|venv|__pycache__|\.pyc)'
+
+  # Mypy type checking (stricter than default)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        name: mypy (type checking)
+        args: ['--ignore-missing-imports', '--no-error-summary']
+        files: ^\.dev-aid/orchestration/.*\.py$
+        exclude: '(\.venv|venv|tests/)'
+        additional_dependencies: []
 
 # Global settings
 default_stages: [commit]

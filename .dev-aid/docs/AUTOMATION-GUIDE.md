@@ -49,19 +49,17 @@ Developers need to remember:
 ┌─────────────────────────────────────────────┐
 │  TIER 2: Pre-Push Hook (~60s)               │
 │  • Full secret scan + git history           │
-│  • Complete SAST scan (all severities)      │
-│  • Dependency scan (HIGH + CRITICAL)        │
-│  • Dockerfile lint (if exists)              │
+│  • Complete SAST scan (340+ rules)          │
+│  • CVE + Misconfig scan (HIGH + CRITICAL)   │
 │  ✓ Thorough, prevents bad code from remote  │
 └─────────────────────────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
 │  TIER 3: CI/CD Pipeline (~3-5 min)          │
 │  • All above checks                         │
-│  • Container scanning                       │
-│  • IaC scanning (Checkov)                   │
+│  • Full misconfig scan (Dockerfiles, IaC)   │
 │  • License compliance                       │
-│  • SBOM generation                          │
+│  • SBOM generation (CycloneDX + SPDX)       │
 │  ✓ Complete, blocks PR/deployment           │
 └─────────────────────────────────────────────┘
 ```
@@ -79,11 +77,9 @@ Developers need to remember:
 ./.dev-aid/automation/tools/install-security-tools.sh
 
 # Verify installation
-opengrep --version
 gitleaks version
 trivy --version
-hadolint --version
-checkov --version
+opengrep --version
 ```
 
 ### 2. Install Git Hooks
@@ -169,14 +165,13 @@ dev-aid/.dev-aid/
 
 ### Security Tool Stack
 
-| Layer | Tool | Purpose | When |
-|-------|------|---------|------|
-| **SAST** | Opengrep | Code vulnerability scanning | All tiers |
-| **Secrets** | Gitleaks | API keys, passwords, tokens | All tiers |
-| **Dependencies** | Trivy | CVE scanning in dependencies | All tiers |
-| **Containers** | Trivy | Docker image scanning | Tier 3 (CI/CD) |
-| **Dockerfile** | Hadolint | Dockerfile best practices | Tier 2 & 3 |
-| **IaC** | Checkov | Terraform, K8s, etc. | Tier 3 (CI/CD) |
+| Tool | Scan Types | When |
+|------|------------|------|
+| **Gitleaks** | Secrets (git history + current) | All tiers |
+| **Trivy** | CVE + Misconfig + Secrets (deps, Dockerfiles, IaC) | All tiers |
+| **Opengrep** | SAST with 340+ rules (OWASP, CWE, CI/CD) | All tiers |
+
+**Note:** Trivy's `misconfig` scanner covers Dockerfile and IaC scanning, replacing the need for dedicated tools.
 
 ---
 
@@ -225,10 +220,8 @@ git commit --no-verify -m "WIP: Temporary commit"
 
 **What it does:**
 1. **Secret Scanning** - Gitleaks (full scan including git history)
-2. **SAST** - Opengrep (all severities, comprehensive rules)
-3. **Dependencies** - Trivy (HIGH + CRITICAL severities)
-4. **Dockerfile** - Hadolint (if Dockerfile exists)
-5. **IaC Preview** - Basic checks (full scan in CI/CD)
+2. **SAST** - Opengrep (340+ rules, all severities)
+3. **CVE + Misconfig** - Trivy (HIGH + CRITICAL, covers deps/Dockerfiles/IaC)
 
 **Output:**
 ```bash
@@ -236,21 +229,16 @@ git commit --no-verify -m "WIP: Temporary commit"
 [PRE-PUSH] Running comprehensive security checks...
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[PRE-PUSH] 1/5 Scanning for secrets (including git history)...
+[PRE-PUSH] 1/3 Scanning for secrets (including git history)...
 [PRE-PUSH] ✓ No secrets found
 
-[PRE-PUSH] 2/5 Running static code analysis...
+[PRE-PUSH] 2/3 Running static code analysis (340+ rules)...
 [PRE-PUSH] ⚠️  3 warning(s) found
-[PRE-PUSH] Run: opengrep scan --config=auto . | less
+[PRE-PUSH] Run: opengrep scan --config p/security-audit . | less
 
-[PRE-PUSH] 3/5 Scanning dependencies for vulnerabilities...
+[PRE-PUSH] 3/3 Scanning for CVEs and misconfigurations...
 [PRE-PUSH] ⚠️  2 high severity CVEs found
-[PRE-PUSH] Run: trivy fs --scanners vuln --severity HIGH,CRITICAL .
-
-[PRE-PUSH] 4/5 Scanning Dockerfile...
-[PRE-PUSH] ✓ Dockerfile looks good
-
-[PRE-PUSH] 5/5 No IaC files found (skipping)
+[PRE-PUSH] Run: trivy fs --scanners vuln,misconfig,secret .
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [PRE-PUSH] ✓ No critical issues (5 warnings) (52s)
@@ -394,11 +382,9 @@ git push
 
 See [SECURITY-TOOLS-REFERENCE.md](./SECURITY-TOOLS-REFERENCE.md) for detailed documentation on:
 
-- **Opengrep** - SAST (Static Application Security Testing)
-- **Gitleaks** - Secret scanning
-- **Trivy** - Dependencies, containers, IaC
-- **Hadolint** - Dockerfile linting
-- **Checkov** - Infrastructure-as-Code scanning
+- **Gitleaks** - Secret scanning (git history + current files)
+- **Trivy** - CVE + Misconfig + Secrets (dependencies, Dockerfiles, IaC)
+- **Opengrep** - SAST with 340+ rules (OWASP, CWE Top 25, CI/CD)
 
 ---
 
@@ -484,27 +470,6 @@ vulnerability:
     - library
 ```
 
-**Hadolint** - Create `.hadolint.yaml`:
-```yaml
-ignored:
-  - DL3008  # Pin versions in apt-get (if you want flexible versions)
-  - DL3009  # Delete apt cache (if using multi-stage builds)
-
-trustedRegistries:
-  - docker.io
-  - gcr.io
-```
-
-**Checkov** - Create `.checkov.yml`:
-```yaml
-framework:
-  - terraform
-  - kubernetes
-
-skip-check:
-  - CKV_AWS_20  # S3 public access (if intentional)
-  - CKV_K8S_8   # Liveness probe (if not applicable)
-```
 
 ---
 
@@ -565,10 +530,11 @@ paths:
 CVE-2024-12345  # False positive, see issue #123
 ```
 
-**Checkov false positive:**
+**Trivy misconfig false positive:**
 ```bash
-# Inline suppression
-#checkov:skip=CKV_AWS_20:Intentionally public S3 bucket
+# Create .trivyignore.yaml
+misconfigurations:
+  - id: AVD-DS-0002  # Intentional if you need root user
 ```
 
 ---
@@ -771,11 +737,9 @@ trivy fs --format json --output report.json .
 
 ## Resources
 
-- **Opengrep:** [GitHub](https://github.com/opengrep/opengrep) | [Docs](https://www.opengrep.dev/)
 - **Gitleaks:** [GitHub](https://github.com/gitleaks/gitleaks)
 - **Trivy:** [GitHub](https://github.com/aquasecurity/trivy) | [Docs](https://aquasecurity.github.io/trivy/)
-- **Hadolint:** [GitHub](https://github.com/hadolint/hadolint)
-- **Checkov:** [GitHub](https://github.com/bridgecrewio/checkov) | [Docs](https://www.checkov.io/)
+- **Opengrep:** [GitHub](https://github.com/opengrep/opengrep) | [Docs](https://www.opengrep.dev/)
 
 ---
 

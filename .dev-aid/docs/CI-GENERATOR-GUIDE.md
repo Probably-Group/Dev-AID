@@ -41,7 +41,7 @@ Setting up CI/CD pipelines requires:
 
 The generator:
 - ✅ **Auto-detects** your language and package manager
-- ✅ **Generates** optimized workflows with 5-tool security scanning
+- ✅ **Generates** optimized workflows with comprehensive security scanning
 - ✅ **Configures** multi-version testing matrices
 - ✅ **Includes** linting, testing, and coverage
 - ✅ **Supports** Docker build and scan (optional)
@@ -119,32 +119,25 @@ Docker:        Dockerfile (adds container scanning)
 
 ## Features
 
-### 🔒 **Security Scanning (Built-in) - 5 Tools**
+### 🔒 **Security Scanning (Built-in) - 3 Tools**
 
 Every generated workflow includes comprehensive security scanning with **auto-updating databases**:
 
-1. **Gitleaks** - Secret detection (160+ patterns: API keys, passwords, tokens)
-   - 🔄 Auto-updates rules with `GITLEAKS_VERSION: "latest"`
-2. **Opengrep** - Static Application Security Testing (OWASP Top 10, SQL injection, XSS)
-   - 🔄 Auto-fetches latest rulesets from registry on each run
-3. **Trivy** - **Comprehensive scanning** (vulnerabilities + misconfigurations + secrets)
-   - 🔄 Auto-updates vulnerability database every 6 hours
-   - 🔍 **3-in-1 scanning**: `scanners: 'vuln,config,secret'`
-     - Vulnerabilities (CVEs in dependencies)
-     - Misconfigurations (IaC issues, K8s, Docker problems)
-     - Secrets (hardcoded credentials in dependencies)
-4. **Hadolint** - Dockerfile best practices (when Dockerfile exists)
-   - 🔍 Catches both errors AND warnings (`failure-threshold: warning`)
-5. **Checkov** - Infrastructure-as-Code security (K8s, Terraform, CloudFormation)
-   - 🔄 Auto-updates policies from remote on each run
-   - 🔍 Comprehensive checks with `--download-external-modules`
+| Tool | Scan Types | Coverage |
+|------|------------|----------|
+| **Gitleaks** | Secrets | Git history + current files (160+ patterns) |
+| **Trivy** | CVE + Misconfig + Secrets | Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions |
+| **Opengrep** | SAST (340+ rules) | OWASP Top 10, CWE Top 25, CI/CD security |
+
+**Auto-updates:**
+- 🔄 Gitleaks: Auto-updates rules with `GITLEAKS_VERSION: "latest"`
+- 🔄 Trivy: Auto-updates vulnerability database every 6 hours
+- 🔄 Opengrep: Auto-fetches latest rulesets from registry on each run
 
 **⚠️ Critical Findings Fail the Workflow:**
 - Gitleaks: ANY secrets found → ❌ FAIL
-- Opengrep: ERROR severity → ❌ FAIL
 - Trivy: CRITICAL vulnerabilities/misconfigs → ❌ FAIL
-- Hadolint: WARNING+ severity → ❌ FAIL
-- Checkov: CRITICAL/HIGH severity → ❌ FAIL
+- Opengrep: ERROR severity → ❌ FAIL
 
 Lower severities (info, style) are reported but don't block merges.
 
@@ -152,20 +145,15 @@ Lower severities (info, style) are reported but don't block merges.
 ```yaml
 Trivy Comprehensive Scan:
   ✓ CVE vulnerabilities (dependencies, OS packages)
-  ✓ Misconfigurations (IaC, K8s, Docker)
+  ✓ Misconfigurations (Dockerfiles, IaC, K8s, GitHub Actions)
   ✓ Embedded secrets (hardcoded in dependencies)
   ✓ License compliance issues
 
-Opengrep SAST:
+Opengrep SAST (340+ rules):
   ✓ OWASP Top 10 vulnerabilities
-  ✓ Language-specific security issues
-  ✓ Code quality problems
-
-Checkov IaC:
-  ✓ External Terraform modules
-  ✓ Kubernetes manifests
-  ✓ CloudFormation templates
-  ✓ Docker Compose files
+  ✓ CWE Top 25 vulnerabilities
+  ✓ CI/CD security issues
+  ✓ Language-specific security patterns
 ```
 
 ### 🧪 **Multi-Version Testing**

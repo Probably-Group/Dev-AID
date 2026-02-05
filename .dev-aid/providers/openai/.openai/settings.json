@@ -1,0 +1,13 @@
+{
+  "model": {
+    "name": "gpt-4o",
+    "temperature": 0.7
+  },
+  "context": {
+    "max_tokens": 32000
+  },
+  "notes": {
+    "auth": "OpenAI requires API key (OPENAI_API_KEY). ChatGPT Plus does NOT include API access.",
+    "context_file": "OPENAI.md is generated during Dev-AID installation and includes memory-bank references."
+  }
+}

@@ -446,11 +446,41 @@ Total Savings:   $35/month (78%)
 
 ---
 
+## 🧠 AI Context
+
+### Q: What is the memory-bank folder for?
+
+**A: A shared knowledge base for AI assistants (Claude, Gemini, Cursor, etc.).**
+
+**What it contains:**
+- `patterns.md` - Coding conventions AI should follow
+- `security.md` - Security rules (non-negotiable)
+- `decisions.md` - Architecture decisions (ADRs)
+- `testing.md` - Testing standards
+- `performance.md` - Performance guidelines
+- `chaos.md` - Error handling patterns
+- `activeContext.md` - Current sprint/focus
+
+**How it works:**
+- Claude Code auto-loads files via `@` references in CLAUDE.md
+- Other AI tools read files when instructed
+- Team documents conventions once, AI follows them every session
+
+**Benefits:**
+- ✅ Consistent code from AI assistants
+- ✅ No repeating context every session
+- ✅ Team knowledge persists across developers
+
+[Full details: MEMORY-BANK-GUIDE.md](./MEMORY-BANK-GUIDE.md)
+
+---
+
 ## 🔗 Quick Links
 
 - [STORAGE-LOCATIONS.md](./STORAGE-LOCATIONS.md) - Storage architecture
 - [DEPENDENCY-ISOLATION.md](./DEPENDENCY-ISOLATION.md) - Isolation strategy
 - [UPDATING.md](./UPDATING.md) - Update guide
+- [MEMORY-BANK-GUIDE.md](./MEMORY-BANK-GUIDE.md) - Memory bank for AI assistants
 - [README.md](../../README.md) - Full documentation
 
 ---

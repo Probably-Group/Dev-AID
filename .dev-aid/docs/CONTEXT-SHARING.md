@@ -406,6 +406,7 @@ Claude should:
 
 ## 📚 Related Documentation
 
+- [Memory Bank Guide](MEMORY-BANK-GUIDE.md) - How to use memory-bank for AI assistants
 - [Router MCP Integration](ROUTER-MCP-INTEGRATION.md) - MCP integration guide
 - [Automation Guide](AUTOMATION-GUIDE.md) - Automation workflows and examples
 - [Skills Architecture](SKILLS-ARCHITECTURE.md) - Expert skills system architecture

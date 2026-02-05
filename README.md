@@ -353,7 +353,31 @@ ollama pull qwen2.5-coder:32b
 | Enterprise | 80GB+ | 128GB | Kimi-K2-Thinking |
 | CPU-only | N/A | 32GB+ | Phi-4-Mini (slow) |
 
-📖 **[Complete Local LLM Guide](.dev-aid/docs/LOCAL-LLM-GUIDE.md)**
+**How Local LLM Integrates with Dev-AID:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Dev-AID Router                             │
+│  Routes requests to optimal provider based on task type      │
+└──────┬──────────────┬──────────────┬──────────────┬─────────┘
+       │              │              │              │
+       ▼              ▼              ▼              ▼
+┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
+│  Claude  │   │  Gemini  │   │  OpenAI  │   │  Local   │
+│   API    │   │   API    │   │   API    │   │   LLM    │
+│          │   │          │   │          │   │ (Ollama) │
+└──────────┘   └──────────┘   └──────────┘   └──────────┘
+   Cloud          Cloud          Cloud         Your GPU
+```
+
+- **Dev-AID Router** can route tasks to local LLMs alongside cloud providers
+- **Simple tasks** → Route to local (free, private)
+- **Complex reasoning** → Route to cloud (Claude Opus)
+- **Massive context** → Route to Gemini (1M+ tokens)
+
+> **Note:** Local LLM support works through Dev-AID's router, not as a backend for Claude Code or Gemini CLI directly. Those tools use their own proprietary APIs.
+
+📖 **[Complete Local LLM Guide](.dev-aid/docs/LOCAL-LLM-GUIDE.md)** | **[Developer Guide](.dev-aid/docs/LOCAL-LLM-DEVELOPER-GUIDE.md)**
 
 ### 🛡️ **5 Core Skills** - Automated Checking
 **Purpose**: Real-time automated tool execution on file save
@@ -1282,8 +1306,8 @@ ROI: 2-3 months if you use AI heavily
 | No internet access | ✅ Local LLM |
 | Cost optimization | ✅ Local LLM |
 | Maximum quality needed | Cloud (Claude/GPT) |
-| No GPU available | Cloud |
-| Complex reasoning | Cloud (Opus) |
+| No GPU available | Cloud (any provider) |
+| Complex reasoning | Cloud (Claude Opus) |
 
 ---
 

@@ -675,7 +675,8 @@ change_providers() {
 
     # Ask which providers to enable
     echo "Select providers to enable (space-separated):"
-    echo "Available: claude gemini openai openrouter"
+    echo "AI Providers: claude gemini openai"
+    echo "API Routing:  openrouter (routes to 100+ models)"
     echo ""
     read -p "Providers [e.g., 'claude gemini']: " providers_input
 

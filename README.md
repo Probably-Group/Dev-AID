@@ -80,7 +80,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | ✅ Provides `CLAUDE.md`, `AGENTS.md`, `.claude/skills/` config | ❌ Spoof or impersonate any AI tool |
 | ✅ Works inside your existing Claude Code/Gemini/Cursor/Codex | ❌ Make API calls on your behalf |
 | ✅ Enhances with skills, memory, patterns | ❌ Bypass subscription limits |
-| ✅ Supports 4 providers (switch anytime) | ❌ Lock you into any single vendor |
+| ✅ Supports 3 AI providers + OpenRouter (switch anytime) | ❌ Lock you into any single vendor |
 
 > **Re: Anthropic's Jan 2026 third-party restrictions** — Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.claude/` directory) that are the official, documented way to customize Claude Code. Dev-AID enhances your tools; it doesn't replace or compete with them.
 

@@ -462,7 +462,7 @@ def create_client(
     Factory function to create appropriate AI client
 
     Args:
-        provider: Provider name ("anthropic", "google", "openai")
+        provider: Provider name ("anthropic", "google", "openai", "local")
         auth: Authentication credentials (session or API key)
         model_config: Model configuration
 
@@ -472,10 +472,14 @@ def create_client(
     Raises:
         ValueError: If provider is not supported
     """
-    clients = {
+    # Import LocalLLMClient lazily to avoid circular imports
+    from .local_client import LocalLLMClient
+
+    clients: Dict[str, type[BaseAIClient]] = {
         "anthropic": AnthropicClient,
         "google": GoogleClient,
         "openai": OpenAIClient,
+        "local": LocalLLMClient,
     }
 
     client_class = clients.get(provider.lower())
@@ -486,7 +490,7 @@ def create_client(
             f"Supported providers: {', '.join(clients.keys())}"
         )
 
-    return client_class(auth, model_config)  # type: ignore
+    return client_class(auth, model_config)
 
 
 # Example usage

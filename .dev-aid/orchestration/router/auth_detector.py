@@ -49,7 +49,84 @@ class AuthDetector:
             "claude": self.detect_claude_auth(),
             "gemini": self.detect_gemini_auth(),
             "openai": self.detect_openai_auth(),
+            "local": self.detect_local_auth(),
         }
+
+    def detect_local_auth(self) -> Optional[AuthCredentials]:
+        """
+        Detect local LLM server (Ollama, LM Studio, llama.cpp)
+
+        Checks for running local servers on default ports.
+        No authentication is required for local servers.
+
+        Returns:
+            AuthCredentials if local server found, None otherwise
+        """
+        import requests  # type: ignore[import-untyped]
+
+        # Backend configurations: (name, port, health_endpoint)
+        backends = [
+            ("ollama", 11434, "/api/tags"),
+            ("lm_studio", 1234, "/v1/models"),
+            ("llama_cpp", 8080, "/v1/models"),
+        ]
+
+        # Check environment variable for preferred backend
+        preferred_backend = os.getenv("LOCAL_INFERENCE_BACKEND", "").lower()
+
+        # Check environment for custom URLs
+        custom_urls = {
+            "ollama": os.getenv("LOCAL_OLLAMA_URL"),
+            "lm_studio": os.getenv("LOCAL_LM_STUDIO_URL"),
+            "llama_cpp": os.getenv("LOCAL_LLAMA_CPP_URL"),
+        }
+
+        # If preferred backend is set, check it first
+        if preferred_backend:
+            for backend, port, health_path in backends:
+                if backend == preferred_backend:
+                    backends.remove((backend, port, health_path))
+                    backends.insert(0, (backend, port, health_path))
+                    break
+
+        for backend, port, health_path in backends:
+            try:
+                # Use custom URL if set, otherwise default
+                base_url = custom_urls.get(backend)
+                if base_url:
+                    # Extract host/port from custom URL
+                    url = base_url.rstrip("/v1").rstrip("/") + health_path
+                else:
+                    url = f"http://localhost:{port}{health_path}"
+                    base_url = f"http://localhost:{port}/v1"
+
+                response = requests.get(url, timeout=2)
+
+                if response.status_code == 200:
+                    logger.info(f"Found local LLM server: {backend} at port {port}")
+                    return AuthCredentials(
+                        provider="local",
+                        auth_type="local",
+                        credentials={
+                            "backend": backend,
+                            "base_url": base_url,
+                            "port": port,
+                        },
+                        source=f"local {backend} server (port {port})",
+                    )
+
+            except requests.exceptions.RequestException:
+                logger.debug(f"No {backend} server found on port {port}")
+                continue
+            except Exception as e:
+                logger.debug(f"Error checking {backend}: {e}")
+                continue
+
+        logger.info(
+            "No local LLM server detected. "
+            "Start Ollama, LM Studio, or llama.cpp to enable local inference."
+        )
+        return None
 
     def detect_claude_auth(self) -> Optional[AuthCredentials]:
         """

@@ -1,6 +1,7 @@
 # Dev-AID API Keys (NEVER commit these!)
 .dev-aid/config/.env
 .dev-aid/config/.env.*
+!.dev-aid/config/.env.example
 .dev-aid/config/backups/
 
 # Logs and Runtime Files

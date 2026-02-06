@@ -457,15 +457,21 @@ class HardwareDetector:
         return None
 
 
+_cached_profile: Optional[HardwareProfile] = None
+
+
 def detect_hardware() -> HardwareProfile:
     """
-    Convenience function to detect hardware
+    Convenience function to detect hardware (cached after first call)
 
     Returns:
         HardwareProfile with detected hardware info
     """
-    detector = HardwareDetector()
-    return detector.detect()
+    global _cached_profile
+    if _cached_profile is None:
+        detector = HardwareDetector()
+        _cached_profile = detector.detect()
+    return _cached_profile
 
 
 def create_manual_profile(

@@ -1,6 +1,7 @@
 """Security utilities for Dev-AID Local Search"""
 
 import logging
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -40,9 +41,19 @@ def safe_resolve_path(base_dir: Path, user_path: str, must_exist: bool = False) 
             resolved = user_path_obj.resolve()
             base_resolved = base_dir.resolve()
 
-            # Check containment
-            if not str(resolved).startswith(str(base_resolved)):
+            # Check containment using commonpath (safe against prefix collisions)
+            try:
+                common = os.path.commonpath([str(resolved), str(base_resolved)])
+            except ValueError:
                 raise ValueError(f"Path outside base directory: {user_path}")
+            if common != str(base_resolved):
+                raise ValueError(f"Path outside base directory: {user_path}")
+
+            # Warn if symlink resolved to a different location
+            if user_path_obj != resolved:
+                logger.debug(
+                    "Path resolved via symlink: %s -> %s", user_path, resolved
+                )
 
         except (OSError, RuntimeError) as e:
             raise ValueError(f"Cannot resolve path {user_path}: {e}")
@@ -52,14 +63,19 @@ def safe_resolve_path(base_dir: Path, user_path: str, must_exist: bool = False) 
             resolved = (base_dir / user_path).resolve()
             base_resolved = base_dir.resolve()
 
-            # Check containment using is_relative_to (Python 3.9+)
+            # Check containment using commonpath (safe against prefix collisions)
             try:
-                if not resolved.is_relative_to(base_resolved):
-                    raise ValueError(f"Path traversal detected: {user_path}")
-            except AttributeError:
-                # Fallback for Python < 3.9
-                if not str(resolved).startswith(str(base_resolved)):
-                    raise ValueError(f"Path traversal detected: {user_path}")
+                common = os.path.commonpath([str(resolved), str(base_resolved)])
+            except ValueError:
+                raise ValueError(f"Path traversal detected: {user_path}")
+            if common != str(base_resolved):
+                raise ValueError(f"Path traversal detected: {user_path}")
+
+            # Warn if symlink resolved to a different location
+            if (base_dir / user_path) != resolved:
+                logger.debug(
+                    "Path resolved via symlink: %s -> %s", user_path, resolved
+                )
 
         except (OSError, RuntimeError) as e:
             raise ValueError(f"Cannot resolve path {user_path}: {e}")

@@ -11,6 +11,7 @@ Orchestrates the complete routing workflow:
 """
 
 import asyncio
+import logging
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -22,6 +23,8 @@ from .mcp_registry import MCPRegistry
 from .modes.challenger import ChallengerMode
 from .modes.ensemble import EnsembleMode
 from .modes.solo import SoloMode
+
+logger = logging.getLogger(__name__)
 
 
 class RouterExecutor:
@@ -50,7 +53,7 @@ class RouterExecutor:
                 self.mcp_pool = MCPClientPool()
                 # Pool will be populated when needed
             except Exception as e:
-                print(f"Warning: MCP initialization failed: {e}")
+                logger.warning("MCP initialization failed: %s", e)
                 self.mcp_enabled = False
 
         # Initialize components
@@ -91,7 +94,7 @@ class RouterExecutor:
                 # Store MCP context for this request
                 kwargs["mcp_context"] = mcp_context
             except Exception as e:
-                print(f"Warning: MCP context gathering failed: {e}")
+                logger.warning("MCP context gathering failed: %s", e)
                 # Continue without MCP context
 
         # Execute with appropriate mode
@@ -109,6 +112,7 @@ class RouterExecutor:
             return result
 
         except Exception as e:
+            logger.error("Execution failed in %s mode: %s", mode, e, exc_info=True)
             error_result: Dict[str, Any] = {"success": False, "mode": mode, "error": str(e)}
             return error_result
 
@@ -166,7 +170,7 @@ class RouterExecutor:
                 try:
                     await self.mcp_pool.add_server(config)
                 except Exception as e:
-                    print(f"Warning: Failed to connect to MCP server {server_name}: {e}")
+                    logger.warning("Failed to connect to MCP server %s: %s", server_name, e)
 
     def _log_decision(self, result: Dict[str, Any], mode: str, request: str) -> None:
         """Log routing decision and cost"""

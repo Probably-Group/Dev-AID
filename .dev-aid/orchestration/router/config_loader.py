@@ -10,6 +10,7 @@ Loads and validates configuration from:
 Supports both API key and session-based authentication.
 """
 
+import functools
 import json
 import logging
 import os
@@ -199,6 +200,7 @@ class ConfigLoader:
         """Check if a provider is enabled"""
         return provider in self.get_enabled_providers()
 
+    @functools.lru_cache(maxsize=32)
     def get_model_config(self, model_name: str) -> Optional[Dict[str, Any]]:
         """
         Get configuration for a specific model

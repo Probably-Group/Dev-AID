@@ -13,11 +13,27 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
 from .security_utils import validate_safe_path
 
 logger = logging.getLogger(__name__)
+
+
+@runtime_checkable
+class ConfigLoaderProtocol(Protocol):
+    """Protocol describing the ConfigLoader interface used by ContextBuilder."""
+
+    root: Path
+    settings: Dict[str, Any]
+
+    def get_memory_bank_path(self) -> Path: ...
+
+    def get_memory_bank_files(self) -> List[str]: ...
+
+    def get_orchestration_mode(self) -> str: ...
+
+    def get_enabled_providers(self) -> List[str]: ...
 
 
 @dataclass
@@ -34,12 +50,12 @@ class DevAIDContext:
 class ContextBuilder:
     """Builds context from Dev-AID configuration and state"""
 
-    def __init__(self, config_loader: Any, mcp_pool: Any = None) -> None:
+    def __init__(self, config_loader: ConfigLoaderProtocol, mcp_pool: Any = None) -> None:
         """
         Initialize context builder
 
         Args:
-            config_loader: ConfigLoader instance
+            config_loader: ConfigLoader instance (must satisfy ConfigLoaderProtocol)
             mcp_pool: Optional MCPClientPool for MCP context gathering
         """
         self.config = config_loader

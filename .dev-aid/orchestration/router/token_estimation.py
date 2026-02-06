@@ -1,8 +1,6 @@
 """Shared token estimation utilities for Dev-AID Router"""
 
-# Consistent factor for estimating tokens from word count.
-# ~1.3 words per token is a reasonable average for English text and code.
-TOKEN_ESTIMATION_FACTOR = 1.3
+from .constants import TOKEN_ESTIMATION_FACTOR
 
 
 def estimate_tokens(text: str) -> int:

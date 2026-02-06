@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 # Stop Hook - Quality Gates + Memory Bank Sync
 # Runs when Claude Code stops responding
 

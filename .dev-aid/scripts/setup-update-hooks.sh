@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup update check hooks for Claude Code and Gemini CLI
 # This script installs hooks that check for Dev-AID updates weekly
 
-set -e
+set -euo pipefail
 
 # Colors
 GREEN='\033[0;32m'

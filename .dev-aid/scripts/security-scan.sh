@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Security Scan Script
 # Runs 3 security tools with comprehensive configurations
 #
@@ -22,7 +22,7 @@
 #   https://aquasecurity.github.io/trivy/
 #   https://github.com/gitleaks/gitleaks
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

@@ -4,7 +4,7 @@
 # Runs all security and quality checks as required by Python skill
 #
 
-set -e  # Exit on error
+set -euo pipefail  # Exit on error
 
 echo "========================================="
 echo "Dev-AID Router Security Checks"

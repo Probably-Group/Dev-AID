@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dev-AID Challenger Mode
 # Primary model generates, challenger reviews

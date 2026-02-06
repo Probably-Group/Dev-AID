@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Migrate JSON configs to TOON format
 # Part of Dev-AID TOON Integration (v1.3.0)
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_DIR="$HOME/.dev-aid/config"

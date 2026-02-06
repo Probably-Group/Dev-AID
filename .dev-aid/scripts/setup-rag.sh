@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup script for Dev-AID Local Search
 # Installs and configures 100% local semantic code search
 # Self-contained implementation - no external dependencies
 
-set -e  # Exit on error
+set -euo pipefail  # Exit on error
 
 # Colors for output
 GREEN='\033[0;32m'

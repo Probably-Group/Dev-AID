@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Skill Lint Tool
 # Validates expert skill format and quality
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

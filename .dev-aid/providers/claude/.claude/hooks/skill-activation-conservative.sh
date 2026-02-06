@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 # User Prompt Submit Hook - Conservative Auto-Load
 # File pattern matching, max 2-3 skills
 # High confidence only

@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Rollback Script
 # Restore Dev-AID from a backup created by update-dev-aid.sh
 # Version: 1.0.0
 
-set -e
+set -euo pipefail
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

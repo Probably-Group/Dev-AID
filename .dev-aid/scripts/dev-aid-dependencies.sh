@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Dependencies Tree
 # Show import/dependency tree for a file
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

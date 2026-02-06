@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Model Auto-Discovery
 # Discovers and updates to latest AI model versions
 
-set -e
+set -euo pipefail
 
 # Colors
 GREEN='\033[0;32m'

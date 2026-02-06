@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Repository Initialization Script
 # Sets up Dev-AID environment with optional features
 
-set -e
+set -euo pipefail
 
 # Colors
 GREEN='\033[0;32m'

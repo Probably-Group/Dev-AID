@@ -3,7 +3,7 @@
 # This ensures your code will pass CI before pushing
 # Part of Dev-AID Pre-Commit Validation System
 
-set -e
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORCHESTRATION_DIR="$(dirname "$SCRIPT_DIR")/orchestration"

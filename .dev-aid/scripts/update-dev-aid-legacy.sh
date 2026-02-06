@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Update Script
 # Safely updates Dev-AID to the latest version in existing repositories
 
-set -e  # Exit on error
+set -euo pipefail  # Exit on error
 
 # Colors
 GREEN='\033[0;32m'

@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Impact Analysis
 # Find all code that depends on a function/class
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

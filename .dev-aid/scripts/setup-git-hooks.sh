@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Setup git hooks for Dev-AID development
 # Usage: ./.dev-aid/scripts/setup-git-hooks.sh
 
-set -e
+set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 GIT_HOOKS_DIR="$REPO_ROOT/.git/hooks"

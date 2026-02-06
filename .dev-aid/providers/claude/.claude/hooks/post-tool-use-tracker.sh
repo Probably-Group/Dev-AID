@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 # Post Tool Use Hook - Track File Modifications
 # Runs after Edit, MultiEdit, Write operations
 # Zero tokens - just tracking

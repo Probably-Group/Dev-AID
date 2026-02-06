@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Interactive MCP Setup for Dev-AID Router
 # Discovers and configures MCP servers for router context gathering
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

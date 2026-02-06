@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID SBOM Diff Tool
 # Compare Software Bill of Materials between two releases
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

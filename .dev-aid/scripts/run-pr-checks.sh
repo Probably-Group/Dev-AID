@@ -2,7 +2,7 @@
 # Run all PR checks locally before pushing
 # Usage: ./.dev-aid/scripts/run-pr-checks.sh
 
-set -e
+set -euo pipefail
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 ORCH_DIR="$REPO_ROOT/.dev-aid/orchestration"

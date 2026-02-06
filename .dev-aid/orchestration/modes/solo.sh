@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dev-AID Solo Mode
 # Single model handles all tasks

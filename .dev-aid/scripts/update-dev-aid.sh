@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Enhanced Update Script
 # Safely updates Dev-AID with conflict detection, checksums, and rollback
 # Version: 2.0.0
 
-set -e
+set -euo pipefail
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

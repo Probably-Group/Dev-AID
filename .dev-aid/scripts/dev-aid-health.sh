@@ -2,7 +2,7 @@
 # Dev-AID Health Check
 # Quick health status for all Dev-AID components
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'

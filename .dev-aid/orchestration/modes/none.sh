@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dev-AID None (Manual) Mode
 # User explicitly selects AI model for each task

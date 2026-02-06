@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Update Checker
 # Checks for available Dev-AID updates (used by automated checks)
 # Version: 1.0.0
 
-set -e
+set -euo pipefail
 
 # Source shared library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

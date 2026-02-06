@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Update Library
 # Shared functions for update system
 # Version: 1.0.0
 
-set -e
+set -euo pipefail
 
 # Colors for output
 export GREEN='\033[0;32m'

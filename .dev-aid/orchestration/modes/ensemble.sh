@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Dev-AID Ensemble Mode
 # Multiple models collaborate based on task capabilities

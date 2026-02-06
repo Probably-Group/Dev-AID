@@ -64,9 +64,14 @@ install_opengrep() {
         return 0
     fi
 
-    # Install via official script
+    # Install via official script (download then execute for safety)
     if command -v curl &> /dev/null; then
-        curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+        local tmp_script
+        tmp_script=$(mktemp)
+        TMP_DIRS_TO_CLEAN+=("$tmp_script")
+        curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
+        bash "$tmp_script"
+        rm -f "$tmp_script"
         log_success "Opengrep installed successfully"
     else
         log_error "curl not found. Please install curl first."
@@ -111,9 +116,14 @@ install_trivy() {
         return 0
     fi
 
-    # Install via official script
+    # Install via official script (download then execute for safety)
     if command -v curl &> /dev/null; then
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b "$INSTALL_DIR"
+        local tmp_script
+        tmp_script=$(mktemp)
+        TMP_DIRS_TO_CLEAN+=("$tmp_script")
+        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh -o "$tmp_script"
+        sh "$tmp_script" -b "$INSTALL_DIR"
+        rm -f "$tmp_script"
         log_success "Trivy installed successfully"
     else
         log_error "curl not found. Please install curl first."

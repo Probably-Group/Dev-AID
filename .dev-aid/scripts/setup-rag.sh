@@ -5,6 +5,15 @@
 
 set -euo pipefail  # Exit on error
 
+# Cleanup on exit
+TMP_FILES_TO_CLEAN=()
+cleanup() {
+    for f in "${TMP_FILES_TO_CLEAN[@]}"; do
+        rm -rf "$f" 2>/dev/null
+    done
+}
+trap cleanup EXIT
+
 # Colors for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -56,8 +65,8 @@ PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}')
 echo -e "${BLUE}→ Python version: ${PYTHON_VERSION}${NC}"
 
 # Check if version is >= 3.9 (more lenient than external dependency)
-PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d. -f1)
-PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d. -f2)
+PYTHON_MAJOR=$(echo "$PYTHON_VERSION" | cut -d. -f1)
+PYTHON_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f2)
 
 if [ "$PYTHON_MAJOR" -lt 3 ] || ([ "$PYTHON_MAJOR" -eq 3 ] && [ "$PYTHON_MINOR" -lt 9 ]); then
     echo -e "${RED}✗ Python 3.9+ is required (found ${PYTHON_VERSION})${NC}"
@@ -136,7 +145,7 @@ if [ "$AI_TOOL" = "claude-code" ]; then
         claude mcp remove code-search 2>/dev/null || true
 
         # Add new registration
-        claude mcp add code-search --scope user -- $MCP_SERVER_CMD
+        claude mcp add code-search --scope user -- "$MCP_SERVER_CMD"
 
         echo -e "${GREEN}✓ MCP server registered with Claude Code${NC}"
 

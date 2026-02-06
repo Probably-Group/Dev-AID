@@ -138,7 +138,7 @@ class EnsembleMode:
                 "matched_keywords": len(keywords),
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             return {
                 "success": False,
                 "mode": "ensemble",

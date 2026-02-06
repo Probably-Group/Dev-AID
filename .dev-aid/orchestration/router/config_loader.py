@@ -103,7 +103,7 @@ class ConfigLoader:
             if toon_safe_path.exists():
                 logger.info(f"Loading TOON config: {toon_filename}")
                 return self._load_toon(toon_safe_path)
-        except Exception as e:
+        except (ValueError, FileNotFoundError, RuntimeError, OSError) as e:
             logger.debug(f"TOON file not available ({toon_filename}): {e}")
 
         # Fall back to JSON format
@@ -132,7 +132,7 @@ class ConfigLoader:
 
         except json.JSONDecodeError as e:
             raise ValueError(f"Invalid JSON in {filename}: {e}")
-        except Exception as e:
+        except (OSError, PermissionError, UnicodeDecodeError) as e:
             raise ValueError(f"Failed to load configuration {filename}: {e}")
 
     def _load_toon(self, filepath: Path) -> Dict[str, Any]:
@@ -163,7 +163,7 @@ class ConfigLoader:
                 f"TOON format requires toon module. "
                 f"Please install dependencies or use JSON format. Error: {e}"
             )
-        except Exception as e:
+        except (ValueError, OSError, UnicodeDecodeError) as e:
             raise ValueError(f"Failed to parse TOON configuration: {e}")
 
     def get_orchestration_mode(self) -> str:

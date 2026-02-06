@@ -80,8 +80,8 @@ if [ -d ~/.devaid-search ]; then
 
     if [ -f ~/.devaid-search/index.faiss ] && ! $QUIET; then
         AGE_DAYS=$(( ( $(date +%s) - $(stat -f %m ~/.devaid-search/index.faiss) ) / 86400 ))
-        if [ $AGE_DAYS -gt 7 ]; then
-            echo -e "  ${YELLOW}⚠ Index is $AGE_DAYS days old (consider reindexing)${NC}"
+        if [ "$AGE_DAYS" -gt 7 ]; then
+            echo -e "  ${YELLOW}⚠ Index is ${AGE_DAYS} days old (consider reindexing)${NC}"
         fi
     fi
 fi
@@ -96,7 +96,7 @@ check "Git hooks" "[ -f .git/hooks/pre-commit ]"
 # Check Skills
 SKILL_DIR=".dev-aid/providers/claude/.claude/skills/expert"
 if [ -d "$SKILL_DIR" ]; then
-    SKILL_COUNT=$(find "$SKILL_DIR" -type d -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')
+    SKILL_COUNT="$(find "$SKILL_DIR" -type d -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"
     if ! $QUIET; then
         echo -e "Skills available: ${GREEN}$SKILL_COUNT${NC}"
     fi

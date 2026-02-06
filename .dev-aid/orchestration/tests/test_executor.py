@@ -52,7 +52,7 @@ class TestRouterExecutor:
         """Test initialization when MCP setup fails"""
         with patch("router.executor.load_config", return_value=mock_config):
             with patch("router.executor.MCPRegistry") as mock_registry:
-                mock_registry.side_effect = Exception("MCP not available")
+                mock_registry.side_effect = RuntimeError("MCP not available")
 
                 executor = RouterExecutor(dev_aid_root=tmp_path, use_mcp=True)
 
@@ -128,7 +128,7 @@ class TestRouterExecutor:
 
     def test_execute_mode_error_handling(self, executor_no_mcp):
         """Test error handling when mode execution fails"""
-        executor_no_mcp.modes["solo"].execute = Mock(side_effect=Exception("API error"))
+        executor_no_mcp.modes["solo"].execute = Mock(side_effect=RuntimeError("API error"))
 
         result = executor_no_mcp.execute("Test request", mode="solo")
 
@@ -213,7 +213,7 @@ class TestRouterExecutor:
                     # Mock MCP context gathering to fail
                     executor._initialize_mcp_servers = AsyncMock()
                     executor.context_builder.gather_mcp_context = AsyncMock(
-                        side_effect=Exception("MCP error")
+                        side_effect=RuntimeError("MCP error")
                     )
                     executor.modes["solo"].execute = Mock(return_value={"success": True})
 

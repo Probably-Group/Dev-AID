@@ -24,6 +24,15 @@
 
 set -euo pipefail
 
+# Cleanup on exit
+TMP_FILES_TO_CLEAN=()
+cleanup() {
+    for f in "${TMP_FILES_TO_CLEAN[@]}"; do
+        rm -rf "$f" 2>/dev/null
+    done
+}
+trap cleanup EXIT
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -74,7 +83,7 @@ check_tool gitleaks || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_tool trivy || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_tool opengrep || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 
-if [ $MISSING_TOOLS -gt 0 ]; then
+if [ "$MISSING_TOOLS" -gt 0 ]; then
     echo ""
     echo -e "${YELLOW}⚠ $MISSING_TOOLS tool(s) missing. Install with:${NC}"
     echo "  ./.dev-aid/automation/tools/install-security-tools.sh"
@@ -263,7 +272,7 @@ echo -e "${BLUE}║                    SCAN SUMMARY                        ║${
 echo -e "${BLUE}╚════════════════════════════════════════════════════════╝${NC}"
 echo ""
 
-if [ $TOTAL_FINDINGS -eq 0 ]; then
+if [ "$TOTAL_FINDINGS" -eq 0 ]; then
     echo -e "${GREEN}✅ All security scans passed!${NC}"
     echo ""
     echo "Your codebase has no detected issues from:"
@@ -273,7 +282,7 @@ if [ $TOTAL_FINDINGS -eq 0 ]; then
     EXIT_CODE=0
 else
     echo -e "${YELLOW}⚠ Total findings: $TOTAL_FINDINGS${NC}"
-    if [ $CRITICAL_FINDINGS -gt 0 ]; then
+    if [ "$CRITICAL_FINDINGS" -gt 0 ]; then
         echo -e "${RED}  Critical/High: $CRITICAL_FINDINGS${NC}"
     fi
     echo ""

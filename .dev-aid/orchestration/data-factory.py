@@ -8,6 +8,7 @@ Supports Pydantic models, TypeScript interfaces, JSON Schema, and SQL schemas.
 
 import csv
 import json
+import logging
 import random
 import re
 import string
@@ -16,6 +17,8 @@ from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class DataFactory:
@@ -320,12 +323,12 @@ class DataFactory:
         output_file: Optional[Path] = None,
     ):
         """Main execution"""
-        print(f"🔍 Reading schema from: {schema_file}")
+        logger.info("Reading schema from: %s", schema_file)
 
         # Generate data
         records = self.generate_from_file(schema_file, count)
 
-        print(f"✅ Generated {len(records)} records")
+        logger.info("Generated %d records", len(records))
 
         # Format output
         if format == "json":
@@ -340,7 +343,7 @@ class DataFactory:
         # Write or print
         if output_file:
             output_file.write_text(output)
-            print(f"✅ Saved to: {output_file}")
+            logger.info("Saved to: %s", output_file)
         else:
             print("\n" + output)
 

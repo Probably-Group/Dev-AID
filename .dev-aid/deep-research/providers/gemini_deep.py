@@ -119,21 +119,7 @@ class GeminiDeepResearchProvider(ResearchProvider):
             # Create background interaction for deep research
             logger.info(f"Starting Gemini deep research: {query[:100]}...")
 
-            interaction = await asyncio.to_thread(
-                client.aio.live.send,
-                model=self.AGENT,
-                config={"response_modalities": ["TEXT"]},
-            )
-
-            # For the new google-genai SDK, use interactions API
-            interaction = await asyncio.to_thread(
-                lambda: client.models.generate_content(
-                    model="gemini-2.0-flash-exp",  # Fallback if deep research not available
-                    contents=query,
-                )
-            )
-
-            # Try the Interactions API for deep research
+            # Use the Interactions API for deep research
             try:
                 interaction = await asyncio.to_thread(
                     client.interactions.create,
@@ -155,7 +141,9 @@ class GeminiDeepResearchProvider(ResearchProvider):
                     contents=f"Research the following topic comprehensively: {query}",
                 )
                 result = {
-                    "content": response.text if hasattr(response, "text") else str(response),
+                    "content": (
+                        response.text if hasattr(response, "text") else str(response)
+                    ),
                     "sources": [],
                     "citations": [],
                 }
@@ -231,9 +219,7 @@ class GeminiDeepResearchProvider(ResearchProvider):
                         getattr(status, "error", "Unknown error"),
                     )
 
-                logger.debug(
-                    f"Research in progress... ({int(elapsed)}s elapsed)"
-                )
+                logger.debug(f"Research in progress... ({int(elapsed)}s elapsed)")
 
             except AttributeError as e:
                 # Handle API changes gracefully

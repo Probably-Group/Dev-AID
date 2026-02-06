@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .security_utils import validate_safe_path
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,33 +106,11 @@ class ContextBuilder:
 
     def _validate_safe_path(self, path: Path) -> Path:
         """
-        Validate path is safe and within expected boundaries
+        Validate path is safe and within expected boundaries.
 
-        Args:
-            path: Path to validate
-
-        Returns:
-            Resolved safe path
-
-        Raises:
-            ValueError: If path is unsafe or contains traversal
+        Delegates to shared security_utils.validate_safe_path().
         """
-        try:
-            resolved = path.resolve(strict=False)
-
-            # Ensure it's an absolute path
-            if not resolved.is_absolute():
-                raise ValueError("Path must be absolute after resolution")
-
-            # Basic sanity checks
-            path_str = str(resolved)
-            if "\0" in path_str:
-                raise ValueError("Path contains null bytes")
-
-            return resolved
-
-        except (OSError, RuntimeError) as e:
-            raise ValueError(f"Invalid path: {e}")
+        return validate_safe_path(path)
 
     def _get_git_context(self) -> Optional[Dict[str, str]]:
         """Get git context if available"""

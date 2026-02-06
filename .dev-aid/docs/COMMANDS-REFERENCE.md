@@ -264,6 +264,61 @@ GOOGLE_API_KEY=...       # For Gemini Deep Research
 **Location:** `.dev-aid/providers/claude/.claude/commands/quality/dev-aid-debt-analysis.md`
 **Value:** Saves 2-4 hrs/quarter in manual analysis
 
+### Validation Commands (Skill Compliance)
+
+#### `run-validators.py` (Script)
+**Purpose:** Auto-discover and run all skill compliance validators
+**Status:** ✅ Included
+**Location:** `.dev-aid/scripts/run-validators.py`
+
+**Usage:**
+```bash
+# Run all validators matching project technologies
+python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir .
+
+# Run all validators (no filtering)
+python3 .dev-aid/scripts/run-validators.py --target-dir .
+
+# JSON output for CI
+python3 .dev-aid/scripts/run-validators.py --json --strict --target-dir .
+
+# Run specific validators only
+python3 .dev-aid/scripts/run-validators.py --validators bash-expert,python --target-dir .
+```
+
+**Flags:**
+- `--strict` — Treat WARN as FAIL
+- `--json` — Machine-readable JSON output
+- `--filter-context` — Only run validators matching detected project technologies
+- `--validators name,...` — Run only named validators
+- `--target-dir` — Directory to scan (default: `.`)
+
+**Exit codes:** 0 = pass, 1 = failures found, 2 = runner error
+
+#### Bash Expert Validator
+**Purpose:** Validate bash scripts against bash-expert skill standards (14 checks)
+**Location:** `.dev-aid/skills/expert/bash-expert/validate.py`
+
+```bash
+python3 .dev-aid/skills/expert/bash-expert/validate.py --target-dir .
+```
+
+**Checks:** shebang, strict mode, IFS, cleanup trap, syntax, dangerous patterns (eval/backticks), test brackets, variable braces, local vars in functions, readonly constants, chmod permissions, mktemp usage, curl pipe, unquoted subshell
+
+#### Python Validator
+**Purpose:** Validate Python files with AST analysis (8 checks)
+**Location:** `.dev-aid/skills/expert/python/validate.py`
+
+```bash
+python3 .dev-aid/skills/expert/python/validate.py --target-dir . --skip-tests
+```
+
+**Checks:** shell=True, eval/exec, pickle.load, hardcoded secrets, generic exceptions, print in library code, missing type annotations, test coverage
+
+**Value:** Catches security issues, enforces coding standards. Extensible — any skill can add a `validate.py`.
+
+Full guide: [VALIDATOR-FRAMEWORK.md](VALIDATOR-FRAMEWORK.md)
+
 ### Operations Commands
 
 #### `/dev-aid-deploy-validate`

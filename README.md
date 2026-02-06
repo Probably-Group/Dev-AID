@@ -73,6 +73,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI, Codex 
 - **📂 Git Worktree Isolation** - Parallel development with conflict detection
 - **💾 Session Persistence** - Auto-save/restore progress across restarts
 - **🔒 Security Automation** - CVE, SAST, secrets, misconfig scanning on every commit
+- **✅ Skill Validators** - Extensible compliance checking per skill (bash, Python, auto-discovered)
 
 **No new CLI to learn.** Works inside the tools you already use.
 
@@ -280,6 +281,7 @@ Real-World Examples:
 | **👨‍💻 Developer Onboarding** | Automated onboarding for new team members | • Environment checks<br>• Project detection<br>• Setup guidance | ⭐⭐⭐ |
 | **⚙️ Reconfiguration Tool** | Change settings without breaking memory/context | • Safe config changes<br>• Backup automation<br>• No data loss | ⭐⭐ |
 | **📚 Documentation Sync** | Detect when docs drift from reality | • Package manager checks<br>• Script validation<br>• Port verification | ⭐⭐ |
+| **✅ Skill Validator Framework** 🆕 | Auto-discovered compliance validators per skill (bash, Python, extensible) | • 14 bash checks + 8 Python AST checks<br>• Context-aware (runs relevant validators)<br>• JSON output for CI<br>• Extensible: drop `validate.py` in any skill | ⭐⭐⭐⭐ |
 | **🔧 Skill Condensing** | Auto-condense skills >500 lines into references | • Keep skills concise<br>• Organized structure<br>• Better context usage | ⭐⭐ |
 | **🔄 Model Registry Updates** | Keep AI model catalog current with latest releases | • Latest model info<br>• Pricing updates<br>• Capability tracking | ⭐⭐ |
 
@@ -1063,6 +1065,33 @@ Runs all tests with coverage
 
 ---
 
+### ✅ **Validation Commands** (Skill Compliance)
+
+#### Validator Runner
+**Run all skill compliance validators**
+
+```bash
+# Scan project with all relevant validators (auto-detected)
+python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir .
+
+# Run specific validator only
+python3 .dev-aid/skills/expert/bash-expert/validate.py --target-dir .
+python3 .dev-aid/skills/expert/python/validate.py --target-dir .
+
+# JSON output for CI pipelines
+python3 .dev-aid/scripts/run-validators.py --json --strict --target-dir .
+```
+
+**Available validators:**
+- **bash-expert** — 14 checks: shebang, strict mode, IFS, trap, syntax, eval/backticks, test brackets, variable braces, local vars, readonly, chmod, mktemp, curl pipe, unquoted subshell
+- **python** — 8 AST checks: shell=True, eval/exec, pickle, hardcoded secrets, generic exceptions, print in libs, type annotations, test coverage
+
+**Extensible:** Any skill can include a `validate.py` — auto-discovered by the runner, no registration needed.
+
+📖 **Full guide:** [Validator Framework](.dev-aid/docs/VALIDATOR-FRAMEWORK.md)
+
+---
+
 ## 🔧 Configuration
 
 ### Router Configuration
@@ -1430,6 +1459,9 @@ Skills auto-activate based on file patterns:
 - **[MCP-EXTENSIBILITY.md](.dev-aid/docs/MCP-EXTENSIBILITY.md)** - Using Dev-AID with other MCP servers (GitHub, Slack, databases)
 - **[UPDATING.md](.dev-aid/docs/UPDATING.md)** - How to update Dev-AID in existing repos
 - **[CHANGELOG.md](.dev-aid/CHANGELOG.md)** - Version history and release notes
+
+### Validation & Quality
+- **[VALIDATOR-FRAMEWORK.md](.dev-aid/docs/VALIDATOR-FRAMEWORK.md)** - Skill compliance validator framework (creating validators, CLI, output formats)
 
 ### Automation Guides
 - **[AUTOMATION-README.md](.dev-aid/docs/AUTOMATION-README.md)** - Complete automation overview and architecture

@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.14] - 2026-02-06
+
+### Added
+- **Skill Validator Framework**: Extensible compliance checking where any skill can include a `validate.py` that gets auto-discovered and run
+  - Shared library: `.dev-aid/lib/validator_common.py` (types, CLI, output formatting)
+  - Bash Expert validator: 14 checks (shebang, strict mode, IFS, trap, syntax, eval/backticks, test brackets, variable braces, local vars, readonly, chmod, mktemp, curl pipe, unquoted subshell)
+  - Python validator: 8 AST-based checks (shell=True, eval/exec, pickle, hardcoded secrets, generic exceptions, print in libs, type annotations, coverage)
+  - Runner script: `.dev-aid/scripts/run-validators.py` with `--filter-context`, `--json`, `--strict`, `--validators`
+  - Context-aware filtering: detects project technologies, only runs relevant validators
+  - JSON output mode for CI integration
+  - Documentation: `.dev-aid/docs/VALIDATOR-FRAMEWORK.md`
+- Compliance scan integrated into `init-repo.sh` (automatic) and `install.sh` (optional step)
+
+### Changed
+- **CI optimization**: PR checks now run on ubuntu-only instead of 3-OS matrix (ubuntu + windows + macos), saving CI minutes on free plans. Cross-platform testing remains in `release-gate.yml` for releases
+- PR check summary job now tolerates skipped/cancelled upstream jobs (handles billing limits gracefully)
+
+### Removed
+- `validate-bash-scripts.sh` from orchestration/ (replaced by `.dev-aid/skills/expert/bash-expert/validate.py`)
+- `validate-python-scripts.py` from orchestration/ (replaced by `.dev-aid/skills/expert/python/validate.py`)
+
+---
+
 ## [1.3.0-beta.13] - 2026-02-03
 
 ### Added

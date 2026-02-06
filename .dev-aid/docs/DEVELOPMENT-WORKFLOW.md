@@ -110,7 +110,20 @@ git add .
 git commit -m "your message"
 ```
 
-### 4. Before Pushing
+### 4. Run Skill Compliance Validators (Optional)
+
+```bash
+# Run all validators matching your project technologies
+python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir .
+
+# Run specific validator
+python3 .dev-aid/skills/expert/bash-expert/validate.py --target-dir .
+python3 .dev-aid/skills/expert/python/validate.py --target-dir .
+```
+
+These check coding standards beyond formatting — security patterns, best practices, type safety. See [VALIDATOR-FRAMEWORK.md](VALIDATOR-FRAMEWORK.md).
+
+### 5. Before Pushing
 
 ```bash
 # Final safety check (optional but recommended)

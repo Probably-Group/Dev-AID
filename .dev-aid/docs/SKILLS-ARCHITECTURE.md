@@ -443,15 +443,31 @@ echo "✅ GEMINI.md updated and will be loaded with every prompt"
 | **Maintenance** | Update activation rules manually | Update registry once, works everywhere |
 | **Performance** | N/A | GEMINI.md updated once (not per prompt) |
 
-### Compliance
+### Compliance & Validation
 
-All Bash scripts follow **bash-expert skill** guidelines:
-- ✅ Strict mode (`set -euo pipefail`)
-- ✅ Proper variable quoting
-- ✅ Input validation
-- ✅ Cleanup traps
-- ✅ No dangerous patterns (eval, backticks)
-- ✅ Validated with custom compliance checker (32/32 checks passed)
+All scripts follow their respective skill guidelines, enforced by the **Validator Framework**:
+
+**Bash scripts** (bash-expert skill — 14 checks):
+- ✅ Strict mode (`set -euo pipefail`), IFS, cleanup traps
+- ✅ Proper variable quoting, `[[ ]]` test brackets
+- ✅ No dangerous patterns (eval, backticks, curl pipe)
+- ✅ Local variables in functions, readonly constants
+
+**Python files** (python skill — 8 AST checks):
+- ✅ No `shell=True`, `eval()`/`exec()`, `pickle.load()`
+- ✅ No hardcoded secrets, generic exceptions
+- ✅ Type annotations, logging instead of print
+
+**Running validators:**
+```bash
+# All validators (auto-discovered from skills)
+python3 .dev-aid/scripts/run-validators.py --target-dir .
+
+# Context-aware (only runs validators matching your tech stack)
+python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir .
+```
+
+**Extending:** Any skill can include a `validate.py` — the runner auto-discovers it. See [VALIDATOR-FRAMEWORK.md](VALIDATOR-FRAMEWORK.md).
 
 ---
 

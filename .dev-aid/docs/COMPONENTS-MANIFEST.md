@@ -40,7 +40,7 @@ This manifest maps our elite setup components to their source repositories for i
 - Scoring algorithm (primary: 10pts, tech: 8pts, secondary: 5pts)
 - Universal architecture for Claude, Gemini, and future providers
 - GEMINI.md updated once per session (not per prompt)
-- bash-expert compliant (32/32 checks passed)
+- Compliance validated via [Validator Framework](VALIDATOR-FRAMEWORK.md)
 
 **Registry Format** (`.dev-aid/skills/registry/skills-index.json`):
 ```json
@@ -70,6 +70,7 @@ This manifest maps our elite setup components to their source repositories for i
 - ✅ Memory bank system (7 CLAUDE-*.md files)
 - ✅ Essential skills (2 compact skills)
 - ✅ Hooks (4 bash scripts)
+- ✅ Validator Framework (shared lib + runner + 2 validators)
 
 **To Install (Source from repos)**:
 - Skills (23 additional)

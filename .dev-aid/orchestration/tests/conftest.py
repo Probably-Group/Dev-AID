@@ -3,11 +3,17 @@ Pytest configuration and fixtures for Dev-AID Router tests
 """
 
 import json
+import sys
 import tempfile
 from pathlib import Path
 from typing import Any, Dict
 
 import pytest
+
+# Add .dev-aid directory to path so agent tests can import agents package
+_dev_aid_dir = str(Path(__file__).parent.parent.parent)
+if _dev_aid_dir not in sys.path:
+    sys.path.insert(0, _dev_aid_dir)
 
 
 def pytest_configure(config):

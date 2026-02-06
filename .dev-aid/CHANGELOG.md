@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0-beta.15] - 2026-02-07
+
+### Added
+- **Agent Framework** (`.dev-aid/agents/`): Provider-agnostic autonomous agent framework powered by Dev-AID's 72+ expert skills
+  - **Core**: `AgentRunner` loop (send → tool calls → execute → repeat), `ToolRegistry` with per-provider format export, `SkillLoader` for SKILL.md parsing, `SafetyConfig` with command blocklist and dry-run mode
+  - **Provider Adapters**: Anthropic (Messages API + optional Claude Agent SDK bridge), OpenAI (+ Ollama/LM Studio compatible), Google Gemini — all via unified `ProviderAdapter` protocol
+  - **Built-in Tools**: `read_file`, `write_file`, `list_directory`, `glob_files`, `grep_search`, `find_files`, `run_bash`, `git_status`, `git_diff`, `git_log`, `git_add`, `git_commit`, `gh_issue_view`, `gh_pr_view`, `gh_pr_create`
+  - **7 Built-in Agents**: `pr-reviewer`, `test-generator`, `tech-debt-hunter`, `ci-fixer`, `conflict-resolver`, `research`, `onboarding`
+  - **CLI**: `dev-aid-agent <agent> [options]` with `--provider`, `--model`, `--dry-run`, `--verbose`, `--json` flags
+  - **Safety**: Per-tool risk levels (safe/moderate/dangerous), command blocklist with pattern matching, path restrictions, dry-run mode
+  - **Config**: `.dev-aid/config/agents.json` for per-agent defaults
+  - **Tests**: 112 tests covering models, safety, skill loader, tool registry, tools, agent runner, and provider adapters
+
+---
+
 ## [1.3.0-beta.14] - 2026-02-06
 
 ### Added

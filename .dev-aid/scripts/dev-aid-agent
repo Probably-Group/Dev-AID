@@ -1,0 +1,32 @@
+#!/usr/bin/env python3
+"""
+Dev-AID Agent Framework — CLI entry point.
+
+Usage:
+    dev-aid-agent <agent-name> [options]
+
+Agents:
+    pr-reviewer        Review PRs for security, quality, best practices
+    test-generator     Generate tests for untested code
+    tech-debt-hunter   Scan for code smells and technical debt
+    ci-fixer           Diagnose CI failures and propose fixes
+    conflict-resolver  Auto-resolve merge conflicts
+    research           Deep research on technical topics
+    onboarding         Generate codebase onboarding guide
+
+Run 'dev-aid-agent <agent> --help' for agent-specific options.
+"""
+
+import os
+import sys
+
+# Add the parent directory to sys.path so we can import the agents package
+script_dir = os.path.dirname(os.path.abspath(__file__))
+dev_aid_dir = os.path.dirname(script_dir)
+if dev_aid_dir not in sys.path:
+    sys.path.insert(0, dev_aid_dir)
+
+from agents.cli import main
+
+if __name__ == "__main__":
+    sys.exit(main())

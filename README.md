@@ -55,6 +55,11 @@ git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
 
 # Claude writes code, Gemini reviews it (catches bugs you'd miss)
 /dev-aid-router-challenger "Implement OAuth2 with refresh tokens"
+
+# 🤖 Autonomous agents powered by 72+ expert skills - NEW!
+dev-aid-agent pr-reviewer --pr 135 --verbose
+dev-aid-agent tech-debt-hunter --severity high --dry-run
+dev-aid-agent research --topic "async patterns" --provider google
 ```
 
 ---

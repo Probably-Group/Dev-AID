@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run the same checks locally that CI runs
 # This ensures your code will pass CI before pushing
 # Part of Dev-AID Pre-Commit Validation System
@@ -8,6 +8,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ORCHESTRATION_DIR="$(dirname "$SCRIPT_DIR")/orchestration"
 ROOT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+# Temp file cleanup
+TEMP_FILES=()
+cleanup() { rm -f "${TEMP_FILES[@]}" 2>/dev/null; }
+trap cleanup EXIT
 
 # Colors for output
 RED='\033[0;31m'
@@ -29,18 +34,21 @@ CHECKS_RUN=0
 run_check() {
     local name="$1"
     local command="$2"
+    local log_file
+    log_file=$(mktemp /tmp/devaid-check-XXXXXX.log)
+    TEMP_FILES+=("$log_file")
 
     CHECKS_RUN=$((CHECKS_RUN + 1))
     echo -e "${BLUE}[$CHECKS_RUN] $name${NC}"
 
-    if eval "$command" > /tmp/devaid-check-$CHECKS_RUN.log 2>&1; then
+    if bash -c "$command" > "$log_file" 2>&1; then
         echo -e "${GREEN}✓ PASS${NC}"
         echo
         return 0
     else
         echo -e "${RED}✗ FAIL${NC}"
         echo -e "${YELLOW}Error details:${NC}"
-        tail -20 /tmp/devaid-check-$CHECKS_RUN.log
+        tail -20 "$log_file"
         echo
         FAILURES=$((FAILURES + 1))
         return 1
@@ -99,11 +107,13 @@ run_check "Flake8 (Linting)" \
 # 4. MyPy type checking (non-blocking)
 echo -e "${BLUE}[$((CHECKS_RUN + 1))] MyPy (Type Checking)${NC}"
 CHECKS_RUN=$((CHECKS_RUN + 1))
-if cd "$ORCHESTRATION_DIR" && mypy router --ignore-missing-imports --no-strict-optional > /tmp/devaid-check-$CHECKS_RUN.log 2>&1; then
+MYPY_LOG=$(mktemp /tmp/devaid-check-XXXXXX.log)
+TEMP_FILES+=("$MYPY_LOG")
+if cd "$ORCHESTRATION_DIR" && mypy router --ignore-missing-imports --no-strict-optional > "$MYPY_LOG" 2>&1; then
     echo -e "${GREEN}✓ PASS${NC}"
 else
     echo -e "${YELLOW}⚠️  WARNINGS (non-blocking)${NC}"
-    tail -10 /tmp/devaid-check-$CHECKS_RUN.log
+    tail -10 "$MYPY_LOG"
 fi
 echo
 
@@ -117,15 +127,16 @@ if command -v shellcheck &> /dev/null; then
     CHECKS_RUN=$((CHECKS_RUN + 1))
 
     # Find all .sh files in .dev-aid
-    SHELL_FILES=$(find .dev-aid/scripts -name "*.sh" 2>/dev/null || echo "")
+    mapfile -t SHELL_FILES < <(find .dev-aid/scripts -name "*.sh" 2>/dev/null)
+    SHELLCHECK_LOG=$(mktemp /tmp/devaid-check-XXXXXX.log)
+    TEMP_FILES+=("$SHELLCHECK_LOG")
 
-    if [ -n "$SHELL_FILES" ]; then
-        # shellcheck disable=SC2086
-        if shellcheck $SHELL_FILES > /tmp/devaid-check-$CHECKS_RUN.log 2>&1; then
+    if [ ${#SHELL_FILES[@]} -gt 0 ]; then
+        if shellcheck "${SHELL_FILES[@]}" > "$SHELLCHECK_LOG" 2>&1; then
             echo -e "${GREEN}✓ PASS${NC}"
         else
             echo -e "${YELLOW}⚠️  WARNINGS (non-blocking)${NC}"
-            tail -10 /tmp/devaid-check-$CHECKS_RUN.log
+            tail -10 "$SHELLCHECK_LOG"
         fi
     else
         echo -e "${YELLOW}⚠️  No shell scripts found${NC}"
@@ -137,7 +148,7 @@ echo
 
 # Summary
 echo "========================================"
-if [ $FAILURES -eq 0 ]; then
+if [ "$FAILURES" -eq 0 ]; then
     echo -e "${GREEN}✅ ALL CHECKS PASSED! ($CHECKS_RUN checks)${NC}"
     echo
     echo "Your code is ready to push! 🚀"

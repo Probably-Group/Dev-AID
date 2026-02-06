@@ -1,8 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Security Tools Installer
 # Installs all security scanning tools for automated workflows
 
-set -e
+set -euo pipefail
+
+TMP_DIRS_TO_CLEAN=()
+cleanup() {
+    for dir in "${TMP_DIRS_TO_CLEAN[@]}"; do
+        rm -rf "$dir" 2>/dev/null
+    done
+}
+trap cleanup EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="${HOME}/.dev-aid/bin"
@@ -79,6 +87,7 @@ install_gitleaks() {
     BINARY_URL="https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_${OS_TYPE}_${ARCH_TYPE}.tar.gz"
 
     TMP_DIR=$(mktemp -d)
+    TMP_DIRS_TO_CLEAN+=("$TMP_DIR")
     cd "$TMP_DIR"
 
     log_info "Downloading Gitleaks v${VERSION}..."

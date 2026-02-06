@@ -473,7 +473,7 @@ exec_unless_dry_run() {
         echo -e "${CYAN}[DRY-RUN] Would execute: $cmd${NC}"
         return 0
     else
-        eval "$cmd"
+        bash -c "$cmd"
     fi
 }
 

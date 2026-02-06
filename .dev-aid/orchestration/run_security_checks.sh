@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Security Checks Script for Dev-AID Router
 # Runs all security and quality checks as required by Python skill
@@ -97,7 +97,7 @@ echo "Summary"
 echo "========================================="
 echo ""
 
-if [ $FAILURES -eq 0 ]; then
+if [ "$FAILURES" -eq 0 ]; then
     echo -e "${GREEN}✓ All security checks PASSED${NC}"
     echo ""
     echo "Code is ready for production deployment."

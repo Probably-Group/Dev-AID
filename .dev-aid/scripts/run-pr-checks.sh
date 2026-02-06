@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Run all PR checks locally before pushing
 # Usage: ./.dev-aid/scripts/run-pr-checks.sh
 
@@ -24,7 +24,7 @@ run_check() {
     echo "│ 🔍 $name"
     echo "└─────────────────────────────────────────────────────"
 
-    if eval "$command"; then
+    if bash -c "$command"; then
         echo "✅ $name passed"
     else
         echo "❌ $name failed"
@@ -59,9 +59,9 @@ cd "$REPO_ROOT"
 echo "📦 Running Bash checks..."
 echo ""
 
-BASH_FILES=$(find .dev-aid/scripts -name "*.sh" 2>/dev/null || true)
-if [ -n "$BASH_FILES" ]; then
-    run_check "Shellcheck (bash linting)" "shellcheck $BASH_FILES"
+mapfile -t BASH_FILES < <(find .dev-aid/scripts -name "*.sh" 2>/dev/null)
+if [ ${#BASH_FILES[@]} -gt 0 ]; then
+    run_check "Shellcheck (bash linting)" "shellcheck ${BASH_FILES[*]}"
 fi
 
 # Summary

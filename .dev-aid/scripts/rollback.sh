@@ -131,6 +131,8 @@ echo -e "${GREEN}Starting rollback...${NC}"
 echo ""
 
 # Create a backup of current state before rollback (just in case)
+# NOTE: safety_backup is intentionally kept after script exit (not cleaned up by trap)
+# because the user may need it to restore the pre-rollback state.
 echo -e "${BLUE}→ Creating safety backup of current state...${NC}"
 safety_backup=".dev-aid-pre-rollback-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$safety_backup"

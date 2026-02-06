@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Dev-AID Health Check
 # Quick health status for all Dev-AID components
 
@@ -57,10 +57,10 @@ check() {
     local test_cmd="$2"
 
     if $QUIET; then
-        eval "$test_cmd" &>/dev/null || HEALTHY=false
+        bash -c "$test_cmd" &>/dev/null || HEALTHY=false
     else
         echo -n "Checking $name... "
-        if eval "$test_cmd" &>/dev/null; then
+        if bash -c "$test_cmd" &>/dev/null; then
             echo -e "${GREEN}✓${NC}"
         else
             echo -e "${RED}✗${NC}"

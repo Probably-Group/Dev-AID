@@ -112,7 +112,7 @@ class TestConfigLoader:
 
         # Invalid path outside config_dir
         invalid_path = mock_dev_aid_root / "outside.txt"
-        with pytest.raises(ValueError, match="traversal"):
+        with pytest.raises(ValueError, match="Path outside base directory"):
             config._validate_safe_path(invalid_path, config.config_dir)
 
 

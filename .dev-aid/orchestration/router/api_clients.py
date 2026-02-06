@@ -17,6 +17,7 @@ from functools import wraps
 from typing import Any, Callable, Dict, List, Optional, TypeVar, cast
 
 from .auth_detector import AuthCredentials
+from .token_estimation import estimate_tokens
 
 F = TypeVar("F", bound=Callable[..., Any])
 
@@ -323,9 +324,9 @@ class GoogleClient(BaseAIClient):
 
             # Fallback to estimation if not available
             if input_tokens == 0:
-                input_tokens = int(len(prompt.split()) * 1.3)
+                input_tokens = estimate_tokens(prompt)
             if output_tokens == 0:
-                output_tokens = int(len(content.split()) * 1.3)
+                output_tokens = estimate_tokens(content)
 
             # Calculate cost
             cost = self.calculate_cost(int(input_tokens), int(output_tokens))
@@ -366,9 +367,9 @@ class GoogleClient(BaseAIClient):
             # Fallback to estimation
             if input_tokens == 0:
                 total_input = " ".join([p["parts"][0]["text"] for p in conversation_parts])
-                input_tokens = int(len(total_input.split()) * 1.3)
+                input_tokens = estimate_tokens(total_input)
             if output_tokens == 0:
-                output_tokens = int(len(content.split()) * 1.3)
+                output_tokens = estimate_tokens(content)
 
             cost = self.calculate_cost(int(input_tokens), int(output_tokens))
 

@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from dotenv import load_dotenv
 
 from .auth_detector import AuthCredentials, AuthDetector
+from .security_utils import validate_safe_path
 
 logger = logging.getLogger(__name__)
 
@@ -69,35 +70,11 @@ class ConfigLoader:
 
     def _validate_safe_path(self, filepath: Path, base_dir: Path) -> Path:
         """
-        Validate that filepath is safe and within base_dir
+        Validate that filepath is safe and within base_dir.
 
-        Args:
-            filepath: Path to validate
-            base_dir: Base directory that filepath must be within
-
-        Returns:
-            Resolved safe path
-
-        Raises:
-            ValueError: If path is unsafe or traverses outside base_dir
+        Delegates to shared security_utils.validate_safe_path().
         """
-        try:
-            # Resolve both paths
-            resolved_file = filepath.resolve(strict=False)
-            resolved_base = base_dir.resolve(strict=False)
-
-            # Check containment
-            if not str(resolved_file).startswith(str(resolved_base)):
-                raise ValueError(f"Path traversal detected: {filepath} is outside {base_dir}")
-
-            # Check for null bytes
-            if "\0" in str(resolved_file):
-                raise ValueError("Path contains null bytes")
-
-            return resolved_file
-
-        except (OSError, RuntimeError) as e:
-            raise ValueError(f"Invalid path: {e}")
+        return validate_safe_path(filepath, base_dir=base_dir)
 
     def _load_json(self, filename: str) -> Dict[str, Any]:
         """

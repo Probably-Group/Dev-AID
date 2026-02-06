@@ -7,9 +7,12 @@ and execute tools for enhanced context gathering.
 
 import asyncio
 import json
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, cast
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -109,7 +112,7 @@ class MCPClient:
             return True
 
         except Exception as e:
-            print(f"Failed to connect to MCP server {self.config.name}: {e}")
+            logger.error("Failed to connect to MCP server %s: %s", self.config.name, e)
             return False
 
     async def disconnect(self) -> None:

@@ -21,6 +21,8 @@ from .api_clients import (
     track_api_call,
 )
 from .auth_detector import AuthCredentials
+from .local_backends import DEFAULT_PORTS, detect_available_backend
+from .token_estimation import estimate_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +30,8 @@ logger = logging.getLogger(__name__)
 class LocalLLMClient(BaseAIClient):
     """Client for local LLM inference via OpenAI-compatible API"""
 
-    # Default ports for each backend
-    DEFAULT_PORTS = {
-        "ollama": 11434,
-        "lm_studio": 1234,
-        "llama_cpp": 8080,
-    }
+    # Use shared DEFAULT_PORTS from local_backends module
+    DEFAULT_PORTS = DEFAULT_PORTS
 
     def __init__(self, auth: AuthCredentials, model_config: Dict[str, Any]):
         """
@@ -180,9 +178,9 @@ class LocalLLMClient(BaseAIClient):
 
         # Estimate tokens if not provided
         if input_tokens == 0:
-            input_tokens = sum(len(msg.content.split()) for msg in messages) * 4 // 3
+            input_tokens = estimate_tokens(" ".join(msg.content for msg in messages))
         if output_tokens == 0:
-            output_tokens = len(content.split()) * 4 // 3
+            output_tokens = estimate_tokens(content)
 
         # Local models have zero cost
         cost = 0.0
@@ -217,35 +215,14 @@ class LocalLLMClient(BaseAIClient):
 
 def detect_local_server() -> Optional[Dict[str, Any]]:
     """
-    Detect running local LLM server
+    Detect running local LLM server.
 
-    Checks default ports for Ollama, LM Studio, and llama.cpp
+    Delegates to shared local_backends.detect_available_backend().
 
     Returns:
         Dict with backend info if found, None otherwise
     """
-    backends = [
-        ("ollama", 11434, "/api/tags"),
-        ("lm_studio", 1234, "/v1/models"),
-        ("llama_cpp", 8080, "/v1/models"),
-    ]
-
-    for backend, port, health_path in backends:
-        try:
-            url = f"http://localhost:{port}{health_path}"
-            response = requests.get(url, timeout=2)
-            if response.status_code == 200:
-                logger.info(f"Found {backend} server running on port {port}")
-                return {
-                    "backend": backend,
-                    "port": port,
-                    "base_url": f"http://localhost:{port}/v1",
-                }
-        except Exception:
-            continue
-
-    logger.debug("No local LLM server detected")
-    return None
+    return detect_available_backend()
 
 
 def create_local_auth(

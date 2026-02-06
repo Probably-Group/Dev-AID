@@ -9,9 +9,14 @@ Gathers relevant context from:
 - MCP servers (database, GitHub, code search, etc.)
 """
 
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from .security_utils import validate_safe_path
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -83,7 +88,7 @@ class ContextBuilder:
                         memory_bank[filename] = content
                 except Exception as e:
                     # Log error but continue
-                    print(f"Warning: Could not read {filename}: {e}")
+                    logger.warning("Could not read %s: %s", filename, e)
 
         return memory_bank
 
@@ -100,33 +105,11 @@ class ContextBuilder:
 
     def _validate_safe_path(self, path: Path) -> Path:
         """
-        Validate path is safe and within expected boundaries
+        Validate path is safe and within expected boundaries.
 
-        Args:
-            path: Path to validate
-
-        Returns:
-            Resolved safe path
-
-        Raises:
-            ValueError: If path is unsafe or contains traversal
+        Delegates to shared security_utils.validate_safe_path().
         """
-        try:
-            resolved = path.resolve(strict=False)
-
-            # Ensure it's an absolute path
-            if not resolved.is_absolute():
-                raise ValueError("Path must be absolute after resolution")
-
-            # Basic sanity checks
-            path_str = str(resolved)
-            if "\0" in path_str:
-                raise ValueError("Path contains null bytes")
-
-            return resolved
-
-        except (OSError, RuntimeError) as e:
-            raise ValueError(f"Invalid path: {e}")
+        return validate_safe_path(path)
 
     def _get_git_context(self) -> Optional[Dict[str, str]]:
         """Get git context if available"""
@@ -299,7 +282,7 @@ class ContextBuilder:
                             mcp_context["github"] = result
 
                 except Exception as e:
-                    print(f"Warning: Failed to gather context from {server_name}: {e}")
+                    logger.warning("Failed to gather context from %s: %s", server_name, e)
                     continue
 
             # Check if external research is needed as fallback
@@ -309,7 +292,7 @@ class ContextBuilder:
                     mcp_context["external_research"] = research_result
 
         except Exception as e:
-            print(f"Error gathering MCP context: {e}")
+            logger.error("Error gathering MCP context: %s", e)
 
         return mcp_context
 
@@ -412,7 +395,7 @@ class ContextBuilder:
             return None
 
         except Exception as e:
-            print(f"Warning: Research fallback failed: {e}")
+            logger.warning("Research fallback failed: %s", e)
             return None
 
     async def _query_deep_research(self, prompt: str) -> Optional[Dict[str, Any]]:
@@ -448,7 +431,7 @@ class ContextBuilder:
             return None
 
         except Exception as e:
-            print(f"Deep research query failed: {e}")
+            logger.warning("Deep research query failed: %s", e)
             return None
 
     def _auto_select_mcps(self, prompt: str, task_type: Optional[str]) -> List[str]:
@@ -524,7 +507,7 @@ class ContextBuilder:
             return {"search_results": result.get("content", []), "query": search_terms}
 
         except Exception as e:
-            print(f"Code search failed: {e}")
+            logger.warning("Code search failed: %s", e)
             return None
 
     async def _query_database_schema(self, server_name: str) -> Optional[Dict[str, Any]]:
@@ -536,7 +519,7 @@ class ContextBuilder:
             return {"schema": result, "server": server_name}
 
         except Exception as e:
-            print(f"Database schema query failed: {e}")
+            logger.warning("Database schema query failed: %s", e)
             return None
 
     async def _query_github_context(
@@ -554,7 +537,7 @@ class ContextBuilder:
             return {"issues": result.get("issues", []), "query": search_query}
 
         except Exception as e:
-            print(f"GitHub query failed: {e}")
+            logger.warning("GitHub query failed: %s", e)
             return None
 
     def _extract_search_terms(self, prompt: str) -> str:

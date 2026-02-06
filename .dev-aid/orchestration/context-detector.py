@@ -70,8 +70,13 @@ class ContextDetector:
                 try:
                     keywords = extractor(config_path)
                     context.update(keywords)
-                except Exception:
-                    pass  # Skip files that can't be parsed
+                except (json.JSONDecodeError, OSError, UnicodeDecodeError) as e:
+                    # Log specific parsing errors instead of silently swallowing
+                    import logging
+
+                    logging.getLogger(__name__).debug(
+                        "Could not parse config %s: %s", config_file, e
+                    )
 
         # Check for Docker
         if (project_path / "Dockerfile").exists():

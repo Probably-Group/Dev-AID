@@ -6,12 +6,13 @@ from typing import Any, Dict
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
+from ._protocol import ModeConfigProtocol
 
 
 class ChallengerMode:
     """Challenger mode: Two-model review workflow"""
 
-    def __init__(self, config_loader: Any, context_builder: ContextBuilder) -> None:
+    def __init__(self, config_loader: ModeConfigProtocol, context_builder: ContextBuilder) -> None:
         """
         Initialize challenger mode
 

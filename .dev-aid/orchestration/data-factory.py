@@ -275,18 +275,40 @@ class DataFactory:
         writer.writerows(records)
         return output.getvalue()
 
+    @staticmethod
+    def _sql_escape(value: str) -> str:
+        """Escape a string value for SQL by doubling single quotes."""
+        return value.replace("'", "''")
+
+    @staticmethod
+    def _sql_identifier(name: str) -> str:
+        """Quote a SQL identifier and reject dangerous characters."""
+        if not name.isidentifier() and not all(c.isalnum() or c == "_" for c in name):
+            raise ValueError(f"Invalid SQL identifier: {name}")
+        return f'"{name}"'
+
     def output_sql(self, records: List[Dict], table_name: str = "test_table") -> str:
-        """Output as SQL INSERT statements"""
+        """Output as SQL INSERT statements (with proper escaping)"""
         if not records:
             return ""
 
+        safe_table = self._sql_identifier(table_name)
+
         sql_statements = []
         for record in records:
-            columns = ", ".join(record.keys())
-            values = ", ".join(
-                [f"'{v}'" if isinstance(v, str) else str(v) for v in record.values()]
-            )
-            sql_statements.append(f"INSERT INTO {table_name} ({columns}) VALUES ({values});")
+            columns = ", ".join(self._sql_identifier(k) for k in record.keys())
+            escaped_values = []
+            for v in record.values():
+                if v is None:
+                    escaped_values.append("NULL")
+                elif isinstance(v, str):
+                    escaped_values.append(f"'{self._sql_escape(v)}'")
+                elif isinstance(v, bool):
+                    escaped_values.append("TRUE" if v else "FALSE")
+                else:
+                    escaped_values.append(str(v))
+            values = ", ".join(escaped_values)
+            sql_statements.append(f"INSERT INTO {safe_table} ({columns}) VALUES ({values});")
 
         return "\n".join(sql_statements)
 

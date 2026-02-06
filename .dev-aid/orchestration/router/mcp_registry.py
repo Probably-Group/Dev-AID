@@ -8,10 +8,13 @@ Discovers MCP servers from:
 """
 
 import json
+import logging
 import os
 import subprocess
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,7 +47,11 @@ class MCPRegistry:
         if config_path is None:
             config_path = os.path.expanduser("~/.dev-aid/orchestration/config/mcp-config.json")
 
-        self.config_path = config_path
+        # Validate config_path doesn't contain null bytes (check before realpath)
+        if "\0" in config_path:
+            raise ValueError("Config path contains null bytes")
+        resolved = os.path.realpath(config_path)
+        self.config_path = resolved
         self.servers: Dict[str, MCPServerInfo] = {}
 
         # Load existing configuration
@@ -112,8 +119,14 @@ class MCPRegistry:
                                 capabilities=self._infer_capabilities(name),
                             )
 
-        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+        except (
+            subprocess.TimeoutExpired,
+            subprocess.SubprocessError,
+            FileNotFoundError,
+            OSError,
+        ) as e:
             # Claude CLI not available, try reading config directly
+            logger.debug("Claude CLI not available: %s", e)
             config = self._read_claude_config()
             if config:
                 for name, server_config in config.get("mcpServers", {}).items():
@@ -141,7 +154,8 @@ class MCPRegistry:
                     with open(path, "r") as f:
                         result: Dict[str, Any] = json.load(f)
                         return result
-                except Exception:
+                except (json.JSONDecodeError, OSError, PermissionError) as e:
+                    logger.debug("Failed to read Claude config at %s: %s", path, e)
                     continue
 
         return None
@@ -172,8 +186,8 @@ class MCPRegistry:
                         capabilities=self._infer_capabilities(name),
                     )
 
-            except Exception as e:
-                print(f"Failed to read Gemini config: {e}")
+            except (json.JSONDecodeError, OSError, PermissionError) as e:
+                logger.warning("Failed to read Gemini config: %s", e)
 
         return servers
 
@@ -313,8 +327,8 @@ class MCPRegistry:
                     if name in self.servers:
                         self.servers[name].enabled_for_router = saved_server.get("enabled", False)
 
-            except Exception as e:
-                print(f"Failed to load MCP config: {e}")
+            except (json.JSONDecodeError, OSError, PermissionError) as e:
+                logger.warning("Failed to load MCP config: %s", e)
 
     def _save_config(self) -> None:
         """Save configuration"""

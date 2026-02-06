@@ -96,8 +96,12 @@ class GitHubClient:
 
                     return parts
 
-        except Exception:
-            pass
+        except (subprocess.SubprocessError, FileNotFoundError, OSError) as e:
+            # Log the specific failure rather than silently swallowing
+            print(
+                f"{Color.YELLOW}Warning: Could not detect repo from git: {e}{Color.NC}",
+                file=sys.stderr,
+            )
 
         # Fallback to environment variable or error
         repo = os.getenv("DEV_AID_REPO")

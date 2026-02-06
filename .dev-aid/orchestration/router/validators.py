@@ -139,7 +139,7 @@ class SafePath(SecureInput):
             base = Path(self.base_dir).resolve()
             target = (base / self.path).resolve()
 
-            if not str(target).startswith(str(base)):
+            if not target.is_relative_to(base):
                 raise ValueError(f"Path traversal detected: {target} is not within {base}")
 
         return self

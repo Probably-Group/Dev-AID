@@ -96,7 +96,22 @@ class ContextBuilder:
         auto_load_files = self.config.get_memory_bank_files()
 
         for filename in auto_load_files:
+            # Validate filename doesn't contain traversal (CWE-22)
+            if ".." in filename or filename.startswith("/"):
+                logger.warning("Skipping unsafe memory bank filename: %s", filename)
+                continue
+
             filepath = self.memory_bank_path / filename
+
+            # Verify resolved path stays within memory bank directory
+            try:
+                resolved = filepath.resolve()
+                if not resolved.is_relative_to(self.memory_bank_path.resolve()):
+                    logger.warning("Path traversal blocked for memory bank file: %s", filename)
+                    continue
+            except (ValueError, OSError):
+                logger.warning("Invalid memory bank path: %s", filename)
+                continue
 
             if filepath.exists():
                 try:
@@ -274,7 +289,8 @@ class ContextBuilder:
                 "last_commit": last_commit,
                 "status": status if status else "(clean)",
             }
-        except Exception:
+        except (OSError, RuntimeError, asyncio.TimeoutError) as e:
+            logger.debug("Async git context detection failed: %s", e)
             return None
 
     async def _detect_active_skills_async(self) -> Optional[List[str]]:

@@ -163,19 +163,16 @@ class CodeSearchIndex:
                 logger.info(f"Loaded index with {len(self.chunks)} chunks (JSON format)")
 
             elif chunks_file_pkl.exists():
-                # Legacy pickle format - migrate to JSON
-                logger.warning("Found legacy pickle format - migrating to JSON for security")
-                import pickle
-                with open(chunks_file_pkl, 'rb') as f:
-                    self.chunks = pickle.load(f)
-
-                # Save as JSON and remove pickle file
-                chunks_data = [asdict(chunk) for chunk in self.chunks]
-                with open(chunks_file_json, 'w', encoding='utf-8') as f:
-                    json.dump(chunks_data, f, indent=2)
-                chunks_file_pkl.unlink()  # Delete insecure pickle file
-
-                logger.info(f"Migrated {len(self.chunks)} chunks to secure JSON format")
+                # SECURITY: Refuse to load pickle files (CWE-502 deserialization risk)
+                logger.error(
+                    "Found legacy pickle file %s. "
+                    "Pickle deserialization is unsafe. "
+                    "Please re-index to generate a JSON chunks file.",
+                    chunks_file_pkl,
+                )
+                self.index = None
+                self.chunks = []
+                return
 
             else:
                 logger.error("No chunks file found")

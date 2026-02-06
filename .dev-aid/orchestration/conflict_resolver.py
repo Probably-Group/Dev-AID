@@ -484,11 +484,13 @@ def main():
     # Save resolution log
     resolver.save_resolution_log()
 
-    # Write conflict count for shell script
+    # Write conflict count for shell script (use project-local path, not /tmp)
     try:
-        Path("/tmp/dev-aid-conflict-count.txt").write_text(str(len(conflicts)))
-    except Exception:
-        pass  # Not critical
+        count_file = Path(".dev-aid/.last-conflict-count")
+        count_file.parent.mkdir(parents=True, exist_ok=True)
+        count_file.write_text(str(len(conflicts)))
+    except OSError as e:
+        print(f"{Color.YELLOW}Warning: Could not write conflict count: {e}{Color.NC}")
 
     # Exit code: 0 if all resolved, 1 if any skipped
     skipped_count = sum(1 for v in resolutions.values() if v == "skipped")

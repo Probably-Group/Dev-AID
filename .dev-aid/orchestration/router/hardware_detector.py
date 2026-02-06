@@ -207,8 +207,8 @@ class HardwareDetector:
         if PSUTIL_AVAILABLE:
             try:
                 return psutil.cpu_count(logical=False) or 1
-            except Exception:
-                pass
+            except (AttributeError, OSError) as e:
+                logger.debug("CPU core detection failed: %s", e)
         return 1
 
     def _detect_cpu_threads(self) -> int:
@@ -216,8 +216,8 @@ class HardwareDetector:
         if PSUTIL_AVAILABLE:
             try:
                 return psutil.cpu_count(logical=True) or 1
-            except Exception:
-                pass
+            except (AttributeError, OSError) as e:
+                logger.debug("CPU thread detection failed: %s", e)
         return 1
 
     def _detect_ram(self) -> float:

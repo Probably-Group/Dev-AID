@@ -19,6 +19,7 @@ from typing import Any, Dict, List, Optional, Tuple, cast
 from dotenv import load_dotenv
 
 from .auth_detector import AuthCredentials, AuthDetector
+from .config_models import validate_routing, validate_settings
 from .security_utils import validate_safe_path
 
 logger = logging.getLogger(__name__)
@@ -51,6 +52,10 @@ class ConfigLoader:
         self.routing = self._load_json("routing.json")
         self.models = self._load_json("models.json")
         self.orchestration = self._load_json("orchestration.json")
+
+        # Validate configs (logs warnings, doesn't fail)
+        validate_settings(self.settings)
+        validate_routing(self.routing)
 
         # Initialize auth detector (lazy-loaded on first use)
         self.auth_detector = AuthDetector()

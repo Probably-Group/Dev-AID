@@ -14,6 +14,8 @@ import re
 from enum import Enum
 from typing import Any, Dict, List, Tuple, cast
 
+from .constants import CONTEXT_THRESHOLD
+
 
 class TaskType(str, Enum):
     """Task types for classification"""
@@ -107,7 +109,7 @@ class TaskClassifier:
         request_lower = request.lower()
 
         # Check for massive context first (high priority)
-        if context_size > 100_000:
+        if context_size > CONTEXT_THRESHOLD:
             return TaskType.MASSIVE_CONTEXT, ["large_context"], 1.0
 
         # Score each task type

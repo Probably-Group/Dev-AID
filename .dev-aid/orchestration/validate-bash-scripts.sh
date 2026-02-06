@@ -2,245 +2,469 @@
 #
 # Script: validate-bash-scripts.sh
 # Description: Validates Bash scripts for bash-expert skill compliance
-# Usage: validate-bash-scripts.sh [script_files...]
+# Usage: validate-bash-scripts.sh [--strict] [script_files...]
+#        Default: scans all .sh files in .dev-aid/ (excluding venv/)
 #
 
-# Strict mode: exit on error, undefined variables, pipe failures
+# Strict mode
 set -euo pipefail
+IFS=$'\n\t'
 
-# Script directory (portable way)
+# Script metadata
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+readonly DEV_AID_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # Colors for output
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
 readonly YELLOW='\033[1;33m'
-readonly NC='\033[0m' # No Color
+readonly BLUE='\033[0;34m'
+readonly BOLD='\033[1m'
+readonly NC='\033[0m'
 
-# Counters
-total_checks=0
-passed_checks=0
-failed_checks=0
+# Counters (declare -i for arithmetic)
+declare -i total_pass=0
+declare -i total_fail=0
+declare -i total_warn=0
+declare -i total_files=0
+declare -i strict_mode=0
 
-# Cleanup function (always runs on exit)
+# Cleanup function
 cleanup() {
     local exit_code=$?
-    exit "$exit_code"
+    exit "${exit_code}"
 }
 trap cleanup EXIT INT TERM
 
-# Logging functions
+# ── Logging ──────────────────────────────────────────────────────────────────
+
 log_pass() {
-    echo -e "${GREEN}✓${NC} $*"
-    ((passed_checks++)) || true
-    ((total_checks++)) || true
+    local msg="$1"
+    echo -e "  ${GREEN}PASS${NC}  ${msg}"
+    total_pass+=1
 }
 
 log_fail() {
-    echo -e "${RED}✗${NC} $*"
-    ((failed_checks++)) || true
-    ((total_checks++)) || true
+    local msg="$1"
+    echo -e "  ${RED}FAIL${NC}  ${msg}"
+    total_fail+=1
 }
 
 log_warn() {
-    echo -e "${YELLOW}⚠${NC} $*"
+    local msg="$1"
+    if [[ "${strict_mode}" -eq 1 ]]; then
+        echo -e "  ${RED}FAIL${NC}  ${msg} (strict mode: WARN->FAIL)"
+        total_fail+=1
+    else
+        echo -e "  ${YELLOW}WARN${NC}  ${msg}"
+        total_warn+=1
+    fi
 }
 
-log_info() {
-    echo "ℹ $*"
-}
+# ── Check Functions ──────────────────────────────────────────────────────────
 
-# Check for shebang
 check_shebang() {
     local script="$1"
     local first_line
-    first_line=$(head -1 "$script")
+    first_line="$(head -1 "${script}")"
 
-    if [[ "$first_line" =~ ^#!/usr/bin/env\ bash$ ]] || [[ "$first_line" =~ ^#!/bin/bash$ ]]; then
-        log_pass "$script: Has proper shebang"
-        return 0
+    if [[ "${first_line}" == "#!/usr/bin/env bash" ]]; then
+        log_pass "Shebang: #!/usr/bin/env bash"
+    elif [[ "${first_line}" == "#!/bin/bash" ]]; then
+        log_fail "Shebang: #!/bin/bash (must be #!/usr/bin/env bash)"
     else
-        log_fail "$script: Missing or incorrect shebang (found: $first_line)"
-        return 1
+        log_fail "Shebang: missing or incorrect (found: ${first_line})"
     fi
 }
 
-# Check for strict mode
 check_strict_mode() {
     local script="$1"
 
-    if grep -q "set -euo pipefail" "$script"; then
-        log_pass "$script: Uses strict mode (set -euo pipefail)"
-        return 0
+    if grep -q "^set -euo pipefail" "${script}"; then
+        log_pass "Strict mode: set -euo pipefail"
     else
-        log_fail "$script: Missing strict mode (set -euo pipefail)"
-        return 1
+        log_fail "Strict mode: missing 'set -euo pipefail'"
     fi
 }
 
-# Check for cleanup trap
+check_ifs() {
+    local script="$1"
+
+    if grep -q "^IFS=\\\$'\\\\n\\\\t'" "${script}"; then
+        log_pass "IFS: IFS=\$'\\n\\t' is set"
+    else
+        log_fail "IFS: missing IFS=\$'\\n\\t' after strict mode"
+    fi
+}
+
 check_cleanup_trap() {
     local script="$1"
 
-    if grep -q "trap.*cleanup.*EXIT" "$script"; then
-        log_pass "$script: Has cleanup trap"
-        return 0
+    if grep -qE "^trap\s+\S+\s+.*EXIT" "${script}"; then
+        log_pass "Cleanup trap: trap ... EXIT found"
     else
-        log_warn "$script: No cleanup trap found (optional but recommended)"
-        ((total_checks++)) || true
-        return 0
+        log_fail "Cleanup trap: no 'trap ... EXIT' found"
     fi
 }
 
-# Check for proper quoting (basic check)
-check_quoting() {
-    local script="$1"
-    local unquoted_vars=0
-
-    # Check for common unquoted variable patterns (basic heuristic)
-    # This is not perfect but catches obvious cases
-    if grep -E '\$[A-Z_]+[^"]' "$script" | grep -v "^\s*#" | grep -q .; then
-        log_warn "$script: Possible unquoted variables detected (manual review recommended)"
-    fi
-
-    log_pass "$script: Basic quoting check passed"
-    return 0
-}
-
-# Check for readonly variables for constants
-check_readonly_constants() {
-    local script="$1"
-
-    if grep -q "readonly" "$script"; then
-        log_pass "$script: Uses readonly for constants"
-        return 0
-    else
-        log_warn "$script: No readonly constants found (recommended for configuration)"
-        ((total_checks++)) || true
-        return 0
-    fi
-}
-
-# Check for input validation
-check_input_validation() {
-    local script="$1"
-
-    # Check if script validates inputs or arguments
-    if grep -qE "(\[\[.*-z.*\]\]|\[\[.*-n.*\]\]|\[\[.*\$#)" "$script"; then
-        log_pass "$script: Contains input validation"
-        return 0
-    else
-        log_warn "$script: No obvious input validation detected"
-        ((total_checks++)) || true
-        return 0
-    fi
-}
-
-# Syntax check with bash -n
 check_syntax() {
     local script="$1"
 
-    if bash -n "$script" 2>/dev/null; then
-        log_pass "$script: Syntax check passed (bash -n)"
-        return 0
+    if bash -n "${script}" 2>/dev/null; then
+        log_pass "Syntax: bash -n passed"
     else
-        log_fail "$script: Syntax check FAILED (bash -n)"
-        bash -n "$script" 2>&1 | sed 's/^/  /'
-        return 1
+        log_fail "Syntax: bash -n failed"
     fi
 }
 
-# Check for dangerous patterns
 check_dangerous_patterns() {
     local script="$1"
-    local dangerous=0
+    local found_issues=0
 
-    # Check for eval
-    if grep -q "eval" "$script" | grep -v "^\s*#"; then
-        log_fail "$script: Uses 'eval' (dangerous, avoid)"
-        dangerous=1
+    # Check for eval usage — exclude lines that are themselves grep/check patterns
+    # by filtering out lines containing "grep", "check", or quoted 'eval'
+    local eval_hits
+    eval_hits="$(grep -nE "^[^#]*\beval\b" "${script}" \
+        | grep -vE "(grep|log_|echo|check_|#)" \
+        || true)"
+    if [[ -n "${eval_hits}" ]]; then
+        log_fail "Dangerous: uses 'eval' (avoid)"
+        found_issues=1
     fi
 
-    # Check for backticks
-    if grep -q '`' "$script" | grep -v "^\s*#"; then
-        log_fail "$script: Uses backticks (use \$() instead)"
-        dangerous=1
+    # Check for backticks (excluding comments and grep patterns)
+    local backtick_hits
+    backtick_hits="$(grep -n '`' "${script}" \
+        | grep -vE "(^\s*#|grep|log_|echo)" \
+        || true)"
+    if [[ -n "${backtick_hits}" ]]; then
+        log_fail "Dangerous: uses backticks (use \$() instead)"
+        found_issues=1
     fi
 
-    if [[ "$dangerous" -eq 0 ]]; then
-        log_pass "$script: No dangerous patterns detected"
-        return 0
+    if [[ "${found_issues}" -eq 0 ]]; then
+        log_pass "Dangerous patterns: none detected"
     fi
-
-    return 1
 }
 
-# Validate a single script
-validate_script() {
+check_test_brackets() {
     local script="$1"
+    local bad_lines
 
-    echo ""
-    log_info "Validating: $script"
-    echo "----------------------------------------"
+    # Find lines with single [ (space after) that are NOT [[ (exclude comments)
+    bad_lines="$(grep -nE '\[\s' "${script}" \
+        | grep -vE '(\[\[|^\s*#|grep|echo|log_)' \
+        || true)"
 
-    check_shebang "$script"
-    check_strict_mode "$script"
-    check_cleanup_trap "$script"
-    check_quoting "$script"
-    check_readonly_constants "$script"
-    check_input_validation "$script"
-    check_syntax "$script"
-    check_dangerous_patterns "$script"
+    if [[ -n "${bad_lines}" ]]; then
+        local count
+        count="$(echo "${bad_lines}" | wc -l | tr -d ' ')"
+        log_fail "Test brackets: uses single [ ] instead of [[ ]] — ${count} occurrence(s)"
+    else
+        log_pass "Test brackets: uses [[ ]] consistently"
+    fi
 }
 
-# Main function
-main() {
-    local -a scripts_to_check
+check_variable_braces() {
+    local script="$1"
+    local bad_count
+    declare -i bad_count=0
 
-    if [[ $# -eq 0 ]]; then
-        # Default: check newly created scripts
-        scripts_to_check=(
-            "$SCRIPT_DIR/detect-context.sh"
-            "$SCRIPT_DIR/select-skills.sh"
-            "$SCRIPT_DIR/../providers/claude/.claude/hooks/session-start.sh"
-            "$SCRIPT_DIR/../providers/gemini/.gemini/hooks/session-start.sh"
-        )
+    # Find "$VAR" without braces (should be "${VAR}"), excluding comments
+    bad_count=$(grep -cE '^\s*[^#]*"\$[A-Za-z_][A-Za-z_0-9]*[^}]' "${script}" || true)
+
+    if [[ "${bad_count}" -gt 0 ]]; then
+        log_warn "Variable braces: ~${bad_count} variable(s) without \${} braces"
     else
-        scripts_to_check=("$@")
+        log_pass "Variable braces: all variables use \${var} form"
     fi
+}
 
-    log_info "Bash Expert Skill Compliance Validation"
-    echo "========================================"
+check_local_in_functions() {
+    local script="$1"
+    local found_issues=0
+    local in_function=0
+    local local_vars=""
+    local global_vars=""
 
-    for script in "${scripts_to_check[@]}"; do
-        if [[ ! -f "$script" ]]; then
-            log_fail "Script not found: $script"
+    # First pass: collect top-level (global) variable names
+    while IFS= read -r line; do
+        # Top-level declare/readonly
+        if [[ "${line}" =~ ^(declare|readonly)[[:space:]]+([-a-zA-Z]*[[:space:]]+)?([a-zA-Z_][a-zA-Z_0-9]*) ]]; then
+            global_vars="${global_vars} ${BASH_REMATCH[3]}"
+        fi
+        # Top-level VAR= (no leading whitespace)
+        if [[ "${line}" =~ ^([a-zA-Z_][a-zA-Z_0-9]*)= ]]; then
+            global_vars="${global_vars} ${BASH_REMATCH[1]}"
+        fi
+    done < "${script}"
+
+    # Second pass: check functions
+    while IFS= read -r line; do
+        # Detect function start
+        if [[ "${line}" =~ ^[[:space:]]*(function[[:space:]]+)?([a-zA-Z_][a-zA-Z_0-9]*)[[:space:]]*\(\)[[:space:]]*\{ ]]; then
+            in_function=1
+            local_vars=""
             continue
         fi
 
-        validate_script "$script"
+        # Detect function end (closing brace)
+        if [[ "${in_function}" -eq 1 ]] && [[ "${line}" =~ ^[[:space:]]*\}[[:space:]]*$ ]]; then
+            in_function=0
+            local_vars=""
+            continue
+        fi
+
+        # Inside a function
+        if [[ "${in_function}" -eq 1 ]]; then
+            # Skip comments, empty lines
+            if [[ "${line}" =~ ^[[:space:]]*# ]] || [[ -z "${line// }" ]]; then
+                continue
+            fi
+
+            # Track variables declared with local/declare inside function
+            if [[ "${line}" =~ ^[[:space:]]*(local|declare)[[:space:]]+([-a-zA-Z]*[[:space:]]+)?([a-zA-Z_][a-zA-Z_0-9]*) ]]; then
+                local_vars="${local_vars} ${BASH_REMATCH[3]}"
+                continue
+            fi
+
+            # Skip lines with export/readonly/typeset
+            if [[ "${line}" =~ ^[[:space:]]*(readonly|export|typeset)[[:space:]] ]]; then
+                continue
+            fi
+
+            # Skip control flow, commands, etc.
+            if [[ "${line}" =~ ^[[:space:]]*(if|then|else|elif|fi|for|while|do|done|case|esac|return|echo|continue|break|total_|log_) ]]; then
+                continue
+            fi
+
+            # Match: VAR= or VAR+= (assignment)
+            if [[ "${line}" =~ ^[[:space:]]+([a-zA-Z_][a-zA-Z_0-9]*)(\+)?= ]]; then
+                local var_name="${BASH_REMATCH[1]}"
+                # Skip if declared with local in this function or is a known global
+                if [[ " ${local_vars} " != *" ${var_name} "* ]] && \
+                   [[ " ${global_vars} " != *" ${var_name} "* ]]; then
+                    found_issues=1
+                fi
+            fi
+        fi
+    done < "${script}"
+
+    if [[ "${found_issues}" -eq 1 ]]; then
+        log_fail "Local vars: function variable(s) assigned without 'local'"
+    else
+        log_pass "Local vars: all function variables use 'local'"
+    fi
+}
+
+check_readonly_constants() {
+    local script="$1"
+    declare -i bad_count=0
+
+    # Check top-level UPPERCASE= assignments that lack readonly
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        if [[ "${line}" =~ ^[[:space:]]*# ]] || [[ -z "${line}" ]]; then
+            continue
+        fi
+        # Match top-level uppercase assignments without readonly/declare/export
+        # Exclude shell builtins (IFS, PATH, PS1, etc.)
+        if [[ "${line}" =~ ^[A-Z_][A-Z_0-9]*= ]] && \
+           ! [[ "${line}" =~ ^(readonly|declare|export)[[:space:]] ]] && \
+           ! [[ "${line}" =~ ^(IFS|PATH|PS1|PS2|PS4|HOME|SHELL|TERM|LANG|LC_)= ]]; then
+            bad_count+=1
+        fi
+    done < "${script}"
+
+    if [[ "${bad_count}" -gt 0 ]]; then
+        log_warn "Readonly: ${bad_count} top-level constant(s) without 'readonly'"
+    else
+        log_pass "Readonly: all top-level constants use 'readonly'"
+    fi
+}
+
+check_chmod_permissions() {
+    local script="$1"
+    local bad_lines
+
+    bad_lines="$(grep -nE '^\s*[^#]*(chmod\s+(777|666)|chmod\s+o\+w)' "${script}" || true)"
+
+    if [[ -n "${bad_lines}" ]]; then
+        log_fail "Permissions: insecure chmod (777/666/o+w) detected"
+    else
+        log_pass "Permissions: no insecure chmod patterns"
+    fi
+}
+
+check_mktemp_usage() {
+    local script="$1"
+    local bad_lines
+
+    # Find hardcoded /tmp/ paths that don't use mktemp (exclude comments and grep patterns)
+    bad_lines="$(grep -nE '^\s*[^#]*/tmp/' "${script}" \
+        | grep -vE "(mktemp|grep|echo|log_)" \
+        || true)"
+
+    if [[ -n "${bad_lines}" ]]; then
+        log_warn "Temp files: hardcoded /tmp/ path(s) — use mktemp instead"
+    else
+        log_pass "Temp files: no hardcoded /tmp/ paths (or uses mktemp)"
+    fi
+}
+
+check_curl_pipe() {
+    local script="$1"
+    local bad_lines
+
+    # Find curl | bash patterns, but exclude lines that are grep patterns checking for this
+    bad_lines="$(grep -nE '^\s*[^#]*curl\s.*\|\s*(ba)?sh' "${script}" \
+        | grep -vE "(grep|log_|echo|check_)" \
+        || true)"
+
+    if [[ -n "${bad_lines}" ]]; then
+        log_fail "Curl pipe: curl | bash pattern detected (never pipe to shell)"
+    else
+        log_pass "Curl pipe: no curl | bash patterns"
+    fi
+}
+
+check_unquoted_subshell() {
+    local script="$1"
+    declare -i bad_count=0
+
+    # Find unquoted command substitution: VAR=$(...) without quotes
+    bad_count=$(grep -cE '^\s*[^#]*[a-zA-Z_]+=[^"]*\$\(' "${script}" || true)
+
+    if [[ "${bad_count}" -gt 0 ]]; then
+        log_warn "Unquoted \$(): ~${bad_count} unquoted command substitution(s)"
+    else
+        log_pass "Unquoted \$(): all command substitutions properly quoted"
+    fi
+}
+
+# ── File Discovery ───────────────────────────────────────────────────────────
+
+find_bash_scripts() {
+    # Find all .sh files in .dev-aid/ excluding venv/ and __pycache__/
+    find "${DEV_AID_DIR}" \
+        -name "*.sh" \
+        -not -path "*/venv/*" \
+        -not -path "*/__pycache__/*" \
+        -not -path "*/.git/*" \
+        -type f | sort
+}
+
+# ── Validate Single Script ──────────────────────────────────────────────────
+
+validate_script() {
+    local script="$1"
+    local relative_path
+
+    relative_path="$(python3 -c "import os; print(os.path.relpath('${script}', '${DEV_AID_DIR}'))" 2>/dev/null || echo "${script}")"
+
+    echo ""
+    echo -e "${BOLD}── ${relative_path} ──${NC}"
+
+    check_shebang "${script}"
+    check_strict_mode "${script}"
+    check_ifs "${script}"
+    check_cleanup_trap "${script}"
+    check_syntax "${script}"
+    check_dangerous_patterns "${script}"
+    check_test_brackets "${script}"
+    check_variable_braces "${script}"
+    check_local_in_functions "${script}"
+    check_readonly_constants "${script}"
+    check_chmod_permissions "${script}"
+    check_mktemp_usage "${script}"
+    check_curl_pipe "${script}"
+    check_unquoted_subshell "${script}"
+
+    total_files+=1
+}
+
+# ── Usage ────────────────────────────────────────────────────────────────────
+
+usage() {
+    echo "Usage: ${SCRIPT_NAME} [--strict] [file ...]"
+    echo ""
+    echo "Validates Bash scripts for bash-expert skill compliance."
+    echo ""
+    echo "Options:"
+    echo "  --strict    Treat WARN as FAIL"
+    echo "  --help      Show this help message"
+    echo ""
+    echo "If no files specified, scans all .sh files in .dev-aid/ (excluding venv/)."
+}
+
+# ── Main ─────────────────────────────────────────────────────────────────────
+
+main() {
+    local -a scripts_to_check=()
+    local -a args=()
+
+    # Parse arguments
+    for arg in "$@"; do
+        if [[ "${arg}" == "--strict" ]]; then
+            strict_mode=1
+        elif [[ "${arg}" == "--help" ]] || [[ "${arg}" == "-h" ]]; then
+            usage
+            exit 0
+        else
+            args+=("${arg}")
+        fi
     done
+
+    echo -e "${BOLD}Bash Expert Skill Compliance Validator${NC}"
+    echo "========================================"
+    if [[ "${strict_mode}" -eq 1 ]]; then
+        echo -e "${YELLOW}Mode: STRICT (WARN -> FAIL)${NC}"
+    fi
+
+    if [[ "${#args[@]}" -gt 0 ]]; then
+        # Validate specified files
+        for file in "${args[@]}"; do
+            if [[ ! -f "${file}" ]]; then
+                echo -e "${RED}Error: file not found: ${file}${NC}"
+                total_fail+=1
+                continue
+            fi
+            validate_script "${file}"
+        done
+    else
+        # Auto-discover all .sh files
+        local script_list
+        script_list="$(find_bash_scripts)"
+
+        if [[ -z "${script_list}" ]]; then
+            echo "No .sh files found in ${DEV_AID_DIR}"
+            exit 0
+        fi
+
+        while IFS= read -r script; do
+            validate_script "${script}"
+        done <<< "${script_list}"
+    fi
 
     # Summary
     echo ""
     echo "========================================"
-    echo "Validation Summary"
+    echo -e "${BOLD}Summary${NC}"
     echo "========================================"
-    echo "Total checks: $total_checks"
-    echo -e "${GREEN}Passed: $passed_checks${NC}"
-    echo -e "${RED}Failed: $failed_checks${NC}"
+    echo "Files scanned: ${total_files}"
+    echo -e "${GREEN}PASS:${NC} ${total_pass}"
+    echo -e "${RED}FAIL:${NC} ${total_fail}"
+    echo -e "${YELLOW}WARN:${NC} ${total_warn}"
+    echo ""
 
-    if [[ "$failed_checks" -gt 0 ]]; then
-        echo ""
-        log_fail "Some checks failed. Please review and fix."
+    if [[ "${total_fail}" -gt 0 ]]; then
+        echo -e "${RED}${BOLD}RESULT: FAILED${NC} (${total_fail} failure(s))"
         exit 1
     else
-        echo ""
-        log_pass "All critical checks passed!"
+        echo -e "${GREEN}${BOLD}RESULT: PASSED${NC} (${total_warn} warning(s))"
         exit 0
     fi
 }
 
-# Run main function
 main "$@"

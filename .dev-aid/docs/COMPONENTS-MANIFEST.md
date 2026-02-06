@@ -22,7 +22,7 @@ This manifest maps our elite setup components to their source repositories for i
 ├── orchestration/
 │   ├── detect-context.sh              # Project context analyzer
 │   ├── select-skills.sh               # Intelligent skill selector
-│   └── validate-bash-scripts.sh       # bash-expert compliance checker
+│   └── context-detector.py            # Project context analyzer (Python)
 └── providers/
     ├── claude/.claude/hooks/
     │   └── session-start.sh           # Claude SessionStart hook

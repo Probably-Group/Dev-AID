@@ -32,7 +32,7 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 ├── orchestration/                   # 🆕 Skill auto-loading engine
 │   ├── detect-context.sh            # Analyzes project context (tech stack, files)
 │   ├── select-skills.sh             # Scores and selects relevant skills
-│   └── validate-bash-scripts.sh     # bash-expert compliance validator
+│   └── context-detector.py          # Project context analyzer (Python)
 │
 ├── providers/
 │   ├── claude/.claude/

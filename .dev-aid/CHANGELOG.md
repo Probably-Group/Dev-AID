@@ -416,7 +416,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### New Components
 - **detect-context.sh**: Scans project for file patterns, config files (package.json, requirements.txt), and technology indicators
 - **select-skills.sh**: Intelligent skill selector with scoring, conflict resolution, and dependency management
-- **validate-bash-scripts.sh**: Compliance checker for bash-expert skill guidelines (32 validation checks)
+- **validate-bash-scripts.sh**: Compliance checker for bash-expert skill guidelines (32 validation checks) — _moved to `.dev-aid/skills/expert/bash-expert/validate.py`_
 - **Claude SessionStart Hook**: `.dev-aid/providers/claude/.claude/hooks/session-start.sh` displays auto-loaded skills
 - **Gemini SessionStart Hook**: `.dev-aid/providers/gemini/.gemini/hooks/session-start.sh` updates GEMINI.md once per session
 - **Gemini Configuration**: `.dev-aid/providers/gemini/.gemini/settings.json` for hook management

@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 #
-# Script: validate-bash-scripts.sh
-# Description: Validates Bash scripts for bash-expert skill compliance
+# DEPRECATED: This validator has been replaced by:
+#   .dev-aid/skills/expert/bash-expert/validate.py
+#
+# Use the new Python-based validator:
+#   python3 .dev-aid/skills/expert/bash-expert/validate.py --target-dir .
+#
+# Or run all validators via the runner:
+#   python3 .dev-aid/scripts/run-validators.py --target-dir .
+#
+# Original description: Validates Bash scripts for bash-expert skill compliance
 # Usage: validate-bash-scripts.sh [--strict] [script_files...]
 #        Default: scans all .sh files in .dev-aid/ (excluding venv/)
 #

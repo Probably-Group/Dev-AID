@@ -246,6 +246,27 @@ else
     echo "  You can install later with: ./.dev-aid/automation/tools/install-security-tools.sh"
 fi
 
+# ============================================================================
+# Compliance Scan
+# ============================================================================
+echo ""
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo -e "${YELLOW}   Running Compliance Scan${NC}"
+echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+echo ""
+echo "Running skill compliance validators on the project..."
+echo ""
+
+DEV_AID_DIR_RESOLVED="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROJECT_ROOT_RESOLVED="$(cd "${DEV_AID_DIR_RESOLVED}/.." && pwd)"
+
+if [ -f "${DEV_AID_DIR_RESOLVED}/scripts/run-validators.py" ]; then
+    python3 "${DEV_AID_DIR_RESOLVED}/scripts/run-validators.py" \
+        --filter-context --target-dir "${PROJECT_ROOT_RESOLVED}" || true
+else
+    echo -e "${YELLOW}⚠ Validator runner not found, skipping compliance scan${NC}"
+fi
+
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║      Dev-AID Initialization Complete!      ║${NC}"

@@ -932,6 +932,36 @@ ask_security_automation() {
     fi
 }
 
+# Ask about compliance scan
+ask_compliance_scan() {
+    print_header "Optional: Compliance Scan"
+
+    echo "Dev-AID can run skill compliance validators on your project."
+    echo "This checks bash scripts, Python code, and more against best practices."
+    echo ""
+    echo "  Checks include:"
+    echo "  • Bash: shebang, strict mode, dangerous patterns, variable quoting"
+    echo "  • Python: shell=True, eval/exec, hardcoded secrets, type annotations"
+    echo ""
+
+    read -p "Run compliance scan now? (y/N): " run_scan
+
+    if [[ "$run_scan" =~ ^[Yy]$ ]]; then
+        print_color "$CYAN" "Running compliance scan..."
+        echo ""
+
+        local validator_script="$DEV_AID_DIR/scripts/run-validators.py"
+        if [ -f "$validator_script" ]; then
+            python3 "$validator_script" --filter-context --target-dir "$PROJECT_ROOT" || true
+        else
+            print_color "$YELLOW" "Validator runner not found, skipping."
+        fi
+    else
+        print_color "$CYAN" "Skipped. You can run it anytime:"
+        echo "  python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir ."
+    fi
+}
+
 # Display summary
 show_summary() {
     print_header "🎉 Installation Complete!"
@@ -1079,6 +1109,9 @@ main() {
 
     # Ask about security automation
     ask_security_automation
+
+    # Optional compliance scan
+    ask_compliance_scan
 
     # Show summary
     show_summary

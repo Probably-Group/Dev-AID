@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 """
-Validates Python files for python skill compliance using AST analysis.
+DEPRECATED: This validator has been replaced by:
+    .dev-aid/skills/expert/python/validate.py
+
+Use the new validator:
+    python3 .dev-aid/skills/expert/python/validate.py --target-dir .
+
+Or run all validators via the runner:
+    python3 .dev-aid/scripts/run-validators.py --target-dir .
+
+---
+
+Original: Validates Python files for python skill compliance using AST analysis.
 
 Usage:
     validate-python-scripts.py [--strict] [--skip-tests] [directory ...]

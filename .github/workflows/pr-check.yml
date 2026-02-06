@@ -1,10 +1,10 @@
 name: PR Check
 
-# Optimized for speed:
+# Optimized for free-tier CI minutes:
+# - Ubuntu-only (cross-platform testing in release-gate.yml)
 # - Dependency caching (full venv caching)
 # - Concurrency groups (cancel outdated runs)
-# - Minimal installs (only what's needed)
-# - Shared setup job to avoid redundant installs
+# - Shared setup job
 # - Fast-fail strategy
 
 on:
@@ -29,18 +29,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Setup job: Install dependencies once, cache for all jobs
-  # Note: PR checks run on Ubuntu only to save CI minutes
-  # Full cross-platform testing happens in release-gate.yml
   setup:
-    name: Setup Dependencies (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    # Skip draft PRs to save CI minutes
+    name: Setup Dependencies
+    runs-on: ubuntu-22.04
     if: github.event.pull_request.draft == false
-    strategy:
-      matrix:
-        # Run setup on all platforms so cache is available
-        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -63,12 +55,11 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+          key: venv-Linux-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
           restore-keys: |
-            venv-${{ runner.os }}-py3.11-
+            venv-Linux-py3.11-
 
-      - name: Install dependencies (Unix)
-        if: runner.os != 'Windows'
+      - name: Install dependencies
         run: |
           cd .dev-aid/orchestration
           if [ ! -d ".venv" ]; then
@@ -81,41 +72,15 @@ jobs:
           pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
           pip install mypy==1.13.0 types-requests==2.32.0.20241016
 
-      - name: Install TOON SDK (Unix)
-        if: runner.os != 'Windows'
+      - name: Install TOON SDK
         run: |
           cd .dev-aid/orchestration
           npm install
-
-      - name: Install dependencies (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          if (-not (Test-Path ".venv")) {
-            python -m venv .venv
-          }
-          .\.venv\Scripts\Activate.ps1
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest==8.3.4 pytest-cov==5.0.0 pytest-xdist
-          pip install black==24.10.0 isort==5.13.2 flake8==7.1.1
-          pip install mypy==1.13.0 types-requests==2.32.0.20241016
-        shell: pwsh
-
-      - name: Install TOON SDK (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          npm install
-        shell: pwsh
 
   python-lint:
-    name: Python Lint (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Python Lint
+    runs-on: ubuntu-22.04
     needs: setup
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -130,44 +95,30 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+          key: venv-Linux-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run linting checks (Unix)
-        if: runner.os != 'Windows'
+      - name: Run linting checks
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
 
           # Run in parallel with & and wait
           black --check --diff . &
-          ISORT_PID=$!
-
-          isort --check-only --diff . &
-          FLAKE8_PID=$!
-
-          flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv &
           BLACK_PID=$!
 
-          # Wait for all to complete
-          wait $ISORT_PID $FLAKE8_PID $BLACK_PID
+          isort --check-only --diff . &
+          ISORT_PID=$!
 
-      - name: Run linting checks (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          .\.venv\Scripts\Activate.ps1
-          black --check --diff .
-          isort --check-only --diff .
-          flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv
-        shell: pwsh
+          flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv &
+          FLAKE8_PID=$!
+
+          # Wait for all to complete
+          wait $BLACK_PID $ISORT_PID $FLAKE8_PID
 
   python-test:
-    name: Python Unit Tests (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Python Unit Tests
+    runs-on: ubuntu-22.04
     needs: setup
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -182,30 +133,18 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+          key: venv-Linux-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run tests (Unix)
-        if: runner.os != 'Windows'
+      - name: Run tests
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
-          pytest tests/ -v -n auto  # Use pytest-xdist for parallel test execution
-
-      - name: Run tests (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          .\.venv\Scripts\Activate.ps1
           pytest tests/ -v -n auto
-        shell: pwsh
 
   type-check:
-    name: Type Check (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: Type Check
+    runs-on: ubuntu-22.04
     needs: setup
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -220,32 +159,19 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+          key: venv-Linux-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run MyPy (Unix)
-        if: runner.os != 'Windows'
+      - name: Run MyPy
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
           mypy router --ignore-missing-imports --no-strict-optional
         continue-on-error: true
-
-      - name: Run MyPy (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          .\.venv\Scripts\Activate.ps1
-          mypy router --ignore-missing-imports --no-strict-optional
-        continue-on-error: true
-        shell: pwsh
 
   e2e-test:
-    name: E2E Tests (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
+    name: E2E Tests
+    runs-on: ubuntu-22.04
     needs: setup
-    strategy:
-      matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -260,27 +186,17 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .dev-aid/orchestration/.venv
-          key: venv-${{ runner.os }}-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
+          key: venv-Linux-py3.11-${{ hashFiles('.dev-aid/orchestration/requirements.txt') }}-v2
 
-      - name: Run E2E tests (Unix)
-        if: runner.os != 'Windows'
+      - name: Run E2E tests
         run: |
           cd .dev-aid/orchestration
           source .venv/bin/activate
           pytest tests/test_e2e.py -v -m "not slow" --no-cov
-
-      - name: Run E2E tests (Windows)
-        if: runner.os == 'Windows'
-        run: |
-          cd .dev-aid/orchestration
-          .\.venv\Scripts\Activate.ps1
-          pytest tests/test_e2e.py -v -m "not slow" --no-cov
-        shell: pwsh
 
   bash-lint:
     name: Bash Lint
     runs-on: ubuntu-22.04
-    # Bash lint doesn't need Python setup, runs independently
 
     steps:
       - name: Checkout code
@@ -303,28 +219,25 @@ jobs:
     steps:
       - name: Check results
         run: |
-          echo "Checking test results across all platforms..."
+          echo "Checking test results..."
 
-          # Check if any critical job failed
-          if [[ "${{ needs.python-lint.result }}" == "failure" || \
-                "${{ needs.python-test.result }}" == "failure" || \
-                "${{ needs.e2e-test.result }}" == "failure" ]]; then
-            echo "❌ PR checks failed on one or more platforms!"
-            echo "Python Lint: ${{ needs.python-lint.result }}"
-            echo "Python Test: ${{ needs.python-test.result }}"
-            echo "E2E Test: ${{ needs.e2e-test.result }}"
-            echo "Type Check: ${{ needs.type-check.result }}"
-            echo "Bash Lint: ${{ needs.bash-lint.result }}"
+          # Treat skipped/cancelled as non-failure (handles billing limits)
+          LINT="${{ needs.python-lint.result }}"
+          TEST="${{ needs.python-test.result }}"
+          E2E="${{ needs.e2e-test.result }}"
+          TYPE="${{ needs.type-check.result }}"
+          BASH="${{ needs.bash-lint.result }}"
+
+          echo "Python Lint: $LINT"
+          echo "Python Test: $TEST"
+          echo "E2E Test: $E2E"
+          echo "Type Check: $TYPE"
+          echo "Bash Lint: $BASH"
+
+          # Only fail on actual failures, not skipped/cancelled
+          if [[ "$LINT" == "failure" || "$TEST" == "failure" || "$E2E" == "failure" ]]; then
+            echo "::error::PR checks failed!"
             exit 1
-          else
-            echo "✅ All critical PR checks passed across platforms!"
-            echo "✓ Python Lint: ${{ needs.python-lint.result }}"
-            echo "✓ Python Test: ${{ needs.python-test.result }}"
-            echo "✓ E2E Test: ${{ needs.e2e-test.result }}"
-            echo "✓ Type Check: ${{ needs.type-check.result }}"
-            if [[ "${{ needs.bash-lint.result }}" == "failure" ]]; then
-              echo "⚠️  Shellcheck warnings present (non-blocking)"
-            else
-              echo "✓ Bash Lint: ${{ needs.bash-lint.result }}"
-            fi
           fi
+
+          echo "All critical PR checks passed (or were skipped)."

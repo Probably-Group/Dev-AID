@@ -13,6 +13,14 @@ from chunking.chunker import CodeChunk
 
 logger = logging.getLogger(__name__)
 
+# Pre-compiled regex patterns for tokenization (avoid re-compiling on every call)
+_CODE_DELIMITER_RE = re.compile(
+    r'[\s\.\,\;\:\(\)\[\]\{\}\<\>\=\+\-\*\/\|\&\!\@\#\$\%\^\~\`\'\"\\\n\r\t]+'
+)
+_CAMEL_CASE_RE = re.compile(
+    r'[A-Z]?[a-z]+|[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|\d+'
+)
+
 
 @dataclass
 class BM25Result:
@@ -49,7 +57,7 @@ class CodeTokenizer:
         tokens = []
 
         # Split on whitespace and common code delimiters
-        raw_tokens = re.split(r'[\s\.\,\;\:\(\)\[\]\{\}\<\>\=\+\-\*\/\|\&\!\@\#\$\%\^\~\`\'\"\\\n\r\t]+', text)
+        raw_tokens = _CODE_DELIMITER_RE.split(text)
 
         for token in raw_tokens:
             if not token or len(token) < 2:
@@ -60,7 +68,7 @@ class CodeTokenizer:
 
             # Split camelCase
             if self.camel_case_split:
-                camel_parts = re.findall(r'[A-Z]?[a-z]+|[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|\d+', token)
+                camel_parts = _CAMEL_CASE_RE.findall(token)
                 if len(camel_parts) > 1:
                     tokens.extend(camel_parts)
 

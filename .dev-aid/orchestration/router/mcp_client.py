@@ -7,9 +7,12 @@ and execute tools for enhanced context gathering.
 
 import asyncio
 import json
+import logging
 import os
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, cast
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -109,7 +112,7 @@ class MCPClient:
             return True
 
         except Exception as e:
-            print(f"Failed to connect to MCP server {self.config.name}: {e}")
+            logger.error("Failed to connect to MCP server %s: %s", self.config.name, e)
             return False
 
     async def disconnect(self) -> None:
@@ -119,13 +122,19 @@ class MCPClient:
             await self.process.wait()
             self.process = None
 
-    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+    async def call_tool(
+        self,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        timeout: float = 30.0,
+    ) -> Dict[str, Any]:
         """
         Call an MCP tool
 
         Args:
             tool_name: Name of the tool to call
             arguments: Arguments for the tool
+            timeout: Timeout in seconds for the request
 
         Returns:
             Tool execution result
@@ -139,7 +148,8 @@ class MCPClient:
                 "id": self._next_id(),
                 "method": "tools/call",
                 "params": {"name": tool_name, "arguments": arguments},
-            }
+            },
+            timeout=timeout,
         )
 
         if "error" in response:
@@ -147,12 +157,13 @@ class MCPClient:
 
         return cast(Dict[str, Any], response.get("result", {}))
 
-    async def _send_request(self, request: Dict[str, Any]) -> Dict[str, Any]:
+    async def _send_request(self, request: Dict[str, Any], timeout: float = 30.0) -> Dict[str, Any]:
         """
         Send JSON-RPC request to MCP server
 
         Args:
             request: JSON-RPC request
+            timeout: Timeout in seconds for reading the response
 
         Returns:
             JSON-RPC response
@@ -165,8 +176,8 @@ class MCPClient:
         self.process.stdin.write(request_json.encode())
         await self.process.stdin.drain()
 
-        # Read response
-        response_line = await self.process.stdout.readline()
+        # Read response with timeout protection
+        response_line = await asyncio.wait_for(self.process.stdout.readline(), timeout=timeout)
         response: Dict[str, Any] = json.loads(response_line.decode())
 
         return response
@@ -220,7 +231,11 @@ class MCPClientPool:
             del self.clients[name]
 
     async def call_tool(
-        self, server_name: str, tool_name: str, arguments: Dict[str, Any]
+        self,
+        server_name: str,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        timeout: float = 30.0,
     ) -> Dict[str, Any]:
         """
         Call tool on specific server
@@ -229,6 +244,7 @@ class MCPClientPool:
             server_name: Name of the server
             tool_name: Name of the tool
             arguments: Tool arguments
+            timeout: Timeout in seconds for the request
 
         Returns:
             Tool result
@@ -236,7 +252,7 @@ class MCPClientPool:
         if server_name not in self.clients:
             raise ValueError(f"Server {server_name} not in pool")
 
-        return await self.clients[server_name].call_tool(tool_name, arguments)
+        return await self.clients[server_name].call_tool(tool_name, arguments, timeout=timeout)
 
     def get_all_tools(self) -> Dict[str, List[MCPTool]]:
         """

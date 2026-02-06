@@ -416,7 +416,7 @@ class TestMCPClientPool:
             result = await pool.call_tool("test-server", "test_tool", {"arg": "val"})
 
             assert result == mock_result
-            mock_call.assert_called_once_with("test_tool", {"arg": "val"})
+            mock_call.assert_called_once_with("test_tool", {"arg": "val"}, timeout=30.0)
 
     @pytest.mark.asyncio
     async def test_call_tool_server_not_found(self, pool):

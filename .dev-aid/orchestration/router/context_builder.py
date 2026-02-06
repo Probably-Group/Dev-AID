@@ -9,9 +9,13 @@ Gathers relevant context from:
 - MCP servers (database, GitHub, code search, etc.)
 """
 
+import asyncio
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -83,7 +87,7 @@ class ContextBuilder:
                         memory_bank[filename] = content
                 except Exception as e:
                     # Log error but continue
-                    print(f"Warning: Could not read {filename}: {e}")
+                    logger.warning("Could not read %s: %s", filename, e)
 
         return memory_bank
 
@@ -244,6 +248,118 @@ class ContextBuilder:
             # Don't raise exception - this is optional context
             return None
 
+    async def _get_git_context_async(self) -> Optional[Dict[str, str]]:
+        """Get git context using async subprocess (non-blocking)"""
+        try:
+            safe_root = self._validate_safe_path(self.root)
+            safe_root_str = str(safe_root)
+
+            async def _run_git(args: List[str]) -> str:
+                proc = await asyncio.create_subprocess_exec(
+                    "git",
+                    *args,
+                    cwd=safe_root_str,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.DEVNULL,
+                )
+                stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+                if proc.returncode != 0:
+                    raise RuntimeError(f"git {args[0]} failed")
+                return stdout.decode().strip()
+
+            branch, last_commit, status = await asyncio.gather(
+                _run_git(["rev-parse", "--abbrev-ref", "HEAD"]),
+                _run_git(["log", "-1", "--oneline"]),
+                _run_git(["status", "--short"]),
+            )
+
+            return {
+                "branch": branch,
+                "last_commit": last_commit,
+                "status": status if status else "(clean)",
+            }
+        except Exception:
+            return None
+
+    async def _detect_active_skills_async(self) -> Optional[List[str]]:
+        """Detect active skills using async subprocess (non-blocking)"""
+        try:
+            safe_root = self._validate_safe_path(self.root)
+            orchestration_dir = safe_root / ".dev-aid" / "orchestration"
+            detect_context_script = orchestration_dir / "detect-context-enhanced.sh"
+            select_skills_script = orchestration_dir / "select-skills.sh"
+
+            if not detect_context_script.exists():
+                detect_context_script = orchestration_dir / "detect-context.sh"
+
+            if not detect_context_script.exists() or not select_skills_script.exists():
+                return None
+
+            # Step 1: Detect project context
+            proc = await asyncio.create_subprocess_exec(
+                str(detect_context_script),
+                str(safe_root),
+                cwd=str(safe_root),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=10)
+            if proc.returncode != 0:
+                return None
+            context_output = stdout.decode().strip()
+            if not context_output:
+                return None
+
+            # Step 2: Select skills based on context
+            proc = await asyncio.create_subprocess_exec(
+                str(select_skills_script),
+                context_output,
+                "10",
+                cwd=str(safe_root),
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.DEVNULL,
+            )
+            stdout, _ = await asyncio.wait_for(proc.communicate(), timeout=5)
+            if proc.returncode != 0:
+                return None
+            skills_output = stdout.decode().strip()
+            if not skills_output:
+                return None
+
+            skills = [s.strip() for s in skills_output.split("\n") if s.strip()]
+            return skills if skills else None
+        except Exception:
+            return None
+
+    async def build_context_async(self, include_memory: bool = True) -> "DevAIDContext":
+        """
+        Build complete Dev-AID context using async subprocess calls
+
+        Args:
+            include_memory: Whether to include memory bank files
+
+        Returns:
+            DevAIDContext object
+        """
+        memory_bank = {}
+        if include_memory:
+            memory_bank = self._load_memory_bank()
+
+        project_info = self._get_project_info()
+
+        # Run git context and skill detection concurrently
+        git_context, active_skills = await asyncio.gather(
+            self._get_git_context_async(),
+            self._detect_active_skills_async(),
+        )
+
+        return DevAIDContext(
+            memory_bank=memory_bank,
+            project_info=project_info,
+            git_context=git_context,
+            active_skills=active_skills,
+        )
+
     async def gather_mcp_context(
         self,
         prompt: str,
@@ -271,36 +387,42 @@ class ContextBuilder:
             if requested_servers is None:
                 requested_servers = self._auto_select_mcps(prompt, task_type)
 
-            # Gather context from each requested server
-            for server_name in requested_servers:
+            # Gather context from all servers in parallel
+            async def _query_server(
+                server_name: str,
+            ) -> tuple[Optional[str], Optional[Dict[str, Any]]]:
+                """Query a single MCP server, returning (context_key, result)"""
                 try:
                     if server_name == "code-search":
-                        # Dev-AID Local Search
-                        result = await self._query_code_search(prompt)
-                        if result:
-                            mcp_context["code_search"] = result
-
+                        return ("code_search", await self._query_code_search(prompt))
                     elif server_name == "deep-research":
-                        # Dev-AID Deep Research
-                        result = await self._query_deep_research(prompt)
-                        if result:
-                            mcp_context["external_research"] = result
-
+                        return ("external_research", await self._query_deep_research(prompt))
                     elif "postgres" in server_name or "database" in server_name:
-                        # Database schema
-                        result = await self._query_database_schema(server_name)
-                        if result:
-                            mcp_context["database_schema"] = result
-
+                        return (
+                            "database_schema",
+                            await self._query_database_schema(server_name),
+                        )
                     elif "github" in server_name:
-                        # GitHub issues/PRs
-                        result = await self._query_github_context(server_name, prompt)
-                        if result:
-                            mcp_context["github"] = result
-
+                        return (
+                            "github",
+                            await self._query_github_context(server_name, prompt),
+                        )
                 except Exception as e:
-                    print(f"Warning: Failed to gather context from {server_name}: {e}")
+                    logger.warning("Failed to gather context from %s: %s", server_name, e)
+                return (None, None)
+
+            gather_results = await asyncio.gather(
+                *[_query_server(s) for s in requested_servers],
+                return_exceptions=True,
+            )
+
+            for r in gather_results:
+                if isinstance(r, BaseException):
+                    logger.warning("MCP server query failed: %s", r)
                     continue
+                key, value = r
+                if key and value:
+                    mcp_context[key] = value
 
             # Check if external research is needed as fallback
             if self._needs_external_research(prompt, mcp_context):
@@ -309,7 +431,7 @@ class ContextBuilder:
                     mcp_context["external_research"] = research_result
 
         except Exception as e:
-            print(f"Error gathering MCP context: {e}")
+            logger.error("Error gathering MCP context: %s", e)
 
         return mcp_context
 
@@ -412,7 +534,7 @@ class ContextBuilder:
             return None
 
         except Exception as e:
-            print(f"Warning: Research fallback failed: {e}")
+            logger.warning("Research fallback failed: %s", e)
             return None
 
     async def _query_deep_research(self, prompt: str) -> Optional[Dict[str, Any]]:
@@ -448,7 +570,7 @@ class ContextBuilder:
             return None
 
         except Exception as e:
-            print(f"Deep research query failed: {e}")
+            logger.warning("Deep research query failed: %s", e)
             return None
 
     def _auto_select_mcps(self, prompt: str, task_type: Optional[str]) -> List[str]:
@@ -524,7 +646,7 @@ class ContextBuilder:
             return {"search_results": result.get("content", []), "query": search_terms}
 
         except Exception as e:
-            print(f"Code search failed: {e}")
+            logger.warning("Code search failed: %s", e)
             return None
 
     async def _query_database_schema(self, server_name: str) -> Optional[Dict[str, Any]]:
@@ -536,7 +658,7 @@ class ContextBuilder:
             return {"schema": result, "server": server_name}
 
         except Exception as e:
-            print(f"Database schema query failed: {e}")
+            logger.warning("Database schema query failed: %s", e)
             return None
 
     async def _query_github_context(
@@ -554,7 +676,7 @@ class ContextBuilder:
             return {"issues": result.get("issues", []), "query": search_query}
 
         except Exception as e:
-            print(f"GitHub query failed: {e}")
+            logger.warning("GitHub query failed: %s", e)
             return None
 
     def _extract_search_terms(self, prompt: str) -> str:

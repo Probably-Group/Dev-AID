@@ -19,6 +19,10 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 
 
+# Maximum size for config files to prevent memory issues (10 MB)
+MAX_CONFIG_FILE_SIZE = 10 * 1024 * 1024
+
+
 class CIGenerator:
     """Generates GitHub Actions workflows based on project context"""
 
@@ -40,7 +44,15 @@ class CIGenerator:
         # Check for Node.js/TypeScript
         if (self.project_dir / "package.json").exists():
             context["language"] = "nodejs"
-            pkg_json = json.loads((self.project_dir / "package.json").read_text())
+            raw_content = (self.project_dir / "package.json").read_text()
+            if len(raw_content) > MAX_CONFIG_FILE_SIZE:
+                raise ValueError(
+                    f"package.json exceeds maximum size ({MAX_CONFIG_FILE_SIZE} bytes)"
+                )
+            try:
+                pkg_json = json.loads(raw_content)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Invalid JSON in package.json: {e}")
 
             # Detect package manager
             if (self.project_dir / "bun.lockb").exists():

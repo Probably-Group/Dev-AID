@@ -147,7 +147,7 @@ dev-aid-agent test-generator --path src/ --dry-run
 - Per-tool risk levels (safe/moderate/dangerous)
 - Exit code 0 on success, 1 on failure
 
-**Documentation:** [Agent Framework Guide](AGENTS.md)
+**Documentation:** [Agent Framework Guide](Dev-AID-AGENTS.md)
 
 ---
 

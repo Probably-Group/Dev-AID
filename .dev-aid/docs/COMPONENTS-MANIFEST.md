@@ -111,7 +111,7 @@ This manifest maps our elite setup components to their source repositories for i
 
 **Configuration**: `.dev-aid/config/agents.json`
 **CLI entry**: `.dev-aid/scripts/dev-aid-agent`
-**Documentation**: [Agent Framework Guide](AGENTS.md)
+**Documentation**: [Agent Framework Guide](Dev-AID-AGENTS.md)
 
 ---
 

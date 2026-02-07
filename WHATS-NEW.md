@@ -35,7 +35,7 @@ dev-aid-agent tech-debt-hunter --severity critical --json
 - Module: `.dev-aid/agents/`
 - Config: `.dev-aid/config/agents.json`
 - Tests: 112 tests, all mocked (no real API calls)
-- Documentation: [Agent Framework Guide](.dev-aid/docs/AGENTS.md)
+- Documentation: [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 
 ---
 

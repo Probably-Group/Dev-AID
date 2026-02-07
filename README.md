@@ -492,7 +492,7 @@ dev-aid-agent tech-debt-hunter --severity high --provider google
 dev-aid-agent tech-debt-hunter --severity critical --json
 ```
 
-[**Agent Framework Guide**](.dev-aid/docs/AGENTS.md) — CLI reference, agent catalog, tools, safety, configuration.
+[**Agent Framework Guide**](.dev-aid/docs/Dev-AID-AGENTS.md) — CLI reference, agent catalog, tools, safety, configuration.
 
 ### 🤖 **Intelligent Automation**
 AI-powered automation for issues, conflicts, and workflows - saving hours of manual work while following best practices.
@@ -808,7 +808,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 - **4 providers**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
 - **CLI**: `dev-aid-agent <agent> --provider <name> --dry-run --verbose --json`
 - **Skill-powered**: Each agent loads Dev-AID expert skills as system prompts
-- Guide: [AGENTS.md](.dev-aid/docs/AGENTS.md)
+- Guide: [Dev-AID-AGENTS.md](.dev-aid/docs/Dev-AID-AGENTS.md)
 
 **🏠 Local LLM Support**
 - **Offline AI** - Run models locally via Ollama, LM Studio, or llama.cpp
@@ -1513,7 +1513,7 @@ Skills auto-activate based on file patterns:
 - **[VALIDATOR-FRAMEWORK.md](.dev-aid/docs/VALIDATOR-FRAMEWORK.md)** - Skill compliance validator framework (creating validators, CLI, output formats)
 
 ### Agent Framework
-- **[AGENTS.md](.dev-aid/docs/AGENTS.md)** - Agent framework guide (CLI, agents, tools, safety, configuration)
+- **[Dev-AID-AGENTS.md](.dev-aid/docs/Dev-AID-AGENTS.md)** - Agent framework guide (CLI, agents, tools, safety, configuration)
 
 ### Automation Guides
 - **[AUTOMATION-README.md](.dev-aid/docs/AUTOMATION-README.md)** - Complete automation overview and architecture

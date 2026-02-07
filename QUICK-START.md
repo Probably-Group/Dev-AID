@@ -152,14 +152,14 @@ dev-aid-agent tech-debt-hunter --severity high --dry-run
 dev-aid-agent research --topic "migration strategies" --provider google
 ```
 
-See [Agent Framework Guide](.dev-aid/docs/AGENTS.md) for all 7 agents, 16 tools, and CLI options.
+See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 7 agents, 16 tools, and CLI options.
 
 ## Next Steps
 
 - Read [README.md](README.md) for full features
 - Check [.dev-aid/docs/SKILLS-ARCHITECTURE.md](.dev-aid/docs/SKILLS-ARCHITECTURE.md) for architecture
 - See [.dev-aid/docs/CONTEXT-SHARING.md](.dev-aid/docs/CONTEXT-SHARING.md) for multi-model details
-- See [.dev-aid/docs/AGENTS.md](.dev-aid/docs/AGENTS.md) for the autonomous agent framework
+- See [.dev-aid/docs/Dev-AID-AGENTS.md](.dev-aid/docs/Dev-AID-AGENTS.md) for the autonomous agent framework
 
 ## Troubleshooting
 

@@ -4,7 +4,7 @@ Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills.
 
 **Module location:** `.dev-aid/agents/`
 **CLI entry point:** `dev-aid-agent`
-**Configuration:** `.dev-aid/config/agents.json`
+**Configuration:** `.dev-aid/config/agents.json`, `.dev-aid/config/teams.json`
 
 ---
 
@@ -25,6 +25,12 @@ dev-aid-agent research --topic "async patterns in Python" --provider google
 
 # JSON output for scripts/CI
 dev-aid-agent tech-debt-hunter --severity critical --json
+
+# Run a multi-agent team
+dev-aid-agent team pr-review-team -m "Review PR #42"
+
+# List available teams
+dev-aid-agent team --list-teams
 ```
 
 ---
@@ -35,27 +41,22 @@ dev-aid-agent tech-debt-hunter --severity critical --json
 ┌─────────────────────────────────────────────────────────────┐
 │                      CLI (cli.py)                           │
 │  Parses args, resolves provider/model, wires components     │
-└──────┬──────────────────────────────────────────────────────┘
-       │
-       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   AgentRunner (core/agent_runner.py)         │
-│  1. Build system prompt from skills + agent extras          │
-│  2. Send messages to LLM via ProviderAdapter                │
-│  3. If tool_calls → execute via ToolRegistry → loop         │
-│  4. If final text → return AgentResult                      │
-│  5. If max_iterations → stop with warning                   │
-└──────┬──────────────┬──────────────┬────────────────────────┘
-       │              │              │
-       ▼              ▼              ▼
-┌────────────┐ ┌────────────┐ ┌────────────┐
-│ SkillLoader│ │ToolRegistry│ │  Provider  │
-│  (SKILL.md │ │ (16 tools, │ │  Adapter   │
-│  → system  │ │  safety,   │ │ (Anthropic,│
-│  prompts)  │ │  formats)  │ │ OpenAI,    │
-└────────────┘ └────────────┘ │ Google,    │
-                              │ Local)     │
-                              └────────────┘
+│  Routes to AgentRunner (single) or TeamRunner (multi)       │
+└──────┬─────────────────────────────────┬────────────────────┘
+       │ single agent                    │ team
+       ▼                                 ▼
+┌──────────────────────┐  ┌────────────────────────────────────┐
+│ AgentRunner          │  │ TeamRunner (core/team_runner.py)    │
+│ (core/agent_runner.py│  │  Wraps N AgentRunner instances      │
+│  Single agent loop)  │  │  Parallel / Sequential / DAG        │
+└──────┬───────┬───────┘  │  Shared state + budget tracking     │
+       │       │          └──────┬──────┬──────┬───────────────┘
+       │       │                 │      │      │
+       ▼       ▼                 ▼      ▼      ▼
+┌────────┐ ┌────────┐    ┌────────┐ ┌────────┐ ┌────────┐
+│ Skill  │ │  Tool  │    │Shared  │ │Message │ │Budget  │
+│ Loader │ │Registry│    │TaskList│ │  Bus   │ │Tracker │
+└────────┘ └────────┘    └────────┘ └────────┘ └────────┘
 ```
 
 ### Agent Loop
@@ -66,12 +67,23 @@ dev-aid-agent tech-debt-hunter --severity critical --json
 4. **Append results** — tool results are formatted per-provider and appended to the conversation
 5. **Repeat** — loop back to step 2 until the LLM returns a final text response or `max_iterations` is reached
 
+### Team Orchestration
+
+The `TeamRunner` wraps multiple `AgentRunner` instances to execute teams of agents with three workflow strategies:
+
+- **Parallel** — all agents run simultaneously via `asyncio.gather()`. Each gets independent tools, safety, and provider. GIL is released during I/O-bound LLM calls for true parallelism.
+- **Sequential** — agents run one after another. Each agent's result is broadcast via `MessageBus` as a handoff message. Subsequent agents receive prior results in their context.
+- **DAG** — agents run in topological order respecting `depends_on` declarations. Ready agents (all deps completed) run in parallel batches. Deadlock detection stops remaining agents if dependencies cannot be resolved.
+
+Each agent in a team gets its own `AgentRunner`, `ToolRegistry`, and `ProviderAdapter`, enabling provider mixing within a single team (e.g., architect on Claude Opus, implementer on Gemini).
+
 ---
 
 ## CLI Reference
 
 ```
 dev-aid-agent <agent-name> [options]
+dev-aid-agent team <team-name> -m <message> [options]
 ```
 
 ### Global Options
@@ -136,16 +148,23 @@ Generate a comprehensive codebase onboarding guide.
 dev-aid-agent onboarding [--path <project-root>]
 ```
 
+#### `team`
+Run a multi-agent team. See [Team CLI Reference](#team-cli-reference) below.
+
+```bash
+dev-aid-agent team <team-name> -m <message> [--budget <usd>] [--workflow <strategy>]
+```
+
 ### Exit Codes
 
 | Code | Meaning |
 |------|---------|
-| `0` | Agent completed successfully |
-| `1` | Agent failed or unknown agent name |
+| `0` | Agent or team completed successfully |
+| `1` | Agent/team failed or unknown name |
 
 ### JSON Output Format
 
-When using `--json`, the output follows this schema:
+When using `--json` with a single agent:
 
 ```json
 {
@@ -162,6 +181,39 @@ When using `--json`, the output follows this schema:
 }
 ```
 
+When using `--json` with a team:
+
+```json
+{
+  "team": "pr-review-team",
+  "success": true,
+  "partial": false,
+  "output": "### From security-reviewer\n...",
+  "agents": {
+    "security-reviewer": {
+      "success": true,
+      "output": "## Security Review\n...",
+      "tool_calls": 5,
+      "iterations": 3,
+      "cost": 0.018,
+      "latency_ms": 8200.1
+    },
+    "quality-reviewer": { "..." : "..." },
+    "test-coverage-reviewer": { "..." : "..." }
+  },
+  "metrics": {
+    "agents_completed": 3,
+    "agents_failed": 0,
+    "tokens": {"input": 38000, "output": 9600},
+    "cost_usd": 0.047,
+    "latency_ms": 12300.5,
+    "messages_exchanged": 0
+  }
+}
+```
+
+The `partial` flag is `true` when some agents failed but the team still produced output from the remaining agents.
+
 ---
 
 ## Built-in Agents
@@ -175,6 +227,160 @@ When using `--json`, the output follows this schema:
 | **conflict-resolver** | senior-architect | read_file, write_file, run_bash, git_status, git_diff, grep_search | moderate | Auto-resolve merge conflicts |
 | **research** | deep-research-expert, web-research-expert | read_file, glob_files, grep_search | safe | Deep research on technical topics |
 | **onboarding** | senior-architect | read_file, glob_files, grep_search, git_log, list_directory | safe | Generate codebase onboarding guide |
+
+---
+
+## Built-in Teams
+
+Teams compose multiple agents from the registry above, each with a specialized `role_prompt` for differentiated perspectives. Each agent slot references a base agent via `agent_def_name` and can override provider/model.
+
+| Team | Workflow | Agents | Budget | Use Case |
+|------|----------|--------|--------|----------|
+| **pr-review-team** | parallel | security-reviewer, quality-reviewer, test-coverage-reviewer | $2.00 | Comprehensive PR review from 3 perspectives |
+| **security-audit-team** | parallel | vulnerability-scanner, auth-reviewer, dependency-auditor | $3.00 | Deep security audit with specialist angles |
+| **architect-implement-team** | dag | architect → implementer → reviewer | $5.00 | Plan with senior architect, implement, review |
+| **issue-resolution-team** | dag | researcher → fixer → test-writer | $4.00 | Investigate issue, fix it, add regression tests |
+
+### Team Details
+
+#### `pr-review-team`
+
+Three parallel reviewers each examine the same PR from a different angle. Results are merged with `merge_sections` aggregation.
+
+| Agent Slot | Base Agent | Focus |
+|------------|------------|-------|
+| security-reviewer | pr-reviewer | Authentication, injection, OWASP Top 10 |
+| quality-reviewer | pr-reviewer | Readability, design patterns, performance |
+| test-coverage-reviewer | pr-reviewer | Missing tests, edge cases, assertion quality |
+
+#### `security-audit-team`
+
+Three parallel security specialists scan the codebase from different attack surfaces. Results are merged.
+
+| Agent Slot | Base Agent | Focus |
+|------------|------------|-------|
+| vulnerability-scanner | pr-reviewer | Injection, XSS, CSRF, SSRF, path traversal |
+| auth-reviewer | pr-reviewer | Authentication, authorization, session management |
+| dependency-auditor | tech-debt-hunter | CVEs, outdated packages, supply chain risks |
+
+#### `architect-implement-team`
+
+A DAG workflow: architect plans first (using Claude Opus), implementer follows the plan, reviewer validates the result.
+
+| Agent Slot | Base Agent | Depends On | Provider Override |
+|------------|------------|------------|-------------------|
+| architect | research | (none) | anthropic / claude-opus-4-6 |
+| implementer | test-generator | architect | (team default) |
+| reviewer | pr-reviewer | implementer | (team default) |
+
+#### `issue-resolution-team`
+
+A DAG workflow: researcher investigates the root cause, fixer applies a minimal fix, test-writer adds regression tests.
+
+| Agent Slot | Base Agent | Depends On |
+|------------|------------|------------|
+| researcher | research | (none) |
+| fixer | ci-fixer | researcher |
+| test-writer | test-generator | fixer |
+
+---
+
+## Team CLI Reference
+
+```
+dev-aid-agent team <team-name> -m <message> [options]
+dev-aid-agent team --list-teams
+```
+
+### Team Options
+
+| Flag | Description |
+|------|-------------|
+| `<team-name>` | Name of the team to run (see `--list-teams`) |
+| `-m, --message <text>` | Task message for the team (required) |
+| `--budget <usd>` | Override maximum budget in USD |
+| `--workflow <strategy>` | Override workflow: `parallel`, `sequential`, `dag` |
+| `--list-teams` | List all available teams with descriptions |
+
+### Examples
+
+```bash
+# Comprehensive PR review from 3 perspectives
+dev-aid-agent team pr-review-team -m "Review PR #42"
+
+# Security audit with custom budget
+dev-aid-agent team security-audit-team -m "Audit the auth module" --budget 5.0
+
+# Architect-implement with JSON output
+dev-aid-agent team architect-implement-team -m "Add rate limiting to the API" --json
+
+# Override workflow (run DAG team sequentially instead)
+dev-aid-agent team issue-resolution-team -m "Fix login timeout bug" --workflow sequential
+
+# List all teams
+dev-aid-agent team --list-teams
+
+# Verbose mode shows inter-agent messages
+dev-aid-agent team pr-review-team -m "Review PR #42" --verbose
+```
+
+### Team Output
+
+```
+============================================================
+  Dev-AID Team: pr-review-team
+  Agents: security-reviewer, quality-reviewer, test-coverage-reviewer
+  Workflow: parallel | Budget: $2.00
+============================================================
+
+  Starting agent: security-reviewer
+  Starting agent: quality-reviewer
+  Starting agent: test-coverage-reviewer
+  Agent security-reviewer: done, $0.018
+  Agent quality-reviewer: done, $0.015
+  Agent test-coverage-reviewer: done, $0.014
+
+### From security-reviewer
+
+[Security review output...]
+
+### From quality-reviewer
+
+[Quality review output...]
+
+### From test-coverage-reviewer
+
+[Test coverage review output...]
+
+--- 3/3 agents completed, 12.3s, $0.0470 ---
+```
+
+### Graceful Degradation
+
+If an agent fails within a team, the team continues with the remaining agents. The result is marked as `partial: true` and includes outputs from successful agents. Budget exhaustion also causes remaining agents to be skipped gracefully.
+
+---
+
+## Shared State Primitives
+
+The team orchestration layer provides four thread-safe primitives (all use `threading.Lock`) for coordinating concurrent agent execution:
+
+| Primitive | Purpose |
+|-----------|---------|
+| `SharedTaskList` | Task tracking with dependency resolution. Tasks auto-unblock when dependencies complete. |
+| `MessageBus` | Inter-agent messaging with pub/sub. Supports targeted and broadcast (`to_agent="*"`) messages. |
+| `FileLockSet` | Advisory file locks to prevent write conflicts between concurrent agents. Re-entrant for the same agent. |
+| `BudgetTracker` | Per-agent cost tracking with team-level budget enforcement. Returns `float('inf')` for unlimited budgets. |
+
+### Aggregation Strategies
+
+When a team completes, individual agent results are combined using one of three strategies:
+
+| Strategy | Description | Used By |
+|----------|-------------|---------|
+| `concatenate` | Each agent's output as a section with `---` separators | architect-implement-team, issue-resolution-team |
+| `merge_sections` | Outputs merged with `### From <agent>` headers, failed agents omitted | pr-review-team, security-audit-team |
+| `vote` | All perspectives with pass/fail tally header | (available for custom teams) |
 
 ---
 
@@ -255,6 +461,10 @@ When `--dry-run` is passed, all **moderate** and **dangerous** tools are blocked
 
 Each agent definition specifies which tools it can use. The `SafetyConfig` enforces this — if an agent tries to use a tool not in its allowed list, the call is blocked with an error.
 
+### Team Safety
+
+Each agent in a team gets its own `SafetyConfig` and `ToolRegistry`. The `FileLockSet` provides advisory write locks — when multiple agents run in parallel, only one can hold a write lock on a given file path at a time. Locks are automatically released when an agent completes.
+
 ---
 
 ## Provider Adapters
@@ -278,6 +488,10 @@ API keys are resolved from environment variables:
 | OpenAI | `OPENAI_API_KEY` |
 | Google | `GOOGLE_API_KEY` |
 | Local | (none required) |
+
+### Provider Mixing in Teams
+
+Each agent slot in a team can specify its own `provider` and `model` overrides. The `TeamRunner` creates a separate `ProviderAdapter` per agent, enabling provider mixing within a single team execution. For example, `architect-implement-team` uses Claude Opus for the architect and the team default (Sonnet) for the implementer and reviewer.
 
 ---
 
@@ -307,13 +521,65 @@ File: `.dev-aid/config/agents.json`
 }
 ```
 
-### Overriding Defaults
+### teams.json
 
-CLI flags take precedence over `agents.json`, which takes precedence over hardcoded defaults:
+File: `.dev-aid/config/teams.json`
+
+Configures team defaults and per-team/per-agent overrides for provider, model, and budget.
+
+```json
+{
+  "defaults": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "max_budget_usd": 5.0,
+    "timeout_seconds": 600
+  },
+  "teams": {
+    "pr-review-team": {
+      "enabled": true,
+      "max_budget_usd": 2.0,
+      "agents": {
+        "security-reviewer": {
+          "provider": "anthropic"
+        },
+        "quality-reviewer": {
+          "provider": "anthropic"
+        },
+        "test-coverage-reviewer": {
+          "provider": "anthropic"
+        }
+      }
+    },
+    "architect-implement-team": {
+      "enabled": true,
+      "max_budget_usd": 5.0,
+      "agents": {
+        "architect": {
+          "provider": "anthropic",
+          "model": "claude-opus-4-6"
+        }
+      }
+    }
+  }
+}
+```
+
+### Override Precedence
+
+For single agents:
 
 ```
 CLI flags > agents.json > AgentDefinition defaults
 ```
+
+For teams:
+
+```
+CLI flags (--budget, --workflow) > teams.json > TeamDefinition defaults
+```
+
+Per-agent-slot overrides within `teams.json` are applied to provider and model settings.
 
 ### Using a Local Model
 
@@ -361,12 +627,15 @@ Your security review instructions here...
 
 ```
 .dev-aid/agents/
-├── __init__.py                     # Public API surface
-├── cli.py                          # CLI entry point (argparse)
+├── __init__.py                     # Public API (agents + teams exports)
+├── cli.py                          # CLI entry point (single agent + team subcommands)
 ├── core/
 │   ├── __init__.py
 │   ├── models.py                   # AgentDefinition, ToolCall, ToolResult, AgentResult
-│   ├── agent_runner.py             # Main agent loop
+│   ├── agent_runner.py             # Single agent execution loop
+│   ├── team_models.py              # TeamDefinition, AgentSlot, TeamResult, TeamTask, AgentMessage
+│   ├── team_runner.py              # Multi-agent orchestration (parallel/sequential/DAG)
+│   ├── shared_state.py             # SharedTaskList, MessageBus, FileLockSet, BudgetTracker
 │   ├── tool_registry.py            # Tool registration, execution, format export
 │   ├── skill_loader.py             # SKILL.md parsing and prompt building
 │   ├── provider_adapter.py         # ProviderAdapter protocol + create_adapter()
@@ -385,6 +654,9 @@ Your security review instructions here...
 │   ├── conflict_resolver.py        # Merge Conflict Resolver
 │   ├── research_agent.py           # Deep Research
 │   └── onboarding_agent.py         # Codebase Onboarding
+├── teams/
+│   ├── __init__.py                 # Team package exports
+│   └── builtin_teams.py            # 4 pre-built team definitions
 └── tools/
     ├── __init__.py
     ├── file_tools.py               # read_file, write_file, list_directory, glob_files
@@ -401,12 +673,15 @@ Your security review instructions here...
 Tests are in `.dev-aid/orchestration/tests/` and integrate with the existing pre-commit hooks:
 
 ```bash
-# Run agent tests
+# Run all tests
 cd .dev-aid/orchestration
+venv/bin/python -m pytest tests/ -v
+
+# Run agent tests only
 venv/bin/python -m pytest tests/test_agent_*.py -v
 
-# Run all tests (including agents)
-venv/bin/python -m pytest tests/ -v
+# Run team tests only
+venv/bin/python -m pytest tests/test_team_*.py tests/test_builtin_teams.py -v
 ```
 
 ### Test Files
@@ -420,5 +695,9 @@ venv/bin/python -m pytest tests/ -v
 | `test_agent_builtin_tools.py` | File, search tools against temp directories |
 | `test_agent_runner.py` | Agent loop with mocked LLM (no real API calls) |
 | `test_agent_provider_adapters.py` | Format conversion for all 3 providers |
+| `test_team_models.py` | TeamDefinition validation, TeamTask state, AgentMessage uniqueness |
+| `test_shared_state.py` | Thread safety for SharedTaskList, MessageBus, FileLockSet, BudgetTracker |
+| `test_team_runner.py` | Parallel/sequential/DAG execution, budget enforcement, aggregation |
+| `test_builtin_teams.py` | Built-in team loading, agent references, DAG cycle detection |
 
-**Coverage:** 112 tests, all passing. No real API calls — everything is mocked.
+**Coverage:** 136 tests, all passing. No real API calls — everything is mocked.

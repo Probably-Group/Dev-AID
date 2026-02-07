@@ -2,10 +2,11 @@
 CLI entry point for Dev-AID Agent framework.
 
 Provides subcommands for each built-in agent with provider/model overrides,
-dry-run mode, and verbose output.
+dry-run mode, and verbose output. Also supports multi-agent team execution.
 """
 
 import argparse
+import asyncio
 import json
 import logging
 import os
@@ -21,11 +22,14 @@ from .agents.research_agent import RESEARCH_AGENT
 from .agents.tech_debt_hunter import TECH_DEBT_HUNTER
 from .agents.test_generator import TEST_GENERATOR
 from .core.agent_runner import AgentRunner
-from .core.models import AgentDefinition, ToolCall
+from .core.models import AgentDefinition, AgentResult, ToolCall
 from .core.provider_adapter import ProviderResponse, create_adapter
 from .core.safety import SafetyConfig
 from .core.skill_loader import SkillLoader
+from .core.team_models import AgentMessage, TeamDefinition
+from .core.team_runner import TeamRunner
 from .core.tool_registry import ToolRegistry
+from .teams.builtin_teams import BUILTIN_TEAMS
 from .tools import bash_tool, file_tools, git_tools, github_tools, search_tools
 
 logger = logging.getLogger(__name__)
@@ -170,7 +174,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="Show actions without making changes"
     )
     parser.add_argument("--verbose", action="store_true", help="Show tool call details")
-    parser.add_argument("--json", action="store_true", dest="json_output", help="JSON output")
+    parser.add_argument(
+        "--json", action="store_true", dest="json_output", help="JSON output"
+    )
     parser.add_argument("--max-iterations", type=int, help="Override max iterations")
 
     subparsers = parser.add_subparsers(dest="agent", help="Agent to run")
@@ -181,7 +187,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Test Generator
     tg = subparsers.add_parser("test-generator", help="Generate tests for code")
-    tg.add_argument("--path", required=True, help="File or directory to generate tests for")
+    tg.add_argument(
+        "--path", required=True, help="File or directory to generate tests for"
+    )
     tg.add_argument(
         "--framework",
         choices=["pytest", "jest", "vitest"],
@@ -227,6 +235,22 @@ def build_parser() -> argparse.ArgumentParser:
     # Onboarding
     ob = subparsers.add_parser("onboarding", help="Generate onboarding guide")
     ob.add_argument("--path", help="Project root to analyze (default: auto-detect)")
+
+    # Team subcommand
+    team_parser = subparsers.add_parser("team", help="Run a multi-agent team")
+    team_parser.add_argument("team_name", nargs="?", help="Team name to run")
+    team_parser.add_argument(
+        "-m", "--message", required=False, help="Task message for the team"
+    )
+    team_parser.add_argument("--budget", type=float, help="Override max budget (USD)")
+    team_parser.add_argument(
+        "--workflow",
+        choices=["parallel", "sequential", "dag"],
+        help="Override workflow strategy",
+    )
+    team_parser.add_argument(
+        "--list-teams", action="store_true", help="List available teams"
+    )
 
     return parser
 
@@ -289,6 +313,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         parser.print_help()
         return 1
 
+    # Handle team subcommand
+    if args.agent == "team":
+        return _handle_team_command(args)
+
     if args.agent not in AGENTS:
         print(_c(Colors.RED, f"Unknown agent: {args.agent}"), file=sys.stderr)
         return 1
@@ -343,7 +371,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     def on_iteration(n: int, resp: ProviderResponse) -> None:
         if not args.json_output:
             status = "tool_use" if resp.tool_calls else "thinking"
-            tools_str = ", ".join(tc.name for tc in resp.tool_calls) if resp.tool_calls else ""
+            tools_str = (
+                ", ".join(tc.name for tc in resp.tool_calls) if resp.tool_calls else ""
+            )
             print(
                 _c(Colors.DIM, f"  [{n}/{agent_def.max_iterations}] {status}")
                 + (_c(Colors.CYAN, f" ({tools_str})") if tools_str else "")
@@ -405,6 +435,214 @@ def main(argv: Optional[List[str]] = None) -> int:
             )
         else:
             print(_c(Colors.RED, f"Agent failed: {result.output}"), file=sys.stderr)
+
+    return 0 if result.success else 1
+
+
+# ── Team Execution ───────────────────────────────────────────────────
+
+
+def _load_team_config(root: Path) -> Dict[str, Any]:
+    """Load teams.json config."""
+    config_path = root / ".dev-aid" / "config" / "teams.json"
+    if config_path.is_file():
+        return json.loads(config_path.read_text())  # type: ignore[no-any-return]
+    return {}
+
+
+def _apply_team_config(
+    team_def: TeamDefinition,
+    team_config: Dict[str, Any],
+    args: argparse.Namespace,
+) -> TeamDefinition:
+    """Apply teams.json and CLI overrides to a team definition.
+
+    Returns a new TeamDefinition without mutating the original.
+    """
+    from copy import deepcopy
+
+    team = deepcopy(team_def)
+    config = team_config.get("teams", {}).get(team.name, {})
+
+    # Apply config overrides
+    if "max_budget_usd" in config:
+        team.max_budget_usd = float(config["max_budget_usd"])
+
+    # Apply per-agent config overrides
+    agent_configs = config.get("agents", {})
+    for slot in team.agents:
+        slot_config = agent_configs.get(slot.name, {})
+        if "provider" in slot_config:
+            slot.provider = slot_config["provider"]
+        if "model" in slot_config:
+            slot.model = slot_config["model"]
+
+    # Apply CLI overrides (highest priority)
+    if args.budget is not None:
+        team.max_budget_usd = args.budget
+    if args.workflow is not None:
+        team.workflow = args.workflow
+
+    return team
+
+
+def _list_teams() -> None:
+    """Print available teams."""
+    print(_c(Colors.BOLD, "\nAvailable Teams:"))
+    print(_c(Colors.BOLD, "=" * 60))
+    for name, team in BUILTIN_TEAMS.items():
+        agents_str = ", ".join(s.name for s in team.agents)
+        print(f"\n  {_c(Colors.CYAN, name)}")
+        print(f"    {team.description}")
+        print(f"    Workflow: {team.workflow} | Agents: {agents_str}")
+        print(
+            f"    Budget: ${team.max_budget_usd:.2f} | Timeout: {team.timeout_seconds}s"
+        )
+    print()
+
+
+def _handle_team_command(args: argparse.Namespace) -> int:
+    """Handle the 'team' subcommand."""
+    # --list-teams flag
+    if args.list_teams:
+        _list_teams()
+        return 0
+
+    # Validate arguments
+    if not args.team_name:
+        print(_c(Colors.RED, "Error: team name required"), file=sys.stderr)
+        print("Use --list-teams to see available teams.", file=sys.stderr)
+        return 1
+
+    if args.team_name not in BUILTIN_TEAMS:
+        print(
+            _c(Colors.RED, f"Unknown team: {args.team_name}"),
+            file=sys.stderr,
+        )
+        print(
+            f"Available: {', '.join(BUILTIN_TEAMS.keys())}",
+            file=sys.stderr,
+        )
+        return 1
+
+    if not args.message:
+        print(_c(Colors.RED, "Error: -m/--message required"), file=sys.stderr)
+        return 1
+
+    # Setup logging
+    log_level = logging.DEBUG if args.verbose else logging.WARNING
+    logging.basicConfig(level=log_level, format="%(name)s: %(message)s")
+
+    # Load config and apply overrides
+    root = _find_dev_aid_root()
+    team_config = _load_team_config(root)
+    team_def = _apply_team_config(BUILTIN_TEAMS[args.team_name], team_config, args)
+
+    # Build API keys map
+    api_keys: Dict[str, str] = {}
+    for provider_name in ("anthropic", "openai", "google"):
+        key = _resolve_api_key(provider_name)
+        if key:
+            api_keys[provider_name] = key
+
+    # Skills
+    skills_root = root / ".dev-aid" / "skills"
+    skill_loader = SkillLoader(skills_root) if skills_root.is_dir() else None
+
+    # Callbacks
+    def on_agent_start(name: str) -> None:
+        if not args.json_output:
+            print(_c(Colors.DIM, f"  Starting agent: {name}"))
+
+    def on_agent_complete(name: str, result: AgentResult) -> None:
+        if not args.json_output:
+            status = (
+                _c(Colors.GREEN, "done") if result.success else _c(Colors.RED, "failed")
+            )
+            cost = f", ${result.total_cost:.4f}" if result.total_cost > 0 else ""
+            print(f"  Agent {name}: {status}{cost}")
+
+    def on_message(msg: AgentMessage) -> None:
+        if args.verbose and not args.json_output:
+            print(
+                _c(
+                    Colors.DIM,
+                    f"  [{msg.from_agent} -> {msg.to_agent}] "
+                    f"{msg.message_type}: {msg.content[:80]}",
+                )
+            )
+
+    # Create TeamRunner
+    runner = TeamRunner(
+        registry_factory=_build_registry,
+        skill_loader=skill_loader,
+        agents_registry=AGENTS,
+        on_agent_start=on_agent_start,
+        on_agent_complete=on_agent_complete,
+        on_message=on_message if args.verbose else None,
+    )
+
+    # Print header
+    if not args.json_output:
+        agents_str = ", ".join(s.name for s in team_def.agents)
+        print(_c(Colors.BOLD, f"\n{'='*60}"))
+        print(_c(Colors.BOLD, f"  Dev-AID Team: {team_def.name}"))
+        print(
+            _c(
+                Colors.DIM,
+                f"  Agents: {agents_str}",
+            )
+        )
+        print(
+            _c(
+                Colors.DIM,
+                f"  Workflow: {team_def.workflow} | "
+                f"Budget: ${team_def.max_budget_usd:.2f}",
+            )
+        )
+        if args.dry_run:
+            print(_c(Colors.YELLOW, "  MODE: DRY RUN"))
+        print(_c(Colors.BOLD, f"{'='*60}\n"))
+
+    # Run team
+    result = asyncio.run(
+        runner.run(
+            team_def=team_def,
+            user_message=args.message,
+            api_keys=api_keys,
+        )
+    )
+
+    # Output
+    if args.json_output:
+        output = {
+            "team": result.team_name,
+            "success": result.success,
+            "partial": result.partial,
+            "output": result.aggregated_output,
+            "agents": result.agent_results,
+            "metrics": {
+                "agents_completed": result.tasks_completed,
+                "agents_failed": result.tasks_failed,
+                "tokens": result.total_tokens,
+                "cost_usd": round(result.total_cost, 6),
+                "latency_ms": round(result.total_latency_ms, 1),
+                "messages_exchanged": result.messages_exchanged,
+            },
+        }
+        print(json.dumps(output, indent=2))
+    else:
+        print(result.aggregated_output)
+        cost_str = f"${result.total_cost:.4f}" if result.total_cost > 0 else "$0"
+        partial_str = " (partial)" if result.partial else ""
+        print(
+            _c(
+                Colors.GREEN if result.success else Colors.RED,
+                f"\n--- {result.tasks_completed}/{result.tasks_completed + result.tasks_failed}"
+                f" agents completed{partial_str}, "
+                f"{result.total_latency_ms/1000:.1f}s, {cost_str} ---",
+            )
+        )
 
     return 0 if result.success else 1
 

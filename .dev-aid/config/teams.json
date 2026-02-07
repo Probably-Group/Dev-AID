@@ -1,0 +1,71 @@
+{
+  "defaults": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-4-5-20250929",
+    "max_budget_usd": 5.0,
+    "timeout_seconds": 600
+  },
+  "teams": {
+    "pr-review-team": {
+      "enabled": true,
+      "max_budget_usd": 2.0,
+      "agents": {
+        "security-reviewer": {
+          "provider": "anthropic"
+        },
+        "quality-reviewer": {
+          "provider": "anthropic"
+        },
+        "test-coverage-reviewer": {
+          "provider": "anthropic"
+        }
+      }
+    },
+    "security-audit-team": {
+      "enabled": true,
+      "max_budget_usd": 3.0,
+      "agents": {
+        "vulnerability-scanner": {
+          "provider": "anthropic"
+        },
+        "auth-reviewer": {
+          "provider": "anthropic"
+        },
+        "dependency-auditor": {
+          "provider": "anthropic"
+        }
+      }
+    },
+    "architect-implement-team": {
+      "enabled": true,
+      "max_budget_usd": 5.0,
+      "agents": {
+        "architect": {
+          "provider": "anthropic",
+          "model": "claude-opus-4-6"
+        },
+        "implementer": {
+          "provider": "anthropic"
+        },
+        "reviewer": {
+          "provider": "anthropic"
+        }
+      }
+    },
+    "issue-resolution-team": {
+      "enabled": true,
+      "max_budget_usd": 4.0,
+      "agents": {
+        "researcher": {
+          "provider": "anthropic"
+        },
+        "fixer": {
+          "provider": "anthropic"
+        },
+        "test-writer": {
+          "provider": "anthropic"
+        }
+      }
+    }
+  }
+}

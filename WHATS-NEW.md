@@ -1,5 +1,44 @@
 # What's New in Dev-AID
 
+## v1.5.0 - Autonomous Agent Framework
+
+### Provider-Agnostic Agent Framework
+Autonomous AI agents powered by Dev-AID's 72+ expert skills — works with any provider:
+
+- **Agent Runner**: Send → tool calls → execute → repeat loop with safety enforcement
+- **7 Built-in Agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding
+- **16 Built-in Tools**: File I/O, git, GitHub, bash, search — all with risk levels and safety checks
+- **4 Provider Adapters**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
+- **Skill-Powered**: Each agent loads specific Dev-AID expert skills as system prompts
+- **Safety**: Command blocklist, dry-run mode, per-tool risk levels, allowed-tool enforcement
+- **CLI**: `dev-aid-agent <agent> [options]` with `--provider`, `--model`, `--dry-run`, `--verbose`, `--json`
+
+**Quick Start:**
+```bash
+# Review a PR with security + architecture expertise
+dev-aid-agent pr-reviewer --pr 135 --verbose
+
+# Generate tests for a module
+dev-aid-agent test-generator --path src/auth/ --framework pytest
+
+# Scan for tech debt (safe, read-only)
+dev-aid-agent tech-debt-hunter --severity high --dry-run
+
+# Use a different provider
+dev-aid-agent research --topic "async patterns" --provider google
+
+# JSON output for CI
+dev-aid-agent tech-debt-hunter --severity critical --json
+```
+
+**Architecture:**
+- Module: `.dev-aid/agents/`
+- Config: `.dev-aid/config/agents.json`
+- Tests: 112 tests, all mocked (no real API calls)
+- Documentation: [Agent Framework Guide](.dev-aid/docs/AGENTS.md)
+
+---
+
 ## v1.4.0 - Competitor Feature Adoption
 
 ### Hybrid Search (BM25 + Vector) 🆕

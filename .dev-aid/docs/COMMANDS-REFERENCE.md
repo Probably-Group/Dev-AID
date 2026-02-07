@@ -81,6 +81,76 @@ Core skills provide **automated tool execution** on file save:
 
 ---
 
+## 🤖 Autonomous Agents (NEW!)
+
+### `dev-aid-agent` (CLI Tool)
+**Category:** Automation
+**Purpose:** Run autonomous AI agents powered by Dev-AID's expert skills
+**When to use:** Automated PR reviews, test generation, tech debt scanning, CI debugging, conflict resolution, research, onboarding
+**Location:** `.dev-aid/scripts/dev-aid-agent`
+
+**Agents:**
+- `pr-reviewer` — Review PRs for security, quality, best practices
+- `test-generator` — Generate tests for untested code
+- `tech-debt-hunter` — Scan for code smells and technical debt
+- `ci-fixer` — Diagnose CI failures and propose fixes
+- `conflict-resolver` — Auto-resolve merge conflicts
+- `research` — Deep research on technical topics
+- `onboarding` — Generate codebase onboarding guide
+
+**Global Options:**
+- `--provider <name>` — Override provider (anthropic, google, openai, local)
+- `--model <name>` — Override model
+- `--dry-run` — Show actions without making changes
+- `--verbose` — Show tool call details
+- `--json` — JSON output for scripts/CI
+- `--max-iterations <n>` — Override max iterations
+
+**Commands:**
+```bash
+# PR review
+dev-aid-agent pr-reviewer --pr 135
+
+# Generate tests
+dev-aid-agent test-generator --path src/auth/ --framework pytest
+
+# Tech debt scan
+dev-aid-agent tech-debt-hunter --severity high
+
+# CI debugging
+dev-aid-agent ci-fixer --run-id 12345
+
+# Conflict resolution
+dev-aid-agent conflict-resolver --pr 67 --strategy smart
+
+# Research
+dev-aid-agent research --topic "async patterns" --depth deep
+
+# Onboarding guide
+dev-aid-agent onboarding
+
+# Use different provider
+dev-aid-agent research --topic "migration" --provider google
+
+# JSON output for CI
+dev-aid-agent tech-debt-hunter --severity critical --json
+
+# Dry run (read-only, no changes)
+dev-aid-agent test-generator --path src/ --dry-run
+```
+
+**Features:**
+- 16 built-in tools (file, git, GitHub, bash, search) with safety enforcement
+- Loads Dev-AID expert skills as system prompts (72+ available)
+- Provider-agnostic: Anthropic, OpenAI, Google, Local (Ollama/LM Studio)
+- Command blocklist prevents dangerous bash operations
+- Per-tool risk levels (safe/moderate/dangerous)
+- Exit code 0 on success, 1 on failure
+
+**Documentation:** [Agent Framework Guide](AGENTS.md)
+
+---
+
 ## 🚀 Productivity Tools (NEW!)
 
 ### `/dev-aid-api-contract`
@@ -575,6 +645,7 @@ cat .dev-aid/reports/vulnerabilities.md
 
 | Category | Commands Available | Purpose |
 |----------|-------------------|---------|
+| **Agents** | `dev-aid-agent` (7 subcommands) | Autonomous AI agents (PR review, tests, tech debt, CI, conflicts, research, onboarding) |
 | **Setup** | `/dev-aid-analyze`, `/dev-aid-status` | Initial setup, analysis, configuration visibility |
 | **Security** | `/audit`, `/vulnerability-scan`, `/compliance-check` | Security operations |
 | **Performance** | `/profile`, `/benchmark` | Performance analysis |
@@ -746,5 +817,5 @@ Dev-AID provides standalone utility scripts for common development tasks:
 
 ---
 
-**Last Updated:** 2025-12-10
-**Version:** 1.3.0-beta.1
+**Last Updated:** 2026-02-07
+**Version:** 1.5.0-beta.1

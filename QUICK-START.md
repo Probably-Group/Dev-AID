@@ -134,11 +134,32 @@ tail -f .dev-aid/logs/context-sharing.log
 cat .dev-aid/memory-bank/activeContext.md
 ```
 
+## Autonomous Agents
+
+Run autonomous AI agents powered by Dev-AID's expert skills:
+
+```bash
+# Review a PR (reads code, checks security, produces markdown report)
+dev-aid-agent pr-reviewer --pr 135
+
+# Generate tests for untested code
+dev-aid-agent test-generator --path src/auth/
+
+# Scan for tech debt
+dev-aid-agent tech-debt-hunter --severity high --dry-run
+
+# Use any provider (anthropic, google, openai, local)
+dev-aid-agent research --topic "migration strategies" --provider google
+```
+
+See [Agent Framework Guide](.dev-aid/docs/AGENTS.md) for all 7 agents, 16 tools, and CLI options.
+
 ## Next Steps
 
 - Read [README.md](README.md) for full features
 - Check [.dev-aid/docs/SKILLS-ARCHITECTURE.md](.dev-aid/docs/SKILLS-ARCHITECTURE.md) for architecture
 - See [.dev-aid/docs/CONTEXT-SHARING.md](.dev-aid/docs/CONTEXT-SHARING.md) for multi-model details
+- See [.dev-aid/docs/AGENTS.md](.dev-aid/docs/AGENTS.md) for the autonomous agent framework
 
 ## Troubleshooting
 

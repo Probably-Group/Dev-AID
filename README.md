@@ -268,6 +268,7 @@ Real-World Examples:
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐⭐ |
 | **⚡ 7 Process Skills** 🆕 | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (7 agents, 16 tools, 4 providers) | • Provider-agnostic (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
@@ -464,7 +465,36 @@ Process skills **enforce how you work**, not just what you know:
 - **Security scanning**: CVE, SAST, secrets, misconfig (Trivy + Opengrep + Gitleaks)
 - **Isolated dependencies**: Virtual environments, zero system pollution ([details](./.dev-aid/docs/DEPENDENCY-ISOLATION.md))
 
-### 🤖 **Intelligent Automation** (NEW!)
+### 🤖 **Autonomous Agent Framework** (NEW!)
+
+Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
+
+| Feature | What It Does | Developer Benefits |
+|---------|-------------|-------------------|
+| **7 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding | Ready-to-use agents for common workflows |
+| **16 Built-in Tools** | File I/O, git, GitHub, bash, search — all with safety enforcement | Agents can read, write, search, and interact with git/GitHub |
+| **4 Provider Adapters** | Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio) | Use any provider — switch with `--provider` |
+| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 72+ skills |
+| **Safety System** | Command blocklist, dry-run mode, per-tool risk levels | Safe by default — dangerous operations require explicit opt-in |
+
+**Quick Start:**
+```bash
+# Review a PR
+dev-aid-agent pr-reviewer --pr 135 --verbose
+
+# Generate tests
+dev-aid-agent test-generator --path src/auth/ --framework pytest
+
+# Tech debt scan with a different provider
+dev-aid-agent tech-debt-hunter --severity high --provider google
+
+# JSON output for CI pipelines
+dev-aid-agent tech-debt-hunter --severity critical --json
+```
+
+[**Agent Framework Guide**](.dev-aid/docs/AGENTS.md) — CLI reference, agent catalog, tools, safety, configuration.
+
+### 🤖 **Intelligent Automation**
 AI-powered automation for issues, conflicts, and workflows - saving hours of manual work while following best practices.
 
 | Feature | What It Does | Developer Benefits | Documentation |
@@ -772,7 +802,15 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ## 🆕 What's New in v1.5.0
 
-**🏠 Local LLM Support - The Big One!**
+**🤖 Autonomous Agent Framework**
+- **7 built-in agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding
+- **16 built-in tools**: File I/O, git, GitHub, bash, search — all with safety enforcement
+- **4 providers**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
+- **CLI**: `dev-aid-agent <agent> --provider <name> --dry-run --verbose --json`
+- **Skill-powered**: Each agent loads Dev-AID expert skills as system prompts
+- Guide: [AGENTS.md](.dev-aid/docs/AGENTS.md)
+
+**🏠 Local LLM Support**
 - **Offline AI** - Run models locally via Ollama, LM Studio, or llama.cpp
 - **Hardware Auto-Detection** - Detects NVIDIA, Apple Silicon, AMD GPUs
 - **Smart Recommendations** - Suggests best model for your hardware
@@ -1236,6 +1274,12 @@ Claude: *automatically uses local RAG*
 .dev-aid/
 ├── 📄 RAG-SETUP.md                    # RAG documentation
 │
+├── 📁 agents/                          # Autonomous agent framework
+│   ├── core/                           # AgentRunner, ToolRegistry, SkillLoader, Safety
+│   ├── adapters/                       # Anthropic, OpenAI, Google provider adapters
+│   ├── agents/                         # 7 built-in agent definitions
+│   └── tools/                          # 16 built-in tools (file, git, bash, search)
+│
 ├── 📁 config/
 │   ├── routing.json                   # Router configuration
 │   ├── models.json                    # Model registry
@@ -1467,6 +1511,9 @@ Skills auto-activate based on file patterns:
 
 ### Validation & Quality
 - **[VALIDATOR-FRAMEWORK.md](.dev-aid/docs/VALIDATOR-FRAMEWORK.md)** - Skill compliance validator framework (creating validators, CLI, output formats)
+
+### Agent Framework
+- **[AGENTS.md](.dev-aid/docs/AGENTS.md)** - Agent framework guide (CLI, agents, tools, safety, configuration)
 
 ### Automation Guides
 - **[AUTOMATION-README.md](.dev-aid/docs/AUTOMATION-README.md)** - Complete automation overview and architecture

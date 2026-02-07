@@ -63,6 +63,58 @@ This manifest maps our elite setup components to their source repositories for i
 
 ---
 
+### Autonomous Agent Framework
+
+**Location**: `.dev-aid/agents/`
+
+**Components**:
+```
+.dev-aid/agents/
+├── __init__.py                     # Public API surface
+├── cli.py                          # CLI entry point (argparse subcommands)
+├── core/
+│   ├── models.py                   # AgentDefinition, ToolCall, ToolResult, AgentResult
+│   ├── agent_runner.py             # Main agent loop (send → tool calls → execute → repeat)
+│   ├── tool_registry.py            # Register/discover/execute tools, provider format export
+│   ├── skill_loader.py             # Parse SKILL.md files into system prompts
+│   ├── provider_adapter.py         # ProviderAdapter protocol + create_adapter() factory
+│   └── safety.py                   # SafetyConfig, command blocklist, dry-run
+├── adapters/
+│   ├── anthropic_adapter.py        # Anthropic Messages API
+│   ├── openai_adapter.py           # OpenAI + Ollama/LM Studio
+│   └── google_adapter.py           # Gemini function calling
+├── agents/
+│   ├── pr_reviewer.py              # PR Reviewer
+│   ├── test_generator.py           # Test Generator
+│   ├── tech_debt_hunter.py         # Tech Debt Scanner
+│   ├── ci_fixer.py                 # CI/CD Fixer
+│   ├── conflict_resolver.py        # Merge Conflict Resolver
+│   ├── research_agent.py           # Deep Research
+│   └── onboarding_agent.py         # Codebase Onboarding
+└── tools/
+    ├── file_tools.py               # read_file, write_file, list_directory, glob_files
+    ├── bash_tool.py                # run_bash (timeout, blocklist)
+    ├── git_tools.py                # git_status, git_diff, git_log, git_add, git_commit
+    ├── github_tools.py             # gh_issue_view, gh_pr_view, gh_pr_create
+    └── search_tools.py             # grep_search, find_files
+```
+
+**Purpose**: Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills
+
+**Features**:
+- Agent loop: send → tool calls → execute → repeat
+- 7 built-in agents, 16 built-in tools
+- 4 provider adapters (Anthropic, OpenAI, Google, Local)
+- Safety enforcement: command blocklist, dry-run, per-tool risk levels
+- Skill integration: loads SKILL.md files as system prompts
+- CLI: `dev-aid-agent <agent> [options]`
+
+**Configuration**: `.dev-aid/config/agents.json`
+**CLI entry**: `.dev-aid/scripts/dev-aid-agent`
+**Documentation**: [Agent Framework Guide](AGENTS.md)
+
+---
+
 ## 📦 Installation Strategy
 
 **Foundation (Included)**:

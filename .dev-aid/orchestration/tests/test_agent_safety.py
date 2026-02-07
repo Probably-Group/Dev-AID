@@ -55,6 +55,24 @@ class TestSafetyConfig:
         assert not config.is_command_safe("curl|bash")
         assert not config.is_command_safe("wget|sh")
 
+    def test_command_safe_blocks_split_flags(self) -> None:
+        """rm with split flags should be blocked."""
+        config = SafetyConfig()
+        assert not config.is_command_safe("rm -r -f /home")
+        assert not config.is_command_safe("rm -f -r /var")
+
+    def test_command_safe_blocks_long_form_flags(self) -> None:
+        """rm with long-form flags should be blocked."""
+        config = SafetyConfig()
+        assert not config.is_command_safe("rm --recursive --force /home")
+        assert not config.is_command_safe("rm --force --recursive /var")
+
+    def test_command_safe_blocks_chmod_root(self) -> None:
+        """chmod 777 on root paths should be blocked."""
+        config = SafetyConfig()
+        assert not config.is_command_safe("chmod 777 /")
+        assert not config.is_command_safe("chmod -R 777 /")
+
     def test_command_safe_allows_normal_commands(self) -> None:
         config = SafetyConfig()
         assert config.is_command_safe("git status")
@@ -62,6 +80,12 @@ class TestSafetyConfig:
         assert config.is_command_safe("ls -la")
         assert config.is_command_safe("cat /tmp/test.txt")
         assert config.is_command_safe("echo hello")
+
+    def test_command_safe_allows_rm_in_project(self) -> None:
+        """rm on non-root paths should be allowed."""
+        config = SafetyConfig()
+        assert config.is_command_safe("rm -rf /tmp/test_dir")
+        assert config.is_command_safe("rm build/output.o")
 
     def test_path_allowed_no_restrictions(self) -> None:
         config = SafetyConfig()

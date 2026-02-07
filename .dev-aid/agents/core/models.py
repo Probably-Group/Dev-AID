@@ -79,6 +79,18 @@ class AgentDefinition:
         if not (0.0 <= self.temperature <= 2.0):
             raise ValueError("temperature must be between 0.0 and 2.0")
 
+    def copy(self, **overrides: Any) -> "AgentDefinition":
+        """Create a deep copy with optional field overrides."""
+        from copy import deepcopy
+
+        clone = deepcopy(self)
+        for key, value in overrides.items():
+            if not hasattr(clone, key):
+                raise ValueError(f"Unknown field: {key}")
+            setattr(clone, key, value)
+        clone.__post_init__()
+        return clone
+
 
 @dataclass
 class AgentResult:

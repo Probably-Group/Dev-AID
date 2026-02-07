@@ -126,6 +126,32 @@ def _load_config(root: Path) -> Dict[str, Any]:
     return {}
 
 
+def _apply_config_overrides(
+    agent_def: AgentDefinition,
+    config: Dict[str, Any],
+) -> AgentDefinition:
+    """Apply agents.json per-agent config overrides.
+
+    Returns a new AgentDefinition with overrides applied,
+    without mutating the original singleton.
+    """
+    agent_config = config.get("agents", {}).get(agent_def.name, {})
+    if not agent_config:
+        return agent_def
+
+    overrides: Dict[str, Any] = {}
+    if "max_iterations" in agent_config:
+        overrides["max_iterations"] = agent_config["max_iterations"]
+    if "temperature" in agent_config:
+        overrides["temperature"] = agent_config["temperature"]
+    if "risk_level" in agent_config:
+        overrides["risk_level"] = agent_config["risk_level"]
+
+    if overrides:
+        return agent_def.copy(**overrides)
+    return agent_def
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the CLI argument parser."""
     parser = argparse.ArgumentParser(
@@ -271,24 +297,27 @@ def main(argv: Optional[List[str]] = None) -> int:
     log_level = logging.DEBUG if args.verbose else logging.WARNING
     logging.basicConfig(level=log_level, format="%(name)s: %(message)s")
 
-    agent_def = AGENTS[args.agent]
-
-    # Apply CLI overrides
-    if args.max_iterations:
-        agent_def.max_iterations = args.max_iterations
-
     # Setup
     root = _find_dev_aid_root()
     config = _load_config(root)
     defaults = config.get("defaults", {})
 
+    # Create a copy of the agent definition with config overrides
+    # (never mutate the shared singleton)
+    agent_def = _apply_config_overrides(AGENTS[args.agent], config)
+
+    # Apply CLI overrides (also via copy)
+    if args.max_iterations:
+        agent_def = agent_def.copy(max_iterations=args.max_iterations)
+
     provider = args.provider or defaults.get("provider", "anthropic")
     model = args.model or defaults.get("model", "claude-sonnet-4-5-20250929")
 
-    # Safety config
+    # Safety config with project-scoped path restrictions
     safety = SafetyConfig(
         dry_run=args.dry_run,
         allowed_tools=set(agent_def.tools) if agent_def.tools else None,
+        allowed_paths=[root],  # Restrict to project root
     )
 
     # Build components
@@ -357,7 +386,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "tool_calls": result.tool_calls_made,
                 "iterations": result.iterations,
                 "tokens": result.total_tokens,
-                "cost": result.total_cost,
+                "cost_usd": round(result.total_cost, 6),
                 "latency_ms": round(result.total_latency_ms, 1),
             },
         }
@@ -365,12 +394,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     else:
         if result.success:
             print(result.output)
+            cost_str = f", ${result.total_cost:.4f}" if result.total_cost > 0 else ""
             print(
                 _c(
                     Colors.GREEN,
                     f"\n--- Completed in {result.iterations} iterations, "
                     f"{result.tool_calls_made} tool calls, "
-                    f"{result.total_latency_ms/1000:.1f}s ---",
+                    f"{result.total_latency_ms/1000:.1f}s{cost_str} ---",
                 )
             )
         else:

@@ -13,15 +13,13 @@ from typing import Any, Dict, List, Optional, Set
 
 logger = logging.getLogger(__name__)
 
-# Commands that are always blocked regardless of configuration
+# Commands that are always blocked regardless of configuration.
+# NOTE: Path-based rm/chmod/chown are handled by BLOCKED_COMMAND_PATTERNS
+# with negative lookaheads to allow safe paths like /tmp.
 DEFAULT_BLOCKED_COMMANDS: List[str] = [
-    "rm -rf /",
-    "rm -rf /*",
     "mkfs",
     "dd if=",
     ":(){:|:&};:",
-    "chmod -R 777 /",
-    "chown -R",
     "shutdown",
     "reboot",
     "halt",
@@ -36,11 +34,18 @@ DEFAULT_BLOCKED_COMMANDS: List[str] = [
 
 # Pattern-based blocking for dangerous command structures
 BLOCKED_COMMAND_PATTERNS: List[str] = [
+    # rm with recursive+force in any flag style targeting root paths
     r"rm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+)?/(?!tmp)",  # rm -rf / (but allow /tmp)
+    r"rm\s+.*--recursive.*--force.*/(?!tmp)",  # rm --recursive --force /
+    r"rm\s+.*--force.*--recursive.*/(?!tmp)",  # rm --force --recursive /
+    r"rm\s+(-\w+\s+)*-\w*r\w*\s+(-\w+\s+)*-\w*f\w*\s+/(?!tmp)",  # rm -r -f /
+    r"rm\s+(-\w+\s+)*-\w*f\w*\s+(-\w+\s+)*-\w*r\w*\s+/(?!tmp)",  # rm -f -r /
     r">\s*/dev/[a-z]+",  # redirect to block devices
     r"mkfs\.",  # format filesystems
     r"dd\s+if=.*of=/dev",  # dd to block devices
     r":()\{.*\|.*&\}\s*;",  # fork bomb
+    r"chmod\s+(-\w+\s+)*777\s+/",  # chmod 777 on root paths
+    r"chown\s+(-\w+\s+)*-R\s+.*\s+/(?!tmp)",  # chown -R on root paths
 ]
 
 _COMPILED_BLOCKED_PATTERNS = [re.compile(p) for p in BLOCKED_COMMAND_PATTERNS]

@@ -2,13 +2,13 @@
 Anthropic (Claude) provider adapter.
 
 Implements tool-calling via the Anthropic Messages API.
-Optionally bridges to the Claude Agent SDK when installed.
 """
 
 import logging
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ToolCall
+from ..core.cost import estimate_cost
+from ..core.models import ToolCall, ToolResult
 from ..core.provider_adapter import ProviderResponse
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 class AnthropicAdapter:
     """Adapter for Anthropic's tool-use Messages API."""
+
+    tool_format: str = "anthropic"
 
     def __init__(self, api_key: Optional[str] = None) -> None:
         self._api_key = api_key
@@ -30,7 +32,8 @@ class AnthropicAdapter:
                 self._client = anthropic.Anthropic(api_key=self._api_key)
             except ImportError:
                 raise ImportError(
-                    "anthropic package not installed. " "Install with: pip install anthropic"
+                    "anthropic package not installed. "
+                    "Install with: pip install anthropic"
                 )
         return self._client
 
@@ -83,18 +86,23 @@ class AnthropicAdapter:
         elif response.stop_reason == "max_tokens":
             stop_reason = "max_tokens"
 
-        # Calculate cost
+        # Token usage and cost
         tokens_used = {
             "input": response.usage.input_tokens,
             "output": response.usage.output_tokens,
         }
+        cost = estimate_cost(
+            model,
+            tokens_used["input"],
+            tokens_used["output"],
+        )
 
         return ProviderResponse(
             content=content_text,
             tool_calls=tool_calls,
             stop_reason=stop_reason,
             tokens_used=tokens_used,
-            cost=0.0,  # Cost calculated externally via CostTracker
+            cost=cost,
         )
 
     @staticmethod
@@ -111,6 +119,25 @@ class AnthropicAdapter:
                 }
             ],
         }
+
+    @staticmethod
+    def format_tool_results(results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """Format multiple tool results into a single batched message.
+
+        Anthropic requires all tool results from one turn to be in
+        a single 'user' message with multiple tool_result blocks.
+        """
+        content: List[Dict[str, Any]] = []
+        for r in results:
+            content.append(
+                {
+                    "type": "tool_result",
+                    "tool_use_id": r.call_id,
+                    "content": r.output if r.success else (r.error or ""),
+                    "is_error": not r.success,
+                }
+            )
+        return [{"role": "user", "content": content}]
 
     @staticmethod
     def format_assistant_tool_use(

@@ -10,7 +10,8 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ToolCall
+from ..core.cost import estimate_cost
+from ..core.models import ToolCall, ToolResult
 from ..core.provider_adapter import ProviderResponse
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 class OpenAIAdapter:
     """Adapter for OpenAI's function-calling Chat Completions API."""
+
+    tool_format: str = "openai"
 
     def __init__(
         self,
@@ -40,7 +43,8 @@ class OpenAIAdapter:
                 self._client = openai.OpenAI(**kwargs)
             except ImportError:
                 raise ImportError(
-                    "openai package not installed. " "Install with: pip install openai"
+                    "openai package not installed. "
+                    "Install with: pip install openai"
                 )
         return self._client
 
@@ -99,20 +103,21 @@ class OpenAIAdapter:
         elif choice.finish_reason == "length":
             stop_reason = "max_tokens"
 
-        # Token usage
+        # Token usage and cost
         tokens_used = {"input": 0, "output": 0}
         if response.usage:
             tokens_used = {
                 "input": response.usage.prompt_tokens,
                 "output": response.usage.completion_tokens,
             }
+        cost = estimate_cost(model, tokens_used["input"], tokens_used["output"])
 
         return ProviderResponse(
             content=message.content,
             tool_calls=tool_calls,
             stop_reason=stop_reason,
             tokens_used=tokens_used,
-            cost=0.0,
+            cost=cost,
         )
 
     @staticmethod
@@ -123,6 +128,21 @@ class OpenAIAdapter:
             "tool_call_id": call_id,
             "content": output,
         }
+
+    @staticmethod
+    def format_tool_results(results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """Format multiple tool results as separate messages.
+
+        OpenAI expects each tool result as a separate message with role='tool'.
+        """
+        return [
+            {
+                "role": "tool",
+                "tool_call_id": r.call_id,
+                "content": r.output if r.success else (r.error or ""),
+            }
+            for r in results
+        ]
 
     @staticmethod
     def format_assistant_tool_use(

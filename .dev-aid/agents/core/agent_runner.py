@@ -1,11 +1,13 @@
 """
 Main agent execution loop.
 
-Orchestrates the send → tool_calls → execute → repeat cycle,
+Orchestrates the send -> tool_calls -> execute -> repeat cycle,
 building system prompts from skills and tracking costs.
+Includes retry with exponential backoff and context management.
 """
 
 import logging
+import time
 from typing import Any, Callable, Dict, List, Optional
 
 from .models import AgentDefinition, AgentResult, StopWatch, ToolCall
@@ -15,9 +17,16 @@ from .tool_registry import ToolRegistry
 
 logger = logging.getLogger(__name__)
 
+# Default context budget (tokens) before trimming kicks in
+DEFAULT_MAX_CONTEXT_TOKENS = 100_000
+
+# Retry configuration
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_RETRY_BASE_DELAY = 1.0  # seconds
+
 
 class AgentRunner:
-    """Runs an agent loop: send messages → execute tools → repeat."""
+    """Runs an agent loop: send messages -> execute tools -> repeat."""
 
     def __init__(
         self,
@@ -26,12 +35,16 @@ class AgentRunner:
         skill_loader: Optional[SkillLoader] = None,
         on_tool_call: Optional[Callable[[ToolCall], None]] = None,
         on_iteration: Optional[Callable[[int, ProviderResponse], None]] = None,
+        max_context_tokens: int = DEFAULT_MAX_CONTEXT_TOKENS,
+        max_retries: int = DEFAULT_MAX_RETRIES,
     ) -> None:
         self._adapter = adapter
         self._registry = registry
         self._skill_loader = skill_loader
         self._on_tool_call = on_tool_call
         self._on_iteration = on_iteration
+        self._max_context_tokens = max_context_tokens
+        self._max_retries = max_retries
 
     def _build_system_prompt(
         self,
@@ -61,9 +74,166 @@ class AgentRunner:
 
         return "\n\n---\n\n".join(parts) if parts else ""
 
-    def _get_adapter_formatter(self) -> Any:
-        """Get the adapter for formatting tool results in messages."""
-        return self._adapter
+    def _get_tool_definitions(
+        self,
+        agent_def: AgentDefinition,
+    ) -> List[Dict[str, Any]]:
+        """Get tool definitions in the adapter's native format."""
+        tool_names = agent_def.tools or None
+        tool_format = getattr(self._adapter, "tool_format", "anthropic")
+
+        if tool_format == "openai":
+            return self._registry.to_openai_format(tool_names)
+        elif tool_format == "gemini":
+            return self._registry.to_gemini_format(tool_names)
+        else:
+            return self._registry.to_anthropic_format(tool_names)
+
+    def _send_with_retry(
+        self,
+        messages: List[Dict[str, Any]],
+        tool_defs: List[Dict[str, Any]],
+        system_prompt: str,
+        model: str,
+        max_tokens: int,
+        temperature: float,
+    ) -> ProviderResponse:
+        """Send request with exponential backoff retry on transient errors."""
+        last_error: Optional[Exception] = None
+        delay = DEFAULT_RETRY_BASE_DELAY
+
+        for attempt in range(1, self._max_retries + 1):
+            try:
+                return self._adapter.send_with_tools(
+                    messages=messages,
+                    tools=tool_defs,
+                    system_prompt=system_prompt,
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+            except Exception as e:
+                last_error = e
+                if attempt < self._max_retries:
+                    logger.warning(
+                        "Provider error (attempt %d/%d): %s — retrying in %.1fs",
+                        attempt,
+                        self._max_retries,
+                        e,
+                        delay,
+                    )
+                    time.sleep(delay)
+                    delay *= 2  # exponential backoff
+                else:
+                    logger.error(
+                        "Provider error (attempt %d/%d): %s — giving up",
+                        attempt,
+                        self._max_retries,
+                        e,
+                    )
+
+        raise last_error  # type: ignore[misc]
+
+    @staticmethod
+    def _estimate_message_tokens(messages: List[Dict[str, Any]]) -> int:
+        """Rough estimate of token count across all messages.
+
+        Uses ~4 chars per token as a fast heuristic.
+        """
+        total_chars = 0
+        for msg in messages:
+            content = msg.get("content", "")
+            if isinstance(content, str):
+                total_chars += len(content)
+            elif isinstance(content, list):
+                for block in content:
+                    if isinstance(block, dict):
+                        for key in ("content", "text", "result"):
+                            val = block.get(key, "")
+                            if isinstance(val, str):
+                                total_chars += len(val)
+            # Also count parts (Gemini format)
+            parts = msg.get("parts", [])
+            if isinstance(parts, list):
+                for part in parts:
+                    if isinstance(part, dict):
+                        if "text" in part:
+                            total_chars += len(str(part["text"]))
+                        fr = part.get("function_response", {})
+                        if isinstance(fr, dict):
+                            resp = fr.get("response", {})
+                            if isinstance(resp, dict):
+                                total_chars += len(str(resp.get("result", "")))
+        return total_chars // 4
+
+    def _trim_context(self, messages: List[Dict[str, Any]]) -> None:
+        """Trim old tool results if context is approaching the limit.
+
+        Keeps the first message (user task) and last few messages
+        (recent context) intact. Truncates tool output in the middle.
+        """
+        estimated = self._estimate_message_tokens(messages)
+        if estimated <= self._max_context_tokens:
+            return
+
+        # Keep first message and last 6 messages
+        keep_last = min(6, len(messages) - 1)
+        if len(messages) <= keep_last + 1:
+            return
+
+        truncation_limit = 300  # chars to keep per truncated block
+        for i in range(1, len(messages) - keep_last):
+            msg = messages[i]
+            content = msg.get("content", "")
+
+            if isinstance(content, str) and len(content) > truncation_limit:
+                messages[i] = {
+                    **msg,
+                    "content": content[:truncation_limit] + "\n... [truncated] ...",
+                }
+            elif isinstance(content, list):
+                new_content: List[Dict[str, Any]] = []
+                for block in content:
+                    if isinstance(block, dict):
+                        new_block = dict(block)
+                        for key in ("content", "text"):
+                            if (
+                                key in new_block
+                                and isinstance(new_block[key], str)
+                                and len(new_block[key]) > truncation_limit
+                            ):
+                                new_block[key] = (
+                                    new_block[key][:truncation_limit]
+                                    + "\n... [truncated] ..."
+                                )
+                        new_content.append(new_block)
+                    else:
+                        new_content.append(block)
+                messages[i] = {**msg, "content": new_content}
+
+            # Handle Gemini parts format
+            parts = msg.get("parts", [])
+            if isinstance(parts, list):
+                new_parts: List[Dict[str, Any]] = []
+                for part in parts:
+                    if isinstance(part, dict) and "text" in part:
+                        text = part["text"]
+                        if isinstance(text, str) and len(text) > truncation_limit:
+                            new_parts.append(
+                                {"text": text[:truncation_limit] + "\n... [truncated] ..."}
+                            )
+                        else:
+                            new_parts.append(part)
+                    else:
+                        new_parts.append(part)
+                if new_parts:
+                    messages[i] = {**msg, "parts": new_parts}
+
+        logger.info(
+            "Trimmed context from ~%d to ~%d estimated tokens",
+            estimated,
+            self._estimate_message_tokens(messages),
+        )
 
     def run(
         self,
@@ -89,8 +259,8 @@ class AgentRunner:
         timer = StopWatch()
         system_prompt = self._build_system_prompt(agent_def, extra_context)
 
-        # Get tool definitions in the format the adapter expects
-        tool_defs = self._registry.to_anthropic_format(agent_def.tools or None)
+        # Get tool definitions in the adapter's native format
+        tool_defs = self._get_tool_definitions(agent_def)
 
         messages: List[Dict[str, Any]] = [
             {"role": "user", "content": user_message},
@@ -109,17 +279,20 @@ class AgentRunner:
                 agent_def.max_iterations,
             )
 
+            # Trim context if getting too large
+            self._trim_context(messages)
+
             try:
-                response = self._adapter.send_with_tools(
+                response = self._send_with_retry(
                     messages=messages,
-                    tools=tool_defs,
+                    tool_defs=tool_defs,
                     system_prompt=system_prompt,
                     model=model,
                     max_tokens=max_tokens,
                     temperature=agent_def.temperature,
                 )
             except Exception as e:
-                logger.error("Provider error on iteration %d: %s", iteration, e)
+                logger.error("Provider error after retries: %s", e)
                 return AgentResult(
                     agent_name=agent_def.name,
                     success=False,
@@ -155,17 +328,16 @@ class AgentRunner:
                 )
 
             # Append assistant message with tool calls
-            adapter = self._get_adapter_formatter()
-            if hasattr(adapter, "format_assistant_tool_use"):
-                assistant_msg = adapter.format_assistant_tool_use(
+            if hasattr(self._adapter, "format_assistant_tool_use"):
+                assistant_msg = self._adapter.format_assistant_tool_use(
                     response.tool_calls, response.content
                 )
             else:
-                # Fallback for adapters without the helper
                 assistant_msg = {"role": "assistant", "content": response.content or ""}
             messages.append(assistant_msg)
 
-            # Execute each tool call and append results
+            # Execute all tool calls
+            results = []
             for tool_call in response.tool_calls:
                 tool_calls_made += 1
                 if self._on_tool_call:
@@ -173,16 +345,21 @@ class AgentRunner:
 
                 logger.info("Executing tool: %s(%s)", tool_call.name, tool_call.arguments)
                 result = self._registry.execute(tool_call)
+                results.append(result)
 
-                if hasattr(adapter, "format_tool_result"):
-                    result_msg = adapter.format_tool_result(
-                        call_id=result.call_id,
-                        output=result.output if result.success else (result.error or ""),
-                        is_error=not result.success,
+            # Format and append tool results (batched per adapter requirements)
+            if hasattr(self._adapter, "format_tool_results"):
+                result_messages = self._adapter.format_tool_results(results)
+                messages.extend(result_messages)
+            else:
+                # Fallback for adapters without format_tool_results
+                for r in results:
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": r.output if r.success else (r.error or ""),
+                        }
                     )
-                else:
-                    result_msg = {"role": "user", "content": result.output}
-                messages.append(result_msg)
 
         # Max iterations reached
         logger.warning(

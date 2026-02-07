@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from agents.tools.file_tools import (
+    edit_file,
     glob_files,
     list_directory,
     read_file,
@@ -159,3 +160,37 @@ class TestFindFiles:
     def test_find_no_matches(self, tmp_path: Path) -> None:
         result = find_files("*.nonexistent", str(tmp_path))
         assert "No files found" in result
+
+
+class TestEditFile:
+    """Tests for edit_file tool."""
+
+    def test_edit_replaces_unique_string(self, tmp_path: Path) -> None:
+        f = tmp_path / "test.py"
+        f.write_text("def hello():\n    return 'hello'\n")
+        result = edit_file(str(f), "return 'hello'", "return 'world'")
+        assert "Successfully edited" in result
+        assert f.read_text() == "def hello():\n    return 'world'\n"
+
+    def test_edit_nonexistent_file(self) -> None:
+        with pytest.raises(FileNotFoundError):
+            edit_file("/nonexistent/file.py", "old", "new")
+
+    def test_edit_string_not_found(self, tmp_path: Path) -> None:
+        f = tmp_path / "test.py"
+        f.write_text("def hello():\n    pass\n")
+        with pytest.raises(ValueError, match="String not found"):
+            edit_file(str(f), "nonexistent string", "replacement")
+
+    def test_edit_ambiguous_match(self, tmp_path: Path) -> None:
+        f = tmp_path / "test.py"
+        f.write_text("pass\npass\npass\n")
+        with pytest.raises(ValueError, match="appears 3 times"):
+            edit_file(str(f), "pass", "return")
+
+    def test_edit_preserves_surrounding(self, tmp_path: Path) -> None:
+        f = tmp_path / "test.py"
+        original = "line 1\nTARGET LINE\nline 3\n"
+        f.write_text(original)
+        edit_file(str(f), "TARGET LINE", "REPLACED LINE")
+        assert f.read_text() == "line 1\nREPLACED LINE\nline 3\n"

@@ -5,10 +5,10 @@ Implements tool-calling via the Gemini API with FunctionDeclaration format.
 """
 
 import logging
-import time
 from typing import Any, Dict, List, Optional
 
-from ..core.models import ToolCall
+from ..core.cost import estimate_cost
+from ..core.models import ToolCall, ToolResult
 from ..core.provider_adapter import ProviderResponse
 
 logger = logging.getLogger(__name__)
@@ -16,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 class GoogleAdapter:
     """Adapter for Google's Gemini function-calling API."""
+
+    tool_format: str = "gemini"
 
     def __init__(self, api_key: Optional[str] = None) -> None:
         self._api_key = api_key
@@ -65,7 +67,6 @@ class GoogleAdapter:
         contents = self._convert_messages(messages)
 
         # Generate
-        start = time.monotonic()
         generation_config = genai.types.GenerationConfig(
             max_output_tokens=max_tokens,
             temperature=temperature,
@@ -76,7 +77,6 @@ class GoogleAdapter:
             tools=gemini_tools,
             generation_config=generation_config,
         )
-        _ = (time.monotonic() - start) * 1000  # latency tracked externally
 
         # Parse response
         content_text: Optional[str] = None
@@ -99,7 +99,7 @@ class GoogleAdapter:
 
         stop_reason = "tool_use" if tool_calls else "end_turn"
 
-        # Gemini doesn't always expose token counts directly
+        # Token usage and cost
         tokens_used = {"input": 0, "output": 0}
         if hasattr(response, "usage_metadata") and response.usage_metadata:
             um = response.usage_metadata
@@ -107,42 +107,90 @@ class GoogleAdapter:
                 "input": getattr(um, "prompt_token_count", 0) or 0,
                 "output": getattr(um, "candidates_token_count", 0) or 0,
             }
+        cost = estimate_cost(model, tokens_used["input"], tokens_used["output"])
 
         return ProviderResponse(
             content=content_text,
             tool_calls=tool_calls,
             stop_reason=stop_reason,
             tokens_used=tokens_used,
-            cost=0.0,
+            cost=cost,
         )
 
     @staticmethod
     def _convert_messages(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Convert standard message format to Gemini content format."""
+        """Convert messages to Gemini content format.
+
+        Passes through messages already in Gemini format (with 'parts' key).
+        Converts generic messages (with 'content' key) to Gemini format.
+        """
         contents: List[Dict[str, Any]] = []
         for msg in messages:
+            # Already in Gemini format (has "parts" key)
+            if "parts" in msg:
+                contents.append(msg)
+                continue
+
+            # Convert from generic format
             role = "user" if msg.get("role") in ("user", "tool") else "model"
-            parts: List[Dict[str, str]] = []
+            parts: List[Dict[str, Any]] = []
 
             content = msg.get("content", "")
             if isinstance(content, str):
-                parts.append({"text": content})
+                if content:
+                    parts.append({"text": content})
             elif isinstance(content, list):
                 for item in content:
-                    if isinstance(item, dict) and "text" in item:
-                        parts.append({"text": item["text"]})
+                    if isinstance(item, dict):
+                        if "text" in item:
+                            parts.append({"text": item["text"]})
+                        elif item.get("type") == "tool_result":
+                            # Convert Anthropic-style tool_result to text
+                            parts.append(
+                                {"text": str(item.get("content", ""))}
+                            )
 
             if parts:
                 contents.append({"role": role, "parts": parts})
+
         return contents
 
     @staticmethod
     def format_tool_result(call_id: str, output: str, is_error: bool = False) -> Dict[str, Any]:
-        """Format a tool result for Gemini's format."""
+        """Format a single tool result for Gemini's function_response format."""
         return {
             "role": "user",
-            "content": f"Tool result for {call_id}: {output}",
+            "parts": [
+                {
+                    "function_response": {
+                        "name": call_id,
+                        "response": {"result": output, "is_error": is_error},
+                    }
+                }
+            ],
         }
+
+    @staticmethod
+    def format_tool_results(results: List[ToolResult]) -> List[Dict[str, Any]]:
+        """Format multiple tool results as a single message with function_response parts.
+
+        Gemini expects all function responses in one 'user' message,
+        each as a separate function_response part.
+        """
+        parts: List[Dict[str, Any]] = []
+        for r in results:
+            parts.append(
+                {
+                    "function_response": {
+                        "name": r.name,
+                        "response": {
+                            "result": r.output if r.success else (r.error or ""),
+                            "is_error": not r.success,
+                        },
+                    }
+                }
+            )
+        return [{"role": "user", "parts": parts}]
 
     @staticmethod
     def format_assistant_tool_use(

@@ -13,10 +13,18 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Try to use PyYAML for robust parsing, fall back to custom parser
+try:
+    import yaml as _yaml  # type: ignore[import-untyped]
+
+    _HAS_YAML = True
+except ImportError:
+    _HAS_YAML = False
+
 # Regex for YAML frontmatter delimited by ---
 _FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
-# Simple YAML key-value parser (avoids PyYAML dependency for basic frontmatter)
+# Simple YAML key-value parser (fallback when PyYAML unavailable)
 _YAML_KV_RE = re.compile(r"^(\w[\w_-]*)\s*:\s*(.+)$", re.MULTILINE)
 
 
@@ -71,7 +79,18 @@ def _parse_yaml_value(value: str) -> Any:
 
 
 def _parse_frontmatter(text: str) -> Dict[str, Any]:
-    """Parse simple YAML frontmatter into a dictionary."""
+    """Parse YAML frontmatter into a dictionary.
+
+    Uses PyYAML if available, otherwise falls back to a simple
+    key-value parser that handles basic frontmatter.
+    """
+    if _HAS_YAML:
+        try:
+            parsed = _yaml.safe_load(text)
+            return parsed if isinstance(parsed, dict) else {}
+        except Exception:
+            logger.debug("PyYAML failed, falling back to custom parser")
+
     result: Dict[str, Any] = {}
     current_list_key: Optional[str] = None
     current_list: List[str] = []

@@ -70,11 +70,33 @@ GLOB_FILES_DEFINITION = ToolDefinition(
     risk_level="safe",
 )
 
+EDIT_FILE_DEFINITION = ToolDefinition(
+    name="edit_file",
+    description=(
+        "Edit a file by replacing an exact string match with new content. "
+        "The old_string must appear exactly once in the file for a unique match."
+    ),
+    parameters={
+        "path": {"type": "string", "description": "Absolute path to the file to edit"},
+        "old_string": {
+            "type": "string",
+            "description": "Exact string to find and replace (must be unique in the file)",
+        },
+        "new_string": {
+            "type": "string",
+            "description": "Replacement string",
+        },
+    },
+    required_params=["path", "old_string", "new_string"],
+    risk_level="moderate",
+)
+
 ALL_DEFINITIONS: List[ToolDefinition] = [
     READ_FILE_DEFINITION,
     WRITE_FILE_DEFINITION,
     LIST_DIRECTORY_DEFINITION,
     GLOB_FILES_DEFINITION,
+    EDIT_FILE_DEFINITION,
 ]
 
 
@@ -141,3 +163,25 @@ def glob_files(pattern: str, path: Optional[str] = None) -> str:
     if not matches:
         return "No files found matching pattern."
     return "\n".join(matches[:500])  # Cap at 500 results
+
+
+def edit_file(path: str, old_string: str, new_string: str) -> str:
+    """Edit a file by replacing an exact string match."""
+    file_path = Path(path)
+    if not file_path.is_file():
+        raise FileNotFoundError(f"File not found: {path}")
+
+    content = file_path.read_text(encoding="utf-8")
+    count = content.count(old_string)
+
+    if count == 0:
+        raise ValueError(f"String not found in {path}")
+    if count > 1:
+        raise ValueError(
+            f"String appears {count} times in {path}. "
+            "Provide more surrounding context to make the match unique."
+        )
+
+    new_content = content.replace(old_string, new_string, 1)
+    file_path.write_text(new_content, encoding="utf-8")
+    return f"Successfully edited {path}"

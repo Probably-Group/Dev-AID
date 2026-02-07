@@ -142,6 +142,32 @@ class TestAgentDefinition:
         with pytest.raises(ValueError, match="temperature must be between"):
             AgentDefinition(name="bad", description="d", temperature=3.0)
 
+    def test_copy_creates_independent_instance(self) -> None:
+        original = AgentDefinition(
+            name="test",
+            description="Test",
+            max_iterations=10,
+            tools=["read_file", "echo"],
+        )
+        clone = original.copy(max_iterations=20)
+        assert clone.max_iterations == 20
+        assert original.max_iterations == 10
+        assert clone.name == "test"
+        assert clone.tools == ["read_file", "echo"]
+        # Ensure lists are independent
+        clone.tools.append("write_file")
+        assert "write_file" not in original.tools
+
+    def test_copy_validates_overrides(self) -> None:
+        original = AgentDefinition(name="test", description="Test")
+        with pytest.raises(ValueError, match="max_iterations must be at least 1"):
+            original.copy(max_iterations=0)
+
+    def test_copy_rejects_unknown_fields(self) -> None:
+        original = AgentDefinition(name="test", description="Test")
+        with pytest.raises(ValueError, match="Unknown field"):
+            original.copy(nonexistent_field="value")
+
 
 class TestAgentResult:
     """Tests for AgentResult dataclass."""

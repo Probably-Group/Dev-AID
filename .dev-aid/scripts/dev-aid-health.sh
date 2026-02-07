@@ -28,6 +28,7 @@ Options:
     -h, --help          Show this help message
 
 Components Checked:
+    - CLI tools (git, python3, curl, jq, security tools)
     - RAG status (index age, size)
     - Router health (config valid, costs)
     - Git hooks (installed, working)
@@ -71,6 +72,33 @@ check() {
 
 if ! $QUIET; then
     echo -e "${BLUE}Dev-AID Health Check${NC}"
+    echo ""
+fi
+
+# ── CLI Tool Availability ──
+if ! $QUIET; then
+    echo -e "${BLUE}CLI Tools${NC}"
+fi
+
+check "git"     "command -v git"
+check "python3" "command -v python3"
+check "curl"    "command -v curl"
+check "jq"      "command -v jq"
+
+# Security tools (warn but don't fail)
+for sec_tool in gitleaks trivy opengrep; do
+    if command -v "$sec_tool" &> /dev/null; then
+        if ! $QUIET; then
+            echo -e "Checking $sec_tool... ${GREEN}✓${NC}"
+        fi
+    else
+        if ! $QUIET; then
+            echo -e "Checking $sec_tool... ${YELLOW}⚠ not installed${NC}"
+        fi
+    fi
+done
+
+if ! $QUIET; then
     echo ""
 fi
 

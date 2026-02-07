@@ -22,6 +22,25 @@ if [ ! -d ".dev-aid" ]; then
     exit 1
 fi
 
+# ============================================================================
+# Prerequisite Check
+# ============================================================================
+echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
+echo -e "${YELLOW}   Checking Prerequisites${NC}"
+echo -e "${YELLOW}═══════════════════════════════════════════${NC}"
+echo ""
+
+if [ -f ".dev-aid/scripts/check-prerequisites.sh" ]; then
+    if ! ./.dev-aid/scripts/check-prerequisites.sh; then
+        echo ""
+        echo -e "${RED}✗ Prerequisite check failed. Please install missing tools and re-run.${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}⚠ check-prerequisites.sh not found, skipping prerequisite check${NC}"
+    echo ""
+fi
+
 # Create necessary directories
 echo -e "${GREEN}Setting up directory structure...${NC}"
 mkdir -p .dev-aid/logs

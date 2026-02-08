@@ -23,6 +23,7 @@ KNOWN_AGENTS: Set[str] = {
     "conflict-resolver",
     "research",
     "onboarding",
+    "doc-auditor",
 }
 
 

@@ -16,6 +16,7 @@ from typing import Any, Dict, List, Optional
 
 from .agents.ci_fixer import CI_FIXER
 from .agents.conflict_resolver import CONFLICT_RESOLVER
+from .agents.doc_auditor import DOC_AUDITOR
 from .agents.onboarding_agent import ONBOARDING_AGENT
 from .agents.pr_reviewer import PR_REVIEWER
 from .agents.research_agent import RESEARCH_AGENT
@@ -44,6 +45,7 @@ AGENTS: Dict[str, AgentDefinition] = {
     "conflict-resolver": CONFLICT_RESOLVER,
     "research": RESEARCH_AGENT,
     "onboarding": ONBOARDING_AGENT,
+    "doc-auditor": DOC_AUDITOR,
 }
 
 
@@ -236,6 +238,18 @@ def build_parser() -> argparse.ArgumentParser:
     ob = subparsers.add_parser("onboarding", help="Generate onboarding guide")
     ob.add_argument("--path", help="Project root to analyze (default: auto-detect)")
 
+    # Doc Auditor
+    da = subparsers.add_parser(
+        "doc-auditor", help="Audit documentation for drift and gaps"
+    )
+    da.add_argument("--path", help="Project root to audit (default: auto-detect)")
+    da.add_argument(
+        "--scope",
+        choices=["full", "docs-only", "code-only"],
+        default="full",
+        help="Audit scope",
+    )
+
     # Team subcommand
     team_parser = subparsers.add_parser("team", help="Run a multi-agent team")
     team_parser.add_argument("team_name", nargs="?", help="Team name to run")
@@ -297,6 +311,15 @@ def _build_user_message(agent_name: str, args: argparse.Namespace) -> str:
 
     elif agent_name == "onboarding":
         return "Generate a comprehensive onboarding guide for this codebase."
+
+    elif agent_name == "doc-auditor":
+        path = args.path or "the project"
+        return (
+            f"Audit documentation in {path}.\n"
+            f"Scope: {args.scope}. "
+            f"Check for broken links, missing docs, naming violations, "
+            f"and documentation drift."
+        )
 
     return "Execute the agent task."
 

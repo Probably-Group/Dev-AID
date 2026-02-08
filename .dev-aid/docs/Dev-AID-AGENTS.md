@@ -23,6 +23,9 @@ dev-aid-agent tech-debt-hunter --severity high --dry-run
 # Research a topic with a specific provider
 dev-aid-agent research --topic "async patterns in Python" --provider google
 
+# Audit documentation health
+dev-aid-agent doc-auditor --scope full
+
 # JSON output for scripts/CI
 dev-aid-agent tech-debt-hunter --severity critical --json
 
@@ -148,6 +151,13 @@ Generate a comprehensive codebase onboarding guide.
 dev-aid-agent onboarding [--path <project-root>]
 ```
 
+#### `doc-auditor`
+Audit documentation for drift, broken links, missing docs, and naming violations.
+
+```bash
+dev-aid-agent doc-auditor [--scope full|docs-only|code-only] [--path <project-root>]
+```
+
 #### `team`
 Run a multi-agent team. See [Team CLI Reference](#team-cli-reference) below.
 
@@ -227,6 +237,7 @@ The `partial` flag is `true` when some agents failed but the team still produced
 | **conflict-resolver** | senior-architect | read_file, write_file, run_bash, git_status, git_diff, grep_search | moderate | Auto-resolve merge conflicts |
 | **research** | deep-research-expert, web-research-expert | read_file, glob_files, grep_search | safe | Deep research on technical topics |
 | **onboarding** | senior-architect | read_file, glob_files, grep_search, git_log, list_directory | safe | Generate codebase onboarding guide |
+| **doc-auditor** | senior-architect | read_file, glob_files, grep_search, list_directory, find_files, git_log | safe | Audit docs for drift, broken links, gaps |
 
 ---
 
@@ -653,7 +664,8 @@ Your security review instructions here...
 │   ├── ci_fixer.py                 # CI/CD Fixer
 │   ├── conflict_resolver.py        # Merge Conflict Resolver
 │   ├── research_agent.py           # Deep Research
-│   └── onboarding_agent.py         # Codebase Onboarding
+│   ├── onboarding_agent.py         # Codebase Onboarding
+│   └── doc_auditor.py              # Documentation Auditor
 ├── teams/
 │   ├── __init__.py                 # Team package exports
 │   └── builtin_teams.py            # 4 pre-built team definitions
@@ -699,5 +711,6 @@ venv/bin/python -m pytest tests/test_team_*.py tests/test_builtin_teams.py -v
 | `test_shared_state.py` | Thread safety for SharedTaskList, MessageBus, FileLockSet, BudgetTracker |
 | `test_team_runner.py` | Parallel/sequential/DAG execution, budget enforcement, aggregation |
 | `test_builtin_teams.py` | Built-in team loading, agent references, DAG cycle detection |
+| `test_doc_auditor.py` | Doc-auditor definition validation, CLI integration, scope handling |
 
-**Coverage:** 136 tests, all passing. No real API calls — everything is mocked.
+**Coverage:** 903 tests, all passing. No real API calls — everything is mocked.

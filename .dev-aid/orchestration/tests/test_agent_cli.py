@@ -160,6 +160,7 @@ class TestAgentRegistry:
             "conflict-resolver",
             "research",
             "onboarding",
+            "doc-auditor",
         }
         assert set(AGENTS.keys()) == expected
 

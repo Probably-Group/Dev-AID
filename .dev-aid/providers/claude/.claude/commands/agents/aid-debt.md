@@ -1,0 +1,15 @@
+---
+name: aid-debt
+description: "Short alias for dev-aid-agent-tech-debt — tech debt scanning"
+category: agents
+author: Dev-AID Team
+version: 1.0.0
+---
+
+# Tech Debt Scan (Short Alias)
+
+This is a short alias for the full `/agents:dev-aid-agent-tech-debt` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/claude/.claude/commands/agents/dev-aid-agent-tech-debt.md`
+
+Load that file now and execute the tech debt scan workflow with `$ARGUMENTS` as the target path and severity.

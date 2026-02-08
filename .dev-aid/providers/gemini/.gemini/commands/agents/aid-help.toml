@@ -1,0 +1,91 @@
+name = "aid-help"
+description = "Show all available Dev-AID commands — agents, router, quality, security, and more"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Dev-AID Command Reference
+
+Print the following reference guide for the user. Do NOT execute any commands — just display this information.
+
+---
+
+## Agent Commands (Interactive Slash Commands)
+
+| Full Command | Short Alias | Description | Example |
+|-------------|------------|-------------|---------|
+| `dev-aid-agent-pr-review` | `aid-pr` | Review PR for security, quality, architecture | `aid-pr 135` |
+| `dev-aid-agent-test-gen` | `aid-test` | Generate tests for untested code | `aid-test src/auth/` |
+| `dev-aid-agent-tech-debt` | `aid-debt` | Scan for code smells and tech debt | `aid-debt src/ high` |
+| `dev-aid-agent-ci-fix` | `aid-ci` | Diagnose and fix CI failures | `aid-ci 12345` |
+| `dev-aid-agent-conflict-resolve` | `aid-conflict` | Resolve merge conflicts intelligently | `aid-conflict 42 smart` |
+| `dev-aid-agent-research` | `aid-research` | Deep research on technical topics | `aid-research "async patterns" deep` |
+| `dev-aid-agent-onboard` | `aid-onboard` | Generate codebase onboarding guide | `aid-onboard` |
+| `dev-aid-agent-doc-audit` | `aid-docs` | Audit documentation for drift and gaps | `aid-docs . docs-only` |
+
+## Agent Commands (CLI — for scripts and CI)
+
+```bash
+dev-aid-agent pr-reviewer --pr <number>
+dev-aid-agent test-generator --path <path> [--framework pytest|jest|vitest]
+dev-aid-agent tech-debt-hunter [--severity low|medium|high|critical]
+dev-aid-agent ci-fixer [--run-id <id>] [--pr <number>]
+dev-aid-agent conflict-resolver [--pr <number>] [--strategy smart|ours|theirs]
+dev-aid-agent research --topic <text> [--depth quick|standard|deep]
+dev-aid-agent onboarding [--path <project-root>]
+dev-aid-agent doc-auditor [--scope full|docs-only|code-only]
+dev-aid-agent team <team-name> -m <message>
+```
+
+## Router Commands
+
+| Command | Description |
+|---------|-------------|
+| `aid-router-challenger` | Two-AI review: Claude generates, Gemini reviews |
+| `aid-router-challenger-rag` | Challenger mode + local RAG search |
+| `aid-router-ensemble` | Smart routing to optimal AI per task |
+| `aid-router-status` | View routing stats and cost breakdown |
+
+## Development Commands
+
+| Command | Description |
+|---------|-------------|
+| `dev-aid-analyze` | Analyze codebase and generate adaptation plan |
+| `dev-aid-status` | Show Dev-AID configuration and setup status |
+| `dev-aid-audit` | Comprehensive security audit |
+| `dev-aid-vulnerability-scan` | Deep CVE scanning for dependencies |
+| `dev-aid-code-health` | Code quality assessment |
+| `dev-aid-debt-analysis` | Tech debt identification and prioritization |
+| `dev-aid-deploy-validate` | Pre-deployment validation |
+| `dev-aid-review-staged` | Pre-commit review (security, quality, tests) |
+| `dev-aid-commit-plan` | Analyze changes and propose atomic commits |
+| `dev-aid-api-contract` | Generate OpenAPI specs and clients |
+| `dev-aid-build-skill` | Generate custom expert skill |
+| `dev-aid-models-update` | Update AI model registry |
+
+## Utility Scripts
+
+```bash
+.dev-aid/scripts/generate-ci.sh          # Auto-generate CI/CD workflows
+.dev-aid/scripts/map-architecture.sh      # Generate architecture diagrams
+.dev-aid/scripts/fabricate-data.sh        # Generate mock test data
+.dev-aid/scripts/sync-docs.sh            # Detect documentation drift
+.dev-aid/scripts/dev-aid-guide.sh        # Interactive feature discovery
+.dev-aid/scripts/setup-rag.sh            # Set up local semantic search
+.dev-aid/scripts/setup-local-llm.sh      # Set up local LLM
+```
+
+## More Information
+
+- Commands reference: `.dev-aid/docs/COMMANDS-REFERENCE.md`
+- Agent framework: `.dev-aid/docs/Dev-AID-AGENTS.md`
+- Full README: `README.md`
+
+---
+
+Tip: Type `aid-` to see all short aliases in autocomplete.
+"""

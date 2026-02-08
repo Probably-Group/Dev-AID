@@ -1,0 +1,18 @@
+name = "aid-test"
+description = "Short alias for dev-aid-agent-test-gen — AI-powered test generation"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Test Generation (Short Alias)
+
+This is a short alias for the full `dev-aid-agent-test-gen` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/agents/dev-aid-agent-test-gen.toml`
+
+Load that file now and execute the test generation workflow. The user's input is the target path.
+"""

@@ -56,17 +56,19 @@ git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
 # Claude writes code, Gemini reviews it (catches bugs you'd miss)
 /dev-aid-router-challenger "Implement OAuth2 with refresh tokens"
 
-# 🤖 Autonomous agents powered by 72+ expert skills - NEW!
-dev-aid-agent pr-reviewer --pr 135 --verbose
-dev-aid-agent tech-debt-hunter --severity high --dry-run
-dev-aid-agent research --topic "async patterns" --provider google
+# 🤖 Autonomous agents — slash commands or CLI - NEW!
+/agents:aid-pr 135                          # Interactive: PR review
+/agents:aid-test src/auth/                  # Interactive: Generate tests
+/agents:aid-debt src/ high                  # Interactive: Tech debt scan
+dev-aid-agent pr-reviewer --pr 135 --json   # CI/scripts: structured output
+/agents:aid-help                            # Show all commands
 ```
 
 ---
 
 ## 🎯 What is Dev-AID?
 
-Dev-AID enhances your existing AI tools (Claude Code, Cursor, Gemini CLI, Codex CLI) with:
+Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) with:
 
 - **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
 - **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
@@ -142,7 +144,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | Capability | Dev-AID | [Cursor](https://cursor.sh) | [GitHub Copilot](https://github.com/features/copilot) | [Aider](https://aider.chat) | [Windsurf](https://windsurf.com) |
 |------------|---------|--------|----------------|-------|----------|
 | **Type** | Enhancement layer | Full IDE | IDE extension | CLI tool | Full IDE |
-| **Works with existing tools** | ✅ Claude, Cursor, Gemini, Codex | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
+| **Works with existing tools** | ✅ Claude, Gemini, Cursor, Windsurf, Cline, Codex | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
 | **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
 | **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Limited | ❌ | ✅ Any model | ⚠️ Limited |
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
@@ -181,7 +183,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
 | **🏠 Local LLM Support** 🆕 | Run AI 100% offline via Ollama/LM Studio/llama.cpp — **$0 forever, complete privacy** |
-| **Multi-provider (only one)** | Works with Claude Code, Cursor, Gemini CLI, AND Codex — competitors are Claude-only |
+| **Multi-provider (only one)** | Works with Claude Code, Gemini CLI, Cursor, Windsurf, Cline, AND Codex — competitors are Claude-only |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → catches issues single-AI misses |
 | **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
 | **Hybrid Search (BM25+Vector)** | Combines keyword + semantic search with reciprocal rank fusion — better than either alone |
@@ -473,7 +475,7 @@ Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills. E
 
 | Feature | What It Does | Developer Benefits |
 |---------|-------------|-------------------|
-| **7 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding | Ready-to-use agents for common workflows |
+| **8 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor | Ready-to-use agents for common workflows |
 | **16 Built-in Tools** | File I/O, git, GitHub, bash, search — all with safety enforcement | Agents can read, write, search, and interact with git/GitHub |
 | **4 Provider Adapters** | Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio) | Use any provider — switch with `--provider` |
 | **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 72+ skills |
@@ -494,7 +496,9 @@ dev-aid-agent tech-debt-hunter --severity high --provider google
 dev-aid-agent tech-debt-hunter --severity critical --json
 ```
 
-[**Agent Framework Guide**](.dev-aid/docs/Dev-AID-AGENTS.md) — CLI reference, agent catalog, tools, safety, configuration.
+**Also available as slash commands:** `/agents:aid-pr`, `/agents:aid-test`, `/agents:aid-debt`, `/agents:aid-ci`, `/agents:aid-help` — type `/agents:aid-` for autocomplete.
+
+[**Agent Framework Guide**](.dev-aid/docs/Dev-AID-AGENTS.md) — CLI reference, slash commands, agent catalog, tools, safety, configuration.
 
 ### 🤖 **Intelligent Automation**
 AI-powered automation for issues, conflicts, and workflows - saving hours of manual work while following best practices.
@@ -1061,6 +1065,28 @@ dev-aid-fix-conflicts --dry-run
 - Time saved: 10-30 minutes per conflict
 
 [Quick Start Guide](.dev-aid/docs/CONFLICT-RESOLVER-GUIDE.md)
+
+---
+
+### 🤖 **Agent Slash Commands** (Interactive)
+
+> Run any Dev-AID agent as a slash command. Each has a **full name** and a **short alias** (`aid-*`).
+> Type `/agents:aid-` in Claude Code or `aid-` in Gemini CLI for autocomplete.
+
+| Short Alias | Full Command | What It Does |
+|------------|-------------|-------------|
+| `/agents:aid-pr 135` | `/agents:dev-aid-agent-pr-review` | Review PR for security, quality, architecture |
+| `/agents:aid-test src/` | `/agents:dev-aid-agent-test-gen` | Generate tests for untested code |
+| `/agents:aid-debt src/ high` | `/agents:dev-aid-agent-tech-debt` | Scan for tech debt and code smells |
+| `/agents:aid-ci 12345` | `/agents:dev-aid-agent-ci-fix` | Diagnose and fix CI failures |
+| `/agents:aid-conflict 42` | `/agents:dev-aid-agent-conflict-resolve` | Resolve merge conflicts intelligently |
+| `/agents:aid-research "topic"` | `/agents:dev-aid-agent-research` | Deep research on technical topics |
+| `/agents:aid-onboard` | `/agents:dev-aid-agent-onboard` | Generate codebase onboarding guide |
+| `/agents:aid-docs .` | `/agents:dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
+| `/agents:aid-help` | — | Show all Dev-AID commands |
+
+**Supported in:** Claude Code, Gemini CLI, Cursor, Windsurf, Cline
+**For CI/scripts:** Use the CLI instead — `dev-aid-agent pr-reviewer --pr 135 --json`
 
 ---
 

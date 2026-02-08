@@ -1,0 +1,18 @@
+name = "aid-debt"
+description = "Short alias for dev-aid-agent-tech-debt — tech debt scanning"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Tech Debt Scan (Short Alias)
+
+This is a short alias for the full `dev-aid-agent-tech-debt` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/agents/dev-aid-agent-tech-debt.toml`
+
+Load that file now and execute the tech debt scan workflow. The user's input is the target path and severity.
+"""

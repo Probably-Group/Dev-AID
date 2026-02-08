@@ -149,6 +149,32 @@ dev-aid-agent test-generator --path src/ --dry-run
 
 **Documentation:** [Agent Framework Guide](Dev-AID-AGENTS.md)
 
+### Agent Slash Commands (Native)
+
+Each agent is also available as a **native slash command** for interactive use in Claude Code, Gemini CLI, Cursor, Windsurf, and Cline. Slash commands load directly in the AI session — no separate CLI process needed.
+
+Each command has a **full name** and a **short alias** (prefix `aid-`):
+
+| Full Command | Short Alias | Description | Example |
+|-------------|------------|-------------|---------|
+| `dev-aid-agent-pr-review` | `aid-pr` | Review PR for security, quality, architecture | `/agents:aid-pr 135` |
+| `dev-aid-agent-test-gen` | `aid-test` | Generate tests for untested code | `/agents:aid-test src/auth/` |
+| `dev-aid-agent-tech-debt` | `aid-debt` | Scan for code smells and tech debt | `/agents:aid-debt src/ high` |
+| `dev-aid-agent-ci-fix` | `aid-ci` | Diagnose and fix CI failures | `/agents:aid-ci 12345` |
+| `dev-aid-agent-conflict-resolve` | `aid-conflict` | Resolve merge conflicts intelligently | `/agents:aid-conflict 42 smart` |
+| `dev-aid-agent-research` | `aid-research` | Deep research on technical topics | `/agents:aid-research "async patterns"` |
+| `dev-aid-agent-onboard` | `aid-onboard` | Generate codebase onboarding guide | `/agents:aid-onboard` |
+| `dev-aid-agent-doc-audit` | `aid-docs` | Audit documentation for drift and gaps | `/agents:aid-docs . docs-only` |
+| — | `aid-help` | Show all Dev-AID commands | `/agents:aid-help` |
+
+**When to use slash commands vs CLI:**
+- **Slash commands** — Interactive sessions in Claude Code, Gemini CLI, Cursor, Windsurf, Cline. Type `/agents:aid-` for autocomplete.
+- **CLI (`dev-aid-agent`)** — Scripts, CI/CD pipelines, automation. Supports `--json`, `--dry-run`, `--provider` flags.
+
+**Supported editors/tools:**
+- **Native slash commands**: Claude Code, Gemini CLI, Cursor, Windsurf, Cline
+- **MCP integration only**: VS Code Copilot Chat, Zed, JetBrains AI Assistant
+
 ---
 
 ## 🚀 Productivity Tools (NEW!)
@@ -645,13 +671,15 @@ cat .dev-aid/reports/vulnerabilities.md
 
 | Category | Commands Available | Purpose |
 |----------|-------------------|---------|
-| **Agents** | `dev-aid-agent` (7 subcommands) | Autonomous AI agents (PR review, tests, tech debt, CI, conflicts, research, onboarding) |
-| **Setup** | `/dev-aid-analyze`, `/dev-aid-status` | Initial setup, analysis, configuration visibility |
-| **Security** | `/audit`, `/vulnerability-scan`, `/compliance-check` | Security operations |
-| **Performance** | `/profile`, `/benchmark` | Performance analysis |
-| **Operations** | `/deploy-validate`, `/health-check`, `/incident-response` | DevOps workflows |
-| **Quality** | `/code-health`, `/debt-analysis` | Code quality |
-| **Testing** | (custom) | Test execution |
+| **Agents (CLI)** | `dev-aid-agent` (8 subcommands + teams) | Autonomous AI agents for scripts/CI |
+| **Agents (Slash)** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs`, `aid-help` | Interactive agent slash commands with short aliases |
+| **Setup** | `/dev-aid-analyze`, `/dev-aid-status`, `/dev-aid-config-core-skills` | Initial setup, analysis, configuration |
+| **Router** | `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`, `/dev-aid-router-status` | Multi-AI orchestration |
+| **Security** | `/dev-aid-audit`, `/dev-aid-vulnerability-scan` | Security operations |
+| **Quality** | `/dev-aid-code-health`, `/dev-aid-debt-analysis` | Code quality |
+| **Productivity** | `/dev-aid-api-contract`, `/dev-aid-commit-plan`, `/dev-aid-review-staged` | Development workflow |
+| **Operations** | `/dev-aid-deploy-validate` | DevOps workflows |
+| **Performance** | `/profile`, `/benchmark` (add from Tresor) | Performance analysis |
 | **Documentation** | (custom) | Doc generation |
 
 ---
@@ -817,5 +845,5 @@ Dev-AID provides standalone utility scripts for common development tasks:
 
 ---
 
-**Last Updated:** 2026-02-07
+**Last Updated:** 2026-02-08
 **Version:** 1.5.0-beta.1

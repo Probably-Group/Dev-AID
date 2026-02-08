@@ -98,30 +98,44 @@ TOOLS_MISSING=0
 check_tool() {
     local cmd="$1"
     local name="$2"
+    local type="${3:-required}"
 
     if command -v "$cmd" &> /dev/null; then
         log_success "✓ $name installed"
     else
-        log_warning "✗ $name NOT installed"
-        TOOLS_MISSING=$((TOOLS_MISSING + 1))
+        if [[ "$type" == "optional" ]]; then
+            log_warning "○ $name not installed (optional)"
+        else
+            log_warning "✗ $name NOT installed"
+            TOOLS_MISSING=$((TOOLS_MISSING + 1))
+        fi
     fi
 }
 
+log_info "Required tools:"
 check_tool "gitleaks" "Gitleaks"
 check_tool "trivy" "Trivy"
 check_tool "opengrep" "Opengrep"
 echo ""
 
+log_info "Language-specific tools (optional):"
+check_tool "bandit" "Bandit (Python SAST)" "optional"
+check_tool "pip-audit" "pip-audit (Python deps)" "optional"
+check_tool "cargo-audit" "cargo-audit (Rust deps)" "optional"
+check_tool "govulncheck" "govulncheck (Go vulns)" "optional"
+echo ""
+
 if [[ $TOOLS_MISSING -gt 0 ]]; then
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_warning "$TOOLS_MISSING tool(s) missing!"
+    log_warning "$TOOLS_MISSING required tool(s) missing!"
     echo ""
     log_info "Install security tools:"
     echo "  ./.dev-aid/automation/tools/install-security-tools.sh"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 else
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    log_success "All tools installed! Hooks are ready to use."
+    log_success "All required tools installed! Hooks are ready to use."
+    log_info "Optional language-specific tools enhance scanning coverage."
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 fi
 echo ""

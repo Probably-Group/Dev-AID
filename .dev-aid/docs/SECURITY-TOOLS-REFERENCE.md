@@ -6,7 +6,9 @@ Complete reference for security scanning tools used in Dev-AID automation.
 
 ## Tool Overview
 
-Dev-AID uses **3 tools** for comprehensive security coverage:
+Dev-AID uses **3 universal tools** plus **language-specific scanners** for comprehensive security coverage:
+
+### Universal Tools (always run)
 
 | Tool | Purpose | Scan Types | Coverage |
 |------|---------|------------|----------|
@@ -14,10 +16,21 @@ Dev-AID uses **3 tools** for comprehensive security coverage:
 | **Trivy** | Multi-scanner | CVE, Misconfig, Secrets | Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions |
 | **Opengrep** | SAST | Code patterns | OWASP Top 10, CWE Top 25, CI/CD security (340+ rules) |
 
-**Why 3 tools?**
-- **Trivy's `misconfig` scanner** covers Dockerfile and IaC scanning (replaces Hadolint/Checkov)
-- **Opengrep** covers SAST with 340+ rules across 5 comprehensive rulesets
-- **Gitleaks** specializes in git history scanning (Trivy only scans current files)
+### Language-Specific Tools (auto-detected, optional)
+
+| Tool | Language | Detection | What It Scans |
+|------|----------|-----------|---------------|
+| **Bandit** | Python | `*.py` files exist | SAST — SQL injection, exec(), hardcoded passwords, weak crypto |
+| **pip-audit** | Python | `requirements*.txt` or `pyproject.toml` | Dependency CVEs via PyPI advisory database |
+| **npm audit** | JS/TS | `package-lock.json` or `yarn.lock` | Dependency CVEs via npm registry |
+| **cargo audit** | Rust | `Cargo.lock` | Dependency CVEs via RustSec advisory database |
+| **govulncheck** | Go | `go.mod` | Vulnerability analysis (official Go team tool) |
+
+**Why this architecture?**
+- **Universal tools** catch language-agnostic issues (secrets, IaC misconfig, generic SAST patterns)
+- **Language-specific tools** provide deeper analysis tuned to each ecosystem's vulnerability patterns
+- **Auto-detection** means no configuration needed — if the language isn't in the repo, checks skip silently
+- **Missing tools emit warnings**, not errors — they're optional enhancements
 
 ---
 
@@ -194,6 +207,192 @@ opengrep scan --config=auto --timeout 5 .
 
 ---
 
+## 4. Bandit (Python SAST)
+
+**What it finds:**
+- SQL injection via string formatting
+- Use of `exec()`, `eval()`, `assert`
+- Hardcoded passwords and secrets
+- Weak cryptographic algorithms (MD5, SHA1, DES)
+- Insecure temp file usage
+- Shell injection via `subprocess` with `shell=True`
+- Unsafe YAML loading (`yaml.load()` without `Loader`)
+
+**Installation:**
+```bash
+# Via pipx (recommended — isolated environment)
+pipx install bandit
+
+# Via pip
+pip install --user bandit
+```
+
+**Usage:**
+```bash
+# Scan with medium+ severity and confidence
+bandit -r . -ll -ii --exclude '*/venv/*,*/node_modules/*,*/.git/*'
+
+# JSON output
+bandit -r . -ll -f json -o bandit-report.json
+
+# Show only high severity
+bandit -r . -lll
+
+# Skip specific tests
+bandit -r . --skip B101,B601
+```
+
+**Exit Codes:**
+- `0` — No issues found
+- `1` — Issues found
+
+**Common Test IDs:**
+| ID | Description |
+|----|-------------|
+| B101 | `assert` used (removed in optimized bytecode) |
+| B103 | `os.chmod` with permissive mode |
+| B301 | Pickle usage (deserialization risk) |
+| B601 | Shell injection via `subprocess` |
+| B608 | SQL injection via string formatting |
+
+---
+
+## 5. pip-audit (Python Dependency Vulnerabilities)
+
+**What it finds:**
+- Known CVEs in installed Python packages
+- Vulnerabilities reported to PyPI advisory database
+- Outdated packages with security fixes available
+
+**Installation:**
+```bash
+# Via pipx (recommended)
+pipx install pip-audit
+
+# Via pip
+pip install --user pip-audit
+```
+
+**Usage:**
+```bash
+# Audit current environment
+pip-audit --desc
+
+# Audit a requirements file
+pip-audit -r requirements.txt --desc
+
+# JSON output
+pip-audit -f json -o pip-audit-report.json
+
+# Fix vulnerabilities automatically
+pip-audit --fix
+```
+
+**Exit Codes:**
+- `0` — No vulnerabilities
+- `1` — Vulnerabilities found
+
+---
+
+## 6. npm audit (JS/TS Dependency Vulnerabilities)
+
+**What it finds:**
+- Known CVEs in npm dependencies
+- Vulnerabilities from the npm advisory database
+- Transitive dependency vulnerabilities
+
+**Installation:**
+Built-in with Node.js/npm — no separate installation needed.
+
+**Usage:**
+```bash
+# Audit with high+ threshold (used in pre-push hook)
+npm audit --audit-level=high
+
+# Full audit (all severities)
+npm audit
+
+# JSON output
+npm audit --json
+
+# Fix vulnerabilities automatically
+npm audit fix
+
+# Force fix (may include breaking changes)
+npm audit fix --force
+```
+
+**Exit Codes:**
+- `0` — No vulnerabilities at or above the audit level
+- `1` — Vulnerabilities found
+
+**Note:** Requires `package-lock.json` or `yarn.lock` — won't work with just `package.json`.
+
+---
+
+## 7. cargo audit (Rust Dependency Vulnerabilities)
+
+**What it finds:**
+- Known CVEs in Rust crate dependencies
+- Vulnerabilities from the RustSec Advisory Database
+- Unmaintained crates
+- Yanked crate versions
+
+**Installation:**
+```bash
+cargo install cargo-audit
+```
+
+**Usage:**
+```bash
+# Audit dependencies
+cargo audit
+
+# JSON output
+cargo audit --json
+
+# Fix vulnerabilities (update Cargo.lock)
+cargo audit fix
+```
+
+**Exit Codes:**
+- `0` — No vulnerabilities
+- `1` — Vulnerabilities found
+
+---
+
+## 8. govulncheck (Go Vulnerability Checker)
+
+**What it finds:**
+- Known vulnerabilities in Go dependencies
+- Vulnerabilities that affect code paths actually used by your project
+- Issues from the Go vulnerability database (vuln.go.dev)
+
+**Installation:**
+```bash
+go install golang.org/x/vuln/cmd/govulncheck@latest
+```
+
+**Usage:**
+```bash
+# Check all packages
+govulncheck ./...
+
+# JSON output
+govulncheck -json ./...
+
+# Check specific package
+govulncheck ./cmd/myapp
+```
+
+**Exit Codes:**
+- `0` — No vulnerabilities affecting your code
+- `3` — Vulnerabilities found
+
+**Key feature:** Unlike most dependency scanners, govulncheck only reports vulnerabilities in functions your code actually calls, reducing false positives.
+
+---
+
 ## Quick Reference
 
 ### Git Hooks
@@ -205,11 +404,19 @@ opengrep scan --config p/default --config p/security-audit --config p/secrets --
 trivy fs --scanners vuln,misconfig,secret --severity CRITICAL .
 ```
 
-**Pre-push (~60s):**
+**Pre-push (~60-90s):**
 ```bash
+# Universal checks (always run)
 gitleaks detect  # includes git history
 opengrep scan --config p/default --config p/security-audit --config p/secrets --config p/ci --config p/cwe-top-25 .
 trivy fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL .
+
+# Language-specific checks (auto-detected)
+bandit -r . -ll -ii --exclude '*/venv/*,*/node_modules/*'   # if *.py files exist
+pip-audit --desc                                             # if requirements*.txt or pyproject.toml
+npm audit --audit-level=high                                 # if package-lock.json or yarn.lock
+cargo audit                                                  # if Cargo.lock
+govulncheck ./...                                            # if go.mod
 ```
 
 ### CI/CD (Complete)
@@ -305,6 +512,8 @@ opengrep scan --config=auto --timeout 3 .
 
 ## Resources
 
+### Universal Tools
+
 **Gitleaks:**
 - GitHub: https://github.com/gitleaks/gitleaks
 - Rules: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
@@ -317,6 +526,26 @@ opengrep scan --config=auto --timeout 3 .
 - GitHub: https://github.com/opengrep/opengrep
 - Docs: https://www.opengrep.dev/
 - Rules: https://semgrep.dev/r (compatible with Opengrep)
+
+### Language-Specific Tools
+
+**Bandit:**
+- GitHub: https://github.com/PyCQA/bandit
+- Docs: https://bandit.readthedocs.io/
+
+**pip-audit:**
+- GitHub: https://github.com/pypa/pip-audit
+
+**npm audit:**
+- Docs: https://docs.npmjs.com/cli/commands/npm-audit
+
+**cargo audit:**
+- GitHub: https://github.com/rustsec/rustsec/tree/main/cargo-audit
+- Advisory DB: https://github.com/rustsec/advisory-db
+
+**govulncheck:**
+- Docs: https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck
+- Vulnerability DB: https://vuln.go.dev/
 
 ---
 

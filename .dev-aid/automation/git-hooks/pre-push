@@ -168,6 +168,148 @@ else
 fi
 echo ""
 
+# ── Language-Specific Security Checks ─────────────────────
+log_info "Running language-specific security checks..."
+LANG_CHECKS=0
+LANG_ISSUES=0
+
+# Python: Bandit (SAST) + pip-audit (dependency vulnerabilities)
+if find . -name '*.py' -not -path '*/venv/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' -not -path '*/__pycache__/*' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    # Bandit - Python SAST (medium+ severity)
+    if command -v bandit &> /dev/null; then
+        log_info "[Python] Running Bandit SAST analysis..."
+        BANDIT_OUT=$(mktemp)
+        chmod 600 "$BANDIT_OUT"
+        TEMP_FILES+=("$BANDIT_OUT")
+
+        if bandit -r . -ll -ii \
+            --exclude '*/venv/*,*/.venv/*,*/node_modules/*,*/.git/*,*/__pycache__/*' \
+            -f json -o "$BANDIT_OUT" 2>/dev/null; then
+            log_success "✓ No Python security issues found (Bandit)"
+        else
+            BANDIT_ISSUES=$(jq -r '.results | length' "$BANDIT_OUT" 2>/dev/null || echo "0")
+            BANDIT_HIGH=$(jq -r '[.results[] | select(.issue_severity == "HIGH")] | length' "$BANDIT_OUT" 2>/dev/null || echo "0")
+            BANDIT_MEDIUM=$(jq -r '[.results[] | select(.issue_severity == "MEDIUM")] | length' "$BANDIT_OUT" 2>/dev/null || echo "0")
+
+            if [[ "$BANDIT_ISSUES" -gt 0 ]]; then
+                log_error "❌ Python SAST: $BANDIT_HIGH high, $BANDIT_MEDIUM medium issue(s)"
+                log_info "Run: bandit -r . -ll --exclude '*/venv/*'"
+                LANG_ISSUES=$((LANG_ISSUES + 1))
+            fi
+        fi
+    else
+        log_warning "⚠️  Bandit not installed (Python SAST skipped)"
+        log_info "Install: pipx install bandit"
+    fi
+
+    # pip-audit - Python dependency vulnerabilities
+    if [[ -f "requirements.txt" ]] || [[ -f "requirements-dev.txt" ]] || [[ -f "pyproject.toml" ]] || compgen -G "requirements*.txt" > /dev/null 2>&1; then
+        if command -v pip-audit &> /dev/null; then
+            log_info "[Python] Running pip-audit dependency check..."
+            PIPAUDIT_OUT=$(mktemp)
+            chmod 600 "$PIPAUDIT_OUT"
+            TEMP_FILES+=("$PIPAUDIT_OUT")
+
+            if pip-audit --desc -f json -o "$PIPAUDIT_OUT" 2>/dev/null; then
+                log_success "✓ No Python dependency vulnerabilities (pip-audit)"
+            else
+                PIPAUDIT_VULNS=$(jq -r '.dependencies | [.[] | select(.vulns | length > 0)] | length' "$PIPAUDIT_OUT" 2>/dev/null || echo "unknown")
+                log_error "❌ Python deps: $PIPAUDIT_VULNS vulnerable package(s)"
+                log_info "Run: pip-audit --desc"
+                LANG_ISSUES=$((LANG_ISSUES + 1))
+            fi
+        else
+            log_warning "⚠️  pip-audit not installed (Python dep scan skipped)"
+            log_info "Install: pipx install pip-audit"
+        fi
+    fi
+fi
+
+# JavaScript/TypeScript: npm audit
+if [[ -f "package-lock.json" ]] || [[ -f "yarn.lock" ]]; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v npm &> /dev/null; then
+        log_info "[JS/TS] Running npm audit..."
+        NPMAUDIT_OUT=$(mktemp)
+        chmod 600 "$NPMAUDIT_OUT"
+        TEMP_FILES+=("$NPMAUDIT_OUT")
+
+        if npm audit --audit-level=high --json > "$NPMAUDIT_OUT" 2>/dev/null; then
+            log_success "✓ No high+ JS/TS dependency vulnerabilities (npm audit)"
+        else
+            NPM_VULNS=$(jq -r '.metadata.vulnerabilities.high // 0' "$NPMAUDIT_OUT" 2>/dev/null || echo "0")
+            NPM_CRIT=$(jq -r '.metadata.vulnerabilities.critical // 0' "$NPMAUDIT_OUT" 2>/dev/null || echo "0")
+            log_error "❌ JS/TS deps: $NPM_CRIT critical, $NPM_VULNS high vulnerability(ies)"
+            log_info "Run: npm audit"
+            LANG_ISSUES=$((LANG_ISSUES + 1))
+        fi
+    else
+        log_warning "⚠️  npm not installed (JS/TS dep scan skipped)"
+    fi
+fi
+
+# Rust: cargo audit
+if [[ -f "Cargo.lock" ]]; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v cargo-audit &> /dev/null || command -v cargo &> /dev/null; then
+        log_info "[Rust] Running cargo audit..."
+        CARGOAUDIT_OUT=$(mktemp)
+        chmod 600 "$CARGOAUDIT_OUT"
+        TEMP_FILES+=("$CARGOAUDIT_OUT")
+
+        if cargo audit --json > "$CARGOAUDIT_OUT" 2>/dev/null; then
+            log_success "✓ No Rust dependency vulnerabilities (cargo audit)"
+        else
+            CARGO_VULNS=$(jq -r '.vulnerabilities.found' "$CARGOAUDIT_OUT" 2>/dev/null || echo "unknown")
+            log_error "❌ Rust deps: $CARGO_VULNS vulnerability(ies) found"
+            log_info "Run: cargo audit"
+            LANG_ISSUES=$((LANG_ISSUES + 1))
+        fi
+    else
+        log_warning "⚠️  cargo-audit not installed (Rust dep scan skipped)"
+        log_info "Install: cargo install cargo-audit"
+    fi
+fi
+
+# Go: govulncheck
+if [[ -f "go.mod" ]]; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v govulncheck &> /dev/null; then
+        log_info "[Go] Running govulncheck..."
+        GOVULN_OUT=$(mktemp)
+        chmod 600 "$GOVULN_OUT"
+        TEMP_FILES+=("$GOVULN_OUT")
+
+        if govulncheck -json ./... > "$GOVULN_OUT" 2>/dev/null; then
+            log_success "✓ No Go vulnerabilities found (govulncheck)"
+        else
+            log_error "❌ Go vulnerabilities found"
+            log_info "Run: govulncheck ./..."
+            LANG_ISSUES=$((LANG_ISSUES + 1))
+        fi
+    else
+        log_warning "⚠️  govulncheck not installed (Go vuln scan skipped)"
+        log_info "Install: go install golang.org/dl/govulncheck@latest"
+    fi
+fi
+
+if [[ $LANG_CHECKS -eq 0 ]]; then
+    log_info "No language-specific checks applicable"
+else
+    if [[ $LANG_ISSUES -eq 0 ]]; then
+        log_success "✓ All language-specific checks passed ($LANG_CHECKS language(s) scanned)"
+    else
+        log_error "✗ $LANG_ISSUES language-specific issue(s) found"
+        ISSUES_FOUND=$((ISSUES_FOUND + LANG_ISSUES))
+    fi
+fi
+echo ""
+
 # Summary
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))

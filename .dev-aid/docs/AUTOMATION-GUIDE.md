@@ -47,10 +47,15 @@ Developers need to remember:
 └─────────────────────────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│  TIER 2: Pre-Push Hook (~60s)               │
+│  TIER 2: Pre-Push Hook (~60-90s)            │
 │  • Full secret scan + git history           │
 │  • Complete SAST scan (340+ rules)          │
 │  • CVE + Misconfig scan (HIGH + CRITICAL)   │
+│  • Language-specific checks (auto-detected) │
+│    Python: bandit + pip-audit               │
+│    JS/TS: npm audit                         │
+│    Rust: cargo audit                        │
+│    Go: govulncheck                          │
 │  ✓ Thorough, prevents bad code from remote  │
 └─────────────────────────────────────────────┘
                   ↓
@@ -165,13 +170,28 @@ dev-aid/.dev-aid/
 
 ### Security Tool Stack
 
+**Universal tools (always run):**
+
 | Tool | Scan Types | When |
 |------|------------|------|
 | **Gitleaks** | Secrets (git history + current) | All tiers |
 | **Trivy** | CVE + Misconfig + Secrets (deps, Dockerfiles, IaC) | All tiers |
 | **Opengrep** | SAST with 340+ rules (OWASP, CWE, CI/CD) | All tiers |
 
-**Note:** Trivy's `misconfig` scanner covers Dockerfile and IaC scanning, replacing the need for dedicated tools.
+**Language-specific tools (auto-detected in pre-push):**
+
+| Tool | Language | Detection | Blocking? |
+|------|----------|-----------|-----------|
+| **Bandit** | Python | `*.py` files exist | Yes (medium+ severity) |
+| **pip-audit** | Python | `requirements*.txt` / `pyproject.toml` | Yes |
+| **npm audit** | JS/TS | `package-lock.json` / `yarn.lock` | Yes (high+ severity) |
+| **cargo audit** | Rust | `Cargo.lock` | Yes |
+| **govulncheck** | Go | `go.mod` | Yes |
+
+**Notes:**
+- Trivy's `misconfig` scanner covers Dockerfile and IaC scanning, replacing the need for dedicated tools
+- Language-specific tools are optional — missing tools emit warnings, not errors
+- Auto-detection means zero configuration: if the language isn't in your repo, checks skip silently
 
 ---
 
@@ -216,12 +236,22 @@ git commit --no-verify -m "WIP: Temporary commit"
 
 ### Pre-Push Hook
 
-**Purpose:** Thorough checks before pushing (~60 seconds)
+**Purpose:** Thorough checks before pushing (~60-90 seconds)
 
 **What it does:**
+
+*Universal checks (always run):*
 1. **Secret Scanning** - Gitleaks (full scan including git history)
 2. **SAST** - Opengrep (340+ rules, all severities)
 3. **CVE + Misconfig** - Trivy (HIGH + CRITICAL, covers deps/Dockerfiles/IaC)
+
+*Language-specific checks (auto-detected):*
+4. **Python** - Bandit (SAST, medium+ severity) + pip-audit (dependency CVEs)
+5. **JS/TS** - npm audit (dependency CVEs, high+ severity)
+6. **Rust** - cargo audit (dependency CVEs via RustSec)
+7. **Go** - govulncheck (vulnerability analysis)
+
+Each language check only runs if the relevant files exist in the repository. Missing tools produce warnings, not errors.
 
 **Output:**
 ```bash
@@ -237,11 +267,17 @@ git commit --no-verify -m "WIP: Temporary commit"
 [PRE-PUSH] Run: opengrep scan --config p/security-audit . | less
 
 [PRE-PUSH] 3/3 Scanning for CVEs and misconfigurations...
-[PRE-PUSH] ⚠️  2 high severity CVEs found
-[PRE-PUSH] Run: trivy fs --scanners vuln,misconfig,secret .
+[PRE-PUSH] ✓ No high/critical vulnerabilities, misconfigs, or secrets
+
+[PRE-PUSH] Running language-specific security checks...
+[PRE-PUSH] [Python] Running Bandit SAST analysis...
+[PRE-PUSH] ✓ No Python security issues found (Bandit)
+[PRE-PUSH] [Python] Running pip-audit dependency check...
+[PRE-PUSH] ✓ No Python dependency vulnerabilities (pip-audit)
+[PRE-PUSH] ✓ All language-specific checks passed (1 language(s) scanned)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[PRE-PUSH] ✓ No critical issues (5 warnings) (52s)
+[PRE-PUSH] ✓ No critical issues (3 warnings) (68s)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -382,9 +418,17 @@ git push
 
 See [SECURITY-TOOLS-REFERENCE.md](./SECURITY-TOOLS-REFERENCE.md) for detailed documentation on:
 
+**Universal:**
 - **Gitleaks** - Secret scanning (git history + current files)
 - **Trivy** - CVE + Misconfig + Secrets (dependencies, Dockerfiles, IaC)
 - **Opengrep** - SAST with 340+ rules (OWASP, CWE Top 25, CI/CD)
+
+**Language-specific (auto-detected):**
+- **Bandit** - Python SAST (SQL injection, exec(), weak crypto, etc.)
+- **pip-audit** - Python dependency CVEs
+- **npm audit** - JS/TS dependency CVEs
+- **cargo audit** - Rust dependency CVEs (RustSec)
+- **govulncheck** - Go vulnerability analysis
 
 ---
 

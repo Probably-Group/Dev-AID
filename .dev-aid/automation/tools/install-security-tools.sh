@@ -140,6 +140,42 @@ update_trivy_db() {
     fi
 }
 
+# Install Bandit and pip-audit (Python security tools)
+install_python_security_tools() {
+    log_info "Installing Python security tools (bandit, pip-audit)..."
+
+    local tools_installed=0
+
+    for tool in bandit pip-audit; do
+        if is_installed "$tool"; then
+            log_warning "$tool already installed: $($tool --version 2>&1 | head -1)"
+            ((tools_installed++))
+            continue
+        fi
+
+        if is_installed pipx; then
+            log_info "Installing $tool via pipx..."
+            pipx install "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pipx" || log_warning "Failed to install $tool via pipx"
+        elif is_installed pip3; then
+            log_info "Installing $tool via pip3 --user..."
+            pip3 install --user "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pip3" || log_warning "Failed to install $tool via pip3"
+        elif is_installed pip; then
+            log_info "Installing $tool via pip --user..."
+            pip install --user "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pip" || log_warning "Failed to install $tool via pip"
+        else
+            log_warning "No pip/pipx found. Install Python first, then: pipx install $tool"
+        fi
+    done
+
+    if [[ $tools_installed -eq 2 ]]; then
+        log_success "Python security tools installed successfully"
+    elif [[ $tools_installed -gt 0 ]]; then
+        log_warning "Some Python security tools installed ($tools_installed/2)"
+    else
+        log_warning "No Python security tools installed (optional - install Python/pipx first)"
+    fi
+}
+
 # Update PATH
 update_path() {
     log_info "Updating PATH..."
@@ -175,6 +211,8 @@ verify_tools() {
         "opengrep:Opengrep:required"
         "gitleaks:Gitleaks:required"
         "trivy:Trivy:required"
+        "bandit:Bandit (Python SAST):optional"
+        "pip-audit:pip-audit (Python deps):optional"
     )
 
     SUCCESS_COUNT=0
@@ -230,6 +268,15 @@ main() {
     echo ""
 
     update_trivy_db
+    echo ""
+
+    install_python_security_tools
+    echo ""
+
+    log_info "Note: Language-specific tools (npm, cargo, go) are installed via their respective toolchains."
+    log_info "  • npm audit: Included with Node.js/npm"
+    log_info "  • cargo audit: Install via 'cargo install cargo-audit'"
+    log_info "  • govulncheck: Install via 'go install golang.org/x/vuln/cmd/govulncheck@latest'"
     echo ""
 
     update_path

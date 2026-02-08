@@ -49,13 +49,16 @@ Developers need to remember:
 ┌─────────────────────────────────────────────┐
 │  TIER 2: Pre-Push Hook (~60-90s)            │
 │  • Full secret scan + git history           │
-│  • Complete SAST scan (340+ rules)          │
+│  • SAST (10 universal + language rulesets)   │
 │  • CVE + Misconfig scan (HIGH + CRITICAL)   │
-│  • Language-specific checks (auto-detected) │
-│    Python: bandit + pip-audit               │
-│    JS/TS: npm audit                         │
-│    Rust: cargo audit                        │
-│    Go: govulncheck                          │
+│  • Language-specific SAST (auto-detected):  │
+│    Shell: ShellCheck                        │
+│    C/C++: Flawfinder (CWE-mapped)           │
+│    Swift: mobsfscan (OWASP MASVS)           │
+│    Python: Bandit                           │
+│  • Dependency audit (auto-detected):        │
+│    Python: pip-audit | JS/TS: npm audit     │
+│    Rust: cargo audit | Go: govulncheck      │
 │  ✓ Thorough, prevents bad code from remote  │
 └─────────────────────────────────────────────┘
                   ↓
@@ -178,15 +181,27 @@ dev-aid/.dev-aid/
 | **Trivy** | CVE + Misconfig + Secrets (deps, Dockerfiles, IaC) | All tiers |
 | **Opengrep** | SAST with 340+ rules (OWASP, CWE, CI/CD) | All tiers |
 
-**Language-specific tools (auto-detected in pre-push):**
+**Language-specific SAST tools (auto-detected in pre-push):**
 
 | Tool | Language | Detection | Blocking? |
 |------|----------|-----------|-----------|
+| **ShellCheck** | Bash/Shell | `*.sh` files exist | Yes (error-level) |
+| **Flawfinder** | C/C++ | `*.c`/`*.h`/`*.cpp` etc. | Yes (CWE-mapped, level 2+) |
+| **mobsfscan** | Swift | `*.swift` files exist | Yes (OWASP MASVS) |
 | **Bandit** | Python | `*.py` files exist | Yes (medium+ severity) |
+
+**Language-specific dependency tools (auto-detected in pre-push):**
+
+| Tool | Language | Detection | Blocking? |
+|------|----------|-----------|-----------|
 | **pip-audit** | Python | `requirements*.txt` / `pyproject.toml` | Yes |
 | **npm audit** | JS/TS | `package-lock.json` / `yarn.lock` | Yes (high+ severity) |
 | **cargo audit** | Rust | `Cargo.lock` | Yes |
 | **govulncheck** | Go | `go.mod` | Yes |
+
+**Opengrep auto-detected language rulesets:**
+
+In addition to 10 universal rulesets, Opengrep automatically adds language-specific rulesets when it detects: Python, JavaScript, TypeScript, Go, Rust, Swift, Java, Kotlin, Ruby, PHP, C#, Scala.
 
 **Notes:**
 - Trivy's `misconfig` scanner covers Dockerfile and IaC scanning, replacing the need for dedicated tools
@@ -242,16 +257,22 @@ git commit --no-verify -m "WIP: Temporary commit"
 
 *Universal checks (always run):*
 1. **Secret Scanning** - Gitleaks (full scan including git history)
-2. **SAST** - Opengrep (340+ rules, all severities)
+2. **SAST** - Opengrep (10 universal + auto-detected language rulesets)
 3. **CVE + Misconfig** - Trivy (HIGH + CRITICAL, covers deps/Dockerfiles/IaC)
 
-*Language-specific checks (auto-detected):*
-4. **Python** - Bandit (SAST, medium+ severity) + pip-audit (dependency CVEs)
-5. **JS/TS** - npm audit (dependency CVEs, high+ severity)
-6. **Rust** - cargo audit (dependency CVEs via RustSec)
-7. **Go** - govulncheck (vulnerability analysis)
+*Language-specific SAST (auto-detected):*
+4. **Shell** - ShellCheck (injection, quoting, globbing attacks)
+5. **C/C++** - Flawfinder (CWE-mapped: buffer overflows, format strings, race conditions)
+6. **Swift** - mobsfscan (OWASP MASVS: insecure storage, weak crypto)
+7. **Python** - Bandit (SQL injection, exec(), weak crypto)
 
-Each language check only runs if the relevant files exist in the repository. Missing tools produce warnings, not errors.
+*Language-specific dependency audit (auto-detected):*
+8. **Python** - pip-audit (PyPI advisory database)
+9. **JS/TS** - npm audit (npm advisory database, high+ severity)
+10. **Rust** - cargo audit (RustSec advisory database)
+11. **Go** - govulncheck (Go vulnerability database)
+
+Each check only runs if the relevant files exist. Missing tools produce warnings, not errors.
 
 **Output:**
 ```bash
@@ -262,22 +283,24 @@ Each language check only runs if the relevant files exist in the repository. Mis
 [PRE-PUSH] 1/3 Scanning for secrets (including git history)...
 [PRE-PUSH] ✓ No secrets found
 
-[PRE-PUSH] 2/3 Running static code analysis (340+ rules)...
+[PRE-PUSH] 2/3 Running static code analysis...
+[PRE-PUSH]   Scanning with 12 rulesets (detected: Python Shell)
 [PRE-PUSH] ⚠️  3 warning(s) found
-[PRE-PUSH] Run: opengrep scan --config p/security-audit . | less
 
 [PRE-PUSH] 3/3 Scanning for CVEs and misconfigurations...
 [PRE-PUSH] ✓ No high/critical vulnerabilities, misconfigs, or secrets
 
 [PRE-PUSH] Running language-specific security checks...
+[PRE-PUSH] [Shell] Running ShellCheck SAST analysis...
+[PRE-PUSH] ✓ No shell script issues found (ShellCheck)
 [PRE-PUSH] [Python] Running Bandit SAST analysis...
 [PRE-PUSH] ✓ No Python security issues found (Bandit)
 [PRE-PUSH] [Python] Running pip-audit dependency check...
 [PRE-PUSH] ✓ No Python dependency vulnerabilities (pip-audit)
-[PRE-PUSH] ✓ All language-specific checks passed (1 language(s) scanned)
+[PRE-PUSH] ✓ All language-specific checks passed (2 language(s) scanned)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[PRE-PUSH] ✓ No critical issues (3 warnings) (68s)
+[PRE-PUSH] ✓ No critical issues (3 warnings) (72s)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
@@ -421,10 +444,15 @@ See [SECURITY-TOOLS-REFERENCE.md](./SECURITY-TOOLS-REFERENCE.md) for detailed do
 **Universal:**
 - **Gitleaks** - Secret scanning (git history + current files)
 - **Trivy** - CVE + Misconfig + Secrets (dependencies, Dockerfiles, IaC)
-- **Opengrep** - SAST with 340+ rules (OWASP, CWE Top 25, CI/CD)
+- **Opengrep** - SAST across 35+ languages (10 universal + auto-detected language rulesets)
 
-**Language-specific (auto-detected):**
-- **Bandit** - Python SAST (SQL injection, exec(), weak crypto, etc.)
+**Language-specific SAST (auto-detected):**
+- **ShellCheck** - Bash/Shell (injection, quoting, globbing attacks)
+- **Flawfinder** - C/C++ (CWE-mapped: buffer overflows, format strings, race conditions)
+- **mobsfscan** - Swift (OWASP MASVS: insecure storage, weak crypto)
+- **Bandit** - Python (SQL injection, exec(), weak crypto)
+
+**Language-specific dependency audit (auto-detected):**
 - **pip-audit** - Python dependency CVEs
 - **npm audit** - JS/TS dependency CVEs
 - **cargo audit** - Rust dependency CVEs (RustSec)

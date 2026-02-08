@@ -70,8 +70,8 @@ else
 fi
 echo ""
 
-# Check 2: SAST with Opengrep (Comprehensive rulesets, 340+ rules)
-log_info "2/3 Running static code analysis (340+ security rules)..."
+# Check 2: SAST with Opengrep (Comprehensive + language-aware rulesets)
+log_info "2/3 Running static code analysis..."
 OPENGREP_CMD="opengrep"
 [[ -f "$HOME/.local/bin/opengrep" ]] && OPENGREP_CMD="$HOME/.local/bin/opengrep"
 
@@ -80,18 +80,78 @@ if command -v $OPENGREP_CMD &> /dev/null; then
     chmod 600 "$OPENGREP_OUT"
     TEMP_FILES+=("$OPENGREP_OUT")
 
-    # Scan with comprehensive rulesets (340+ rules):
-    # - p/default: Semgrep curated defaults
-    # - p/security-audit: Comprehensive security patterns
-    # - p/secrets: Hardcoded credentials
-    # - p/ci: CI/CD security (GitHub Actions, etc)
-    # - p/cwe-top-25: MITRE CWE Top 25 vulnerabilities
+    # Build ruleset list: universal + auto-detected language-specific
+    OPENGREP_CONFIGS=(
+        # Universal security rulesets
+        "--config" "p/default"           # Semgrep curated defaults
+        "--config" "p/security-audit"    # Comprehensive security patterns
+        "--config" "p/secrets"           # Hardcoded credentials
+        "--config" "p/ci"               # CI/CD security (GitHub Actions, etc)
+        "--config" "p/cwe-top-25"        # MITRE CWE Top 25 vulnerabilities
+        "--config" "p/owasp-top-ten"     # OWASP Top 10 categories
+        "--config" "p/trailofbits"       # Professional security audit rules (Trail of Bits)
+        "--config" "p/command-injection" # Command injection across languages
+        "--config" "p/insecure-transport" # HTTP where HTTPS expected
+        "--config" "p/jwt"               # JWT misconfigurations
+    )
+
+    # Auto-detect languages and add language-specific rulesets
+    DETECTED_LANGS=""
+    if find . -name '*.py' -not -path '*/venv/*' -not -path '*/.venv/*' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/python")
+        DETECTED_LANGS="${DETECTED_LANGS} Python"
+    fi
+    if find . -name '*.js' -o -name '*.jsx' -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/javascript")
+        DETECTED_LANGS="${DETECTED_LANGS} JS"
+    fi
+    if find . -name '*.ts' -o -name '*.tsx' -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/typescript")
+        DETECTED_LANGS="${DETECTED_LANGS} TS"
+    fi
+    if find . -name '*.go' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/golang")
+        DETECTED_LANGS="${DETECTED_LANGS} Go"
+    fi
+    if find . -name '*.rs' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/rust")
+        DETECTED_LANGS="${DETECTED_LANGS} Rust"
+    fi
+    if find . -name '*.swift' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/swift")
+        DETECTED_LANGS="${DETECTED_LANGS} Swift"
+    fi
+    if find . -name '*.java' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/java")
+        DETECTED_LANGS="${DETECTED_LANGS} Java"
+    fi
+    if find . -name '*.kt' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/kotlin")
+        DETECTED_LANGS="${DETECTED_LANGS} Kotlin"
+    fi
+    if find . -name '*.rb' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/ruby")
+        DETECTED_LANGS="${DETECTED_LANGS} Ruby"
+    fi
+    if find . -name '*.php' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/php")
+        DETECTED_LANGS="${DETECTED_LANGS} PHP"
+    fi
+    if find . -name '*.cs' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/csharp")
+        DETECTED_LANGS="${DETECTED_LANGS} C#"
+    fi
+    if find . -name '*.scala' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then
+        OPENGREP_CONFIGS+=("--config" "p/scala")
+        DETECTED_LANGS="${DETECTED_LANGS} Scala"
+    fi
+
+    RULESET_COUNT=${#OPENGREP_CONFIGS[@]}
+    RULESET_COUNT=$((RULESET_COUNT / 2))  # Each ruleset is 2 elements: --config + name
+    log_info "  Scanning with $RULESET_COUNT rulesets (detected:${DETECTED_LANGS:- none})"
+
     if $OPENGREP_CMD scan \
-        --config p/default \
-        --config p/security-audit \
-        --config p/secrets \
-        --config p/ci \
-        --config p/cwe-top-25 \
+        "${OPENGREP_CONFIGS[@]}" \
         --json --output "$OPENGREP_OUT" . 2>/dev/null; then
         :  # Scan completed
     fi
@@ -112,7 +172,7 @@ if command -v $OPENGREP_CMD &> /dev/null; then
 
         log_info "Run: opengrep scan --config p/security-audit . | less"
     else
-        log_success "✓ No issues found (scanned with 340+ rules)"
+        log_success "✓ No issues found ($RULESET_COUNT rulesets)"
     fi
 else
     log_warning "⚠️  Opengrep not installed"
@@ -172,6 +232,106 @@ echo ""
 log_info "Running language-specific security checks..."
 LANG_CHECKS=0
 LANG_ISSUES=0
+
+# Bash/Shell: ShellCheck (SAST — injection, quoting, globbing attacks)
+if find . -name '*.sh' -not -path '*/.git/*' -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v shellcheck &> /dev/null; then
+        log_info "[Shell] Running ShellCheck SAST analysis..."
+        SHELLCHECK_OUT=$(mktemp)
+        chmod 600 "$SHELLCHECK_OUT"
+        TEMP_FILES+=("$SHELLCHECK_OUT")
+
+        # Find all shell scripts, exclude common vendored paths
+        SHELL_FILES=()
+        while IFS= read -r -d '' f; do
+            SHELL_FILES+=("$f")
+        done < <(find . -name '*.sh' -not -path '*/.git/*' -not -path '*/node_modules/*' -not -path '*/venv/*' -not -path '*/.venv/*' -print0 2>/dev/null)
+
+        if [[ ${#SHELL_FILES[@]} -gt 0 ]]; then
+            if shellcheck -S warning -f json "${SHELL_FILES[@]}" > "$SHELLCHECK_OUT" 2>/dev/null; then
+                log_success "✓ No shell script issues found (ShellCheck)"
+            else
+                SC_ERRORS=$(jq -r '[.[] | select(.level == "error")] | length' "$SHELLCHECK_OUT" 2>/dev/null || echo "0")
+                SC_WARNINGS=$(jq -r '[.[] | select(.level == "warning")] | length' "$SHELLCHECK_OUT" 2>/dev/null || echo "0")
+
+                if [[ "$SC_ERRORS" -gt 0 ]]; then
+                    log_error "❌ Shell SAST: $SC_ERRORS error(s), $SC_WARNINGS warning(s)"
+                    log_info "Run: shellcheck -S warning *.sh"
+                    LANG_ISSUES=$((LANG_ISSUES + 1))
+                else
+                    log_warning "⚠️  Shell SAST: $SC_WARNINGS warning(s)"
+                fi
+            fi
+        fi
+    else
+        log_warning "⚠️  ShellCheck not installed (Shell SAST skipped)"
+        log_info "Install: brew install shellcheck"
+    fi
+fi
+
+# C/C++: Flawfinder (SAST — CWE-mapped security scanner)
+if find . \( -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.cc' -o -name '*.cxx' -o -name '*.hpp' \) -not -path '*/.git/*' -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v flawfinder &> /dev/null; then
+        log_info "[C/C++] Running Flawfinder security analysis..."
+        FLAWFINDER_OUT=$(mktemp)
+        chmod 600 "$FLAWFINDER_OUT"
+        TEMP_FILES+=("$FLAWFINDER_OUT")
+
+        # --minlevel=2: medium+ severity, --dataonly: machine-parseable, --quiet: no progress
+        if flawfinder --minlevel=2 --dataonly --quiet --csv . > "$FLAWFINDER_OUT" 2>/dev/null; then
+            # Flawfinder exits 0 even with findings; check output line count
+            FLAW_COUNT=$(wc -l < "$FLAWFINDER_OUT" | tr -d ' ')
+            # Subtract header line if present
+            if [[ "$FLAW_COUNT" -le 1 ]]; then
+                log_success "✓ No C/C++ security issues found (Flawfinder)"
+            else
+                FLAW_COUNT=$((FLAW_COUNT - 1))
+                log_error "❌ C/C++ SAST: $FLAW_COUNT issue(s) (CWE-mapped)"
+                log_info "Run: flawfinder --minlevel=2 ."
+                LANG_ISSUES=$((LANG_ISSUES + 1))
+            fi
+        else
+            log_warning "⚠️  Flawfinder scan failed"
+        fi
+    else
+        log_warning "⚠️  Flawfinder not installed (C/C++ SAST skipped)"
+        log_info "Install: pipx install flawfinder"
+    fi
+fi
+
+# Swift: mobsfscan (SAST — OWASP MASVS/MSTG mobile security patterns)
+if find . -name '*.swift' -not -path '*/.git/*' -not -path '*/node_modules/*' -print -quit 2>/dev/null | grep -q .; then
+    LANG_CHECKS=$((LANG_CHECKS + 1))
+
+    if command -v mobsfscan &> /dev/null; then
+        log_info "[Swift] Running mobsfscan security analysis..."
+        MOBSF_OUT=$(mktemp)
+        chmod 600 "$MOBSF_OUT"
+        TEMP_FILES+=("$MOBSF_OUT")
+
+        if mobsfscan --json -o "$MOBSF_OUT" . 2>/dev/null; then
+            MOBSF_ISSUES=$(jq -r '.results | length' "$MOBSF_OUT" 2>/dev/null || echo "0")
+            if [[ "$MOBSF_ISSUES" -eq 0 ]]; then
+                log_success "✓ No Swift security issues found (mobsfscan)"
+            else
+                MOBSF_HIGH=$(jq -r '[.results[] | select(.issue_severity == "high")] | length' "$MOBSF_OUT" 2>/dev/null || echo "0")
+                MOBSF_WARN=$(jq -r '[.results[] | select(.issue_severity == "warning")] | length' "$MOBSF_OUT" 2>/dev/null || echo "0")
+                log_error "❌ Swift SAST: $MOBSF_HIGH high, $MOBSF_WARN warning(s)"
+                log_info "Run: mobsfscan ."
+                LANG_ISSUES=$((LANG_ISSUES + 1))
+            fi
+        else
+            log_warning "⚠️  mobsfscan scan failed"
+        fi
+    else
+        log_warning "⚠️  mobsfscan not installed (Swift SAST skipped)"
+        log_info "Install: pipx install mobsfscan"
+    fi
+fi
 
 # Python: Bandit (SAST) + pip-audit (dependency vulnerabilities)
 if find . -name '*.py' -not -path '*/venv/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' -not -path '*/__pycache__/*' -not -path '*/.git/*' -print -quit 2>/dev/null | grep -q .; then

@@ -140,13 +140,14 @@ update_trivy_db() {
     fi
 }
 
-# Install Bandit and pip-audit (Python security tools)
+# Install Python-based security tools (bandit, pip-audit, flawfinder, mobsfscan)
 install_python_security_tools() {
-    log_info "Installing Python security tools (bandit, pip-audit)..."
+    log_info "Installing Python-based security tools..."
 
     local tools_installed=0
+    local total_tools=4
 
-    for tool in bandit pip-audit; do
+    for tool in bandit pip-audit flawfinder mobsfscan; do
         if is_installed "$tool"; then
             log_warning "$tool already installed: $($tool --version 2>&1 | head -1)"
             ((tools_installed++))
@@ -167,12 +168,12 @@ install_python_security_tools() {
         fi
     done
 
-    if [[ $tools_installed -eq 2 ]]; then
-        log_success "Python security tools installed successfully"
+    if [[ $tools_installed -eq $total_tools ]]; then
+        log_success "All Python-based security tools installed ($tools_installed/$total_tools)"
     elif [[ $tools_installed -gt 0 ]]; then
-        log_warning "Some Python security tools installed ($tools_installed/2)"
+        log_warning "Some Python-based security tools installed ($tools_installed/$total_tools)"
     else
-        log_warning "No Python security tools installed (optional - install Python/pipx first)"
+        log_warning "No Python-based security tools installed (optional - install Python/pipx first)"
     fi
 }
 
@@ -211,8 +212,11 @@ verify_tools() {
         "opengrep:Opengrep:required"
         "gitleaks:Gitleaks:required"
         "trivy:Trivy:required"
+        "shellcheck:ShellCheck (Shell SAST):optional"
         "bandit:Bandit (Python SAST):optional"
         "pip-audit:pip-audit (Python deps):optional"
+        "flawfinder:Flawfinder (C/C++ SAST):optional"
+        "mobsfscan:mobsfscan (Swift SAST):optional"
     )
 
     SUCCESS_COUNT=0
@@ -273,7 +277,8 @@ main() {
     install_python_security_tools
     echo ""
 
-    log_info "Note: Language-specific tools (npm, cargo, go) are installed via their respective toolchains."
+    log_info "Note: Some tools are installed via their respective toolchains."
+    log_info "  • shellcheck: Install via 'brew install shellcheck' or package manager"
     log_info "  • npm audit: Included with Node.js/npm"
     log_info "  • cargo audit: Install via 'cargo install cargo-audit'"
     log_info "  • govulncheck: Install via 'go install golang.org/x/vuln/cmd/govulncheck@latest'"

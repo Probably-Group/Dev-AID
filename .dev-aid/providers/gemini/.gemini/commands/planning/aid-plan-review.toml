@@ -1,0 +1,18 @@
+name = "aid-plan-review"
+description = "Short alias for dev-aid-plan-reviewer — review implementation plans"
+
+[metadata]
+category = "planning"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Plan Review (Short Alias)
+
+This is a short alias for the full `dev-aid-plan-reviewer` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/planning/dev-aid-plan-reviewer.toml`
+
+Load that file now and execute the plan review workflow. The user's input follows.
+"""

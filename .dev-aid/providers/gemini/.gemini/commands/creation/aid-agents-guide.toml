@@ -1,0 +1,18 @@
+name = "aid-agents-guide"
+description = "Short alias for dev-aid-agents-guide — guide to creating Dev-AID agents"
+
+[metadata]
+category = "creation"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Agents Guide (Short Alias)
+
+This is a short alias for the full `dev-aid-agents-guide` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/creation/dev-aid-agents-guide.toml`
+
+Load that file now and execute the agents guide workflow. The user's input follows.
+"""

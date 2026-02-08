@@ -1,0 +1,18 @@
+name = "aid-web-research"
+description = "Short alias for dev-aid-web-research-specialist — web research with analysis"
+
+[metadata]
+category = "research"
+author = "Dev-AID Team"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Web Research (Short Alias)
+
+This is a short alias for the full `dev-aid-web-research-specialist` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/research/dev-aid-web-research-specialist.toml`
+
+Load that file now and execute the web research workflow. The user's input is the research topic.
+"""

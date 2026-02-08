@@ -17,55 +17,86 @@ The orchestration module (`.dev-aid/orchestration/`) has pre-commit hooks that r
 - Always run the venv test suite before committing: `cd .dev-aid/orchestration && venv/bin/python -m pytest tests/ -v`
 - When Task agents create branches, always verify they used the correct branch name before committing
 
-## Agent Slash Commands
+## Slash Command Aliases (`aid-*`)
 
-The agent framework has native slash commands for interactive use (in addition to the `dev-aid-agent` CLI for scripts/CI).
+**Every Dev-AID command has a short `aid-*` alias.** Type `aid-` in autocomplete to browse all commands.
 
-### Invocation
+### Agent Aliases
 
-Each agent has a **full name** and a **short alias**:
+| Short Alias | Full Command | Usage |
+|------------|-------------|-------|
+| `aid-pr` | `dev-aid-agent-pr-review` | `aid-pr 135` |
+| `aid-test` | `dev-aid-agent-test-gen` | `aid-test src/auth/` |
+| `aid-debt` | `dev-aid-agent-tech-debt` | `aid-debt src/ high` |
+| `aid-ci` | `dev-aid-agent-ci-fix` | `aid-ci 12345` |
+| `aid-conflict` | `dev-aid-agent-conflict-resolve` | `aid-conflict 42 smart` |
+| `aid-research` | `dev-aid-agent-research` | `aid-research "async patterns" deep` |
+| `aid-onboard` | `dev-aid-agent-onboard` | `aid-onboard` |
+| `aid-docs` | `dev-aid-agent-doc-audit` | `aid-docs . docs-only` |
 
-| Full Command | Short Alias | Usage |
-|-------------|------------|-------|
-| `/agents:dev-aid-agent-pr-review` | `/agents:aid-pr` | `/agents:aid-pr 135` |
-| `/agents:dev-aid-agent-test-gen` | `/agents:aid-test` | `/agents:aid-test src/auth/` |
-| `/agents:dev-aid-agent-tech-debt` | `/agents:aid-debt` | `/agents:aid-debt src/ high` |
-| `/agents:dev-aid-agent-ci-fix` | `/agents:aid-ci` | `/agents:aid-ci 12345` |
-| `/agents:dev-aid-agent-conflict-resolve` | `/agents:aid-conflict` | `/agents:aid-conflict 42 smart` |
-| `/agents:dev-aid-agent-research` | `/agents:aid-research` | `/agents:aid-research "async patterns" deep` |
-| `/agents:dev-aid-agent-onboard` | `/agents:aid-onboard` | `/agents:aid-onboard` |
-| `/agents:dev-aid-agent-doc-audit` | `/agents:aid-docs` | `/agents:aid-docs . docs-only` |
-| — | `/agents:aid-help` | Show all commands |
+### Router Aliases
 
-Type `/agents:aid-` to trigger autocomplete and see all short aliases.
+| Short Alias | Full Command |
+|------------|-------------|
+| `aid-challenger` | `dev-aid-router-challenger` |
+| `aid-challenger-rag` | `dev-aid-router-challenger-rag` |
+| `aid-ensemble` | `dev-aid-router-ensemble` |
+| `aid-router-status` | `dev-aid-router-status` |
 
-### Adding a New Agent Slash Command
+### Other Aliases
 
-When adding a new agent to the framework, also create slash commands:
+| Short Alias | Full Command |
+|------------|-------------|
+| `aid-audit` | `dev-aid-audit` |
+| `aid-vulnscan` | `dev-aid-vulnerability-scan` |
+| `aid-health` | `dev-aid-code-health` |
+| `aid-debt-report` | `dev-aid-debt-analysis` |
+| `aid-review` | `dev-aid-review-staged` |
+| `aid-commit` | `dev-aid-commit-plan` |
+| `aid-api` | `dev-aid-api-contract` |
+| `aid-analyze` | `dev-aid-analyze` |
+| `aid-status` | `dev-aid-status` |
+| `aid-config` | `dev-aid-config-core-skills` |
+| `aid-skill` | `dev-aid-build-skill` |
+| `aid-deploy` | `dev-aid-deploy-validate` |
+| `aid-models` | `dev-aid-models-update` |
+| `aid-help` | Show all commands |
 
-1. **Claude command** — `.dev-aid/providers/claude/.claude/commands/agents/dev-aid-agent-<name>.md`
+### Adding a New Command
+
+When adding any new slash command, always create both the full command and an `aid-*` alias:
+
+1. **Claude command** — `.dev-aid/providers/claude/.claude/commands/<category>/dev-aid-<name>.md`
    - Uses YAML frontmatter (`name`, `description`, `category`, `author`, `version`)
    - Full instructions with `$ARGUMENTS` for user input
-2. **Claude alias** — `.dev-aid/providers/claude/.claude/commands/agents/aid-<short>.md`
+2. **Claude alias** — `.dev-aid/providers/claude/.claude/commands/<category>/aid-<short>.md`
    - Thin wrapper (~5 lines) that points to the full command file
-3. **Gemini command** — `.dev-aid/providers/gemini/.gemini/commands/agents/dev-aid-agent-<name>.toml`
+3. **Gemini command** — `.dev-aid/providers/gemini/.gemini/commands/<category>/dev-aid-<name>.toml`
    - TOML format with `[metadata]` and `[prompt]` sections
-4. **Gemini alias** — `.dev-aid/providers/gemini/.gemini/commands/agents/aid-<short>.toml`
+4. **Gemini alias** — `.dev-aid/providers/gemini/.gemini/commands/<category>/aid-<short>.toml`
    - Thin wrapper that points to the full command file
-5. **AGENTS.md.template** — Add a trigger entry in `.dev-aid/templates/AGENTS.md.template`
+5. **Update `aid-help`** — Add the new alias to both `aid-help.md` and `aid-help.toml`
+6. **For agents only** — Also add a trigger entry in `.dev-aid/templates/AGENTS.md.template`
 
 ### File Structure
 
 ```
 .dev-aid/providers/
-├── claude/.claude/commands/agents/
-│   ├── dev-aid-agent-pr-review.md       # Full command
-│   ├── aid-pr.md                        # Short alias
-│   ├── aid-help.md                      # Discovery command
+├── claude/.claude/commands/
+│   ├── agents/
+│   │   ├── dev-aid-agent-pr-review.md   # Full command
+│   │   ├── aid-pr.md                    # Short alias
+│   │   └── aid-help.md                  # Discovery command
+│   ├── router/
+│   │   ├── dev-aid-router-challenger.md # Full command
+│   │   └── aid-challenger.md            # Short alias
+│   ├── security/
+│   │   ├── dev-aid-audit.md             # Full command
+│   │   └── aid-audit.md                 # Short alias
 │   └── ...
-└── gemini/.gemini/commands/agents/
-    ├── dev-aid-agent-pr-review.toml     # Full command
-    ├── aid-pr.toml                      # Short alias
-    ├── aid-help.toml                    # Discovery command
+└── gemini/.gemini/commands/
+    ├── agents/
+    │   ├── dev-aid-agent-pr-review.toml
+    │   └── aid-pr.toml
     └── ...
 ```

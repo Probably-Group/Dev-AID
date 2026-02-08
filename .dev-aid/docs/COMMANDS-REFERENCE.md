@@ -149,27 +149,64 @@ dev-aid-agent test-generator --path src/ --dry-run
 
 **Documentation:** [Agent Framework Guide](Dev-AID-AGENTS.md)
 
-### Agent Slash Commands (Native)
+### Short Aliases (`aid-*`)
 
-Each agent is also available as a **native slash command** for interactive use in Claude Code, Gemini CLI, Cursor, Windsurf, and Cline. Slash commands load directly in the AI session — no separate CLI process needed.
+**Every Dev-AID command has a short `aid-*` alias.** Type `aid-` in autocomplete to browse all commands — agents, router, security, quality, and more. Both full names and aliases work identically.
 
-Each command has a **full name** and a **short alias** (prefix `aid-`):
+#### Agent Aliases
 
-| Full Command | Short Alias | Description | Example |
-|-------------|------------|-------------|---------|
-| `dev-aid-agent-pr-review` | `aid-pr` | Review PR for security, quality, architecture | `/agents:aid-pr 135` |
-| `dev-aid-agent-test-gen` | `aid-test` | Generate tests for untested code | `/agents:aid-test src/auth/` |
-| `dev-aid-agent-tech-debt` | `aid-debt` | Scan for code smells and tech debt | `/agents:aid-debt src/ high` |
-| `dev-aid-agent-ci-fix` | `aid-ci` | Diagnose and fix CI failures | `/agents:aid-ci 12345` |
-| `dev-aid-agent-conflict-resolve` | `aid-conflict` | Resolve merge conflicts intelligently | `/agents:aid-conflict 42 smart` |
-| `dev-aid-agent-research` | `aid-research` | Deep research on technical topics | `/agents:aid-research "async patterns"` |
-| `dev-aid-agent-onboard` | `aid-onboard` | Generate codebase onboarding guide | `/agents:aid-onboard` |
-| `dev-aid-agent-doc-audit` | `aid-docs` | Audit documentation for drift and gaps | `/agents:aid-docs . docs-only` |
-| — | `aid-help` | Show all Dev-AID commands | `/agents:aid-help` |
+| Full Command | Short Alias | Example |
+|-------------|------------|---------|
+| `dev-aid-agent-pr-review` | `aid-pr` | `aid-pr 135` |
+| `dev-aid-agent-test-gen` | `aid-test` | `aid-test src/auth/` |
+| `dev-aid-agent-tech-debt` | `aid-debt` | `aid-debt src/ high` |
+| `dev-aid-agent-ci-fix` | `aid-ci` | `aid-ci 12345` |
+| `dev-aid-agent-conflict-resolve` | `aid-conflict` | `aid-conflict 42 smart` |
+| `dev-aid-agent-research` | `aid-research` | `aid-research "async patterns"` |
+| `dev-aid-agent-onboard` | `aid-onboard` | `aid-onboard` |
+| `dev-aid-agent-doc-audit` | `aid-docs` | `aid-docs . docs-only` |
+
+#### Router Aliases
+
+| Full Command | Short Alias |
+|-------------|------------|
+| `dev-aid-router-challenger` | `aid-challenger` |
+| `dev-aid-router-challenger-rag` | `aid-challenger-rag` |
+| `dev-aid-router-ensemble` | `aid-ensemble` |
+| `dev-aid-router-status` | `aid-router-status` |
+
+#### Security & Quality Aliases
+
+| Full Command | Short Alias |
+|-------------|------------|
+| `dev-aid-audit` | `aid-audit` |
+| `dev-aid-vulnerability-scan` | `aid-vulnscan` |
+| `dev-aid-code-health` | `aid-health` |
+| `dev-aid-debt-analysis` | `aid-debt-report` |
+| `dev-aid-review-staged` | `aid-review` |
+
+#### Productivity & Setup Aliases
+
+| Full Command | Short Alias |
+|-------------|------------|
+| `dev-aid-commit-plan` | `aid-commit` |
+| `dev-aid-api-contract` | `aid-api` |
+| `dev-aid-analyze` | `aid-analyze` |
+| `dev-aid-status` | `aid-status` |
+| `dev-aid-config-core-skills` | `aid-config` |
+| `dev-aid-build-skill` | `aid-skill` |
+| `dev-aid-deploy-validate` | `aid-deploy` |
+| `dev-aid-models-update` | `aid-models` |
+
+#### Discovery
+
+| Short Alias | Description |
+|------------|-------------|
+| `aid-help` | Show all Dev-AID commands |
 
 **When to use slash commands vs CLI:**
-- **Slash commands** — Interactive sessions in Claude Code, Gemini CLI, Cursor, Windsurf, Cline. Type `/agents:aid-` for autocomplete.
-- **CLI (`dev-aid-agent`)** — Scripts, CI/CD pipelines, automation. Supports `--json`, `--dry-run`, `--provider` flags.
+- **Slash commands** — Interactive sessions. Type `aid-` for autocomplete.
+- **CLI (`dev-aid-agent`)** — Scripts, CI/CD pipelines. Supports `--json`, `--dry-run`, `--provider` flags.
 
 **Supported editors/tools:**
 - **Native slash commands**: Claude Code, Gemini CLI, Cursor, Windsurf, Cline

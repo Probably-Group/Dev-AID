@@ -54,7 +54,7 @@ dev-aid-resolve-issue --issue 123
 git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
 
 # Claude writes code, Gemini reviews it (catches bugs you'd miss)
-/dev-aid-router-challenger "Implement OAuth2 with refresh tokens"
+/aid-challenger "Implement OAuth2 with refresh tokens"
 
 # 🤖 Autonomous agents — slash commands or CLI - NEW!
 /agents:aid-pr 135                          # Interactive: PR review
@@ -936,17 +936,14 @@ AI: *uses local RAG, returns relevant code*
 
 ### 🔀 **Router Commands** (Multi-AI Orchestration)
 
-> **Note**: Command names vary by AI provider:
-> - **Claude Code**: `/dev-aid-router-*` (e.g., `/dev-aid-router-challenger`)
-> - **Gemini CLI**: `aid-router-*` (e.g., `aid-router-challenger`)
->
-> Examples below use Claude Code format.
+> **All commands have short `aid-*` aliases.** Type `aid-` in autocomplete to browse everything.
+> Full names (`dev-aid-router-*`) also work.
 
-#### `/dev-aid-router-challenger`
+#### `/aid-challenger` (alias for `dev-aid-router-challenger`)
 **Two-AI review workflow**
 
 ```bash
-/dev-aid-router-challenger "Implement OAuth2 authentication"
+/aid-challenger "Implement OAuth2 authentication"
 ```
 
 **Process:**
@@ -959,11 +956,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/dev-aid-router-challenger-rag`
+#### `/aid-challenger-rag` (alias for `dev-aid-router-challenger-rag`)
 **Challenger mode + Local RAG**
 
 ```bash
-/dev-aid-router-challenger-rag "Add password validation"
+/aid-challenger-rag "Add password validation"
 ```
 
 **Process:**
@@ -976,11 +973,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/dev-aid-router-ensemble`
+#### `/aid-ensemble` (alias for `dev-aid-router-ensemble`)
 **Smart routing to optimal AI**
 
 ```bash
-/dev-aid-router-ensemble "Analyze entire codebase for security issues"
+/aid-ensemble "Analyze entire codebase for security issues"
 ```
 
 **Routing logic:**
@@ -994,11 +991,11 @@ AI: *uses local RAG, returns relevant code*
 
 ---
 
-#### `/dev-aid-router-status`
+#### `/aid-router-status` (alias for `dev-aid-router-status`)
 **View routing stats**
 
 ```bash
-/dev-aid-router-status
+/aid-router-status
 ```
 
 **Shows:**
@@ -1092,33 +1089,33 @@ dev-aid-fix-conflicts --dry-run
 
 ### 🛠️ **Development Commands**
 
-#### `/dev-aid-audit`
+#### `/aid-audit` (alias for `dev-aid-audit`)
 Comprehensive security audit
 
 ```bash
-/dev-aid-audit
+/aid-audit
 ```
 
 Runs: Gitleaks (secrets), Trivy (CVE + misconfig), Opengrep (SAST)
 
 ---
 
-#### `/dev-aid-build-skill`
+#### `/aid-skill` (alias for `dev-aid-build-skill`)
 Generate custom expert skill
 
 ```bash
-/dev-aid-build-skill "Create a Kubernetes expert skill"
+/aid-skill "Create a Kubernetes expert skill"
 ```
 
 Generates skill with references, activation rules, and context.
 
 ---
 
-#### `/dev-aid-deploy-validate`
+#### `/aid-deploy` (alias for `dev-aid-deploy-validate`)
 Pre-deployment validation
 
 ```bash
-/dev-aid-deploy-validate production
+/aid-deploy production
 ```
 
 Validates: Dependencies, configs, security, tests

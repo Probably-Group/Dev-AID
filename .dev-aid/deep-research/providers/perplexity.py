@@ -133,7 +133,7 @@ class PerplexityProvider(ResearchProvider):
         }
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(
                     self.ENDPOINT,
                     headers=headers,

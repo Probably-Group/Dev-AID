@@ -112,7 +112,7 @@ class TavilyProvider(ResearchProvider):
             payload["exclude_domains"] = exclude_domains
 
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=self.DEFAULT_TIMEOUT) as client:
                 response = await client.post(
                     self.ENDPOINT,
                     json=payload,

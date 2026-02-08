@@ -1,6 +1,37 @@
 # What's New in Dev-AID
 
-## v1.5.0 - Autonomous Agent Framework
+## v1.5.0 - Autonomous Agent Framework + Comprehensive Security Scanning
+
+### Language-Specific Security Scanning (NEW!)
+Pre-push hook now auto-detects languages in your repository and runs the appropriate security tools:
+
+**Opengrep Fine-Tuning:**
+- Expanded from 5 default rulesets to **10 universal rulesets** (added OWASP Top 10, TrailOfBits, command injection, insecure transport, JWT)
+- **12 auto-detected language rulesets** based on file presence (Python, JS, TS, Go, Rust, Swift, Java, Kotlin, Ruby, PHP, C#, Scala)
+
+**Language-Specific SAST (auto-detected):**
+
+| Tool | Language | What It Catches |
+|------|----------|----------------|
+| **ShellCheck** | Bash/Shell | SC warnings, common script bugs |
+| **Flawfinder** | C/C++ | CWE-mapped security issues (buffer overflows, format strings) |
+| **mobsfscan** | Swift/iOS | OWASP MASVS/MSTG compliance violations |
+| **Bandit** | Python | Security anti-patterns (medium+ severity) |
+
+**Dependency Audit (auto-detected):**
+
+| Tool | Language | Detection |
+|------|----------|-----------|
+| **pip-audit** | Python | `requirements*.txt` or `pyproject.toml` |
+| **npm audit** | JS/TS | `package-lock.json` or `yarn.lock` |
+| **cargo audit** | Rust | `Cargo.lock` |
+| **govulncheck** | Go | `go.mod` |
+
+**Design:** Missing tools emit warnings (non-blocking). Each check runs independently. No language detected = check skips silently.
+
+Documentation: [Security Tools Reference](.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md) | [Automation Guide](.dev-aid/docs/AUTOMATION-GUIDE.md)
+
+---
 
 ### Provider-Agnostic Agent Framework
 Autonomous AI agents powered by Dev-AID's 72+ expert skills — works with any provider:

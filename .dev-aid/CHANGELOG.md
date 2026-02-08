@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0-beta.2] - 2026-02-08
+
+### Added
+- **Language-Specific Security Scanners in Pre-Push Hook**: Auto-detected security checks that run only when the language is present in the repository
+  - **Opengrep Fine-Tuning**: Expanded from 5 default rulesets to 10 universal rulesets (added OWASP Top 10, TrailOfBits, command injection, insecure transport, JWT) + 12 auto-detected language-specific rulesets (Python, JavaScript, TypeScript, Go, Rust, Swift, Java, Kotlin, Ruby, PHP, C#, Scala)
+  - **Shell SAST**: ShellCheck for `*.sh` files with warning-level severity
+  - **C/C++ SAST**: Flawfinder for `*.c`, `*.h`, `*.cpp`, `*.cc`, `*.cxx` files with CWE-mapped findings (level 2+)
+  - **Swift SAST**: mobsfscan for `*.swift` files with OWASP MASVS/MSTG compliance
+  - **Python SAST**: Bandit for `*.py` files with medium+ severity (excludes venv/node_modules)
+  - **Python Deps**: pip-audit for `requirements*.txt` or `pyproject.toml`
+  - **JS/TS Deps**: npm audit for `package-lock.json` or `yarn.lock` (high+ severity)
+  - **Rust Deps**: cargo audit for `Cargo.lock`
+  - **Go Vulns**: govulncheck for `go.mod`
+  - Missing tools emit warnings (non-blocking) — each check is optional and independent
+  - All temp files use secure cleanup with shred when available
+
+### Changed
+- **install-security-tools.sh**: Added `install_python_security_tools()` for bandit, pip-audit, flawfinder, mobsfscan via pipx (preferred) or pip --user
+- **install.sh**: Added optional tool checks for ShellCheck, Bandit, pip-audit, Flawfinder, mobsfscan, cargo-audit, govulncheck
+- **SECURITY-TOOLS-REFERENCE.md**: Complete documentation for all 11 security tools (3 universal + 4 language SAST + 4 dependency audit)
+- **AUTOMATION-GUIDE.md**: Updated architecture diagrams, tool stack tables, and pre-push hook documentation
+
+---
+
 ## [1.3.0-beta.15] - 2026-02-07
 
 ### Added

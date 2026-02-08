@@ -21,7 +21,7 @@ Automated security and quality checks for your development workflow.
 ```
 automation/
 ├── tools/
-│   └── install-security-tools.sh    # Installs Gitleaks, Trivy, Opengrep
+│   └── install-security-tools.sh    # Installs Gitleaks, Trivy, Opengrep + language tools
 ├── git-hooks/
 │   ├── pre-commit                   # Fast checks (~10s)
 │   ├── pre-push                     # Thorough checks (~60s)
@@ -33,11 +33,31 @@ automation/
 
 ## Security Tools
 
+### Universal (Always Run)
+
 | Tool | Purpose | Scan Types |
 |------|---------|------------|
 | **Gitleaks** | Secret scanning | Git history + current files |
 | **Trivy** | Multi-scanner | CVE, Misconfig, Secrets (deps, Dockerfiles, IaC) |
-| **Opengrep** | SAST (340+ rules) | OWASP Top 10, CWE Top 25, CI/CD security |
+| **Opengrep** | SAST (10 universal + 12 language-specific rulesets) | OWASP Top 10, CWE Top 25, CI/CD, command injection, insecure transport, JWT |
+
+### Language-Specific SAST (Auto-Detected)
+
+| Tool | Language | Detection |
+|------|----------|-----------|
+| **ShellCheck** | Bash/Shell | `*.sh` files present |
+| **Flawfinder** | C/C++ | `*.c`, `*.h`, `*.cpp` files present |
+| **mobsfscan** | Swift/iOS | `*.swift` files present |
+| **Bandit** | Python | `*.py` files present |
+
+### Language-Specific Dependency Audit (Auto-Detected)
+
+| Tool | Language | Detection |
+|------|----------|-----------|
+| **pip-audit** | Python | `requirements*.txt` or `pyproject.toml` |
+| **npm audit** | JS/TS | `package-lock.json` or `yarn.lock` |
+| **cargo audit** | Rust | `Cargo.lock` |
+| **govulncheck** | Go | `go.mod` |
 
 ## Automation Tiers
 
@@ -46,10 +66,12 @@ automation/
 - ✅ Critical code issues (Opengrep)
 - ✅ Critical CVEs (Trivy)
 
-### Tier 2: Pre-Push (~60s)
-- ✅ Full secret scan + git history
-- ✅ Complete SAST scan (340+ rules)
-- ✅ CVE + Misconfig scan (HIGH + CRITICAL)
+### Tier 2: Pre-Push (~90s)
+- ✅ Full secret scan + git history (Gitleaks)
+- ✅ Complete SAST scan — 10 universal + auto-detected language rulesets (Opengrep)
+- ✅ CVE + Misconfig scan — HIGH + CRITICAL (Trivy)
+- ✅ Language-specific SAST — ShellCheck, Flawfinder, mobsfscan, Bandit (auto-detected)
+- ✅ Dependency audit — pip-audit, npm audit, cargo audit, govulncheck (auto-detected)
 
 ### Tier 3: CI/CD (~3-5 min)
 - ✅ All above checks

@@ -163,12 +163,27 @@ app.post('/login', loginLimiter, loginHandler);
 
 ## Security Scanning
 
-This project uses automated security scanning:
-- **Gitleaks**: Secret detection in git history
-- **Trivy**: CVE + misconfig + secrets scanning
-- **Opengrep**: SAST with 340+ rules
+This project uses comprehensive automated security scanning via pre-push hooks:
+
+**Universal tools (always run):**
+- **Gitleaks**: Secret detection in git history + current files
+- **Trivy**: CVE + misconfig + secrets scanning (HIGH + CRITICAL)
+- **Opengrep**: SAST with 10 universal rulesets (OWASP Top 10, CWE Top 25, TrailOfBits, command injection, insecure transport, JWT) + 12 auto-detected language-specific rulesets
+
+**Language-specific SAST (auto-detected by file presence):**
+- **ShellCheck**: Bash/Shell static analysis
+- **Flawfinder**: C/C++ CWE-mapped security scanner
+- **mobsfscan**: Swift/iOS OWASP MASVS/MSTG scanner
+- **Bandit**: Python SAST (medium+ severity)
+
+**Dependency audit (auto-detected):**
+- **pip-audit**: Python dependency vulnerabilities
+- **npm audit**: JS/TS dependency vulnerabilities (high+)
+- **cargo audit**: Rust dependency vulnerabilities (RustSec)
+- **govulncheck**: Go official vulnerability check
 
 Run manually: `./.dev-aid/scripts/security-scan.sh`
+Tool reference: `./.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md`
 
 ---
 

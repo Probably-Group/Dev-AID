@@ -461,8 +461,10 @@ Process skills **enforce how you work**, not just what you know:
 
 ### 🔒 **Automated Security**
 - **Pre-commit hooks**: Secrets scan, SAST, Critical CVEs (~10s)
-- **Pre-push hooks**: Full SAST, git history scan (~60s)
-- **Security scanning**: CVE, SAST, secrets, misconfig (Trivy + Opengrep + Gitleaks)
+- **Pre-push hooks**: Full SAST + language-specific security checks (~90s)
+  - Universal: Gitleaks (secrets + git history), Opengrep (10 universal + 12 auto-detected language rulesets), Trivy (CVE + misconfig)
+  - Language SAST: ShellCheck (bash), Flawfinder (C/C++), mobsfscan (Swift), Bandit (Python) — auto-detected
+  - Dependency audit: pip-audit, npm audit, cargo audit, govulncheck — auto-detected
 - **Isolated dependencies**: Virtual environments, zero system pollution ([details](./.dev-aid/docs/DEPENDENCY-ISOLATION.md))
 
 ### 🤖 **Autonomous Agent Framework** (NEW!)
@@ -1444,19 +1446,40 @@ Skills auto-activate based on file patterns:
 - ✅ SAST - ERROR only (Opengrep)
 - ✅ Critical CVEs (Trivy)
 
-**Pre-push (~60s):**
-- ✅ Full SAST (Opengrep)
+**Pre-push (~90s):**
+- ✅ Full SAST — 10 universal + auto-detected language rulesets (Opengrep)
 - ✅ Git history scan (Gitleaks)
-- ✅ Dependency audit (Trivy)
-- ✅ Container + IaC scan (Trivy misconfig)
+- ✅ CVE + misconfig scan — HIGH + CRITICAL (Trivy)
+- ✅ Shell SAST (ShellCheck) — auto-detected
+- ✅ C/C++ SAST (Flawfinder) — auto-detected
+- ✅ Swift SAST (mobsfscan) — auto-detected
+- ✅ Python SAST (Bandit) + dependency audit (pip-audit) — auto-detected
+- ✅ JS/TS dependency audit (npm audit) — auto-detected
+- ✅ Rust dependency audit (cargo audit) — auto-detected
+- ✅ Go vulnerability check (govulncheck) — auto-detected
 
 ### Security Tools
+
+**Universal (always run):**
 
 | Tool | Scan Type | Coverage |
 |------|-----------|----------|
 | **Gitleaks** | Secrets | Git history + current files |
 | **Trivy** | CVE + Misconfig + Secrets | Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions |
-| **Opengrep** | SAST (340+ rules) | OWASP Top 10, CWE Top 25, CI/CD security, code patterns |
+| **Opengrep** | SAST (10 universal + 12 language rulesets) | OWASP Top 10, CWE Top 25, CI/CD, command injection, insecure transport, JWT, TrailOfBits |
+
+**Language-specific (auto-detected by file presence):**
+
+| Tool | Language | Scan Type |
+|------|----------|-----------|
+| **ShellCheck** | Bash/Shell | Static analysis (SC warnings) |
+| **Flawfinder** | C/C++ | CWE-mapped security audit |
+| **mobsfscan** | Swift/iOS | OWASP MASVS/MSTG compliance |
+| **Bandit** | Python | SAST (medium+ severity) |
+| **pip-audit** | Python | Dependency vulnerability scan |
+| **npm audit** | JS/TS | Dependency vulnerability scan |
+| **cargo audit** | Rust | RustSec advisory database |
+| **govulncheck** | Go | Official Go vulnerability check |
 
 ---
 
@@ -1657,9 +1680,14 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 - **[OpenRouter](https://openrouter.ai/)** - Unified AI API access
 
 ### Security Tools
-- **[Opengrep (fork of Semgrep OSS)](https://www.opengrep.dev/)** - SAST for OWASP Top 10
-- **[Gitleaks](https://gitleaks.io/)** - Secrets detection
-- **[Trivy](https://trivy.dev/)** - Vulnerability scanning
+- **[Opengrep (fork of Semgrep OSS)](https://www.opengrep.dev/)** - SAST with 10 universal + 12 auto-detected language rulesets
+- **[Gitleaks](https://gitleaks.io/)** - Secrets detection in git history + current files
+- **[Trivy](https://trivy.dev/)** - CVE, misconfig, and secrets scanning
+- **[ShellCheck](https://www.shellcheck.net/)** - Shell/Bash static analysis
+- **[Flawfinder](https://dwheeler.com/flawfinder/)** - C/C++ CWE-mapped security scanner
+- **[mobsfscan](https://github.com/MobSF/mobsfscan)** - Swift/iOS OWASP MASVS scanner
+- **[Bandit](https://bandit.readthedocs.io/)** - Python SAST
+- **[pip-audit](https://github.com/pypa/pip-audit)** - Python dependency vulnerability scanner
 
 ---
 

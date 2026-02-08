@@ -85,6 +85,136 @@ Codex uses `@file` syntax to include external content:
 .dev-aid/scripts/rag-status.sh
 ```
 
+## Dev-AID Agent Workflows
+
+Dev-AID includes intelligent multi-step agent workflows. When the user's request matches one of these workflows, execute the full workflow using the phases described below.
+
+### PR Review Agent
+
+**Trigger phrases**: "review PR", "check pull request", "PR review", "review pull request"
+
+**Required input**: PR number
+
+**Skills**: @~/.claude/skills/appsec-expert/SKILL.md, @~/.claude/skills/senior-architect/SKILL.md, @~/.claude/skills/devsecops-expert/SKILL.md
+
+**Workflow**:
+1. Gather PR context: `gh pr view $PR --json title,body,author,files,additions,deletions` and `gh pr diff $PR`
+2. Read each changed file in full for context
+3. Security review: injection flaws, auth issues, sensitive data, input validation, dependency risks
+4. Quality review: complexity, naming, error handling, duplication, test coverage
+5. Architecture review: coupling, abstractions, pattern adherence, scalability
+6. Output structured report with Summary, Security, Quality, Architecture, Suggestions, Verdict (APPROVE/REQUEST_CHANGES/COMMENT)
+
+### Test Generator Agent
+
+**Trigger phrases**: "generate tests", "write tests for", "create test", "add tests"
+
+**Required input**: file or directory path, optional framework (pytest/jest/vitest)
+
+**Skills**: @~/.claude/skills/python/SKILL.md
+
+**Workflow**:
+1. Analyze target code: functions, types, error conditions, dependencies
+2. Find existing test patterns: framework, naming, fixtures, mocking
+3. Generate tests: happy path, edge cases, error paths, boundary conditions
+4. Run tests to verify they pass, fix failures
+
+### Tech Debt Hunter Agent
+
+**Trigger phrases**: "find tech debt", "technical debt", "code smells", "debt analysis AI"
+
+**Required input**: optional path, optional severity (low/medium/high/critical)
+
+**Skills**: @~/.claude/skills/senior-architect/SKILL.md, @~/.claude/skills/refactoring-expert/SKILL.md
+
+**Workflow**:
+1. Code smells: long functions, god classes, nesting, magic numbers
+2. Duplication: copy-paste, parallel hierarchies, repeated patterns
+3. Complexity: cyclomatic complexity, O(n²) algorithms
+4. Dead code: unused functions, unreachable paths, commented code
+5. Dependencies: circular deps, tight coupling
+6. Security debt: hardcoded secrets, missing validation
+7. Test gaps: untested critical paths, flaky tests
+8. Output table: File, Severity, Category, Description, Suggestion, Effort
+
+### CI Fixer Agent
+
+**Trigger phrases**: "fix CI", "CI failing", "pipeline broken", "build failed", "fix workflow"
+
+**Required input**: optional run-id or PR number
+
+**Skills**: @~/.claude/skills/cicd-expert/SKILL.md, @~/.claude/skills/bash-expert/SKILL.md
+
+**Workflow**:
+1. Identify failure: `gh pr checks` or `gh run view --log-failed` or check latest run
+2. Examine CI config: `.github/workflows/*.yml`, Makefile, pre-commit
+3. Read failure output and parse error
+4. Trace root cause: code/config/environment issue, flaky vs deterministic
+5. Implement fix and verify locally
+
+### Conflict Resolver Agent
+
+**Trigger phrases**: "resolve conflicts", "merge conflict", "fix conflicts"
+
+**Required input**: optional PR number, optional strategy (smart/ours/theirs)
+
+**Skills**: @~/.claude/skills/senior-architect/SKILL.md
+
+**Workflow**:
+1. Identify conflicts: `git status`, `git diff --name-only --diff-filter=U`
+2. For each conflict: read file, understand both sides' intent, resolve intelligently
+3. Verify no markers remain, syntax valid
+4. Stage resolved files
+
+### Research Agent
+
+**Trigger phrases**: "research", "investigate", "compare approaches", "what are the options for"
+
+**Required input**: topic, optional depth (quick/standard/deep)
+
+**Skills**: @~/.claude/skills/deep-research-expert/SKILL.md, @~/.claude/skills/web-research-expert/SKILL.md
+
+**Workflow**:
+1. Understand topic and what decisions need informing
+2. Explore codebase for relevant context
+3. Web research for best practices, docs, community experiences
+4. Synthesize: Executive Summary, Background, Analysis, Recommendations, References
+
+### Onboarding Agent
+
+**Trigger phrases**: "onboard", "explain this project", "how does this codebase work", "project overview"
+
+**Required input**: optional path
+
+**Skills**: @~/.claude/skills/senior-architect/SKILL.md
+
+**Workflow**:
+1. Explore structure: directories, key files, entry points
+2. Identify tech stack: languages, frameworks, tools, CI/CD
+3. Understand architecture: patterns, data flow, abstractions
+4. Find setup instructions: README, Makefile, Docker, env vars
+5. Output: Overview, Tech Stack, Architecture, Directory Guide, Key Files, Getting Started, Common Tasks, Gotchas
+
+### Doc Auditor Agent
+
+**Trigger phrases**: "audit docs", "documentation health", "check documentation", "doc audit"
+
+**Required input**: optional path, optional scope (full/docs-only/code-only)
+
+**Skills**: @~/.claude/skills/senior-architect/SKILL.md
+
+**Workflow**:
+1. Discover documentation: glob `**/*.md`, README, CHANGELOG, docs/
+2. Discover code artifacts that should be documented
+3. Cross-reference: verify documented paths/modules/commands still exist
+4. Check internal links resolve
+5. Check naming conventions (SCREAMING-KEBAB-CASE in .dev-aid/docs/)
+6. Find documentation gaps
+7. Structural audit: language tags, heading hierarchy, TODOs
+8. Output: Health Score (A-F), Critical Issues, Broken Links, Missing Docs, Naming Violations, Recommendations
+
+---
+
 ## More Information
 
 - [Dev-AID Documentation](https://github.com/your-org/dev-aid)

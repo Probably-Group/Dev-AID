@@ -206,7 +206,9 @@ class ArchitectMode:
             ],
         )
 
-        return f"""You are an expert software architect. Your role is to analyze requirements and create a detailed implementation plan.
+        return (
+            f"""You are an expert software architect. """
+            f"""Your role is to analyze requirements and create a detailed implementation plan.
 
 ## Your Task
 {task}
@@ -264,6 +266,7 @@ You MUST produce a plan with these sections:
 ```
 
 Now analyze the task and create your implementation plan."""
+        )
 
     def get_implementer_prompt(self, plan: ImplementationPlan) -> str:
         """

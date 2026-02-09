@@ -1,6 +1,6 @@
 ---
 name: aid-test
-description: "Short alias for dev-aid-agent-test-gen — AI-powered test generation"
+description: "Generate tests for untested code paths"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

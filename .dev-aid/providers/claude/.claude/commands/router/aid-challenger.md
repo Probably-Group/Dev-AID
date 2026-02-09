@@ -1,6 +1,6 @@
 ---
 name: aid-challenger
-description: "Short alias for dev-aid-router-challenger — two-AI review workflow"
+description: "Two-AI review: Claude generates, Gemini reviews for security"
 category: router
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-api
-description: "Short alias for dev-aid-api-contract — generate OpenAPI specs and clients"
+description: "Generate OpenAPI specs, TypeScript clients, and mocks"
 category: productivity
 author: Dev-AID Team
 version: 1.0.0

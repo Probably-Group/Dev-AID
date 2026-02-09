@@ -1,6 +1,6 @@
 ---
 name: aid-debt
-description: "Short alias for dev-aid-agent-tech-debt — tech debt scanning"
+description: "Scan codebase for tech debt and code smells"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

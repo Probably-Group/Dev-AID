@@ -1,6 +1,6 @@
 ---
 name: aid-challenger-rag
-description: "Short alias for dev-aid-router-challenger-rag — challenger + local RAG"
+description: "Two-AI review with local codebase search (RAG)"
 category: router
 author: Dev-AID Team
 version: 1.0.0

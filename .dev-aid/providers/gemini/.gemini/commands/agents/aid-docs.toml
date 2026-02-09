@@ -1,5 +1,5 @@
 name = "aid-docs"
-description = "Short alias for dev-aid-agent-doc-audit — documentation audit"
+description = "Audit docs for drift, broken links, and gaps"
 
 [metadata]
 category = "agents"

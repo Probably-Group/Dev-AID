@@ -1,6 +1,6 @@
 ---
 name: aid-analyze
-description: "Short alias for dev-aid-analyze — analyze codebase and generate adaptation plan"
+description: "Analyze codebase and generate adaptation plan"
 category: setup
 author: Dev-AID Team
 version: 1.0.0

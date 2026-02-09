@@ -1,6 +1,6 @@
 ---
 name: aid-research
-description: "Short alias for dev-aid-agent-research — deep technical research"
+description: "Deep research on technical topics"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

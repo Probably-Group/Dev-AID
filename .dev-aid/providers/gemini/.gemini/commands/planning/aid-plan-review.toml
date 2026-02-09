@@ -1,5 +1,5 @@
 name = "aid-plan-review"
-description = "Short alias for dev-aid-plan-reviewer — review implementation plans"
+description = "Review implementation plans for flaws and alternatives"
 
 [metadata]
 category = "planning"

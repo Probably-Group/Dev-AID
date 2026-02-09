@@ -1,6 +1,6 @@
 ---
 name: aid-docs
-description: "Short alias for dev-aid-agent-doc-audit — documentation audit"
+description: "Audit docs for drift, broken links, and gaps"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-review
-description: "Short alias for dev-aid-review-staged — pre-commit review"
+description: "Pre-commit review: security, quality, and test gaps"
 category: quality
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-audit
-description: "Short alias for dev-aid-audit — comprehensive security audit"
+description: "Security audit: secrets, CVEs, SAST (Gitleaks + Trivy + Opengrep)"
 category: security
 author: Dev-AID Team
 version: 1.0.0

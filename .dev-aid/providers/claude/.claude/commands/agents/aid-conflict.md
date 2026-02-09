@@ -1,6 +1,6 @@
 ---
 name: aid-conflict
-description: "Short alias for dev-aid-agent-conflict-resolve — merge conflict resolution"
+description: "Resolve merge conflicts intelligently"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

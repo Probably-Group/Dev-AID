@@ -1,6 +1,6 @@
 ---
 name: aid-skill
-description: "Short alias for dev-aid-build-skill — generate custom expert skill"
+description: "Generate a custom expert skill from description"
 category: setup
 author: Dev-AID Team
 version: 1.0.0

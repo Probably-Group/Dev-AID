@@ -1,5 +1,5 @@
 name = "aid-test"
-description = "Short alias for dev-aid-agent-test-gen — AI-powered test generation"
+description = "Generate tests for untested code paths"
 
 [metadata]
 category = "agents"

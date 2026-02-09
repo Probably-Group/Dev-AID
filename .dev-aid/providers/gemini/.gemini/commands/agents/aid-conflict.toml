@@ -1,5 +1,5 @@
 name = "aid-conflict"
-description = "Short alias for dev-aid-agent-conflict-resolve — merge conflict resolution"
+description = "Resolve merge conflicts intelligently"
 
 [metadata]
 category = "agents"

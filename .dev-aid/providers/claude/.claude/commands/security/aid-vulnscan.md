@@ -1,6 +1,6 @@
 ---
 name: aid-vulnscan
-description: "Short alias for dev-aid-vulnerability-scan — deep CVE scanning"
+description: "Scan dependencies for CVEs with fix recommendations"
 category: security
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-router-status
-description: "Short alias for dev-aid-router-status — view routing stats"
+description: "View routing stats, costs, and recent decisions"
 category: router
 author: Dev-AID Team
 version: 1.0.0

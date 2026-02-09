@@ -1,5 +1,5 @@
 name = "aid-agents-guide"
-description = "Short alias for dev-aid-agents-guide — guide to creating Dev-AID agents"
+description = "Guide to creating custom Dev-AID agents"
 
 [metadata]
 category = "creation"

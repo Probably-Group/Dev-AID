@@ -1,5 +1,5 @@
 name = "aid-pr"
-description = "Short alias for dev-aid-agent-pr-review — AI-powered PR review"
+description = "Review PRs for security, quality, and architecture"
 
 [metadata]
 category = "agents"

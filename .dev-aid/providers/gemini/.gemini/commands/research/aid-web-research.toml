@@ -1,5 +1,5 @@
 name = "aid-web-research"
-description = "Short alias for dev-aid-web-research-specialist — web research with analysis"
+description = "Research technical topics with web search and analysis"
 
 [metadata]
 category = "research"

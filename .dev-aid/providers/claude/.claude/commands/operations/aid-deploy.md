@@ -1,6 +1,6 @@
 ---
 name: aid-deploy
-description: "Short alias for dev-aid-deploy-validate — pre-deployment validation"
+description: "Pre-deployment validation: deps, configs, security, tests"
 category: operations
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-ci
-description: "Short alias for dev-aid-agent-ci-fix — CI failure diagnosis"
+description: "Diagnose CI failures and propose fixes"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

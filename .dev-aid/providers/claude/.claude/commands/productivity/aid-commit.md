@@ -1,6 +1,6 @@
 ---
 name: aid-commit
-description: "Short alias for dev-aid-commit-plan — analyze changes and propose atomic commits"
+description: "Analyze unstaged changes and propose atomic commits"
 category: productivity
 author: Dev-AID Team
 version: 1.0.0

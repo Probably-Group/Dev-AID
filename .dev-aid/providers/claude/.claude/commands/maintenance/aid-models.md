@@ -1,6 +1,6 @@
 ---
 name: aid-models
-description: "Short alias for dev-aid-models-update — update AI model registry"
+description: "Update AI model registry with latest releases and pricing"
 category: maintenance
 author: Dev-AID Team
 version: 1.0.0

@@ -1,5 +1,5 @@
 name = "aid-ci"
-description = "Short alias for dev-aid-agent-ci-fix — CI failure diagnosis"
+description = "Diagnose CI failures and propose fixes"
 
 [metadata]
 category = "agents"

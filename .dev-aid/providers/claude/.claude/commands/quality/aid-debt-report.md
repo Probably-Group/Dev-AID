@@ -1,6 +1,6 @@
 ---
 name: aid-debt-report
-description: "Short alias for dev-aid-debt-analysis — tech debt identification and prioritization"
+description: "Identify and prioritize technical debt with effort estimates"
 category: quality
 author: Dev-AID Team
 version: 1.0.0

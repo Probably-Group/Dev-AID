@@ -1,6 +1,6 @@
 ---
 name: aid-health
-description: "Short alias for dev-aid-code-health — code quality assessment"
+description: "Assess code quality, test coverage, and maintainability"
 category: quality
 author: Dev-AID Team
 version: 1.0.0

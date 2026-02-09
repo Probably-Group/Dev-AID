@@ -1,6 +1,6 @@
 ---
 name: aid-status
-description: "Short alias for dev-aid-status — show Dev-AID configuration and setup status"
+description: "Show Dev-AID configuration and setup status"
 category: setup
 author: Dev-AID Team
 version: 1.0.0

@@ -1,6 +1,6 @@
 ---
 name: aid-onboard
-description: "Short alias for dev-aid-agent-onboard — codebase onboarding guide"
+description: "Generate codebase onboarding guide for new devs"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

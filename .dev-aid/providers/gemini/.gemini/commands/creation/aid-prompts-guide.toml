@@ -1,5 +1,5 @@
 name = "aid-prompts-guide"
-description = "Short alias for dev-aid-prompts-guide — guide to creating Dev-AID prompts"
+description = "Guide to creating effective Dev-AID prompts"
 
 [metadata]
 category = "creation"

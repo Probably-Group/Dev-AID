@@ -1,6 +1,6 @@
 ---
 name: aid-config
-description: "Short alias for dev-aid-config-core-skills — configure auto-loaded core skills"
+description: "Configure which core skills auto-load at session start"
 category: setup
 author: Dev-AID Team
 version: 1.0.0

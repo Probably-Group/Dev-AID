@@ -1,6 +1,6 @@
 ---
 name: aid-ensemble
-description: "Short alias for dev-aid-router-ensemble — smart routing to optimal AI"
+description: "Smart-route tasks to the optimal AI model"
 category: router
 author: Dev-AID Team
 version: 1.0.0

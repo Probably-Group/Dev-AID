@@ -1,6 +1,6 @@
 ---
 name: aid-pr
-description: "Short alias for dev-aid-agent-pr-review — AI-powered PR review"
+description: "Review PRs for security, quality, and architecture"
 category: agents
 author: Dev-AID Team
 version: 1.0.0

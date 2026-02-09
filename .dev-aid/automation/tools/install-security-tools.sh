@@ -7,7 +7,7 @@ set -euo pipefail
 TMP_DIRS_TO_CLEAN=()
 cleanup() {
     for dir in "${TMP_DIRS_TO_CLEAN[@]}"; do
-        rm -rf "$dir" 2>/dev/null
+        [[ "$dir" == /tmp/* || "$dir" == "${TMPDIR:-/tmp}"/* ]] && rm -rf "$dir"
     done
 }
 trap cleanup EXIT
@@ -24,10 +24,10 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Logging functions
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_info() { printf '%b[INFO]%b %s\n' "${BLUE}" "${NC}" "$1"; }
+log_success() { printf '%b[SUCCESS]%b %s\n' "${GREEN}" "${NC}" "$1"; }
+log_warning() { printf '%b[WARNING]%b %s\n' "${YELLOW}" "${NC}" "$1"; }
+log_error() { printf '%b[ERROR]%b %s\n' "${RED}" "${NC}" "$1" >&2; }
 
 # Detect OS and architecture
 detect_platform() {
@@ -65,11 +65,14 @@ install_opengrep() {
     fi
 
     # Install via official script (download then execute for safety)
+    # WARNING: This executes an unverified remote script. Review the script contents
+    # at https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh before running.
     if command -v curl &> /dev/null; then
         local tmp_script
         tmp_script=$(mktemp)
         TMP_DIRS_TO_CLEAN+=("$tmp_script")
         curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
+        log_warning "Executing downloaded installer script (unverified). Review before use in CI."
         bash "$tmp_script"
         rm -f "$tmp_script"
         log_success "Opengrep installed successfully"
@@ -88,20 +91,24 @@ install_gitleaks() {
         return 0
     fi
 
+    # Version should be periodically updated to latest stable
     VERSION="8.18.4"  # Latest stable as of 2025
     BINARY_URL="https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_${OS_TYPE}_${ARCH_TYPE}.tar.gz"
 
     TMP_DIR=$(mktemp -d)
     TMP_DIRS_TO_CLEAN+=("$TMP_DIR")
-    cd "$TMP_DIR"
 
     log_info "Downloading Gitleaks v${VERSION}..."
-    curl -sL "$BINARY_URL" | tar xz
+    (
+        cd "$TMP_DIR"
+        local tmp_tarball
+        tmp_tarball=$(mktemp "${TMP_DIR}/gitleaks.tar.gz.XXXXXX")
+        curl -fSL "$BINARY_URL" -o "$tmp_tarball"
+        tar xz -f "$tmp_tarball"
 
-    chmod +x gitleaks
-    mv gitleaks "$INSTALL_DIR/"
-
-    cd - > /dev/null
+        chmod +x gitleaks
+        mv gitleaks "$INSTALL_DIR/"
+    )
     rm -rf "$TMP_DIR"
 
     log_success "Gitleaks v${VERSION} installed to $INSTALL_DIR/gitleaks"
@@ -117,11 +124,14 @@ install_trivy() {
     fi
 
     # Install via official script (download then execute for safety)
+    # WARNING: This executes an unverified remote script. Review the script contents
+    # at https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh before running.
     if command -v curl &> /dev/null; then
         local tmp_script
         tmp_script=$(mktemp)
         TMP_DIRS_TO_CLEAN+=("$tmp_script")
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh -o "$tmp_script"
+        log_warning "Executing downloaded installer script (unverified). Review before use in CI."
         sh "$tmp_script" -b "$INSTALL_DIR"
         rm -f "$tmp_script"
         log_success "Trivy installed successfully"

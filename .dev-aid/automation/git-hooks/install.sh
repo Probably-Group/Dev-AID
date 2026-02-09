@@ -8,6 +8,12 @@ set -euo pipefail
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly GIT_HOOKS_DIR="$(git rev-parse --git-path hooks 2>/dev/null || echo ".git/hooks")"
 
+# Validate hooks dir is within the git repository
+if [[ ! "$GIT_HOOKS_DIR" =~ ^"$(git rev-parse --show-toplevel 2>/dev/null)"/ ]]; then
+    echo "[ERROR] Hooks directory is outside the git repository: $GIT_HOOKS_DIR" >&2
+    exit 1
+fi
+
 # Colors
 readonly RED='\033[0;31m'
 readonly GREEN='\033[0;32m'
@@ -24,10 +30,10 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
-log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
+log_info() { printf '%b[INFO]%b %s\n' "${BLUE}" "${NC}" "$1"; }
+log_success() { printf '%b[SUCCESS]%b %s\n' "${GREEN}" "${NC}" "$1"; }
+log_warning() { printf '%b[WARNING]%b %s\n' "${YELLOW}" "${NC}" "$1"; }
+log_error() { printf '%b[ERROR]%b %s\n' "${RED}" "${NC}" "$1" >&2; }
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -93,6 +99,7 @@ echo ""
 
 # Check if tools are installed
 log_info "Checking security tools..."
+# Intentionally script-scoped; shared with check_tool function
 TOOLS_MISSING=0
 
 check_tool() {

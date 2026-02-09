@@ -206,7 +206,8 @@ test_installation() {
         if [[ -n "$line" && ! "$line" =~ ^# ]]; then
             # Extract package name (before ==, >=, etc.)
             local pkg_name=$(echo "$line" | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | tr -d ' ')
-            if [[ -n "$pkg_name" ]]; then
+            # Validate package name format
+            if [[ -n "$pkg_name" && "$pkg_name" =~ ^[a-zA-Z_][a-zA-Z0-9_.-]*$ ]]; then
                 # Use import name from map, or package name as-is
                 local import_name="${import_map[$pkg_name]:-$pkg_name}"
                 packages_to_test+=("$import_name")
@@ -217,6 +218,11 @@ test_installation() {
     # Test each package
     local failed=0
     for package in "${packages_to_test[@]}"; do
+        # Validate package name to prevent injection
+        if [[ ! "$package" =~ ^[a-zA-Z_][a-zA-Z0-9_.]*$ ]]; then
+            print_warning "Skipping invalid package name: $package"
+            continue
+        fi
         if python3 -c "import ${package}" 2>/dev/null; then
             print_success "$package"
         else

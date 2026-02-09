@@ -17,31 +17,31 @@ route_by_capability() {
 
     # Massive context tasks → Gemini
     if [ "$context_size" -gt 100000 ] || \
-       echo "$keywords" | grep -qiE "(analyze entire|read all files|repository-wide)"; then
+       printf '%s\n' "$keywords" | grep -qiE "(analyze entire|read all files|repository-wide)"; then
         echo "gemini-2.0-flash"
         return
     fi
 
     # Code generation tasks → Claude
-    if echo "$task_type" | grep -qiE "(code|refactor|implement|fix)"; then
+    if printf '%s\n' "$task_type" | grep -qiE "(code|refactor|implement|fix)"; then
         echo "claude-sonnet-4.5"
         return
     fi
 
     # Documentation tasks → OpenAI
-    if echo "$task_type" | grep -qiE "(docs|readme|comments|explain)"; then
+    if printf '%s\n' "$task_type" | grep -qiE "(docs|readme|comments|explain)"; then
         echo "gpt-4o"
         return
     fi
 
     # Security tasks → Claude
-    if echo "$keywords" | grep -qiE "(security|audit|vulnerability|owasp)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(security|audit|vulnerability|owasp)"; then
         echo "claude-sonnet-4.5"
         return
     fi
 
     # Quick tasks → Haiku or GPT-3.5
-    if echo "$keywords" | grep -qiE "(quick|simple|fast)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(quick|simple|fast)"; then
         echo "claude-haiku-4"
         return
     fi
@@ -69,11 +69,11 @@ is_model_enabled() {
 
     # Check if provider is enabled
     if command -v jq &> /dev/null; then
-        local enabled=$(jq -r ".${provider}.enabled" "$CONFIG_DIR/models.json")
+        local enabled=$(jq -r --arg p "$provider" '.[$p].enabled' "$CONFIG_DIR/models.json")
         [ "$enabled" == "true" ]
     else
         # Fallback: grep for enabled status
-        grep -q "\"${provider}\".*\"enabled\": *true" "$CONFIG_DIR/models.json"
+        grep -qF "\"${provider}\"" "$CONFIG_DIR/models.json" && grep -q '"enabled": *true' "$CONFIG_DIR/models.json"
     fi
 }
 

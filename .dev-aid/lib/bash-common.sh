@@ -14,6 +14,7 @@ validate_path_containment() {
     local resolved_base
 
     # Resolve to absolute paths
+    # Note: realpath -m is GNU coreutils; falls through to error on macOS without it
     resolved_path="$(realpath -m "$path" 2>/dev/null)" || {
         echo "Error: Failed to resolve path: $path" >&2
         return 1
@@ -25,7 +26,7 @@ validate_path_containment() {
     }
 
     # Check containment
-    if [[ "$resolved_path" != "${resolved_base}"* ]]; then
+    if [[ "$resolved_path" != "${resolved_base}/"* && "$resolved_path" != "${resolved_base}" ]]; then
         echo "Error: Path traversal attempt detected: $path is outside $base" >&2
         return 1
     fi

@@ -43,7 +43,7 @@ extract_python_imports() {
             cut -d'.' -f1 | \
             head -20 >> "$TEMP_IMPORTS" || true
 
-    done < <(find "$project_dir" -name "*.py" -type f 2>/dev/null | head -"$MAX_FILES")
+    done < <(find -- "$project_dir" -name "*.py" -type f 2>/dev/null | head -"$MAX_FILES")
 }
 
 # Extract JavaScript/TypeScript imports
@@ -69,7 +69,7 @@ extract_js_ts_imports() {
             sed 's/@//' | \
             head -20 >> "$TEMP_IMPORTS" || true
 
-    done < <(find "$project_dir" -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" \) 2>/dev/null | head -"$MAX_FILES")
+    done < <(find -- "$project_dir" -type f \( -name "*.js" -o -name "*.ts" -o -name "*.tsx" -o -name "*.jsx" \) 2>/dev/null | head -"$MAX_FILES")
 }
 
 # Extract Rust dependencies from Cargo.toml
@@ -109,7 +109,7 @@ extract_go_imports() {
             rev | cut -d'/' -f1 | rev | \
             head -20 >> "$TEMP_IMPORTS" || true
 
-    done < <(find "$project_dir" -name "*.go" -type f 2>/dev/null | head -"$MAX_FILES")
+    done < <(find -- "$project_dir" -name "*.go" -type f 2>/dev/null | head -"$MAX_FILES")
 }
 
 # Detect framework-specific patterns
@@ -117,17 +117,17 @@ detect_framework_patterns() {
     local project_dir="$1"
 
     # Vue/Nuxt: Look for <template>, <script setup>, defineComponent
-    if find "$project_dir" -name "*.vue" -type f 2>/dev/null | head -1 | grep -q .; then
+    if find -- "$project_dir" -name "*.vue" -type f 2>/dev/null | head -1 | grep -q .; then
         echo "Vue" >> "$TEMP_IMPORTS"
 
         # Check for Nuxt-specific patterns
-        if grep -rq "useAsyncData\|useFetch\|defineNuxtConfig" "$project_dir" --include="*.vue" --include="*.ts" 2>/dev/null | head -1 | grep -q .; then
+        if grep -rq --no-messages "useAsyncData\|useFetch\|defineNuxtConfig" "$project_dir" --include="*.vue" --include="*.ts" 2>/dev/null; then
             echo "Nuxt" >> "$TEMP_IMPORTS"
         fi
     fi
 
     # React: Look for JSX syntax, React hooks
-    if find "$project_dir" -type f \( -name "*.jsx" -o -name "*.tsx" \) 2>/dev/null | head -1 | grep -q .; then
+    if find -- "$project_dir" -type f \( -name "*.jsx" -o -name "*.tsx" \) 2>/dev/null | head -1 | grep -q .; then
         echo "React" >> "$TEMP_IMPORTS"
 
         # Check for Next.js specific files/patterns
@@ -137,17 +137,17 @@ detect_framework_patterns() {
     fi
 
     # FastAPI: Look for @app decorator patterns
-    if grep -rq "@app\\.\\(get\\|post\\|put\\|delete\\)" "$project_dir" --include="*.py" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "@app\\.\\(get\\|post\\|put\\|delete\\)" "$project_dir" --include="*.py" 2>/dev/null; then
         echo "FastAPI" >> "$TEMP_IMPORTS"
     fi
 
     # Express: Look for express() calls
-    if grep -rq "express()" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "express()" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null; then
         echo "Express" >> "$TEMP_IMPORTS"
     fi
 
     # GraphQL: Look for type Query, type Mutation
-    if grep -rq "type \\(Query\\|Mutation\\)" "$project_dir" --include="*.graphql" --include="*.gql" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "type \\(Query\\|Mutation\\)" "$project_dir" --include="*.graphql" --include="*.gql" 2>/dev/null; then
         echo "GraphQL" >> "$TEMP_IMPORTS"
     fi
 
@@ -157,7 +157,7 @@ detect_framework_patterns() {
     fi
 
     # Electron: Check for electron in main process
-    if grep -rq "app\\.whenReady\\|BrowserWindow" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "app\\.whenReady\\|BrowserWindow" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null; then
         echo "Electron" >> "$TEMP_IMPORTS"
     fi
 }
@@ -167,17 +167,17 @@ detect_testing_frameworks() {
     local project_dir="$1"
 
     # Python testing
-    if find "$project_dir" -name "test_*.py" -type f 2>/dev/null | head -1 | grep -q .; then
+    if find -- "$project_dir" -name "test_*.py" -type f 2>/dev/null | head -1 | grep -q .; then
         echo "pytest" >> "$TEMP_IMPORTS"
     fi
 
     # JavaScript testing
-    if grep -rq "describe\\|it\\|test\\|expect" "$project_dir" --include="*.test.js" --include="*.test.ts" --include="*.spec.js" --include="*.spec.ts" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "describe\\|it\\|test\\|expect" "$project_dir" --include="*.test.js" --include="*.test.ts" --include="*.spec.js" --include="*.spec.ts" 2>/dev/null; then
         echo "Jest" >> "$TEMP_IMPORTS"
     fi
 
     # Check for specific test runners in files
-    if grep -rq "vitest" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "vitest" "$project_dir" --include="*.js" --include="*.ts" 2>/dev/null; then
         echo "Vitest" >> "$TEMP_IMPORTS"
     fi
 }
@@ -187,7 +187,7 @@ detect_database_patterns() {
     local project_dir="$1"
 
     # SQLAlchemy (Python)
-    if grep -rq "from sqlalchemy import\\|import sqlalchemy" "$project_dir" --include="*.py" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "from sqlalchemy import\\|import sqlalchemy" "$project_dir" --include="*.py" 2>/dev/null; then
         echo "SQLAlchemy" >> "$TEMP_IMPORTS"
     fi
 
@@ -197,7 +197,7 @@ detect_database_patterns() {
     fi
 
     # TypeORM
-    if grep -rq "@Entity\\|@Column" "$project_dir" --include="*.ts" 2>/dev/null | head -1 | grep -q .; then
+    if grep -rq --no-messages "@Entity\\|@Column" "$project_dir" --include="*.ts" 2>/dev/null; then
         echo "TypeORM" >> "$TEMP_IMPORTS"
     fi
 }

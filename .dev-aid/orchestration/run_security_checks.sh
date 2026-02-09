@@ -41,6 +41,7 @@ run_check() {
 cd "$(dirname "$0")"
 
 echo "Step 1: Installing dependencies..."
+# Note: Consider using --require-hashes for supply chain protection
 pip install -q -r requirements.txt
 
 echo ""

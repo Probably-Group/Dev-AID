@@ -27,25 +27,25 @@ should_challenge() {
     local keywords="${2:-}"
 
     # Security-sensitive tasks
-    if echo "$keywords" | grep -qiE "(auth|password|token|secret|crypto|security)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(auth|password|token|secret|crypto|security)"; then
         echo "security_sensitive"
         return 0
     fi
 
     # Performance-critical tasks
-    if echo "$keywords" | grep -qiE "(performance|optimize|bottleneck|cache|query)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(performance|optimize|bottleneck|cache|query)"; then
         echo "performance_critical"
         return 0
     fi
 
     # Major refactoring
-    if echo "$keywords" | grep -qiE "(refactor|restructure|rewrite)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(refactor|restructure|rewrite)"; then
         echo "major_refactoring"
         return 0
     fi
 
     # New architecture
-    if echo "$keywords" | grep -qiE "(architecture|design|structure|framework)"; then
+    if printf '%s\n' "$keywords" | grep -qiE "(architecture|design|structure|framework)"; then
         echo "new_architecture"
         return 0
     fi

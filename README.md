@@ -498,20 +498,13 @@ Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills. E
 
 **Quick Start:**
 ```bash
-# Review a PR
-dev-aid-agent pr-reviewer --pr 135 --verbose
-
-# Generate tests
-dev-aid-agent test-generator --path src/auth/ --framework pytest
-
-# Tech debt scan with a different provider
-dev-aid-agent tech-debt-hunter --severity high --provider google
-
-# JSON output for CI pipelines
-dev-aid-agent tech-debt-hunter --severity critical --json
+/aid-pr 135                        # Review a PR
+/aid-test src/auth/                # Generate tests
+/aid-debt src/ high                # Tech debt scan
+/aid-team security-audit-team -m "Audit auth module"  # Multi-agent team
 ```
 
-**Also available as slash commands:** `/aid-pr`, `/aid-test`, `/aid-debt`, `/aid-ci`, `/aid-help` — type `/aid-` for autocomplete.
+**For CI/scripts:** `dev-aid-agent pr-reviewer --pr 135 --json`
 
 [**Agent Framework Guide**](.dev-aid/docs/Dev-AID-AGENTS.md) — CLI reference, slash commands, agent catalog, tools, safety, configuration.
 
@@ -823,7 +816,8 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 - **8 built-in agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor
 - **16 built-in tools**: File I/O, git, GitHub, bash, search — all with safety enforcement
 - **4 providers**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
-- **CLI**: `dev-aid-agent <agent> --provider <name> --dry-run --verbose --json`
+- **Slash commands**: `/aid-pr`, `/aid-test`, `/aid-debt`, `/aid-ci`, `/aid-team` — type `/aid-` for autocomplete
+- **CLI** (CI/scripts): `dev-aid-agent <agent> --provider <name> --dry-run --verbose --json`
 - **Skill-powered**: Each agent loads Dev-AID expert skills as system prompts
 - Guide: [Dev-AID-AGENTS.md](.dev-aid/docs/Dev-AID-AGENTS.md)
 
@@ -1076,6 +1070,7 @@ dev-aid-fix-conflicts --dry-run
 | `/aid-research "topic"` | `/dev-aid-agent-research` | Deep research on technical topics |
 | `/aid-onboard` | `/dev-aid-agent-onboard` | Generate codebase onboarding guide |
 | `/aid-docs .` | `/dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
+| `/aid-team <team> -m "..."` | `/dev-aid-agent-team` | Run multi-agent teams (PR review, security audit, etc.) |
 | `/aid-help` | — | Show all Dev-AID commands |
 
 **Supported in:** Claude Code, Gemini CLI, Cursor, Windsurf, Cline

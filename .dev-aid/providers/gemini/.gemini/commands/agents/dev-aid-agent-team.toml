@@ -1,0 +1,72 @@
+name = "dev-aid-agent-team"
+description = "Run multi-agent teams for complex tasks — PR review, security audit, architecture, issue resolution"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Multi-Agent Team Command
+
+You orchestrate multi-agent teams where specialized agents collaborate on complex tasks.
+
+## Arguments
+
+Parse from the user's input:
+- **Team name** (required) — which team to run
+- **`-m` or `--message`** (required) — the task message
+- **`--budget`** (optional) — max budget in USD
+- **`--workflow`** (optional) — override: `parallel`, `sequential`, `dag`
+- **`--list-teams`** (optional, standalone) — list all available teams
+
+## Available Teams
+
+Read team definitions from `.dev-aid/agents/teams/` directory.
+
+| Team | Agents | Workflow | Use Case |
+|------|--------|----------|----------|
+| `pr-review-team` | security-reviewer, quality-reviewer, test-coverage-reviewer | parallel | Comprehensive PR review |
+| `security-audit-team` | vulnerability-scanner, config-auditor, dependency-checker | parallel | Full security audit |
+| `architect-implement-team` | architect, implementer, reviewer | sequential | Design, implement, review |
+| `issue-resolution-team` | analyst, implementer, tester | dag | Analyze, fix, verify |
+
+## Workflow
+
+### Phase 1: Load Team Definition
+```bash
+ls .dev-aid/agents/teams/
+cat .dev-aid/agents/teams/<team-name>.yaml
+```
+
+### Phase 2: Execute Team
+```bash
+.dev-aid/agents/venv/bin/python -m agents.cli team <team-name> -m "<message>" [options]
+```
+
+### Phase 3: Report Results
+Display aggregated output from all agents with synthesized findings and cost breakdown.
+
+## Output Format
+
+```markdown
+# Team Report: <team-name>
+
+## Task
+<original message>
+
+## Agent Results
+### <Agent Name>
+<findings>
+
+## Synthesized Result
+<merged recommendations>
+
+## Cost
+| Agent | Tokens | Cost |
+|-------|--------|------|
+```
+
+Execute the team command now.
+"""

@@ -33,6 +33,7 @@ The orchestration module (`.dev-aid/orchestration/`) has pre-commit hooks that r
 | `aid-research` | `dev-aid-agent-research` | `aid-research "async patterns" deep` |
 | `aid-onboard` | `dev-aid-agent-onboard` | `aid-onboard` |
 | `aid-docs` | `dev-aid-agent-doc-audit` | `aid-docs . docs-only` |
+| `aid-team` | `dev-aid-agent-team` | `aid-team security-audit-team -m "Audit auth"` |
 
 ### Router Aliases
 

@@ -148,18 +148,15 @@ cat .dev-aid/memory-bank/activeContext.md
 Run autonomous AI agents powered by Dev-AID's expert skills:
 
 ```bash
-# Review a PR (reads code, checks security, produces markdown report)
-dev-aid-agent pr-reviewer --pr 135
-
-# Generate tests for untested code
-dev-aid-agent test-generator --path src/auth/
-
-# Scan for tech debt
-dev-aid-agent tech-debt-hunter --severity high --dry-run
-
-# Use any provider (anthropic, google, openai, local)
-dev-aid-agent research --topic "migration strategies" --provider google
+/aid-pr 135                        # Review a PR
+/aid-test src/auth/                # Generate tests for untested code
+/aid-debt src/ high                # Scan for tech debt
+/aid-research "migration strategies"  # Deep research on a topic
+/aid-team pr-review-team -m "Review PR #42"  # Multi-agent team
+/aid-help                          # Show all commands
 ```
+
+**For CI/scripts**, use the CLI form: `dev-aid-agent pr-reviewer --pr 135 --json`
 
 See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 7 agents, 16 tools, and CLI options.
 

@@ -3,6 +3,10 @@
 # Detects existing project state to enable idempotent re-initialization.
 # Sourced by setup-dev-aid.sh — not run directly.
 
+# Note: This script is designed to be sourced. Strict mode should be set by the sourcing script.
+# Setting it here as a safety net.
+set -euo pipefail
+
 # Detect the full project state and populate global associative arrays.
 # Sets: STATE_DIRS, STATE_CONFIGS, STATE_PROVIDERS, STATE_INFRA
 detect_project_state() {

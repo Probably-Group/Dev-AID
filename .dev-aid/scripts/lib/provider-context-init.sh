@@ -117,6 +117,12 @@ get_context_filename() {
 init_context_file() {
     local project_root="$1"
     local provider="${2:-claude}"
+
+    # Validate provider
+    case "$provider" in
+        claude|gemini|openai|codex|cursor) ;;
+        *) echo "Error: Invalid provider '$provider'" >&2; return 1 ;;
+    esac
     local context_filename=$(get_context_filename "$provider")
     local context_file="$project_root/$context_filename"
 
@@ -314,13 +320,8 @@ create_symlink() {
     local provider="$2"
     local context_filename=$(get_context_filename "$provider")
     local target="$project_root/$context_filename"
-
-    # Remove existing file/symlink
-    rm -f "$target"
-
-    # Create symlink (relative path)
-    ln -s ".dev-aid/providers/$provider/$context_filename" "$target"
-
+    # Create symlink (atomic, replaces existing)
+    ln -sf ".dev-aid/providers/$provider/$context_filename" "$target"
     echo "   ✓ Created symlink: $context_filename → .dev-aid/providers/$provider/$context_filename"
 }
 
@@ -420,6 +421,12 @@ main() {
 
     # Ensure absolute path
     project_root="$(cd "$project_root" && pwd)"
+
+    # Refuse to operate on system directories
+    if [[ "$project_root" == "/" || "$project_root" == "/etc"* || "$project_root" == "/usr"* || "$project_root" == "/bin"* || "$project_root" == "/sbin"* ]]; then
+        echo "Error: Refusing to operate on system directory: $project_root" >&2
+        exit 1
+    fi
 
     case "$command" in
         init)

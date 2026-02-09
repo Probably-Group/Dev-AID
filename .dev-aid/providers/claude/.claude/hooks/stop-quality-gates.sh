@@ -3,6 +3,11 @@ set -euo pipefail
 # Stop Hook - Quality Gates + Memory Bank Sync
 # Runs when Claude Code stops responding
 
+CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-}"
+if [[ -z "$CLAUDE_PROJECT_DIR" ]]; then
+    exit 0  # Silently skip if no project dir
+fi
+
 PROJECT_DIR="$CLAUDE_PROJECT_DIR"
 MEMORY_BANK="$PROJECT_DIR/memory-bank"
 

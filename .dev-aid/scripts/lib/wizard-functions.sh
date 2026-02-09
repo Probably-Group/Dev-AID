@@ -522,6 +522,7 @@ ask_api_keys() {
                 echo ""
                 if [ -n "$claude_key" ]; then
                     COLLECTED_API_KEYS+=("ANTHROPIC_API_KEY=$claude_key")
+                    unset claude_key
                     print_color "$GREEN" "Claude API key saved"
                 else
                     print_color "$YELLOW" "Skipped (you can add it later)"
@@ -535,6 +536,7 @@ ask_api_keys() {
                 echo ""
                 if [ -n "$gemini_key" ]; then
                     COLLECTED_API_KEYS+=("GOOGLE_API_KEY=$gemini_key")
+                    unset gemini_key
                     print_color "$GREEN" "Gemini API key saved"
                 else
                     print_color "$YELLOW" "Skipped (you can add it later)"
@@ -548,6 +550,7 @@ ask_api_keys() {
                 echo ""
                 if [ -n "$openai_key" ]; then
                     COLLECTED_API_KEYS+=("OPENAI_API_KEY=$openai_key")
+                    unset openai_key
                     print_color "$GREEN" "OpenAI API key saved"
                 else
                     print_color "$YELLOW" "Skipped (you can add it later)"
@@ -561,6 +564,7 @@ ask_api_keys() {
                 echo ""
                 if [ -n "$openrouter_key" ]; then
                     COLLECTED_API_KEYS+=("OPENROUTER_API_KEY=$openrouter_key")
+                    unset openrouter_key
                     print_color "$GREEN" "OpenRouter API key saved"
                 else
                     print_color "$YELLOW" "Skipped (you can add it later)"

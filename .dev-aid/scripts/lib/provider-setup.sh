@@ -16,6 +16,16 @@ setup_provider_directory() {
     local project_root="$2"
     local dev_aid_dir="$project_root/.dev-aid"
 
+    # Validate target directory is within project
+    local resolved_target
+    resolved_target=$(realpath "$project_root" 2>/dev/null || echo "$project_root")
+    local resolved_root
+    resolved_root=$(realpath "$project_root" 2>/dev/null || echo "$project_root")
+    if [[ "$resolved_target" != "$resolved_root"* ]]; then
+        echo "Error: Target directory is outside project root" >&2
+        return 1
+    fi
+
     case "$provider" in
         claude)
             _setup_claude_dir "$project_root" "$dev_aid_dir"
@@ -205,6 +215,16 @@ _setup_simple_symlink() {
     local provider="$2"
     local context_filename="$3"
     local dev_aid_dir="$project_root/.dev-aid"
+
+    # Validate target directory is within project
+    local resolved_target
+    resolved_target=$(realpath "$project_root" 2>/dev/null || echo "$project_root")
+    local resolved_root
+    resolved_root=$(realpath "$project_root" 2>/dev/null || echo "$project_root")
+    if [[ "$resolved_target" != "$resolved_root"* ]]; then
+        echo "Error: Target directory is outside project root" >&2
+        return 1
+    fi
 
     if [ -f "$dev_aid_dir/providers/$provider/$context_filename" ]; then
         echo -e "  ${CYAN:-}Creating symlink for $context_filename...${NC:-}"

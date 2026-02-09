@@ -42,11 +42,15 @@ add_issue() {
     local severity="${4:-medium}"
     local auto_fix="${5:-false}"
 
+
+    # Escape JSON-special characters
+    local escaped_desc
+    escaped_desc=$(printf '%s' "$description" | sed 's/["\\]/\\&/g; s/\t/\\t/g')
     local issue_json=$(cat <<EOF
 {
   "type": "$type",
   "line": $line_num,
-  "description": "$description",
+  "description": "$escaped_desc",
   "severity": "$severity",
   "auto_fix": $auto_fix
 }

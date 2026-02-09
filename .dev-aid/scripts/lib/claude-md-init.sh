@@ -300,11 +300,8 @@ create_symlink() {
     local provider="$2"
     local target="$project_root/CLAUDE.md"
 
-    # Remove existing file/symlink
-    rm -f "$target"
-
-    # Create symlink (relative path)
-    ln -s ".dev-aid/providers/$provider/CLAUDE.md" "$target"
+    # Create symlink (atomic, replaces existing)
+    ln -sf ".dev-aid/providers/$provider/CLAUDE.md" "$target"
 
     echo "   ✓ Created symlink: CLAUDE.md → .dev-aid/providers/$provider/CLAUDE.md"
 }
@@ -399,6 +396,12 @@ main() {
 
     # Ensure absolute path
     project_root="$(cd "$project_root" && pwd)"
+
+    # Refuse to operate on system directories
+    if [[ "$project_root" == "/" || "$project_root" == "/etc"* || "$project_root" == "/usr"* || "$project_root" == "/bin"* || "$project_root" == "/sbin"* ]]; then
+        echo "Error: Refusing to operate on system directory: $project_root" >&2
+        exit 1
+    fi
 
     case "$command" in
         init)

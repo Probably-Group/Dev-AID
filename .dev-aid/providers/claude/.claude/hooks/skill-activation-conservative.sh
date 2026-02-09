@@ -4,7 +4,10 @@ set -euo pipefail
 # File pattern matching, max 2-3 skills
 # High confidence only
 
-SKILL_RULES="$CLAUDE_PROJECT_DIR/.claude/skill-rules.json"
+# Default environment variables to empty to prevent crashes under set -u
+CLAUDE_USER_PROMPT="${CLAUDE_USER_PROMPT:-}"
+CLAUDE_CONTEXT_FILES="${CLAUDE_CONTEXT_FILES:-}"
+CLAUDE_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-}"
 
 # Get current files from context (if available in CLAUDE_CONTEXT env var)
 CURRENT_FILES="${CLAUDE_CONTEXT_FILES:-}"

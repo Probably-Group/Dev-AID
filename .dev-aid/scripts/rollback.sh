@@ -68,6 +68,15 @@ fi
 
 BACKUP_DIR="$1"
 
+# Validate backup directory is within .dev-aid/backups/ or .dev-aid-backup-*
+if [[ ! "$BACKUP_DIR" =~ ^\.dev-aid/backups/ && ! "$BACKUP_DIR" =~ ^/.*/.dev-aid/backups/ ]]; then
+    # Allow absolute paths that contain .dev-aid/backups/ or .dev-aid-backup-* patterns
+    if [[ "$BACKUP_DIR" != *".dev-aid/backups/"* && "$BACKUP_DIR" != *".dev-aid-backup-"* && "$BACKUP_DIR" != .dev-aid-backup-* ]]; then
+        echo "Error: Backup directory must be within .dev-aid/backups/ or match .dev-aid-backup-*" >&2
+        exit 1
+    fi
+fi
+
 # Validate backup directory
 if [ ! -d "$BACKUP_DIR" ]; then
     echo -e "${RED}❌ Backup not found: $BACKUP_DIR${NC}"
@@ -159,6 +168,7 @@ if compgen -G "$BACKUP_DIR/.env*" > /dev/null; then
     mkdir -p .dev-aid/config
     cp "$BACKUP_DIR/.env"* .dev-aid/config/ 2>/dev/null || true
     echo "  ✓ Restored .env files"
+    chmod 600 .dev-aid/config/.env* 2>/dev/null || true
 fi
 
 # Restore memory bank

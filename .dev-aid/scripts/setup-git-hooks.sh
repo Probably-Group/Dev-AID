@@ -72,14 +72,14 @@ BASH_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "\.sh$" || t
 
 if [ -n "$BASH_FILES" ]; then
     echo "📝 Bash scripts changed, running shellcheck..."
-    for file in $BASH_FILES; do
+    while IFS= read -r file; do
         if [ -f "$REPO_ROOT/$file" ]; then
             shellcheck "$REPO_ROOT/$file" || {
                 echo "❌ Shellcheck failed for $file"
                 exit 1
             }
         fi
-    done
+    done <<< "$BASH_FILES"
     echo "✅ Shellcheck passed!"
 fi
 

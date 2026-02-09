@@ -15,6 +15,12 @@ backup_context_file() {
     local source_file="$1"
     local project_root="$2"
     local provider="${3:-claude}"
+
+    # Validate provider
+    case "$provider" in
+        claude|gemini|openai|codex|cursor) ;;
+        *) echo "Error: Invalid provider '$provider'" >&2; return 1 ;;
+    esac
     local provider_upper="${provider^^}"
     local timestamp=$(date +%Y%m%d_%H%M%S)
 
@@ -29,10 +35,9 @@ backup_context_file() {
     # Update .latest tracker for this provider
     echo "$backup_file" > "${backup_dir}/.latest-${provider}"
 
-    # Create/update symlink in project root for easy access
+    # Create/update symlink in project root for easy access (atomic operation)
     local symlink="${project_root}/${provider_upper}_original-backup.md"
-    rm -f "$symlink"
-    ln -s ".dev-aid/backups/${provider_upper}_original-backup_${timestamp}.md" "$symlink"
+    ln -sf ".dev-aid/backups/${provider_upper}_original-backup_${timestamp}.md" "$symlink"
 
     echo "$backup_file"
 }
@@ -50,6 +55,12 @@ backup_claude_md() {
 restore_context_backup() {
     local project_root="$1"
     local provider="${2:-claude}"
+
+    # Validate provider
+    case "$provider" in
+        claude|gemini|openai|codex|cursor) ;;
+        *) echo "Error: Invalid provider '$provider'" >&2; return 1 ;;
+    esac
     local backup_file="${3:-}"
     local provider_upper="${provider^^}"
 
@@ -62,6 +73,16 @@ restore_context_backup() {
         fi
         backup_file=$(cat "$latest_file")
     fi
+
+    # Validate backup file is within expected directory
+    local backup_dir="${project_root}/.dev-aid/backups"
+    local resolved_backup
+    resolved_backup=$(cd "$backup_dir" && realpath "$backup_file" 2>/dev/null || echo "")
+    if [[ -z "$resolved_backup" || "$resolved_backup" != "$backup_dir"/* ]]; then
+        echo "Error: Invalid backup path" >&2
+        return 1
+    fi
+
 
     if [ ! -f "$backup_file" ]; then
         echo "Error: Backup file not found: $backup_file" >&2
@@ -90,6 +111,12 @@ restore_claude_md_backup() {
 list_context_backups() {
     local project_root="$1"
     local provider="${2:-claude}"
+
+    # Validate provider
+    case "$provider" in
+        claude|gemini|openai|codex|cursor) ;;
+        *) echo "Error: Invalid provider '$provider'" >&2; return 1 ;;
+    esac
     local provider_upper="${provider^^}"
     local backup_dir="${project_root}/.dev-aid/backups"
 

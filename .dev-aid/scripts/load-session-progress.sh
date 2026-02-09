@@ -45,6 +45,12 @@ main() {
         return 0
     fi
 
+    # Validate progress file is within expected directory
+    if [[ "$progress_file" == *"/"* || "$progress_file" == ".."* ]]; then
+        echo "Error: Invalid progress file path" >&2
+        return 1
+    fi
+
     local full_path="$progress_dir/$progress_file"
     if [[ ! -f "$full_path" ]]; then
         return 0

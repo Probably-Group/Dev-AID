@@ -95,7 +95,7 @@ show_current_config() {
         echo "Orchestration Mode:   $(jq -r '.orchestration_mode' "$CONFIG_DIR/settings.json")"
         echo "Enabled Providers:    $(jq -r '.enabled_providers | join(", ")' "$CONFIG_DIR/settings.json")"
 
-        local mapping=$(jq -r '.task_model_mapping' "$CONFIG_DIR/settings.json")
+        local mapping="$(jq -r '.task_model_mapping' "$CONFIG_DIR/settings.json")"
         if [ "$mapping" != "null" ] && [ "$mapping" != "{}" ]; then
             echo ""
             echo "Model Assignments:"

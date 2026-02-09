@@ -41,6 +41,8 @@ run_check() {
     CHECKS_RUN=$((CHECKS_RUN + 1))
     echo -e "${BLUE}[$CHECKS_RUN] $name${NC}"
 
+    # SECURITY NOTE: $command must only contain hardcoded strings from callers,
+    # never user-supplied input, to prevent command injection via bash -c.
     if bash -c "$command" > "$log_file" 2>&1; then
         echo -e "${GREEN}✓ PASS${NC}"
         echo

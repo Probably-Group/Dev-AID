@@ -86,7 +86,7 @@ Each agent is available as a **native slash command** for interactive use. Slash
 **Native slash commands** (auto-discovered from `.claude/commands/` and `.gemini/commands/`):
 - Claude Code (terminal CLI + VS Code extension)
 - Gemini CLI (terminal + VS Code/JetBrains via Gemini Code Assist)
-- Codex CLI (via AGENTS.md.template triggers)
+- Codex CLI (via AGENTS.md.template — 26 natural language trigger phrases)
 - Cursor (reads `.claude/commands/` natively)
 - Windsurf (reads `.claude/commands/` natively)
 - Cline (VS Code extension, reads `.claude/commands/`)
@@ -102,7 +102,7 @@ The `.dev-aid/providers/openai/` directory provides context files (`OPENAI.md`) 
 
 | OpenAI-adjacent tool | Agent support | How |
 |---------------------|---------------|-----|
-| **Codex CLI** | Full | Reads `AGENTS.md.template` triggers + symlinked skills |
+| **Codex CLI** | Full (26 trigger phrases) | Template-based injection: `AGENTS.md.template` with natural language triggers for all agents, teams, and utility commands + auto-selected skill `@file` references |
 | **Cursor / Windsurf / Cline** | Full | Reads `.claude/commands/` natively (Claude-compatible) |
 | **ChatGPT (web/app)** | Context only | Upload `OPENAI.md` manually; no slash commands |
 | **Custom GPTs** | Context only | Paste instructions from `OPENAI.md`; no tool calling |

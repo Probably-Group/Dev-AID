@@ -29,7 +29,7 @@ OpenAI does not provide a standardized CLI with command discovery (unlike Claude
 | Tool | Agent Access | How |
 |------|-------------|-----|
 | **Python CLI** | Full (all 8 agents + 4 teams) | `dev-aid-agent pr-reviewer --pr 42 --provider openai` |
-| **Codex CLI** | Full | Reads `AGENTS.md.template` triggers + symlinked skills |
+| **Codex CLI** | Full (26 trigger phrases) | `AGENTS.md.template` with natural language triggers for all agents, teams, and utility commands |
 | **Cursor / Windsurf / Cline** | Full slash commands | These editors read `.claude/commands/` natively |
 | **ChatGPT** | Context only | Upload `OPENAI.md` manually |
 | **Custom GPTs** | Context only | Paste instructions from `OPENAI.md` |

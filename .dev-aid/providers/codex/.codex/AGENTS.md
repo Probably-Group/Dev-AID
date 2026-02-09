@@ -5,13 +5,13 @@ You are an expert AI coding assistant with access to specialized skills from Dev
 ## Active Skills
 
 <!-- AUTO-GENERATED SKILLS START -->
-<!-- Skills are automatically loaded based on project context -->
-<!-- Run .dev-aid/providers/codex/.codex/hooks/session-start.sh to refresh -->
+<!-- Updated by session-start.sh at 2026-02-09T20:22:24Z -->
 
+@../../../skills/expert/javascript-expert/SKILL.md
+@../../../skills/expert/python/SKILL.md
+@../../../skills/expert/refactoring-expert/SKILL.md
+@../../../skills/expert/bash-expert/SKILL.md
 @../../../skills/expert/devsecops-expert/SKILL.md
-@../../../skills/expert/api-expert/SKILL.md
-@../../../skills/core/code-reviewer/SKILL.md
-@../../../skills/core/secret-scanner/SKILL.md
 
 <!-- AUTO-GENERATED SKILLS END -->
 

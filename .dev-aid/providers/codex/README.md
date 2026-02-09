@@ -57,10 +57,11 @@ cp .dev-aid/providers/codex/AGENTS.md.template AGENTS.md
 ```
 .dev-aid/providers/codex/
 ├── README.md                    # This file
-├── AGENTS.md.template           # Template for project AGENTS.md
+├── AGENTS.md.template           # Source of truth (triggers + guidelines + skill markers)
 └── .codex/
+    ├── AGENTS.md                # Generated at session start from template
     ├── hooks/
-    │   └── session-start.sh     # Auto-loads skills at session start
+    │   └── session-start.sh     # Reads template, injects skills, writes AGENTS.md
     └── skills/                  # Symlinks to Dev-AID skills
         ├── core -> ../../../../skills/core
         ├── expert -> ../../../../skills/expert
@@ -78,7 +79,17 @@ Codex loads context files in this order (from [docs](https://developers.openai.c
 
 Files are concatenated with blank lines, max 32 KiB.
 
-## Using Skills
+## How AGENTS.md Is Generated
+
+The `session-start.sh` hook uses a **template-based injection** architecture:
+
+1. **Reads** `AGENTS.md.template` — the source of truth containing all 26 trigger phrases, team workflows, utility commands, and project guidelines
+2. **Detects** project context via `detect-context.sh` (languages, frameworks, tools)
+3. **Selects** the top 5 most relevant skills via `select-skills.sh`
+4. **Replaces** the `<!-- AUTO-GENERATED SKILLS START/END -->` block in the template with dynamic `@file` skill references
+5. **Writes** the result as `.codex/AGENTS.md`
+
+If the template is missing, the hook falls back to generating a minimal AGENTS.md with only skill references (no triggers).
 
 ### Auto-Loading
 
@@ -88,7 +99,7 @@ Run the session-start hook to automatically select relevant skills:
 .dev-aid/providers/codex/.codex/hooks/session-start.sh
 ```
 
-This analyzes your project and generates an AGENTS.md with appropriate skill references.
+This analyzes your project and generates an AGENTS.md with appropriate skill references and all 26 command trigger phrases.
 
 ### Manual Skill References
 
@@ -202,11 +213,27 @@ Codex has a 32 KiB limit for AGENTS.md. If you hit this:
 2. Check Codex config has hook configured
 3. Run manually to check for errors: `.codex/hooks/session-start.sh`
 
+## Trigger Phrase Coverage
+
+The template provides natural language trigger phrases for all 26 Dev-AID commands:
+
+| Category | Commands | Triggers |
+|----------|----------|----------|
+| **Agents** (8) | PR review, test gen, tech debt, CI fix, conflicts, research, onboard, doc audit | 4 trigger phrases each |
+| **Teams** (4) | PR review team, security audit, architect-implement, issue resolution | 4 trigger phrases each |
+| **Router** (4) | Challenger, challenger-RAG, ensemble, router status | 3-4 trigger phrases each |
+| **Security** (2) | Security audit, vulnerability scan | 4 trigger phrases each |
+| **Quality** (3) | Code health, debt analysis, review staged | 4 trigger phrases each |
+| **Productivity** (2) | API contract, commit plan | 4 trigger phrases each |
+| **Operations** (1) | Deploy validation | 4 trigger phrases |
+| **Setup** (5) | Analyze, status, configure skills, build skill, update models | 4 trigger phrases each |
+
 ## Comparison with Other Providers
 
 | Feature | Codex CLI | Claude Code | Gemini CLI |
 |---------|-----------|-------------|------------|
 | Context file | `AGENTS.md` | `CLAUDE.md` | `GEMINI.md` |
+| Command discovery | Natural language triggers (26) | `/slash` commands (26) | `/slash` commands (26) |
 | Skills directory | `.codex/skills/` | `.claude/skills/` | `.gemini/` (via refs) |
 | File references | `@file` syntax | `@file` syntax | `@file` syntax |
 | Hooks config | `config.toml` | `hooks.json` | `hooks.toml` |
@@ -221,6 +248,6 @@ Codex has a 32 KiB limit for AGENTS.md. If you hit this:
 
 ---
 
-**Last Updated:** 2026-02-03
-**Version:** 1.0.0
+**Last Updated:** 2026-02-09
+**Version:** 1.1.0
 **Status:** Production-ready

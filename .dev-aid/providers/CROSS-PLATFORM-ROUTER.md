@@ -2,20 +2,21 @@
 
 ## Overview
 
-The Dev-AID router system supports **Claude Code, Gemini CLI, and Codex CLI** through provider-specific slash command implementations.
+The Dev-AID router system supports **Claude Code, Gemini CLI, and Codex CLI** through provider-specific slash command implementations. Additionally, **Cursor, Windsurf, and Cline** inherit Claude Code's commands natively.
+
+> **Note:** OpenAI does not provide a CLI with slash command discovery. For OpenAI model usage, use the Python CLI (`dev-aid-agent --provider openai`). See the [OpenAI provider README](openai/README.md) for details.
 
 ## Why Multiple Implementations?
 
 **Claude Code**, **Gemini CLI**, and **Codex CLI** use different slash command formats:
 
-| Aspect | Claude Code | Gemini CLI | Codex CLI |
-|--------|-------------|------------|-----------|
-| **File Format** | Markdown (`.md`) | TOML (`.toml`) | YAML frontmatter + MD |
-| **Location** | `.claude/commands/` | `.gemini/commands/` | `.codex/skills/` |
-| **Context File** | `CLAUDE.md` | `GEMINI.md` | `AGENTS.md` |
-| **Arguments** | Implicit from user input | Explicit with `{{args}}` | Implicit |
-| **Shell Commands** | Not supported in prompts | Supported with `!{command}` | Not supported |
-| **File References** | `@file` syntax | `@file` syntax | `@file` syntax |
+| Aspect | Claude Code | Gemini CLI | Codex CLI | OpenAI |
+|--------|-------------|------------|-----------|--------|
+| **File Format** | Markdown (`.md`) | TOML (`.toml`) | YAML frontmatter + MD | N/A |
+| **Location** | `.claude/commands/` | `.gemini/commands/` | `.codex/skills/` | `.openai/commands/` (empty) |
+| **Context File** | `CLAUDE.md` | `GEMINI.md` | `AGENTS.md` | `OPENAI.md` |
+| **Slash Commands** | 50+ commands | 50+ commands | Skill triggers | None — no CLI discovery |
+| **Agent Support** | Full (via Python CLI) | Full (via Python CLI) | Full (via Python CLI) | Full (via Python CLI only) |
 
 ## File Structure
 

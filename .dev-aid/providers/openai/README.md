@@ -20,6 +20,22 @@ Unlike Claude Code or Gemini CLI, OpenAI doesn't have a standard CLI tool that a
 3. **API integrations** - Dev-AID router injects context into prompts
 4. **IDE plugins** - Tools like Continue.dev can use context files
 
+## Slash Command Gap
+
+OpenAI does not provide a standardized CLI with command discovery (unlike Claude Code's `.claude/commands/` or Gemini CLI's `.gemini/commands/`). As a result, `.openai/commands/` is **empty** — there are no `/aid-*` slash commands for OpenAI-native tools.
+
+### Workarounds
+
+| Tool | Agent Access | How |
+|------|-------------|-----|
+| **Python CLI** | Full (all 8 agents + 4 teams) | `dev-aid-agent pr-reviewer --pr 42 --provider openai` |
+| **Codex CLI** | Full | Reads `AGENTS.md.template` triggers + symlinked skills |
+| **Cursor / Windsurf / Cline** | Full slash commands | These editors read `.claude/commands/` natively |
+| **ChatGPT** | Context only | Upload `OPENAI.md` manually |
+| **Custom GPTs** | Context only | Paste instructions from `OPENAI.md` |
+
+For programmatic agent execution with OpenAI models, use the Python CLI — it has full feature parity with Anthropic and Google providers including multi-agent teams, JSON output, and cost tracking.
+
 ## Directory Structure
 
 ```
@@ -27,7 +43,7 @@ Unlike Claude Code or Gemini CLI, OpenAI doesn't have a standard CLI tool that a
 ├── README.md           # This file
 ├── OPENAI.md          # Generated context file (after install)
 └── .openai/
-    └── commands/      # Future: OpenAI-specific commands
+    └── commands/      # Empty — OpenAI has no CLI command discovery
 ```
 
 ## Memory Bank Integration

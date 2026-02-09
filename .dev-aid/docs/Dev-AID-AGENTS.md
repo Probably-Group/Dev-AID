@@ -38,9 +38,25 @@ dev-aid-agent team --list-teams
 
 ---
 
-## Native Slash Commands
+## Two Execution Models: CLI vs Slash Commands
 
-Each agent is available as a **native slash command** for interactive use alongside the CLI. Slash commands load directly in the AI session — no separate process.
+Dev-AID provides the same agents through **two independent systems** optimized for different workflows:
+
+| | Python CLI (`dev-aid-agent`) | Slash Commands (`/aid-*`) |
+|--|--|--|
+| **How it runs** | Separate Python process with its own agent loop | Inline in your AI editor session |
+| **Execution** | `AgentRunner` calls LLM APIs, executes tools programmatically | The AI reads the prompt instructions and uses its own native tools |
+| **Multi-agent** | Yes — `TeamRunner` with parallel/sequential/DAG workflows | No — single agent per invocation |
+| **Multi-provider** | Yes — switch with `--provider` flag, mix within teams | Bound to the editor's AI (Claude in Claude Code, Gemini in Gemini CLI) |
+| **Output** | Markdown + JSON (`--json`), exit codes, cost metrics | Inline markdown in the conversation |
+| **Context** | Fresh context per run (agent's skill prompts only) | Full session context (your conversation, open files, project state) |
+| **Best for** | CI/CD pipelines, automation, scripts, scheduled jobs | Interactive development, quick one-off tasks, iterative work |
+
+**They do not invoke each other.** Both systems implement the same 8 agents but through different mechanisms. The slash commands are prompt-based instruction files; the Python CLI is a structured code framework with tool registries, safety enforcement, and cost tracking.
+
+### Native Slash Commands
+
+Each agent is available as a **native slash command** for interactive use. Slash commands load directly in the AI session — no separate process.
 
 ### Command Mapping
 
@@ -77,6 +93,21 @@ Each agent is available as a **native slash command** for interactive use alongs
 
 **MCP integration only** (skills + local search, but no custom slash commands):
 - VS Code Copilot Chat, Zed, JetBrains AI Assistant
+
+### OpenAI Platform Gap
+
+The `.dev-aid/providers/openai/` directory provides context files (`OPENAI.md`) but has an **empty `.openai/commands/` directory** — no slash commands for OpenAI-native tools.
+
+**Why:** OpenAI does not offer a standardized CLI with command discovery like Claude Code or Gemini CLI. ChatGPT and Custom GPTs have no mechanism to auto-discover slash commands from a project directory.
+
+| OpenAI-adjacent tool | Agent support | How |
+|---------------------|---------------|-----|
+| **Codex CLI** | Full | Reads `AGENTS.md.template` triggers + symlinked skills |
+| **Cursor / Windsurf / Cline** | Full | Reads `.claude/commands/` natively (Claude-compatible) |
+| **ChatGPT (web/app)** | Context only | Upload `OPENAI.md` manually; no slash commands |
+| **Custom GPTs** | Context only | Paste instructions from `OPENAI.md`; no tool calling |
+
+**For programmatic OpenAI usage**, the Python CLI fully supports `--provider openai` with all 8 agents and 4 teams. The gap is only in the interactive slash command layer.
 
 ---
 
@@ -634,14 +665,82 @@ CLI flags (--budget, --workflow) > teams.json > TeamDefinition defaults
 
 Per-agent-slot overrides within `teams.json` are applied to provider and model settings.
 
-### Using a Local Model
+### Using Local LLMs
+
+All 8 agents and 4 teams fully support local models via OpenAI-compatible endpoints. The `local` provider is an alias for `openai` with a custom `base_url` and no API key required.
+
+#### Supported Backends
+
+| Backend | Default Port | Setup | Complexity |
+|---------|-------------|-------|-----------|
+| **Ollama** | 11434 | `ollama serve` | Easiest (recommended) |
+| **LM Studio** | 1234 | Download app, enable local server | Medium |
+| **llama.cpp** | 8080 | Compile and run `llama-server` | Most complex |
+
+#### Quick Start
 
 ```bash
-# Use Ollama with Qwen
-dev-aid-agent tech-debt-hunter --provider local --model qwen2.5-coder:32b --severity high
+# 1. Start Ollama and pull a model
+ollama serve
+ollama pull qwen2.5-coder:32b
+
+# 2. Run any agent with --provider local
+dev-aid-agent pr-reviewer --pr 42 --provider local --model qwen2.5-coder:32b
+
+# 3. Run a multi-agent team on local models
+dev-aid-agent team pr-review-team -m "Review PR #42" --provider local --model qwen2.5-coder:32b
 ```
 
-The local provider uses the OpenAI-compatible API at `http://localhost:11434/v1` (Ollama's default).
+#### Permanent Configuration
+
+Set local as the default provider in `agents.json`:
+
+```json
+{
+  "defaults": {
+    "provider": "local",
+    "model": "qwen2.5-coder:32b"
+  }
+}
+```
+
+Or via environment variables:
+
+```bash
+export LOCAL_INFERENCE_BACKEND=ollama
+export LOCAL_OLLAMA_URL=http://localhost:11434/v1
+export LOCAL_DEFAULT_MODEL=qwen2.5-coder:32b
+```
+
+#### Recommended Models
+
+| Model | VRAM | Tier | Best For |
+|-------|------|------|----------|
+| Phi-4-Mini | 3 GB | Entry | Quick iterations, low-end hardware |
+| Codestral 22B | 14 GB | Mid | Strong coding, mid-tier GPU |
+| **Qwen2.5-Coder 32B** | 20 GB | High | **Best value — recommended** |
+| GLM-4.7 Thinking | 48 GB | Pro | Deep reasoning, pro workstations |
+| Kimi-K2-Thinking | 80 GB | Enterprise | Best-in-class, data center |
+
+#### Limitations
+
+- **Tool calling required** — Agents rely on tool calling (function calling) to operate. Models without tool support cannot run agents. Most modern coding models support this (Qwen2.5-Coder, Codestral, Mistral).
+- **Context window** — Some agents (especially `research` with max_iterations=30) may exceed small context windows. The framework has automatic context trimming at 100K tokens, but smaller models may hit their limits sooner.
+- **Quality variance** — Agent output quality depends on model capability. Smaller quantized models (Q4_K_M) may produce lower-quality code reviews or test generation compared to Claude Sonnet or GPT-4o.
+- **Cost tracking** — Local models report $0.00 cost (unknown models default to zero). This is expected behavior, not a bug.
+- **No streaming** — Responses are buffered entirely; no token-by-token streaming for local models.
+
+#### Slash Commands with Local LLMs
+
+Slash commands (`/aid-pr`, `/aid-test`, etc.) **cannot use local models directly**. They run inside your AI editor session (Claude Code, Gemini CLI, Cursor), which uses that editor's built-in AI provider. To use local LLMs, use the Python CLI:
+
+```bash
+# Slash command (uses editor's AI — e.g., Claude in Claude Code)
+/aid-pr 135
+
+# Python CLI equivalent with local model
+dev-aid-agent pr-reviewer --pr 135 --provider local --model qwen2.5-coder:32b
+```
 
 ---
 

@@ -136,14 +136,14 @@ if command -v trivy &> /dev/null; then
     echo "Covers: Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions"
     echo ""
 
-    TRIVY_ARGS="fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL"
-    TRIVY_ARGS="$TRIVY_ARGS --skip-dirs venv --skip-dirs .venv --skip-dirs node_modules --skip-dirs .git"
+    TRIVY_ARGS=(fs --scanners vuln,misconfig,secret --severity HIGH,CRITICAL)
+    TRIVY_ARGS+=(--skip-dirs venv --skip-dirs .venv --skip-dirs node_modules --skip-dirs .git)
 
     if $QUICK_MODE; then
-        TRIVY_ARGS="$TRIVY_ARGS --skip-dirs .dev-aid/local-search/venv"
+        TRIVY_ARGS+=(--skip-dirs .dev-aid/local-search/venv)
     fi
 
-    TRIVY_OUTPUT=$(trivy $TRIVY_ARGS --format json . 2>&1) || true
+    TRIVY_OUTPUT=$(trivy "${TRIVY_ARGS[@]}" --format json . 2>&1) || true
 
     # Count findings by type
     VULN_COUNT=$(echo "$TRIVY_OUTPUT" | jq -r '[.Results[]?.Vulnerabilities[]?] | length' 2>/dev/null || echo "0")
@@ -189,7 +189,7 @@ echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━�
 OPENGREP_CMD="opengrep"
 [ -f "$HOME/.local/bin/opengrep" ] && OPENGREP_CMD="$HOME/.local/bin/opengrep"
 
-if command -v $OPENGREP_CMD &> /dev/null; then
+if command -v "$OPENGREP_CMD" &> /dev/null; then
     echo "Rulesets (340+ rules):"
     echo "  • p/default        - Semgrep's curated default rules"
     echo "  • p/security-audit - Comprehensive security patterns"
@@ -199,15 +199,15 @@ if command -v $OPENGREP_CMD &> /dev/null; then
     echo ""
 
     # Build command with comprehensive rulesets
-    OPENGREP_ARGS="scan"
-    OPENGREP_ARGS="$OPENGREP_ARGS --config p/default"
-    OPENGREP_ARGS="$OPENGREP_ARGS --config p/security-audit"
-    OPENGREP_ARGS="$OPENGREP_ARGS --config p/secrets"
-    OPENGREP_ARGS="$OPENGREP_ARGS --config p/ci"
-    OPENGREP_ARGS="$OPENGREP_ARGS --config p/cwe-top-25"
+    OPENGREP_ARGS=(scan)
+    OPENGREP_ARGS+=(--config p/default)
+    OPENGREP_ARGS+=(--config p/security-audit)
+    OPENGREP_ARGS+=(--config p/secrets)
+    OPENGREP_ARGS+=(--config p/ci)
+    OPENGREP_ARGS+=(--config p/cwe-top-25)
 
     echo "Running scan (this may take 1-2 minutes)..."
-    OPENGREP_OUTPUT=$($OPENGREP_CMD $OPENGREP_ARGS . 2>&1) || true
+    OPENGREP_OUTPUT=$("$OPENGREP_CMD" "${OPENGREP_ARGS[@]}" . 2>&1) || true
 
     # Parse findings count (macOS compatible - no grep -P)
     OPENGREP_COUNT=$(echo "$OPENGREP_OUTPUT" | grep -o '[0-9]* findings' | head -1 | grep -o '[0-9]*' || echo "0")

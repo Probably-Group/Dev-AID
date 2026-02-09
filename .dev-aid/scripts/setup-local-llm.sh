@@ -79,26 +79,34 @@ detect_hardware() {
     echo ""
 
     # Use Python hardware detector
-    HARDWARE_INFO=$($PYTHON -c "
-import sys
-sys.path.insert(0, '$PROJECT_ROOT/.dev-aid/orchestration')
+    HARDWARE_INFO=$(PROJECT_ROOT="$PROJECT_ROOT" $PYTHON -c '
+import sys, os
+sys.path.insert(0, os.path.join(os.environ["PROJECT_ROOT"], ".dev-aid/orchestration"))
 try:
     from router.hardware_detector import detect_hardware
     hw = detect_hardware()
-    print(f'CPU: {hw.cpu_name}')
-    print(f'RAM: {hw.ram_gb} GB')
-    print(f'GPU: {hw.gpu.name if hw.gpu else \"None\"}')
-    print(f'VRAM: {hw.available_vram_gb} GB')
-    print(f'TIER: {hw.recommended_tier}')
+    print(f"CPU: {hw.cpu_name}")
+    print(f"RAM: {hw.ram_gb} GB")
+    print(f"GPU: {hw.gpu.name if hw.gpu else \"None\"}")
+    print(f"VRAM: {hw.available_vram_gb} GB")
+    print(f"TIER: {hw.recommended_tier}")
 except Exception as e:
-    print(f'ERROR: {e}')
-" 2>/dev/null || echo "DETECTION_FAILED")
+    print(f"ERROR: {e}")
+' 2>/dev/null || echo "DETECTION_FAILED")
 
     if [[ "$HARDWARE_INFO" == "DETECTION_FAILED" ]] || [[ "$HARDWARE_INFO" == ERROR:* ]]; then
         print_warning "Automatic hardware detection failed."
         echo ""
         read -p "Enter your GPU VRAM in GB (0 for CPU-only): " MANUAL_VRAM
+        if [[ ! "${MANUAL_VRAM:-0}" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            print_warning "Invalid input. Using 0 (CPU-only)."
+            MANUAL_VRAM=0
+        fi
         read -p "Enter your system RAM in GB: " MANUAL_RAM
+        if [[ ! "${MANUAL_RAM:-16}" =~ ^[0-9]+\.?[0-9]*$ ]]; then
+            print_warning "Invalid input. Using 16."
+            MANUAL_RAM=16
+        fi
 
         VRAM_GB="${MANUAL_VRAM:-0}"
         RAM_GB="${MANUAL_RAM:-16}"
@@ -283,6 +291,10 @@ download_model() {
 
     if [[ "$DOWNLOAD_CHOICE" == "n" || "$DOWNLOAD_CHOICE" == "N" ]]; then
         read -p "Enter custom model name: " CUSTOM_MODEL
+        if [[ -n "$CUSTOM_MODEL" && ! "$CUSTOM_MODEL" =~ ^[a-zA-Z0-9_./:@-]+$ ]]; then
+            print_error "Invalid model name format."
+            exit 1
+        fi
         SELECTED_MODEL="${CUSTOM_MODEL:-$RECOMMENDED_MODEL}"
     else
         SELECTED_MODEL="$RECOMMENDED_MODEL"
@@ -367,48 +379,48 @@ verify_setup() {
     echo ""
 
     # Use Python to verify
-    VERIFY_RESULT=$($PYTHON -c "
-import sys
-sys.path.insert(0, '$PROJECT_ROOT/.dev-aid/orchestration')
+    VERIFY_RESULT=$(PROJECT_ROOT="$PROJECT_ROOT" $PYTHON -c '
+import sys, os
+sys.path.insert(0, os.path.join(os.environ["PROJECT_ROOT"], ".dev-aid/orchestration"))
 try:
     from router.local_client import detect_local_server, create_local_auth, LocalLLMClient
     from router.api_clients import Message
 
     server = detect_local_server()
     if not server:
-        print('ERROR: No local server detected')
+        print("ERROR: No local server detected")
         sys.exit(1)
 
-    print(f'Server: {server[\"backend\"]} at {server[\"base_url\"]}')
+    print(f"Server: {server[\"backend\"]} at {server[\"base_url\"]}")
 
-    auth = create_local_auth(server['backend'], server['base_url'])
-    client = LocalLLMClient(auth, {'provider': 'local'})
+    auth = create_local_auth(server["backend"], server["base_url"])
+    client = LocalLLMClient(auth, {"provider": "local"})
 
     if client.verify_connection():
-        print('Connection: OK')
+        print("Connection: OK")
 
         models = client.list_models()
         if models:
-            print(f'Available models: {len(models)}')
+            print(f"Available models: {len(models)}")
 
             # Quick test
             response = client.send_request(
-                messages=[Message(role='user', content='Say hello')],
+                messages=[Message(role="user", content="Say hello")],
                 model=models[0],
                 max_tokens=20
             )
-            print(f'Test response: {response.content[:50]}...')
-            print('Status: SUCCESS')
+            print(f"Test response: {response.content[:50]}...")
+            print("Status: SUCCESS")
         else:
-            print('WARNING: No models found')
+            print("WARNING: No models found")
     else:
-        print('ERROR: Connection failed')
+        print("ERROR: Connection failed")
         sys.exit(1)
 
 except Exception as e:
-    print(f'ERROR: {e}')
+    print(f"ERROR: {e}")
     sys.exit(1)
-" 2>&1)
+' 2>&1)
 
     echo "$VERIFY_RESULT"
     echo ""

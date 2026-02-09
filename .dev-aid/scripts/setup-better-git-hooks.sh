@@ -54,27 +54,27 @@ if git diff --cached --name-only | grep -q "\.py$"; then
 
     # Run black
     echo -e "${BLUE}  → Black (formatting)...${NC}"
-    if ! black --check --quiet $ORCHESTRATION_DIR 2>/dev/null; then
+    if ! black --check --quiet "$ORCHESTRATION_DIR" 2>/dev/null; then
         echo -e "${YELLOW}  ⚠️  Black formatting needed - auto-fixing...${NC}"
-        black $ORCHESTRATION_DIR
+        black "$ORCHESTRATION_DIR"
         # Re-add formatted files
-        git add $ORCHESTRATION_DIR/**/*.py
+        git add "$ORCHESTRATION_DIR"/**/*.py
         echo -e "${GREEN}  ✓ Files formatted and re-staged${NC}"
     fi
 
     # Run isort
     echo -e "${BLUE}  → isort (imports)...${NC}"
-    if ! isort --check-only --quiet $ORCHESTRATION_DIR 2>/dev/null; then
+    if ! isort --check-only --quiet "$ORCHESTRATION_DIR" 2>/dev/null; then
         echo -e "${YELLOW}  ⚠️  Import sorting needed - auto-fixing...${NC}"
-        isort $ORCHESTRATION_DIR
+        isort "$ORCHESTRATION_DIR"
         # Re-add sorted files
-        git add $ORCHESTRATION_DIR/**/*.py
+        git add "$ORCHESTRATION_DIR"/**/*.py
         echo -e "${GREEN}  ✓ Imports sorted and re-staged${NC}"
     fi
 
     # Run flake8 (don't auto-fix, just warn)
     echo -e "${BLUE}  → Flake8 (linting)...${NC}"
-    if ! flake8 $ORCHESTRATION_DIR --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv,venv,node_modules 2>/dev/null; then
+    if ! flake8 "$ORCHESTRATION_DIR" --max-line-length=120 --extend-ignore=E203,W503 --exclude .venv,venv,node_modules 2>/dev/null; then
         echo -e "${RED}  ✗ Flake8 errors found!${NC}"
         echo -e "${YELLOW}  Please fix linting errors before committing.${NC}"
         exit 1

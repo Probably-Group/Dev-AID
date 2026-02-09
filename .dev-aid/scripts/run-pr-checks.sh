@@ -18,13 +18,13 @@ FAILED_CHECKS=()
 # Function to run a check
 run_check() {
     local name="$1"
-    local command="$2"
+    shift
 
     echo "┌─────────────────────────────────────────────────────"
     echo "│ 🔍 $name"
     echo "└─────────────────────────────────────────────────────"
 
-    if bash -c "$command"; then
+    if "$@"; then
         echo "✅ $name passed"
     else
         echo "❌ $name failed"
@@ -47,11 +47,11 @@ if [ -d "$ORCH_DIR" ]; then
     echo "📦 Running Python checks in orchestration..."
     echo ""
 
-    run_check "Black (formatting)" "black --check --diff ."
-    run_check "Flake8 (linting)" "flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__,.git"
-    run_check "MyPy (type checking)" "mypy router --ignore-missing-imports --no-strict-optional"
-    run_check "Pytest (tests)" "pytest tests/ -v --tb=short"
-    run_check "Coverage (59%+)" "pytest tests/ --cov=router --cov-report=term-missing --cov-fail-under=59"
+    run_check "Black (formatting)" black --check --diff .
+    run_check "Flake8 (linting)" flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__,.git
+    run_check "MyPy (type checking)" mypy router --ignore-missing-imports --no-strict-optional
+    run_check "Pytest (tests)" pytest tests/ -v --tb=short
+    run_check "Coverage (59%+)" pytest tests/ --cov=router --cov-report=term-missing --cov-fail-under=59
 fi
 
 # Bash linting
@@ -61,7 +61,7 @@ echo ""
 
 mapfile -t BASH_FILES < <(find .dev-aid/scripts -name "*.sh" 2>/dev/null)
 if [ ${#BASH_FILES[@]} -gt 0 ]; then
-    run_check "Shellcheck (bash linting)" "shellcheck ${BASH_FILES[*]}"
+    run_check "Shellcheck (bash linting)" shellcheck "${BASH_FILES[@]}"
 fi
 
 # Summary

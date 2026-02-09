@@ -171,6 +171,11 @@ case $UPDATE_SOURCE in
 
             if ! $DRY_RUN; then
                 read -p "Enter Dev-AID repository URL: " DEV_AID_REPO
+                # Validate URL format
+                if [[ ! "$DEV_AID_REPO" =~ ^https?:// && ! "$DEV_AID_REPO" =~ ^git@ ]]; then
+                    echo -e "${RED}Error: Invalid repository URL. Must start with https:// or git@${NC}"
+                    exit 1
+                fi
                 git remote add dev-aid-upstream "$DEV_AID_REPO"
             else
                 echo -e "${CYAN}[DRY-RUN] Would add dev-aid-upstream remote${NC}"
@@ -200,6 +205,7 @@ case $UPDATE_SOURCE in
 
         if ! $DRY_RUN; then
             read -p "Enter path to Dev-AID repository: " DEV_AID_PATH
+            DEV_AID_PATH=$(realpath "$DEV_AID_PATH" 2>/dev/null || echo "$DEV_AID_PATH")
 
             if [ ! -d "$DEV_AID_PATH/.dev-aid" ]; then
                 echo -e "${RED}✗ Error: Invalid path (no .dev-aid/ found)${NC}"
@@ -241,6 +247,7 @@ if [ -d "$TEMP_DIR/.dev-aid" ] || $DRY_RUN; then
     fi
 
     # Run conflict resolver
+    CONFLICT_TMP=$(mktemp /tmp/dev-aid-conflict.XXXXXX)
     if $FORCE; then
         echo -e "${YELLOW}⚠️  Force mode: All conflicts will be overwritten${NC}"
         CONFLICTS=0
@@ -250,20 +257,20 @@ if [ -d "$TEMP_DIR/.dev-aid" ] || $DRY_RUN; then
     else
         # Interactive conflict resolution
         if ! $DRY_RUN; then
-            python3 .dev-aid/orchestration/conflict_resolver.py \
+            CONFLICT_COUNT_FILE="$CONFLICT_TMP" python3 .dev-aid/orchestration/conflict_resolver.py \
                 "$BACKUP_DIR" \
                 "$TEMP_DIR" \
                 "$FILE_LIST"
 
-            CONFLICTS=$(cat /tmp/dev-aid-conflict-count.txt 2>/dev/null || echo "0")
+            CONFLICTS=$(cat "$CONFLICT_TMP" 2>/dev/null || echo "0")
         else
-            python3 .dev-aid/orchestration/conflict_resolver.py \
+            CONFLICT_COUNT_FILE="$CONFLICT_TMP" python3 .dev-aid/orchestration/conflict_resolver.py \
                 "$BACKUP_DIR" \
                 "$TEMP_DIR" \
                 "$FILE_LIST" \
                 --dry-run
 
-            CONFLICTS=$(cat /tmp/dev-aid-conflict-count.txt 2>/dev/null || echo "2")
+            CONFLICTS=$(cat "$CONFLICT_TMP" 2>/dev/null || echo "2")
         fi
 
         echo ""
@@ -286,12 +293,12 @@ if ! $DRY_RUN; then
 
     # Use rsync with exclusions for protected paths
     PROTECTED_PATHS=$(get_protected_paths)
-    EXCLUDE_ARGS=""
+    EXCLUDE_ARGS_ARRAY=()
     while IFS= read -r path; do
-        EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude=$path"
+        EXCLUDE_ARGS_ARRAY+=(--exclude="$path")
     done <<< "$PROTECTED_PATHS"
 
-    rsync -av $EXCLUDE_ARGS "$TEMP_DIR/.dev-aid/" ".dev-aid/"
+    rsync -av "${EXCLUDE_ARGS_ARRAY[@]}" "$TEMP_DIR/.dev-aid/" ".dev-aid/"
 
     echo -e "${GREEN}✓ Files updated${NC}"
 else
@@ -325,6 +332,10 @@ fi
 NEW_VERSION="unknown"
 if [ -f ".dev-aid/VERSION" ]; then
     NEW_VERSION=$(cat .dev-aid/VERSION | tr -d '\n')
+    # Validate version format (semver-like: digits.digits.digits with optional prefix/suffix)
+    if [[ ! "$NEW_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+        echo -e "${YELLOW}⚠️  Warning: VERSION file contains unexpected format: $NEW_VERSION${NC}"
+    fi
 fi
 
 # Show summary

@@ -386,12 +386,14 @@ update_python_deps() {
 # Error Handling
 # ============================================================================
 
+# Global variable for error trap backup directory
+_ERROR_TRAP_BACKUP_DIR=""
+
 # Trap handler for automatic rollback on error
 setup_error_trap() {
-    local backup_dir="$1"
+    _ERROR_TRAP_BACKUP_DIR="$1"
 
-    # shellcheck disable=SC2064
-    trap "handle_error '$backup_dir'" ERR
+    trap 'handle_error "$_ERROR_TRAP_BACKUP_DIR"' ERR
 }
 
 # Handle errors with automatic rollback
@@ -466,14 +468,11 @@ restore_from_backup() {
 
 # Execute command only if not in dry-run mode
 exec_unless_dry_run() {
-    local cmd="$1"
-    local dry_run="${2:-false}"
-
-    if [ "$dry_run" = "true" ]; then
-        echo -e "${CYAN}[DRY-RUN] Would execute: $cmd${NC}"
+    if [[ "${DRY_RUN:-false}" == "true" ]]; then
+        echo -e "${CYAN}[DRY-RUN] Would execute: $*${NC}"
         return 0
     else
-        bash -c "$cmd"
+        "$@"
     fi
 }
 

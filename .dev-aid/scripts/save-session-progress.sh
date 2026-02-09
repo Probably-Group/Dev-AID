@@ -103,15 +103,20 @@ main() {
         session_duration="${hours}h ${minutes}m"
     fi
 
+    # Escape JSON-unsafe characters in string variables
+    branch_escaped=$(printf '%s' "$branch" | sed 's/["\\]/\\&/g')
+    provider_escaped=$(printf '%s' "$provider" | sed 's/["\\]/\\&/g')
+    session_duration_escaped=$(printf '%s' "$session_duration" | sed 's/["\\]/\\&/g')
+
     # Build JSON output
     cat > "$progress_file" <<EOF
 {
   "version": "1.0.0",
   "timestamp": "$timestamp",
-  "provider": "$provider",
-  "session_duration": "$session_duration",
+  "provider": "$provider_escaped",
+  "session_duration": "$session_duration_escaped",
   "git": {
-    "branch": "$branch",
+    "branch": "$branch_escaped",
     "diff_summary": $(echo "$diff_stat" | tail -1 | jq -Rs . 2>/dev/null || echo '""'),
     "modified_files": $(echo "$modified_files" | jq -Rs 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]'),
     "staged_files": $(echo "$staged_files" | jq -Rs 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]'),
@@ -160,7 +165,7 @@ EOF
     local old_files
     old_files=$(ls -1t "$progress_dir"/session-*.json 2>/dev/null | tail -n +11)
     if [[ -n "$old_files" ]]; then
-        echo "$old_files" | xargs rm -f 2>/dev/null || true
+        printf '%s\n' "$old_files" | while IFS= read -r f; do rm -f "$f"; done
         log_info "Cleaned up old progress files"
     fi
 }

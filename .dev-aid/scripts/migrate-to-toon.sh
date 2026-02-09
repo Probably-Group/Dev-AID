@@ -66,21 +66,22 @@ convert_config() {
     cp "$json_file" "$BACKUP_DIR/"
 
     # Convert using Python
-    python3 <<EOF
+    ORCHESTRATION_DIR="$ORCHESTRATION_DIR" JSON_FILE="$json_file" TOON_FILE="$toon_file" BASE_NAME="$base_name" python3 <<'EOF'
 import json
 import sys
-sys.path.insert(0, '$ORCHESTRATION_DIR')
+import os
+sys.path.insert(0, os.environ['ORCHESTRATION_DIR'])
 from toon import encode
 
-with open('$json_file', 'r') as f:
+with open(os.environ['JSON_FILE'], 'r') as f:
     data = json.load(f)
 
 toon_output = encode(data)
 
-with open('$toon_file', 'w') as f:
+with open(os.environ['TOON_FILE'], 'w') as f:
     f.write(toon_output)
 
-print(f"   ✓ Created: $base_name.toon")
+print(f"   ✓ Created: {os.environ['BASE_NAME']}.toon")
 EOF
 
     if [ $? -eq 0 ]; then

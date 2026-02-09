@@ -217,9 +217,10 @@ echo ""
 # Pre-download the model by running a test
 echo -e "${BLUE}→ Initializing model (this may take a few minutes)...${NC}"
 
-python3 << 'PYEOF'
+LOCAL_SEARCH_DIR="$LOCAL_SEARCH_DIR" python3 << 'PYEOF'
 import sys
-sys.path.insert(0, "${LOCAL_SEARCH_DIR}")
+import os
+sys.path.insert(0, os.environ["LOCAL_SEARCH_DIR"])
 try:
     from embeddings.embedder import CodeEmbedder
     print("Loading EmbeddingGemma model...")
@@ -272,7 +273,7 @@ cat > .dev-aid/scripts/reindex-codebase.sh << 'EOF'
 # Reindex Dev-AID codebase with Dev-AID Local Search
 # Usage: ./.dev-aid/scripts/reindex-codebase.sh
 
-set -e
+set -euo pipefail
 
 echo "🔄 Reindexing Dev-AID codebase..."
 
@@ -298,7 +299,7 @@ cat > .dev-aid/scripts/rag-status.sh << 'EOF'
 # Check Dev-AID Local Search status
 # Usage: ./.dev-aid/scripts/rag-status.sh
 
-set -e
+set -euo pipefail
 
 echo "╔════════════════════════════════════════════╗"
 echo "║      Dev-AID Local Search Status            ║"

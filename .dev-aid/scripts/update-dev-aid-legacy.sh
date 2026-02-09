@@ -67,6 +67,11 @@ case $UPDATE_SOURCE in
         if ! git remote | grep -q "dev-aid-upstream"; then
             echo -e "${BLUE}→ Adding Dev-AID remote...${NC}"
             read -p "Enter Dev-AID repository URL: " DEV_AID_REPO
+            # Validate URL format
+            if [[ ! "$DEV_AID_REPO" =~ ^https?:// && ! "$DEV_AID_REPO" =~ ^git@ ]]; then
+                echo -e "${RED}Error: Invalid repository URL. Must start with https:// or git@${NC}"
+                exit 1
+            fi
             git remote add dev-aid-upstream "$DEV_AID_REPO"
         fi
 
@@ -84,6 +89,7 @@ case $UPDATE_SOURCE in
         echo -e "${GREEN}Copying from local installation...${NC}"
         echo ""
         read -p "Enter path to Dev-AID repository: " DEV_AID_PATH
+        DEV_AID_PATH=$(realpath "$DEV_AID_PATH" 2>/dev/null || echo "$DEV_AID_PATH")
 
         if [ ! -d "$DEV_AID_PATH/.dev-aid" ]; then
             echo -e "${RED}✗ Error: Invalid path (no .dev-aid/ found)${NC}"

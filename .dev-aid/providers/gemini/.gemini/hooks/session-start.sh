@@ -184,5 +184,18 @@ main() {
     fi
 }
 
+# Check for Dev-AID updates (non-blocking, once per day)
+check_update() {
+    local update_script="$PROJECT_ROOT/.dev-aid/scripts/check-update-notify.sh"
+    if [[ -x "$update_script" ]]; then
+        local msg
+        msg=$("$update_script" "$PROJECT_ROOT" 2>/dev/null) || true
+        if [[ -n "$msg" ]]; then
+            echo "⬆️  $msg"
+        fi
+    fi
+}
+
 # Run main function
 main
+check_update

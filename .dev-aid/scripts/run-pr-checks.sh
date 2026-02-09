@@ -51,7 +51,7 @@ if [ -d "$ORCH_DIR" ]; then
     run_check "Flake8 (linting)" flake8 . --max-line-length=120 --extend-ignore=E203,W503 --exclude=venv,.venv,__pycache__,.git
     run_check "MyPy (type checking)" mypy router --ignore-missing-imports --no-strict-optional
     run_check "Pytest (tests)" pytest tests/ -v --tb=short
-    run_check "Coverage (59%+)" pytest tests/ --cov=router --cov-report=term-missing --cov-fail-under=59
+    run_check "Coverage (80%+)" pytest tests/ --cov=router --cov-report=term-missing --cov-fail-under=80
 fi
 
 # Bash linting

@@ -83,7 +83,7 @@ make fix        # Auto-fix everything possible
 - **Formatter:** Black (100 char line length)
 - **Linter:** Flake8 with `--max-line-length=120 --extend-ignore=E203,W503`
 - **Type checking:** MyPy with strict mode
-- **Testing:** Pytest with 59%+ coverage required
+- **Testing:** Pytest with 80%+ coverage required
 
 **Quick fixes:**
 ```bash

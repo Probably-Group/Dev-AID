@@ -201,7 +201,7 @@ pytest tests/test_file.py -vv -s
 
 **Error:**
 ```
-FAIL Required test coverage of 59% not reached. Total coverage: 58%
+FAIL Required test coverage of 80% not reached. Total coverage: 79%
 ```
 
 **Fix:** Add more tests or exclude untestable code
@@ -265,7 +265,7 @@ Our GitHub Actions workflow runs these checks:
    - Flake8 linting
 
 2. **Python Unit Tests**:
-   - Pytest with coverage (59%+ required)
+   - Pytest with coverage (80%+ required)
 
 3. **Type Check**:
    - MyPy static type checking

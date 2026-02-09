@@ -1553,6 +1553,8 @@ Skills auto-activate based on file patterns:
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Provider Docs
+- **[Claude Provider](.dev-aid/providers/claude/README.md)** — Primary provider: 53 slash commands, 5 hooks, Markdown format
+- **[Gemini Provider](.dev-aid/providers/gemini/README.md)** — Gemini CLI: 31 slash commands, TOML format
 - **[Local LLM Provider](.dev-aid/providers/local/README.md)** - Local model setup, agent compatibility, tool calling requirement, recommended models
 - **[OpenAI Provider](.dev-aid/providers/openai/README.md)** - OpenAI integration, slash command gap explanation, workarounds
 - **[Codex CLI Provider](.dev-aid/providers/codex/README.md)** - Codex CLI integration, skills loading, hook configuration

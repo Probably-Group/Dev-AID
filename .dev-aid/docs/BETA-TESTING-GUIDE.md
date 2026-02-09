@@ -39,8 +39,11 @@
 git clone https://github.com/Probably-Group/Dev-AID.git
 cd Dev-AID
 
-# 2. Initialize Dev-AID in the repo
+# 2. Initialize Dev-AID in the repo (interactive wizard)
 ./.dev-aid/scripts/setup-dev-aid.sh
+
+# 2b. Or non-interactive for CI / automated testing
+./.dev-aid/scripts/setup-dev-aid.sh --yes
 
 # 3. Configure API keys (optional — for router testing)
 export ANTHROPIC_API_KEY="sk-ant-..."

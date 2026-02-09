@@ -23,18 +23,14 @@ If `--list-teams` is passed, list teams and exit. Otherwise, team name and messa
 
 ## Available Teams
 
-Read the team definitions from `.dev-aid/agents/teams/` directory. Each YAML file defines a team with:
-- **agents**: List of agent roles with their skills and prompts
-- **workflow**: Execution strategy (parallel, sequential, dag)
-- **budget**: Default max budget
+Read the team definitions from `.dev-aid/agents/teams/builtin_teams.py`. Each team defines agent slots with role prompts and workflow strategy.
 
-Common teams:
 | Team | Agents | Workflow | Use Case |
 |------|--------|----------|----------|
 | `pr-review-team` | security-reviewer, quality-reviewer, test-coverage-reviewer | parallel | Comprehensive PR review from 3 perspectives |
-| `security-audit-team` | vulnerability-scanner, config-auditor, dependency-checker | parallel | Full security audit |
-| `architect-implement-team` | architect, implementer, reviewer | sequential | Design then implement then review |
-| `issue-resolution-team` | analyst, implementer, tester | dag | Analyze, fix, and verify issues |
+| `security-audit-team` | vulnerability-scanner, auth-reviewer, dependency-auditor | parallel | Full security audit |
+| `architect-implement-team` | architect, implementer, reviewer | dag | Design then implement then review |
+| `issue-resolution-team` | researcher, fixer, test-writer | dag | Investigate, fix, and add regression tests |
 
 ## Workflow
 

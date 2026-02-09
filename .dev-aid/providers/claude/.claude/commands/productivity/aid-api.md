@@ -2,7 +2,7 @@
 name: aid-api
 description: "Generate OpenAPI specs, TypeScript clients, and mocks"
 category: productivity
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

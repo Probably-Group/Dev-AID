@@ -2,7 +2,7 @@
 name: dev-aid-agent-ci-fix
 description: AI-powered CI/CD failure diagnosis and automated fix implementation
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

@@ -2,7 +2,7 @@
 name: aid-audit
 description: Comprehensive security audit with OWASP Top 10, dependency scanning, and vulnerability assessment
 category: security
-author: Dev-AID Team (adapted from Tresor)
+author: Dev-AID Team (https://probably.group) (adapted from Tresor)
 version: 1.0.0
 ---
 

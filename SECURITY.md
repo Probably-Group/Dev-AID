@@ -15,7 +15,7 @@ If you discover a security vulnerability in Dev-AID, please report it responsibl
 
 ### How to Report
 
-1. Go to the [Security Advisories](https://github.com/martinholovsky/Dev-AID/security/advisories) page
+1. Go to the [Security Advisories](https://github.com/Probably-Group/Dev-AID/security/advisories) page
 2. Click "Report a vulnerability"
 3. Provide:
    - Description of the vulnerability

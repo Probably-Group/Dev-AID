@@ -3,7 +3,7 @@ name: dev-aid-commit-plan
 description: Plan atomic commits from unstaged changes (prevents mega-commits)
 category: productivity
 version: 1.0.0
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 ---
 
 # Commit Planner - Atomic Commit Guide

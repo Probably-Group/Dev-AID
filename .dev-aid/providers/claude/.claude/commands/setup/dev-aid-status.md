@@ -2,7 +2,7 @@
 name: aid-status
 description: Show current Dev-AID configuration and setup status
 category: setup
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

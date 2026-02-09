@@ -2,7 +2,7 @@
 name: aid-vulnscan
 description: "Scan dependencies for CVEs with fix recommendations"
 category: security
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

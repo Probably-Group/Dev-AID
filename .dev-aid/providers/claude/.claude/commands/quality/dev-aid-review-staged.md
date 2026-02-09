@@ -3,7 +3,7 @@ name: dev-aid-review-staged
 description: Review staged changes before committing (Rubber Duck Pre-Reviewer)
 category: quality
 version: 1.0.0
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 ---
 
 # Review Staged Changes - Rubber Duck Pre-Reviewer

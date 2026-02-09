@@ -2,7 +2,7 @@
 name: aid-challenger-rag
 description: "Two-AI review with local codebase search (RAG)"
 category: router
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

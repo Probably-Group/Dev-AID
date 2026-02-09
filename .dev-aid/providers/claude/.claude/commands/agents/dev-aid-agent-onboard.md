@@ -2,7 +2,7 @@
 name: dev-aid-agent-onboard
 description: AI-powered codebase onboarding guide generator for new developers
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

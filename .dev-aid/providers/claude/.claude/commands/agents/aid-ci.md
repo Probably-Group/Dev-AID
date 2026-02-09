@@ -2,7 +2,7 @@
 name: aid-ci
 description: "Diagnose CI failures and propose fixes"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

@@ -2,7 +2,7 @@
 name: dev-aid-agent-test-gen
 description: AI-powered test generation with edge cases, error paths, and boundary conditions
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

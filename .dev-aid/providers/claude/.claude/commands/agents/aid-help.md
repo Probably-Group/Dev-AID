@@ -2,7 +2,7 @@
 name: aid-help
 description: "Show all available Dev-AID commands — agents, router, quality, security, and more"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

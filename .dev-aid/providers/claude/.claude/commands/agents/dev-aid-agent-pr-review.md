@@ -2,7 +2,7 @@
 name: dev-aid-agent-pr-review
 description: AI-powered pull request review with security, quality, and architecture analysis
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

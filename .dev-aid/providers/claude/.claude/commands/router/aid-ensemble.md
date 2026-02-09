@@ -2,7 +2,7 @@
 name: aid-ensemble
 description: "Smart-route tasks to the optimal AI model"
 category: router
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

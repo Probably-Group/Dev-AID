@@ -2,7 +2,7 @@
 name: aid-audit
 description: "Security audit: secrets, CVEs, SAST (Gitleaks + Trivy + Opengrep)"
 category: security
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

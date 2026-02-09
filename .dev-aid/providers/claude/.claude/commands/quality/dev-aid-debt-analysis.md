@@ -2,7 +2,7 @@
 name: aid-debt-analysis
 description: Technical debt identification with prioritization, cost analysis, and refactoring roadmap
 category: quality
-author: Dev-AID Team (adapted from Tresor)
+author: Dev-AID Team (https://probably.group) (adapted from Tresor)
 version: 1.0.0
 ---
 

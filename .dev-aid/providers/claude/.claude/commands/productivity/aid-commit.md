@@ -2,7 +2,7 @@
 name: aid-commit
 description: "Analyze unstaged changes and propose atomic commits"
 category: productivity
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

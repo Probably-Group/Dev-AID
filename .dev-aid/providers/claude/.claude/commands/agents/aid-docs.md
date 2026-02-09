@@ -2,7 +2,7 @@
 name: aid-docs
 description: "Audit docs for drift, broken links, and gaps"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

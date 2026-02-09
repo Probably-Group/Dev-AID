@@ -2,7 +2,7 @@
 name: aid-deploy
 description: "Pre-deployment validation: deps, configs, security, tests"
 category: operations
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

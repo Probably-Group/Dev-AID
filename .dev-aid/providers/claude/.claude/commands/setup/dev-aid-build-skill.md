@@ -2,7 +2,7 @@
 name: aid-build-skill
 description: Generate a new expert skill using the Martins AI Templates structure
 category: setup
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

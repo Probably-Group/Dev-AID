@@ -2,7 +2,7 @@
 name: aid-config
 description: "Configure which core skills auto-load at session start"
 category: setup
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

@@ -491,7 +491,7 @@ A: Not supported. For document search, add LightRAG in hybrid setup.
 ## Support
 
 **GitHub Issues:** https://github.com/FarhanAliRaza/claude-context-local/issues
-**Dev-AID Issues:** https://github.com/martinholovsky/ai-coding-comparison/issues
+**Dev-AID Issues:** https://github.com/Probably-Group/Dev-AID/issues
 
 **Check status:**
 ```bash

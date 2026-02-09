@@ -6,7 +6,7 @@ category = "planning"
 original_author = "diet103 (GitHub: diet103)"
 source = "https://github.com/diet103/claude-code-infrastructure-showcase"
 license = "MIT"
-adapted_by = "Dev-AID Team"
+adapted_by = "Dev-AID Team (https://probably.group)"
 version = "1.0.0"
 
 [prompt]

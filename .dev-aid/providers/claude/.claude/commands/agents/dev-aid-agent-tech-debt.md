@@ -2,7 +2,7 @@
 name: dev-aid-agent-tech-debt
 description: AI-powered semantic tech debt analysis with prioritized findings and refactoring suggestions
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

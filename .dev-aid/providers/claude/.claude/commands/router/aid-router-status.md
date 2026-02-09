@@ -2,7 +2,7 @@
 name: aid-router-status
 description: "View routing stats, costs, and recent decisions"
 category: router
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

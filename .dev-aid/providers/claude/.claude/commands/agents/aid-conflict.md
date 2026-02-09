@@ -2,7 +2,7 @@
 name: aid-conflict
 description: "Resolve merge conflicts intelligently"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

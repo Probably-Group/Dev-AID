@@ -2,7 +2,7 @@
 name: dev-aid-analyze
 description: Analyze codebase and generate a detailed plan to adapt it to Dev-AID best practices
 category: setup
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

@@ -2,7 +2,7 @@
 name: aid-code-health
 description: Codebase health assessment with quality metrics, test coverage, and maintainability analysis
 category: quality
-author: Dev-AID Team (adapted from Tresor)
+author: Dev-AID Team (https://probably.group) (adapted from Tresor)
 version: 1.0.0
 ---
 

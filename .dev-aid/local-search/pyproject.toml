@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
-    {name = "Dev-AID Team"}
+    {name = "Dev-AID Team (https://probably.group)"}
 ]
 
 dependencies = [

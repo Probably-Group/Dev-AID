@@ -690,7 +690,7 @@ registry._save_config()
 3. Run with `--verbose` flag for detailed logs
 
 **Still stuck?**
-- GitHub Issues: https://github.com/martinholovsky/Dev-AID/issues
+- GitHub Issues: https://github.com/Probably-Group/Dev-AID/issues
 - Tag with `mcp` label
 
 ---

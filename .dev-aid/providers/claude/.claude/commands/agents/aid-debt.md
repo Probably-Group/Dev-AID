@@ -2,7 +2,7 @@
 name: aid-debt
 description: "Scan codebase for tech debt and code smells"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

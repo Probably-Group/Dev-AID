@@ -2,7 +2,7 @@
 name: aid-onboard
 description: "Generate codebase onboarding guide for new devs"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

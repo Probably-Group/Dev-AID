@@ -2,7 +2,7 @@
 name: aid-deploy-validate
 description: Pre-deployment validation with tests, security checks, and environment readiness verification
 category: operations
-author: Dev-AID Team (adapted from Tresor)
+author: Dev-AID Team (https://probably.group) (adapted from Tresor)
 version: 1.0.0
 ---
 

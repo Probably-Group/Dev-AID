@@ -36,7 +36,7 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/martinholovsky/Dev-AID.git
+git clone https://github.com/Probably-Group/Dev-AID.git
 cd Dev-AID
 
 # 2. Initialize Dev-AID in the repo
@@ -489,7 +489,7 @@ Use these categories when reporting feedback (matches the [Beta Feedback issue t
 | Check version | `cat .dev-aid/VERSION` |
 | Verify setup | `/aid-status` |
 | List all commands | `/aid-help` |
-| File a bug | [Beta Feedback template](https://github.com/martinholovsky/Dev-AID/issues/new?template=beta_feedback.yml) |
+| File a bug | [Beta Feedback template](https://github.com/Probably-Group/Dev-AID/issues/new?template=beta_feedback.yml) |
 | View router logs | `cat .dev-aid/logs/routing.log` |
 | View cost data | `cat .dev-aid/logs/costs.json` |
 | Run environment snapshot | See section 3 above |

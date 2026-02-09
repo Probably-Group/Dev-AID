@@ -2,7 +2,7 @@
 name: dev-aid-agent-doc-audit
 description: AI-powered documentation health audit with drift detection, broken links, and gap analysis
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

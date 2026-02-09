@@ -2,7 +2,7 @@
 name: aid-models
 description: "Update AI model registry with latest releases and pricing"
 category: maintenance
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

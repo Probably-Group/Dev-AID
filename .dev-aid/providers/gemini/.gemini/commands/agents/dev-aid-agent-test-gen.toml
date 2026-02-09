@@ -3,7 +3,7 @@ description = "AI-powered test generation with edge cases, error paths, and boun
 
 [metadata]
 category = "agents"
-author = "Dev-AID Team"
+author = "Dev-AID Team (https://probably.group)"
 version = "1.0.0"
 
 [prompt]

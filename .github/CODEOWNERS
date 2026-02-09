@@ -1,5 +1,7 @@
 # Dev-AID Code Owners
+# Organization: Probably Nothing Group (https://github.com/Probably-Group)
 # These owners will be requested for review on PRs that modify matching paths
+# NOTE: After creating a GitHub Team, replace @martinholovsky with @Probably-Group/<team-name>
 
 # Default owner for everything
 * @martinholovsky

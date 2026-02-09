@@ -2,7 +2,7 @@
 name: aid-challenger
 description: "Two-AI review: Claude generates, Gemini reviews for security"
 category: router
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

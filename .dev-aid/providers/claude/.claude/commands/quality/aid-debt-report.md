@@ -2,7 +2,7 @@
 name: aid-debt-report
 description: "Identify and prioritize technical debt with effort estimates"
 category: quality
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

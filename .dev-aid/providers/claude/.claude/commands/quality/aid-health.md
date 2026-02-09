@@ -2,7 +2,7 @@
 name: aid-health
 description: "Assess code quality, test coverage, and maintainability"
 category: quality
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

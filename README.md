@@ -2,8 +2,8 @@
 
 # 🚀 Dev-AID (Development AI Driver)
 
-[![CI](https://github.com/martinholovsky/Dev-AID/actions/workflows/pr-check.yml/badge.svg)](https://github.com/martinholovsky/Dev-AID/actions/workflows/pr-check.yml)
-[![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-Active-green?logo=opensourcesecurity)](https://github.com/martinholovsky/Dev-AID/security/code-scanning)
+[![CI](https://github.com/Probably-Group/Dev-AID/actions/workflows/pr-check.yml/badge.svg)](https://github.com/Probably-Group/Dev-AID/actions/workflows/pr-check.yml)
+[![OpenSSF Scorecard](https://img.shields.io/badge/OpenSSF_Scorecard-Active-green?logo=opensourcesecurity)](https://github.com/Probably-Group/Dev-AID/security/code-scanning)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -1687,7 +1687,7 @@ cat .dev-aid/config/routing.json
 Dev-AID builds on excellent open-source projects and incorporates patterns from the AI development community:
 
 ### Inspiration & Structure
-- **[claude-skills-generator](https://github.com/martinholovsky/claude-skills-generator)** by [Martin Holovsky - Dev-AID author](https://github.com/martinholovsky) - Project structure, configuration patterns, and AI integration architecture
+- **[claude-skills-generator](https://github.com/martinholovsky/claude-skills-generator)** by [Dev-AID Team (https://probably.group)](https://github.com/Probably-Group) - Project structure, configuration patterns, and AI integration architecture
 - **[Superpowers](https://github.com/obra/superpowers)** by [Jesse Vincent](https://github.com/obra) - Inspiration for process skills architecture, TDD enforcement, and verification-gate patterns. Dev-AID's process skills adopt Superpowers' behavioral protocols while adding language-aware verification, multi-AI challenger mode, and FAISS local search integration
 - **[claude-code-tresor](https://github.com/alirezarezvani/claude-code-tresor)** by [Alireza Rezvani](https://github.com/alirezarezvani) - Inspiration for security commands and DevSecOps patterns (integrated as skills)
 

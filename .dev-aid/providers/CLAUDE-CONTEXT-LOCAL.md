@@ -802,7 +802,7 @@ claude mcp add code-search --scope user -- \
 ### 3. Index Dev-AID
 
 ```bash
-cd ~/projects/ai-coding-comparison/dev-aid
+cd ~/projects/Dev-AID
 claude-context-local index .
 ```
 

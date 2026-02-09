@@ -2,7 +2,7 @@
 name: aid-test
 description: "Generate tests for untested code paths"
 category: agents
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

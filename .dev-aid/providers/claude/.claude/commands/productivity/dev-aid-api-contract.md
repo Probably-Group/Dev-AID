@@ -3,7 +3,7 @@ name: dev-aid-api-contract
 description: Generate OpenAPI contracts, TypeScript clients, and MSW mocks from data models
 category: productivity
 version: 1.0.0
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 ---
 
 # API Contract Generator - Contract-First Development

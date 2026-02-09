@@ -474,8 +474,8 @@ Contributions welcome! Please:
 ## Support
 
 - **Documentation**: `.dev-aid/docs/`
-- **Issues**: [GitHub Issues](https://github.com/martinholovsky/Dev-AID/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/martinholovsky/Dev-AID/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Probably-Group/Dev-AID/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Probably-Group/Dev-AID/discussions)
 
 ## License
 

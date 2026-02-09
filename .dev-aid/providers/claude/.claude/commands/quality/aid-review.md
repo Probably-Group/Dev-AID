@@ -2,7 +2,7 @@
 name: aid-review
 description: "Pre-commit review: security, quality, and test gaps"
 category: quality
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

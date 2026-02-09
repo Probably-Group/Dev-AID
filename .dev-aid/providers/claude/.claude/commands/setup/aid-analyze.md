@@ -2,7 +2,7 @@
 name: aid-analyze
 description: "Analyze codebase and generate adaptation plan"
 category: setup
-author: Dev-AID Team
+author: Dev-AID Team (https://probably.group)
 version: 1.0.0
 ---
 

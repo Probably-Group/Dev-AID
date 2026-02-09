@@ -267,7 +267,7 @@ For detailed guidance, see:
 - ✅ 2-3x more code examples and patterns per skill
 - ✅ Skills synced from personal dotfiles for improved quality
 
-**v2.0.0 (2025-12-07)**: [PR #62](https://github.com/martinholovsky/Dev-AID/pull/62)
+**v2.0.0 (2025-12-07)**: [PR #62](https://github.com/Probably-Group/Dev-AID/pull/62)
 - ✅ Migrated all 72 skills to two-tier template
 - ✅ Added § 4: Quality Assurance Checklist to all skills
 - ✅ Added § 0.4: Progressive Disclosure guidance

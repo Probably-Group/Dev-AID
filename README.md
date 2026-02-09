@@ -144,13 +144,32 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | Capability | Dev-AID | [Cursor](https://cursor.sh) | [GitHub Copilot](https://github.com/features/copilot) | [Aider](https://aider.chat) | [Windsurf](https://windsurf.com) |
 |------------|---------|--------|----------------|-------|----------|
 | **Type** | Enhancement layer | Full IDE | IDE extension | CLI tool | Full IDE |
-| **Works with existing tools** | ✅ Claude, Gemini, Cursor, Windsurf, Cline, Codex | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
-| **Multi-AI routing** | ✅ Claude + Gemini + OpenAI | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
-| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Limited | ❌ | ✅ Any model | ⚠️ Limited |
+| **Works with existing tools** | ✅ 6 native + 3 MCP | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
+| **Multi-AI routing** | ✅ 4 modes (solo/challenger/ensemble/architect) | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
+| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Via API override | ❌ | ✅ Native Ollama | ⚠️ Enterprise only |
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
 | **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
-| **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ⚠️ Basic | ❌ | ❌ |
+| **Process skills** | ✅ 8 behavioral protocols | ❌ | ❌ | ❌ | ❌ |
+| **Agent framework** | ✅ 8 agents, 16 tools, 4 providers | ✅ Background agents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade agent |
+| **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ✅ CodeQL Autofix | ❌ | ⚠️ Platform-level |
+| **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ |
+| **MCP integration** | ✅ Dual-layer (native + router) | ❌ | ❌ | ❌ | ❌ |
+| **Session persistence** | ✅ Auto-save/restore | ❌ | ❌ | ❌ | ❌ |
+| **Architect mode** | ✅ Plan → approve → implement | ❌ | ❌ | ❌ | ❌ |
+| **Git worktree isolation** | ✅ Scope + conflict detection | ❌ | ❌ | ❌ | ❌ |
+| **Memory bank** | ✅ Git-synced team knowledge | ❌ | ❌ | ❌ | ❌ |
+| **CI/CD generator** | ✅ Auto-detect + frequency profiles | ⚠️ Agent can generate | ⚠️ Agent can generate | ❌ | ❌ |
+| **Cost tracking** | ✅ Built-in with budget limits | ✅ Spend limits | ✅ Premium budgets | ✅ Token reporting | ⚠️ Credit dashboard |
+| **Pre-commit review** | ✅ AI-driven staged review | ✅ Agent hooks | ✅ Copilot Code Review | ⚠️ Hook-based | ⚠️ Linting hooks |
+| **Commit planning** | ✅ AI-guided atomic commits | ⚠️ /plan mode | ❌ | ⚠️ Auto-commits | ❌ |
+| **API contract generation** | ✅ OpenAPI + TS clients + MSW | ⚠️ Agent can generate | ❌ | ❌ | ❌ |
+| **SBOM generation** | ✅ CycloneDX + SPDX | ❌ | ❌ | ❌ | ❌ |
+| **Onboarding assistant** | ✅ Interactive onboarding | ❌ | ⚠️ Code explanation | ❌ | ✅ Built-in |
+| **Doc sync / drift detection** | ✅ Automated detection | ❌ | ⚠️ Basic | ❌ | ❌ |
+| **Skill validators** | ✅ Auto-discovered compliance | ❌ | ❌ | ❌ | ❌ |
+| **Safe update system** | ✅ Rollback + conflict resolution | ❌ | ❌ | ⚠️ Git revert | ❌ |
+| **Token optimization** | ✅ TOON format (40-60%) | ❌ | ❌ | ❌ | ❌ |
 | **Cost** | **Free** (open source) | $20/mo | $10-19/mo | Free (BYOK) | $15-60/mo |
 | **Privacy** | ✅ 100% local option | ❌ Cloud | ❌ Cloud | ✅ Local option | ❌ Cloud |
 
@@ -158,22 +177,33 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 | Capability | Dev-AID | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | [agents](https://github.com/wshobson/agents) | [Superpowers](https://github.com/obra/superpowers) | [claude-context](https://github.com/zilliztech/claude-context) | [my-claude-code-setup](https://github.com/centminmod/my-claude-code-setup) |
 |------------|---------|----------------------|--------|-------------|----------------|---------------------|
-| **GitHub Stars** | ~100 | **39.4K** ⭐ | **27.7K** ⭐ | ~2K | 5.3K | 1.8K |
+| **GitHub Stars** | ~100 | **42.7K** ⭐ | **28.2K** ⭐ | **48.2K** ⭐ | 5.3K | 1.8K |
 | **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
-| **Multi-provider support** | ✅ Claude, Gemini, Codex, Cursor, Windsurf, Cline + MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
-| **Expert skills/agents** | 73 + 8 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
-| **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
-| **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
-| **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
-| **Workflow orchestrators** | ✅ Architect + 4 modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
+| **Multi-provider support** | ✅ 6 native + 3 MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
+| **Expert skills/agents** | 73 + 8 process | 108 agents + 129 skills | 112 agents + 73 plugins | ~15 skills | ❌ | ❌ |
+| **Multi-AI router** | ✅ 4 modes (challenger/ensemble/architect/solo) | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
+| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ❌ | ❌ | ❌ | ⚠️ Cloud embeddings | ❌ |
+| **Local RAG** | ✅ FAISS + BM25 hybrid ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
+| **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Trufflehog + npm audit | ✅ SAST + dependency scan | ❌ | ❌ | ❌ |
+| **Agent framework** | ✅ 8 agents, 16 tools, 4 providers | ✅ 15+ agents, PM2 orchestration | ✅ 16 orchestrators | ✅ Parallel subagents | ❌ | ⚠️ Subagents |
 | **Process skills (TDD)** | ✅ 8 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
 | **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ Zilliz-based | ❌ |
 | **Git worktree isolation** | ✅ With safeguards | ❌ | ❌ | ✅ Basic | ❌ | ❌ |
-| **Memory bank** | ✅ Git-synced | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ |
-| **MCP integration** | ✅ Extensible | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
-| **Cost tracking** | ✅ Built-in | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Memory bank** | ✅ Git-synced | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ Synced |
+| **MCP integration** | ✅ Dual-layer (native + router) | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
+| **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **CI/CD generator** | ✅ Auto-detect + frequency profiles | ❌ | ✅ cicd-automation plugin | ❌ | ❌ | ❌ |
+| **Cost tracking** | ✅ Built-in with budget limits | ❌ | ⚠️ Model selection guide | ❌ | ⚠️ Token reduction | ✅ USD cost display |
+| **Pre-commit review** | ✅ AI-driven staged review | ✅ Code reviewer agent | ✅ code-review-ai plugin | ✅ Code review skills | ❌ | ❌ |
+| **Commit planning** | ✅ AI-guided atomic commits | ✅ Planner agent | ⚠️ git-pr-workflows | ✅ writing-plans skill | ❌ | ❌ |
+| **API contract generation** | ✅ OpenAPI + TS + MSW | ❌ | ⚠️ api-scaffolding plugin | ❌ | ❌ | ❌ |
+| **Doc sync / drift detection** | ✅ Automated detection | ✅ Doc updater agent | ⚠️ documentation plugin | ❌ | ❌ | ✅ Memory sync |
+| **Skill validators** | ✅ Auto-discovered compliance | ⚠️ Review agents | ✅ Compliance plugins | ⚠️ Verification skill | ❌ | ❌ |
+| **Safe update system** | ✅ Rollback + conflict resolution | ✅ Versioned releases | ❌ | ❌ | ❌ | ❌ |
+| **SBOM generation** | ✅ CycloneDX + SPDX | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Onboarding assistant** | ✅ Interactive onboarding | ❌ | ⚠️ team-collaboration | ❌ | ❌ | ✅ /init command |
 | **Token optimization** | ✅ TOON format (40-60%) | ⚠️ Progressive disclosure | ✅ Progressive disclosure | ❌ | ✅ 40% reduction | ❌ |
 
 **Legend:** ✅ = Full support | ⚠️ = Partial/Limited | ❌ = Not available
@@ -182,17 +212,19 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
-| **🏠 Local LLM Support** 🆕 | Run AI 100% offline via Ollama/LM Studio/llama.cpp — **$0 forever, complete privacy** |
-| **Multi-provider (only one)** | Works with Claude Code, Gemini CLI, Cursor, Windsurf, Cline, AND Codex — competitors are Claude-only |
+| **Multi-provider (only one)** | Works with 6 tools natively + 3 via MCP — every competitor is Claude-only |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → catches issues single-AI misses |
 | **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
-| **Hybrid Search (BM25+Vector)** | Combines keyword + semantic search with reciprocal rank fusion — better than either alone |
-| **$0 Local RAG forever** | Your code never leaves your machine. No API costs. 0.15s queries. (claude-context uses cloud) |
+| **🏠 Local LLM Support** | Run AI 100% offline via Ollama/LM Studio/llama.cpp — **$0 forever, complete privacy** |
+| **$0 Local RAG (Hybrid Search)** | BM25 + Vector with RRF fusion — code never leaves your machine, 0.15s queries |
+| **Deep Research MCP** | Multi-provider research (Gemini/Perplexity/Tavily) with semantic caching — no competitor has this |
+| **SBOM Generation** | CycloneDX + SPDX supply chain transparency — no competitor has this |
+| **Comprehensive security scanning** | CVE + SAST + Secrets + Misconfig + IaC — 3 universal + 8 language-specific tools on every commit |
+| **CI/CD Generator** | Auto-detect tech stack + 3 frequency profiles (5-100% cost) — dedicated feature, not just "agent can generate" |
 | **Git Worktree Isolation** | Parallel development with scope declarations and conflict detection — avoids merge nightmares |
 | **Session Persistence** | Auto-saves progress on session end, restores context on restart — never lose your place |
-| **Comprehensive security scanning** | CVE + SAST + Secrets + Misconfig + IaC — runs automatically on every commit |
-| **Cost tracking + routing** | Built-in budget limits and smart routing to cheapest capable model |
-| **Inspired by the best** | Process skills adopt [Superpowers](https://github.com/obra/superpowers)' behavioral protocols + Dev-AID infrastructure |
+| **Safe Update System** | Interactive conflict resolution + auto-rollback + SHA256 verification — fearless updates |
+| **Cost tracking + smart routing** | Built-in budget limits, per-model cost tracking, and routing to cheapest capable model |
 
 > 💡 **Bottom line:** Other frameworks lock you into Claude. Dev-AID lets you use the best of everything.
 

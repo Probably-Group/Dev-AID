@@ -859,64 +859,36 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ## 🚀 Quick Start
 
-### Option 1: New Project with Dev-AID
+### Install Dev-AID into Your Project
 
 ```bash
-# Clone Dev-AID repository
-git clone https://github.com/Probably-Group/Dev-AID.git my-project
-cd my-project
+# 1. Clone Dev-AID (one-time)
+git clone https://github.com/Probably-Group/Dev-AID.git
 
-# Copy Dev-AID configuration
-cp -r /path/to/dev-aid/.dev-aid .
+# 2. Copy .dev-aid into your project
+cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
 
-# Initialize
+# 3. Initialize (interactive — sets up router, local search, security hooks)
+cd ~/my-project
 ./.dev-aid/scripts/init-repo.sh
 
-# Done! Start using
-claude
-# or
-gemini
+# 4. Start your AI coding tool
+claude    # or gemini, cursor, windsurf, etc.
 ```
 
-### Option 2: Add to Existing Project
+That's it. Type `/aid-help` to see all available commands.
+
+### Optional Add-ons (run inside your project)
 
 ```bash
-# Copy Dev-AID to your project
-cd ~/my-existing-project
-cp -r /path/to/dev-aid/.dev-aid .
-
-# Initialize
-./.dev-aid/scripts/init-repo.sh
-
-# Done!
-```
-
-### Option 3: Just Add Local Search to Existing Dev-AID
-
-```bash
-# If you already have Dev-AID
-cd your-project
-
-# Add Dev-AID Local Search
+# Local semantic search ($0, offline, 5 min setup)
 ./.dev-aid/scripts/setup-rag.sh
 
-# 5 minutes later: Local Search ready!
-```
-
-### Option 4: Setup Local LLM (Zero-Cost AI)
-
-```bash
-# Run the interactive setup wizard
+# Local LLM — zero-cost AI (auto-detects GPU, installs Ollama)
 ./.dev-aid/scripts/setup-local-llm.sh
 
-# Wizard will:
-# 1. Detect your GPU/VRAM automatically
-# 2. Recommend the best model for your hardware
-# 3. Install Ollama if needed
-# 4. Download and configure the model
-# 5. Enable local provider in Dev-AID
-
-# Now use AI without API costs!
+# Security scanning tools (Gitleaks, Trivy, Opengrep)
+./.dev-aid/automation/tools/install-security-tools.sh
 ```
 
 ---

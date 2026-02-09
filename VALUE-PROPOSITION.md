@@ -1509,43 +1509,27 @@ dev-aid-fix-conflicts --strategy smart
 
 ## 5-Minute Quick Start
 
-### Option 1: New Project with Dev-AID
-
 ```bash
-# Clone repository
-git clone <repo> my-project && cd my-project
+# 1. Clone Dev-AID (one-time)
+git clone https://github.com/Probably-Group/Dev-AID.git
 
-# One-command setup (installs RAG + router + security hooks)
-./.dev-aid/scripts/init-repo.sh
-# Answer "Y" to install Dev-AID Local Search (recommended)
+# 2. Copy .dev-aid into your project
+cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
 
-# Start using immediately
-claude code
-# or
-cursor .
-# or
-gemini-cli
-```
-
-### Option 2: Add to Existing Project
-
-```bash
-# Copy Dev-AID to your project
-cd ~/my-existing-project
-cp -r /path/to/dev-aid/.dev-aid .
-
-# Initialize
+# 3. Initialize (interactive — sets up router, local search, security hooks)
+cd ~/my-project
 ./.dev-aid/scripts/init-repo.sh
 
-# Done! Continue using Claude Code/Cursor as before
+# 4. Start your AI coding tool
+claude    # or gemini, cursor, windsurf, etc.
 ```
 
-**That's it.** Claude Code/Cursor now have:
-- ✅ 73 expert skills
-- ✅ Multi-AI routing
-- ✅ Local RAG ($0 forever)
-- ✅ Automated security
-- ✅ Issue/conflict automation
+**That's it.** Your project now has:
+- 73 expert skills
+- Multi-AI routing
+- Local RAG ($0 forever)
+- Automated security
+- Issue/conflict automation
 
 ---
 

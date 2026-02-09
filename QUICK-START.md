@@ -12,24 +12,21 @@ Get Dev-AID running in 5 minutes!
 
 ## Installation
 
-### 1. Clone Dev-AID
+### 1. Get Dev-AID
 
 ```bash
-# Clone into your project
-cd your-project/
-git clone https://github.com/user/dev-aid .dev-aid-temp
-cp -r .dev-aid-temp/.dev-aid .
-rm -rf .dev-aid-temp
+# Clone Dev-AID (one-time)
+git clone https://github.com/Probably-Group/Dev-AID.git
 
-# Or clone standalone and copy to projects
-git clone https://github.com/user/dev-aid
-# Use dev-aid/.dev-aid/ in your projects
+# Copy .dev-aid into your project
+cp -r Dev-AID/.dev-aid ~/your-project/.dev-aid
 ```
 
-### 2. Run Installer
+### 2. Initialize
 
 ```bash
-./.dev-aid/scripts/install.sh
+cd ~/your-project
+./.dev-aid/scripts/init-repo.sh
 ```
 
 Follow the 6-step wizard:

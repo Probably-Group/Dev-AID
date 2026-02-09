@@ -1,0 +1,5 @@
+# Block GitHub Copilot from indexing this repository
+# This file tells Copilot to ignore all code in this repo
+
+# Ignore everything
+*

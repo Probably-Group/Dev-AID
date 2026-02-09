@@ -18,7 +18,11 @@ update_command_name() {
     local new_name="$3"
 
     if [[ -f "$file" ]]; then
-        sed -i "s/^name: $old_name$/name: $new_name/" "$file"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s/^name: $old_name$/name: $new_name/" "$file"
+        else
+            sed -i "s/^name: $old_name$/name: $new_name/" "$file"
+        fi
         echo "  ✅ Updated $file"
     fi
 }

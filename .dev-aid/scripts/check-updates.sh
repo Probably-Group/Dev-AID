@@ -10,9 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/update-lib.sh"
 
 # Configuration
-CACHE_FILE=".dev-aid/.update-check-cache"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+CACHE_FILE="$PROJECT_ROOT/.dev-aid/.update-check-cache"
 CACHE_TTL=604800  # 7 days in seconds (configurable)
-STATUS_FILE=".dev-aid/.update-status"
+STATUS_FILE="$PROJECT_ROOT/.dev-aid/.update-status"
 
 # Parse arguments
 SILENT=false
@@ -104,13 +105,19 @@ if [ "$SILENT" = false ]; then
     echo -e "${BLUE}→ Fetching latest release from GitHub...${NC}"
 fi
 
-LATEST_VERSION=$(python3 .dev-aid/orchestration/github_client.py get-latest-version 2>/dev/null)
+LATEST_VERSION=$(python3 .dev-aid/orchestration/github_client.py get-latest-version 2>/dev/null) || true
 
-if [ $? -ne 0 ] || [ -z "$LATEST_VERSION" ]; then
+if [ -z "$LATEST_VERSION" ]; then
     if [ "$SILENT" = false ]; then
         echo -e "${RED}❌ Failed to check for updates${NC}"
         echo "   Check your internet connection or GitHub API status"
     fi
+    exit 1
+fi
+
+# Validate version format to prevent injection
+if [[ ! "$LATEST_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+    echo "Warning: Unexpected version format: $LATEST_VERSION" >&2
     exit 1
 fi
 

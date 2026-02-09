@@ -43,7 +43,13 @@ FORMAT="tree"
 while [[ $# -gt 0 ]]; do
     case $1 in
         -r|--reverse) REVERSE=true; shift ;;
-        -d|--depth) DEPTH="$2"; shift 2 ;;
+        -d|--depth)
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                DEPTH="$2"
+            else
+                echo "Error: --depth must be a number" >&2; exit 1
+            fi
+            shift 2 ;;
         -f|--format) FORMAT="$2"; shift 2 ;;
         -h|--help) usage ;;
         -*) echo "Unknown option: $1"; usage ;;
@@ -132,7 +138,10 @@ find_deps() {
             import_file="${dir}/${import}.${EXT}"
         else
             # Absolute import - search for it
-            import_file=$(find . -type f -name "${import}.${EXT}" -not -path "./venv/*" -not -path "./.venv/*" | head -1)
+            # Sanitize import name for use in find -name
+            local safe_import
+            safe_import=$(printf '%s' "$import" | tr -cd 'a-zA-Z0-9_.-')
+            import_file=$(find . -type f -name "${safe_import}.${EXT}" -not -path "./venv/*" -not -path "./.venv/*" | head -1)
         fi
 
         if [ "$FORMAT" = "tree" ]; then

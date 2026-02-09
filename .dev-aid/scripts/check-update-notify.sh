@@ -6,6 +6,9 @@
 
 set -euo pipefail
 
+cleanup() { rm -f "${FETCH_TMP:-}" 2>/dev/null; }
+trap cleanup EXIT
+
 PROJECT_ROOT="${1:-.}"
 VERSION_FILE="$PROJECT_ROOT/.dev-aid/VERSION"
 REPO="Probably-Group/Dev-AID"
@@ -42,7 +45,7 @@ if [ "$need_fetch" = true ]; then
     fi
 
     # Run gh api in background with a 3s watchdog to avoid blocking session start
-    FETCH_TMP="$CACHE_DIR/.version-fetch.$$"
+    FETCH_TMP=$(mktemp "$CACHE_DIR/.version-fetch.XXXXXX")
     gh api "repos/$REPO/contents/.dev-aid/VERSION" --jq '.content' 2>/dev/null > "$FETCH_TMP" &
     GH_PID=$!
 

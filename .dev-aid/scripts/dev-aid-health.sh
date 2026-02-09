@@ -55,13 +55,13 @@ HEALTHY=true
 
 check() {
     local name="$1"
-    local test_cmd="$2"
+    shift
 
     if $QUIET; then
-        bash -c "$test_cmd" &>/dev/null || HEALTHY=false
+        "$@" &>/dev/null || HEALTHY=false
     else
         echo -n "Checking $name... "
-        if bash -c "$test_cmd" &>/dev/null; then
+        if "$@" &>/dev/null; then
             echo -e "${GREEN}✓${NC}"
         else
             echo -e "${RED}✗${NC}"
@@ -80,10 +80,10 @@ if ! $QUIET; then
     echo -e "${BLUE}CLI Tools${NC}"
 fi
 
-check "git"     "command -v git"
-check "python3" "command -v python3"
-check "curl"    "command -v curl"
-check "jq"      "command -v jq"
+check "git"     command -v git
+check "python3" command -v python3
+check "curl"    command -v curl
+check "jq"      command -v jq
 
 # Security tools (warn but don't fail)
 for sec_tool in gitleaks trivy opengrep; do
@@ -104,10 +104,14 @@ fi
 
 # Check RAG
 if [ -d ~/.devaid-search ]; then
-    check "RAG index" "[ -f ~/.devaid-search/index.faiss ]"
+    check "RAG index" test -f ~/.devaid-search/index.faiss
 
     if [ -f ~/.devaid-search/index.faiss ] && ! $QUIET; then
-        AGE_DAYS=$(( ( $(date +%s) - $(stat -f %m ~/.devaid-search/index.faiss) ) / 86400 ))
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            AGE_DAYS=$(( ( $(date +%s) - $(stat -f %m ~/.devaid-search/index.faiss) ) / 86400 ))
+        else
+            AGE_DAYS=$(( ( $(date +%s) - $(stat -c %Y ~/.devaid-search/index.faiss) ) / 86400 ))
+        fi
         if [ "$AGE_DAYS" -gt 7 ]; then
             echo -e "  ${YELLOW}⚠ Index is ${AGE_DAYS} days old (consider reindexing)${NC}"
         fi
@@ -115,11 +119,11 @@ if [ -d ~/.devaid-search ]; then
 fi
 
 # Check Router
-check "Router config" "[ -f .dev-aid/config/routing.json ]"
-check "Router venv" "[ -d .dev-aid/orchestration/.venv ] || [ -d .dev-aid/orchestration/venv ]"
+check "Router config" test -f .dev-aid/config/routing.json
+check "Router venv" test -d .dev-aid/orchestration/.venv -o -d .dev-aid/orchestration/venv
 
 # Check Git hooks
-check "Git hooks" "[ -f .git/hooks/pre-commit ]"
+check "Git hooks" test -f .git/hooks/pre-commit
 
 # Check Skills
 SKILL_DIR=".dev-aid/providers/claude/.claude/skills/expert"
@@ -132,7 +136,7 @@ fi
 
 # Check Dependencies
 if [ -d .dev-aid/orchestration/.venv ]; then
-    check "Python packages" ".dev-aid/orchestration/.venv/bin/pip list | grep -q anthropic"
+    check "Python packages" .dev-aid/orchestration/.venv/bin/pip show anthropic
 fi
 
 # Exit code

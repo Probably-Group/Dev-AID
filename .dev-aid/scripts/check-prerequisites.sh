@@ -28,7 +28,7 @@ while [[ $# -gt 0 ]]; do
         -q|--quiet) QUIET=true; shift ;;
         --install) AUTO_INSTALL=true; shift ;;
         -h|--help)
-            echo "Usage: $0 [OPTIONS]"
+            echo "Usage: $(basename "$0") [OPTIONS]"
             echo ""
             echo "Check and optionally install Dev-AID prerequisites."
             echo ""
@@ -64,7 +64,7 @@ check_tool() {
     if command -v "$cmd" &> /dev/null; then
         if ! $QUIET; then
             local ver=""
-            ver=$($cmd $version_flag 2>&1 | head -1 | sed 's/.*version //; s/[,)].*//') || ver="installed"
+            ver=$($cmd "$version_flag" 2>&1 | head -1 | sed 's/.*version //; s/[,)].*//') || ver="installed"
             echo -e "  ${GREEN}✓${NC} ${name} (${ver})"
         fi
         return 0
@@ -155,7 +155,12 @@ install_tool() {
                 trivy)       brew install trivy ;;
                 opengrep)
                     echo "Installing Opengrep via official script..."
-                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+                    local tmp_script
+                    tmp_script=$(mktemp)
+                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
+                    # WARNING: Executing unverified remote script
+                    bash "$tmp_script"
+                    rm -f "$tmp_script"
                     ;;
                 *) echo "  No brew formula known for: $cmd"; return 1 ;;
             esac
@@ -171,15 +176,28 @@ install_tool() {
                 shellcheck)   sudo apt-get install -y shellcheck ;;
                 gitleaks)
                     echo "Installing Gitleaks via binary release..."
-                    curl -sL "https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_$(uname -s)_$(uname -m).tar.gz" | sudo tar xz -C /usr/local/bin/
+                    local tmp_tarball
+                    tmp_tarball=$(mktemp /tmp/gitleaks-install.XXXXXX.tar.gz)
+                    curl -fSL "https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks_$(uname -s)_$(uname -m).tar.gz" -o "$tmp_tarball"
+                    sudo tar xz -C /usr/local/bin/ -f "$tmp_tarball"
+                    rm -f "$tmp_tarball"
                     ;;
                 trivy)
                     echo "Installing Trivy via official script..."
-                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sudo sh -s -- -b /usr/local/bin
+                    local tmp_script
+                    tmp_script=$(mktemp)
+                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh -o "$tmp_script"
+                    sudo sh "$tmp_script" -b /usr/local/bin
+                    rm -f "$tmp_script"
                     ;;
                 opengrep)
                     echo "Installing Opengrep via official script..."
-                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh | bash
+                    local tmp_script
+                    tmp_script=$(mktemp)
+                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
+                    # WARNING: Executing unverified remote script
+                    bash "$tmp_script"
+                    rm -f "$tmp_script"
                     ;;
                 *) echo "  No apt package known for: $cmd"; return 1 ;;
             esac

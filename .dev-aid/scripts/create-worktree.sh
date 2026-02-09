@@ -82,7 +82,8 @@ check_architecture_locks() {
         while IFS= read -r locked_path; do
             [[ -z "$locked_path" || "$locked_path" == \#* ]] && continue
 
-            for scope_path in ${scope//,/ }; do
+            IFS=',' read -ra scope_paths <<< "$scope"
+            for scope_path in "${scope_paths[@]}"; do
                 if [[ "$scope_path" == "$locked_path"* || "$locked_path" == "$scope_path"* ]]; then
                     conflicts+=("$lock_name: $locked_path")
                 fi
@@ -129,7 +130,8 @@ check_scope_overlap() {
         wt_paths=$(grep -E '^\s*-\s*`' "$scope_file" 2>/dev/null | sed 's/.*`\([^`]*\)`.*/\1/' || true)
 
         for wt_path in $wt_paths; do
-            for scope_path in ${scope//,/ }; do
+            IFS=',' read -ra scope_paths <<< "$scope"
+            for scope_path in "${scope_paths[@]}"; do
                 if [[ "$scope_path" == "$wt_path"* || "$wt_path" == "$scope_path"* ]]; then
                     overlaps+=("$wt_name: $wt_path")
                 fi
@@ -173,7 +175,8 @@ $description
 EOF
 
     if [[ -n "$scope" ]]; then
-        for path in ${scope//,/ }; do
+        IFS=',' read -ra scope_paths <<< "$scope"
+        for path in "${scope_paths[@]}"; do
             echo "- \`$path\`" >> "$worktree_dir/SCOPE.md"
         done
     else
@@ -248,6 +251,11 @@ main() {
     if [[ -z "$branch_name" ]]; then
         log_error "Branch name required"
         usage
+        exit 1
+    fi
+
+    if [[ "$branch_name" =~ ^- ]]; then
+        log_error "Invalid branch name (cannot start with -): $branch_name"
         exit 1
     fi
 

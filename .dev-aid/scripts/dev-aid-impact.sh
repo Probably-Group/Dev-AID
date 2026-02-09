@@ -59,6 +59,9 @@ fi
 
 SYMBOL="$1"
 
+# Escape regex metacharacters in symbol name
+ESCAPED_SYMBOL=$(printf '%s' "$SYMBOL" | sed 's/[.[\*^$()+?{|\\]/\\&/g')
+
 # Check dependencies
 if ! command -v rg &> /dev/null; then
     echo -e "${RED}Error: ripgrep (rg) is required${NC}"
@@ -72,14 +75,15 @@ echo ""
 # Build search pattern based on type
 case $TYPE in
     function)
-        PATTERN="${SYMBOL}\s*\("
+        PATTERN="${ESCAPED_SYMBOL}\s*\("
         ;;
     class)
-        PATTERN="(import|from).*${SYMBOL}|class.*${SYMBOL}"
+        PATTERN="(import|from).*${ESCAPED_SYMBOL}|class.*${ESCAPED_SYMBOL}"
         ;;
     file)
         FILENAME=$(basename "$SYMBOL")
-        PATTERN="(import|from).*${FILENAME%.py}"
+        ESCAPED_FILENAME=$(printf '%s' "${FILENAME%.py}" | sed 's/[.[\*^$()+?{|\\]/\\&/g')
+        PATTERN="(import|from).*${ESCAPED_FILENAME}"
         ;;
     *)
         echo "Unknown type: $TYPE"
@@ -114,14 +118,18 @@ done < "$TEMP_FILE"
 
 # Output based on format
 if [ "$FORMAT" = "json" ]; then
+    # Escape double quotes in variables for safe JSON interpolation
+    SAFE_SYMBOL="${SYMBOL//\"/\\\"}"
+    SAFE_TYPE="${TYPE//\"/\\\"}"
     echo "{"
-    echo "  \"symbol\": \"$SYMBOL\","
-    echo "  \"type\": \"$TYPE\","
+    echo "  \"symbol\": \"$SAFE_SYMBOL\","
+    echo "  \"type\": \"$SAFE_TYPE\","
     echo "  \"total_references\": $TOTAL,"
     echo "  \"files\": ["
     for file in "${!FILE_COUNTS[@]}"; do
         count="${FILE_COUNTS[$file]}"
-        echo "    {\"file\": \"$file\", \"count\": $count},"
+        safe_file="${file//\"/\\\"}"
+        echo "    {\"file\": \"$safe_file\", \"count\": $count},"
     done | sed '$ s/,$//'
     echo "  ]"
     echo "}"

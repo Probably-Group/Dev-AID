@@ -212,10 +212,10 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 
 | What Makes Dev-AID Unique | Why It Matters |
 |---------------------------|----------------|
-| **Multi-provider (only one)** | Works with 6 tools natively + 3 via MCP — every competitor is Claude-only |
+| **Only multi-provider framework** | Works with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + VS Code/Zed/JetBrains via MCP — every other enhancement framework is single-tool |
 | **Dual-AI Challenger Mode** | Claude writes code → Gemini reviews for bugs/security → catches issues single-AI misses |
 | **Two-Agent Architect Mode** | Architect plans → User approves → Implementer builds — prevents wasted work on wrong approach |
-| **🏠 Local LLM Support** | Run AI 100% offline via Ollama/LM Studio/llama.cpp — **$0 forever, complete privacy** |
+| **🏠 Local LLM Support** | Run AI 100% offline — supports 3 runtimes (Ollama, LM Studio, llama.cpp), auto-detects hardware, recommends best model — **$0 forever, complete privacy** |
 | **$0 Local RAG (Hybrid Search)** | BM25 + Vector with RRF fusion — code never leaves your machine, 0.15s queries |
 | **Deep Research MCP** | Multi-provider research (Gemini/Perplexity/Tavily) with semantic caching — no competitor has this |
 | **SBOM Generation** | CycloneDX + SPDX supply chain transparency — no competitor has this |

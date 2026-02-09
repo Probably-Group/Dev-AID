@@ -1,8 +1,8 @@
 # Dev-AID Update System Guide
 
-**Version:** 1.0.0
+**Version:** 1.1.0
 **Status:** Beta Implementation
-**Last Updated:** 2025-12-10
+**Last Updated:** 2026-02-09
 
 ---
 
@@ -148,7 +148,7 @@ $ ./.dev-aid/scripts/update-dev-aid.sh
 ║        Dev-AID Update Tool                 ║
 ╚════════════════════════════════════════════╝
 
-→ Current Dev-AID version: 1.3.0
+→ Current Dev-AID version: 1.5.0-beta.1
 
 Update source options:
   1. Pull from official repository (recommended)
@@ -159,7 +159,7 @@ Choose option [1-3]: 1
 
 Creating backup...
 → Backing up user data...
-✓ Backup created: .dev-aid-backup-20251210-143022
+✓ Backup created: .dev-aid-backup-20260209-143022
 
 Checking for conflicts...
 🔍 Found 2 conflicting files
@@ -189,14 +189,14 @@ $ ./.dev-aid/scripts/update-dev-aid.sh --dry-run
 
 🔍 DRY RUN MODE (no changes will be made)
 
-→ Current Dev-AID version: 1.3.0
+→ Current Dev-AID version: 1.5.0-beta.1
 
 Checking for conflicts...
 [DRY-RUN] Would detect conflicts in 2 files:
   - templates/ci/python.yml
   - scripts/generate-ci.sh
 
-[DRY-RUN] Would download: dev-aid-v1.4.0.tar.gz
+[DRY-RUN] Would download: dev-aid-v1.5.0-beta.1.tar.gz
 [DRY-RUN] Would verify checksum: a3f2b1c...
 [DRY-RUN] Would update dependencies
 
@@ -304,8 +304,8 @@ Dev-AID automatically checks for updates weekly (configurable):
 #### Output (when update available):
 ```
 💡 Dev-AID update available!
-   Current: 1.3.0
-   Latest:  1.4.0
+   Current: 1.4.0
+   Latest:  1.5.0
 
    Run: ./.dev-aid/scripts/check-updates.sh
 ```
@@ -323,8 +323,8 @@ Checking for Dev-AID updates...
 ║    💡 Dev-AID Update Available!           ║
 ╚════════════════════════════════════════════╝
 
-  Current: 1.3.0
-  Latest:  1.4.0
+  Current: 1.4.0
+  Latest:  1.5.0
 
 Release Notes:
 ## What's New
@@ -373,14 +373,14 @@ $ ./.dev-aid/scripts/rollback.sh
 
 Available backups:
 
-1. .dev-aid-backup-20251210-143022
-   Version: 1.3.0
-   Created: Tue Dec 10 14:30:22 PST 2025
+1. .dev-aid-backup-20260205-143022
+   Version: 1.5.0-beta.1
+   Created: Thu Feb  5 14:30:22 PST 2026
    Size: 15M
 
-2. .dev-aid-backup-20251209-091530
-   Version: 1.2.1
-   Created: Mon Dec  9 09:15:30 PST 2025
+2. .dev-aid-backup-20260128-091530
+   Version: 1.4.0
+   Created: Wed Jan 28 09:15:30 PST 2026
    Size: 14M
 
 Example:
@@ -393,12 +393,12 @@ Example:
 $ ./.dev-aid/scripts/rollback.sh .dev-aid-backup-20251210-143022
 
 Backup Information:
-  Path: .dev-aid-backup-20251210-143022
-  Version: 1.3.0
+  Path: .dev-aid-backup-20260205-143022
+  Version: 1.5.0-beta.1
 
 Dev-AID Backup Manifest
-Created: Tue Dec 10 14:30:22 PST 2025
-Current Version: 1.3.0
+Created: Thu Feb  5 14:30:22 PST 2026
+Current Version: 1.5.0-beta.1
 
 Backed up:
 - API keys (.env files)
@@ -409,15 +409,15 @@ Backed up:
 - VERSION file
 
 ⚠️  This will replace your current Dev-AID installation
-   Current version: 1.4.0
-   Backup version:  1.3.0
+   Current version: 1.5.0-beta.1
+   Backup version:  1.4.0
 
 Proceed with rollback? [y/N]: y
 
 Starting rollback...
 
 → Creating safety backup of current state...
-✓ Safety backup created: .dev-aid-pre-rollback-20251210-150622
+✓ Safety backup created: .dev-aid-pre-rollback-20260209-150622
 
 → Restoring Dev-AID from backup...
   ✓ Restored VERSION file
@@ -433,7 +433,7 @@ Starting rollback...
 ║         Rollback Complete! ✅              ║
 ╚════════════════════════════════════════════╝
 
-Version: 1.4.0 → 1.3.0
+Version: 1.5.0-beta.1 → 1.4.0
 ```
 
 ### Automatic Rollback on Error
@@ -447,7 +447,7 @@ Attempting automatic rollback...
 → Restoring from backup...
 ✓ Successfully rolled back to previous version
 
-Backup preserved at: .dev-aid-backup-20251210-143022
+Backup preserved at: .dev-aid-backup-20260209-143022
 Review logs and try updating again later.
 ```
 
@@ -658,8 +658,8 @@ python3 .dev-aid/orchestration/github_client.py get-checksums
 
 # Output:
 {
-  "dev-aid-v1.4.0.tar.gz": "a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6...",
-  "dev-aid-v1.4.0.zip": "b9c0d1e2f3a4b5c6a7b8c9d0e1f2a3b4..."
+  "dev-aid-v1.5.0-beta.1.tar.gz": "a3f2b1c4d5e6f7a8b9c0d1e2f3a4b5c6...",
+  "dev-aid-v1.5.0-beta.1.zip": "b9c0d1e2f3a4b5c6a7b8c9d0e1f2a3b4..."
 }
 ```
 

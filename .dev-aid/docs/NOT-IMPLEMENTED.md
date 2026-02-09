@@ -1,6 +1,6 @@
 # Not Implemented Features
 
-**Last Updated**: 2026-01-06 (TOON Format Integration Phase 1 **IMPLEMENTED** ✅)
+**Last Updated**: 2026-02-09 (Beta testing phase — see [BETA-TESTING-GUIDE.md](./BETA-TESTING-GUIDE.md))
 **Status**: Focused roadmap of pending features
 
 ---

@@ -61,7 +61,7 @@ When you create a worktree, Dev-AID creates a `SCOPE.md` file documenting:
 # Worktree Scope Declaration
 
 **Branch**: feature/new-auth
-**Created**: 2024-02-01T10:30:00Z
+**Created**: 2026-02-01T10:30:00Z
 
 ## Description
 Implementing OAuth2 authentication with Google provider
@@ -87,7 +87,7 @@ For major refactoring, protect critical paths with locks:
 # Create lock file
 cat > .dev-aid/architecture-locks/auth-refactor.lock << 'EOF'
 # Owner: @yourname
-# Expires: 2024-02-15
+# Expires: 2026-02-15
 # Reason: Major auth system refactor
 
 src/auth/

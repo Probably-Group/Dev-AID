@@ -891,4 +891,4 @@ Dev-AID provides standalone utility scripts for common development tasks:
 ---
 
 **Last Updated:** 2026-02-08
-**Version:** 1.5.0-beta.1
+**Version:** 1.5.0-beta.3

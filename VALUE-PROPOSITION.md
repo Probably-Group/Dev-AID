@@ -835,11 +835,11 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 - **TDD Enforcement Gate**: $62,400/year (enforces 40-90% defect reduction)
 - **v1.4.0-beta.1 Total**: $530,900/year ✅
 
-**v1.5.0-beta.1 Features (NEW):**
+**v1.5.0-beta.3 Features (NEW):**
 - **Agent Framework**: $312,000/year (8 agents, 16 tools, 4 providers, skill-powered)
 - **Local LLM Support**: $540,000/year (offline, private, zero-cost, 3 runtimes)
 - **Deep Research MCP**: $104,000/year (Gemini/Perplexity/Tavily, semantic caching)
-- **v1.5.0-beta.1 Total**: $956,000/year
+- **v1.5.0-beta.3 Total**: $956,000/year
 
 **v1.3.0-beta.11 Features:**
 - **8 Process Skills**: $416,000/year (workflow enforcement, TDD, verification)

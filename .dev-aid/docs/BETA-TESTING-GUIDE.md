@@ -1,4 +1,4 @@
-# Beta Testing Guide — Dev-AID v1.5.0-beta.1
+# Beta Testing Guide — Dev-AID v1.5.0-beta.3
 
 **Status**: Active Beta
 **Last Updated**: 2026-02-09
@@ -49,7 +49,7 @@ export OPENAI_API_KEY="sk-..."
 
 # 4. Verify installation
 cat .dev-aid/VERSION
-# Expected: 1.5.0-beta.1
+# Expected: 1.5.0-beta.3
 ```
 
 ### Verify Installation
@@ -447,7 +447,7 @@ When filing issues, add these labels:
 > **Steps**: Ran `/aid-challenger "Write a hello world in Rust"` in Claude Code
 > **Expected**: Two models should generate responses, best one selected
 > **Actual**: Error: `KeyError: 'anthropic'` in routing.log (line 145)
-> **Environment**: macOS 15.3, Python 3.12.1, Dev-AID 1.5.0-beta.1
+> **Environment**: macOS 15.3, Python 3.12.1, Dev-AID 1.5.0-beta.3
 > **Logs**: [attached routing.log snippet]
 
 ---

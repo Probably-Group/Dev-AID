@@ -37,31 +37,24 @@
 ### TL;DR - One Command Examples
 
 ```bash
-# 🏠 Setup local AI (zero-cost, 100% private) - NEW!
-./.dev-aid/scripts/setup-local-llm.sh
-# → Detects hardware, recommends best model, installs Ollama
+# All commands use short /aid-* aliases — type /aid- for autocomplete
 
-# Resolve that annoying merge conflict
-dev-aid-fix-conflicts --strategy smart
+/aid-challenger "Implement OAuth2 with refresh tokens"  # Dual-AI review
+/aid-pr 135                        # Review a PR
+/aid-test src/auth/                # Generate tests
+/aid-conflict 42 smart             # Resolve merge conflict
+/aid-debt src/ high                # Tech debt scan
+/aid-research "async patterns"     # Deep research
+/aid-audit                         # Security audit
+/aid-commit                        # Plan atomic commits
+/aid-help                          # Show all commands
 
-# Fix GitHub issue #123 (AI analyzes, proposes code, creates PR)
-dev-aid-resolve-issue --issue 123
+# Security scanning runs automatically on every commit
+git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 
-# Generate tests for your new feature
-/dev-aid-tdd-expert   # Auto-loads when editing test files
-
-# Security scan before you push (runs automatically)
-git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
-
-# Claude writes code, Gemini reviews it (catches bugs you'd miss)
-/aid-challenger "Implement OAuth2 with refresh tokens"
-
-# 🤖 Autonomous agents — slash commands or CLI - NEW!
-/aid-pr 135                          # Interactive: PR review
-/aid-test src/auth/                  # Interactive: Generate tests
-/aid-debt src/ high                  # Interactive: Tech debt scan
-dev-aid-agent pr-reviewer --pr 135 --json   # CI/scripts: structured output
-/aid-help                            # Show all commands
+# Setup (one-time)
+./.dev-aid/scripts/init-repo.sh    # Initialize Dev-AID
+./.dev-aid/scripts/setup-local-llm.sh  # Optional: local AI ($0, offline)
 ```
 
 ---

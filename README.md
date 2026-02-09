@@ -9,19 +9,19 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Version](https://img.shields.io/badge/version-1.5.0--beta.1-brightgreen.svg)](.dev-aid/VERSION)
 
-*You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with context-aware expertise that auto-loads based on your work, dual-AI review that catches what you'd miss, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
+*You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with auto-loading expertise, dual-AI review, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
 > **💡 Other tools make you choose. Dev-AID lets you use the best of everything.**
 
-> **🎯 "Vibe coding" means surrendering control — accepting AI output without understanding it. Dev-AID is the opposite: expert skills that guide AI behavior, verification gates that demand proof, and dual-AI review that catches what single-model "vibe coding" misses. Structure over chaos. Evidence over faith.**
+> **🎯 Dev-AID adds structure to AI-assisted development: expert skills guide AI behavior, verification gates demand proof, and dual-AI review catches what single-model workflows miss.**
 
 > 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($6.5M+ annual value for 100-dev teams).
 
 ---
 
-## 😤 The Work You Hate (That Dev-AID Eliminates)
+## 😤 What Dev-AID Automates
 
-| Tedious Task | Time Wasted | Dev-AID Solution | Time Saved |
+| Task | Typical Time | Dev-AID Solution | Time Saved |
 |--------------|-------------|------------------|------------|
 | **Merge conflicts** | 10-30 min each | AI understands both sides, resolves intelligently | 90% |
 | **GitHub issues** | 15-45 min to analyze & fix | AI proposes complete solution with code | 80% |
@@ -95,23 +95,11 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | ✅ Enhances with skills, memory, patterns | ❌ Bypass subscription limits |
 | ✅ Supports 3 AI providers + OpenRouter (switch anytime) | ❌ Lock you into any single vendor |
 
-> **Re: Anthropic's Jan 2026 third-party restrictions** — Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.claude/` directory) that are the official, documented way to customize Claude Code. Dev-AID enhances your tools; it doesn't replace or compete with them.
+<details>
+<summary><strong>Note on Anthropic's Jan 2026 third-party policy</strong></summary>
 
----
-
-## 📋 Table of Contents
-
-- [😤 The Work You Hate](#-the-work-you-hate-that-dev-aid-eliminates)
-- [🎯 What is Dev-AID?](#-what-is-dev-aid)
-- [🔬 Research-Backed Results](#-research-backed-results)
-- [✨ Complete Feature Overview](#-complete-feature-overview)
-- [🚀 Quick Start](#-quick-start)
-- [📚 Available Commands](#-available-slash-commands)
-- [🎯 Core Features (Detailed)](#-core-features-detailed)
-- [🔧 Configuration](#-configuration)
-- [💰 Cost Analysis](#-cost-analysis)
-- [🆚 Comparison](#-comparison)
-- [📖 Documentation](#-documentation)
+Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.claude/` directory) that are the official, documented way to customize Claude Code. Dev-AID enhances your tools; it doesn't replace or compete with them.
+</details>
 
 ---
 
@@ -288,20 +276,20 @@ Real-World Examples:
 | **🏠 Local LLM Support** 🆕 | Run AI locally via Ollama/LM Studio/llama.cpp | • **$0 forever** (no API costs)<br>• 100% private (code stays local)<br>• Works offline<br>• Auto hardware detection | ⭐⭐⭐⭐⭐ |
 | **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
-| **🏗️ Architect Mode** 🆕 | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐⭐ |
-| **📂 Git Worktree Isolation** 🆕 | Parallel development with scope declarations and conflict detection | • Scope declarations prevent overlap<br>• Architecture locks protect critical code<br>• Pre-merge conflict detection<br>• Clear cleanup workflow | ⭐⭐⭐⭐⭐ |
-| **💾 Session Persistence** 🆕 | Auto-save progress on session end, restore on restart | • Never lose your place<br>• Cross-provider support<br>• Git-aware (tracks branch, changes)<br>• Task/todo preservation | ⭐⭐⭐⭐⭐ |
+| **🏗️ Architect Mode** | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐ |
+| **📂 Git Worktree Isolation** | Parallel development with scope declarations and conflict detection | • Scope declarations prevent overlap<br>• Architecture locks protect critical code<br>• Pre-merge conflict detection<br>• Clear cleanup workflow | ⭐⭐⭐⭐ |
+| **💾 Session Persistence** | Auto-save progress on session end, restore on restart | • Never lose your place<br>• Cross-provider support<br>• Git-aware (tracks branch, changes)<br>• Task/todo preservation | ⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
-| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐⭐ |
+| **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks with CVE, SAST, secrets, misconfig scanning | • 10s pre-commit scan<br>• Catches secrets before push<br>• Covers: deps, Dockerfiles, IaC, code | ⭐⭐⭐⭐⭐ |
-| **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐⭐ |
-| **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐⭐ |
-| **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐⭐ |
-| **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
-| **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
-| **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐⭐ |
-| **⚡ 8 Process Skills** 🆕 | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
+| **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐ |
+| **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐ |
+| **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐ |
+| **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐ |
+| **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐ |
+| **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐ |
+| **⚡ 8 Process Skills** | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
 | **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 4 providers) | • Provider-agnostic (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
@@ -321,7 +309,7 @@ Real-World Examples:
 | **👨‍💻 Developer Onboarding** | Automated onboarding for new team members | • Environment checks<br>• Project detection<br>• Setup guidance | ⭐⭐⭐ |
 | **⚙️ Reconfiguration Tool** | Change settings without breaking memory/context | • Safe config changes<br>• Backup automation<br>• No data loss | ⭐⭐ |
 | **📚 Documentation Sync** | Detect when docs drift from reality | • Package manager checks<br>• Script validation<br>• Port verification | ⭐⭐ |
-| **✅ Skill Validator Framework** 🆕 | Auto-discovered compliance validators per skill (bash, Python, extensible) | • 14 bash checks + 8 Python AST checks<br>• Context-aware (runs relevant validators)<br>• JSON output for CI<br>• Extensible: drop `validate.py` in any skill | ⭐⭐⭐⭐ |
+| **✅ Skill Validator Framework** | Auto-discovered compliance validators per skill (bash, Python, extensible) | • 14 bash checks + 8 Python AST checks<br>• Context-aware (runs relevant validators)<br>• JSON output for CI<br>• Extensible: drop `validate.py` in any skill | ⭐⭐⭐⭐ |
 | **🔧 Skill Condensing** | Auto-condense skills >500 lines into references | • Keep skills concise<br>• Organized structure<br>• Better context usage | ⭐⭐ |
 | **🔄 Model Registry Updates** | Keep AI model catalog current with latest releases | • Latest model info<br>• Pricing updates<br>• Capability tracking | ⭐⭐ |
 
@@ -347,7 +335,7 @@ Real-World Examples:
 - **Configuration-driven** - JSON-based routing rules
 - **Slash commands** - `/aid-challenger`, `/aid-ensemble`, `/aid-help`
 
-### 🏠 **Local LLM Support** (NEW! 🆕)
+### 🏠 **Local LLM Support** 🆕
 
 **Run AI models locally for offline, private, zero-cost inference.**
 
@@ -409,7 +397,7 @@ ollama pull qwen2.5-coder:32b
 ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
 │  Claude  │   │  Gemini  │   │  OpenAI  │   │  Local   │
 │   API    │   │   API    │   │   API    │   │   LLM    │
-│          │   │          │   │          │   │ (Ollama) │
+│          │   │          │   │          │   │  (Local) │
 └──────────┘   └──────────┘   └──────────┘   └──────────┘
    Cloud          Cloud          Cloud         Your GPU
 ```
@@ -440,7 +428,7 @@ Core skills **actually run tools** automatically (tests, linters, type checkers)
 - **Minimal** (default): code-reviewer + secret-scanner = 500 tokens (0.25%)
 - **Maximum** (all enabled): 1,250 tokens (0.625%)
 
-### 🎓 **73 Expert Skills** - Domain Expertise (🆕 Hook-Based Auto-Loading)
+### 🎓 **73 Expert Skills** - Domain Expertise (Hook-Based Auto-Loading)
 **Purpose**: Provide knowledge, best practices, and architectural guidance
 
 Expert skills **give advice** (not automated execution) and auto-load based on context:
@@ -457,7 +445,7 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - **Core skills** → Execute tools: "❌ Type error at line 45"
 - **Expert skills** → Provide guidance: "Use strict mode for type safety"
 
-### 📋 **8 Process Skills** - Workflow Enforcement (🆕 NEW!)
+### 📋 **8 Process Skills** - Workflow Enforcement
 **Purpose**: Behavioral protocols that enforce disciplined workflows
 
 Process skills **enforce how you work**, not just what you know:
@@ -565,12 +553,7 @@ Essential tools for faster, higher-quality development workflows.
 | 📋 **Commit Planner** | Analyzes unstaged changes and proposes atomic commits | ⏱️ **Saves 10-15 min/day** in commit planning<br>🎓 Teaches good git habits<br>✅ Safe (no git history manipulation)<br>🔄 Interactive planning with preview<br>📊 Cleaner git history for easier debugging | `/aid-commit` |
 | 🔍 **Pre-Commit Reviewer** | Comprehensive "rubber duck" review before committing | ⏱️ **Saves 5-10 min/commit** catching issues early<br>🔒 Security checks (secrets, injection, auth)<br>⚡ Performance anti-patterns<br>🧪 Missing test detection<br>🎯 Focus modes (security, tests, style) | `/aid-review --focus security` |
 
-**Value Proposition:**
-- **API Contract Generator**: $675,000/year for 100 devs (parallel development)
-- **Commit Planner**: $425,000/year for 100 devs (better productivity + git history)
-- **Pre-Commit Reviewer**: $1,050,000/year for 100 devs (prevented rework)
-
-**Total Tier 1 Value: $2,150,000/year** for 100-developer team
+> See [VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md) for detailed ROI analysis of these tools.
 
 **Quick Start:**
 ```bash
@@ -887,7 +870,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 ```bash
 # Clone Dev-AID repository
-git clone <repo> my-project
+git clone https://github.com/Probably-Group/Dev-AID.git my-project
 cd my-project
 
 # Copy Dev-AID configuration
@@ -1155,7 +1138,6 @@ dev-aid-fix-conflicts --dry-run
 | `/aid-status` | `dev-aid-status` | Show Dev-AID configuration and component status |
 | `/aid-config` | `dev-aid-config-core-skills` | Enable/disable core skills |
 | `/aid-skill` | `dev-aid-build-skill` | Generate custom expert skills |
-| `/aid-analyze` | `dev-aid-analyze` | Analyze codebase structure |
 
 #### Operations & Maintenance
 
@@ -1545,45 +1527,6 @@ Skills auto-activate based on file patterns:
 
 ---
 
-## 🆚 Comparison
-
-### vs Standalone AI CLIs
-
-| Aspect | Standalone AI Tools | Dev-AID Enhancement Layer |
-|--------|-------------------|---------------------------|
-| **Integration** | Separate CLI to learn | Works in your existing tools ✨ |
-| **Context switching** | Constant (editor ↔ CLI) | Zero - stay in your editor ✨ |
-| **Setup complexity** | New tool + config | 5-minute one-time setup ✨ |
-| **Workflow disruption** | High (new habits) | None (enhances current flow) ✨ |
-| **Multi-AI support** | One tool = one AI | Route to best AI per task ✨ |
-| **Portability** | Tool-specific | Works across Claude/Gemini/Cursor ✨ |
-
-### vs Manual Configuration
-
-| Feature | Manual | Dev-AID |
-|---------|--------|---------|
-| Expert skills | Write yourself | 73 pre-built ✅ |
-| Process skills | None | 8 behavioral protocols (TDD, verification) ✅ |
-| Security scans | Remember to run | Automated (git hooks) ✅ |
-| Memory bank | Manual notes | Persistent, auto-loaded ✅ |
-| Multi-AI routing | Manual switching | Automatic routing ✅ |
-| Local RAG | Complex setup | One command ✅ |
-| Slash commands | Create each one | All included ✅ |
-| Dependency isolation | Manual venv setup | Automated with setup script ✅ |
-| Time to setup | Days | 5 minutes ✅ |
-
-### vs Cloud RAG
-
-| Feature | Cloud RAG | Dev-AID Local Search |
-|---------|-----------|-------------------|
-| Cost | $0.13/M tokens | $0 forever |
-| Privacy | Code sent to API | 100% local |
-| Speed | 0.3-0.5s + network | 0.15s (local) |
-| Offline | ❌ No | ✅ Yes |
-| Setup | API keys, config | One command |
-
----
-
 ## 📖 Documentation
 
 ### Core Documentation
@@ -1774,11 +1717,7 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 
 ---
 
-**Dev-AID: Enterprise-grade AI capabilities that integrate natively into the tools you already love. No context switching. No new CLIs. Just smarter development, right where you code.**
-
----
-
-*Built for developers who want to ship faster—not fight their tools.*
+*Built for developers who want to ship faster — not fight their tools.*
 
 ---
 

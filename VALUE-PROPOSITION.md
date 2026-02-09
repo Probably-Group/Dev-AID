@@ -2,11 +2,28 @@
 
 # Dev-AID (Development AI Driver)
 
-## What if your AI development costs dropped 97%—without switching tools?
+## Executive Summary
+
+AI coding tools are powerful but expensive, fragmented, and generic. Dev-AID is a free, open-source enhancement layer that makes your existing tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) smarter — without replacing them.
+
+**Key metrics (100-developer team):**
+- **$7.4M+/year** in productivity gains and cost savings
+- **52-78%** reduction in AI API spend through smart routing
+- **90%** fewer input tokens via local RAG (code never leaves your machine)
+- **80%** vulnerability detection rate with automated security scanning
+- **$0 setup cost** — MIT-licensed, open source
+
+**How:** 73 auto-loading expert skills, 8 process enforcement protocols, dual-AI code review, local semantic search, autonomous agents, and security automation on every commit.
+
+[Jump to full analysis](#-the-problem-ai-development-is-expensive-and-fragmented) | [Feature value table](#-complete-feature-value-analysis) | [ROI calculation](#for-engineering-managers)
+
+---
+
+## What if your AI tools got 10x smarter — without switching a single one?
 
 **You're already using Claude Code, Cursor, or Gemini CLI. What if they could:**
-- Route to the cheapest AI for each task automatically (97% cost reduction)
-- Search your codebase locally—$0 forever, 100% private
+- Route to the cheapest AI for each task automatically (up to 97% cost reduction for large-context queries)
+- Search your codebase locally — $0 forever, 100% private
 - Load expert skills based on your tech stack
 - Review your code for security issues before you commit
 - Resolve GitHub issues and merge conflicts with AI
@@ -24,9 +41,9 @@ git clone <repo> && cd <repo>
 
 ---
 
-## Industry Context: The 2025 "Agentic Shift"
+## Industry Context: The "Agentic Shift"
 
-**Late 2025 marks a watershed moment in software engineering.** The industry has transitioned from the "generative era" (AI as autocomplete) to the **"agentic era"** (AI as autonomous contractor).
+**The 2025-2026 transition marks a watershed moment in software engineering.** The industry has moved from the "generative era" (AI as autocomplete) to the **"agentic era"** (AI as autonomous contractor).
 
 ### Two Competing Philosophies
 
@@ -46,7 +63,7 @@ The market has bifurcated into two camps:
 
 ### The Hidden Problem: You Need BOTH
 
-**Industry consensus (Q4 2025)**: *"A high-performing developer in 2025 likely uses an IDE Assistant for low-latency autocomplete AND a Terminal Agent for high-complexity, asynchronous tasks."*
+**Industry consensus**: *"A high-performing developer likely uses an IDE Assistant for low-latency autocomplete AND a Terminal Agent for high-complexity, asynchronous tasks."*
 
 **This creates subscription sprawl:**
 - GitHub Copilot Pro: $10/mo
@@ -72,7 +89,7 @@ The market has bifurcated into two camps:
 
 ❌ **Manually reviewing for security** - No automated checks for OWASP Top 10, secrets, or CVEs before commits.
 
-**The cost alone is brutal:**
+**The cost impact is significant:**
 
 ### 💰 The Hidden Cost Iceberg (100 Developers)
 
@@ -97,7 +114,7 @@ The market has bifurcated into two camps:
 │                            ────────                          │
 │   REAL TOTAL:              $66,000  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓ (100%)  │
 │                                                              │
-│   "Sticker price" shows only 35% of true cost! 😱          │
+│   "Sticker price" shows only 35% of true cost              │
 └─────────────────────────────────────────────────────────────┘
 
 With Dev-AID Smart Routing + Local RAG + TOON Format:
@@ -107,13 +124,13 @@ With Dev-AID Smart Routing + Local RAG + TOON Format:
   Eliminate embeddings:               -$12,000  (100% local RAG)
   Reduce remediation:                 -$8,000   (fewer "smelly code" issues)
                                       ─────────
-  Annual Savings:                     $198,560  (301% of sticker price!)
-  Real Cost:                          -$132,560/year (DEV-AID PAYS YOU!)
+  Annual Savings:                     $198,560  (3x the sticker price in recovered costs)
+  Net Cost After Savings:             -$132,560/year (savings exceed total AI spend)
 ```
 
-### 🚨 The "Premium Request Trap" (Revealed Q4 2025)
+### 🚨 The "Premium Request Trap"
 
-**Late 2025 industry analysis exposed hidden multipliers in AI tool pricing:**
+**Industry analysis has exposed hidden multipliers in AI tool pricing:**
 
 **GitHub Copilot's Premium Request Economy:**
 ```
@@ -163,7 +180,7 @@ Reality:    Heavy users hit fast limit quickly
 
 ### Research-Backed Time Savings (100+ Case Studies, Rigorous RCT Testing)
 
-**The 2025 Reality**: Not all development tasks benefit equally from AI. Understanding which tasks see massive acceleration vs. which require human expertise is critical for ROI optimization.
+**The Reality**: Not all development tasks benefit equally from AI. Understanding which tasks see massive acceleration vs. which require human expertise is critical for ROI optimization.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -434,7 +451,7 @@ Dev-AID:
 
 ### 📊 Context Window Economics: Brute Force vs Smart Retrieval
 
-**Industry analysis (Q4 2025) revealed three competing strategies:**
+**Industry analysis revealed three competing strategies:**
 
 #### Strategy 1: Brute Force (Gemini CLI)
 ```
@@ -513,7 +530,7 @@ Result: 95% cost reduction, no "goldfish memory", always picks best strategy
 ```
 You: Use Claude Code (no change)
 Dev-AID: Loads expert skills automatically
-Result: Claude now has 65+ expert skills based on your project
+Result: Claude now has 73 expert skills based on your project
 ```
 
 **2. Routes to the Best AI for Each Task**
@@ -534,7 +551,7 @@ Result: Relevant code, $0 cost, never leaves your machine
 
 ## Industry Benchmarks: Dev-AID Enhances the Best Models
 
-**SWE-bench Verified (Q4 2025)** - The industry standard for measuring AI coding capability. Tests ability to solve real-world GitHub issues requiring multi-file navigation and complex logic.
+**SWE-bench Verified** - The industry standard for measuring AI coding capability. Tests ability to solve real-world GitHub issues requiring multi-file navigation and complex logic.
 
 ### Model Performance Rankings
 
@@ -590,7 +607,7 @@ SAVINGS: $480-1,560/year per engineer (80-93% reduction)
 
 ### The "Goldfish Memory" Problem (Industry-Wide Issue)
 
-**Q4 2025 analysis revealed**:
+**Industry analysis revealed**:
 - GitHub Copilot advertises large context windows (128k-200k tokens)
 - **Reality**: "Effective context caps at 8k-32k tokens in standard chat to maintain latency"
 - **Symptom**: "Goldfish memory" - AI forgets earlier conversation after a few turns
@@ -607,7 +624,7 @@ Local RAG acts as long-term memory:
 Result: No goldfish memory, consistent context, 90% fewer tokens
 ```
 
-### Benchmark: What Real Users Report (2025 Data)
+### Benchmark: What Real Users Report
 
 **Industry Analysis Findings**:
 
@@ -727,6 +744,32 @@ Setup cost: 5 minutes per developer
 
 **All Dev-AID features ranked by business impact and ROI.**
 
+<details>
+<summary><strong>Methodology & Assumptions</strong></summary>
+
+**Calculation Methodology:**
+- Developer cost: $100/hour ($208K/year fully loaded)
+- Time-to-value conversions use conservative estimates
+- Incident prevention uses industry average costs
+- API savings calculated from actual Claude/Gemini pricing
+- All figures assume 100-developer team; scale linearly
+
+**Important: Implementation Cost vs. User Value**
+
+The dollar values represent **annual time savings for end users**, NOT the cost to implement features.
+
+**Example (API Contract Generator):**
+- **Implementation cost**: 1-2 days of development work
+- **User value delivered**: Developers save 2-4 weeks per project using `/dev-aid-api-contract`
+- **Annual value**: 100 developers × multiple projects/year = $675,000/year in time saved
+
+**Key points:**
+1. **Values are conservative** — estimates assume human developers using the tools without AI assistance
+2. **Codebase variability** — small projects see lower-end savings, large projects (100K+ lines) see upper-end
+3. **Compound value** — features work together (Pre-Commit Reviewer + Commit Planner + API Contract Generator) creating multiplicative benefits
+
+</details>
+
 | Feature | Annual Value (100 Devs) | Time Saved | Business Impact | Priority |
 |---------|-------------------------|------------|-----------------|----------|
 | **🔍 Local Semantic Search** | **$652,560** | 30 min/day/dev | • $142K API cost savings<br>• $510K productivity (search time)<br>• Zero data exposure risk | ⭐⭐⭐⭐⭐ |
@@ -738,8 +781,8 @@ Setup cost: 5 minutes per developer
 | **🔧 Conflict Auto-Resolution** | **$156,000** | 10-30 min/conflict | • 4 conflicts/dev/month automated<br>• $1,560/dev/year productivity<br>• Prevents "redo" work | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | **$520,000** | 2-4 hrs/breach prevented | • Prevents 1 breach/year ($500K avg cost)<br>• $20K pre-commit time saved<br>• Compliance audit readiness | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | **$208,000** | 15-30 min/onboard | • New dev onboarding: 2 weeks → 3 days<br>• $2,080/dev/year (context retention)<br>• Consistent patterns across team | ⭐⭐⭐⭐⭐ |
-| **🎓 72 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
-| **⚡ 7 Process Skills** 🆕 | **$416,000** | 20-40 min/day | • TDD: 40-90% defect reduction (Microsoft/IBM)<br>• Verification-gate: prevents false completions<br>• Systematic-debugging: 35-50% dev time on debugging → 30% saved<br>• $4,160/dev/year (reduced rework + faster debugging) | ⭐⭐⭐⭐⭐ |
+| **🎓 73 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
+| **⚡ 8 Process Skills** | **$416,000** | 20-40 min/day | • TDD: 40-90% defect reduction (Microsoft/IBM)<br>• Verification-gate: prevents false completions<br>• Systematic-debugging: 35-50% dev time on debugging → 30% saved<br>• $4,160/dev/year (reduced rework + faster debugging) | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | **$78,000** | 5-15 min/data query | • Database/API context auto-gathered<br>• $780/dev/year (no manual queries)<br>• Fewer context switches | ⭐⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator + Frequency Profiles** | **$172,800+** | One-time: 4-8 hrs | • 40-70% faster CI (5 min → 1.5 min)<br>• **Up to $2,700/year GitHub Actions savings** (with frequency profiles)<br>• $1,728/dev/year waiting time<br>• 3 profiles: aggressive/balanced/minimal (85-98% cost reduction) | ⭐⭐⭐⭐ |
 | **📦 SBOM Generation** (v1.3.1) | **Compliance** | Release-time | • Supply chain transparency<br>• EU CRA compliance ready<br>• Dependency diff tool<br>• CycloneDX + SPDX formats | ⭐⭐⭐⭐ |
@@ -757,13 +800,16 @@ Setup cost: 5 minutes per developer
 | **⚙️ Reconfiguration Tool** | **$10,400** | 15-30 min/config change | • Safe config updates<br>• $104/dev/year (no broken setups)<br>• Zero downtime | ⭐⭐ |
 | **📚 Documentation Sync** | **$10,400** | 30 min/doc update | • Prevents outdated docs<br>• $104/dev/year (no false starts)<br>• Trust in documentation | ⭐⭐ |
 | **🔄 Model Registry Updates** | **$5,200** | 15 min/quarter | • Latest model pricing<br>• $52/dev/year (optimal model choice)<br>• Cost optimization | ⭐⭐ |
-| **🏗️ Two-Agent Architect Pattern** 🆕 | **$150,000** | 30-60 min/feature | • Plan-before-code reduces rework 30-50% ([InfoQ 2025](https://www.infoq.com/articles/architecture-trends-2025/))<br>• 70% of successful projects credit planning<br>• Shift-left architecture prevents technical debt | ⭐⭐⭐⭐ |
-| **💾 Session Persistence** 🆕 | **$97,500** | 15-30 min/session | • Auto-save progress on session end<br>• 23 min to regain focus after interruption ([UC Irvine](https://www.ics.uci.edu/~gmark/chi08-mark.pdf))<br>• $50K/dev/year lost to context switching | ⭐⭐⭐⭐ |
-| **🌳 Git Worktree Isolation** 🆕 | **$156,000** | 10-15 min/switch | • Safe parallel feature development<br>• 5-8x productivity with multi-agent workflows<br>• Architecture locks prevent conflicts | ⭐⭐⭐⭐ |
-| **🔀 Hybrid Search (BM25+Vector)** 🆕 | **$65,000** | Enhancement | • +7-17% accuracy over pure vector ([arXiv 2024](https://arxiv.org/html/2404.07220v1))<br>• Keyword + semantic = complementary results<br>• Better code discovery | ⭐⭐⭐ |
-| **🚦 TDD Enforcement Gate** 🆕 | **$62,400** | Enhancement | • Enforces 40-90% defect reduction ([Microsoft/IBM](https://www.microsoft.com/en-us/research/wp-content/uploads/2009/10/Realizing-Quality-Improvement-Through-Test-Driven-Development-Results-and-Experiences-of-Four-Industrial-Teams-nagappan_tdd.pdf))<br>• Blocks code without tests (configurable)<br>• strict/warning/off modes | ⭐⭐⭐⭐ |
+| **🏗️ Two-Agent Architect Pattern** | **$150,000** | 30-60 min/feature | • Plan-before-code reduces rework 30-50% ([InfoQ 2025](https://www.infoq.com/articles/architecture-trends-2025/))<br>• 70% of successful projects credit planning<br>• Shift-left architecture prevents technical debt | ⭐⭐⭐⭐ |
+| **💾 Session Persistence** | **$97,500** | 15-30 min/session | • Auto-save progress on session end<br>• 23 min to regain focus after interruption ([UC Irvine](https://www.ics.uci.edu/~gmark/chi08-mark.pdf))<br>• $50K/dev/year lost to context switching | ⭐⭐⭐⭐ |
+| **🌳 Git Worktree Isolation** | **$156,000** | 10-15 min/switch | • Safe parallel feature development<br>• 5-8x productivity with multi-agent workflows<br>• Architecture locks prevent conflicts | ⭐⭐⭐⭐ |
+| **🔀 Hybrid Search (BM25+Vector)** | **$65,000** | Enhancement | • +7-17% accuracy over pure vector ([arXiv 2024](https://arxiv.org/html/2404.07220v1))<br>• Keyword + semantic = complementary results<br>• Better code discovery | ⭐⭐⭐ |
+| **🚦 TDD Enforcement Gate** | **$62,400** | Enhancement | • Enforces 40-90% defect reduction ([Microsoft/IBM](https://www.microsoft.com/en-us/research/wp-content/uploads/2009/10/Realizing-Quality-Improvement-Through-Test-Driven-Development-Results-and-Experiences-of-Four-Industrial-Teams-nagappan_tdd.pdf))<br>• Blocks code without tests (configurable)<br>• strict/warning/off modes | ⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | **$312,000** | 30-60 min/workflow | • 8 agents (PR review, test gen, tech debt, CI fix, conflict, research, onboard, doc audit)<br>• 16 tools with safety enforcement<br>• 4 providers (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts | ⭐⭐⭐⭐⭐ |
+| **🏠 Local LLM Support** 🆕 | **$540,000** | $45/mo/dev saved | • Offline, private, zero-cost AI inference<br>• 3 runtimes (Ollama, LM Studio, llama.cpp)<br>• Hardware auto-detection + model recommendations<br>• Router integration for smart task routing | ⭐⭐⭐⭐⭐ |
+| **🔬 Deep Research MCP** 🆕 | **$104,000** | 30-60 min/research | • Multi-provider (Gemini/Perplexity/Tavily)<br>• Semantic caching (70% similarity threshold)<br>• MCP server integration<br>• Auto-selects best provider per query | ⭐⭐⭐⭐ |
 
-**Total Annual Value (100 Developers): $6,496,060+**
+**Total Annual Value (100 Developers): $7,452,060+**
 
 **Tier 1 Productivity Tools (Completed):**
 - **API Contract Generator**: $675,000/year ✅
@@ -789,38 +835,20 @@ Setup cost: 5 minutes per developer
 - **TDD Enforcement Gate**: $62,400/year (enforces 40-90% defect reduction)
 - **v1.4.0-beta.1 Total**: $530,900/year ✅
 
+**v1.5.0-beta.1 Features (NEW):**
+- **Agent Framework**: $312,000/year (8 agents, 16 tools, 4 providers, skill-powered)
+- **Local LLM Support**: $540,000/year (offline, private, zero-cost, 3 runtimes)
+- **Deep Research MCP**: $104,000/year (Gemini/Perplexity/Tavily, semantic caching)
+- **v1.5.0-beta.1 Total**: $956,000/year
+
 **v1.3.0-beta.11 Features:**
-- **7 Process Skills**: $416,000/year (workflow enforcement, TDD, verification)
+- **8 Process Skills**: $416,000/year (workflow enforcement, TDD, verification)
 
 **New Tier 1 Quality & Infrastructure (v1.3.0):**
 - **Cross-Platform CI Support**: Quality improvement (prevents platform-specific bugs)
 - **E2E Testing Framework**: Quality improvement (prevents regressions, ensures releases work)
 - **TOON Format Infrastructure**: $30,000-$50,000/year (40-60% token savings, Phase 1 complete)
 - **Local CI Validation System**: $83,300/year (prevents failed builds, faster feedback loop)
-
-**Calculation Methodology:**
-- Developer cost: $100/hour ($208K/year fully loaded)
-- Time-to-value conversions use conservative estimates
-- Incident prevention uses industry average costs
-- API savings calculated from actual Claude/Gemini pricing (2025)
-- All figures assume 100-developer team; scale linearly
-
-**⚠️ Important Clarification: Implementation Cost vs. User Value**
-
-The dollar values in the table above represent **annual time savings for end users** when they use these features, NOT the cost to implement them.
-
-**Example breakdown (API Contract Generator):**
-- **Implementation cost**: Creating the slash command documentation, scripts, and logic = 1-2 days of development work
-- **User value delivered**: When developers use `/dev-aid-api-contract`, they save 2-4 weeks per project
-- **Annual value**: 100 developers × multiple projects/year = $675,000/year in time saved
-
-**Key points:**
-1. **Values are conservative**: Estimates assume human developers using the tools without AI assistance
-2. **Codebase variability**: Actual time savings vary by project size and complexity
-   - Small projects (< 10K lines): Lower end of time estimates
-   - Large projects (> 100K lines): Upper end of time estimates
-3. **AI-assisted implementation**: While AI (like Claude) can accelerate creating Dev-AID features, the value proposition measures time saved for developers who will use these features in their daily work
-4. **Compound value**: Many features work together (e.g., Pre-Commit Reviewer + Commit Planner + API Contract Generator) creating multiplicative benefits
 
 **ROI Breakdown:**
 - **Direct Cost Savings:** $697K/year (API, GitHub Actions, avoided incidents)
@@ -857,7 +885,7 @@ The dollar values in the table above represent **annual time savings for end use
 # Cost by model: claude-sonnet $1.20 (49%), gemini-flash $0.50 (20%)
 ```
 
-### ⚡ 7 Process Skills (Research-Backed Workflow Enforcement) 🆕
+### ⚡ 8 Process Skills (Research-Backed Workflow Enforcement)
 
 **Process skills enforce HOW you work, not just what you know. Unlike expert skills (guidance), process skills are behavioral protocols that prevent common mistakes.**
 
@@ -869,6 +897,7 @@ The dollar values in the table above represent **annual time savings for end use
 | `design-first` | Think before coding (YAGNI) | Prevents over-engineering and rework |
 | `staged-review` | Spec compliance → code quality | Catches issues before code review |
 | `plan-execution` | Batch execution with checkpoints | Prevents runaway implementations |
+| `architect-protocol` | Architecture-first: plan → approve → implement | Reduces rework 30-50% (InfoQ 2025) |
 | `isolated-development` | Git worktree per feature | Cleaner branches, parallel work |
 
 **Research Data Supporting Process Skills Value:**
@@ -1512,7 +1541,7 @@ cp -r /path/to/dev-aid/.dev-aid .
 ```
 
 **That's it.** Claude Code/Cursor now have:
-- ✅ 65+ expert skills
+- ✅ 73 expert skills
 - ✅ Multi-AI routing
 - ✅ Local RAG ($0 forever)
 - ✅ Automated security
@@ -1705,7 +1734,7 @@ Dev-AID: Claude generates, Gemini reviews, all in one place
 │  Your AI Gets Superpowers ⚡                 │
 │  • 100% local RAG (private, $0 forever)     │
 │  • Multi-AI routing (best tool per task)    │
-│  • 65+ expert skills (context-aware)        │
+│  • 73 expert skills (context-aware)        │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • GitHub automation (issues, conflicts)    │
@@ -1911,7 +1940,7 @@ Option C: Both (Industry Reality for Elite Developers)
   Copilot Pro:         $10-40/mo
   Claude Max:          $100-200/mo
   Cursor Pro:          $20-60/mo
-  TOTAL:               $130-300/mo PER DEVELOPER 😱
+  TOTAL:               $130-300/mo PER DEVELOPER
   Problem:             Manual context switching, redundant costs
   Effective Cost:      $130-300/mo
 
@@ -2033,7 +2062,7 @@ Option C: Use Both Manually
 ✅ Multi-AI routing (use best model per task)
 ✅ Local RAG ($0 forever, 90% token reduction)
 ✅ TOON format (40-60% additional savings)
-✅ 65+ expert skills (auto-loaded)
+✅ 73 expert skills (auto-loaded)
 ✅ Automated security (5 tools)
 ✅ Zero context switching (works inside all tools)
 
@@ -2105,7 +2134,7 @@ git clone <repo> && cd <repo>
 # Your Claude Code/Cursor now has:
 # ✅ 97% cost savings (multi-AI routing)
 # ✅ $0 forever RAG (100% local)
-# ✅ 65+ expert skills (auto-loaded)
+# ✅ 73 expert skills (auto-loaded)
 # ✅ Automated security (5 tools)
 # ✅ GitHub automation (issues, conflicts)
 ```

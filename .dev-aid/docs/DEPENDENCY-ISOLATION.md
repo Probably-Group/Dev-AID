@@ -140,7 +140,7 @@ python3 -m json.tool  # Pretty-print JSON (built-in module)
 
 ```bash
 # Initialize Dev-AID (offers to setup both environments)
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 
 # When prompted:
 # 1. "Setup router with virtual environment? (Y/n)" → Y
@@ -170,7 +170,7 @@ python3 -m json.tool  # Pretty-print JSON (built-in module)
 pip list > /tmp/before.txt
 
 # Setup Dev-AID (both router and RAG)
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 
 # Capture system packages after Dev-AID
 pip list > /tmp/after.txt

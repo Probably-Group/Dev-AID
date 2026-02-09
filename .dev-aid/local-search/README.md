@@ -20,7 +20,7 @@
 
 ## Installation
 
-Automatically installed via Dev-AID's `init-repo.sh` script or manually:
+Automatically installed via Dev-AID's `setup-dev-aid.sh` script or manually:
 
 ```bash
 cd .dev-aid/local-search

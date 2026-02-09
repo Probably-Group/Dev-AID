@@ -40,7 +40,7 @@ git clone https://github.com/Probably-Group/Dev-AID.git
 cd Dev-AID
 
 # 2. Initialize Dev-AID in the repo
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 
 # 3. Configure API keys (optional — for router testing)
 export ANTHROPIC_API_KEY="sk-ant-..."
@@ -74,7 +74,7 @@ Both commands should run without errors and display meaningful output.
 **How to test**:
 ```bash
 # Fresh setup
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 
 # Verify structure
 ls .dev-aid/config/routing.json
@@ -83,7 +83,7 @@ ls .dev-aid/skills/expert/
 ```
 
 **What to look for**:
-- `init-repo.sh` completes without errors
+- `setup-dev-aid.sh` completes without errors
 - Prerequisites check passes (or clearly reports what's missing)
 - `routing.json`, `models.json` created in `.dev-aid/config/`
 - `.dev-aid/logs/` directory exists
@@ -424,7 +424,7 @@ Every issue should include:
 
 | Severity | Definition | Example |
 |----------|------------|---------|
-| **Blocker** | Cannot use Dev-AID at all, data loss risk | `init-repo.sh` crashes, security hook deletes files |
+| **Blocker** | Cannot use Dev-AID at all, data loss risk | `setup-dev-aid.sh` crashes, security hook deletes files |
 | **Major** | Feature doesn't work, no workaround | `/aid-pr` always fails, router returns wrong provider |
 | **Minor** | Feature works but has issues, workaround exists | Autocomplete shows stale entries, typo in output |
 | **Suggestion** | Not broken, but could be better | Better error message, clearer docs |

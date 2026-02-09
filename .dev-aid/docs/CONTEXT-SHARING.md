@@ -464,7 +464,7 @@ Dev-AID features intelligent context file initialization for **all providers** t
 
 ### How It Works
 
-During `./install.sh` or `dev-aid reconfigure` (for all enabled providers):
+During `./setup-dev-aid.sh` or `dev-aid reconfigure` (for all enabled providers):
 
 1. **Detection**: Checks for existing context files
 2. **Backup**: Creates timestamped backups

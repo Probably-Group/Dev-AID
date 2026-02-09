@@ -30,7 +30,7 @@
 gh dev-aid check
 
 # Via script (fallback)
-./.dev-aid/scripts/check-updates.sh
+./.dev-aid/scripts/check-update-notify.sh
 ```
 
 ### Apply Update
@@ -107,8 +107,7 @@ gh-dev-aid                          # CLI extension: init, update, check, status
 │   ├── check-update-notify.sh     # Session-start notification (global cache)
 │   ├── update-dev-aid.sh          # Legacy update script (fallback)
 │   ├── update-lib.sh              # Shared update functions
-│   ├── rollback.sh                # Rollback tool
-│   └── check-updates.sh           # Legacy update checker
+│   └── rollback.sh                # Rollback tool
 │
 ├── orchestration/
 │   ├── conflict_resolver.py       # Interactive conflict resolution
@@ -123,7 +122,7 @@ gh-dev-aid                          # CLI extension: init, update, check, status
 ```
 ┌─────────────────────────────────────────────────────────┐
 │                   User Interface                        │
-│  (update-dev-aid.sh, rollback.sh, check-updates.sh)    │
+│  (update-dev-aid.sh, rollback.sh, check-update-notify.sh) │
 └────────────────────┬────────────────────────────────────┘
                      │
             ┌────────┴────────┐
@@ -551,7 +550,7 @@ ls -td .dev-aid-backup-*
 2. **Use GitHub token** for 5000 req/hour:
    ```bash
    export GITHUB_TOKEN="ghp_your_token_here"
-   ./.dev-aid/scripts/check-updates.sh
+   ./.dev-aid/scripts/check-update-notify.sh
    ```
 3. **Check rate limit status:**
    ```bash
@@ -619,7 +618,7 @@ rm -rf ~/.cache/dev-aid/
 export DEV_AID_REPO="your-fork/dev-aid"
 
 # Check updates from fork
-./.dev-aid/scripts/check-updates.sh
+./.dev-aid/scripts/check-update-notify.sh
 ```
 
 ---

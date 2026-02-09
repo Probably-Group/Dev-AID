@@ -498,7 +498,7 @@ prioritize_for_main() {
 
 #### During Installation
 ```bash
-# In install.sh, when setting up provider symlinks
+# In setup-dev-aid.sh, when setting up provider symlinks
 
 if [ -f "$PROJECT_ROOT/CLAUDE.md" ] && [ ! -L "$PROJECT_ROOT/CLAUDE.md" ]; then
     echo ""
@@ -717,7 +717,7 @@ Add to `.dev-aid/config/settings.json`:
 ## Files to Modify
 
 ### Primary Changes
-- `.dev-aid/scripts/install.sh` - Add validation and merge logic
+- `.dev-aid/scripts/setup-dev-aid.sh` - Add validation and merge logic
 - `.dev-aid/scripts/reconfigure.sh` - Add validation for reconfig
 
 ### New Files

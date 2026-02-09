@@ -403,7 +403,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 **Removed**:
 - ✅ RAG Integration → Already implemented (`.dev-aid/local-search/`)
 - ✅ MCP Integration → Already implemented (598 lines of code)
-- ✅ Interactive Installer → Already implemented (install.sh with 6 steps)
+- ✅ Interactive Installer → Already implemented (setup-dev-aid.sh with 8-phase unified setup)
 - ✅ Cross-Platform (macOS/Linux) → Already working
 - ❌ Load Testing → Premature optimization, not critical
 - ❌ Web Dashboard → TUI is better fit

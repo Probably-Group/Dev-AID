@@ -55,7 +55,8 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 │   └── decisions.md
 │
 ├── scripts/                   # ✅ Commit (setup scripts)
-│   ├── init-repo.sh
+│   ├── setup-dev-aid.sh
+│   ├── init-repo.sh           # (backward compat)
 │   ├── setup-rag.sh
 │   └── reindex-codebase.sh
 │

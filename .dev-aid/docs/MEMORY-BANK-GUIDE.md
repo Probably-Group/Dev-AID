@@ -84,9 +84,7 @@ You: "Read .dev-aid/memory-bank/patterns.md and follow those conventions"
 ### 1. Initialize Dev-AID
 
 ```bash
-./install.sh
-# or
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 ```
 
 This creates the memory-bank directory with template files.

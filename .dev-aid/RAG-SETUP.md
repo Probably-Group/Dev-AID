@@ -16,7 +16,7 @@
 cd dev-aid
 
 # Run init script (will prompt for RAG setup)
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 ```
 
 ### Option 2: Add to Existing Dev-AID

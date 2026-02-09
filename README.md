@@ -75,7 +75,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **🏠 Local LLM Support** - Offline, private, zero-cost AI via Ollama/LM Studio 🆕
 - **🔍 Local Code Search** - Hybrid BM25 + Vector search, 100% private, $0 forever
 - **🎓 73 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
-- **⚡ 7 Process Skills** - Enforce TDD, verification, systematic debugging
+- **⚡ 8 Process Skills** - Enforce TDD, verification, systematic debugging
 - **🏗️ Architect Mode** - Two-agent pattern: plan before implementation
 - **📂 Git Worktree Isolation** - Parallel development with conflict detection
 - **💾 Session Persistence** - Auto-save/restore progress across restarts
@@ -161,12 +161,12 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | **GitHub Stars** | ~100 | **39.4K** ⭐ | **27.7K** ⭐ | ~2K | 5.3K | 1.8K |
 | **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
 | **Multi-provider support** | ✅ Claude, Gemini, Codex, Cursor, Windsurf, Cline + MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
-| **Expert skills/agents** | 73 + 7 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
+| **Expert skills/agents** | 73 + 8 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
 | **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
 | **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
-| **Workflow orchestrators** | ✅ Architect + 5 modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
-| **Process skills (TDD)** | ✅ 7 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
+| **Workflow orchestrators** | ✅ Architect + 4 modes | ✅ 15 orchestrators | ✅ 15 orchestrators | ❌ | ❌ | ❌ |
+| **Process skills (TDD)** | ✅ 8 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
 | **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ Zilliz-based | ❌ |
@@ -216,7 +216,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 │  • 100% local semantic search (private RAG) │
 │  • Multi-AI orchestration (best tool/task)  │
 │  • MCP integration (databases, GitHub, etc) │
-│  • 5 core + 73 expert + 7 process skills    │
+│  • 5 core + 73 expert + 8 process skills    │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (CVE+SAST+secrets)    │
 │  • Specialized workflows (slash commands)   │
@@ -269,8 +269,8 @@ Real-World Examples:
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐⭐ |
-| **⚡ 7 Process Skills** 🆕 | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
-| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (7 agents, 16 tools, 4 providers) | • Provider-agnostic (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
+| **⚡ 8 Process Skills** 🆕 | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 4 providers) | • Provider-agnostic (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
 | **🔍 Pre-Commit Reviewer** | Comprehensive review of staged changes before commit | • Catches issues early<br>• Security/performance/tests<br>• Optional blocking<br>• Saves review time | ⭐⭐⭐⭐ |
@@ -425,7 +425,7 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - **Core skills** → Execute tools: "❌ Type error at line 45"
 - **Expert skills** → Provide guidance: "Use strict mode for type safety"
 
-### 📋 **7 Process Skills** - Workflow Enforcement (🆕 NEW!)
+### 📋 **8 Process Skills** - Workflow Enforcement (🆕 NEW!)
 **Purpose**: Behavioral protocols that enforce disciplined workflows
 
 Process skills **enforce how you work**, not just what you know:
@@ -435,6 +435,7 @@ Process skills **enforce how you work**, not just what you know:
 | `verification-gate` | No completion claims without test evidence | Strict | ✅ On |
 | `tdd-protocol` | Enforce RED-GREEN-REFACTOR cycle | Warning | ⚠️ On |
 | `systematic-debugging` | Root cause first, fix second (4-phase) | Warning | ⚠️ On |
+| `architect-protocol` | Architecture-first approach: plan → approve → implement | Warning | ⚠️ On |
 | `isolated-development` | Git worktree per feature/issue | Off | ⏸️ Off |
 | `design-first` | Think before coding (YAGNI enforcement) | Warning | ⚠️ On |
 | `staged-review` | Two-stage review (spec → quality) | Warning | ⚠️ On |
@@ -471,14 +472,14 @@ Process skills **enforce how you work**, not just what you know:
 
 ### 🤖 **Autonomous Agent Framework** (NEW!)
 
-Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
+Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
 
 | Feature | What It Does | Developer Benefits |
 |---------|-------------|-------------------|
 | **8 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor | Ready-to-use agents for common workflows |
 | **16 Built-in Tools** | File I/O, git, GitHub, bash, search — all with safety enforcement | Agents can read, write, search, and interact with git/GitHub |
 | **4 Provider Adapters** | Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio) | Use any provider — switch with `--provider` |
-| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 72+ skills |
+| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 73+ skills |
 | **Safety System** | Command blocklist, dry-run mode, per-tool risk levels | Safe by default — dangerous operations require explicit opt-in |
 
 **Quick Start:**
@@ -799,7 +800,8 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 📖 **[Complete MCP Guide](.dev-aid/docs/MCP-GUIDE.md)** - Installation, security, troubleshooting, and advanced usage.
 
 ### ⚙️ **Works Everywhere You Do**
-- **Native integration** with Claude Code, Cursor, Gemini CLI, Codex CLI
+- **Native integration** with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline
+- **MCP integration** with VS Code Copilot Chat, Zed, JetBrains AI Assistant
 - **Multi-provider routing** - Use the best AI for each task
 - **Consistent experience** - Same capabilities regardless of tool
 - **Future-proof** - Works with any AI tool that reads config files
@@ -809,7 +811,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 ## 🆕 What's New in v1.5.0
 
 **🤖 Autonomous Agent Framework**
-- **7 built-in agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding
+- **8 built-in agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor
 - **16 built-in tools**: File I/O, git, GitHub, bash, search — all with safety enforcement
 - **4 providers**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
 - **CLI**: `dev-aid-agent <agent> --provider <name> --dry-run --verbose --json`
@@ -839,7 +841,7 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 
 **v1.3.0 Highlights:**
 - 10x faster context detection (2s+ → <200ms)
-- 7 process skills for TDD, verification, systematic debugging
+- 8 process skills for TDD, verification, systematic debugging
 - Deep Research MCP with Gemini/Perplexity/Tavily
 - TOON format for 40-60% token reduction
 
@@ -1087,49 +1089,54 @@ dev-aid-fix-conflicts --dry-run
 
 ---
 
-### 🛠️ **Development Commands**
+### 🛠️ **All Slash Commands**
 
-#### `/aid-audit` (alias for `dev-aid-audit`)
-Comprehensive security audit
+> Every command has a short `aid-*` alias. Type `aid-` for autocomplete.
 
-```bash
-/aid-audit
-```
+#### Security
 
-Runs: Gitleaks (secrets), Trivy (CVE + misconfig), Opengrep (SAST)
+| Alias | Full Command | What It Does |
+|-------|-------------|-------------|
+| `/aid-audit` | `dev-aid-audit` | Comprehensive security audit (Gitleaks + Trivy + Opengrep) |
+| `/aid-vulnscan` | `dev-aid-vulnerability-scan` | Deep CVE scanning with auto-fix recommendations |
 
----
+#### Quality & Analysis
 
-#### `/aid-skill` (alias for `dev-aid-build-skill`)
-Generate custom expert skill
+| Alias | Full Command | What It Does |
+|-------|-------------|-------------|
+| `/aid-health` | `dev-aid-code-health` | Code health metrics, test coverage, maintainability |
+| `/aid-debt-report` | `dev-aid-debt-analysis` | Tech debt analysis with severity scoring |
+| `/aid-review` | `dev-aid-review-staged` | Pre-commit review of staged changes |
+| `/aid-analyze` | `dev-aid-analyze` | Codebase analysis and structure mapping |
 
-```bash
-/aid-skill "Create a Kubernetes expert skill"
-```
+#### Productivity
 
-Generates skill with references, activation rules, and context.
+| Alias | Full Command | What It Does |
+|-------|-------------|-------------|
+| `/aid-commit` | `dev-aid-commit-plan` | AI-guided atomic commit planning |
+| `/aid-api` | `dev-aid-api-contract` | Generate OpenAPI specs, TypeScript clients, MSW mocks |
 
----
+#### Setup & Configuration
 
-#### `/aid-deploy` (alias for `dev-aid-deploy-validate`)
-Pre-deployment validation
+| Alias | Full Command | What It Does |
+|-------|-------------|-------------|
+| `/aid-status` | `dev-aid-status` | Show Dev-AID configuration and component status |
+| `/aid-config` | `dev-aid-config-core-skills` | Enable/disable core skills |
+| `/aid-skill` | `dev-aid-build-skill` | Generate custom expert skills |
+| `/aid-analyze` | `dev-aid-analyze` | Analyze codebase structure |
 
-```bash
-/aid-deploy production
-```
+#### Operations & Maintenance
 
-Validates: Dependencies, configs, security, tests
+| Alias | Full Command | What It Does |
+|-------|-------------|-------------|
+| `/aid-deploy` | `dev-aid-deploy-validate` | Pre-deployment validation (deps, configs, security, tests) |
+| `/aid-models` | `dev-aid-models-update` | Update AI model registry with latest releases |
 
----
+#### Discovery
 
-#### `/dev-aid-test-suite`
-Run comprehensive test suite
-
-```bash
-/dev-aid-test-suite
-```
-
-Runs all tests with coverage
+| Alias | What It Does |
+|-------|-------------|
+| `/aid-help` | Show all Dev-AID commands with descriptions |
 
 ---
 
@@ -1302,7 +1309,7 @@ Claude: *automatically uses local RAG*
 ├── 📁 agents/                          # Autonomous agent framework
 │   ├── core/                           # AgentRunner, ToolRegistry, SkillLoader, Safety
 │   ├── adapters/                       # Anthropic, OpenAI, Google provider adapters
-│   ├── agents/                         # 7 built-in agent definitions
+│   ├── agents/                         # 8 built-in agent definitions
 │   └── tools/                          # 16 built-in tools (file, git, bash, search)
 │
 ├── 📁 config/
@@ -1324,7 +1331,7 @@ Claude: *automatically uses local RAG*
 │   │       │   ├── dev-aid-router-challenger-rag.md
 │   │       │   ├── dev-aid-router-ensemble.md
 │   │       │   └── dev-aid-router-status.md
-│   │       └── skills/expert/ (65 skills)
+│   │       └── skills/expert/ (73 skills)
 │   │
 │   └── gemini/
 │       └── .gemini/
@@ -1416,7 +1423,7 @@ ROI: 2-3 months if you use AI heavily
 
 ---
 
-## 🎓 Expert Skills (65 Skills)
+## 🎓 Expert Skills (73 Skills)
 
 ### Core Skills
 - **devsecops-expert** - Security-first development
@@ -1523,8 +1530,8 @@ Skills auto-activate based on file patterns:
 
 | Feature | Manual | Dev-AID |
 |---------|--------|---------|
-| Expert skills | Write yourself | 72 pre-built ✅ |
-| Process skills | None | 7 behavioral protocols (TDD, verification) ✅ |
+| Expert skills | Write yourself | 73 pre-built ✅ |
+| Process skills | None | 8 behavioral protocols (TDD, verification) ✅ |
 | Security scans | Remember to run | Automated (git hooks) ✅ |
 | Memory bank | Manual notes | Persistent, auto-loaded ✅ |
 | Multi-AI routing | Manual switching | Automatic routing ✅ |
@@ -1548,6 +1555,8 @@ Skills auto-activate based on file patterns:
 ## 📖 Documentation
 
 ### Core Documentation
+- **[COMMANDS-REFERENCE.md](.dev-aid/docs/COMMANDS-REFERENCE.md)** - Complete reference for all slash commands and aliases
+- **[FAQ.md](.dev-aid/docs/FAQ.md)** - Frequently asked questions
 - **[STORAGE-LOCATIONS.md](.dev-aid/docs/STORAGE-LOCATIONS.md)** - Where files are stored (5MB vs 2.7GB breakdown)
 - **[DEPENDENCY-ISOLATION.md](.dev-aid/docs/DEPENDENCY-ISOLATION.md)** - Zero system pollution architecture
 - **[HOW-LOCAL-SEARCH-WORKS.md](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)** - How AI automatically uses local search via MCP
@@ -1573,12 +1582,19 @@ Skills auto-activate based on file patterns:
 - **[RAG-SETUP.md](.dev-aid/RAG-SETUP.md)** - Complete RAG setup guide
 - **[ROUTER-INSTALL.md](.dev-aid/orchestration/ROUTER-INSTALL.md)** - Router installation with venv setup
 - **[VENV-INFO.md](.dev-aid/orchestration/VENV-INFO.md)** - Virtual environment deep-dive
+- **[BETA-TESTING-GUIDE.md](.dev-aid/docs/BETA-TESTING-GUIDE.md)** - Beta testing procedures and test matrix
 
 ### Technical Analysis
 - **[CLAUDE-CONTEXT-LOCAL.md](.dev-aid/providers/CLAUDE-CONTEXT-LOCAL.md)** - Local RAG analysis
 - **[CROSS-PLATFORM-ROUTER.md](.dev-aid/providers/CROSS-PLATFORM-ROUTER.md)** - Router implementation guide
 - **[RAG-IMPLEMENTATION.md](.dev-aid/providers/RAG-IMPLEMENTATION.md)** - RAG options overview
 - **[LIGHTRAG-AND-FORMATS.md](.dev-aid/providers/LIGHTRAG-AND-FORMATS.md)** - Format support comparison
+
+### Legal & Community
+- **[LICENSE](LICENSE)** - MIT License
+- **[SECURITY.md](SECURITY.md)** - Vulnerability reporting policy
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** - Contributor Covenant v2.1
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Provider Docs
 - **CLAUDE.md** - Claude Code context file (auto-generated by install script, gitignored)
@@ -1678,7 +1694,7 @@ cat .dev-aid/config/routing.json
 
 ## 📝 License
 
-[Your license here]
+MIT License. Copyright (c) 2025 Probably Nothing s.r.o. and Dev-AID Contributors. See [LICENSE](LICENSE) for details.
 
 ---
 
@@ -1699,7 +1715,10 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 ### AI Platforms
 - **[Claude Code](https://claude.ai/code)** by Anthropic - AI development environment
 - **[Gemini CLI](https://ai.google.dev/)** by Google - Multi-model AI access
+- **[Codex CLI](https://github.com/openai/codex)** by OpenAI - Terminal AI coding assistant
 - **[Cursor](https://cursor.sh/)** - AI-powered code editor
+- **[Windsurf](https://windsurf.com/)** - AI-powered code editor
+- **[Cline](https://github.com/cline/cline)** - VS Code AI extension
 - **[OpenRouter](https://openrouter.ai/)** - Unified AI API access
 
 ### Security Tools
@@ -1716,9 +1735,10 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 
 ## 🔗 Links
 
-- **Documentation:** `.dev-aid/` directory
-- **Issues:** [GitHub Issues]
-- **Discussions:** [GitHub Discussions]
+- **Documentation:** `.dev-aid/docs/` directory
+- **Issues:** [GitHub Issues](https://github.com/Probably-Group/Dev-AID/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/Probably-Group/Dev-AID/discussions)
+- **Website:** [https://probably.group](https://probably.group)
 
 ---
 

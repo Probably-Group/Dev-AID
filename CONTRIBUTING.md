@@ -22,7 +22,7 @@ Thank you for your interest in contributing to Dev-AID!
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make your changes
-4. Test thoroughly (try `init-repo.sh` and `reconfigure.sh`)
+4. Test thoroughly (try `setup-dev-aid.sh` and `reconfigure.sh`)
 5. Update documentation if needed
 6. Commit with clear messages
 7. Submit a pull request
@@ -35,7 +35,7 @@ git clone https://github.com/your-username/Dev-AID
 cd Dev-AID
 
 # Initialize Dev-AID in the project
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 
 # Test reconfiguration
 ./.dev-aid/scripts/reconfigure.sh
@@ -111,7 +111,7 @@ Before submitting a PR:
 
 - [ ] Pre-commit hooks installed (`./.dev-aid/scripts/setup-git-hooks.sh`)
 - [ ] All local checks pass (`make check` or `./run-pr-checks.sh`)
-- [ ] Install script works from scratch
+- [ ] Setup script works from scratch
 - [ ] All orchestration modes work
 - [ ] Reconfiguration preserves memory bank
 - [ ] Documentation is updated

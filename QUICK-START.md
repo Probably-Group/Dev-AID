@@ -35,13 +35,13 @@ cp -r Dev-AID/.dev-aid ~/your-project/.dev-aid
 
 # Initialize
 cd ~/your-project
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 ```
 </details>
 
 ### 2. Follow the Setup Wizard
 
-`gh dev-aid init` (or `init-repo.sh`) launches a 6-step wizard:
+`gh dev-aid init` (or `setup-dev-aid.sh`) launches a 6-step wizard:
 1. **Context Budget**: Choose "Balanced" (recommended)
 2. **Auto-Activation**: Choose "Conservative" (recommended)
 3. **Providers**: Select your AI providers
@@ -175,8 +175,8 @@ See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 7 agents, 1
 gh dev-aid init
 
 # If using manual install, make sure you're in the right directory:
-ls -la .dev-aid/scripts/init-repo.sh
-chmod +x .dev-aid/scripts/init-repo.sh
+ls -la .dev-aid/scripts/setup-dev-aid.sh
+chmod +x .dev-aid/scripts/setup-dev-aid.sh
 ```
 
 **Issue**: Authentication not working

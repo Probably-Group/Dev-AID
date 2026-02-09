@@ -888,7 +888,7 @@ cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
 
 # 3. Initialize
 cd ~/my-project
-./.dev-aid/scripts/init-repo.sh
+./.dev-aid/scripts/setup-dev-aid.sh
 ```
 </details>
 
@@ -1342,7 +1342,8 @@ Claude: *automatically uses local RAG*
 │   └── security.md                    # Security context
 │
 ├── 📁 scripts/
-│   ├── init-repo.sh                   # Initialize Dev-AID
+│   ├── setup-dev-aid.sh                # Initialize Dev-AID (unified setup)
+│   ├── init-repo.sh                   # (backward compat wrapper)
 │   ├── setup-rag.sh                   # Setup local RAG
 │   ├── reindex-codebase.sh            # Reindex for RAG
 │   └── rag-status.sh                  # Check RAG status

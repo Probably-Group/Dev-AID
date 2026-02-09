@@ -33,8 +33,8 @@ AI coding tools are powerful but expensive, fragmented, and generic. Dev-AID is 
 ```bash
 # 5-minute setup
 git clone <repo> && cd <repo>
-./.dev-aid/scripts/init-repo.sh
-# Answer "Y" to enable features → Done
+./.dev-aid/scripts/setup-dev-aid.sh
+# Unified setup wizard → Done
 ```
 
 **Continue using Claude Code exactly as before—except now it's 10× more powerful.**

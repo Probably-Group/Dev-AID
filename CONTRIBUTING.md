@@ -22,7 +22,7 @@ Thank you for your interest in contributing to Dev-AID!
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
 3. Make your changes
-4. Test thoroughly (try install.sh and reconfigure.sh)
+4. Test thoroughly (try `init-repo.sh` and `reconfigure.sh`)
 5. Update documentation if needed
 6. Commit with clear messages
 7. Submit a pull request
@@ -31,11 +31,11 @@ Thank you for your interest in contributing to Dev-AID!
 
 ```bash
 # Clone your fork
-git clone https://github.com/your-username/dev-aid
-cd dev-aid
+git clone https://github.com/your-username/Dev-AID
+cd Dev-AID
 
-# Test the installer
-./.dev-aid/scripts/install.sh
+# Initialize Dev-AID in the project
+./.dev-aid/scripts/init-repo.sh
 
 # Test reconfiguration
 ./.dev-aid/scripts/reconfigure.sh

@@ -229,13 +229,14 @@ OpenAI's Codex CLI is now fully supported as the fourth AI coding tool:
 
 ### Safe Update System
 Never lose customizations while staying current:
+- **One-Command Update**: `gh dev-aid update` handles backup, protected paths, and cleanup
+- **Automatic Notifications**: Session-start hooks check for updates daily (shared across all projects)
+- **Version Check**: `gh dev-aid check` for lightweight version comparison without updating
 - **Interactive Conflict Resolution**: 5-option menu (keep/take/merge/diff/skip) for each modified file
 - **Protected Paths**: Never overwrites `.env`, memory-bank, custom skills, RAG indices
 - **Automatic Rollback**: Error trap restores from backup on failures
-- **SHA256 Verification**: Checksum validation prevents MITM attacks
-- **Weekly Auto-Check**: Silent CLI hooks with 7-day cache (respects GitHub rate limits)
 - **Breaking Change Detection**: Warns about major version bumps with release notes
-- Scripts: `update-dev-aid.sh`, `check-updates.sh`, `rollback.sh`, `setup-update-hooks.sh`
+- Extension: [`gh-dev-aid`](https://github.com/Probably-Group/gh-dev-aid) | Scripts: `update-dev-aid.sh`, `rollback.sh`
 - Documentation: [Complete Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
 ### Intelligent Automation System

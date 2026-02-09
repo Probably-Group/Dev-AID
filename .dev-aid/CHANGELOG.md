@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.5.0-beta.3] - 2026-02-09
+
+### Added
+- **`gh-dev-aid` CLI Extension**: Single-command installation and management via GitHub CLI
+  - `gh dev-aid init [path]` — Install Dev-AID into any project (uses `gh repo clone` for auth)
+  - `gh dev-aid update` — Update with backup, protected paths, and old backup cleanup
+  - `gh dev-aid check` — Lightweight version check via GitHub API (no clone)
+  - `gh dev-aid status` — Show version + health check
+  - `gh dev-aid version` — Show extension and installed versions
+  - Extension repo: [`Probably-Group/gh-dev-aid`](https://github.com/Probably-Group/gh-dev-aid)
+- **Proactive Update Notifications**: Automatic version check on session start for Claude Code and Gemini CLI
+  - Throttled to once per 24 hours using global cache (`~/.cache/dev-aid/`)
+  - Shared across all projects — one API call per day regardless of how many projects use Dev-AID
+  - Non-blocking with 3-second timeout (macOS compatible, no `timeout` dependency)
+  - Script: `.dev-aid/scripts/check-update-notify.sh`
+- **`/aid-team` Slash Command**: New command for multi-agent team orchestration
+  - Full command (`dev-aid-agent-team`) + short alias (`aid-team`) for both Claude and Gemini
+  - Documents parallel, sequential, and DAG workflow types
+  - Corrected agent names to match `builtin_teams.py`: vulnerability-scanner, auth-reviewer, dependency-auditor
+
+### Changed
+- **Repository moved to `Probably-Group/Dev-AID`** (was `martinholovsky/Dev-AID`)
+- **Documentation uses `/aid-*` slash commands as primary interface** — CLI-form `dev-aid-agent` kept as reference for CI/scripts
+- **Update system now uses `gh dev-aid update`** as primary method (replaces `update-dev-aid.sh` option 1 which was unimplemented)
+- Updated README.md, QUICK-START.md, VALUE-PROPOSITION.md Quick Start sections to use `gh extension install` as primary
+- Updated CONTRIBUTING.md to reference `init-repo.sh` (was `install.sh`)
+- Added `.github/copilot-ignore` and `.github/pull_request_template.md` for beta security
+
+### Removed
+- `CLAUDE.md.example` (stale)
+- `docs/plans/` directory (stale)
+- `gh-dev-aid/` from main repo (moved to its own repo)
+
+---
+
 ## [1.5.0-beta.2] - 2026-02-08
 
 ### Added
@@ -581,30 +616,13 @@ This is the first production-ready release of Dev-AID with complete multi-AI orc
 
 ---
 
-## Upcoming Features (Planned)
-
-### v1.1.0 (Q1 2025)
-- [ ] Web dashboard for cost analytics
-- [ ] Model performance benchmarking
-- [ ] Custom routing rules via UI
-- [ ] Multi-repository RAG support
-
-### v1.2.0 (Q2 2025)
-- [ ] LightRAG integration option
-- [ ] LlamaIndex adapter
-- [ ] Cloud RAG fallback
-- [ ] Team cost allocation
-
----
-
 ## Contributing
 
-See the repository documentation for how to propose changes.
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for how to propose changes.
 
 ---
 
 ## Support
 
 - **Documentation**: `.dev-aid/docs/`
-- **Issues**: [GitHub Issues](https://github.com/your-org/dev-aid/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/dev-aid/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Probably-Group/Dev-AID/issues)

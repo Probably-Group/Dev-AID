@@ -169,11 +169,14 @@ See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 7 agents, 1
 
 ## Troubleshooting
 
-**Issue**: Installer not found
+**Issue**: Init script not found
 ```bash
-# Make sure you're in the right directory
-ls -la .dev-aid/scripts/install.sh
-chmod +x .dev-aid/scripts/install.sh
+# If using gh extension (recommended):
+gh dev-aid init
+
+# If using manual install, make sure you're in the right directory:
+ls -la .dev-aid/scripts/init-repo.sh
+chmod +x .dev-aid/scripts/init-repo.sh
 ```
 
 **Issue**: Authentication not working

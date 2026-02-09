@@ -715,22 +715,28 @@ When the update system detects files you've modified, it shows you a diff and as
 Your choice [y/u/m/d/s/?]:
 ```
 
-**Automatic Weekly Checks (CLI Hooks):**
-```bash
-# Setup hooks for Claude Code and Gemini CLI
-./.dev-aid/scripts/setup-update-hooks.sh
+**Automatic Session Notifications:**
 
-# When installed, you'll see on session start:
-💡 Dev-AID update available: v1.3.0
-   Run: ./.dev-aid/scripts/update-dev-aid.sh
+Dev-AID checks for updates automatically on session start (throttled to once per 24h, shared across all your projects):
+```
+⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
+```
+
+**Update via CLI Extension:**
+```bash
+# Check for updates
+gh dev-aid check
+
+# Apply update (with backup + protected paths)
+gh dev-aid update
 ```
 
 **Why This Matters:**
 - 🔒 **Zero data loss** - Protected paths ensure API keys, memory-bank, custom skills never get overwritten
 - 🎮 **Full control** - See exactly what changed, decide file-by-file what to update
-- 🛟 **Safe exploration** - Dry-run mode + automatic rollback = fearless updates
-- ⚡ **Stay current** - Weekly auto-checks keep you informed without manual monitoring
-- 🔐 **Security first** - SHA256 verification prevents malicious updates
+- 🛟 **Safe exploration** - Automatic backup + rollback = fearless updates
+- ⚡ **Stay current** - Automatic session notifications keep you informed
+- 🔐 **Trusted delivery** - Uses `gh` CLI with your GitHub auth (no raw downloads)
 
 📖 **[Complete Update System Guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)** - Detailed walkthroughs, troubleshooting, and advanced usage.
 

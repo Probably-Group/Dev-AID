@@ -26,17 +26,28 @@
 
 ### Check for Updates
 ```bash
-./.dev-aid/scripts/check-updates.sh
-```
+# Via gh extension (recommended)
+gh dev-aid check
 
-### Preview Update (Dry-Run)
-```bash
-./.dev-aid/scripts/update-dev-aid.sh --dry-run
+# Via script (fallback)
+./.dev-aid/scripts/check-updates.sh
 ```
 
 ### Apply Update
 ```bash
+# Via gh extension (recommended) — handles backup, protected paths, cleanup
+gh dev-aid update
+
+# Via script (fallback)
 ./.dev-aid/scripts/update-dev-aid.sh
+```
+
+### Automatic Notifications
+
+Dev-AID automatically checks for updates on every session start (Claude Code and Gemini CLI). The check is throttled to **once per 24 hours** and uses a **global cache** (`~/.cache/dev-aid/`) so multiple projects share a single API call:
+
+```
+⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
 ```
 
 ### Rollback to Previous Version
@@ -75,9 +86,10 @@
 
 | Feature | Description | Configuration |
 |---------|-------------|---------------|
-| **Weekly Auto-Check** | Checks GitHub for updates | Cache TTL: 7 days |
-| **GitHub API Integration** | Fetches releases, assets, checksums | Auto-detects repo from git remote |
-| **Silent Mode** | Non-intrusive notifications | Writes to `.dev-aid/.update-status` |
+| **Session-Start Notification** | Auto-checks on every session (Claude/Gemini) | Throttled: once per 24h |
+| **Global Cache** | Shared across all projects using Dev-AID | `~/.cache/dev-aid/` |
+| **gh Extension** | `gh dev-aid update` / `gh dev-aid check` | Install: `gh extension install Probably-Group/gh-dev-aid` |
+| **GitHub API Integration** | Fetches version via `gh api` | Uses existing GitHub auth |
 
 ---
 
@@ -86,19 +98,24 @@
 ### File Structure
 
 ```
+# gh-dev-aid extension (separate repo: Probably-Group/gh-dev-aid)
+gh-dev-aid                          # CLI extension: init, update, check, status, version
+
+# In-repo scripts
 .dev-aid/
 ├── scripts/
-│   ├── update-dev-aid.sh          # Main update script (existing)
-│   ├── update-lib.sh              # 🆕 Shared update functions
-│   ├── rollback.sh                # 🆕 Rollback tool
-│   └── check-updates.sh           # 🆕 Automated update checker
+│   ├── check-update-notify.sh     # Session-start notification (global cache)
+│   ├── update-dev-aid.sh          # Legacy update script (fallback)
+│   ├── update-lib.sh              # Shared update functions
+│   ├── rollback.sh                # Rollback tool
+│   └── check-updates.sh           # Legacy update checker
 │
 ├── orchestration/
-│   ├── conflict_resolver.py       # 🆕 Interactive conflict resolution
-│   └── github_client.py           # 🆕 GitHub API client
+│   ├── conflict_resolver.py       # Interactive conflict resolution
+│   └── github_client.py           # GitHub API client
 │
 └── docs/
-    └── UPDATE-SYSTEM-GUIDE.md     # 🆕 This document
+    └── UPDATE-SYSTEM-GUIDE.md     # This document
 ```
 
 ### Component Diagram
@@ -292,70 +309,35 @@ After resolving all conflicts, you'll see a summary:
 
 ## Automated Checks
 
-### Weekly Update Notifications
+### Session-Start Notifications
 
-Dev-AID automatically checks for updates weekly (configurable):
+Dev-AID checks for updates automatically every time you start a session in Claude Code or Gemini CLI. The check is:
 
-```bash
-# Runs silently on CLI start (via hooks)
-./.dev-aid/scripts/check-updates.sh --silent
-```
+- **Throttled** — at most once per 24 hours (configurable via `CHECK_INTERVAL` in `check-update-notify.sh`)
+- **Global** — uses `~/.cache/dev-aid/` so all your projects share one API call per day
+- **Non-blocking** — 3-second timeout, won't delay session start
+- **Per-project comparison** — each project compares its own `.dev-aid/VERSION` against the cached remote
 
 #### Output (when update available):
 ```
-💡 Dev-AID update available!
-   Current: 1.4.0
-   Latest:  1.5.0
-
-   Run: ./.dev-aid/scripts/check-updates.sh
+⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
 ```
 
 ### Manual Check
 
 ```bash
-$ ./.dev-aid/scripts/check-updates.sh
+# Quick version check (no clone, just API call)
+gh dev-aid check
 
-Checking for Dev-AID updates...
-  Current version: 1.3.0
-→ Fetching latest release from GitHub...
-
-╔════════════════════════════════════════════╗
-║    💡 Dev-AID Update Available!           ║
-╚════════════════════════════════════════════╝
-
-  Current: 1.4.0
-  Latest:  1.5.0
-
-Release Notes:
-## What's New
-- Enhanced conflict resolution
-- Weekly automated checks
-- Checksum verification
-...
-
-To update:
-  ./.dev-aid/scripts/update-dev-aid.sh
-
-To preview changes:
-  ./.dev-aid/scripts/update-dev-aid.sh --dry-run
-```
-
-### Force Check (Ignore Cache)
-
-```bash
-./.dev-aid/scripts/check-updates.sh --force
+# Full status including health
+gh dev-aid status
 ```
 
 ### Configuration
 
-Edit cache TTL in `check-updates.sh`:
+Edit check interval in `.dev-aid/scripts/check-update-notify.sh`:
 ```bash
-CACHE_TTL=604800  # 7 days in seconds
-```
-
-Or via environment:
-```bash
-export DEV_AID_UPDATE_CHECK_TTL=259200  # 3 days
+CHECK_INTERVAL=86400  # 24 hours in seconds (default)
 ```
 
 ---
@@ -620,18 +602,14 @@ git clone https://github.com/your-org/dev-aid /tmp/dev-aid
 
 ### Disable Auto-Check
 
-**Option 1: Environment Variable**
+**Option 1: Remove the notification script**
 ```bash
-export DEV_AID_UPDATE_CHECK_DISABLED=true
+rm .dev-aid/scripts/check-update-notify.sh
 ```
 
-**Option 2: Remove Hook**
+**Option 2: Clear the cache to force re-check**
 ```bash
-# For Claude Code
-rm .claude/config/hooks.json
-
-# For Gemini CLI
-rm .gemini/config/hooks.toml
+rm -rf ~/.cache/dev-aid/
 ```
 
 ### Custom Repository
@@ -707,8 +685,8 @@ A: API keys in `.env` files are never overwritten. They're backed up and restore
 **Q: Can I update just the router code?**
 A: Not yet. Selective updates are planned for Phase 2. Currently it's all-or-nothing (but conflicts give you control).
 
-**Q: How do I disable weekly update checks?**
-A: Set `export DEV_AID_UPDATE_CHECK_DISABLED=true` or remove the hook from your CLI config.
+**Q: How do I disable update notifications?**
+A: Remove `.dev-aid/scripts/check-update-notify.sh` or delete the `check_update` function from your provider's session-start hook.
 
 **Q: Where are backups stored?**
 A: In the project root as `.dev-aid-backup-YYYYMMDD-HHMMSS/`

@@ -17,6 +17,72 @@ The orchestration module (`.dev-aid/orchestration/`) has pre-commit hooks that r
 - Always run the venv test suite before committing: `cd .dev-aid/orchestration && venv/bin/python -m pytest tests/ -v`
 - When Task agents create branches, always verify they used the correct branch name before committing
 
+## Agent Framework (`.dev-aid/agents/`)
+
+Provider-agnostic agent system with 8 built-in agents, multi-agent teams, and CI/CD automation.
+
+### Architecture
+
+```
+.dev-aid/agents/
+├── core/                    # Framework infrastructure
+│   ├── agent_runner.py      # Main execution loop (25 max iterations)
+│   ├── skill_loader.py      # Converts SKILL.md → system prompts
+│   ├── tool_registry.py     # Tool definitions, provider format export
+│   ├── provider_adapter.py  # Protocol for LLM provider adapters
+│   ├── team_runner.py       # Multi-agent team orchestration
+│   ├── team_models.py       # Team data models (slots, tasks, messages)
+│   ├── shared_state.py      # Shared state between team agents
+│   ├── safety.py            # Risk-level tool execution checks
+│   ├── cost.py              # Per-model cost tracking
+│   └── models.py            # AgentDefinition, AgentResult, ToolCall
+├── agents/                  # 8 built-in agents
+│   ├── pr_reviewer.py       # PR review (security, quality, architecture)
+│   ├── test_generator.py    # Test generation (pytest/jest/vitest)
+│   ├── tech_debt_hunter.py  # Tech debt scanning & prioritization
+│   ├── ci_fixer.py          # CI/CD failure diagnosis & fix
+│   ├── conflict_resolver.py # Merge conflict resolution (smart/ours/theirs)
+│   ├── research_agent.py    # Technical research with web + codebase
+│   ├── onboarding_agent.py  # Codebase onboarding guide generation
+│   └── doc_auditor.py       # Documentation audit & health scoring
+├── adapters/                # LLM provider adapters
+│   ├── anthropic_adapter.py # Claude (Anthropic Messages API)
+│   ├── google_adapter.py    # Gemini
+│   └── openai_adapter.py    # OpenAI + local (Ollama, LM Studio)
+├── tools/                   # Agent tools (file, git, github, bash, search)
+├── teams/
+│   └── builtin_teams.py     # 4 predefined teams (see below)
+└── cli.py                   # CLI entry point
+```
+
+### Built-in Teams
+
+| Team | Agents | Workflow |
+|------|--------|----------|
+| `pr-review-team` | security-reviewer, quality-reviewer, test-coverage-reviewer | parallel |
+| `security-audit-team` | vulnerability-scanner, auth-reviewer, dependency-auditor | parallel |
+| `architect-implement-team` | architect → implementer → reviewer | DAG |
+| `issue-resolution-team` | researcher → fixer → test-writer | DAG |
+
+### CI/CD Automation (GitHub Actions)
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `auto-fix-issues.yml` | Issue labeled `auto-fix`/`good-first-issue`/`typo`/`documentation` | Auto-analyze and fix simple issues |
+| `auto-resolve-conflicts.yml` | Manual dispatch | Detect and resolve PR merge conflicts |
+| `auto-triage-issues.yml` | Issue opened | Auto-label, estimate complexity, suggest auto-fix |
+| `pr-check.yml` | Push/PR on main | Black, Flake8, MyPy, Pytest, Shellcheck |
+| `release-gate.yml` | Release created | Gitleaks, Trivy, Opengrep SAST, cross-platform tests, SBOM |
+| `security.yml` | Tags, weekly, release | Gitleaks, Opengrep (340+ rules), Trivy filesystem scan |
+
+### Deep Research MCP Server (`.dev-aid/deep-research/`)
+
+Multi-provider research with smart routing:
+- **Providers**: Tavily (quick/standard), Perplexity Sonar (standard/deep), Gemini Deep Research
+- **MCP tools**: `research`, `quick_research`, `deep_research`, `get_providers`, cache management
+- **CLI**: `dev-aid-research` command (search, quick, deep, providers, cache)
+- **Smart router**: Auto-selects provider based on query complexity
+
 ## Slash Command Aliases (`aid-*`)
 
 **Every Dev-AID command has a short `aid-*` alias.** Type `aid-` in autocomplete to browse all commands.

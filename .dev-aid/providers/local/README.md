@@ -28,6 +28,17 @@ These are **runtimes** (like Docker for containers) that run AI models:
 | [LM Studio](https://lmstudio.ai) | 1234 | GUI app, visual model browser |
 | [llama.cpp](https://github.com/ggerganov/llama.cpp) | 8080 | C++ runtime, maximum control |
 
+## Agent Framework Compatibility
+
+All 8 Dev-AID agents and 4 multi-agent teams support local models via `--provider local`:
+
+```bash
+dev-aid-agent pr-reviewer --pr 42 --provider local --model qwen2.5-coder:32b
+dev-aid-agent team security-audit-team -m "Audit auth" --provider local --model qwen2.5-coder:32b
+```
+
+**Requirement: Tool calling (function calling) support.** Agents rely on tool calling to read files, run searches, and execute commands. Models without tool calling support cannot run agents. Most modern coding models support this — see the recommended models below.
+
 ## Recommended Models
 
 Based on 2026 benchmarks (Score vs VRAM efficiency):

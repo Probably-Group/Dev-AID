@@ -62,8 +62,8 @@ The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core 
 ```markdown
 # Active Context
 
-## Current Sprint: Q1 2026 - Sprint 2
-**Dates:** Feb 3 - Feb 16, 2026
+## Current Sprint: <Quarter> - Sprint <N>
+**Dates:** <Start Date> - <End Date>
 
 ## Active Features
 ### In Progress
@@ -80,8 +80,8 @@ The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core 
 - **High:** Search results pagination broken (Issue #245)
 
 ## Active Dependencies
-- Waiting: Stripe API credentials (requested 2026-01-20)
-- Waiting: Design mockups for dashboard (ETA: 2026-02-10)
+- Waiting: Stripe API credentials (requested <YYYY-MM-DD>)
+- Waiting: Design mockups for dashboard (ETA: <YYYY-MM-DD>)
 
 ## Blockers
 1. AWS RDS migration (DevOps blocked by budget approval)
@@ -106,7 +106,7 @@ The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core 
 # Architecture Decision Records
 
 ## ADR-001: Use Redux Toolkit for State Management
-**Date:** 2025-10-15
+**Date:** <YYYY-MM-DD>
 **Status:** Accepted
 **Context:** Need global state management for complex e-commerce app
 **Decision:** Use Redux Toolkit instead of Context API
@@ -123,7 +123,7 @@ The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core 
 - Zustand (rejected: too new, smaller ecosystem)
 
 ## ADR-002: Microservices Architecture
-**Date:** 2025-09-20
+**Date:** <YYYY-MM-DD>
 **Status:** Accepted
 **Context:** Monolith becoming difficult to scale and deploy
 **Decision:** Split into 5 microservices (Auth, Catalog, Cart, Orders, Payments)
@@ -413,7 +413,7 @@ describe('POST /api/users', () => {
 ```markdown
 # Chaos - Quick Notes & Discoveries
 
-## 2026-02-06
+## <YYYY-MM-DD>
 - **Discovery:** Redis connection pooling maxed out during load test
   - **Fix:** Increased `redis.pool.max` from 10 to 50
   - **TODO:** Monitor in production, may need further tuning
@@ -422,19 +422,19 @@ describe('POST /api/users', () => {
   - **Cause:** DATABASE_URL not set in CI environment
   - **Fix:** Added to CircleCI project settings
 
-## 2026-02-05
+## <YYYY-MM-DD>
 - **Workaround:** Stripe webhook signature verification failing locally
   - **Cause:** ngrok changes URL on each restart
   - **Temp Fix:** Using `stripe listen --forward-to localhost:3000/webhooks`
   - **TODO:** Set up stable dev webhook endpoint
 
-## 2026-02-04
+## <YYYY-MM-DD>
 - **Performance:** Product listing page slow (2.5s load time)
   - **Investigation:** N+1 query on product images
   - **Fix Applied:** Added `include: { images: true }` to query
   - **Result:** Reduced to 400ms
 
-## 2026-02-03
+## <YYYY-MM-DD>
 - **Security:** Found exposed API keys in git history
   - **Action Taken:** Rotated all keys, added `.env` to `.gitignore`
   - **Prevention:** Added pre-commit hook with `secret-scanner` skill
@@ -477,7 +477,7 @@ describe('POST /api/users', () => {
 
 ## Current Performance
 
-### Bottlenecks (as of 2026-02-06)
+### Bottlenecks (as of <YYYY-MM-DD>)
 1. **Product Search** - 850ms average
    - Cause: Full-text search on large dataset
    - Plan: Migrate to Elasticsearch
@@ -495,17 +495,17 @@ describe('POST /api/users', () => {
 
 ## Optimizations Applied
 
-### 2026-02-05: Database Query Optimization
+### <YYYY-MM-DD>: Database Query Optimization
 - **Before:** Product listing query took 2.1s
 - **Change:** Added indexes on `category_id` and `price`
 - **After:** Query time reduced to 180ms (-91%)
 
-### 2026-01-20: Frontend Code Splitting
+### <YYYY-MM-DD>: Frontend Code Splitting
 - **Before:** Initial bundle size 1.2MB
 - **Change:** Implemented route-based code splitting
 - **After:** Initial bundle 450KB, lazy load routes (-62%)
 
-### 2026-01-18: Image Optimization
+### <YYYY-MM-DD>: Image Optimization
 - **Before:** Images served at 4000x4000 resolution
 - **Change:** Resize to 800x800 + WebP format
 - **After:** 85% reduction in image size
@@ -606,7 +606,7 @@ describe('POST /api/users', () => {
 
 ## Security Incidents
 
-### 2026-02-03: API Keys in Git History
+### <YYYY-MM-DD>: API Keys in Git History
 - **Severity:** High
 - **Discovery:** Developer accidentally committed .env file
 - **Impact:** AWS keys exposed for 3 hours
@@ -628,7 +628,7 @@ describe('POST /api/users', () => {
 - ✅ Data processing agreements with vendors
 
 ### SOC 2 Type II
-- **Status:** In progress (audit scheduled Q2 2026)
+- **Status:** In progress (audit scheduled <Quarter Year>)
 - **Controls:** 78 controls implemented
 - **Evidence:** Automated collection via Vanta
 ```
@@ -774,7 +774,7 @@ describe('ComponentName', () => {
 - Use jest.mock() for modules
 - Use dependency injection for testability
 
-## Current Coverage (as of 2026-02-06)
+## Current Coverage (as of <YYYY-MM-DD>)
 
 ### Overall: 87.2%
 - **Statements:** 87.2% (3,421/3,924)
@@ -1089,7 +1089,7 @@ echo "✅ All checks passed!"
 
 echo "🚀 Loading project context..."
 echo "Project: E-Commerce Platform"
-echo "Sprint: Q1 2026 - Sprint 2"
+echo "Sprint: <Quarter> - Sprint <N>"
 echo "Active features: Checkout flow, Payment integration"
 echo ""
 echo "Recent changes:"

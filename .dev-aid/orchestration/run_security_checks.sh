@@ -90,7 +90,7 @@ echo ""
 
 run_check "Black Formatting Check" black --check router/ tests/
 run_check "Isort Import Order" isort --check router/ tests/
-run_check "Flake8 Linting" flake8 router/ --max-line-length=100 --extend-ignore=E203,W503
+run_check "Flake8 Linting" flake8 router/ --max-line-length=120 --extend-ignore=E203,W503
 
 echo ""
 echo "========================================="

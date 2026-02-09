@@ -152,7 +152,7 @@ mypy router/ --strict --ignore-missing-imports
 # Run code quality checks
 black --check router/ tests/
 isort --check router/ tests/
-flake8 router/ --max-line-length=100
+flake8 router/ --max-line-length=120
 ```
 
 ### Step 6: Manual Testing

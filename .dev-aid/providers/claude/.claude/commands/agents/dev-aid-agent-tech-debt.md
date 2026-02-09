@@ -135,9 +135,9 @@ Find testing weaknesses:
 ## Examples
 
 ```
-/agents:dev-aid-agent-tech-debt
-/agents:dev-aid-agent-tech-debt src/ high
-/agents:dev-aid-agent-tech-debt .dev-aid/orchestration/ critical
+/dev-aid-agent-tech-debt
+/dev-aid-agent-tech-debt src/ high
+/dev-aid-agent-tech-debt .dev-aid/orchestration/ critical
 ```
 
 ---

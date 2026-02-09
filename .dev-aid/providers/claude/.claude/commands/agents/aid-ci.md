@@ -8,7 +8,7 @@ version: 1.0.0
 
 # CI Fix (Short Alias)
 
-This is a short alias for the full `/agents:dev-aid-agent-ci-fix` command.
+This is a short alias for the full `/dev-aid-agent-ci-fix` command.
 
 **Read and follow all instructions from:** `.dev-aid/providers/claude/.claude/commands/agents/dev-aid-agent-ci-fix.md`
 

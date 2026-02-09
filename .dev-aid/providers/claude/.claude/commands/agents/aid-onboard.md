@@ -8,7 +8,7 @@ version: 1.0.0
 
 # Onboarding (Short Alias)
 
-This is a short alias for the full `/agents:dev-aid-agent-onboard` command.
+This is a short alias for the full `/dev-aid-agent-onboard` command.
 
 **Read and follow all instructions from:** `.dev-aid/providers/claude/.claude/commands/agents/dev-aid-agent-onboard.md`
 

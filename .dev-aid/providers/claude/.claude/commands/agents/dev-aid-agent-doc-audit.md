@@ -176,10 +176,10 @@ Health Score Scale:
 ## Examples
 
 ```
-/agents:dev-aid-agent-doc-audit
-/agents:dev-aid-agent-doc-audit . docs-only
-/agents:dev-aid-agent-doc-audit .dev-aid/ full
-/agents:dev-aid-agent-doc-audit src/ code-only
+/dev-aid-agent-doc-audit
+/dev-aid-agent-doc-audit . docs-only
+/dev-aid-agent-doc-audit .dev-aid/ full
+/dev-aid-agent-doc-audit src/ code-only
 ```
 
 ---

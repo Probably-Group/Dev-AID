@@ -166,9 +166,9 @@ Find the most important code paths:
 ## Examples
 
 ```
-/agents:dev-aid-agent-onboard
-/agents:dev-aid-agent-onboard .dev-aid/orchestration/
-/agents:dev-aid-agent-onboard src/
+/dev-aid-agent-onboard
+/dev-aid-agent-onboard .dev-aid/orchestration/
+/dev-aid-agent-onboard src/
 ```
 
 ---

@@ -124,9 +124,9 @@ Combine codebase context with external research to produce actionable insights.
 ## Examples
 
 ```
-/agents:dev-aid-agent-research "migration from REST to GraphQL" deep
-/agents:dev-aid-agent-research "authentication best practices"
-/agents:dev-aid-agent-research "Python async vs threading" quick
+/dev-aid-agent-research "migration from REST to GraphQL" deep
+/dev-aid-agent-research "authentication best practices"
+/dev-aid-agent-research "Python async vs threading" quick
 ```
 
 ---

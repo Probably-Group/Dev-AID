@@ -115,8 +115,8 @@ Using senior-architect knowledge, evaluate:
 ## Examples
 
 ```
-/agents:dev-aid-agent-pr-review 135
-/agents:dev-aid-agent-pr-review 42
+/dev-aid-agent-pr-review 135
+/dev-aid-agent-pr-review 42
 ```
 
 ---

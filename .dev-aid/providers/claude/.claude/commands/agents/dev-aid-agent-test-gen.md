@@ -114,9 +114,9 @@ If any tests fail, fix them and re-run.
 ## Examples
 
 ```
-/agents:dev-aid-agent-test-gen src/utils/parser.py
-/agents:dev-aid-agent-test-gen src/components/Auth.tsx jest
-/agents:dev-aid-agent-test-gen .dev-aid/orchestration/router/ pytest
+/dev-aid-agent-test-gen src/utils/parser.py
+/dev-aid-agent-test-gen src/components/Auth.tsx jest
+/dev-aid-agent-test-gen .dev-aid/orchestration/router/ pytest
 ```
 
 ---

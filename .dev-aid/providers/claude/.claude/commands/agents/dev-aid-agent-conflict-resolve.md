@@ -131,9 +131,9 @@ git status  # Verify all conflicts resolved
 ## Examples
 
 ```
-/agents:dev-aid-agent-conflict-resolve
-/agents:dev-aid-agent-conflict-resolve 135
-/agents:dev-aid-agent-conflict-resolve 42 theirs
+/dev-aid-agent-conflict-resolve
+/dev-aid-agent-conflict-resolve 135
+/dev-aid-agent-conflict-resolve 42 theirs
 ```
 
 ---

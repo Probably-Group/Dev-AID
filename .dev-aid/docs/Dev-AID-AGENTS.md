@@ -46,24 +46,24 @@ Each agent is available as a **native slash command** for interactive use alongs
 
 | CLI Command | Slash Command (Full) | Slash Command (Short Alias) |
 |-------------|---------------------|----------------------------|
-| `dev-aid-agent pr-reviewer --pr 135` | `/agents:dev-aid-agent-pr-review 135` | `/agents:aid-pr 135` |
-| `dev-aid-agent test-generator --path src/` | `/agents:dev-aid-agent-test-gen src/` | `/agents:aid-test src/` |
-| `dev-aid-agent tech-debt-hunter --severity high` | `/agents:dev-aid-agent-tech-debt src/ high` | `/agents:aid-debt src/ high` |
-| `dev-aid-agent ci-fixer --run-id 12345` | `/agents:dev-aid-agent-ci-fix 12345` | `/agents:aid-ci 12345` |
-| `dev-aid-agent conflict-resolver --pr 42` | `/agents:dev-aid-agent-conflict-resolve 42 smart` | `/agents:aid-conflict 42 smart` |
-| `dev-aid-agent research --topic "async"` | `/agents:dev-aid-agent-research "async" deep` | `/agents:aid-research "async" deep` |
-| `dev-aid-agent onboarding` | `/agents:dev-aid-agent-onboard` | `/agents:aid-onboard` |
-| `dev-aid-agent doc-auditor --scope full` | `/agents:dev-aid-agent-doc-audit . full` | `/agents:aid-docs . full` |
-| — | — | `/agents:aid-help` |
+| `dev-aid-agent pr-reviewer --pr 135` | `/dev-aid-agent-pr-review 135` | `/aid-pr 135` |
+| `dev-aid-agent test-generator --path src/` | `/dev-aid-agent-test-gen src/` | `/aid-test src/` |
+| `dev-aid-agent tech-debt-hunter --severity high` | `/dev-aid-agent-tech-debt src/ high` | `/aid-debt src/ high` |
+| `dev-aid-agent ci-fixer --run-id 12345` | `/dev-aid-agent-ci-fix 12345` | `/aid-ci 12345` |
+| `dev-aid-agent conflict-resolver --pr 42` | `/dev-aid-agent-conflict-resolve 42 smart` | `/aid-conflict 42 smart` |
+| `dev-aid-agent research --topic "async"` | `/dev-aid-agent-research "async" deep` | `/aid-research "async" deep` |
+| `dev-aid-agent onboarding` | `/dev-aid-agent-onboard` | `/aid-onboard` |
+| `dev-aid-agent doc-auditor --scope full` | `/dev-aid-agent-doc-audit . full` | `/aid-docs . full` |
+| — | — | `/aid-help` |
 
 ### When to Use CLI vs Slash Commands
 
 | Use Case | Recommended | Why |
 |----------|-------------|-----|
-| Interactive coding session | Slash commands (`/agents:aid-pr 135`) | Loads in-session, uses your AI's full context |
+| Interactive coding session | Slash commands (`/aid-pr 135`) | Loads in-session, uses your AI's full context |
 | CI/CD pipelines | CLI (`dev-aid-agent pr-reviewer --pr 135 --json`) | Structured output, exit codes, `--dry-run` |
 | Scripts and automation | CLI | Supports `--provider`, `--json`, `--verbose` flags |
-| Quick one-off tasks | Short aliases (`/agents:aid-test src/`) | Fastest to type, autocomplete with `aid-` |
+| Quick one-off tasks | Short aliases (`/aid-test src/`) | Fastest to type, autocomplete with `aid-` |
 
 ### Supported Editors/Tools
 

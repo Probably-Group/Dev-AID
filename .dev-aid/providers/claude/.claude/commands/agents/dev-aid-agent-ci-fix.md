@@ -148,9 +148,9 @@ mypy src/
 ## Examples
 
 ```
-/agents:dev-aid-agent-ci-fix 135
-/agents:dev-aid-agent-ci-fix
-/agents:dev-aid-agent-ci-fix 12345678
+/dev-aid-agent-ci-fix 135
+/dev-aid-agent-ci-fix
+/dev-aid-agent-ci-fix 12345678
 ```
 
 ---

@@ -8,7 +8,7 @@ version: 1.0.0
 
 # Test Generation (Short Alias)
 
-This is a short alias for the full `/agents:dev-aid-agent-test-gen` command.
+This is a short alias for the full `/dev-aid-agent-test-gen` command.
 
 **Read and follow all instructions from:** `.dev-aid/providers/claude/.claude/commands/agents/dev-aid-agent-test-gen.md`
 

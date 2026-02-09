@@ -57,11 +57,11 @@ git commit -m "feat: add login"   # → Gitleaks, Trivy, etc. in 10s
 /aid-challenger "Implement OAuth2 with refresh tokens"
 
 # 🤖 Autonomous agents — slash commands or CLI - NEW!
-/agents:aid-pr 135                          # Interactive: PR review
-/agents:aid-test src/auth/                  # Interactive: Generate tests
-/agents:aid-debt src/ high                  # Interactive: Tech debt scan
+/aid-pr 135                          # Interactive: PR review
+/aid-test src/auth/                  # Interactive: Generate tests
+/aid-debt src/ high                  # Interactive: Tech debt scan
 dev-aid-agent pr-reviewer --pr 135 --json   # CI/scripts: structured output
-/agents:aid-help                            # Show all commands
+/aid-help                            # Show all commands
 ```
 
 ---
@@ -517,7 +517,7 @@ dev-aid-agent tech-debt-hunter --severity high --provider google
 dev-aid-agent tech-debt-hunter --severity critical --json
 ```
 
-**Also available as slash commands:** `/agents:aid-pr`, `/agents:aid-test`, `/agents:aid-debt`, `/agents:aid-ci`, `/agents:aid-help` — type `/agents:aid-` for autocomplete.
+**Also available as slash commands:** `/aid-pr`, `/aid-test`, `/aid-debt`, `/aid-ci`, `/aid-help` — type `/aid-` for autocomplete.
 
 [**Agent Framework Guide**](.dev-aid/docs/Dev-AID-AGENTS.md) — CLI reference, slash commands, agent catalog, tools, safety, configuration.
 
@@ -1085,19 +1085,19 @@ dev-aid-fix-conflicts --dry-run
 ### 🤖 **Agent Slash Commands** (Interactive)
 
 > Run any Dev-AID agent as a slash command. Each has a **full name** and a **short alias** (`aid-*`).
-> Type `/agents:aid-` in Claude Code or `aid-` in Gemini CLI for autocomplete.
+> Type `/aid-` in Claude Code or `aid-` in Gemini CLI for autocomplete.
 
 | Short Alias | Full Command | What It Does |
 |------------|-------------|-------------|
-| `/agents:aid-pr 135` | `/agents:dev-aid-agent-pr-review` | Review PR for security, quality, architecture |
-| `/agents:aid-test src/` | `/agents:dev-aid-agent-test-gen` | Generate tests for untested code |
-| `/agents:aid-debt src/ high` | `/agents:dev-aid-agent-tech-debt` | Scan for tech debt and code smells |
-| `/agents:aid-ci 12345` | `/agents:dev-aid-agent-ci-fix` | Diagnose and fix CI failures |
-| `/agents:aid-conflict 42` | `/agents:dev-aid-agent-conflict-resolve` | Resolve merge conflicts intelligently |
-| `/agents:aid-research "topic"` | `/agents:dev-aid-agent-research` | Deep research on technical topics |
-| `/agents:aid-onboard` | `/agents:dev-aid-agent-onboard` | Generate codebase onboarding guide |
-| `/agents:aid-docs .` | `/agents:dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
-| `/agents:aid-help` | — | Show all Dev-AID commands |
+| `/aid-pr 135` | `/dev-aid-agent-pr-review` | Review PR for security, quality, architecture |
+| `/aid-test src/` | `/dev-aid-agent-test-gen` | Generate tests for untested code |
+| `/aid-debt src/ high` | `/dev-aid-agent-tech-debt` | Scan for tech debt and code smells |
+| `/aid-ci 12345` | `/dev-aid-agent-ci-fix` | Diagnose and fix CI failures |
+| `/aid-conflict 42` | `/dev-aid-agent-conflict-resolve` | Resolve merge conflicts intelligently |
+| `/aid-research "topic"` | `/dev-aid-agent-research` | Deep research on technical topics |
+| `/aid-onboard` | `/dev-aid-agent-onboard` | Generate codebase onboarding guide |
+| `/aid-docs .` | `/dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
+| `/aid-help` | — | Show all Dev-AID commands |
 
 **Supported in:** Claude Code, Gemini CLI, Cursor, Windsurf, Cline
 **For CI/scripts:** Use the CLI instead — `dev-aid-agent pr-reviewer --pr 135 --json`

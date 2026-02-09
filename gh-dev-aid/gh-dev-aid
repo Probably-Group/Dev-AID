@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# gh-dev-aid — GitHub CLI extension for Dev-AID
+# Install: gh extension install Probably-Group/gh-dev-aid
+# Usage:   gh dev-aid <command> [args]
+
+set -euo pipefail
+
+EXTENSION_VERSION="1.0.0"
+REPO="Probably-Group/Dev-AID"
+
+# --- Helpers ---
+
+die() {
+    echo "error: $*" >&2
+    exit 1
+}
+
+info() {
+    echo ":: $*"
+}
+
+need_cmd() {
+    command -v "$1" >/dev/null 2>&1 || die "'$1' is required but not found"
+}
+
+find_dev_aid() {
+    if [ -d ".dev-aid" ]; then
+        echo "."
+    else
+        die ".dev-aid/ not found in current directory. Run 'gh dev-aid init' first."
+    fi
+}
+
+# --- Commands ---
+
+cmd_init() {
+    local target_path="${1:-.}"
+    target_path="$(cd "$target_path" && pwd)"
+
+    if [ -d "$target_path/.dev-aid" ]; then
+        die ".dev-aid/ already exists in $target_path. Use 'gh dev-aid update' instead."
+    fi
+
+    need_cmd gh
+
+    local tmpdir
+    tmpdir="$(mktemp -d)"
+    # shellcheck disable=SC2064
+    trap "rm -rf '$tmpdir'" EXIT
+
+    info "Cloning Dev-AID..."
+    gh repo clone "$REPO" "$tmpdir/Dev-AID" -- --depth 1 --quiet
+
+    info "Copying .dev-aid/ to $target_path..."
+    cp -r "$tmpdir/Dev-AID/.dev-aid" "$target_path/.dev-aid"
+
+    info "Initializing Dev-AID..."
+    (cd "$target_path" && ./.dev-aid/scripts/init-repo.sh)
+
+    info "Done! Dev-AID is ready in $target_path"
+    echo ""
+    echo "Next steps:"
+    echo "  cd $target_path"
+    echo "  claude    # or gemini, cursor, windsurf, etc."
+    echo "  /aid-help # see all available commands"
+}
+
+cmd_update() {
+    find_dev_aid >/dev/null
+
+    if [ ! -x ".dev-aid/scripts/update-dev-aid.sh" ]; then
+        die ".dev-aid/scripts/update-dev-aid.sh not found or not executable"
+    fi
+
+    ./.dev-aid/scripts/update-dev-aid.sh "$@"
+}
+
+cmd_status() {
+    find_dev_aid >/dev/null
+
+    if [ -f ".dev-aid/VERSION" ]; then
+        echo "Dev-AID version: $(cat .dev-aid/VERSION)"
+    else
+        echo "Dev-AID version: unknown"
+    fi
+
+    if [ -x ".dev-aid/scripts/dev-aid-health.sh" ]; then
+        echo ""
+        ./.dev-aid/scripts/dev-aid-health.sh
+    fi
+}
+
+cmd_version() {
+    echo "gh-dev-aid extension: v${EXTENSION_VERSION}"
+
+    if [ -f ".dev-aid/VERSION" ]; then
+        echo "Dev-AID installed:    v$(cat .dev-aid/VERSION)"
+    else
+        echo "Dev-AID installed:    not found (run 'gh dev-aid init')"
+    fi
+}
+
+cmd_help() {
+    cat <<EOF
+gh dev-aid — GitHub CLI extension for Dev-AID
+
+Usage:
+  gh dev-aid <command> [args]
+
+Commands:
+  init [path]   Install Dev-AID into a project directory (default: current dir)
+  update        Update Dev-AID to the latest version
+  status        Show version and health check
+  version       Show extension and Dev-AID versions
+  help          Show this help message
+
+Examples:
+  gh dev-aid init                  # Install in current directory
+  gh dev-aid init ~/my-project     # Install in specific directory
+  gh dev-aid update                # Update to latest version
+  gh dev-aid status                # Check health
+
+More info: https://github.com/Probably-Group/Dev-AID
+EOF
+}
+
+# --- Main ---
+
+case "${1:-help}" in
+    init)    shift; cmd_init "$@" ;;
+    update)  shift; cmd_update "$@" ;;
+    status)  cmd_status ;;
+    version) cmd_version ;;
+    help|--help|-h) cmd_help ;;
+    *)       die "Unknown command: $1. Run 'gh dev-aid help' for usage." ;;
+esac

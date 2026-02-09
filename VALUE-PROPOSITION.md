@@ -1510,19 +1510,26 @@ dev-aid-fix-conflicts --strategy smart
 ## 5-Minute Quick Start
 
 ```bash
-# 1. Clone Dev-AID (one-time)
-git clone https://github.com/Probably-Group/Dev-AID.git
+# Install the Dev-AID CLI (one-time)
+gh extension install Probably-Group/gh-dev-aid
 
-# 2. Copy .dev-aid into your project
-cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
-
-# 3. Initialize (interactive — sets up router, local search, security hooks)
+# Add Dev-AID to your project
 cd ~/my-project
-./.dev-aid/scripts/init-repo.sh
+gh dev-aid init
 
-# 4. Start your AI coding tool
+# Start your AI coding tool
 claude    # or gemini, cursor, windsurf, etc.
 ```
+
+<details>
+<summary><strong>Manual installation (without GitHub CLI)</strong></summary>
+
+```bash
+git clone https://github.com/Probably-Group/Dev-AID.git
+cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
+cd ~/my-project && ./.dev-aid/scripts/init-repo.sh
+```
+</details>
 
 **That's it.** Your project now has:
 - 73 expert skills

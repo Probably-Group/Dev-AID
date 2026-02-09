@@ -53,7 +53,8 @@
 git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 
 # Setup (one-time)
-./.dev-aid/scripts/init-repo.sh    # Initialize Dev-AID
+gh extension install Probably-Group/gh-dev-aid
+gh dev-aid init                    # Initialize Dev-AID
 ./.dev-aid/scripts/setup-local-llm.sh  # Optional: local AI ($0, offline)
 ```
 
@@ -862,21 +863,34 @@ Dev-AID Router → Discovers servers → Pre-gathers context → Enhanced LLM re
 ### Install Dev-AID into Your Project
 
 ```bash
-# 1. Clone Dev-AID (one-time)
+# Install the Dev-AID CLI (one-time)
+gh extension install Probably-Group/gh-dev-aid
+
+# Add Dev-AID to your project
+cd ~/my-project
+gh dev-aid init
+
+# Start your AI coding tool
+claude    # or gemini, cursor, windsurf, etc.
+```
+
+That's it. Type `/aid-help` to see all available commands.
+
+<details>
+<summary><strong>Manual installation (without GitHub CLI)</strong></summary>
+
+```bash
+# 1. Clone Dev-AID
 git clone https://github.com/Probably-Group/Dev-AID.git
 
 # 2. Copy .dev-aid into your project
 cp -r Dev-AID/.dev-aid ~/my-project/.dev-aid
 
-# 3. Initialize (interactive — sets up router, local search, security hooks)
+# 3. Initialize
 cd ~/my-project
 ./.dev-aid/scripts/init-repo.sh
-
-# 4. Start your AI coding tool
-claude    # or gemini, cursor, windsurf, etc.
 ```
-
-That's it. Type `/aid-help` to see all available commands.
+</details>
 
 ### Optional Add-ons (run inside your project)
 

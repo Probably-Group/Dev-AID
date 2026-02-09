@@ -15,21 +15,33 @@ Get Dev-AID running in 5 minutes!
 ### 1. Get Dev-AID
 
 ```bash
+# Install the Dev-AID CLI (one-time)
+gh extension install Probably-Group/gh-dev-aid
+
+# Add Dev-AID to your project
+cd ~/your-project
+gh dev-aid init
+```
+
+<details>
+<summary><strong>Manual installation (without GitHub CLI)</strong></summary>
+
+```bash
 # Clone Dev-AID (one-time)
 git clone https://github.com/Probably-Group/Dev-AID.git
 
 # Copy .dev-aid into your project
 cp -r Dev-AID/.dev-aid ~/your-project/.dev-aid
-```
 
-### 2. Initialize
-
-```bash
+# Initialize
 cd ~/your-project
 ./.dev-aid/scripts/init-repo.sh
 ```
+</details>
 
-Follow the 6-step wizard:
+### 2. Follow the Setup Wizard
+
+`gh dev-aid init` (or `init-repo.sh`) launches a 6-step wizard:
 1. **Context Budget**: Choose "Balanced" (recommended)
 2. **Auto-Activation**: Choose "Conservative" (recommended)
 3. **Providers**: Select your AI providers

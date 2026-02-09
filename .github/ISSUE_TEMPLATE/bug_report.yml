@@ -47,6 +47,11 @@ body:
         - RAG (Local semantic search)
         - Skills (Core or Expert)
         - Security (Git hooks, scanners)
+        - Agents (Autonomous agent framework)
+        - Slash Commands (aid-* aliases)
+        - Process Skills (Workflow enforcement)
+        - Local LLM (Ollama/LM Studio)
+        - MCP Integration
         - Automation (Issue/Conflict resolution)
         - CI/CD Generator
         - Installation/Setup
@@ -70,8 +75,11 @@ body:
       description: Which AI tool are you using?
       options:
         - Claude Code
-        - Cursor
         - Gemini CLI
+        - Codex CLI
+        - Cursor
+        - Windsurf
+        - Cline
         - Other
     validations:
       required: true

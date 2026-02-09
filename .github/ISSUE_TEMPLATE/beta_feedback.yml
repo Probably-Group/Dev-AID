@@ -1,0 +1,113 @@
+name: Beta Feedback
+description: Report feedback during Dev-AID beta testing
+title: "[Beta]: "
+labels: ["beta", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Dev-AID! Use this form for any beta feedback — bugs, UX issues, missing features, or general impressions.
+        See the [Beta Testing Guide](../../.dev-aid/docs/BETA-TESTING-GUIDE.md) for what to test and how.
+
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Feedback Type
+      description: What kind of feedback is this?
+      options:
+        - Bug (something is broken)
+        - UX Issue (confusing or unexpected behavior)
+        - Missing Feature (expected something that doesn't exist)
+        - Documentation Gap (docs wrong, missing, or misleading)
+        - Performance (slow or resource-heavy)
+        - General (impressions, suggestions)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which part of Dev-AID is affected?
+      options:
+        - Installation / Setup (init-repo, prerequisites)
+        - Slash Commands (aid-* aliases, discovery)
+        - Skills System (expert skills, core skills, auto-loading)
+        - Security Hooks (pre-commit, Gitleaks, Opengrep, Trivy)
+        - Router (Multi-AI orchestration, challenger, ensemble)
+        - Agents (PR review, test gen, tech debt, CI fix, etc.)
+        - Local Search / RAG (indexing, hybrid search)
+        - MCP Integration (MCP servers, env isolation)
+        - Process Skills (verification-gate, TDD protocol)
+        - Utility Scripts (CI generator, architecture mapper)
+        - Local LLM (Ollama, LM Studio integration)
+        - Cross-Editor Compatibility (Claude, Gemini, Codex, Cursor, Windsurf, Cline)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happened? Be as specific as possible.
+      placeholder: Describe what you experienced...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: How can we reproduce this? (Optional for non-bugs)
+      placeholder: |
+        1. Run command '...'
+        2. See error...
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Run this command and paste the output:
+        ```
+        echo "Version: $(cat .dev-aid/VERSION 2>/dev/null || echo 'unknown')" && echo "OS: $(uname -s) $(uname -r)" && echo "Python: $(python3 --version 2>/dev/null)" && echo "Git: $(git --version 2>/dev/null)" && echo "Bash: $(bash --version | head -1)"
+        ```
+      render: shell
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How impactful is this?
+      options:
+        - Blocker (cannot use Dev-AID at all)
+        - Major (feature doesn't work, no workaround)
+        - Minor (issue exists but workaround available)
+        - Suggestion (not broken, could be better)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ai-tool
+    attributes:
+      label: AI Tool
+      description: Which AI tool are you using?
+      options:
+        - Claude Code
+        - Gemini CLI
+        - Codex CLI
+        - Cursor
+        - Windsurf
+        - Cline
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Screenshots / Logs
+      description: Attach screenshots or paste relevant logs (check .dev-aid/logs/ for router logs)
+      render: shell

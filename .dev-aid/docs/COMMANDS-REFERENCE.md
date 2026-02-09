@@ -8,7 +8,7 @@ Complete guide to all available slash commands in Dev-AID.
 
 ### Setup & Analysis
 
-#### `/dev-aid-analyze`
+#### `/aid-analyze` (full: `dev-aid-analyze`)
 **Category:** Setup
 **Purpose:** Analyze codebase and generate adaptation plan
 **When to use:** After installation, when adding Dev-AID to existing project
@@ -18,10 +18,10 @@ Complete guide to all available slash commands in Dev-AID.
 
 **Example:**
 ```
-/dev-aid-analyze
+/aid-analyze
 ```
 
-#### `/dev-aid-status`
+#### `/aid-status` (full: `dev-aid-status`)
 **Category:** Setup
 **Purpose:** Show current Dev-AID configuration and setup status
 **When to use:** After installation, troubleshooting, regular checkups
@@ -29,10 +29,10 @@ Complete guide to all available slash commands in Dev-AID.
 
 **Example:**
 ```
-/dev-aid-status
+/aid-status
 ```
 
-#### `/dev-aid-config-core-skills` (NEW!)
+#### `/aid-config` (full: `dev-aid-config-core-skills`)
 **Category:** Setup
 **Purpose:** Configure which core skills are auto-loaded at session start
 **When to use:** Initial setup, changing automated checking preferences
@@ -53,7 +53,7 @@ Core skills provide **automated tool execution** on file save:
 
 **Example:**
 ```
-/dev-aid-config-core-skills
+/aid-config
 ```
 
 **Value:** Configurable real-time feedback saves 5-15 min/day per developer
@@ -90,13 +90,14 @@ Core skills provide **automated tool execution** on file save:
 **Location:** `.dev-aid/scripts/dev-aid-agent`
 
 **Agents:**
-- `pr-reviewer` — Review PRs for security, quality, best practices
-- `test-generator` — Generate tests for untested code
-- `tech-debt-hunter` — Scan for code smells and technical debt
-- `ci-fixer` — Diagnose CI failures and propose fixes
-- `conflict-resolver` — Auto-resolve merge conflicts
-- `research` — Deep research on technical topics
-- `onboarding` — Generate codebase onboarding guide
+- `pr-reviewer` — Review PRs for security, quality, best practices (`aid-pr`)
+- `test-generator` — Generate tests for untested code (`aid-test`)
+- `tech-debt-hunter` — Scan for code smells and technical debt (`aid-debt`)
+- `ci-fixer` — Diagnose CI failures and propose fixes (`aid-ci`)
+- `conflict-resolver` — Auto-resolve merge conflicts (`aid-conflict`)
+- `research` — Deep research on technical topics (`aid-research`)
+- `onboarding` — Generate codebase onboarding guide (`aid-onboard`)
+- `doc-auditor` — Audit documentation for drift, broken links, gaps (`aid-docs`)
 
 **Global Options:**
 - `--provider <name>` — Override provider (anthropic, google, openai, local)
@@ -216,7 +217,7 @@ dev-aid-agent test-generator --path src/ --dry-run
 
 ## 🚀 Productivity Tools (NEW!)
 
-### `/dev-aid-api-contract`
+### `/aid-api` (full: `dev-aid-api-contract`)
 **Category:** Productivity
 **Purpose:** Generate OpenAPI specs, TypeScript clients, and MSW mocks from data models
 **When to use:** Starting new API development, unblocking frontend
@@ -232,18 +233,18 @@ dev-aid-agent test-generator --path src/ --dry-run
 **Example:**
 ```bash
 # From TypeScript interface
-/dev-aid-api-contract --from src/models/user.ts --name UserAPI
+/aid-api --from src/models/user.ts --name UserAPI
 
 # From Zod schema
-/dev-aid-api-contract --from src/schemas/user-schema.ts --name UserAPI
+/aid-api --from src/schemas/user-schema.ts --name UserAPI
 
 # Infer from existing controller
-/dev-aid-api-contract --infer src/controllers/user-controller.ts
+/aid-api --infer src/controllers/user-controller.ts
 ```
 
 **Value:** Unblocks frontend immediately (2-4 weeks saved), $675,000/year for 100 devs
 
-### `/dev-aid-commit-plan`
+### `/aid-commit` (full: `dev-aid-commit-plan`)
 **Category:** Productivity
 **Purpose:** Analyze unstaged changes and propose atomic commits
 **When to use:** After coding session, before committing
@@ -259,7 +260,7 @@ dev-aid-agent test-generator --path src/ --dry-run
 **Example:**
 ```bash
 # Generate commit plan
-/dev-aid-commit-plan
+/aid-commit
 
 # Output shows:
 # 1. feat: Add user authentication (8 files)
@@ -272,7 +273,7 @@ dev-aid-agent test-generator --path src/ --dry-run
 
 **Value:** Prevents mega-commits, teaches good habits, $425,000/year for 100 devs
 
-### `/dev-aid-review-staged`
+### `/aid-review` (full: `dev-aid-review-staged`)
 **Category:** Quality
 **Purpose:** Comprehensive pre-commit review (Rubber Duck Pre-Reviewer)
 **When to use:** Before committing, as pre-commit hook
@@ -281,19 +282,19 @@ dev-aid-agent test-generator --path src/ --dry-run
 **Focus modes:**
 ```bash
 # Comprehensive review
-/dev-aid-review-staged
+/aid-review
 
 # Security-only review
-/dev-aid-review-staged --focus security
+/aid-review --focus security
 
 # Test coverage review
-/dev-aid-review-staged --focus tests
+/aid-review --focus tests
 
 # Performance review
-/dev-aid-review-staged --focus performance
+/aid-review --focus performance
 
 # Code style review
-/dev-aid-review-staged --focus style
+/aid-review --focus style
 ```
 
 **What it catches:**
@@ -355,7 +356,7 @@ GOOGLE_API_KEY=...       # For Gemini Deep Research
 
 ### Security Commands
 
-#### `/dev-aid-audit`
+#### `/aid-audit` (full: `dev-aid-audit`)
 **Purpose:** Comprehensive security audit
 **Status:** ✅ Included
 **Phases:** 3-4 phases with multiple agents
@@ -363,7 +364,7 @@ GOOGLE_API_KEY=...       # For Gemini Deep Research
 **Location:** `.dev-aid/providers/claude/.claude/commands/security/dev-aid-audit.md`
 **Value:** Prevents security breaches ($500K avg cost)
 
-#### `/dev-aid-vulnerability-scan`
+#### `/aid-vulnscan` (full: `dev-aid-vulnerability-scan`)
 **Purpose:** Deep CVE scanning for dependencies
 **Status:** ✅ Included
 **Features:**
@@ -375,7 +376,7 @@ GOOGLE_API_KEY=...       # For Gemini Deep Research
 
 ### Quality Commands
 
-#### `/dev-aid-code-health`
+#### `/aid-health` (full: `dev-aid-code-health`)
 **Purpose:** Comprehensive code quality assessment
 **Status:** ✅ Included
 **Metrics:**
@@ -386,7 +387,7 @@ GOOGLE_API_KEY=...       # For Gemini Deep Research
 **Location:** `.dev-aid/providers/claude/.claude/commands/quality/dev-aid-code-health.md`
 **Value:** Early tech debt detection, prevents $100K/year accumulation
 
-#### `/dev-aid-debt-analysis`
+#### `/aid-debt-report` (full: `dev-aid-debt-analysis`)
 **Purpose:** Technical debt identification and prioritization
 **Status:** ✅ Included
 **Features:**
@@ -454,7 +455,7 @@ Full guide: [VALIDATOR-FRAMEWORK.md](VALIDATOR-FRAMEWORK.md)
 
 ### Operations Commands
 
-#### `/dev-aid-deploy-validate`
+#### `/aid-deploy` (full: `dev-aid-deploy-validate`)
 **Purpose:** Pre-deployment validation
 **Status:** ✅ Included
 **Checks:** Tests, linting, security, dependencies
@@ -463,7 +464,7 @@ Full guide: [VALIDATOR-FRAMEWORK.md](VALIDATOR-FRAMEWORK.md)
 
 ### Maintenance Commands
 
-#### `/dev-aid-models-update`
+#### `/aid-models` (full: `dev-aid-models-update`)
 **Purpose:** Update AI model registry with latest releases
 **Status:** ✅ Included
 **Features:**
@@ -506,7 +507,10 @@ Want even more capabilities? These can be added from claude-code-tresor:
 
 ### Template for New Command
 
-Create: `.dev-aid/providers/claude/.claude/commands/[category]/[command-name].md`
+Create the full command and an `aid-*` alias (see CLAUDE.md for the complete checklist):
+
+**Full command:** `.dev-aid/providers/claude/.claude/commands/[category]/dev-aid-[name].md`
+**Short alias:** `.dev-aid/providers/claude/.claude/commands/[category]/aid-[short].md`
 
 ```markdown
 ---
@@ -565,14 +569,17 @@ Run the full test suite with coverage reporting.
 
 **Step 1: Discover available commands**
 ```bash
-# In Claude Code, type:
-/
-# This shows autocomplete of available commands
+# In Claude Code or Gemini CLI, type:
+/aid-
+# This shows autocomplete of ALL Dev-AID commands with descriptions
+
+# Or run the discovery command:
+/aid-help
 ```
 
 **Step 2: Run a command**
 ```bash
-/dev-aid-analyze
+/aid-analyze
 ```
 
 **Step 3: Review output**
@@ -632,30 +639,30 @@ vim dev-aid/.dev-aid/providers/claude/.claude/commands/security/audit.md
 
 **Week 1: Setup**
 ```bash
-/dev-aid-analyze              # Understand codebase
-/dev-aid-status               # Verify configuration
+/aid-analyze              # Understand codebase
+/aid-status               # Verify configuration
 # Review adaptation plan
 # Implement Phase 1 recommendations
 ```
 
 **Week 2: Quality**
 ```bash
-/code-health              # Assess code quality
-/debt-analysis            # Identify tech debt
+/aid-health               # Assess code quality
+/aid-debt-report          # Identify tech debt
 # Address critical issues
 ```
 
 **Week 3: Security**
 ```bash
-/audit                    # Security audit
-/vulnerability-scan       # Check dependencies
+/aid-audit                # Security audit
+/aid-vulnscan             # Check dependencies
 # Fix security issues
 ```
 
 **Week 4: Performance**
 ```bash
-/profile                  # Find bottlenecks
-/benchmark                # Baseline performance
+/profile                  # Find bottlenecks (add from Tresor)
+/benchmark                # Baseline performance (add from Tresor)
 # Optimize critical paths
 ```
 
@@ -663,22 +670,22 @@ vim dev-aid/.dev-aid/providers/claude/.claude/commands/security/audit.md
 
 **Before Deployment**
 ```bash
-/deploy-validate          # Pre-deployment checks
+/aid-deploy               # Pre-deployment checks
 # Fix any issues
 # Deploy
 ```
 
 **After Deployment**
 ```bash
-/health-check             # Verify system health
+/health-check             # Verify system health (add from Tresor)
 # Monitor for 24 hours
 ```
 
 **Monthly Maintenance**
 ```bash
-/vulnerability-scan       # Security updates
-/code-health              # Code quality
-/debt-analysis            # Tech debt review
+/aid-vulnscan             # Security updates
+/aid-health               # Code quality
+/aid-debt-report          # Tech debt review
 ```
 
 ---
@@ -690,10 +697,10 @@ You can chain commands for workflows:
 **Example: Full Quality Check**
 ```bash
 # Run multiple checks
-/code-health
-/debt-analysis
-/audit
-/vulnerability-scan
+/aid-health
+/aid-debt-report
+/aid-audit
+/aid-vulnscan
 
 # Then review all reports
 cat .dev-aid/reports/code-health.md
@@ -706,27 +713,27 @@ cat .dev-aid/reports/vulnerabilities.md
 
 ## 📊 Command Categories
 
-| Category | Commands Available | Purpose |
-|----------|-------------------|---------|
-| **Agents (CLI)** | `dev-aid-agent` (8 subcommands + teams) | Autonomous AI agents for scripts/CI |
-| **Agents (Slash)** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs`, `aid-help` | Interactive agent slash commands with short aliases |
-| **Setup** | `/dev-aid-analyze`, `/dev-aid-status`, `/dev-aid-config-core-skills` | Initial setup, analysis, configuration |
-| **Router** | `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`, `/dev-aid-router-status` | Multi-AI orchestration |
-| **Security** | `/dev-aid-audit`, `/dev-aid-vulnerability-scan` | Security operations |
-| **Quality** | `/dev-aid-code-health`, `/dev-aid-debt-analysis` | Code quality |
-| **Productivity** | `/dev-aid-api-contract`, `/dev-aid-commit-plan`, `/dev-aid-review-staged` | Development workflow |
-| **Operations** | `/dev-aid-deploy-validate` | DevOps workflows |
-| **Performance** | `/profile`, `/benchmark` (add from Tresor) | Performance analysis |
-| **Documentation** | (custom) | Doc generation |
+| Category | Short Aliases (`aid-*`) | Purpose |
+|----------|------------------------|---------|
+| **Agents** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs` | Autonomous AI agents |
+| **Router** | `aid-challenger`, `aid-challenger-rag`, `aid-ensemble`, `aid-router-status` | Multi-AI orchestration |
+| **Security** | `aid-audit`, `aid-vulnscan` | Security scanning |
+| **Quality** | `aid-health`, `aid-debt-report`, `aid-review` | Code quality |
+| **Productivity** | `aid-api`, `aid-commit` | Development workflow |
+| **Setup** | `aid-analyze`, `aid-status`, `aid-config`, `aid-skill` | Initial setup |
+| **Operations** | `aid-deploy` | DevOps workflows |
+| **Maintenance** | `aid-models` | AI model management |
+| **Discovery** | `aid-help` | Show all commands |
+| **CLI only** | `dev-aid-agent <agent> [options]` | Agents for scripts/CI |
 
 ---
 
 ## 💡 Best Practices
 
 ### 1. Use Commands Consistently
-- Run `/code-health` weekly
-- Run `/audit` monthly
-- Run `/deploy-validate` before every deploy
+- Run `/aid-health` weekly
+- Run `/aid-audit` monthly
+- Run `/aid-deploy` before every deploy
 
 ### 2. Automate with CI/CD
 ```yaml
@@ -852,8 +859,9 @@ Dev-AID provides standalone utility scripts for common development tasks:
 
 1. **Try the built-in commands:**
    ```bash
-   /dev-aid-analyze    # Analyze codebase
-   /dev-aid-status     # Check configuration
+   /aid-help           # See all available commands
+   /aid-analyze        # Analyze codebase
+   /aid-status         # Check configuration
    ```
 
 2. **Add recommended commands from Tresor:**

@@ -226,7 +226,7 @@ Real-World Examples:
 • "Find authentication functions"
   → Local RAG searches instantly ($0, never leaves your machine)
 
-• /dev-aid-router-challenger "Implement OAuth2"
+• /aid-challenger "Implement OAuth2"
   → Claude generates code, Gemini reviews security, all in one command
 
 • "Show me all users in database with open GitHub issues"
@@ -241,7 +241,7 @@ Real-World Examples:
 • git commit
   → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
 
-• /dev-aid-router-status
+• /aid-router-status
   → View AI routing decisions and costs across all sessions
 ```
 
@@ -313,7 +313,7 @@ Real-World Examples:
 - **Ensemble mode** - Route to best AI for each task
 - **Cost optimization** - Gemini for large context (97% cheaper)
 - **Configuration-driven** - JSON-based routing rules
-- **Slash commands** - `/dev-aid-router-challenger`, `/dev-aid-router-ensemble`
+- **Slash commands** - `/aid-challenger`, `/aid-ensemble`, `/aid-help`
 
 ### 🏠 **Local LLM Support** (NEW! 🆕)
 
@@ -404,7 +404,7 @@ Core skills **actually run tools** automatically (tests, linters, type checkers)
 | `linter` | Auto-lint code (ESLint, Flake8, Clippy) | 250 tokens | ⏸️ Disabled |
 | `type-checker` | Auto-check types (TypeScript, mypy, cargo) | 250 tokens | ⏸️ Disabled |
 
-**Configure**: Run `/dev-aid-config-core-skills` to enable/disable
+**Configure**: Run `/aid-config` to enable/disable
 - **Minimal** (default): code-reviewer + secret-scanner = 500 tokens (0.25%)
 - **Maximum** (all enabled): 1,250 tokens (0.625%)
 
@@ -418,7 +418,7 @@ Expert skills **give advice** (not automated execution) and auto-load based on c
 - **Zero configuration** - Works automatically for Claude Code and Gemini CLI
 - **Universal architecture** - Same auto-loading logic across all AI providers
 - **Manual activation** - Still available via skill name when needed
-- **Custom skills** - Generate new skills with `/dev-aid-build-skill`
+- **Custom skills** - Generate new skills with `/aid-skill`
 - **Domains**: DevSecOps, TDD, API design, databases, etc. [full list](.dev-aid/providers/claude/.claude/skills/expert)
 
 **Key Difference:**
@@ -528,9 +528,9 @@ Essential tools for faster, higher-quality development workflows.
 
 | Feature | What It Does | Developer Benefits | Commands |
 |---------|-------------|-------------------|----------|
-| 🎯 **API Contract Generator** | Generate OpenAPI specs, TypeScript clients, MSW mocks from data models | ⏱️ **Unblocks frontend immediately** (2-4 weeks saved)<br>🔄 Parallel frontend/backend development<br>📝 Single source of truth prevents API drift<br>✅ Auto-generated contract tests<br>🎭 MSW mocks enable offline development | `/dev-aid-api-contract --from models/user.ts` |
-| 📋 **Commit Planner** | Analyzes unstaged changes and proposes atomic commits | ⏱️ **Saves 10-15 min/day** in commit planning<br>🎓 Teaches good git habits<br>✅ Safe (no git history manipulation)<br>🔄 Interactive planning with preview<br>📊 Cleaner git history for easier debugging | `/dev-aid-commit-plan` |
-| 🔍 **Pre-Commit Reviewer** | Comprehensive "rubber duck" review before committing | ⏱️ **Saves 5-10 min/commit** catching issues early<br>🔒 Security checks (secrets, injection, auth)<br>⚡ Performance anti-patterns<br>🧪 Missing test detection<br>🎯 Focus modes (security, tests, style) | `/dev-aid-review-staged --focus security` |
+| 🎯 **API Contract Generator** | Generate OpenAPI specs, TypeScript clients, MSW mocks from data models | ⏱️ **Unblocks frontend immediately** (2-4 weeks saved)<br>🔄 Parallel frontend/backend development<br>📝 Single source of truth prevents API drift<br>✅ Auto-generated contract tests<br>🎭 MSW mocks enable offline development | `/aid-api --from models/user.ts` |
+| 📋 **Commit Planner** | Analyzes unstaged changes and proposes atomic commits | ⏱️ **Saves 10-15 min/day** in commit planning<br>🎓 Teaches good git habits<br>✅ Safe (no git history manipulation)<br>🔄 Interactive planning with preview<br>📊 Cleaner git history for easier debugging | `/aid-commit` |
+| 🔍 **Pre-Commit Reviewer** | Comprehensive "rubber duck" review before committing | ⏱️ **Saves 5-10 min/commit** catching issues early<br>🔒 Security checks (secrets, injection, auth)<br>⚡ Performance anti-patterns<br>🧪 Missing test detection<br>🎯 Focus modes (security, tests, style) | `/aid-review --focus security` |
 
 **Value Proposition:**
 - **API Contract Generator**: $675,000/year for 100 devs (parallel development)
@@ -542,13 +542,13 @@ Essential tools for faster, higher-quality development workflows.
 **Quick Start:**
 ```bash
 # Generate API contract from model
-/dev-aid-api-contract --from src/models/user.ts --name UserAPI
+/aid-api --from src/models/user.ts --name UserAPI
 
 # Plan atomic commits before committing
-/dev-aid-commit-plan
+/aid-commit
 
 # Review staged changes before pushing
-/dev-aid-review-staged --focus security
+/aid-review --focus security
 ```
 
 **Why This Matters:**
@@ -923,7 +923,7 @@ You: "Find all authentication functions"
 AI: *uses local RAG, returns relevant code*
 
 # Or via router with RAG
-/dev-aid-router-challenger-rag "Implement password reset"
+/aid-challenger-rag "Implement password reset"
 ```
 
 **What happens:**
@@ -1264,7 +1264,7 @@ Claude: *automatically uses local RAG*
 
 **Via Router:**
 ```bash
-/dev-aid-router-challenger-rag "Implement authentication"
+/aid-challenger-rag "Implement authentication"
 # Uses RAG to find existing patterns, then generates
 ```
 
@@ -1620,7 +1620,7 @@ make test       # Run tests
 
 ```bash
 # Use built-in generator
-/dev-aid-build-skill "Create a [domain] expert skill"
+/aid-skill "Create a [domain] expert skill"
 
 # Or manually:
 # 1. Create .dev-aid/providers/claude/.claude/skills/expert/your-skill/
@@ -1669,7 +1669,7 @@ See existing commands as templates.
 cat .dev-aid/config/routing.json
 
 # View current costs
-/dev-aid-router-status
+/aid-router-status
 
 # Adjust cost_limit_per_day
 ```

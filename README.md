@@ -91,7 +91,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 | What Dev-AID Does | What Dev-AID Doesn't Do |
 |-------------------|------------------------|
 | ✅ Provides `CLAUDE.md`, `AGENTS.md`, `.claude/skills/` config | ❌ Spoof or impersonate any AI tool |
-| ✅ Works inside your existing Claude Code/Gemini/Cursor/Codex | ❌ Make API calls on your behalf |
+| ✅ Works inside your existing Claude Code/Gemini/Codex/Cursor/Windsurf/Cline + VS Code/Zed/JetBrains via MCP | ❌ Make API calls on your behalf |
 | ✅ Enhances with skills, memory, patterns | ❌ Bypass subscription limits |
 | ✅ Supports 3 AI providers + OpenRouter (switch anytime) | ❌ Lock you into any single vendor |
 
@@ -160,7 +160,7 @@ Dev-AID is **not a wrapper or harness** — it's a configuration layer that work
 |------------|---------|----------------------|--------|-------------|----------------|---------------------|
 | **GitHub Stars** | ~100 | **39.4K** ⭐ | **27.7K** ⭐ | ~2K | 5.3K | 1.8K |
 | **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
-| **Multi-provider support** | ✅ Claude, Gemini, Cursor, Codex | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
+| **Multi-provider support** | ✅ Claude, Gemini, Codex, Cursor, Windsurf, Cline + MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
 | **Expert skills/agents** | 73 + 7 process | 108 agents + 129 skills | 108 agents + 129 skills | ~15 skills | ❌ | ❌ |
 | **Multi-AI router** | ✅ Challenger + Ensemble | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
 | **Local RAG** | ✅ FAISS ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
@@ -305,7 +305,7 @@ Real-World Examples:
 - **EmbeddingGemma model** - Google's state-of-the-art embeddings
 - **Fast** - 0.15s queries with FAISS vector search
 - **Smart** - AST parsing for 9+ languages
-- **MCP native** - Works with Claude Code, Gemini CLI, Cursor & Codex CLI
+- **MCP native** - Works with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + VS Code/Zed/JetBrains via MCP
 - **Based on** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local) (embedded fork)
 
 ### 🔀 **Multi-AI Router**

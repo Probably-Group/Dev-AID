@@ -210,7 +210,7 @@ dev-aid-agent test-generator --path src/ --dry-run
 - **CLI (`dev-aid-agent`)** — Scripts, CI/CD pipelines. Supports `--json`, `--dry-run`, `--provider` flags.
 
 **Supported editors/tools:**
-- **Native slash commands**: Claude Code, Gemini CLI, Cursor, Windsurf, Cline
+- **Native slash commands**: Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline
 - **MCP integration only**: VS Code Copilot Chat, Zed, JetBrains AI Assistant
 
 ---

@@ -475,6 +475,27 @@ Total Savings:   $35/month (78%)
 
 ---
 
+## 🛠️ Compatibility
+
+### Q: Which editors and AI tools does Dev-AID support?
+
+**Native support** (slash commands, skills, hooks — full feature set):
+- Claude Code (terminal CLI + VS Code extension)
+- Gemini CLI (terminal + VS Code/JetBrains via Gemini Code Assist)
+- Codex CLI (via AGENTS.md triggers)
+- Cursor (reads `.claude/commands/` natively)
+- Windsurf (reads `.claude/commands/` natively)
+- Cline (VS Code extension, reads `.claude/commands/`)
+
+**MCP integration** (skills + local search, but no custom slash commands):
+- VS Code Copilot Chat
+- Zed
+- JetBrains AI Assistant
+
+**Summary:** 6 tools with full native support, 3 more via MCP.
+
+---
+
 ## 🔗 Quick Links
 
 - [STORAGE-LOCATIONS.md](./STORAGE-LOCATIONS.md) - Storage architecture

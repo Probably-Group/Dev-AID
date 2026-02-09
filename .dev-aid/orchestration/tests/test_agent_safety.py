@@ -2,10 +2,7 @@
 
 from pathlib import Path
 
-from agents.core.safety import (
-    SafetyCheckResult,
-    SafetyConfig,
-)
+from agents.core.safety import SafetyCheckResult, SafetyConfig
 
 
 class TestSafetyConfig:

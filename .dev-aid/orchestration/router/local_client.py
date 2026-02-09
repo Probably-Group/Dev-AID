@@ -14,12 +14,7 @@ from typing import Any, Dict, List, Optional
 
 import requests  # type: ignore[import-untyped]
 
-from .api_clients import (
-    APIResponse,
-    BaseAIClient,
-    Message,
-    track_api_call,
-)
+from .api_clients import APIResponse, BaseAIClient, Message, track_api_call
 from .auth_detector import AuthCredentials
 from .local_backends import DEFAULT_PORTS, detect_available_backend
 from .token_estimation import estimate_tokens

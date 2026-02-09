@@ -3,7 +3,6 @@
 from typing import Any, Dict
 
 import pytest
-
 from agents.cli import (
     AGENTS,
     _apply_config_overrides,

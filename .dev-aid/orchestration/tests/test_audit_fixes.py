@@ -16,7 +16,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # CWE-89: SQL Injection Prevention — data-factory.py
 # ---------------------------------------------------------------------------

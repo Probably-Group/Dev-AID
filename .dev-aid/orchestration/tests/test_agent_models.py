@@ -1,7 +1,6 @@
 """Tests for agent framework data models."""
 
 import pytest
-
 from agents.core.models import (
     AgentDefinition,
     AgentResult,

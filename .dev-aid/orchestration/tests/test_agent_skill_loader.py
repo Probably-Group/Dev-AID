@@ -3,12 +3,7 @@
 from pathlib import Path
 
 import pytest
-
-from agents.core.skill_loader import (
-    SkillLoader,
-    _parse_frontmatter,
-    parse_skill_file,
-)
+from agents.core.skill_loader import SkillLoader, _parse_frontmatter, parse_skill_file
 
 
 class TestParseFrontmatter:

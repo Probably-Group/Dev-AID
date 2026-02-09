@@ -3,7 +3,6 @@
 from typing import Dict, Set
 
 import pytest
-
 from agents.core.team_models import AgentSlot, TeamDefinition
 from agents.teams.builtin_teams import (
     ARCHITECT_IMPLEMENT_TEAM,
@@ -12,7 +11,6 @@ from agents.teams.builtin_teams import (
     PR_REVIEW_TEAM,
     SECURITY_AUDIT_TEAM,
 )
-
 
 # Known agent names from the AGENTS registry in cli.py
 KNOWN_AGENTS: Set[str] = {

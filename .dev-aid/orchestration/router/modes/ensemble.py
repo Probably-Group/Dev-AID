@@ -4,11 +4,9 @@ Ensemble Mode - Route to best model based on task type
 
 from typing import Any, Dict, Tuple
 
-from ..task_classifier import TaskType
-
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
-from ..task_classifier import TaskClassifier
+from ..task_classifier import TaskClassifier, TaskType
 from ._protocol import ModeConfigProtocol
 
 

@@ -3,21 +3,13 @@
 from typing import Any, Dict, List, Optional
 
 import pytest
-
-from agents.core.models import (
-    AgentDefinition,
-    AgentResult,
-    ToolCall,
-    ToolDefinition,
-    ToolResult,
-)
+from agents.core.models import AgentDefinition, AgentResult, ToolCall, ToolDefinition, ToolResult
 from agents.core.provider_adapter import ProviderResponse
 from agents.core.safety import SafetyConfig
 from agents.core.shared_state import MessageBus
 from agents.core.team_models import AgentMessage, AgentSlot, TeamDefinition
 from agents.core.team_runner import TeamRunner, _aggregate_concatenate, _aggregate_vote
 from agents.core.tool_registry import ToolRegistry
-
 
 # ── Test Fixtures ────────────────────────────────────────────────────
 

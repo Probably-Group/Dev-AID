@@ -3,9 +3,9 @@
 import logging
 from typing import Any, Dict, List
 
-from .base import APIResponse, BaseAIClient, Message, track_api_call
 from ..auth_detector import AuthCredentials
 from ..token_estimation import estimate_tokens
+from .base import APIResponse, BaseAIClient, Message, track_api_call
 
 logger = logging.getLogger(__name__)
 

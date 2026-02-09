@@ -3,7 +3,6 @@
 import json
 
 import pytest
-
 from agents.core.models import ToolCall, ToolResult
 from agents.core.provider_adapter import create_adapter
 

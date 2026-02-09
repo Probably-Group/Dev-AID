@@ -18,11 +18,7 @@ from router.hardware_detector import (
     create_manual_profile,
     detect_hardware,
 )
-from router.local_client import (
-    LocalLLMClient,
-    create_local_auth,
-    detect_local_server,
-)
+from router.local_client import LocalLLMClient, create_local_auth, detect_local_server
 from router.model_recommender import (
     ModelRecommendation,
     ModelRecommender,

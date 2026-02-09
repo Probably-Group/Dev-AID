@@ -13,7 +13,6 @@ from router.hardware_detector import (
     detect_hardware,
 )
 
-
 # ── Data Classes ─────────────────────────────────────────────────────────────
 
 

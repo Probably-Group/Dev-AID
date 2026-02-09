@@ -18,7 +18,6 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-
 # Maximum size for config files to prevent memory issues (10 MB)
 MAX_CONFIG_FILE_SIZE = 10 * 1024 * 1024
 

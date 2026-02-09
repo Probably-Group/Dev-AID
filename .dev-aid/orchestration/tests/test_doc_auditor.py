@@ -3,11 +3,9 @@
 from typing import Set
 
 import pytest
-
 from agents.agents.doc_auditor import DOC_AUDITOR
 from agents.cli import AGENTS, _build_user_message, build_parser
 from agents.core.models import AgentDefinition
-
 
 # Tools that should never appear on a safe/read-only agent
 WRITE_TOOLS: Set[str] = {"write_file", "run_bash", "git_commit", "git_add"}

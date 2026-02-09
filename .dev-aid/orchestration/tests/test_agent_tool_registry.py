@@ -3,7 +3,6 @@
 from typing import Any
 
 import pytest
-
 from agents.core.models import ToolCall, ToolDefinition
 from agents.core.safety import SafetyConfig
 from agents.core.tool_registry import ToolRegistry

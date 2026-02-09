@@ -1,7 +1,6 @@
 """Tests for team orchestration data models."""
 
 import pytest
-
 from agents.core.team_models import (
     AgentMessage,
     AgentSlot,

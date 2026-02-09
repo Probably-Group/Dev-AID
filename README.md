@@ -1727,3 +1727,9 @@ Dev-AID builds on excellent open-source projects and incorporates patterns from 
 ---
 
 *Built for developers who want to ship faster—not fight their tools.*
+
+---
+
+## Disclaimer
+
+This software is provided "AS IS", without warranty of any kind. See [LICENSE](LICENSE) for full terms. Dev-AID orchestrates third-party AI services — their outputs are not guaranteed to be correct, secure, or complete. Always review AI-generated code before committing to production.

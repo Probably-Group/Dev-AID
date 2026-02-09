@@ -26,14 +26,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Full command (`dev-aid-agent-team`) + short alias (`aid-team`) for both Claude and Gemini
   - Documents parallel, sequential, and DAG workflow types
   - Corrected agent names to match `builtin_teams.py`: vulnerability-scanner, auth-reviewer, dependency-auditor
+- **Unified Init System** (`setup-dev-aid.sh`): Single entry point for complete Dev-AID initialization
+  - 8-phase setup: prerequisites, directories, interactive wizard, config files, context files + provider setup, memory bank, infrastructure, validation
+  - Flags: `--yes` (non-interactive), `--minimal` (skip infrastructure), `--infrastructure-only`, `--wizard-only`
+  - State detection for idempotent re-initialization (safe to run multiple times)
+  - Extracted libraries: `lib/detection.sh`, `lib/wizard-functions.sh`, `lib/provider-setup.sh`
 
 ### Changed
 - **Repository moved to `Probably-Group/Dev-AID`** (was `martinholovsky/Dev-AID`)
 - **Documentation uses `/aid-*` slash commands as primary interface** — CLI-form `dev-aid-agent` kept as reference for CI/scripts
 - **Update system now uses `gh dev-aid update`** as primary method (replaces `update-dev-aid.sh` option 1 which was unimplemented)
 - Updated README.md, QUICK-START.md, VALUE-PROPOSITION.md Quick Start sections to use `gh extension install` as primary
-- Updated CONTRIBUTING.md to reference `init-repo.sh` (was `install.sh`)
+- Updated CONTRIBUTING.md to reference `setup-dev-aid.sh` as primary setup
 - Added `.github/copilot-ignore` and `.github/pull_request_template.md` for beta security
+- **`init-repo.sh`** and **`install.sh`** are now thin backward-compatibility wrappers delegating to `setup-dev-aid.sh`
+- **`gh dev-aid init`** now calls `setup-dev-aid.sh` for complete setup (was `init-repo.sh` for infrastructure-only)
+- **hooks.json** and **hooks.toml**: Fixed session-start hook to reference `check-update-notify.sh` (was `check-updates.sh`)
+- Updated all documentation to reference `setup-dev-aid.sh` as primary setup script
 
 ### Removed
 - `CLAUDE.md.example` (stale)
@@ -60,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **install-security-tools.sh**: Added `install_python_security_tools()` for bandit, pip-audit, flawfinder, mobsfscan via pipx (preferred) or pip --user
-- **install.sh**: Added optional tool checks for ShellCheck, Bandit, pip-audit, Flawfinder, mobsfscan, cargo-audit, govulncheck
+- **install.sh** (now wrapper): Previous version added optional tool checks for ShellCheck, Bandit, pip-audit, Flawfinder, mobsfscan, cargo-audit, govulncheck
 - **SECURITY-TOOLS-REFERENCE.md**: Complete documentation for all 11 security tools (3 universal + 4 language SAST + 4 dependency audit)
 - **AUTOMATION-GUIDE.md**: Updated architecture diagrams, tool stack tables, and pre-push hook documentation
 
@@ -92,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Context-aware filtering: detects project technologies, only runs relevant validators
   - JSON output mode for CI integration
   - Documentation: `.dev-aid/docs/VALIDATOR-FRAMEWORK.md`
-- Compliance scan integrated into `init-repo.sh` (automatic) and `install.sh` (optional step)
+- Compliance scan integrated into `setup-dev-aid.sh` Phase 8
 
 ### Changed
 - **CI optimization**: PR checks now run on ubuntu-only instead of 3-OS matrix (ubuntu + windows + macos), saving CI minutes on free plans. Cross-platform testing remains in `release-gate.yml` for releases

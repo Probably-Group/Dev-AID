@@ -1,6 +1,6 @@
 [[hooks.session_start]]
-command = "./.dev-aid/scripts/check-updates.sh --silent"
-description = "Check for Dev-AID updates (weekly, cached)"
+command = "./.dev-aid/scripts/check-update-notify.sh --silent"
+description = "Check for Dev-AID updates (daily, cached)"
 
 [[hooks.session_end]]
 command = "DEV_AID_PROVIDER=gemini ./.dev-aid/scripts/save-session-progress.sh"

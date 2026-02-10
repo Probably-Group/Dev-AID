@@ -480,6 +480,55 @@ Total Savings:   $35/month (78%)
 
 ---
 
+### Q: How do I configure memory bank loading behavior?
+
+**A: Edit the `memory_bank` section in `.dev-aid/config/settings.json`:**
+
+```json
+{
+  "memory_bank": {
+    "auto_load": ["activeContext.md"],
+    "on_demand": ["patterns.md", "decisions.md", "security.md",
+                  "performance.md", "testing.md", "chaos.md"],
+    "standing_context_tokens": 1000,
+    "standing_context_budget": "balanced",
+    "staleness_warning_days": 30
+  }
+}
+```
+
+**Key options:**
+- **`standing_context_budget`**: Controls how aggressively files are loaded
+  - `minimal` (0.5x tokens, needs 2+ keyword matches) — for small context windows
+  - `balanced` (1.0x tokens, needs 1+ keyword match) — recommended default
+  - `generous` (2.0x tokens, loads all files) — for large context windows
+- **`standing_context_tokens`**: Base token budget (multiplied by budget mode)
+- **`staleness_warning_days`**: Days before a file gets a "may be outdated" warning
+
+**On-demand files are selected by keyword matching against your prompt.** For example, asking about "XSS vulnerabilities" triggers `security.md` (keywords: security, vulnerability, xss). See [MEMORY-BANK-GUIDE.md](./MEMORY-BANK-GUIDE.md#on-demand-loading) for the full keyword table.
+
+---
+
+### Q: Why isn't a memory bank file loading for my prompt?
+
+**A: The file's keywords may not match your prompt.** Each on-demand file has a keyword list:
+
+| File | Trigger Keywords |
+|------|-----------------|
+| `patterns.md` | pattern, convention, style, naming, format, lint, standard |
+| `security.md` | security, auth, vulnerability, xss, injection, secret, owasp, cve |
+| `testing.md` | test, coverage, mock, fixture, jest, pytest, spec, qa |
+| `decisions.md` | decision, architecture, adr, design, tradeoff, migration, why |
+| `performance.md` | performance, speed, latency, cache, optimize, benchmark, slow |
+| `chaos.md` | error, resilience, retry, circuit, fallback, chaos, failure, exception |
+
+**Fixes:**
+1. Include a matching keyword in your prompt (e.g., "following our security patterns" to trigger both `security.md` and `patterns.md`)
+2. Switch to `generous` budget mode to load all files regardless of keywords
+3. Move the file to `auto_load` in `settings.json` to always include it
+
+---
+
 ## 🛠️ Compatibility
 
 ### Q: Which editors and AI tools does Dev-AID support?

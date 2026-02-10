@@ -58,20 +58,31 @@ The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core 
 
 Files are split into two categories in `settings.json`:
 
-- **auto_load** (always included): `activeContext.md` — loaded every request
-- **on_demand** (query-aware): `patterns.md`, `decisions.md`, `security.md`, `testing.md`, `performance.md`, `chaos.md` — loaded when the user's prompt matches relevant keywords
+- **auto_load** (always included): `activeContext.md` — loaded every request, never dropped
+- **on_demand** (query-aware): loaded only when the user's prompt contains matching keywords
+
+On-demand keyword mapping:
+
+| File | Trigger Keywords |
+|------|-----------------|
+| `patterns.md` | pattern, convention, style, naming, format, lint, standard |
+| `decisions.md` | decision, architecture, adr, design, tradeoff, migration, why |
+| `security.md` | security, auth, vulnerability, xss, injection, secret, owasp, cve |
+| `performance.md` | performance, speed, latency, cache, optimize, benchmark, slow |
+| `testing.md` | test, coverage, mock, fixture, jest, pytest, spec, qa |
+| `chaos.md` | error, resilience, retry, circuit, fallback, chaos, failure, exception |
 
 ### Token Budget
 
-The `standing_context_budget` setting controls how much memory bank content is included:
+The `standing_context_budget` setting controls how much memory bank content is included. Effective budget = `standing_context_tokens` × multiplier:
 
-| Mode | Behavior |
-|------|----------|
-| `minimal` | Half budget, requires 2+ keyword matches for on-demand files |
-| `balanced` | Default budget, 1+ keyword match |
-| `generous` | Double budget, loads all on-demand files regardless of query |
+| Mode | Multiplier | On-Demand Selection |
+|------|-----------|---------------------|
+| `minimal` | 0.5x | Strict: requires 2+ keyword matches per file |
+| `balanced` | 1.0x | Standard: requires 1+ keyword match per file |
+| `generous` | 2.0x | Loads all on-demand files regardless of query |
 
-When an on-demand file exceeds the remaining budget, the engine extracts only the most relevant sections (scored by keyword overlap with the prompt) rather than truncating blindly.
+When an on-demand file exceeds the remaining budget, the engine extracts only the most relevant sections (scored by keyword overlap with the prompt) rather than truncating blindly. The preamble (content before the first header) is always preserved, and a truncation notice is appended.
 
 ### Staleness Detection
 

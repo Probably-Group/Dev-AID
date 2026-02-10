@@ -227,57 +227,100 @@ This regenerates `CLAUDE.md` with updated memory-bank references.
 
 ---
 
-## Engine Features
+## Configuration Reference
 
-### Token Budget
-
-The orchestration router enforces a **token budget** on memory bank content to prevent context window bloat. Configure in `settings.json`:
-
-```json
-{
-  "memory_bank": {
-    "standing_context_tokens": 1000,
-    "standing_context_budget": "balanced"
-  }
-}
-```
-
-**Budget modes**:
-
-| Mode | Multiplier | Behavior |
-|------|-----------|----------|
-| `minimal` | 0.5x | Half budget, strict keyword matching (2+ keyword matches required) |
-| `balanced` | 1.0x | Default, 1+ keyword match for on-demand files |
-| `generous` | 2.0x | Double budget, loads all on-demand files regardless of query |
-
-Auto-load files are **always included** (never dropped). If auto-load alone exceeds budget, a warning is logged but content is preserved. On-demand files are added in list order until budget is exhausted.
-
-### On-Demand Loading
-
-Files listed in `on_demand` are loaded based on query relevance, not unconditionally:
+All memory bank settings live under the `memory_bank` key in `.dev-aid/config/settings.json`:
 
 ```json
 {
   "memory_bank": {
     "auto_load": ["activeContext.md"],
-    "on_demand": ["patterns.md", "decisions.md", "security.md",
-                   "performance.md", "testing.md", "chaos.md"]
+    "on_demand": [
+      "patterns.md",
+      "decisions.md",
+      "security.md",
+      "performance.md",
+      "testing.md",
+      "chaos.md"
+    ],
+    "standing_context_tokens": 1000,
+    "standing_context_budget": "balanced",
+    "staleness_warning_days": 30
   }
 }
 ```
 
-The router uses **keyword matching** to select relevant on-demand files. For example:
-- A security-related prompt loads `security.md`
-- A testing prompt loads `testing.md`
-- Multiple topics can load multiple files
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `auto_load` | `string[]` | `["activeContext.md"]` | Files loaded on every request (never dropped) |
+| `on_demand` | `string[]` | `[]` | Files loaded only when relevant to the prompt |
+| `standing_context_tokens` | `int` | `1000` | Base token budget for memory bank content |
+| `standing_context_budget` | `string` | `"balanced"` | Budget mode: `minimal`, `balanced`, or `generous` |
+| `staleness_warning_days` | `int` | `30` | Days before a file is flagged as stale |
+| `max_files` | `int\|null` | `null` | Optional hard limit on total files loaded |
+
+The Pydantic model is defined in `router/config_models.py:MemoryBankConfig`.
+
+---
+
+## Engine Features
+
+### Token Budget
+
+The orchestration router enforces a **token budget** on memory bank content to prevent context window bloat. The effective budget is `standing_context_tokens × multiplier`:
+
+| Mode | Multiplier | Effective Budget (default) | On-Demand Selection |
+|------|-----------|---------------------------|---------------------|
+| `minimal` | 0.5x | 500 tokens | Strict: requires 2+ keyword matches per file |
+| `balanced` | 1.0x | 1000 tokens | Standard: requires 1+ keyword match per file |
+| `generous` | 2.0x | 2000 tokens | Loads **all** on-demand files regardless of query |
+
+**Key behaviors:**
+- Auto-load files are **always included** — never dropped even if they exceed the budget alone (a warning is logged)
+- On-demand files are added in list order until budget is exhausted
+- If no prompt is provided (e.g. `build_context()` without `prompt=`), no on-demand files are loaded
+
+### On-Demand Loading
+
+Files listed in `on_demand` are loaded based on **query relevance** using keyword matching. Each file has a keyword list:
+
+| File | Trigger Keywords |
+|------|-----------------|
+| `patterns.md` | pattern, convention, style, naming, format, lint, standard |
+| `decisions.md` | decision, architecture, adr, design, tradeoff, migration, why |
+| `security.md` | security, auth, vulnerability, xss, injection, secret, owasp, cve |
+| `performance.md` | performance, speed, latency, cache, optimize, benchmark, slow |
+| `testing.md` | test, coverage, mock, fixture, jest, pytest, spec, qa |
+| `chaos.md` | error, resilience, retry, circuit, fallback, chaos, failure, exception |
+
+**How selection works:**
+1. The user's prompt is lowercased and checked against each file's keywords
+2. In `balanced` mode, a file is selected if **1 or more** keywords match
+3. In `minimal` mode, a file is selected if **2 or more** keywords match
+4. In `generous` mode, **all** on-demand files are loaded regardless of keywords
+5. Multiple files can be selected if the prompt spans multiple topics
+
+**Examples:**
+- "Fix the XSS vulnerability in the login form" → selects `security.md` (matches: security, vulnerability, xss)
+- "Add unit tests for the auth module" → selects `testing.md` (matches: test) and `security.md` (matches: auth)
+- "Why did we choose PostgreSQL?" → selects `decisions.md` (matches: why)
 
 ### Section-Level Extraction
 
-When an on-demand file exceeds the remaining token budget, the router doesn't just truncate — it **extracts the most relevant sections** based on keyword overlap with the user's prompt. Sections are scored and included in relevance order. A truncation notice is appended: `*[Truncated: X of Y sections shown]*`.
+When an on-demand file exceeds the remaining token budget, instead of a hard cutoff the router **extracts the most relevant sections**:
+
+1. The file is parsed into markdown sections by headers (`#`, `##`, `###`, etc.)
+2. `#` characters inside fenced code blocks (`` ``` ``) are ignored (not treated as headers)
+3. The **preamble** (content before the first header) is always preserved
+4. Each remaining section is scored by word overlap between the section text and the user's prompt
+5. Sections are included in score order (highest first) until the token budget is exhausted
+6. A truncation notice is appended: `*[Truncated: X of Y sections shown]*`
+
+If no prompt is available (rare edge case), the content is truncated by word count instead.
 
 ### Staleness Detection
 
-Each loaded memory bank file gets age metadata. Files older than `staleness_warning_days` (default: 30) are annotated with a warning:
+Each loaded memory bank file gets age metadata based on its filesystem modification time. Files older than `staleness_warning_days` (default: 30) are annotated with a warning in the AI context:
 
 ```
 *Last updated: 45 days ago — WARNING: may be outdated | 245 tokens*
@@ -288,27 +331,40 @@ Recent files show a normal annotation:
 *Last updated: 3 days ago | 120 tokens*
 ```
 
-Configure the threshold:
-```json
-{
-  "memory_bank": {
-    "staleness_warning_days": 14
-  }
-}
-```
+Special cases:
+- Modified today: `*Last updated: today | 120 tokens*`
+- Modified yesterday: `*Last updated: 1 day ago | 120 tokens*`
+- Unreadable file: `*Last updated: unknown*`
 
 ### Write-Back Instructions
 
-The system prompt automatically includes a **Memory Bank Maintenance** section when memory bank content is loaded. This instructs AI assistants to update the appropriate files when they learn something significant:
+When memory bank content is loaded, the system prompt automatically includes a **Memory Bank Maintenance** section:
 
-- New coding patterns → `patterns.md`
-- Architecture decisions → `decisions.md`
-- Security concerns → `security.md`
-- Testing strategy changes → `testing.md`
+```
+### Memory Bank Maintenance
+Update relevant .dev-aid/memory-bank/ files when you establish new patterns,
+make architecture decisions, or identify security concerns. Append with timestamps.
+Always update activeContext.md at session end.
+```
 
-Updates should be appended with timestamps (`- **YYYY-MM-DD**: [what was learned]`), never deleting existing content unless explicitly asked.
+Additionally, the provider templates (generated into CLAUDE.md/GEMINI.md/OPENAI.md) include a detailed write-back table:
 
-The stop hook also reminds users which files to update at session end.
+| File | Update When |
+|------|-------------|
+| `activeContext.md` | Sprint focus changes, session ends with progress |
+| `patterns.md` | New coding pattern established |
+| `decisions.md` | Architecture decision made (add ADR entry) |
+| `security.md` | Security requirement or vulnerability identified |
+| `testing.md` | Testing strategy changes |
+| `performance.md` | Performance baselines change |
+
+**Format**: Append under the appropriate section with timestamp:
+```
+- **2025-12-15**: [what was learned]
+```
+Do NOT delete existing content unless explicitly asked.
+
+The stop hook (`.dev-aid/providers/claude/.claude/hooks/stop-quality-gates.sh`) also reminds users at session end which files to update based on the work done.
 
 ---
 

@@ -2,9 +2,6 @@
   "dev_aid_version": "2.0.0",
   "project_name": "my-project",
 
-  "standing_context_budget": "balanced",
-  "standing_context_tokens": 1000,
-
   "auto_activation": "conservative",
   "auto_load_max_skills": 3,
 
@@ -23,7 +20,10 @@
       "performance.md",
       "testing.md",
       "chaos.md"
-    ]
+    ],
+    "standing_context_tokens": 1000,
+    "standing_context_budget": "balanced",
+    "staleness_warning_days": 30
   },
 
   "hooks": {

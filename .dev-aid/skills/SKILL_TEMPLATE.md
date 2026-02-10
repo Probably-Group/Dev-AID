@@ -8,6 +8,7 @@ risk_level: LOW|MEDIUM|HIGH
 languages: [python, typescript, rust, go]
 frameworks: [framework1, framework2]
 requires_security_review: false
+compatibility: "Tool/runtime version requirements, e.g. Python 3.11+, FastAPI 0.115+"
 compliance: []
 last_updated: YYYY-MM-DD
 ---
@@ -83,6 +84,10 @@ last_updated: YYYY-MM-DD
 - ❌ Full troubleshooting guides → `references/troubleshooting.md`
 - ❌ Compliance details → `references/compliance/`
 - ❌ Extensive code examples → `references/examples.md`
+
+**Optional directories:**
+- `scripts/` — Automation scripts for process skills (based on `template-references/script-template.sh`)
+- `assets/` — Reusable output templates for document-generating expert skills
 
 📚 **For complete progressive disclosure guide**:
 - See `template-references/progressive-disclosure.md`
@@ -429,6 +434,15 @@ except SpecificError as e:
   - What to keep in main SKILL.md
   - Claude Code loading optimization
 
+- 📚 **[Performance Notes](template-references/performance-notes.md)** (~60 lines)
+  - Anti-laziness principles for expert skills
+  - Per-risk-level verification requirements
+  - Output quality checklist
+
+- 📚 **[Script Template](template-references/script-template.sh)** (~150 lines)
+  - POSIX-compliant bash template for process skill scripts
+  - Exit codes, color helpers, argument parsing, result tracking
+
 ### 9.2 Related Skills
 
 - Related Skill 1: When to use
@@ -443,6 +457,34 @@ except SpecificError as e:
 
 - OWASP Top 10 (if applicable)
 - Industry standards (PCI-DSS, HIPAA, etc.)
+
+---
+
+## Process Skill Variant: Rollback Procedures
+
+> **Include this section in process skills only.** Process skills enforce workflows that may need to be undone when they go wrong.
+
+### Triggers
+- What conditions should trigger a rollback (e.g., tests fail after changes, wrong branch, broken state)
+
+### Steps
+- Specific undo actions (git stash, git reset, file restore, revert commands)
+
+### Reset
+- How to return to a known-good state (clean working tree, baseline tests passing)
+
+### Abandon vs. Retry
+- Decision criteria: when to retry the process vs. abandon and start fresh
+
+---
+
+## Expert Skill Variant: Performance Notes
+
+> **Include this reference in expert skills only.** Keeps expert SKILL.md files under the 500-line limit.
+
+```
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.
+```
 
 ---
 

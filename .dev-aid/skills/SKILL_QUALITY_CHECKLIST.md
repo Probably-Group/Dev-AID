@@ -218,6 +218,33 @@ Before submitting this skill:
 - [ ] Tests cover edge cases
 ```
 
+## Skills Enhancement Validation
+
+### Scripts (Process Skills)
+- [ ] Scripts pass `shellcheck` with no errors
+- [ ] Scripts use standard exit codes (0=pass, 1=fail, 2=warn)
+- [ ] Scripts are based on `template-references/script-template.sh`
+- [ ] Scripts are executable (`chmod +x`)
+
+### Rollback (Process Skills)
+- [ ] `## Rollback Procedures` section present in SKILL.md
+- [ ] Rollback triggers documented
+- [ ] Specific undo steps provided
+- [ ] Reset-to-clean-state instructions included
+
+### Performance Notes (Expert Skills)
+- [ ] Performance reference line present at end of SKILL.md
+- [ ] Links to `template-references/performance-notes.md`
+
+### Compatibility (Tool-Specific Skills)
+- [ ] `compatibility:` field present in frontmatter where applicable
+- [ ] Version requirements are specific (e.g., `Python 3.11+` not just `Python`)
+
+### Assets (Document-Generating Skills)
+- [ ] `assets/` directory exists with relevant templates
+- [ ] Templates use placeholders (`[...]`) for customization
+- [ ] SKILL.md references the assets directory
+
 ## Automation Recommendations
 
 1. **GitHub Actions Template** - Pre-configured CI for all repos

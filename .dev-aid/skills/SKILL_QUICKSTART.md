@@ -303,6 +303,40 @@ shellcheck references/*.sh  # Must pass
 
 ---
 
+## Scripts, Assets, and Rollback
+
+### Scripts (Process Skills)
+
+Process skills can include automation scripts in a `scripts/` directory:
+- **When to add**: When the skill has verifiable checkpoints or automated validation steps
+- **Template**: Copy `template-references/script-template.sh` and customize the `run_checks()` function
+- **Requirements**: POSIX bash, passes shellcheck, uses standard exit codes (0=pass, 1=fail, 2=warn)
+
+```bash
+# Create scripts directory
+mkdir -p .dev-aid/skills/process/my-skill/scripts
+cp .dev-aid/skills/template-references/script-template.sh \
+   .dev-aid/skills/process/my-skill/scripts/my-check.sh
+chmod +x .dev-aid/skills/process/my-skill/scripts/my-check.sh
+```
+
+### Assets (Expert Skills)
+
+Expert skills that generate structured output can include reusable templates in an `assets/` directory:
+- **When to add**: When the skill produces reports, plans, reviews, or other structured documents
+- **What goes there**: Markdown/YAML/SQL templates with placeholders (`[...]`), 40-80 lines each
+- **Reference in SKILL.md**: Add `**Templates**: See assets/ for reusable output templates.`
+
+### Rollback (Process Skills — Required)
+
+All process skills must include a `## Rollback Procedures` section with:
+- **Triggers**: Conditions that warrant rollback
+- **Steps**: Specific undo actions
+- **Reset**: How to return to known-good state
+- **Abandon vs. Retry**: Decision criteria
+
+---
+
 ## Common Mistakes to Avoid
 
 ### ❌ Mistake 1: Exceeding 500-Line Limit

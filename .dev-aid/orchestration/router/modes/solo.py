@@ -67,7 +67,7 @@ class SoloMode:
         client = create_client(provider, auth, model_config)
 
         # Build context
-        context = self.context_builder.build_context()
+        context = self.context_builder.build_context(prompt=request)
 
         # Add MCP context if provided
         if "mcp_context" in kwargs and kwargs["mcp_context"]:

@@ -1,4 +1,5 @@
 import subprocess
+import time
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -30,6 +31,8 @@ class TestContextBuilder:
         config.get_orchestration_mode = Mock(return_value="solo")
         config.get_enabled_providers = Mock(return_value=["claude"])
         config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
         config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
         config.root = tmp_path
         config.settings = {"project_name": "test-project"}
@@ -69,10 +72,12 @@ class TestContextBuilder:
         builder.memory_bank_path = memory_path
         builder.config.get_memory_bank_files = Mock(return_value=["test.md"])
 
-        memory_bank = builder._load_memory_bank()
+        memory_bank, metadata = builder._load_memory_bank()
 
         assert "test.md" in memory_bank
         assert memory_bank["test.md"] == "# Test content"
+        assert "test.md" in metadata
+        assert metadata["test.md"]["category"] == "auto_load"
 
     def test_load_memory_bank_file_not_found(self, builder, tmp_path):
         """Test loading memory bank when file doesn't exist"""
@@ -82,7 +87,7 @@ class TestContextBuilder:
         builder.memory_bank_path = memory_path
         builder.config.get_memory_bank_files = Mock(return_value=["nonexistent.md"])
 
-        memory_bank = builder._load_memory_bank()
+        memory_bank, metadata = builder._load_memory_bank()
 
         assert "nonexistent.md" not in memory_bank
 
@@ -394,6 +399,305 @@ class TestContextBuilder:
         minimal = builder.get_minimal_context()
         assert "No active context available" in minimal
 
+    # --- Token budget tests ---
+
+    def test_enforce_token_budget_fits(self, builder):
+        """Test budget enforcement when everything fits"""
+        auto = {"a.md": "short content"}
+        on_demand = {"b.md": "also short"}
+
+        result, counts = builder._enforce_token_budget(auto, on_demand, 10000)
+
+        assert "a.md" in result
+        assert "b.md" in result
+        assert counts["a.md"] > 0
+        assert counts["b.md"] > 0
+
+    def test_enforce_token_budget_on_demand_dropped(self, builder):
+        """Test that on-demand files are dropped when budget is exhausted"""
+        auto = {"a.md": "word " * 500}  # ~650 tokens
+        on_demand = {"b.md": "extra " * 500}  # ~650 tokens
+
+        result, counts = builder._enforce_token_budget(auto, on_demand, 700)
+
+        assert "a.md" in result  # auto_load always included
+        # b.md may be partially included or truncated
+        assert counts["a.md"] > 0
+
+    def test_enforce_token_budget_auto_load_exceeds_warning(self, builder):
+        """Test that auto_load exceeding budget logs warning but is included"""
+        auto = {"big.md": "word " * 1000}  # ~1300 tokens
+        on_demand = {}
+
+        result, counts = builder._enforce_token_budget(auto, on_demand, 100)
+
+        # Auto-load always included even if exceeds budget
+        assert "big.md" in result
+
+    def test_enforce_token_budget_empty_on_demand(self, builder):
+        """Test with no on-demand files"""
+        auto = {"a.md": "content"}
+        on_demand = {}
+
+        result, counts = builder._enforce_token_budget(auto, on_demand, 10000)
+
+        assert "a.md" in result
+        assert len(result) == 1
+
+    # --- Staleness tests ---
+
+    def test_get_file_staleness_recent(self, builder, tmp_path):
+        """Test staleness for recently modified file"""
+        test_file = tmp_path / "recent.md"
+        test_file.write_text("content")
+
+        staleness = builder._get_file_staleness(test_file, warning_days=30)
+
+        assert staleness["age_days"] == 0
+        assert staleness["age_human"] == "today"
+        assert staleness["is_stale"] is False
+
+    def test_get_file_staleness_stale(self, builder, tmp_path):
+        """Test staleness for old file"""
+        import os
+
+        test_file = tmp_path / "old.md"
+        test_file.write_text("content")
+        # Set mtime to 60 days ago
+        old_time = time.time() - (60 * 86400)
+        os.utime(test_file, (old_time, old_time))
+
+        staleness = builder._get_file_staleness(test_file, warning_days=30)
+
+        assert staleness["age_days"] >= 59  # Allow slight rounding
+        assert staleness["is_stale"] is True
+        assert "days ago" in staleness["age_human"]
+
+    def test_get_file_staleness_missing(self, builder, tmp_path):
+        """Test staleness for non-existent file"""
+        missing = tmp_path / "missing.md"
+
+        staleness = builder._get_file_staleness(missing)
+
+        assert staleness["age_days"] == -1
+        assert staleness["age_human"] == "unknown"
+        assert staleness["is_stale"] is False
+
+    # --- Format context annotation tests ---
+
+    def test_format_context_with_staleness_annotation(self, builder):
+        """Test that format_context_for_ai includes age annotations"""
+        context = DevAIDContext(
+            memory_bank={"test.md": "# Content"},
+            project_info={"name": "Test"},
+            memory_bank_metadata={
+                "test.md": {
+                    "category": "auto_load",
+                    "tokens": 10,
+                    "age_days": 3,
+                    "age_human": "3 days ago",
+                    "is_stale": False,
+                }
+            },
+        )
+
+        formatted = builder.format_context_for_ai(context)
+        assert "Last updated: 3 days ago" in formatted
+        assert "10 tokens" in formatted
+
+    def test_format_context_with_stale_warning(self, builder):
+        """Test that stale files get WARNING annotation"""
+        context = DevAIDContext(
+            memory_bank={"old.md": "# Old stuff"},
+            project_info={"name": "Test"},
+            memory_bank_metadata={
+                "old.md": {
+                    "category": "auto_load",
+                    "tokens": 50,
+                    "age_days": 45,
+                    "age_human": "45 days ago",
+                    "is_stale": True,
+                }
+            },
+        )
+
+        formatted = builder.format_context_for_ai(context)
+        assert "WARNING: may be outdated" in formatted
+        assert "45 days ago" in formatted
+
+    def test_format_context_maintenance_reminder(self, builder):
+        """Test that maintenance reminder appears when memory_bank non-empty"""
+        context = DevAIDContext(
+            memory_bank={"test.md": "content"},
+            project_info={"name": "Test"},
+        )
+
+        formatted = builder.format_context_for_ai(context)
+        assert "Memory Bank Maintenance" in formatted
+        assert "activeContext.md" in formatted
+
+    def test_format_context_no_maintenance_when_empty(self, builder):
+        """Test that maintenance reminder is absent when memory_bank empty"""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+        )
+
+        formatted = builder.format_context_for_ai(context)
+        assert "Memory Bank Maintenance" not in formatted
+
+    # --- On-demand selection tests ---
+
+    def test_select_on_demand_security_query(self, builder):
+        """Test that security query selects security.md"""
+        available = ["patterns.md", "security.md", "testing.md"]
+        selected = builder._select_on_demand_files("check for XSS vulnerabilities", available)
+        assert "security.md" in selected
+
+    def test_select_on_demand_testing_query(self, builder):
+        """Test that testing query selects testing.md"""
+        available = ["patterns.md", "security.md", "testing.md"]
+        selected = builder._select_on_demand_files("add pytest fixtures for coverage", available)
+        assert "testing.md" in selected
+
+    def test_select_on_demand_multi_topic(self, builder):
+        """Test multi-topic prompt selects multiple files"""
+        available = ["patterns.md", "security.md", "testing.md"]
+        selected = builder._select_on_demand_files(
+            "fix security vulnerability and add test coverage", available
+        )
+        assert "security.md" in selected
+        assert "testing.md" in selected
+
+    def test_select_on_demand_unrelated(self, builder):
+        """Test unrelated prompt selects nothing"""
+        available = ["patterns.md", "security.md", "testing.md"]
+        selected = builder._select_on_demand_files("update the readme file please", available)
+        assert selected == []
+
+    def test_select_on_demand_generous_loads_all(self, builder):
+        """Test generous budget loads all available files"""
+        available = ["patterns.md", "security.md", "testing.md"]
+        selected = builder._select_on_demand_files("anything", available, budget_mode="generous")
+        assert len(selected) == 3
+
+    # --- Markdown section parsing tests ---
+
+    def test_parse_markdown_sections_mixed_levels(self, builder):
+        """Test parsing markdown with mixed header levels"""
+        content = "# Title\npreamble\n## Section A\nA content\n### Sub\nsub content"
+        sections = builder._parse_markdown_sections(content)
+
+        assert len(sections) >= 3
+        assert sections[0]["header"] == "# Title"
+        assert sections[1]["header"] == "## Section A"
+
+    def test_parse_markdown_sections_code_block(self, builder):
+        """Test that # inside code blocks is not treated as header"""
+        content = "## Real Header\ntext\n```\n# Not a header\n```\n## Another"
+        sections = builder._parse_markdown_sections(content)
+
+        headers = [s["header"] for s in sections]
+        assert "# Not a header" not in headers
+        assert "## Real Header" in headers
+        assert "## Another" in headers
+
+    def test_parse_markdown_sections_no_headers(self, builder):
+        """Test parsing content with no headers"""
+        content = "just plain text\nno headers here"
+        sections = builder._parse_markdown_sections(content)
+
+        assert len(sections) == 1
+        assert sections[0]["header"] == ""
+
+    def test_parse_markdown_sections_empty(self, builder):
+        """Test parsing empty content"""
+        sections = builder._parse_markdown_sections("")
+        assert len(sections) == 1
+        assert sections[0]["content"] == ""
+
+    # --- Section extraction tests ---
+
+    def test_extract_relevant_sections_under_budget(self, builder):
+        """Test extraction returns full content when under budget"""
+        content = "# Title\nshort content"
+        result = builder._extract_relevant_sections(content, "query", 10000)
+        assert result == content
+
+    def test_extract_relevant_sections_over_budget(self, builder):
+        """Test extraction truncates when over budget"""
+        content = "## Security\nsecurity stuff\n## Testing\ntesting stuff\n"
+        content += "## Unrelated\n" + "padding " * 500
+
+        result = builder._extract_relevant_sections(content, "security vulnerability check", 50)
+
+        assert "Truncated" in result or len(result) < len(content)
+
+    def test_extract_relevant_sections_preamble_always(self, builder):
+        """Test that preamble text is always included"""
+        content = "This is preamble\n## Section\nsection content " * 50
+
+        result = builder._extract_relevant_sections(content, "anything", 100)
+
+        assert "preamble" in result.lower() or "This is" in result
+
+    # --- Load memory bank integration tests ---
+
+    def test_load_memory_bank_with_on_demand(self, builder, tmp_path):
+        """Test loading both auto_load and on_demand files"""
+        memory_path = tmp_path / "memory-bank"
+        memory_path.mkdir(parents=True)
+
+        (memory_path / "activeContext.md").write_text("# Active context")
+        (memory_path / "security.md").write_text("# Security rules")
+
+        builder.memory_bank_path = memory_path
+        builder.config.get_memory_bank_files = Mock(return_value=["activeContext.md"])
+        builder.config.get_on_demand_files = Mock(return_value=["security.md"])
+        builder.config.settings = {
+            "project_name": "test",
+            "memory_bank": {
+                "standing_context_budget": "balanced",
+                "staleness_warning_days": 30,
+            },
+        }
+
+        content, metadata = builder._load_memory_bank(prompt="check security vulnerabilities")
+
+        assert "activeContext.md" in content
+        assert "security.md" in content
+        assert metadata["activeContext.md"]["category"] == "auto_load"
+        assert metadata["security.md"]["category"] == "on_demand"
+
+    def test_load_memory_bank_respects_budget(self, builder, tmp_path):
+        """Test that token budget is respected"""
+        memory_path = tmp_path / "memory-bank"
+        memory_path.mkdir(parents=True)
+
+        (memory_path / "activeContext.md").write_text("short")
+        (memory_path / "security.md").write_text("word " * 2000)
+
+        builder.memory_bank_path = memory_path
+        builder.config.get_memory_bank_files = Mock(return_value=["activeContext.md"])
+        builder.config.get_on_demand_files = Mock(return_value=["security.md"])
+        builder.config.get_standing_context_tokens = Mock(return_value=50)
+        builder.config.settings = {
+            "project_name": "test",
+            "memory_bank": {
+                "standing_context_budget": "balanced",
+                "staleness_warning_days": 30,
+            },
+        }
+
+        content, metadata = builder._load_memory_bank(prompt="security check")
+
+        # Auto-load always included
+        assert "activeContext.md" in content
+        # On-demand may be truncated or partially included
+        if "security.md" in content:
+            # Should be truncated, not full 2000 words
+            assert len(content["security.md"].split()) < 2000
+
 
 class TestBuildSystemPrompt:
     """Test build_system_prompt function"""
@@ -404,6 +708,8 @@ class TestBuildSystemPrompt:
         mock_config.get_orchestration_mode = Mock(return_value="solo")
         mock_config.get_enabled_providers = Mock(return_value=["claude"])
         mock_config.get_memory_bank_files = Mock(return_value=[])
+        mock_config.get_on_demand_files = Mock(return_value=[])
+        mock_config.get_standing_context_tokens = Mock(return_value=1000)
         mock_config.get_memory_bank_path = Mock(return_value=tmp_path)
         mock_config.root = tmp_path
         mock_config.settings = {"project_name": "test"}

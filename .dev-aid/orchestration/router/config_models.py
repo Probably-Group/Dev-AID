@@ -17,7 +17,21 @@ class MemoryBankConfig(BaseModel):
     """Configuration for memory bank"""
 
     auto_load: List[str] = Field(default_factory=lambda: ["activeContext.md"])
+    on_demand: List[str] = Field(default_factory=list)
     max_files: Optional[int] = None
+    standing_context_tokens: int = 1000
+    standing_context_budget: str = "balanced"
+    staleness_warning_days: int = 30
+
+    @field_validator("standing_context_budget")
+    @classmethod
+    def validate_budget(cls, v: str) -> str:
+        valid_budgets = {"minimal", "balanced", "generous"}
+        if v not in valid_budgets:
+            raise ValueError(
+                f"Invalid standing_context_budget: {v}. Must be one of {valid_budgets}"
+            )
+        return v
 
 
 class SettingsConfig(BaseModel):

@@ -227,6 +227,91 @@ This regenerates `CLAUDE.md` with updated memory-bank references.
 
 ---
 
+## Engine Features
+
+### Token Budget
+
+The orchestration router enforces a **token budget** on memory bank content to prevent context window bloat. Configure in `settings.json`:
+
+```json
+{
+  "memory_bank": {
+    "standing_context_tokens": 1000,
+    "standing_context_budget": "balanced"
+  }
+}
+```
+
+**Budget modes**:
+
+| Mode | Multiplier | Behavior |
+|------|-----------|----------|
+| `minimal` | 0.5x | Half budget, strict keyword matching (2+ keyword matches required) |
+| `balanced` | 1.0x | Default, 1+ keyword match for on-demand files |
+| `generous` | 2.0x | Double budget, loads all on-demand files regardless of query |
+
+Auto-load files are **always included** (never dropped). If auto-load alone exceeds budget, a warning is logged but content is preserved. On-demand files are added in list order until budget is exhausted.
+
+### On-Demand Loading
+
+Files listed in `on_demand` are loaded based on query relevance, not unconditionally:
+
+```json
+{
+  "memory_bank": {
+    "auto_load": ["activeContext.md"],
+    "on_demand": ["patterns.md", "decisions.md", "security.md",
+                   "performance.md", "testing.md", "chaos.md"]
+  }
+}
+```
+
+The router uses **keyword matching** to select relevant on-demand files. For example:
+- A security-related prompt loads `security.md`
+- A testing prompt loads `testing.md`
+- Multiple topics can load multiple files
+
+### Section-Level Extraction
+
+When an on-demand file exceeds the remaining token budget, the router doesn't just truncate — it **extracts the most relevant sections** based on keyword overlap with the user's prompt. Sections are scored and included in relevance order. A truncation notice is appended: `*[Truncated: X of Y sections shown]*`.
+
+### Staleness Detection
+
+Each loaded memory bank file gets age metadata. Files older than `staleness_warning_days` (default: 30) are annotated with a warning:
+
+```
+*Last updated: 45 days ago — WARNING: may be outdated | 245 tokens*
+```
+
+Recent files show a normal annotation:
+```
+*Last updated: 3 days ago | 120 tokens*
+```
+
+Configure the threshold:
+```json
+{
+  "memory_bank": {
+    "staleness_warning_days": 14
+  }
+}
+```
+
+### Write-Back Instructions
+
+The system prompt automatically includes a **Memory Bank Maintenance** section when memory bank content is loaded. This instructs AI assistants to update the appropriate files when they learn something significant:
+
+- New coding patterns → `patterns.md`
+- Architecture decisions → `decisions.md`
+- Security concerns → `security.md`
+- Testing strategy changes → `testing.md`
+
+Updates should be appended with timestamps (`- **YYYY-MM-DD**: [what was learned]`), never deleting existing content unless explicitly asked.
+
+The stop hook also reminds users which files to update at session end.
+
+---
+
 ## Best Practices
 
 ### 1. Start with patterns.md and security.md

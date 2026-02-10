@@ -11,13 +11,78 @@ Gathers relevant context from:
 
 import asyncio
 import logging
+import os
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
+from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
 
+from .constants import MEMORY_BANK_BUDGET_MULTIPLIERS
 from .security_utils import validate_safe_path
+from .token_estimation import estimate_tokens
 
 logger = logging.getLogger(__name__)
+
+# Keyword map for query-aware on-demand file selection
+MEMORY_FILE_KEYWORDS: Dict[str, List[str]] = {
+    "patterns.md": [
+        "pattern",
+        "convention",
+        "style",
+        "naming",
+        "format",
+        "lint",
+        "standard",
+    ],
+    "decisions.md": [
+        "decision",
+        "architecture",
+        "adr",
+        "design",
+        "tradeoff",
+        "migration",
+        "why",
+    ],
+    "security.md": [
+        "security",
+        "auth",
+        "vulnerability",
+        "xss",
+        "injection",
+        "secret",
+        "owasp",
+        "cve",
+    ],
+    "performance.md": [
+        "performance",
+        "speed",
+        "latency",
+        "cache",
+        "optimize",
+        "benchmark",
+        "slow",
+    ],
+    "testing.md": [
+        "test",
+        "coverage",
+        "mock",
+        "fixture",
+        "jest",
+        "pytest",
+        "spec",
+        "qa",
+    ],
+    "chaos.md": [
+        "error",
+        "resilience",
+        "retry",
+        "circuit",
+        "fallback",
+        "chaos",
+        "failure",
+        "exception",
+    ],
+}
 
 
 @runtime_checkable
@@ -30,6 +95,10 @@ class ConfigLoaderProtocol(Protocol):
     def get_memory_bank_path(self) -> Path: ...
 
     def get_memory_bank_files(self) -> List[str]: ...
+
+    def get_on_demand_files(self) -> List[str]: ...
+
+    def get_standing_context_tokens(self) -> int: ...
 
     def get_orchestration_mode(self) -> str: ...
 
@@ -45,6 +114,9 @@ class DevAIDContext:
     git_context: Optional[Dict[str, str]] = None
     active_skills: Optional[List[str]] = None
     mcp_context: Optional[Dict[str, Any]] = field(default_factory=dict)  # MCP-gathered context
+    memory_bank_metadata: Dict[str, Dict[str, Any]] = field(
+        default_factory=dict
+    )  # per-file metadata
 
 
 class ContextBuilder:
@@ -63,19 +135,25 @@ class ContextBuilder:
         self.memory_bank_path = config_loader.get_memory_bank_path()
         self.mcp_pool = mcp_pool
 
-    def build_context(self, include_memory: bool = True) -> DevAIDContext:
+    def build_context(
+        self,
+        include_memory: bool = True,
+        prompt: Optional[str] = None,
+    ) -> DevAIDContext:
         """
         Build complete Dev-AID context
 
         Args:
             include_memory: Whether to include memory bank files
+            prompt: Optional user prompt for query-aware on-demand loading
 
         Returns:
             DevAIDContext object
         """
-        memory_bank = {}
+        memory_bank: Dict[str, str] = {}
+        memory_bank_metadata: Dict[str, Dict[str, Any]] = {}
         if include_memory:
-            memory_bank = self._load_memory_bank()
+            memory_bank, memory_bank_metadata = self._load_memory_bank(prompt=prompt)
 
         project_info = self._get_project_info()
         git_context = self._get_git_context()
@@ -86,43 +164,352 @@ class ContextBuilder:
             project_info=project_info,
             git_context=git_context,
             active_skills=active_skills,
+            memory_bank_metadata=memory_bank_metadata,
         )
 
-    def _load_memory_bank(self) -> Dict[str, str]:
-        """Load memory bank files"""
-        memory_bank = {}
+    def _validate_and_read_file(self, filename: str) -> Optional[str]:
+        """Validate a memory bank filename and read its content.
 
-        # Get files to auto-load
-        auto_load_files = self.config.get_memory_bank_files()
+        Returns file content or None if invalid/missing.
+        """
+        # Validate filename doesn't contain traversal (CWE-22)
+        if ".." in filename or filename.startswith("/"):
+            logger.warning("Skipping unsafe memory bank filename: %s", filename)
+            return None
 
-        for filename in auto_load_files:
-            # Validate filename doesn't contain traversal (CWE-22)
-            if ".." in filename or filename.startswith("/"):
-                logger.warning("Skipping unsafe memory bank filename: %s", filename)
-                continue
+        filepath = self.memory_bank_path / filename
 
-            filepath = self.memory_bank_path / filename
+        # Verify resolved path stays within memory bank directory
+        try:
+            resolved = filepath.resolve()
+            if not resolved.is_relative_to(self.memory_bank_path.resolve()):
+                logger.warning("Path traversal blocked for memory bank file: %s", filename)
+                return None
+        except (ValueError, OSError):
+            logger.warning("Invalid memory bank path: %s", filename)
+            return None
 
-            # Verify resolved path stays within memory bank directory
-            try:
-                resolved = filepath.resolve()
-                if not resolved.is_relative_to(self.memory_bank_path.resolve()):
-                    logger.warning("Path traversal blocked for memory bank file: %s", filename)
+        if not filepath.exists():
+            return None
+
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            logger.warning("Could not read %s: %s", filename, e)
+            return None
+
+    def _get_file_staleness(self, filepath: Path, warning_days: int = 30) -> Dict[str, Any]:
+        """Compute staleness metadata for a memory bank file.
+
+        Returns dict with age_days, age_human, is_stale.
+        """
+        try:
+            mtime = os.path.getmtime(filepath)
+            age_seconds = time.time() - mtime
+            age_days = int(age_seconds / 86400)
+
+            if age_days == 0:
+                age_human = "today"
+            elif age_days == 1:
+                age_human = "1 day ago"
+            else:
+                age_human = f"{age_days} days ago"
+
+            return {
+                "age_days": age_days,
+                "age_human": age_human,
+                "is_stale": age_days > warning_days,
+            }
+        except OSError:
+            return {
+                "age_days": -1,
+                "age_human": "unknown",
+                "is_stale": False,
+            }
+
+    def _enforce_token_budget(
+        self,
+        auto_load: Dict[str, str],
+        on_demand: Dict[str, str],
+        budget: int,
+        prompt: Optional[str] = None,
+    ) -> Tuple[Dict[str, str], Dict[str, int]]:
+        """Enforce token budget on memory bank content.
+
+        Auto-load files are always included (warning if they exceed budget).
+        On-demand files are added in order until budget is exhausted.
+        Returns (merged content dict, per-file token counts).
+        """
+        result: Dict[str, str] = {}
+        token_counts: Dict[str, int] = {}
+        used_tokens = 0
+
+        # Auto-load files always included
+        for filename, content in auto_load.items():
+            tokens = estimate_tokens(content)
+            result[filename] = content
+            token_counts[filename] = tokens
+            used_tokens += tokens
+
+        if used_tokens > budget and auto_load:
+            logger.warning(
+                "Auto-load files alone (%d tokens) exceed budget (%d tokens)",
+                used_tokens,
+                budget,
+            )
+
+        # On-demand files added until budget exhausted
+        remaining = max(0, budget - used_tokens)
+        for filename, content in on_demand.items():
+            if filename in result:
+                continue  # Skip duplicates
+            tokens = estimate_tokens(content)
+            if tokens <= remaining:
+                result[filename] = content
+                token_counts[filename] = tokens
+                remaining -= tokens
+            elif remaining > 0:
+                # Partial: extract relevant sections or truncate
+                truncated = self._extract_relevant_sections(content, prompt, remaining)
+                result[filename] = truncated
+                token_counts[filename] = estimate_tokens(truncated)
+                remaining = 0
+            else:
+                break  # Budget exhausted
+
+        return result, token_counts
+
+    def _select_on_demand_files(
+        self, prompt: str, available: List[str], budget_mode: str = "balanced"
+    ) -> List[str]:
+        """Select on-demand files relevant to the prompt using keyword matching.
+
+        Args:
+            prompt: User prompt to match against
+            available: List of available on-demand filenames
+            budget_mode: Budget mode (minimal requires 2+ matches, generous loads all)
+
+        Returns:
+            List of selected filenames
+        """
+        if budget_mode == "generous":
+            return list(available)
+
+        prompt_lower = prompt.lower()
+        min_matches = 2 if budget_mode == "minimal" else 1
+        selected: List[str] = []
+
+        for filename in available:
+            keywords = MEMORY_FILE_KEYWORDS.get(filename, [])
+            match_count = sum(1 for kw in keywords if kw in prompt_lower)
+            if match_count >= min_matches:
+                selected.append(filename)
+
+        return selected
+
+    def _parse_markdown_sections(self, content: str) -> List[Dict[str, Any]]:
+        """Parse markdown content into sections by headers.
+
+        Skips '#' characters inside fenced code blocks.
+        Returns list of dicts with 'header', 'level', 'content'.
+        """
+        sections: List[Dict[str, Any]] = []
+        lines = content.split("\n")
+        current_header = ""
+        current_level = 0
+        current_lines: List[str] = []
+        in_code_block = False
+
+        for line in lines:
+            stripped = line.strip()
+
+            # Track fenced code blocks
+            if stripped.startswith("```"):
+                in_code_block = not in_code_block
+
+            # Check for headers (only outside code blocks)
+            if not in_code_block and stripped.startswith("#"):
+                # Count header level
+                level = 0
+                for ch in stripped:
+                    if ch == "#":
+                        level += 1
+                    else:
+                        break
+
+                if level <= 6 and (len(stripped) == level or stripped[level] == " "):
+                    # Save previous section
+                    if current_lines or current_header:
+                        sections.append(
+                            {
+                                "header": current_header,
+                                "level": current_level,
+                                "content": "\n".join(current_lines),
+                            }
+                        )
+                    current_header = stripped
+                    current_level = level
+                    current_lines = []
                     continue
-            except (ValueError, OSError):
-                logger.warning("Invalid memory bank path: %s", filename)
-                continue
 
-            if filepath.exists():
-                try:
-                    with open(filepath, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        memory_bank[filename] = content
-                except Exception as e:
-                    # Log error but continue
-                    logger.warning("Could not read %s: %s", filename, e)
+            current_lines.append(line)
 
-        return memory_bank
+        # Save final section
+        if current_lines or current_header:
+            sections.append(
+                {
+                    "header": current_header,
+                    "level": current_level,
+                    "content": "\n".join(current_lines),
+                }
+            )
+
+        return sections
+
+    def _extract_relevant_sections(
+        self,
+        content: str,
+        prompt: Optional[str],
+        max_tokens: int,
+    ) -> str:
+        """Extract most relevant sections from content within token budget.
+
+        If full content fits, returns as-is. Otherwise scores sections by
+        keyword overlap with prompt, always includes preamble.
+        """
+        if estimate_tokens(content) <= max_tokens:
+            return content
+
+        if not prompt:
+            # No prompt: just truncate
+            words = content.split()
+            target_words = int(max_tokens / 1.3) if max_tokens > 0 else 0
+            return " ".join(words[:target_words])
+
+        sections = self._parse_markdown_sections(content)
+        if not sections:
+            words = content.split()
+            target_words = int(max_tokens / 1.3) if max_tokens > 0 else 0
+            return " ".join(words[:target_words])
+
+        prompt_lower = prompt.lower()
+        prompt_words = set(prompt_lower.split())
+
+        # Preamble: first section if it has no header (level 0)
+        preamble = ""
+        scorable: List[Tuple[int, Dict[str, Any]]] = []
+        for section in sections:
+            if not section["header"] and not preamble:
+                preamble = section["content"]
+            else:
+                # Score by keyword overlap
+                section_lower = (section["header"] + " " + section["content"]).lower()
+                section_words = set(section_lower.split())
+                score = len(prompt_words & section_words)
+                scorable.append((score, section))
+
+        # Sort by score descending
+        scorable.sort(key=lambda x: x[0], reverse=True)
+
+        # Build result within budget
+        parts: List[str] = []
+        used = 0
+        total_sections = len(scorable)
+        included = 0
+
+        if preamble:
+            preamble_tokens = estimate_tokens(preamble)
+            if preamble_tokens <= max_tokens:
+                parts.append(preamble)
+                used += preamble_tokens
+
+        for _score, section in scorable:
+            section_text = section["header"] + "\n" + section["content"]
+            section_tokens = estimate_tokens(section_text)
+            if used + section_tokens <= max_tokens:
+                parts.append(section_text)
+                used += section_tokens
+                included += 1
+            else:
+                break
+
+        if included < total_sections:
+            parts.append(f"\n*[Truncated: {included} of {total_sections} sections shown]*")
+
+        return "\n\n".join(parts)
+
+    def _load_memory_bank(
+        self, prompt: Optional[str] = None
+    ) -> Tuple[Dict[str, str], Dict[str, Dict[str, Any]]]:
+        """Load memory bank files with on-demand selection and token budget.
+
+        Returns (content dict, metadata dict).
+        """
+        auto_load_content: Dict[str, str] = {}
+        on_demand_content: Dict[str, str] = {}
+        metadata: Dict[str, Dict[str, Any]] = {}
+
+        # Get configuration
+        auto_load_files = self.config.get_memory_bank_files()
+        all_on_demand_files = self.config.get_on_demand_files()
+        token_budget = self.config.get_standing_context_tokens()
+
+        # Get budget mode from settings
+        memory_config = self.config.settings.get("memory_bank", {})
+        budget_mode = memory_config.get("standing_context_budget", "balanced")
+        staleness_days = memory_config.get("staleness_warning_days", 30)
+
+        # Apply budget multiplier
+        multiplier = MEMORY_BANK_BUDGET_MULTIPLIERS.get(budget_mode, 1.0)
+        effective_budget = int(token_budget * multiplier)
+
+        # Load auto_load files
+        for filename in auto_load_files:
+            content = self._validate_and_read_file(filename)
+            if content is not None:
+                auto_load_content[filename] = content
+                filepath = self.memory_bank_path / filename
+                staleness = self._get_file_staleness(filepath, staleness_days)
+                metadata[filename] = {
+                    "category": "auto_load",
+                    "tokens": estimate_tokens(content),
+                    **staleness,
+                }
+
+        # Select and load on-demand files
+        if prompt and all_on_demand_files:
+            selected_on_demand = self._select_on_demand_files(
+                prompt, all_on_demand_files, budget_mode
+            )
+        else:
+            selected_on_demand = []
+
+        for filename in selected_on_demand:
+            if filename in auto_load_content:
+                continue  # Already loaded as auto_load
+            content = self._validate_and_read_file(filename)
+            if content is not None:
+                on_demand_content[filename] = content
+                filepath = self.memory_bank_path / filename
+                staleness = self._get_file_staleness(filepath, staleness_days)
+                metadata[filename] = {
+                    "category": "on_demand",
+                    "tokens": estimate_tokens(content),
+                    **staleness,
+                }
+
+        # Enforce token budget
+        final_content, token_counts = self._enforce_token_budget(
+            auto_load_content, on_demand_content, effective_budget, prompt
+        )
+
+        # Update metadata with final token counts
+        for filename, tokens in token_counts.items():
+            if filename in metadata:
+                metadata[filename]["tokens"] = tokens
+
+        return final_content, metadata
 
     def _get_project_info(self) -> Dict[str, Any]:
         """Get basic project information"""
@@ -343,19 +730,25 @@ class ContextBuilder:
         except Exception:
             return None
 
-    async def build_context_async(self, include_memory: bool = True) -> "DevAIDContext":
+    async def build_context_async(
+        self,
+        include_memory: bool = True,
+        prompt: Optional[str] = None,
+    ) -> "DevAIDContext":
         """
         Build complete Dev-AID context using async subprocess calls
 
         Args:
             include_memory: Whether to include memory bank files
+            prompt: Optional user prompt for query-aware on-demand loading
 
         Returns:
             DevAIDContext object
         """
-        memory_bank = {}
+        memory_bank: Dict[str, str] = {}
+        memory_bank_metadata: Dict[str, Dict[str, Any]] = {}
         if include_memory:
-            memory_bank = self._load_memory_bank()
+            memory_bank, memory_bank_metadata = self._load_memory_bank(prompt=prompt)
 
         project_info = self._get_project_info()
 
@@ -370,6 +763,7 @@ class ContextBuilder:
             project_info=project_info,
             git_context=git_context,
             active_skills=active_skills,
+            memory_bank_metadata=memory_bank_metadata,
         )
 
     async def gather_mcp_context(
@@ -756,7 +1150,31 @@ class ContextBuilder:
                     sections.append("\n### Active Context")
                 else:
                     sections.append(f"\n### {filename}")
+
+                # Add staleness annotation if metadata available
+                file_meta = context.memory_bank_metadata.get(filename, {})
+                if file_meta:
+                    age_human = file_meta.get("age_human", "")
+                    tokens = file_meta.get("tokens", 0)
+                    is_stale = file_meta.get("is_stale", False)
+                    if is_stale:
+                        sections.append(
+                            f"*Last updated: {age_human}"
+                            f" — WARNING: may be outdated | {tokens} tokens*"
+                        )
+                    elif age_human:
+                        sections.append(f"*Last updated: {age_human} | {tokens} tokens*")
+
                 sections.append(content)
+
+            # Write-back maintenance reminder
+            sections.append("\n### Memory Bank Maintenance")
+            sections.append(
+                "Update relevant .dev-aid/memory-bank/ files when you"
+                " establish new patterns,\nmake architecture decisions,"
+                " or identify security concerns. Append with timestamps.\n"
+                "Always update activeContext.md at session end."
+            )
 
         # MCP Context
         if context.mcp_context:

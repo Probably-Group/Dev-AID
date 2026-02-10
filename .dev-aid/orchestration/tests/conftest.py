@@ -52,7 +52,20 @@ def mock_dev_aid_root(temp_dir):
         "orchestration_mode": "solo",
         "default_model": "claude-sonnet",
         "enabled_providers": ["claude"],
-        "memory_bank": {"auto_load": ["activeContext.md"]},
+        "memory_bank": {
+            "auto_load": ["activeContext.md"],
+            "on_demand": [
+                "patterns.md",
+                "decisions.md",
+                "security.md",
+                "performance.md",
+                "testing.md",
+                "chaos.md",
+            ],
+            "standing_context_tokens": 1000,
+            "standing_context_budget": "balanced",
+            "staleness_warning_days": 30,
+        },
     }
 
     routing = {

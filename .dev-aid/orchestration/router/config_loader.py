@@ -325,6 +325,16 @@ class ConfigLoader:
         """Get path to memory bank directory"""
         return self.root / ".dev-aid" / "memory-bank"
 
+    def get_on_demand_files(self) -> List[str]:
+        """Get list of memory bank on-demand files"""
+        memory_config = self.settings.get("memory_bank", {})
+        return cast(List[str], memory_config.get("on_demand", []))
+
+    def get_standing_context_tokens(self) -> int:
+        """Get standing context token budget"""
+        memory_config = self.settings.get("memory_bank", {})
+        return cast(int, memory_config.get("standing_context_tokens", 1000))
+
 
 def load_config(dev_aid_root: Optional[Path] = None) -> ConfigLoader:
     """

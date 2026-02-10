@@ -110,6 +110,8 @@ class TestMemoryBankPathTraversal:
         config.settings = {"project_name": "test"}
         config.get_orchestration_mode.return_value = "solo"
         config.get_enabled_providers.return_value = ["claude"]
+        config.get_on_demand_files.return_value = []
+        config.get_standing_context_tokens.return_value = 1000
 
         memory_bank_dir = temp_dir / ".dev-aid" / "memory-bank"
         memory_bank_dir.mkdir(parents=True, exist_ok=True)
@@ -130,7 +132,7 @@ class TestMemoryBankPathTraversal:
         (memory_dir / "context.md").write_text("# Context")
         mock_config.get_memory_bank_files.return_value = ["context.md"]
 
-        result = context_builder._load_memory_bank()
+        result, _metadata = context_builder._load_memory_bank()
         assert "context.md" in result
         assert result["context.md"] == "# Context"
 
@@ -140,14 +142,14 @@ class TestMemoryBankPathTraversal:
         """Filenames with '..' are blocked."""
         mock_config.get_memory_bank_files.return_value = ["../../etc/passwd"]
 
-        result = context_builder._load_memory_bank()
+        result, _metadata = context_builder._load_memory_bank()
         assert len(result) == 0
 
     def test_absolute_path_blocked(self, context_builder: Any, mock_config: MagicMock) -> None:
         """Absolute filenames are blocked."""
         mock_config.get_memory_bank_files.return_value = ["/etc/passwd"]
 
-        result = context_builder._load_memory_bank()
+        result, _metadata = context_builder._load_memory_bank()
         assert len(result) == 0
 
     def test_traversal_logged(

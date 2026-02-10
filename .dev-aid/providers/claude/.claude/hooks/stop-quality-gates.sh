@@ -37,10 +37,14 @@ if git diff --cached 2>/dev/null | grep -qE "API_KEY|SECRET|PASSWORD"; then
 fi
 
 # Quality Gate 2: Memory Bank Sync Reminder
-if [ -f "$MEMORY_BANK/CLAUDE-activeContext.md" ]; then
+if [ -d "$MEMORY_BANK" ]; then
   echo ""
-  echo "💡 Consider updating memory bank:"
-  echo "   Run: /update-memory-bank"
+  echo "💡 Consider updating memory bank files:"
+  echo "   - activeContext.md — if sprint focus or progress changed"
+  echo "   - patterns.md — if new coding patterns were established"
+  echo "   - decisions.md — if architecture decisions were made"
+  echo "   - security.md — if security concerns were identified"
+  echo "   Append with timestamp: - **$(date +%Y-%m-%d)**: [what changed]"
   echo ""
 fi
 

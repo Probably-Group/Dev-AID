@@ -109,6 +109,23 @@ ${tech_stack}
 4. **Test thoroughly**: Verify changes work
 5. **Update context**: Note significant changes in activeContext.md
 
+## Memory Bank Updates
+
+Update the appropriate file when you learn something significant:
+
+| File | Update When |
+|------|-------------|
+| \`activeContext.md\` | Sprint focus changes, session ends with progress |
+| \`patterns.md\` | New coding pattern established |
+| \`decisions.md\` | Architecture decision made (add ADR entry) |
+| \`security.md\` | Security requirement or vulnerability identified |
+| \`testing.md\` | Testing strategy changes |
+| \`performance.md\` | Performance baselines change |
+
+**How**: Read the file first. Append under the appropriate section with timestamp:
+\`- **YYYY-MM-DD**: [what was learned]\`
+Do NOT delete existing content unless explicitly asked.
+
 ---
 
 *This file is managed by Dev-AID. Memory-bank provides shared team knowledge.*
@@ -168,6 +185,23 @@ ${tech_stack}
 4. **Implement carefully**: Small, focused changes
 5. **Update context**: Note changes in activeContext.md
 
+## Memory Bank Updates
+
+Update the appropriate file when you learn something significant:
+
+| File | Update When |
+|------|-------------|
+| \`activeContext.md\` | Sprint focus changes, session ends with progress |
+| \`patterns.md\` | New coding pattern established |
+| \`decisions.md\` | Architecture decision made (add ADR entry) |
+| \`security.md\` | Security requirement or vulnerability identified |
+| \`testing.md\` | Testing strategy changes |
+| \`performance.md\` | Performance baselines change |
+
+**How**: Read the file first. Append under the appropriate section with timestamp:
+\`- **YYYY-MM-DD**: [what was learned]\`
+Do NOT delete existing content unless explicitly asked.
+
 ---
 
 *This file is managed by Dev-AID. Memory-bank provides shared team knowledge.*
@@ -225,6 +259,23 @@ ${tech_stack}
 3. **Implement efficiently**: Use rapid iteration
 4. **Test thoroughly**: Verify changes work
 5. **Update context**: Note changes in activeContext.md
+
+## Memory Bank Updates
+
+Update the appropriate file when you learn something significant:
+
+| File | Update When |
+|------|-------------|
+| \`activeContext.md\` | Sprint focus changes, session ends with progress |
+| \`patterns.md\` | New coding pattern established |
+| \`decisions.md\` | Architecture decision made (add ADR entry) |
+| \`security.md\` | Security requirement or vulnerability identified |
+| \`testing.md\` | Testing strategy changes |
+| \`performance.md\` | Performance baselines change |
+
+**How**: Read the file first. Append under the appropriate section with timestamp:
+\`- **YYYY-MM-DD**: [what was learned]\`
+Do NOT delete existing content unless explicitly asked.
 
 ---
 

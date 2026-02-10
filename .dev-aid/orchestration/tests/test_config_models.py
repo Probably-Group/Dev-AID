@@ -41,6 +41,49 @@ class TestSettingsConfig:
         assert config.memory_bank is not None
         assert len(config.memory_bank.auto_load) == 2
 
+    def test_memory_bank_on_demand(self):
+        """Test memory bank on_demand field"""
+        config = MemoryBankConfig(on_demand=["patterns.md", "security.md"])
+        assert config.on_demand == ["patterns.md", "security.md"]
+
+    def test_memory_bank_on_demand_default(self):
+        """Test on_demand defaults to empty list"""
+        config = MemoryBankConfig()
+        assert config.on_demand == []
+
+    def test_memory_bank_standing_context_tokens(self):
+        """Test standing_context_tokens field"""
+        config = MemoryBankConfig(standing_context_tokens=2000)
+        assert config.standing_context_tokens == 2000
+
+    def test_memory_bank_standing_context_tokens_default(self):
+        """Test standing_context_tokens default"""
+        config = MemoryBankConfig()
+        assert config.standing_context_tokens == 1000
+
+    def test_memory_bank_budget_valid(self):
+        """Test valid standing_context_budget values"""
+        for budget in ["minimal", "balanced", "generous"]:
+            config = MemoryBankConfig(standing_context_budget=budget)
+            assert config.standing_context_budget == budget
+
+    def test_memory_bank_budget_invalid(self):
+        """Test invalid standing_context_budget is rejected"""
+        import pytest
+
+        with pytest.raises(ValueError, match="Invalid standing_context_budget"):
+            MemoryBankConfig(standing_context_budget="unlimited")
+
+    def test_memory_bank_staleness_warning_days(self):
+        """Test staleness_warning_days field"""
+        config = MemoryBankConfig(staleness_warning_days=14)
+        assert config.staleness_warning_days == 14
+
+    def test_memory_bank_staleness_warning_days_default(self):
+        """Test staleness_warning_days default"""
+        config = MemoryBankConfig()
+        assert config.staleness_warning_days == 30
+
 
 class TestRoutingConfig:
     """Tests for RoutingConfig model"""

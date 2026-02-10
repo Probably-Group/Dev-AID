@@ -1,7 +1,7 @@
 ---
 name: accessibility-wcag
 version: 2.0.0
-description: "WCAG 2.2 compliance patterns for accessible web applications with ARIA, keyboard navigation, and screen reader support."
+description: "WCAG 2.2 compliance patterns for accessible web applications with ARIA, keyboard navigation, and screen reader support. Use when implementing accessibility features, auditing WCAG compliance, or fixing a11y issues. Do NOT use for general UI design decisions (use ui-ux-expert)."
 risk_level: HIGH
 ---
 
@@ -812,3 +812,7 @@ test.describe('Accessibility', () => {
 - [ ] Skip links provided
 - [ ] Landmarks properly used (main, nav, etc.)
 - [ ] Reduced motion preference respected
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

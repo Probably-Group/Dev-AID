@@ -1,6 +1,6 @@
 ---
 name: test-runner
-description: Auto-run relevant tests on file save
+description: "Auto-runs relevant tests on file save with smart test file mapping and fast feedback. Key capabilities: jest/vitest/pytest/cargo-test/go-test detection, changed-file-to-test mapping, watch mode, bail-on-failure. Use when editing test files or source code with tests. Do NOT use for files without test coverage, documentation, or config files."
 version: 1.0.0
 category: core
 auto_load: true

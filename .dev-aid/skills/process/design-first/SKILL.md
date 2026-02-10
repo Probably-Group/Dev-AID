@@ -1,6 +1,6 @@
 ---
 name: design-first
-description: "Think before coding - explore options before committing to implementation"
+description: "Enforces think-before-coding by requiring design exploration with 2-3 options before any implementation. Key capabilities: YAGNI enforcement, decision matrices, design document templates, deep research integration. Use when building new features, making architectural decisions, integrating external systems. Do NOT use for bug fixes, trivial changes, small refactors, or documentation updates."
 risk_level: low
 version: 1.0.0
 domain: process/planning
@@ -219,7 +219,39 @@ Design-first is for:
 
 ---
 
-## 7. References
+## 7. Rollback Procedures
+
+### Triggers
+- Chosen design option proves infeasible during implementation
+- New constraints discovered that invalidate the design decision
+- Stakeholder feedback requires fundamental design change
+
+### Steps
+- Archive the current design doc: `cp DESIGN.md DESIGN-v1-rejected.md`
+- Document why the design was rejected in the decision log (`.dev-aid/memory-bank/decisions.md`)
+- Revert any implementation code started from the rejected design
+- Return to Phase 2 (Exploration) with the new constraints added
+
+### Reset
+- Re-read original requirements to ensure nothing was misunderstood
+- Clear any implementation artifacts from the rejected design
+- Start a fresh design doc with lessons learned from the failed attempt
+
+### Abandon vs. Retry
+- **Retry** design exploration if only one option was invalidated — explore remaining options
+- **Retry** with additional research (`dev-aid-research`) if the domain is unfamiliar
+- **Abandon** design-first and use iterative prototyping if requirements are too uncertain to design upfront
+- **Abandon** and escalate if constraints are contradictory — the problem definition needs revision
+
+---
+
+## 8. Scripts
+
+- `scripts/validate-design.sh` — Check design doc has required sections (Problem, Constraints, Options, Decision), validates at least 2 options, and checks for decision rationale
+
+---
+
+## 9. References
 
 For detailed information, see:
 - `references/design-templates.md` - Templates for common design patterns

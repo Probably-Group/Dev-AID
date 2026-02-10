@@ -1,7 +1,8 @@
 ---
 name: harbor-expert
 version: 2.0.0
-description: "Harbor container registry with vulnerability scanning, Trivy integration, Notary signing, and RBAC."
+description: "Harbor container registry management with vulnerability scanning, Trivy integration, Notary artifact signing, and RBAC configuration. Use when deploying Harbor, configuring image scanning policies, setting up replication rules, or managing registry access control. Do NOT use for Docker Hub, ECR, GCR, or other non-Harbor registries."
+compatibility: "Harbor 2.9+, Docker/containerd"
 risk_level: HIGH
 ---
 
@@ -876,3 +877,7 @@ echo "=== All Harbor Security Tests Passed ==="
 - [ ] Network policies restrict access
 - [ ] Admin credentials from secrets
 - [ ] Webhook authentication configured
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

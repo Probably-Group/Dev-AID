@@ -1,7 +1,7 @@
 ---
 name: senior-architect
 version: 2.0.0
-description: "Architectural review patterns for identifying anti-patterns, scalability issues, and systemic problems."
+description: "Architectural review for identifying anti-patterns, scalability issues, and systemic design problems. Use when reviewing architecture, evaluating trade-offs, or diagnosing O(n squared) bottlenecks. Do NOT use for code-level refactoring (use refactoring-expert)."
 risk_level: MEDIUM
 ---
 
@@ -647,3 +647,9 @@ class TestAPIConsistency:
 - [ ] Module size: No files > 500 LOC
 - [ ] Function complexity: Cyclomatic < 10, cognitive < 15
 - [ ] Parameter count: Functions have < 5 parameters
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

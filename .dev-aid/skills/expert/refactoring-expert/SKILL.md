@@ -1,7 +1,7 @@
 ---
 name: refactoring-expert
 version: 2.0.0
-description: "Legacy code refactoring with technical debt reduction, incremental migration, and test coverage."
+description: "Legacy code refactoring with technical debt reduction, incremental migration, and safe transformation patterns. Use when refactoring legacy code, reducing tech debt, or modernizing codebases. Do NOT use for greenfield architecture (use senior-architect)."
 risk_level: MEDIUM
 ---
 
@@ -533,3 +533,9 @@ class TestSecurityPreservation:
 - [ ] No feature mix: Refactoring only, no new functionality
 - [ ] Dependency injection: Breaking hard-coded dependencies
 - [ ] Guard clauses: Using early returns for clarity
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,8 @@
 ---
 name: cicd-expert
 version: 2.0.0
-description: "CI/CD pipeline design for GitHub Actions, GitLab CI with security gates, caching, and deployment strategies."
+description: "CI/CD pipeline design for GitHub Actions and GitLab CI with security gates, caching, artifact management, and deployment strategies. Use when creating workflows, optimizing build pipelines, adding security scanning steps, or configuring deployment environments. Do NOT use for ArgoCD GitOps delivery (use argo-expert) or desktop app code signing pipelines (use ci-cd)."
+compatibility: "GitHub Actions or GitLab CI"
 risk_level: MEDIUM
 ---
 
@@ -266,3 +267,9 @@ Test coverage requirements:
 - [ ] Secrets: From environment, never hardcoded
 - [ ] Error handling: Fail secure, no sensitive data in errors
 - [ ] Dependencies: Using secure versions
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

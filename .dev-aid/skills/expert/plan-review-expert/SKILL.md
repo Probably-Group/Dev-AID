@@ -1,7 +1,7 @@
 ---
 name: plan-review-expert
 version: 2.0.0
-description: "Implementation plan review for identifying critical flaws, missing edge cases, and better alternatives."
+description: "Implementation plan review for identifying critical flaws, missing edge cases, and better alternatives. Use when reviewing implementation plans, technical proposals, or design documents. Do NOT use for code review (use appsec-expert)."
 risk_level: LOW
 ---
 
@@ -538,3 +538,9 @@ class TestPlanReview:
 - [ ] Alternatives: At least one alternative considered
 - [ ] Missing sections: All critical sections present
 - [ ] Antipattern scan: No architectural antipatterns detected
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

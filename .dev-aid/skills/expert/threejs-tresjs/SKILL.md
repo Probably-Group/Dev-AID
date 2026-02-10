@@ -1,7 +1,8 @@
 ---
 name: threejs-tresjs
 version: 2.0.0
-description: "3D rendering with Three.js and TresJS for Vue with scene management and optimization."
+description: "3D rendering with Three.js and TresJS for Vue with scene management, WebGL optimization, and asset loading. Use when building 3D scenes, integrating Three.js with Vue, or optimizing WebGL performance. Do NOT use for 2D canvas rendering or non-WebGL graphics."
+compatibility: "Three.js r160+, TresJS 4+, Vue 3.3+"
 risk_level: MEDIUM
 ---
 
@@ -505,3 +506,7 @@ describe('Animation timing', () => {
 - [ ] Animation timing: Using Clock, delta capped
 - [ ] Texture loading: Async with loading manager
 - [ ] Vue integration: shallowRef for Three.js objects
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

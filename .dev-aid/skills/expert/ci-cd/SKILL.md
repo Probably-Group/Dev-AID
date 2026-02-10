@@ -1,7 +1,7 @@
 ---
 name: ci-cd
 version: 2.0.0
-description: "Desktop app CI/CD pipelines with code signing, notarization, artifact management, and release automation."
+description: "Desktop application CI/CD pipelines with code signing, notarization, artifact management, and release automation. Use when building Tauri/Electron release pipelines, configuring code signing certificates, setting up Apple notarization, or automating desktop app distribution. Do NOT use for server-side CI/CD or web deployment pipelines (use cicd-expert)."
 risk_level: HIGH
 ---
 
@@ -680,3 +680,7 @@ actionlint .github/workflows/*.yml
 - [ ] Concurrency controls prevent race conditions
 - [ ] Environment protection rules for production
 - [ ] Caching optimized for performance
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

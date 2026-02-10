@@ -1,7 +1,7 @@
 ---
 name: ui-ux-expert
 version: 2.0.0
-description: "UI/UX expertise for user research, usability testing, and responsive design systems."
+description: "UI/UX expertise for user research, usability testing, responsive design systems, and frontend security patterns. Use when conducting user research, planning usability tests, or designing responsive layouts. Do NOT use for accessibility compliance auditing (use accessibility-wcag)."
 risk_level: LOW
 ---
 
@@ -667,3 +667,7 @@ describe('Dropdown', () => {
 - [ ] Frame protection: X-Frame-Options, CSP frame-ancestors
 - [ ] Sensitive data: Copy protection, masked display
 - [ ] Focus management: Visible focus indicators, logical tab order
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,6 +1,6 @@
 ---
 name: tdd-protocol
-description: "Enforce RED-GREEN-REFACTOR cycle - no production code without failing test first"
+description: "Enforces strict RED-GREEN-REFACTOR TDD cycle requiring a failing test before any production code. Key capabilities: gate enforcement (strict/warning/off), test template suggestions via FAISS, bug-fix TDD variant, rationalization detection. Use when implementing features, fixing bugs with code changes. Do NOT use for documentation, config updates, exploratory prototyping, or refactoring-only changes."
 risk_level: low
 version: 1.0.0
 domain: process/quality
@@ -233,7 +233,39 @@ Track TDD adherence:
 
 ---
 
-## 7. References
+## 7. Rollback Procedures
+
+### Triggers
+- Implementation code was written before the failing test (protocol violation)
+- Refactoring broke existing tests (REFACTOR phase regression)
+- Test was written to match implementation instead of specifying behavior
+
+### Steps
+- **Protocol violation**: Delete implementation code, keep only tests: `git checkout -- <impl-files>`
+- **Refactor regression**: Immediately revert the refactor: `git checkout -- <changed-files>`, return to GREEN state
+- **Test contamination**: Delete both test and implementation, start the RED-GREEN-REFACTOR cycle fresh
+- For partial reverts: `git stash push -m "save-work"`, revert, then selectively re-apply test files only
+
+### Reset
+- Return to the last GREEN state (all tests passing): `git log --oneline` to find it
+- Verify GREEN state by running the full test suite
+- Begin the next RED phase from this clean GREEN state
+
+### Abandon vs. Retry
+- **Retry** the RED phase if the test was testing the wrong behavior — rewrite the test
+- **Retry** with a simpler test if the original test was too complex to implement incrementally
+- **Abandon** TDD for this specific change if the user explicitly requests it (`skip TDD for this`)
+- **Abandon** TDD cycle and switch to test-after only for pure configuration or documentation changes
+
+---
+
+## 8. Scripts
+
+- `scripts/tdd-gate.sh` — Check for failing tests before allowing implementation code, detect project type, run test framework, and verify RED phase
+
+---
+
+## 9. References
 
 For detailed information, see:
 - `references/test-templates.md` - Language-specific test templates

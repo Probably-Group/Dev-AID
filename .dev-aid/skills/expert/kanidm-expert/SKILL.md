@@ -1,7 +1,8 @@
 ---
 name: kanidm-expert
 version: 2.0.0
-description: "Kanidm identity management with OAuth2/OIDC, LDAP compatibility, and WebAuthn authentication."
+description: "Kanidm identity management server with OAuth2/OIDC provider configuration, LDAP compatibility, and WebAuthn passwordless authentication. Use when deploying Kanidm, configuring OAuth2 clients in Kanidm, setting up LDAP gateway, or implementing WebAuthn with Kanidm as IdP. Do NOT use for general OAuth2/OIDC flows without Kanidm or other identity providers like Keycloak or Auth0."
+compatibility: "Kanidm 1.3+"
 risk_level: HIGH
 ---
 
@@ -824,3 +825,7 @@ echo "=== All Kanidm Security Tests Passed ==="
 - [ ] LDAP uses LDAPS only
 - [ ] Session timeouts configured
 - [ ] Credential policies defined
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

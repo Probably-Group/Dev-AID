@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: "Root cause first, fix second - prevent random fix attempts"
+description: "Enforces root-cause-first debugging with a four-phase protocol: investigate, analyze patterns, test hypotheses, then implement fix. Key capabilities: stack trace analysis, data flow tracing, 3-strike rule, FAISS codebase search. Use when investigating bugs, unexpected behavior, error messages, stack traces. Do NOT use for known simple fixes, typos, or config changes."
 risk_level: low
 version: 1.0.0
 domain: process/debugging
@@ -234,7 +234,38 @@ Track debugging effectiveness:
 
 ---
 
-## 6. References
+## 6. Rollback Procedures
+
+### Triggers
+- A fix attempt introduces new regressions
+- 3-strike limit reached without identifying root cause
+- Hypothesis proved wrong after code changes were made
+
+### Steps
+- `git stash` or `git stash push -m "failed-fix-attempt-N"` to save the failed attempt for reference
+- `git checkout -- <files>` to revert specific files to last known-good state
+- `git log --oneline -10` to identify the last working commit, then `git revert <commit>` if a broken fix was committed
+
+### Reset
+- Return to the commit before debugging started: `git log --oneline` to find it, then create a fresh branch
+- Clear any temporary debugging artifacts (log files, debug prints, temporary test files)
+- Re-read the original error with fresh eyes after a break
+
+### Abandon vs. Retry
+- **Retry** with a completely new hypothesis if the first 1-2 attempts fail
+- **Retry** after gathering more data (additional logging, different reproduction steps)
+- **Abandon** the current approach after 3 strikes — escalate to architectural review
+- **Abandon** if the bug is in a third-party dependency — file an upstream issue instead
+
+---
+
+## 7. Scripts
+
+- `scripts/check-debugging-state.sh` — Validate hypothesis doc exists, reproduction steps are documented, and track the 3-strike counter
+
+---
+
+## 8. References
 
 For detailed information, see:
 - `references/investigation-patterns.md` - Common investigation patterns

@@ -1,7 +1,7 @@
 ---
 name: database-design
 version: 2.0.0
-description: "Database schema design with normalization, indexing strategies, full-text search, and migration patterns."
+description: "Database schema design with normalization, indexing strategies, full-text search, and migration patterns. Use when designing schemas, optimizing indexes, planning migrations, or choosing normalization levels. Do NOT use for specific database engines (use sqlite, sqlcipher, or surrealdb-expert)."
 risk_level: HIGH
 ---
 
@@ -456,3 +456,9 @@ def test_cascade_delete(db):
 - [ ] Application user has minimum permissions
 - [ ] Sensitive data encrypted or hashed
 - [ ] Audit logging for sensitive tables
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

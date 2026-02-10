@@ -1,7 +1,8 @@
 ---
 name: rust
 version: 2.0.0
-description: "Rust systems programming with memory safety, error handling, async Tokio, and FFI patterns."
+description: "Rust systems programming with memory safety, error handling, async Tokio, and FFI patterns. Use when writing Rust code, designing safe abstractions, or implementing async services. Do NOT use for Tauri-specific patterns like IPC or plugins (use tauri)."
+compatibility: "Rust 1.70+, cargo"
 risk_level: MEDIUM
 ---
 
@@ -575,3 +576,7 @@ mod tests {
 - [ ] Error handling: thiserror, no internal details exposed
 - [ ] Dependencies audited: cargo audit passes
 - [ ] Tests: Security tests for boundaries
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

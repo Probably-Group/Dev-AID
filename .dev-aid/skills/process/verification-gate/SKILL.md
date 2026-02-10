@@ -1,6 +1,6 @@
 ---
 name: verification-gate
-description: "Prevent false completion claims - every 'done' must have evidence"
+description: "Prevents false completion claims by requiring evidence for every done/fixed/finished assertion. Key capabilities: five-step verification, language-aware test/build/lint commands, exit code validation. Use when finishing tasks, claiming done, marking work complete. Do NOT use for in-progress work, exploration, or mid-task check-ins."
 risk_level: low
 version: 1.0.0
 domain: process/quality
@@ -148,7 +148,39 @@ Log verification metrics:
 
 ---
 
-## 5. References
+## 5. Rollback Procedures
+
+### Triggers
+- Verification command produces false positives (reports pass when code is broken)
+- Verification runs modify project state (e.g., build artifacts corrupt working directory)
+- Wrong project type detected, causing incorrect commands to run
+
+### Steps
+- `git checkout -- .` to discard any file changes caused by verification commands
+- `git clean -fd` to remove build artifacts or generated files if verification polluted the tree
+- For Python: `rm -rf __pycache__ .pytest_cache .mypy_cache` to clear caches
+- For Node: `rm -rf node_modules/.cache dist/` to clear build caches
+
+### Reset
+- Re-run verification with `--verbose` flag to inspect actual command output
+- Manually run each verification step individually to isolate which check is misbehaving
+- If project type detection is wrong, specify the project directory explicitly
+
+### Abandon vs. Retry
+- **Retry** if verification fails due to environment issues (missing tool, wrong Python version)
+- **Retry** after installing missing tools (e.g., `pip install flake8 mypy`)
+- **Abandon** verification gate if the project has no test suite yet — focus on writing tests first
+- **Abandon** if the project type is genuinely unsupported — document manually instead
+
+---
+
+## 6. Scripts
+
+- `scripts/verify-completion.sh` — Auto-detect project type and run tests, lint, and type checks to verify completion claims
+
+---
+
+## 7. References
 
 For detailed information, see:
 - `references/language-commands.md` - Complete per-language verification commands

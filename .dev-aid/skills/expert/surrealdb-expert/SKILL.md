@@ -1,7 +1,8 @@
 ---
 name: surrealdb-expert
 version: 2.0.0
-description: "SurrealDB multi-model database with SurrealQL, graph queries, and real-time subscriptions."
+description: "SurrealDB multi-model database with SurrealQL, graph queries, real-time subscriptions, and document storage. Use when designing SurrealDB schemas, writing SurrealQL, or building multi-model data layers. Do NOT use for traditional SQL databases (use database-design)."
+compatibility: "SurrealDB 1.4+"
 risk_level: MEDIUM
 ---
 
@@ -454,3 +455,7 @@ class TestPermissions:
 - [ ] Live queries have cleanup handlers
 - [ ] Transactions used for multi-step operations
 - [ ] No root credentials in application code
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: design-systems
 version: 2.0.0
-description: "Design system architecture with token-based theming, component APIs, and cross-platform consistency."
+description: "Design system architecture with token-based theming, component APIs, and cross-platform consistency. Use when building design systems, defining design tokens, or creating component libraries. Do NOT use for individual component styling (use tailwindcss)."
 risk_level: LOW
 ---
 
@@ -795,3 +795,7 @@ describe('Theme', () => {
 - [ ] Responsive breakpoints defined
 - [ ] Color contrast meets WCAG AA
 - [ ] Components tested with axe
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

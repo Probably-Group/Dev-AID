@@ -1,7 +1,8 @@
 ---
 name: SQLCipher Encrypted Database Expert
 version: 2.0.0
-description: "SQLCipher encrypted database patterns with key management, migration, and secure key derivation."
+description: "SQLCipher encrypted database patterns with key management, migration, re-keying, and secure key derivation. Use when implementing database encryption, managing encryption keys, or migrating between SQLCipher versions. Do NOT use for unencrypted SQLite databases (use sqlite)."
+compatibility: "SQLCipher 4.5+"
 risk_level: HIGH
 ---
 
@@ -764,3 +765,7 @@ class TestSecureString:
 - [ ] Memory security: Keys cleared after use
 - [ ] Backup strategy: Backup before key rotation
 - [ ] Migration path: Export/import for plain->encrypted
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

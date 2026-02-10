@@ -1,7 +1,7 @@
 ---
 name: os-keychain
 version: 2.0.0
-description: "OS keychain integration for secure credential storage on macOS Keychain, Windows Credential Manager, and Linux Secret Service."
+description: "OS keychain integration for secure credential storage on macOS Keychain, Windows Credential Manager, and Linux Secret Service. Use when storing secrets in platform keychains, implementing credential management, or securing sensitive tokens. Do NOT use for application-level secrets via environment variables."
 risk_level: HIGH
 ---
 
@@ -541,3 +541,7 @@ mod tests {
 - [ ] Platform-specific tests included
 - [ ] First-run setup flow for credentials
 - [ ] Tauri commands return generic errors only
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

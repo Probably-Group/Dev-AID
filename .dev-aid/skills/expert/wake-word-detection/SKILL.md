@@ -1,7 +1,7 @@
 ---
 name: wake-word-detection
 version: 2.0.0
-description: "Wake word detection with openWakeWord for voice-activated applications and always-on listening."
+description: "Wake word detection with openWakeWord for local keyword spotting and voice-activated triggers. Use when implementing wake words, keyword detection, or always-on listening. Do NOT use for full voice assistants or cloud wake word services."
 risk_level: MEDIUM
 ---
 
@@ -686,3 +686,7 @@ class TestCooldown:
 - [ ] Device handling: Proper stream lifecycle, error recovery
 - [ ] Callbacks: Exception handling, async support
 - [ ] Testing: Mock models for unit tests
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: model-quantization
 version: 2.0.0
-description: "Model quantization techniques for 4-bit/8-bit inference with GGUF format optimization."
+description: "Model quantization techniques for 4-bit/8-bit inference with GGUF format conversion and optimization. Use when quantizing models, converting to GGUF, or optimizing inference size. Do NOT use for model training or fine-tuning."
 risk_level: MEDIUM
 ---
 
@@ -569,3 +569,7 @@ class TestModelQuantization:
 - [ ] Inference bounds: max_tokens, temperature, top_p limited
 - [ ] Hash validation: Known models verified by hash in production
 - [ ] Timeout handling: Long operations have timeout guards
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

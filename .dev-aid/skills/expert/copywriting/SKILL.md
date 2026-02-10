@@ -3,7 +3,7 @@
 ```yaml
 name: copywriting-expert
 risk_level: LOW
-description: Expert in persuasive web copywriting, headline formulas, CTAs, tone/voice consistency, SEO copy, and conversion-focused content
+description: "Persuasive web copywriting with headline formulas, CTAs, tone/voice consistency, and conversion-focused content. Use when writing marketing copy, landing pages, or SEO content. Do NOT use for technical documentation or code comments."
 version: 1.0.0
 author: JARVIS AI Assistant
 tags: [copywriting, content, marketing, seo, conversion]
@@ -415,3 +415,7 @@ Short paragraph with one main idea.
 - `references/cta-patterns.md` - CTA optimization guide
 - `references/tone-voice-guide.md` - Brand voice development
 - `references/seo-copywriting.md` - SEO best practices
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

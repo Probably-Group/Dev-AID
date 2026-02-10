@@ -1,7 +1,7 @@
 ---
 name: glsl
 version: 2.0.0
-description: "GLSL shader programming for fragment and vertex shaders with WebGL integration and optimization."
+description: "GLSL shader programming for fragment and vertex shaders with WebGL integration and visual effects. Use when writing GLSL shaders, shader math, or GPU rendering logic. Do NOT use for high-level 3D frameworks (use threejs-tresjs)."
 risk_level: LOW
 ---
 
@@ -814,3 +814,7 @@ function createProgram(
 - [ ] Array accesses bounds-checked
 - [ ] No vendor-specific extensions
 - [ ] Performance profiled on target hardware
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

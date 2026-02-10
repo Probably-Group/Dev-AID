@@ -1,7 +1,7 @@
 ---
 name: api-expert
 version: 2.0.0
-description: "API architecture patterns for REST, GraphQL, and gRPC with versioning, rate limiting, and security best practices."
+description: "API architecture and design patterns spanning REST, GraphQL, and gRPC with versioning strategies, rate limiting, gateway configuration, and security best practices. Use when making architectural decisions about API style, designing API gateways, planning API versioning, or establishing cross-cutting API concerns. Do NOT use for specific framework implementation details like FastAPI routes or Apollo resolvers."
 risk_level: MEDIUM
 ---
 
@@ -728,3 +728,7 @@ describe('Users API', () => {
 - [ ] API versioning strategy defined
 - [ ] Pagination on list endpoints
 - [ ] OpenAPI documentation generated
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

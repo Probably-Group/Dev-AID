@@ -1,6 +1,6 @@
 ---
 name: architect-protocol
-description: "Two-agent pattern: Architect plans before Implementer executes"
+description: "Splits complex tasks into Architect (plans, no code) and Implementer (executes plan, writes code) phases with user approval gate. Key capabilities: structured plan templates, deviation protocol, model selection per role, TDD/verification integration. Use when building complex features requiring design, multi-file changes, architecture decisions. Do NOT use for simple bug fixes, one-file changes, config tweaks, or urgent hotfixes."
 risk_level: low
 version: 1.0.0
 domain: process/planning
@@ -220,3 +220,35 @@ Track architect mode effectiveness:
 - Plan deviation frequency
 - Implementation success vs solo mode
 - Time to completion comparison
+
+---
+
+## 9. Rollback Procedures
+
+### Triggers
+- Architect plan is rejected by the user after review
+- Implementation reveals fundamental flaws in the plan
+- Implementer reports a deviation that requires replanning
+
+### Steps
+- Archive the rejected plan: `cp PLAN.md PLAN-v1-rejected.md`
+- Revert implementation changes: `git revert HEAD~N..HEAD` for commits made under the rejected plan
+- Document rejection reason in the plan archive for future reference
+- Return to the Architect Phase with updated constraints
+
+### Reset
+- Delete implementation artifacts from the rejected plan
+- Clear the implementer's working state: `git checkout -- .` in the working directory
+- Re-run the Architect Phase with feedback from the failed implementation incorporated
+
+### Abandon vs. Retry
+- **Retry** architect phase if the plan was close but missed key requirements
+- **Retry** implementation with a revised plan if only specific steps were flawed
+- **Abandon** architect mode and use solo mode for urgent hotfixes or trivial changes
+- **Abandon** and escalate if architect and implementer models consistently disagree on feasibility
+
+---
+
+## 10. Scripts
+
+- `scripts/validate-plan.sh` — Verify plan has required sections (Summary, Files, Steps, Criteria, Risks), check file references exist, and validate success criteria are measurable

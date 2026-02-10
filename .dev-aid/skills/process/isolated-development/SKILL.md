@@ -1,6 +1,6 @@
 ---
 name: isolated-development
-description: "Git worktree per feature/issue - clean, isolated development environments"
+description: "Creates isolated git worktree sandboxes for each feature or issue with auto-setup and baseline verification. Key capabilities: worktree creation from issues, project type detection, dependency install, context loading. Use when starting risky changes, infrastructure modifications, new features, issue resolution. Do NOT use for documentation-only changes, single-file edits, or trivial config updates."
 risk_level: low
 version: 1.0.0
 domain: process/workflow
@@ -208,7 +208,39 @@ git worktree prune
 
 ---
 
-## 8. References
+## 8. Rollback Procedures
+
+### Triggers
+- Worktree creation fails (branch conflict, disk space, git corruption)
+- Baseline tests fail in worktree (dependency issues, environment mismatch)
+- Worktree work needs to be completely abandoned
+
+### Steps
+- `git worktree remove .worktrees/<name>` to cleanly remove the worktree
+- `git worktree remove --force .worktrees/<name>` if the worktree has uncommitted changes
+- `git branch -d <branch-name>` to delete the associated branch (use `-D` to force-delete unmerged)
+- `git worktree prune` to clean up stale worktree references
+
+### Reset
+- `git worktree list` to verify all worktrees are accounted for
+- Recreate the worktree from a clean state if the previous one was corrupted
+- If dependency installation polluted shared caches, clear them (e.g., `npm cache clean --force`)
+
+### Abandon vs. Retry
+- **Retry** worktree creation if it failed due to transient issues (disk space, network for deps)
+- **Retry** from a different base branch if baseline tests fail on the current one
+- **Abandon** and work in the main tree only if git worktree is incompatible with the project setup
+- **Abandon** the worktree if the issue/feature is cancelled — clean up with `remove --force`
+
+---
+
+## 9. Scripts
+
+- `scripts/setup-worktree.sh` — Create git worktree from current branch, install dependencies, run baseline tests, and verify clean isolation
+
+---
+
+## 10. References
 
 For detailed information, see:
 - `references/project-setup-commands.md` - Per-language setup commands

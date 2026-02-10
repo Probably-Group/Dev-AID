@@ -1,7 +1,8 @@
 ---
 name: tauri
 version: 2.0.0
-description: "Tauri desktop app development with Rust backend, IPC patterns, and native OS integration."
+description: "Tauri 2.0 desktop app development with Rust backend, IPC patterns, plugin system, and native OS integration. Use when building Tauri apps, configuring IPC commands, or integrating native features. Do NOT use for Electron or web-only applications."
+compatibility: "Rust 1.70+, Tauri 2.0+, Node.js 18+"
 risk_level: HIGH
 ---
 
@@ -469,3 +470,7 @@ mod tests {
 - [ ] No `unwrap()` in command handlers
 - [ ] State properly managed with Mutex for shared data
 - [ ] Tests cover path traversal and input validation
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

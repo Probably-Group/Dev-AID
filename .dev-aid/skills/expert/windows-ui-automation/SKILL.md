@@ -1,7 +1,8 @@
 ---
 name: windows-ui-automation
 version: 2.0.0
-description: "Windows UI Automation patterns with UIA, Win32 API, and accessibility tree navigation."
+description: "Windows UI Automation with UIA, Win32 API, and accessibility tree navigation for desktop testing and control. Use when automating Windows desktop apps, UIA patterns, or Win32 interactions. Do NOT use for macOS or Linux automation."
+compatibility: "Windows 10+, .NET or Win32 API access"
 risk_level: HIGH
 ---
 
@@ -587,3 +588,7 @@ mod tests {
 - [ ] Event-based: Use events instead of polling
 - [ ] Input method: SendInput, not deprecated APIs
 - [ ] Tree traversal: Depth and element count limits
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

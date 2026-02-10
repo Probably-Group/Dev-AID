@@ -1,7 +1,8 @@
 ---
 name: fastapi
 version: 2.0.0
-description: "FastAPI development patterns for async APIs, WebSocket endpoints, and Pydantic validation."
+description: "FastAPI development patterns for JARVIS project including async API endpoints, WebSocket communication, and Pydantic model validation. Use when building JARVIS FastAPI services, adding WebSocket endpoints, or writing Pydantic schemas for the JARVIS assistant. Do NOT use for production auth patterns like OAuth2/JWT or SQLAlchemy integration (use fastapi-expert)."
+compatibility: "Python 3.11+, FastAPI 0.115+"
 risk_level: HIGH
 ---
 
@@ -635,3 +636,7 @@ async def test_rate_limiting(client: AsyncClient):
 - [ ] Error responses don't leak internals
 - [ ] Pagination with max limits
 - [ ] Async database sessions
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

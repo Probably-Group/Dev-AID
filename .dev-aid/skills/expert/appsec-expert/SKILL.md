@@ -1,7 +1,7 @@
 ---
 name: appsec-expert
 version: 2.0.0
-description: "Application security with OWASP Top 10, threat modeling (STRIDE), secure SDLC, and penetration testing patterns."
+description: "Application security expertise covering OWASP Top 10, threat modeling (STRIDE), secure SDLC, and penetration testing patterns. Use when reviewing application code for vulnerabilities, implementing secure coding patterns, or conducting threat analysis. Do NOT use for CI/CD pipeline security (use devsecops-expert)."
 risk_level: CRITICAL
 ---
 
@@ -525,3 +525,7 @@ class TestAuthSecurity:
 - [ ] Secrets from environment, never hardcoded
 - [ ] Generic error messages to users
 - [ ] Security tests written
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

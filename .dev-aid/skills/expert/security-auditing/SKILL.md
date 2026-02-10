@@ -1,7 +1,7 @@
 ---
 name: security-auditing
 version: 2.0.0
-description: "Security audit methodology with vulnerability assessment, compliance checking, and remediation tracking."
+description: "Security audit methodology with vulnerability assessment, compliance checking, and remediation tracking. Use when conducting security audits, evaluating infrastructure compliance, or tracking remediation efforts. Do NOT use for application code review (use appsec-expert)."
 risk_level: HIGH
 ---
 
@@ -692,3 +692,9 @@ class TestSecretScanning:
 - [ ] Evidence preservation: Read-only access to targets
 - [ ] Report structure: Executive summary + detailed findings
 - [ ] Remediation: Each finding has fix guidance
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

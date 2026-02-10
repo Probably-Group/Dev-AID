@@ -1,6 +1,6 @@
 ---
 name: linter
-description: Auto-lint code on file save
+description: "Auto-detects and runs project linters on file save with auto-fix support. Key capabilities: ESLint/Prettier/Biome, Flake8/Ruff/Black, Clippy/Rustfmt, golangci-lint, ShellCheck detection and execution. Use when editing code files, after completing edits. Do NOT use for non-code files, markdown, or files in .lintignore."
 version: 1.0.0
 category: core
 auto_load: true

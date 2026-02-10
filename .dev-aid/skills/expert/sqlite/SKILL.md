@@ -1,7 +1,8 @@
 ---
 name: sqlite
 version: 2.0.0
-description: "SQLite patterns for desktop/Tauri apps with WAL mode, FTS5, and connection pooling."
+description: "SQLite patterns for desktop and embedded apps with WAL mode, FTS5, connection pooling, and migration strategies. Use when working with SQLite databases, optimizing queries, or configuring WAL mode. Do NOT use for encrypted databases (use sqlcipher)."
+compatibility: "SQLite 3.35+"
 risk_level: HIGH
 ---
 
@@ -488,3 +489,7 @@ def test_foreign_keys_enabled():
 - [ ] Connection context managers for proper cleanup
 - [ ] Read-only connections where writes not needed
 - [ ] SQLite errors not exposed to end users
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

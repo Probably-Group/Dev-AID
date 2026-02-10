@@ -1,7 +1,8 @@
 ---
 name: cilium-expert
 version: 2.0.0
-description: "Kubernetes networking with Cilium eBPF, network policies, service mesh, and Hubble observability."
+description: "Kubernetes networking with Cilium eBPF including network policies, service mesh, L7 policies, and Hubble observability. Use when writing CiliumNetworkPolicy resources, configuring eBPF-based networking, setting up Hubble monitoring, or implementing zero-trust network segmentation. Do NOT use for non-Cilium CNI plugins like Calico, Flannel, or Weave."
+compatibility: "Cilium 1.14+, Kubernetes 1.28+, Linux with eBPF"
 risk_level: HIGH
 ---
 
@@ -650,3 +651,7 @@ cilium policy get -o yaml > policies-backup.yaml
 - [ ] Cross-cluster policies use cluster identities
 - [ ] Ingress TLS termination configured
 - [ ] Rate limiting for public endpoints
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

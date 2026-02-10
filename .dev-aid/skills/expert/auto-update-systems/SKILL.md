@@ -1,7 +1,7 @@
 ---
 name: auto-update-systems
 version: 2.0.0
-description: "Auto-update implementation with signature verification, staged rollouts, and rollback capabilities for desktop apps."
+description: "Auto-update implementation with cryptographic signature verification, staged rollouts, delta updates, and rollback capabilities for desktop apps. Use when implementing Tauri updater, designing update server infrastructure, configuring update signing keys, or building staged rollout strategies. Do NOT use for manual update flows, app store distribution, or server-side deployment strategies."
 risk_level: CRITICAL
 ---
 
@@ -509,3 +509,7 @@ mod tests {
 - [ ] CI/CD signs artifacts with protected secret
 - [ ] Certificate pinning for update server
 - [ ] Installation verification after update
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

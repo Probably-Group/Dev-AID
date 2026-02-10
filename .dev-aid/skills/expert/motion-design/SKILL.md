@@ -1,7 +1,7 @@
 ---
 name: motion-design
 version: 2.0.0
-description: "Motion design principles for UI animations, transitions, easing curves, and micro-interactions."
+description: "Motion design principles for UI animations, transitions, easing curves, and micro-interactions. Use when planning animation strategies, choosing easing curves, or designing transition choreography. Do NOT use for GSAP-specific implementation (use gsap)."
 risk_level: LOW
 ---
 
@@ -595,3 +595,7 @@ describe('Motion Design Patterns', () => {
 - [ ] Cleanup: Event listeners removed on unmount
 - [ ] Timeline pattern: Using timelines for sequences, not callbacks
 - [ ] Seizure safety: No flashing > 3Hz
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

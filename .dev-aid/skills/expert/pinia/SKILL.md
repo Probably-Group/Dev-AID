@@ -1,7 +1,8 @@
 ---
 name: pinia
 version: 2.0.0
-description: "Pinia state management for Vue 3 with typed stores, plugins, and SSR hydration patterns."
+description: "Pinia state management for Vue 3 with typed stores, plugins, and SSR hydration patterns. Use when managing Vue application state, creating stores, or handling SSR hydration. Do NOT use for Vuex, Redux, or non-Vue state management."
+compatibility: "Vue 3.3+, Pinia 2.1+"
 risk_level: LOW
 ---
 
@@ -557,3 +558,7 @@ describe('Auth Store Security', () => {
 - [ ] Tests for validation and error handling
 - [ ] storeToRefs for reactive destructuring
 - [ ] $reset function for clearing state
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

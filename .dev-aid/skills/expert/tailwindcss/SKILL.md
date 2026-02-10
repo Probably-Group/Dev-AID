@@ -1,7 +1,8 @@
 ---
 name: tailwindcss
 version: 2.0.0
-description: "Tailwind CSS patterns with utility composition, custom plugins, and responsive design."
+description: "Tailwind CSS patterns with utility composition, custom plugins, responsive design, and dark mode. Use when styling with Tailwind utilities, creating custom plugins, or building responsive layouts. Do NOT use for CSS-in-JS or styled-components approaches."
+compatibility: "Tailwind CSS 3.4+, Node.js 18+"
 risk_level: LOW
 ---
 
@@ -577,3 +578,7 @@ describe('Button Component', () => {
 - [ ] Transition utilities for smooth UX
 - [ ] Custom values in theme config (not arbitrary `[...]`)
 - [ ] Form plugin for form elements
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

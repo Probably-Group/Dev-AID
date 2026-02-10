@@ -1,7 +1,7 @@
 ---
 name: prompt-engineering-expert
 version: 2.0.0
-description: "Production prompt engineering with mega-prompts, structured outputs, and injection prevention."
+description: "Production prompt engineering with mega-prompts, structured outputs, and injection prevention. Use when designing complex system prompts, mega-prompts, or production-grade prompt templates. Do NOT use for simple prompt chaining (use prompt-engineering)."
 risk_level: MEDIUM
 ---
 
@@ -660,3 +660,9 @@ class TestPromptTester:
 - [ ] State tracking: Explicit state for multi-turn conversations
 - [ ] Systematic testing: Test cases for security and functionality
 - [ ] No secrets: Prompts contain no credentials or PII
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

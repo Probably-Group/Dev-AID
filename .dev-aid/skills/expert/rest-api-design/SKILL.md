@@ -1,7 +1,7 @@
 ---
 name: rest-api-design
 version: 2.0.0
-description: "RESTful API design with resource modeling, HATEOAS, pagination, and HTTP semantics."
+description: "RESTful API design patterns with resource modeling, HATEOAS, pagination, versioning, OpenAPI specifications, and proper HTTP semantics. Use when designing REST endpoints, writing OpenAPI specs, implementing pagination strategies, or structuring API resource hierarchies. Do NOT use for GraphQL APIs (use graphql-expert) or gRPC service definitions."
 risk_level: MEDIUM
 ---
 
@@ -816,3 +816,9 @@ describe('REST API Contract', () => {
 - [ ] Request/response schemas defined
 - [ ] Rate limiting configured
 - [ ] API versioning strategy defined
+
+**Templates**: See `assets/` for reusable output templates.
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

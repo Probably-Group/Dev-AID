@@ -1,7 +1,8 @@
 ---
 name: talos-os-expert
 version: 2.0.0
-description: "Talos Linux deployment with machine configs, secure boot, disk encryption, and upgrades."
+description: "Talos Linux deployment and configuration with machine configs, secure boot, disk encryption, and OS upgrades. Use when writing talosctl commands, generating machine configs, configuring Talos secure boot, or planning Talos OS upgrades. Do NOT use for general Kubernetes cluster operations or workload troubleshooting (use talos-cluster-ops)."
+compatibility: "Talos Linux 1.6+, talosctl"
 risk_level: HIGH
 ---
 
@@ -504,3 +505,7 @@ test_live_node() {
 - [ ] Config validated before applying
 - [ ] Staged upgrade procedures documented
 - [ ] kubernetesTalosAPIAccess restricted
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

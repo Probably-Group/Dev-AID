@@ -1,7 +1,8 @@
 ---
 name: celery-expert
 version: 2.0.0
-description: "Distributed task queues with Celery, Redis/RabbitMQ backends, Flower monitoring, and beat scheduling."
+description: "Distributed task queues with Celery including Redis/RabbitMQ backends, Flower monitoring, beat scheduling, and task chaining. Use when configuring Celery workers, designing task workflows with chains and chords, setting up periodic tasks, or debugging task failures. Do NOT use for simple Python threading, non-Python task queues, or raw RabbitMQ without Celery (use rabbitmq-expert)."
+compatibility: "Python 3.11+, Celery 5.3+, Redis or RabbitMQ"
 risk_level: MEDIUM
 ---
 
@@ -545,3 +546,7 @@ class TestProcessOrder:
 - [ ] Error handling: Explicit handling, move to DLQ if permanent
 - [ ] Broker auth: Credentials from environment
 - [ ] Logging: Correlation ID (task_id) in all logs
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: web-audio-api
 version: 2.0.0
-description: "Web Audio API patterns for audio processing, synthesis, visualization, and real-time effects."
+description: "Web Audio API for browser-based audio processing, synthesis, visualization, and real-time effects. Use when building audio nodes, sound synthesis, or audio visualizations in the browser. Do NOT use for server-side audio processing."
 risk_level: LOW
 ---
 
@@ -542,3 +542,7 @@ describe('AudioGraph', () => {
 - [ ] Timing: Using AudioContext.currentTime, not setTimeout
 - [ ] Worklet parameters: Min/max values defined and enforced
 - [ ] Output clamping: Values limited to [-1, 1] range
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

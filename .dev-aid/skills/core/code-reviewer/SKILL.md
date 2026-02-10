@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Real-time code quality checks during development
+description: "Provides real-time lightweight code quality feedback on file save covering smells, security, and performance. Key capabilities: long function/deep nesting detection, N+1 query patterns, SQL injection/XSS checks, missing error handling alerts. Use when completing code changes, saving edited files. Do NOT use for documentation-only changes, config files, or non-code assets."
 version: 1.0.0
 category: core
 auto_load: true

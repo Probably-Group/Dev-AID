@@ -1,7 +1,8 @@
 ---
 name: gsap
 version: 2.0.0
-description: "GSAP animation patterns for timelines, tweens, ScrollTrigger, and complex motion sequences."
+description: "GSAP animation patterns for timelines, tweens, ScrollTrigger, and complex motion sequences. Use when implementing GSAP animations, building scroll-driven effects, or orchestrating timeline sequences. Do NOT use for CSS transitions or non-GSAP animation libraries."
+compatibility: "GSAP 3.12+"
 risk_level: LOW
 ---
 
@@ -808,3 +809,7 @@ describe('GSAP Animations', () => {
 - [ ] `will-change` cleaned up after animation
 - [ ] Timelines use labels for maintainability
 - [ ] useGSAP hook used for React integration
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

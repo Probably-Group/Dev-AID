@@ -1,7 +1,8 @@
 ---
 name: argo-expert
 version: 2.0.0
-description: "GitOps with ArgoCD, Argo Workflows, and Argo Rollouts for Kubernetes continuous delivery and progressive deployments."
+description: "GitOps with ArgoCD, Argo Workflows, and Argo Rollouts for Kubernetes continuous delivery and progressive deployments. Use when configuring ArgoCD Applications, writing Argo Workflow templates, setting up progressive rollouts, or debugging GitOps sync issues. Do NOT use for general CI/CD pipeline design without ArgoCD (use cicd-expert)."
+compatibility: "ArgoCD 2.8+, Kubernetes 1.28+"
 risk_level: HIGH
 ---
 
@@ -769,3 +770,7 @@ echo "All validations passed!"
 - [ ] AnalysisTemplates defined for Rollouts
 - [ ] Network policies restrict Argo components
 - [ ] Pod security contexts enforce non-root
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: prompt-engineering
 version: 2.0.0
-description: "Prompt construction patterns for task routing, chain-of-thought, and multi-step orchestration."
+description: "Prompt construction patterns for task routing, chain-of-thought, and multi-step orchestration. Use when building prompt chains, routing logic, or orchestrating multi-step LLM workflows. Do NOT use for mega-prompt design (use prompt-engineering-expert)."
 risk_level: MEDIUM
 ---
 
@@ -457,3 +457,7 @@ class TestPromptTemplates:
 - [ ] Few-shot diversity: Examples cover edge cases and attacks
 - [ ] Template safety: Variables explicitly declared and validated
 - [ ] Error handling: Invalid LLM output handled gracefully
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

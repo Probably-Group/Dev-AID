@@ -1,7 +1,7 @@
 ---
 name: cloud-api-integration
 version: 2.0.0
-description: "Cloud AI API integration for Claude, GPT, and Gemini with prompt injection prevention and rate limiting."
+description: "Cloud AI API integration for Claude, GPT, and Gemini with prompt injection prevention, rate limiting, and cost management. Use when integrating cloud LLM APIs, managing API keys, or building AI-powered features. Do NOT use for local LLMs (use llm-integration)."
 risk_level: HIGH
 ---
 
@@ -614,3 +614,7 @@ async def test_structured_output_validation():
 - [ ] Streaming for user-facing responses
 - [ ] Error messages don't leak internals
 - [ ] Sensitive data not logged
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

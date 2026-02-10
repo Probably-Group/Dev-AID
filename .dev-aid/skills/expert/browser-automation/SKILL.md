@@ -1,7 +1,7 @@
 ---
 name: browser-automation
 version: 2.0.0
-description: "Browser automation with Puppeteer, Playwright, and CDP for testing, scraping, and web interaction."
+description: "Browser automation with Puppeteer, Playwright, CDP, and WebDriver for testing, scraping, and web interaction. Use when automating browsers, web scraping, or end-to-end testing. Do NOT use for native app automation."
 risk_level: HIGH
 ---
 
@@ -568,3 +568,7 @@ test.describe('Scraper Security', () => {
 - [ ] Redirect validation after navigation
 - [ ] Timeout on all operations
 - [ ] Retry logic with exponential backoff
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

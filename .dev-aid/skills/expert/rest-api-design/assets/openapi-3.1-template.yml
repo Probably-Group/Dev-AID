@@ -1,0 +1,265 @@
+# OpenAPI 3.1 Template -- Minimal Valid Spec
+# Customize: Replace [placeholders] with project-specific values.
+
+openapi: "3.1.0"
+info:
+  title: "[API Name]"
+  description: "[Brief description of the API purpose]"
+  version: "1.0.0"
+  contact:
+    name: "[Team Name]"
+    email: "[team@example.com]"
+
+servers:
+  - url: "https://api.[domain].com/v1"
+    description: Production
+  - url: "https://api.staging.[domain].com/v1"
+    description: Staging
+
+security:
+  - bearerAuth: []
+
+paths:
+  /[resources]:
+    get:
+      summary: "List [resources]"
+      operationId: "list[Resources]"
+      tags: ["[Resources]"]
+      parameters:
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: "Paginated list of [resources]"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/[Resource]List"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+    post:
+      summary: "Create [resource]"
+      operationId: "create[Resource]"
+      tags: ["[Resources]"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Create[Resource]"
+      responses:
+        "201":
+          description: "[Resource] created"
+          headers:
+            Location:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/[Resource]"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /[resources]/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      summary: "Get [resource]"
+      operationId: "get[Resource]"
+      tags: ["[Resources]"]
+      responses:
+        "200":
+          description: "[Resource] details"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/[Resource]"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    patch:
+      summary: "Update [resource]"
+      operationId: "update[Resource]"
+      tags: ["[Resources]"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Update[Resource]"
+      responses:
+        "200":
+          description: "[Resource] updated"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/[Resource]"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      summary: "Delete [resource]"
+      operationId: "delete[Resource]"
+      tags: ["[Resources]"]
+      responses:
+        "204":
+          description: "[Resource] deleted"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    "[Resource]":
+      type: object
+      required: [id, "[field1]", createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        "[field1]":
+          type: string
+          example: "[example value]"
+        "[field2]":
+          type: string
+          example: "[example value]"
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+        updatedAt:
+          type: string
+          format: date-time
+          readOnly: true
+
+    "Create[Resource]":
+      type: object
+      required: ["[field1]"]
+      properties:
+        "[field1]":
+          type: string
+        "[field2]":
+          type: string
+
+    "Update[Resource]":
+      type: object
+      properties:
+        "[field1]":
+          type: string
+        "[field2]":
+          type: string
+
+    "[Resource]List":
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/[Resource]"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, totalPages]
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+        hasNext:
+          type: boolean
+        hasPrev:
+          type: boolean
+
+    Error:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+        requestId:
+          type: string
+
+  responses:
+    BadRequest:
+      description: "Invalid request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: "Authentication required"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: "Access denied"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: "Resource not found"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    TooManyRequests:
+      description: "Rate limit exceeded"
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"

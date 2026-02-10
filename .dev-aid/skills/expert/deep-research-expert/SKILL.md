@@ -1,7 +1,7 @@
 ---
 name: deep-research-expert
 version: 2.0.0
-description: "Deep research workflows with Gemini, Tavily, and Perplexity for comprehensive technical investigation."
+description: "Deep research workflows with Gemini, Tavily, and Perplexity for comprehensive technical investigation and synthesis. Use when conducting deep technical research, multi-source analysis, or comprehensive investigations. Do NOT use for web scraping (use browser-automation)."
 risk_level: LOW
 ---
 
@@ -681,3 +681,7 @@ async def test_cache_freshness():
 - [ ] Content extraction validates output
 - [ ] Grounding prevents hallucination
 - [ ] Error handling for API failures
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: ui-ux-design
 version: 2.0.0
-description: "UI/UX design patterns for user flows, wireframes, and interaction design principles."
+description: "UI/UX design patterns for user flows, wireframes, interaction design, and form security patterns. Use when designing user flows, creating wireframes, or implementing secure form interactions. Do NOT use for user research or usability testing (use ui-ux-expert)."
 risk_level: LOW
 ---
 
@@ -495,3 +495,7 @@ describe('LoginForm', () => {
 - [ ] Dark mode: CSS variables, no hardcoded colors
 - [ ] Sensitive fields: Autocomplete off, masked display
 - [ ] Touch targets: Minimum 44x44px for mobile
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: sandboxing
 version: 2.0.0
-description: "Application sandboxing patterns for process isolation, capability restrictions, and secure containment."
+description: "Application sandboxing patterns for process isolation, capability restrictions, and secure containment. Use when implementing sandboxing, restricting process capabilities, or designing isolation boundaries. Do NOT use for container orchestration (use Kubernetes or Tauri skills)."
 risk_level: HIGH
 ---
 
@@ -680,3 +680,7 @@ mod tests {
 - [ ] Capabilities dropped after setup
 - [ ] Data from sandbox validated before use
 - [ ] Platform-specific mechanisms used (Landlock/seccomp on Linux, sandbox-exec on macOS)
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

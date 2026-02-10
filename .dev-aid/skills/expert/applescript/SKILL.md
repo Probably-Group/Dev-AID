@@ -1,7 +1,8 @@
 ---
 name: applescript
 version: 2.0.0
-description: "macOS automation with AppleScript and JavaScript for Automation (JXA) for system scripting and app control."
+description: "macOS automation with AppleScript and JXA for system scripting, app control, and workflow automation. Use when automating macOS apps, system events, or JXA scripting. Do NOT use for cross-platform scripting (use bash-expert)."
+compatibility: "macOS 10.15+"
 risk_level: MEDIUM
 ---
 
@@ -533,3 +534,7 @@ function testShellCommandEscaping() {
 - [ ] Protected paths checked before file operations
 - [ ] `administrator privileges` justified if used
 - [ ] Input validation for all dialogs
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

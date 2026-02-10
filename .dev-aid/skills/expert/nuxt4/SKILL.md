@@ -1,7 +1,8 @@
 ---
 name: nuxt4
 version: 2.0.0
-description: "Nuxt 4 full-stack patterns with server routes, useFetch, hybrid rendering, and runtime config security."
+description: "Nuxt 4 full-stack patterns with server routes, useFetch, hybrid rendering, and runtime config security. Use when building Nuxt applications, configuring SSR/SSG, or implementing server routes. Do NOT use for plain Vue without SSR or routing (use vue3)."
+compatibility: "Nuxt 4+, Vue 3.3+, Node.js 18+"
 risk_level: MEDIUM
 ---
 
@@ -701,3 +702,7 @@ describe('Nuxt 4 Application', () => {
 - [ ] Middleware: Route-specific when possible, global only when necessary
 - [ ] Server components: No client interactivity, use slots for interactive parts
 - [ ] State: Centralized in composables, proper typing with useState
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

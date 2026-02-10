@@ -1,6 +1,6 @@
 ---
 name: plan-execution
-description: "Batch execution with checkpoints - systematic plan implementation"
+description: "Executes multi-step plans in batches of 3-7 tasks with verification checkpoints and user approval gates. Key capabilities: per-task verification, blocker protocol, cost tracking, checkpoint reports, stop conditions. Use when implementing multi-step implementation plans, executing approved designs. Do NOT use for single-step tasks, quick fixes, or exploratory work."
 risk_level: low
 version: 1.0.0
 domain: process/workflow
@@ -231,7 +231,39 @@ Track execution effectiveness:
 
 ---
 
-## 9. References
+## 9. Rollback Procedures
+
+### Triggers
+- A batch introduces regressions in previously passing checkpoints
+- Blocker discovered mid-batch that invalidates remaining tasks
+- Plan execution diverges significantly from the approved plan
+
+### Steps
+- Revert the current batch: `git revert HEAD~N..HEAD` where N is the number of commits in the batch
+- Mark affected checkpoints as `[ ]` (pending) in the plan file
+- Document the issue in the checkpoint report under "Issues Encountered"
+- Notify the user with a blocker report before continuing
+
+### Reset
+- Return to the last successful checkpoint: identify it from the plan file and `git log`
+- Re-run verification on the last checkpoint to confirm it is still valid
+- Update the plan to reflect the new starting point for the next batch
+
+### Abandon vs. Retry
+- **Retry** the batch with a modified approach if the blocker has a clear workaround
+- **Retry** individual tasks that failed while keeping successful ones
+- **Abandon** the current plan and return to planning phase if 3+ batches fail consecutively
+- **Abandon** and escalate if estimated remaining cost exceeds the budget
+
+---
+
+## 10. Scripts
+
+- `scripts/checkpoint-validator.sh` — Validate checkpoint format (numbered, has description), verify evidence files for completed checkpoints, and report completion percentage
+
+---
+
+## 11. References
 
 For detailed information, see:
 - `references/checkpoint-protocols.md` - Detailed checkpoint procedures

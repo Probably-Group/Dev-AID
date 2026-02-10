@@ -1,7 +1,7 @@
 ---
 name: cross-platform-builds
 version: 2.0.0
-description: "Cross-platform build systems for Windows, macOS, and Linux with code signing and distribution."
+description: "Cross-platform build systems for Windows, macOS, and Linux desktop applications with code signing, cross-compilation, and distribution packaging. Use when configuring multi-platform CI builds, setting up platform-specific code signing, creating installers (MSI, DMG, AppImage), or managing cross-compile toolchains. Do NOT use for web-only builds or server-side deployments."
 risk_level: HIGH
 ---
 
@@ -642,3 +642,7 @@ echo "Cross-platform checks complete!"
 - [ ] Lockfiles committed for reproducibility
 - [ ] Platform-specific dependencies documented
 - [ ] Testing covers all target platforms
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

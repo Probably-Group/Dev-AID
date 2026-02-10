@@ -1,7 +1,8 @@
 ---
 name: bash-expert
 version: 2.0.0
-description: "Secure bash scripting with shellcheck compliance, proper quoting, error handling, and POSIX compatibility."
+description: "Bash scripting with shellcheck compliance, proper quoting, error handling, and shell automation. Use when writing bash scripts, shell commands, or CLI tools. Do NOT use for Python scripts (use python) or macOS automation (use applescript)."
+compatibility: "Bash 4.4+, shellcheck"
 risk_level: HIGH
 ---
 
@@ -597,3 +598,7 @@ main "$@"
 - [ ] Arguments after `--` to prevent option injection
 - [ ] Error handling with `trap` for cleanup
 - [ ] No running as root unless absolutely required
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

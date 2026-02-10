@@ -1,7 +1,7 @@
 ---
 name: webgl
 version: 2.0.0
-description: "WebGL rendering patterns with shaders, buffers, textures, and performance optimization."
+description: "WebGL rendering with shaders, buffers, textures, and GPU performance optimization. Use when building WebGL shaders, rendering pipelines, or GPU effects. Do NOT use for Three.js abstraction layers (use threejs-tresjs)."
 risk_level: MEDIUM
 ---
 
@@ -593,3 +593,7 @@ describe('WebGL utilities', () => {
 - [ ] Texture loading: Async with placeholder, power-of-2 checks
 - [ ] Precision: mediump/highp specified in fragment shaders
 - [ ] GL errors: Check getError() after critical operations
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

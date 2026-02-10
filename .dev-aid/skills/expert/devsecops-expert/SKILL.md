@@ -1,7 +1,8 @@
 ---
 name: devsecops-expert
 version: 2.0.0
-description: "DevSecOps practices with shift-left security, SAST/DAST integration, and supply chain security."
+description: "DevSecOps practices with shift-left security automation, SAST/DAST pipeline integration, supply chain security, and compliance as code. Use when embedding security scanning in CI/CD, implementing SBOM generation, configuring dependency vulnerability checks, or designing security gate policies. Do NOT use for application-level security patterns like OWASP Top 10 remediation (use appsec-expert)."
+compatibility: "GitHub Actions or GitLab CI"
 risk_level: HIGH
 ---
 
@@ -843,3 +844,7 @@ echo "=== All Security Tests Passed ==="
 - [ ] Audit logging enabled
 - [ ] Network policies default deny
 - [ ] Compliance checks automated
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

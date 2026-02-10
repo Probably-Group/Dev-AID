@@ -1,0 +1,100 @@
+# Baseline Secure CI Pipeline -- GitLab CI
+# Customize: Replace [placeholders] with project-specific values.
+
+stages:
+  - lint
+  - test
+  - security
+  - build
+
+variables:
+  # Pin dependency versions for reproducibility
+  NODE_VERSION: "[version]"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+# Cache dependencies between jobs
+.cache-template: &cache-template
+  cache:
+    key:
+      files:
+        - "[package-lock.json | requirements.txt]"
+    paths:
+      - "[node_modules/ | .venv/]"
+
+lint:
+  stage: lint
+  image: "[node:version-slim | python:version-slim]"
+  <<: *cache-template
+  script:
+    - "[npm ci | pip install -r requirements.txt]"
+    - "[npm run lint | ruff check . | flake8]"
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test:
+  stage: test
+  image: "[node:version-slim | python:version-slim]"
+  <<: *cache-template
+  script:
+    - "[npm ci | pip install -r requirements.txt]"
+    - "[npm test -- --coverage | pytest --cov=src --cov-report=xml]"
+  coverage: '/^TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: "[coverage/cobertura-coverage.xml | coverage.xml]"
+    when: always
+    expire_in: 7 days
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+secret-scan:
+  stage: security
+  image:
+    name: zricethezav/gitleaks:latest
+    entrypoint: [""]
+  script:
+    - gitleaks detect --source . --report-format json --report-path gitleaks-report.json --no-banner
+  artifacts:
+    paths:
+      - gitleaks-report.json
+    when: always
+    expire_in: 30 days
+  allow_failure: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+dependency-scan:
+  stage: security
+  image:
+    name: aquasec/trivy:latest
+    entrypoint: [""]
+  script:
+    - trivy fs --severity CRITICAL,HIGH --exit-code 1 --format json --output trivy-report.json .
+  artifacts:
+    paths:
+      - trivy-report.json
+    when: always
+    expire_in: 30 days
+  allow_failure: false
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+build:
+  stage: build
+  image: "[node:version-slim | python:version-slim]"
+  <<: *cache-template
+  script:
+    - "[npm ci | pip install -r requirements.txt]"
+    - "[npm run build | python -m build]"
+  artifacts:
+    paths:
+      - "[dist/ | build/]"
+    expire_in: 7 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

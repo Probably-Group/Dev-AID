@@ -1,7 +1,8 @@
 ---
 name: fastapi-expert
 version: 2.0.0
-description: "Production FastAPI with OAuth2/JWT authentication, SQLAlchemy 2.0, and async database patterns."
+description: "Production FastAPI applications with OAuth2/JWT authentication, Pydantic v2 validation, SQLAlchemy 2.0 async patterns, and middleware configuration. Use when building authenticated APIs, implementing database models with SQLAlchemy 2.0, configuring OAuth2 flows, or optimizing async endpoint performance. Do NOT use for Django, Flask, or GraphQL API development (use graphql-expert)."
+compatibility: "Python 3.11+, FastAPI 0.115+, SQLAlchemy 2.0+, Pydantic 2.5+"
 risk_level: HIGH
 ---
 
@@ -416,3 +417,7 @@ async def test_create_item_invalid_price(client: AsyncClient, auth_headers):
 - [ ] Secrets come from environment variables, not hardcoded
 - [ ] Error messages don't expose internal details
 - [ ] All I/O uses async/await
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

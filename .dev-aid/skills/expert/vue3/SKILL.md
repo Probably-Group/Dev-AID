@@ -1,7 +1,8 @@
 ---
 name: vue3
 version: 2.0.0
-description: "Vue 3 Composition API patterns with reactivity, composables, provide/inject, and XSS prevention."
+description: "Vue 3 Composition API patterns with reactivity, composables, provide/inject, and XSS prevention. Use when building Vue 3 components, managing reactivity, or creating composables. Do NOT use for Nuxt-specific features like SSR or server routes (use nuxt4), or for React or Angular."
+compatibility: "Vue 3.3+, Node.js 18+"
 risk_level: MEDIUM
 ---
 
@@ -542,3 +543,7 @@ describe('useWindowSize', () => {
 - [ ] v-model: Proper emit pattern, no prop mutation
 - [ ] Secrets: Never in client-side code
 - [ ] Tests: Cover props, emits, and composables
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

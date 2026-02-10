@@ -1,7 +1,7 @@
 ---
 name: encryption
 version: 2.0.0
-description: "Cryptography patterns for encryption, key management, secure key derivation, and certificate handling."
+description: "Cryptography patterns for encryption, key management, secure key derivation, TLS, and certificate handling. Use when implementing encryption, managing keys, configuring TLS certificates, or choosing cryptographic algorithms. Do NOT use for general authentication patterns (use appsec-expert or kanidm-expert)."
 risk_level: CRITICAL
 ---
 
@@ -546,3 +546,7 @@ def test_password_hash_not_reversible():
 - [ ] Key rotation strategy implemented
 - [ ] Using cryptography library (Python) or ring/aes-gcm (Rust)
 - [ ] Minimum key sizes: AES-256, RSA-3072, Ed25519
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

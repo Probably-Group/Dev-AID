@@ -1,7 +1,7 @@
 ---
 name: llm-integration
 version: 2.0.0
-description: "Local LLM integration with llama.cpp, Ollama, and GGUF models for offline inference."
+description: "Local LLM integration with llama.cpp, Ollama, and GGUF models for offline inference and self-hosted AI. Use when deploying local models, configuring inference servers, or building offline AI pipelines. Do NOT use for cloud AI APIs (use cloud-api-integration)."
 risk_level: HIGH
 ---
 
@@ -585,3 +585,7 @@ class TestPromptInjection:
 - [ ] Error responses don't expose internal details
 - [ ] Streaming responses have timeout
 - [ ] No direct execution of LLM output
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

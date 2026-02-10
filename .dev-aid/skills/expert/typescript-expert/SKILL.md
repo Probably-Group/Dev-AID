@@ -1,7 +1,8 @@
 ---
 name: typescript-expert
 version: 2.0.0
-description: "TypeScript patterns with runtime validation (Zod), branded types, and strict type safety."
+description: "TypeScript patterns with runtime validation (Zod), branded types, generics, utility types, and strict type safety. Use when designing type-safe APIs, implementing runtime validation, or working with advanced TypeScript features. Do NOT use for plain JavaScript without types (use javascript-expert)."
+compatibility: "TypeScript 5.0+, Node.js 18+"
 risk_level: MEDIUM
 ---
 
@@ -626,3 +627,7 @@ describe('types', () => {
 - [ ] Dependencies: Pinned versions, audited
 - [ ] Type tests: expect-type for type correctness
 - [ ] Discriminated unions: For state management
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

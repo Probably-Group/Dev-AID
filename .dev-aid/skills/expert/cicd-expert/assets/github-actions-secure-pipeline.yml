@@ -1,0 +1,116 @@
+# Baseline Secure CI Pipeline -- GitHub Actions
+# Customize: Replace [placeholders] with project-specific values.
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read  # Least privilege -- expand per job as needed
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4  # Pin to major version
+
+      - name: Setup [runtime]
+        uses: actions/setup-node@v4  # or setup-python, etc.
+        with:
+          node-version: "[version]"
+          cache: "[npm|pip|etc.]"
+
+      - name: Install dependencies
+        run: "[npm ci | pip install -r requirements.txt]"
+
+      - name: Run linter
+        run: "[npm run lint | ruff check . | flake8]"
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup [runtime]
+        uses: actions/setup-node@v4
+        with:
+          node-version: "[version]"
+          cache: "[package manager]"
+
+      - name: Install dependencies
+        run: "[npm ci | pip install -r requirements.txt]"
+
+      - name: Run tests with coverage
+        run: "[npm test -- --coverage | pytest --cov=src --cov-report=xml]"
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: "[coverage/ | htmlcov/]"
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write  # For SARIF upload
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: Secret scanning (Gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dependency scan (Trivy)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"
+
+      # - name: SAST (Semgrep)
+      #   uses: returntocorp/semgrep-action@v1
+      #   with:
+      #     config: auto
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup [runtime]
+        uses: actions/setup-node@v4
+        with:
+          node-version: "[version]"
+          cache: "[package manager]"
+
+      - name: Install dependencies
+        run: "[npm ci | pip install -r requirements.txt]"
+
+      - name: Build
+        run: "[npm run build | python -m build]"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: "[dist/ | build/]"
+          retention-days: 7

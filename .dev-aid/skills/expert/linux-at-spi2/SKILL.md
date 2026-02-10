@@ -1,7 +1,7 @@
 ---
 name: linux-at-spi2
 version: 2.0.0
-description: "Linux accessibility automation with AT-SPI2 for GTK/Qt application testing and control."
+description: "Linux accessibility automation with AT-SPI2 for GTK/Qt application testing, D-Bus a11y, and UI control. Use when automating Linux desktop apps via AT-SPI or accessibility APIs. Do NOT use for macOS automation (use macos-accessibility)."
 risk_level: MEDIUM
 ---
 
@@ -428,3 +428,7 @@ class TestATSPIClient:
 - [ ] State verification: Check VISIBLE/SENSITIVE before actions
 - [ ] Cycle detection: Track visited nodes in traversal
 - [ ] GLib main loop: Async operations use proper event loop
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

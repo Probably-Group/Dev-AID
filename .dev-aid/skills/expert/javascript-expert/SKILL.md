@@ -1,7 +1,8 @@
 ---
 name: javascript-expert
 version: 2.0.0
-description: "Modern JavaScript with ES6+ patterns, async/await, module systems, and Node.js best practices."
+description: "Modern JavaScript with ES6+ patterns, async/await, module systems, and Node.js best practices. Use when writing vanilla JS, working with promises, or building Node.js services. Do NOT use for TypeScript-specific features like generics or branded types (use typescript-expert)."
+compatibility: "Node.js 18+, ES2022+"
 risk_level: MEDIUM
 ---
 
@@ -587,3 +588,7 @@ describe('validation', () => {
 - [ ] URL validation for redirects
 - [ ] Object property access safety (?., ??)
 - [ ] No prototype pollution vectors
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

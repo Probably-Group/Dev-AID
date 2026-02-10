@@ -1,7 +1,7 @@
 ---
 name: skill-creation-expert
 version: 4.0.0
-description: "Template for creating Claude Code skills with anti-hallucination protocols, CWE security patterns, and proper structure."
+description: "Creating Claude Code skills with anti-hallucination protocols, CWE security patterns, and SKILL.md structure. Use when building new skills, writing SKILL.md files, or structuring skill templates. Do NOT use for general documentation."
 ---
 
 # Skill Creation Template
@@ -302,3 +302,7 @@ Don't use eval().
 - [ ] Skill invocable via `/[skill-name]`
 - [ ] No similar/duplicate skill exists
 - [ ] Follows 6-section structure after Section 0
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

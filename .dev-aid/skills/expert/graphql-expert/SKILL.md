@@ -1,7 +1,7 @@
 ---
 name: graphql-expert
 version: 2.0.0
-description: "GraphQL API design with schema patterns, resolvers, subscriptions, and Apollo federation."
+description: "GraphQL API design with schema patterns, resolver implementation, real-time subscriptions, and Apollo federation for distributed graphs. Use when designing GraphQL schemas, implementing resolvers, configuring Apollo Gateway/Federation, or adding query depth/complexity limits. Do NOT use for REST API design (use rest-api-design) or gRPC services."
 risk_level: HIGH
 ---
 
@@ -622,3 +622,7 @@ describe('GraphQL Security', () => {
 - [ ] Internal errors not exposed to clients
 - [ ] Introspection disabled in production
 - [ ] Subscriptions authenticated and rate-limited
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

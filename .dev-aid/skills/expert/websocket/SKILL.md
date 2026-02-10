@@ -1,7 +1,7 @@
 ---
 name: websocket
 version: 2.0.0
-description: "WebSocket implementation with connection management, heartbeats, and CSWSH prevention."
+description: "WebSocket implementation for real-time bidirectional communication with connection lifecycle management, heartbeat protocols, reconnection strategies, and CSWSH prevention. Use when building real-time features, implementing WebSocket servers/clients, designing message protocols, or handling connection state. Do NOT use for SSE-only streams, HTTP long-polling, or unidirectional push notifications."
 risk_level: HIGH
 ---
 
@@ -644,3 +644,7 @@ describe('WebSocket Security', () => {
 - [ ] WSS (TLS) in production
 - [ ] Reconnection with exponential backoff on client
 - [ ] No sensitive data in URL query parameters (except tokens)
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

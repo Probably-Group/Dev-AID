@@ -1,7 +1,8 @@
 ---
 name: graph-database-expert
 version: 2.0.0
-description: "Graph database design with traversal queries, relationship modeling, and query optimization."
+description: "Graph database design with traversal queries, relationship modeling, and Cypher/Gremlin optimization. Use when designing graph schemas, writing traversal queries, or modeling complex relationships. Do NOT use for document or relational databases (use database-design)."
+compatibility: "Neo4j 5+ or similar"
 risk_level: MEDIUM
 ---
 
@@ -758,3 +759,7 @@ describe('Neo4jRepository', () => {
 - [ ] Indexes created for common query patterns
 - [ ] Constraints enforce data integrity
 - [ ] Node IDs are UUIDs (not internal IDs)
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

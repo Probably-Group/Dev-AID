@@ -1,6 +1,6 @@
 ---
 name: staged-review
-description: "Two-stage review: spec compliance first, then code quality"
+description: "Enforces two-stage code review: spec compliance first, then code quality with security scanning. Key capabilities: spec-vs-implementation validation, SOLID/architecture checks, Gitleaks/Opengrep/Trivy integration, severity-based findings. Use when reviewing PRs, code changes, completed features. Do NOT use for self-review of trivial changes, documentation-only edits."
 risk_level: low
 version: 1.0.0
 domain: process/quality
@@ -214,7 +214,38 @@ Track review effectiveness:
 
 ---
 
-## 8. References
+## 8. Rollback Procedures
+
+### Triggers
+- Security check produces false positives blocking legitimate code
+- Review feedback was applied incorrectly, introducing bugs
+- Stage 1 (spec compliance) missed a requirement discovered in production
+
+### Steps
+- `git revert <commit>` to undo review-driven changes that introduced issues
+- If secrets were accidentally committed: rotate the exposed credentials immediately, then `git rebase -i` to remove from history (or use BFG Repo-Cleaner)
+- Re-run Stage 1 against the original specification to identify what was missed
+
+### Reset
+- Return to the pre-review state: `git log --oneline` to find the commit before review changes
+- Re-run all security tools (`gitleaks`, `shellcheck`) on the clean state to establish a baseline
+- Restart the staged review from Stage 1 with the corrected spec
+
+### Abandon vs. Retry
+- **Retry** review if false positives caused the block — add exceptions to tool configs (e.g., `.gitleaksignore`)
+- **Retry** Stage 2 if Stage 1 issues were fixed — no need to redo spec compliance
+- **Abandon** the current PR and split into smaller PRs if the review is too large (>800 lines)
+- **Abandon** challenger mode review if models consistently disagree — fall back to single-model review
+
+---
+
+## 9. Scripts
+
+- `scripts/run-security-checks.sh` — Run gitleaks for secret scanning, shellcheck on shell scripts in staged changes, and check for common security patterns
+
+---
+
+## 10. References
 
 For detailed information, see:
 - `references/review-checklists.md` - Detailed checklists by category

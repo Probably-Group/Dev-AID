@@ -1,7 +1,8 @@
 ---
 name: macos-accessibility
 version: 2.0.0
-description: "macOS accessibility API automation with AXUIElement for UI testing and system control."
+description: "macOS accessibility automation with AXUIElement for UI testing, element inspection, and system control. Use when automating macOS UI via accessibility APIs or AXUIElement. Do NOT use for Linux accessibility (use linux-at-spi2)."
+compatibility: "macOS 10.15+, Xcode Command Line Tools"
 risk_level: MEDIUM
 ---
 
@@ -520,3 +521,7 @@ class AXUIElementTests: XCTestCase {
 - [ ] State verification: Check enabled/visible before interactions
 - [ ] Observer cleanup: Using RAII pattern for AXObserver
 - [ ] Cycle detection: Track visited elements via CFHash
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

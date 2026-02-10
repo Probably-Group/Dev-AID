@@ -1,7 +1,7 @@
 ---
 name: speech-to-text
 version: 2.0.0
-description: "Speech-to-text integration with Faster Whisper for accurate transcription and real-time processing."
+description: "Speech-to-text with Faster Whisper for local transcription, real-time processing, and voice input. Use when implementing speech recognition, transcription pipelines, or voice commands. Do NOT use for cloud STT APIs (use cloud-api-integration)."
 risk_level: MEDIUM
 ---
 
@@ -630,3 +630,7 @@ class TestTranscription:
 - [ ] Resource limits: Memory/GPU constraints respected
 - [ ] Privacy: Raw audio not retained unnecessarily
 - [ ] Timeout handling: Long transcriptions have timeouts
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

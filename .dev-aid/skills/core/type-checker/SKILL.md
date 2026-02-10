@@ -1,6 +1,6 @@
 ---
 name: type-checker
-description: Auto-check types on file save
+description: "Auto-runs type checking on file save with incremental analysis and caching. Key capabilities: tsc/mypy/pyright/pyre/cargo-check/go-build detection, incremental checks, project config awareness. Use when editing typed code such as Python with mypy or TypeScript with tsc. Do NOT use for untyped JavaScript, shell scripts, or files marked with type-ignore."
 version: 1.0.0
 category: core
 auto_load: true

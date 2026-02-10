@@ -1,7 +1,8 @@
 ---
 name: python
 version: 2.0.0
-description: "Python backend patterns with type hints, async programming, and secure coding practices."
+description: "Python backend service development with type hints, async programming, packaging, and secure coding practices. Use when writing Python modules, designing async services, configuring logging, or implementing CLI tools with Python. Do NOT use for FastAPI-specific patterns (use fastapi-expert) or Django framework development."
+compatibility: "Python 3.11+"
 risk_level: HIGH
 ---
 
@@ -531,3 +532,7 @@ class TestSecurityPatterns:
 - [ ] Archives: tarfile filter='data' (Python 3.12+)
 - [ ] Deserialization: json/Pydantic, never pickle for untrusted
 - [ ] Error handling: Fail closed, no internals in messages
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

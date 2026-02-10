@@ -1,6 +1,6 @@
 ---
 name: secret-scanner
-description: Detect exposed secrets and credentials
+description: "Scans files for exposed secrets, API keys, and credentials before commit with blocking enforcement. Key capabilities: AWS/GitHub/Stripe key detection, password/token/private-key patterns, .env file detection, commit blocking. Use when editing any file that might contain credentials, before committing changes. Do NOT use for already-scanned committed code or public configuration files."
 version: 1.0.0
 category: security
 auto_load: true

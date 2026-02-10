@@ -1,7 +1,7 @@
 ---
 name: dbus
 version: 2.0.0
-description: "D-Bus IPC on Linux for system service integration, signal handling, and inter-process communication."
+description: "D-Bus IPC on Linux for system service integration, signal handling, and inter-process communication. Use when implementing D-Bus services, system bus interfaces, or Linux IPC. Do NOT use for macOS or Windows IPC mechanisms."
 risk_level: MEDIUM
 ---
 
@@ -656,3 +656,7 @@ timeout 5 dbus-monitor "type='signal',interface='$INTERFACE'" || true
 - [ ] Systemd service hardened
 - [ ] Signals validated before processing
 - [ ] Async patterns used (no blocking)
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

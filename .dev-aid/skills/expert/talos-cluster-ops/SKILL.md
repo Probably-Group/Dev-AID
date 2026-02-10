@@ -1,7 +1,8 @@
 ---
 name: talos-cluster-ops
 version: 2.0.0
-description: "Talos Kubernetes cluster operations for troubleshooting, upgrades, and health monitoring."
+description: "Kubernetes cluster operations on Talos Linux including troubleshooting, health monitoring, upgrades, and workload debugging. Use when diagnosing pod crashes, node issues, cluster health, Cilium networking, Longhorn storage, or ArgoCD sync failures on Talos clusters. Do NOT use for Talos machine config generation or OS-level configuration (use talos-os-expert)."
+compatibility: "Kubernetes 1.28+, talosctl, kubectl"
 risk_level: HIGH
 ---
 
@@ -492,3 +493,7 @@ EOF
 - [ ] Hubble enabled for network observability
 - [ ] Longhorn replicas configured for HA
 - [ ] Maintenance scripts include proper draining
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -1,7 +1,7 @@
 ---
 name: json-rpc
 version: 2.0.0
-description: "JSON-RPC 2.0 protocol implementation for remote procedure calls with proper error handling."
+description: "JSON-RPC 2.0 protocol implementation with method routing, batch requests, error codes, and transport-agnostic design. Use when implementing JSON-RPC servers or clients, designing method registries, handling batch requests, or building MCP-compatible transports. Do NOT use for REST APIs (use rest-api-design), GraphQL (use graphql-expert), or gRPC services."
 risk_level: MEDIUM
 ---
 
@@ -851,3 +851,7 @@ describe('JSON-RPC Server', () => {
 - [ ] Timeout handling for long operations
 - [ ] Response ids match request ids
 - [ ] Parse errors return proper JSON-RPC error
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

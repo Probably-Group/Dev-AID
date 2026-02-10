@@ -1,7 +1,7 @@
 ---
 name: web-research-expert
 version: 2.0.0
-description: "Web research patterns for finding solutions on GitHub, Stack Overflow, and technical forums."
+description: "Web research for finding solutions on GitHub, Stack Overflow, Reddit, and technical forums. Use when searching for technical solutions, debugging with community resources, or finding library comparisons. Do NOT use for deep research (use deep-research-expert)."
 risk_level: LOW
 ---
 
@@ -565,3 +565,7 @@ class TestErrorPattern:
 - [ ] Confidence scoring: Based on source quality and agreement
 - [ ] Blocked sources: Known low-quality sites filtered
 - [ ] Version awareness: Technology versions tracked
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

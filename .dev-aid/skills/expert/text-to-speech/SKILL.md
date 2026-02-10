@@ -1,7 +1,7 @@
 ---
 name: text-to-speech
 version: 2.0.0
-description: "Text-to-speech integration with Kokoro TTS for natural voice synthesis and audio generation."
+description: "Text-to-speech with Kokoro TTS for local voice synthesis, SSML processing, and audio generation. Use when implementing voice output, speech synthesis, or TTS pipelines. Do NOT use for cloud TTS APIs (use cloud-api-integration)."
 risk_level: MEDIUM
 ---
 
@@ -634,3 +634,7 @@ class TestSynthesizer:
 - [ ] Voice validation: Registry with known voices
 - [ ] Resource cleanup: Audio file cleanup policy
 - [ ] Streaming support: Non-blocking playback option
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

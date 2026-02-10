@@ -1,7 +1,7 @@
 ---
 name: rabbitmq-expert
 version: 2.0.0
-description: "RabbitMQ message broker patterns with exchanges, queues, dead letter handling, and clustering."
+description: "RabbitMQ message broker patterns with exchange topologies, queue configuration, dead letter handling, and clustering for high availability. Use when designing AMQP exchange/queue architectures, configuring RabbitMQ clustering, implementing pub/sub messaging, or troubleshooting message routing. Do NOT use for Kafka, Redis pub/sub, or NATS messaging systems."
 risk_level: HIGH
 ---
 
@@ -488,3 +488,7 @@ def test_dlq_on_fatal_error(rabbitmq_container):
 - [ ] QoS/prefetch limit set
 - [ ] Retry logic with max retries
 - [ ] Publisher confirms for critical messages
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

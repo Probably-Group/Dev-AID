@@ -1,7 +1,7 @@
 ---
 name: mcp
 version: 2.0.0
-description: "Model Context Protocol server implementation for extending Claude with custom tools and resources."
+description: "Model Context Protocol server implementation for extending Claude with custom tools, resources, and prompts. Use when building MCP servers, MCP tools, or resource providers. Do NOT use for general API design (use api-expert)."
 risk_level: HIGH
 ---
 
@@ -805,3 +805,7 @@ describe("MCP Server", () => {
 - [ ] User content sanitized before prompts
 - [ ] Proper MCP error codes used
 - [ ] Tool descriptions accurate and complete
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

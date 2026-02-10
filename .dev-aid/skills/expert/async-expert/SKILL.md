@@ -1,7 +1,7 @@
 ---
 name: async-expert
 version: 2.0.0
-description: "Cross-language async patterns for Python asyncio, TypeScript promises, and Rust Tokio with proper error handling."
+description: "Cross-language async and concurrency patterns for Python asyncio/TaskGroup, TypeScript promises/async-await, and Rust Tokio with proper error handling and cancellation. Use when designing concurrent architectures, debugging race conditions, implementing task pools, or choosing between async patterns across languages. Do NOT use for synchronous-only code without concurrency needs or simple sequential scripts."
 risk_level: MEDIUM
 ---
 
@@ -837,3 +837,7 @@ async def test_race_condition_prevented():
 - [ ] Graceful shutdown implemented
 - [ ] Race conditions considered
 - [ ] Error handling doesn't swallow exceptions
+
+---
+
+**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

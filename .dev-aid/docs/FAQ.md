@@ -450,26 +450,31 @@ Total Savings:   $35/month (78%)
 
 ### Q: What is the memory-bank folder for?
 
-**A: A shared knowledge base for AI assistants (Claude, Gemini, Cursor, etc.).**
+**A: A shared knowledge base for AI assistants (Claude, Gemini, Cursor, etc.) with smart loading.**
 
 **What it contains:**
-- `patterns.md` - Coding conventions AI should follow
-- `security.md` - Security rules (non-negotiable)
-- `decisions.md` - Architecture decisions (ADRs)
-- `testing.md` - Testing standards
-- `performance.md` - Performance guidelines
-- `chaos.md` - Error handling patterns
-- `activeContext.md` - Current sprint/focus
+- `activeContext.md` - Current sprint/focus (**auto-loaded** every request)
+- `patterns.md` - Coding conventions AI should follow (**on-demand**)
+- `security.md` - Security rules (non-negotiable) (**on-demand**)
+- `decisions.md` - Architecture decisions (ADRs) (**on-demand**)
+- `testing.md` - Testing standards (**on-demand**)
+- `performance.md` - Performance guidelines (**on-demand**)
+- `chaos.md` - Error handling patterns (**on-demand**)
 
 **How it works:**
 - Claude Code auto-loads files via `@` references in CLAUDE.md
-- Other AI tools read files when instructed
-- Team documents conventions once, AI follows them every session
+- The orchestration router loads on-demand files based on **query relevance** (keyword matching)
+- **Token budget** prevents context window bloat (configurable: minimal/balanced/generous)
+- **Staleness detection** warns when files haven't been updated in >30 days
+- **Write-back prompts** instruct AI to update memory bank when it learns new patterns or decisions
+- Files exceeding token budget are **smart-trimmed** to most relevant sections
 
 **Benefits:**
 - ✅ Consistent code from AI assistants
 - ✅ No repeating context every session
 - ✅ Team knowledge persists across developers
+- ✅ Only relevant context loaded per query (saves tokens)
+- ✅ AI assistants keep memory bank up to date
 
 [Full details: MEMORY-BANK-GUIDE.md](./MEMORY-BANK-GUIDE.md)
 

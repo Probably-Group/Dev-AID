@@ -48,10 +48,20 @@ For programmatic agent execution with OpenAI models, use the Python CLI — it h
 
 ## Memory Bank Integration
 
-The generated OPENAI.md includes instructions to read:
+The generated OPENAI.md includes instructions to read memory bank files. When used through the Dev-AID router, memory bank loading is **query-aware**:
+
+**Auto-loaded** (every request):
+- `.dev-aid/memory-bank/activeContext.md` - Current sprint/focus
+
+**On-demand** (loaded when relevant to prompt):
 - `.dev-aid/memory-bank/patterns.md` - Coding conventions
 - `.dev-aid/memory-bank/security.md` - Security rules
 - `.dev-aid/memory-bank/decisions.md` - Architecture decisions
+- `.dev-aid/memory-bank/testing.md` - Testing standards
+- `.dev-aid/memory-bank/performance.md` - Performance guidelines
+- `.dev-aid/memory-bank/chaos.md` - Error handling patterns
+
+The router enforces a configurable token budget and annotates stale files (>30 days old) with warnings.
 
 ## Models Supported
 

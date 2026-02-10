@@ -56,7 +56,7 @@ cd ~/your-project
 claude code
 
 # Dev-AID is now active!
-# - Memory bank loaded
+# - Memory bank loaded (auto-load + query-aware on-demand files)
 # - Skills auto-activate based on files
 # - Models route automatically (if Ensemble)
 ```

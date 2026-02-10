@@ -52,7 +52,36 @@ Dev-AID follows these core principles:
 
 ## Memory Bank Structure
 
-The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core files:
+The memory bank is Dev-AID's persistent knowledge system. It consists of 7 core files, managed by the orchestration engine with **query-aware loading**, **token budgets**, and **staleness detection**.
+
+### Loading Modes
+
+Files are split into two categories in `settings.json`:
+
+- **auto_load** (always included): `activeContext.md` — loaded every request
+- **on_demand** (query-aware): `patterns.md`, `decisions.md`, `security.md`, `testing.md`, `performance.md`, `chaos.md` — loaded when the user's prompt matches relevant keywords
+
+### Token Budget
+
+The `standing_context_budget` setting controls how much memory bank content is included:
+
+| Mode | Behavior |
+|------|----------|
+| `minimal` | Half budget, requires 2+ keyword matches for on-demand files |
+| `balanced` | Default budget, 1+ keyword match |
+| `generous` | Double budget, loads all on-demand files regardless of query |
+
+When an on-demand file exceeds the remaining budget, the engine extracts only the most relevant sections (scored by keyword overlap with the prompt) rather than truncating blindly.
+
+### Staleness Detection
+
+Files older than `staleness_warning_days` (default: 30) are annotated with a warning in the AI system prompt. This surfaces outdated context visually to the AI assistant.
+
+### Write-Back
+
+The system prompt includes a **Memory Bank Maintenance** section that instructs AI assistants to update the appropriate files when they establish new patterns, make architecture decisions, or identify security concerns. Updates should be appended with timestamps.
+
+### Core Files
 
 ### 1. **activeContext.md** - Current Work Focus
 
@@ -1398,7 +1427,8 @@ jobs:
    - Everyone updates activeContext.md daily
    - Document decisions as they're made
    - Keep patterns.md in sync with code
-   - Regular memory bank reviews
+   - Regular memory bank reviews (staleness warnings surface files >30 days old)
+   - AI assistants auto-prompted to update files when patterns/decisions change
 
 2. **Consistent Configuration**
    - Use same orchestration mode

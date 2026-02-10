@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+- **Memory Bank Engine Improvements**: 6 new capabilities in the orchestration router
+  - **On-demand loading**: Memory bank files loaded based on query relevance using keyword matching (not unconditionally)
+  - **Token budget**: Configurable `standing_context_tokens` with `minimal`/`balanced`/`generous` budget modes
+  - **Staleness detection**: Files older than `staleness_warning_days` (default: 30) annotated with warnings
+  - **Write-back instructions**: System prompt and stop hook instruct AI to update memory bank files when patterns/decisions change
+  - **Section-level extraction**: Oversized on-demand files trimmed to most relevant sections per query (scored by keyword overlap)
+  - **Per-file metadata**: `memory_bank_metadata` tracks category, token count, age, and staleness per file
+- New `MemoryBankConfig` fields: `on_demand`, `standing_context_tokens`, `standing_context_budget`, `staleness_warning_days`
+- New `ConfigLoader` methods: `get_on_demand_files()`, `get_standing_context_tokens()`
+- New `ConfigLoaderProtocol` methods matching the above
+- New `DevAIDContext.memory_bank_metadata` field
+- `build_context()` and `build_context_async()` accept optional `prompt` parameter for query-aware loading
+- All 3 provider templates (Claude, Gemini, OpenAI) include "Memory Bank Updates" write-back section
+- Stop hook provides specific per-file update guidance instead of generic reminder
+- 20+ new tests covering budget enforcement, staleness, on-demand selection, markdown parsing, section extraction
+
+### Changed
+- `_load_memory_bank()` returns `Tuple[Dict, Dict]` (content + metadata) instead of plain `Dict`
+- Solo, Ensemble, and Challenger modes pass `prompt=request` to `build_context()` for query-aware loading
+- `format_context_for_ai()` includes age annotations and write-back maintenance reminder when memory bank is non-empty
+- Updated documentation: README, QUICK-START, FAQ, DEV-AID-STYLE-GUIDE, ROUTER-STATUS, STORAGE-LOCATIONS, OpenAI README, MEMORY-BANK-GUIDE
+
+---
+
 ## [1.5.0-beta.3] - 2026-02-09
 
 ### Added

@@ -14,7 +14,7 @@
 |-----------|--------|----------|---------------|
 | **Configuration Loader** | ✅ Complete | `router/config_loader.py` | 194 |
 | **API Clients** | ✅ Complete | `router/api_clients.py` | 315 |
-| **Context Builder** | ✅ Complete | `router/context_builder.py` | 180 |
+| **Context Builder** | ✅ Complete | `router/context_builder.py` | 530+ |
 | **Task Classifier** | ✅ Complete | `router/task_classifier.py` | 175 |
 | **Cost Tracker** | ✅ Complete | `router/cost_tracker.py` | 262 |
 | **Solo Mode** | ✅ Complete | `router/modes/solo.py` | 95 |
@@ -46,7 +46,7 @@
 
 - [x] Task classification (keyword-based)
 - [x] Routing logic (task type → model)
-- [x] Context builder (memory bank, git context)
+- [x] Context builder (memory bank with on-demand loading, token budget, staleness, git context)
 - [x] Cost calculation per request
 - [x] Model selection with fallback chain
 - [x] Cost comparison across models
@@ -145,7 +145,7 @@
 
 **Impact**: RAG-enhanced routing documented but not functional yet
 
-**Workaround**: Context builder loads memory bank files instead
+**Workaround**: Context builder loads memory bank files with query-aware on-demand selection, token budgets, and section-level extraction
 
 ---
 
@@ -178,15 +178,9 @@
 
 **Status**: ⚠️ Acceptable approximation, could be improved
 
-### 3. No Automated Tests
+### 3. Automated Tests
 
-**Issue**: No unit tests or integration tests
-
-**Impact**: Changes could introduce regressions
-
-**Mitigation**: Manual testing checklist provided
-
-**Status**: 🚧 Phase 6 (future work)
+**Status**: ✅ 936 tests, 82% coverage (pytest + coverage threshold enforced by pre-commit hooks)
 
 ---
 

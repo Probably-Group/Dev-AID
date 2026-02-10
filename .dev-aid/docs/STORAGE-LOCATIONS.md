@@ -50,9 +50,13 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 │   └── openai/
 │
 ├── memory-bank/               # ✅ Commit (team knowledge)
-│   ├── activeContext.md
-│   ├── patterns.md
-│   └── decisions.md
+│   ├── activeContext.md       # Auto-loaded every request
+│   ├── patterns.md            # On-demand (query-aware)
+│   ├── decisions.md           # On-demand (query-aware)
+│   ├── security.md            # On-demand (query-aware)
+│   ├── testing.md             # On-demand (query-aware)
+│   ├── performance.md         # On-demand (query-aware)
+│   └── chaos.md               # On-demand (query-aware)
 │
 ├── scripts/                   # ✅ Commit (setup scripts)
 │   ├── setup-dev-aid.sh

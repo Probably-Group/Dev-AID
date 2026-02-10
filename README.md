@@ -140,7 +140,7 @@ Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.
 | **Session persistence** | ✅ Auto-save/restore | ❌ | ❌ | ❌ | ❌ |
 | **Architect mode** | ✅ Plan → approve → implement | ❌ | ❌ | ❌ | ❌ |
 | **Git worktree isolation** | ✅ Scope + conflict detection | ❌ | ❌ | ❌ | ❌ |
-| **Memory bank** | ✅ Git-synced team knowledge | ❌ | ❌ | ❌ | ❌ |
+| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ❌ | ❌ | ❌ | ❌ |
 | **CI/CD generator** | ✅ Auto-detect + frequency profiles | ⚠️ Agent can generate | ⚠️ Agent can generate | ❌ | ❌ |
 | **Cost tracking** | ✅ Built-in with budget limits | ✅ Spend limits | ✅ Premium budgets | ✅ Token reporting | ⚠️ Credit dashboard |
 | **Pre-commit review** | ✅ AI-driven staged review | ✅ Agent hooks | ✅ Copilot Code Review | ⚠️ Hook-based | ⚠️ Linting hooks |
@@ -173,7 +173,7 @@ Dev-AID is unaffected. We use standard configuration mechanisms (`CLAUDE.md`, `.
 | **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ Zilliz-based | ❌ |
 | **Git worktree isolation** | ✅ With safeguards | ❌ | ❌ | ✅ Basic | ❌ | ❌ |
-| **Memory bank** | ✅ Git-synced | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ Synced |
+| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ Synced |
 | **MCP integration** | ✅ Dual-layer (native + router) | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
 | **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ | ❌ |
 | **CI/CD generator** | ✅ Auto-detect + frequency profiles | ❌ | ✅ cicd-automation plugin | ❌ | ❌ | ❌ |
@@ -475,6 +475,11 @@ Process skills **enforce how you work**, not just what you know:
 - Code patterns & anti-patterns
 - Security guidelines
 - **Team-shared via git** — no cloud sync needed, new devs get full context on clone
+- **On-demand loading** — files loaded based on query relevance, not unconditionally
+- **Token budget** — configurable budget (minimal/balanced/generous) prevents context bloat
+- **Staleness detection** — warns when memory bank files haven't been updated recently
+- **Write-back** — AI assistants prompted to update memory bank when patterns/decisions change
+- **Section extraction** — oversized files trimmed to most relevant sections per query
 
 ### 🔒 **Automated Security**
 - **Pre-commit hooks**: Secrets scan, SAST, Critical CVEs (~10s)
@@ -1336,10 +1341,13 @@ Claude: *automatically uses local RAG*
 │               └── dev-aid-router-status.toml
 │
 ├── 📁 memory-bank/
-│   ├── activeContext.md               # Current sprint
-│   ├── patterns.md                    # Code patterns
-│   ├── decisions.md                   # ADRs
-│   └── security.md                    # Security context
+│   ├── activeContext.md               # Current sprint (auto-loaded)
+│   ├── patterns.md                    # Code patterns (on-demand)
+│   ├── decisions.md                   # ADRs (on-demand)
+│   ├── security.md                    # Security context (on-demand)
+│   ├── testing.md                     # Testing standards (on-demand)
+│   ├── performance.md                 # Performance guidelines (on-demand)
+│   └── chaos.md                       # Error handling patterns (on-demand)
 │
 ├── 📁 scripts/
 │   ├── setup-dev-aid.sh                # Initialize Dev-AID (unified setup)

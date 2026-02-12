@@ -22,11 +22,4 @@ SOFTWARE.
 
 ---
 
-This project combines ideas from multiple Claude Code repositories:
-- claude-code-tresor by Alireza Rezvani
-- claude-code-infrastructure-showcase
-- claude-code-skill-factory by Alireza Rezvani  
-- my-claude-code-setup by centminmod
-- martins-ai-templates
-
 See .dev-aid/docs/COMPONENTS-MANIFEST.md for detailed attribution.

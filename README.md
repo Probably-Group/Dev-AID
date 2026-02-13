@@ -35,6 +35,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations — [guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
 **No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant.
+See the [complete feature reference table](#feature-reference-table) for all 40+ capabilities ranked by developer impact.
 
 ### How It Works
 
@@ -656,29 +657,29 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ---
 
-<details>
+<details id="feature-reference-table">
 <summary><strong>✨ Complete Feature Reference Table</strong> — All Dev-AID capabilities ranked by developer impact</summary>
 
 | Feature | What It Does | Key Benefits | Impact |
 |---------|-------------|--------------|--------|
+| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 3 providers + local) | • Provider-agnostic (Anthropic/OpenAI/Google + local via OpenAI-compatible API)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **🏠 Local LLM Support** 🆕 | Run AI locally via Ollama/LM Studio/llama.cpp | • **$0 forever** (no API costs)<br>• 100% private (code stays local)<br>• Works offline<br>• Auto hardware detection | ⭐⭐⭐⭐⭐ |
 | **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
+| **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
+| **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **⚡ 8 Process Skills** | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
+| **🔒 Automated Security** | Pre-commit/pre-push hooks with CVE, SAST, secrets, misconfig scanning | • 10s pre-commit scan<br>• Catches secrets before push<br>• Covers: deps, Dockerfiles, IaC, code | ⭐⭐⭐⭐⭐ |
 | **🏗️ Architect Mode** | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐ |
 | **📂 Git Worktree Isolation** | Parallel development with scope declarations and conflict detection | • Scope declarations prevent overlap<br>• Architecture locks protect critical code<br>• Pre-merge conflict detection<br>• Clear cleanup workflow | ⭐⭐⭐⭐ |
 | **💾 Session Persistence** | Auto-save progress on session end, restore on restart | • Never lose your place<br>• Cross-provider support<br>• Git-aware (tracks branch, changes)<br>• Task/todo preservation | ⭐⭐⭐⭐ |
-| **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
-| **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | Cross-session context (ADRs, patterns, security guidelines) | • Context survives sessions<br>• Team-shared via git (no cloud needed)<br>• New devs get full context on clone | ⭐⭐⭐⭐ |
-| **🔒 Automated Security** | Pre-commit/pre-push hooks with CVE, SAST, secrets, misconfig scanning | • 10s pre-commit scan<br>• Catches secrets before push<br>• Covers: deps, Dockerfiles, IaC, code | ⭐⭐⭐⭐⭐ |
 | **🤖 Issue Auto-Resolution** | AI analyzes GitHub issues and proposes complete solutions | • Saves 15-45 min/issue<br>• Follows your code style<br>• Safety checks for security | ⭐⭐⭐⭐ |
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐ |
-| **⚡ 8 Process Skills** | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
-| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 3 providers + local) | • Provider-agnostic (Anthropic/OpenAI/Google + local via OpenAI-compatible API)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **🧠 Agent APO** 🆕 | Automatic Prompt Optimization with trace collection and beam search | • JSONL trace collection (`--trace`)<br>• LLM-driven critique + beam search<br>• Golden test scoring<br>• Human approval gate (no auto-deploy) | ⭐⭐⭐⭐ |
 | **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
@@ -687,10 +688,11 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **📦 SBOM Generation** | Software Bill of Materials in releases | • Supply chain transparency<br>• Compliance ready<br>• Dependency diff tool<br>• CycloneDX + SPDX | ⭐⭐⭐⭐ |
 | **🔍 Impact Analysis** | Find code that depends on a function/class | • Shows affected files<br>• Test suggestions<br>• JSON/Markdown output<br>• Saves 30-60 min pre-refactor | ⭐⭐⭐⭐ |
 | **🌳 Dependency Tree** | Visualize import relationships | • Forward/reverse deps<br>• Mermaid diagrams<br>• Circular detection<br>• Python/JS/TS support | ⭐⭐⭐⭐ |
-| **❤️ Health Check** | Quick status of Dev-AID components | • Exit 0/1 for scripts<br>• Checks RAG/Router/Skills<br>• Age warnings<br>• Pre-commit ready | ⭐⭐⭐ |
 | **🔄 Safe Update System** | Update Dev-AID without losing customizations | • Interactive conflict resolution<br>• Auto-rollback on errors<br>• Protected paths (.env, memory) | ⭐⭐⭐⭐ |
 | **📊 Code Health Analysis** | Comprehensive quality metrics, test coverage, maintainability scoring | • Identify tech debt<br>• Track quality trends<br>• Actionable insights | ⭐⭐⭐⭐ |
 | **🛡️ Vulnerability Scanning** | Deep CVE scanning with auto-fix recommendations | • CVE database correlation<br>• Severity scoring<br>• Patch guidance | ⭐⭐⭐⭐ |
+| **✅ Skill Validator Framework** | Auto-discovered compliance validators per skill (bash, Python, extensible) | • 14 bash checks + 8 Python AST checks<br>• Context-aware (runs relevant validators)<br>• JSON output for CI<br>• Extensible: drop `validate.py` in any skill | ⭐⭐⭐⭐ |
+| **❤️ Health Check** | Quick status of Dev-AID components | • Exit 0/1 for scripts<br>• Checks RAG/Router/Skills<br>• Age warnings<br>• Pre-commit ready | ⭐⭐⭐ |
 | **🏷️ Auto-Triage (GitHub)** | Automatically label and categorize new issues | • Instant organization<br>• Complexity estimation<br>• Auto-fixable detection | ⭐⭐⭐ |
 | **📐 Architecture Mapping** | Generate Mermaid diagrams (class, dependency, C4) | • Visual codebase understanding<br>• Onboarding acceleration<br>• Documentation automation | ⭐⭐⭐ |
 | **🎭 Mock Data Generation** | Generate realistic test data from schemas | • JSON/CSV/SQL formats<br>• Schema-aware<br>• Pydantic/TypeScript support | ⭐⭐⭐ |
@@ -698,7 +700,6 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **👨‍💻 Developer Onboarding** | Automated onboarding for new team members | • Environment checks<br>• Project detection<br>• Setup guidance | ⭐⭐⭐ |
 | **⚙️ Reconfiguration Tool** | Change settings without breaking memory/context | • Safe config changes<br>• Backup automation<br>• No data loss | ⭐⭐ |
 | **📚 Documentation Sync** | Detect when docs drift from reality | • Package manager checks<br>• Script validation<br>• Port verification | ⭐⭐ |
-| **✅ Skill Validator Framework** | Auto-discovered compliance validators per skill (bash, Python, extensible) | • 14 bash checks + 8 Python AST checks<br>• Context-aware (runs relevant validators)<br>• JSON output for CI<br>• Extensible: drop `validate.py` in any skill | ⭐⭐⭐⭐ |
 | **🔧 Skill Condensing** | Auto-condense skills >500 lines into references | • Keep skills concise<br>• Organized structure<br>• Better context usage | ⭐⭐ |
 | **🔄 Model Registry Updates** | Keep AI model catalog current with latest releases | • Latest model info<br>• Pricing updates<br>• Capability tracking | ⭐⭐ |
 

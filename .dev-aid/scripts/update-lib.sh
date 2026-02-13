@@ -132,6 +132,15 @@ create_backup() {
     # VERSION file (for rollback reference)
     cp .dev-aid/VERSION "$backup_dir/" 2>/dev/null || true
 
+    # Agent prompt versions (APO-optimized prompts)
+    if [ -d ".dev-aid/agent-prompts" ]; then
+        cp -r .dev-aid/agent-prompts "$backup_dir/"
+    fi
+    # Golden test cases (user-defined)
+    if [ -f ".dev-aid/config/golden-tests.json" ]; then
+        cp .dev-aid/config/golden-tests.json "$backup_dir/"
+    fi
+
     # Create manifest of what was backed up
     cat > "$backup_dir/MANIFEST.txt" <<EOF
 Dev-AID Backup Manifest
@@ -145,6 +154,8 @@ Backed up:
 - RAG indices
 - Custom skills
 - VERSION file
+- Agent prompt versions (APO)
+- Golden test cases
 
 To restore this backup:
   ./.dev-aid/scripts/rollback.sh $backup_dir
@@ -267,6 +278,9 @@ get_protected_paths() {
 .dev-aid/logs/
 .dev-aid/local-search/index/
 .dev-aid/providers/*/skills/custom/
+.dev-aid/agent-traces/
+.dev-aid/agent-prompts/
+.dev-aid/config/golden-tests.json
 EOF
 }
 

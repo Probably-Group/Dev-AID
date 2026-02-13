@@ -82,6 +82,15 @@ MEMORY_FILE_KEYWORDS: Dict[str, List[str]] = {
         "failure",
         "exception",
     ],
+    "agent-optimization.md": [
+        "agent",
+        "optimization",
+        "prompt",
+        "apo",
+        "trace",
+        "performance",
+        "improvement",
+    ],
 }
 
 

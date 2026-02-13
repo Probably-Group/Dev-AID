@@ -147,6 +147,9 @@ git subtree pull --prefix=.dev-aid dev-aid-upstream main --squash
 | Memory bank | `.dev-aid/memory-bank/*.md` | Your team knowledge |
 | Logs | `.dev-aid/logs/` | Your history |
 | Venv | `.dev-aid/orchestration/.venv/` | Regenerated from requirements.txt |
+| Agent traces | `.dev-aid/agent-traces/` | Your execution history |
+| Agent prompts | `.dev-aid/agent-prompts/` | APO-optimized prompts |
+| Golden tests | `.dev-aid/config/golden-tests.json` | Your test cases |
 
 ### Merged (You Choose)
 

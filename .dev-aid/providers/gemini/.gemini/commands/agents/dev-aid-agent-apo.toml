@@ -1,0 +1,40 @@
+name = "dev-aid-agent-apo"
+description = "Automatic Prompt Optimization — optimize, rollback, and manage agent prompts"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Automatic Prompt Optimization (APO)
+
+You are managing the APO system for Dev-AID agents. APO analyzes agent execution traces and uses LLM-driven critique + beam search to improve agent system prompts.
+
+## Arguments
+
+Parse from user input:
+- **action** (required) — one of: optimize, rollback, history, status
+- **agent name** (required for optimize/rollback/history)
+- **options** — --beam-width N, --dry-run, --version N
+
+## Actions
+
+### optimize <agent-name>
+Run: `python -m .dev-aid.agents.cli apo optimize <agent-name> [--beam-width 3] [--dry-run]`
+
+### rollback <agent-name>
+Run: `python -m .dev-aid.agents.cli apo rollback <agent-name> [--version N]`
+
+### history <agent-name>
+Run: `python -m .dev-aid.agents.cli apo history <agent-name>`
+
+### status
+Run: `python -m .dev-aid.agents.cli apo status`
+
+## Safety
+- Human approval required for all prompt changes
+- Version history preserved; rollback always available
+- Golden test scoring before presentation
+"""

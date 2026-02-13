@@ -10,6 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Agent Trace Collection**: JSONL-based execution recording with `--trace` flag for all agents and teams
+- **Automatic Prompt Optimization (APO)**: LLM-driven critique + beam search to improve agent prompts with human approval gate
+  - `apo optimize` — analyze traces, generate candidates, score against golden tests, present diff
+  - `apo rollback` — restore previous prompt versions
+  - `apo history` / `apo status` — version tracking and status overview
+- **Golden Test Cases**: Predefined test cases for all 8 agents at `.dev-aid/config/golden-tests.json`
+- **Memory Bank Integration**: `agent-optimization.md` for storing APO results with on-demand keyword loading
+- **APO Slash Commands**: `aid-apo` alias for Claude and Gemini providers
+- New protected paths: agent-traces, agent-prompts, golden-tests.json in update-lib.sh
+- New directories: agent-traces, agent-prompts in setup-dev-aid.sh Phase 2
 - **Memory Bank Engine Improvements**: 6 new capabilities in the orchestration router
   - **On-demand loading**: Memory bank files loaded based on query relevance using keyword matching (not unconditionally)
   - **Token budget**: Configurable `standing_context_tokens` with `minimal`/`balanced`/`generous` budget modes

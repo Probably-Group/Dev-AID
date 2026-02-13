@@ -183,6 +183,8 @@ Dev-AID stores files in three locations to optimize for portability, privacy, an
 |------|-----|------|
 | `.dev-aid/config/.env` | **SECURITY**: Contains API keys | <1KB |
 | `.dev-aid/logs/` | Runtime logs, regenerated | ~1MB |
+| `.dev-aid/agent-traces/` | Agent execution traces (JSONL) | Varies |
+| `.dev-aid/agent-prompts/` | APO-optimized prompt versions | <1MB |
 | `.dev-aid/orchestration/.venv/` | Virtual environment, reproducible | ~70MB |
 | `~/.local/share/claude-context-local/` | Not in project, in home | ~1.2GB |
 | `~/.claude_code_search/` | Not in project, in home | ~1.5GB |

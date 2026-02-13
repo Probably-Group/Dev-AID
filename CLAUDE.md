@@ -83,6 +83,29 @@ Multi-provider research with smart routing:
 - **CLI**: `dev-aid-research` command (search, quick, deep, providers, cache)
 - **Smart router**: Auto-selects provider based on query complexity
 
+### Agent Tracing & APO
+
+**Trace collection** — Add `--trace` to any agent or team command to record JSONL execution traces:
+```bash
+dev-aid-agent pr-reviewer --pr 135 --trace
+dev-aid-agent team security-audit-team -m "Audit" --trace --trace-dir /custom/path
+```
+Traces stored at `.dev-aid/agent-traces/{agent-name}/`.
+
+**Automatic Prompt Optimization** — LLM-driven prompt improvement with human approval:
+```bash
+dev-aid-agent apo optimize <agent> [--beam-width 3] [--dry-run]
+dev-aid-agent apo rollback <agent> [--version N]
+dev-aid-agent apo history <agent>
+dev-aid-agent apo status
+```
+
+**Data paths (gitignored, protected by update-lib.sh):**
+- `.dev-aid/agent-traces/` — Execution trace JSONL files
+- `.dev-aid/agent-prompts/` — APO-optimized prompt versions
+- `.dev-aid/config/golden-tests.json` — Golden test cases (committed)
+- `.dev-aid/memory-bank/agent-optimization.md` — APO results in memory bank
+
 ## Slash Command Aliases (`aid-*`)
 
 **Every Dev-AID command has a short `aid-*` alias.** Type `aid-` in autocomplete to browse all commands.
@@ -100,6 +123,7 @@ Multi-provider research with smart routing:
 | `aid-onboard` | `dev-aid-agent-onboard` | `aid-onboard` |
 | `aid-docs` | `dev-aid-agent-doc-audit` | `aid-docs . docs-only` |
 | `aid-team` | `dev-aid-agent-team` | `aid-team security-audit-team -m "Audit auth"` |
+| `aid-apo` | `dev-aid-agent-apo` | `aid-apo optimize pr-reviewer` |
 
 ### Router Aliases
 

@@ -855,3 +855,120 @@ venv/bin/python -m pytest tests/test_team_*.py tests/test_builtin_teams.py -v
 | `test_doc_auditor.py` | Doc-auditor definition validation, CLI integration, scope handling |
 
 **Coverage:** 903 tests, all passing. No real API calls — everything is mocked.
+
+---
+
+## Agent Tracing
+
+Record agent execution as JSONL for debugging and analysis.
+
+### Enabling Traces
+
+Add `--trace` to any agent command:
+
+```bash
+dev-aid-agent pr-reviewer --pr 135 --trace
+dev-aid-agent team security-audit-team -m "Audit auth" --trace
+```
+
+Traces are stored at `.dev-aid/agent-traces/{agent-name}/{YYYYMMDD-HHMMSS}-{trace_id}.jsonl`.
+
+### Custom Trace Directory
+
+```bash
+dev-aid-agent research --topic "caching" --trace --trace-dir /tmp/my-traces
+```
+
+### JSONL Schema
+
+Each trace file contains one JSON object per line:
+
+| Event | Fields | Description |
+|-------|--------|-------------|
+| `run_start` | agent_name, model, system_prompt_hash, user_message, temperature | Trace header |
+| `iteration` | iteration, tokens_used, cost, stop_reason, tool_calls[] | Each LLM round-trip |
+| `tool_result` | iteration, tool_name, success, output_length, error, latency_ms | Each tool execution |
+| `run_end` | success, output_preview, totals (iterations, tokens, cost, latency) | Final summary |
+
+### Reading Traces
+
+```python
+from .dev_aid.agents.core.trace_collector import TraceCollector
+from pathlib import Path
+
+traces = TraceCollector.list_traces(Path(".dev-aid/agent-traces"), "pr-reviewer", limit=5)
+for path in traces:
+    events = TraceCollector.load_trace(path)
+    end = next(e for e in events if e["event"] == "run_end")
+    print(f"{path.name}: success={end['success']}, cost=${end['totals']['cost']:.4f}")
+```
+
+---
+
+## Automatic Prompt Optimization (APO)
+
+LLM-driven critique + beam search to improve agent system prompts, with human approval gate.
+
+### Quick Start
+
+```bash
+# 1. Run the agent several times with --trace to collect data
+dev-aid-agent pr-reviewer --pr 100 --trace
+dev-aid-agent pr-reviewer --pr 101 --trace
+# ... (need at least 5 traces)
+
+# 2. Run APO optimization
+dev-aid-agent apo optimize pr-reviewer
+
+# 3. Review the diff and approve/decline
+# 4. Check history
+dev-aid-agent apo history pr-reviewer
+
+# 5. Rollback if needed
+dev-aid-agent apo rollback pr-reviewer
+```
+
+### APO Commands
+
+| Command | Description |
+|---------|-------------|
+| `apo optimize <agent> [--beam-width 3] [--dry-run]` | Run optimization pipeline |
+| `apo rollback <agent> [--version N]` | Restore previous prompt version |
+| `apo history <agent>` | Show all prompt versions with scores |
+| `apo status` | Show APO status for all agents |
+
+### How It Works
+
+1. **Trace Analysis** — Loads recent execution traces for the agent
+2. **Critique Generation** — LLM analyzes patterns in successes/failures
+3. **Candidate Generation** — Beam search produces N candidate prompts
+4. **Golden Test Scoring** — Each candidate scored against predefined test cases
+5. **Human Approval** — Unified diff shown with score comparison; user must approve
+6. **Version Storage** — Approved prompt saved with full history at `.dev-aid/agent-prompts/`
+7. **Memory Bank** — Results written to `.dev-aid/memory-bank/agent-optimization.md`
+
+### Golden Test Cases
+
+Test cases live at `.dev-aid/config/golden-tests.json`. Each agent has 1-2 tests with expected behaviors:
+
+```json
+{
+  "pr-reviewer": [{
+    "id": "pr-review-security",
+    "user_message": "Review this PR that adds a login endpoint...",
+    "expected_behaviors": [
+      "Checks for input validation",
+      "Evaluates password hashing",
+      "Provides a clear verdict"
+    ]
+  }]
+}
+```
+
+### Safety Guarantees
+
+- **Human-in-the-loop** — No prompt changes without explicit approval
+- **Full version history** — Every version preserved; rollback always available
+- **Non-destructive** — Original agent code never modified; overrides stored separately
+- **Scored evaluation** — Candidates must beat current prompt on golden tests
+- **Protected paths** — Prompt versions and traces excluded from `update-lib.sh` overwrites

@@ -550,6 +550,29 @@ Total Savings:   $35/month (78%)
 
 ---
 
+## 🧠 Agent Tracing & APO
+
+### Q: What is Agent Tracing?
+
+**A: A recording system for agent executions.** Add `--trace` to any agent command to collect JSONL traces of every LLM call, tool execution, and result. Traces are stored in `.dev-aid/agent-traces/` and used for debugging and APO.
+
+### Q: What is APO (Automatic Prompt Optimization)?
+
+**A: An LLM-driven system that improves agent prompts.** APO analyzes execution traces, generates a critique, creates candidate improved prompts via beam search, scores them against golden test cases, and presents a diff for human approval. No changes are applied without your explicit consent.
+
+### Q: Where is APO data stored?
+
+**A:** Three locations, all gitignored:
+- `.dev-aid/agent-traces/` — Execution traces (JSONL)
+- `.dev-aid/agent-prompts/` — Versioned prompt overrides
+- `.dev-aid/config/golden-tests.json` — Test cases (committed to git)
+
+### Q: Is it safe to update Dev-AID with APO data?
+
+**A: Yes.** Agent traces, optimized prompts, and golden tests are all in the "Never Overwritten" protected paths list. The update system will never touch them.
+
+---
+
 ## 🔗 Quick Links
 
 - [STORAGE-LOCATIONS.md](./STORAGE-LOCATIONS.md) - Storage architecture

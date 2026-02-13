@@ -246,6 +246,8 @@ if should_run_phase 2; then
     mkdir -p "$DEV_AID_DIR/backups"
     mkdir -p "$DEV_AID_DIR/analysis"
     mkdir -p "$DEV_AID_DIR/temp"
+    mkdir -p "$DEV_AID_DIR/agent-traces"
+    mkdir -p "$DEV_AID_DIR/agent-prompts"
 
     echo -e "${GREEN}Directory structure created${NC}"
     echo ""

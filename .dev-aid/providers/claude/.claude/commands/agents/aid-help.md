@@ -27,8 +27,9 @@ Print the following reference guide for the user. Do NOT execute any commands â€
 | `aid-onboard` | `dev-aid-agent-onboard` | Generate codebase onboarding guide |
 | `aid-docs` | `dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
 | `aid-team` | `dev-aid-agent-team` | Run multi-agent teams (PR review, security audit, etc.) |
+| `aid-apo` | `dev-aid-agent-apo` | Automatic Prompt Optimization (optimize/rollback/history/status) |
 
-**CLI (for scripts/CI):** `dev-aid-agent <agent> [options] --json --dry-run`
+**CLI (for scripts/CI):** `dev-aid-agent <agent> [options] --json --dry-run --trace`
 
 ## ðŸ”€ Router Commands
 

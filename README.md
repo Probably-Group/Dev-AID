@@ -54,7 +54,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **🧠 Automatic Prompt Optimization** — LLM-driven prompt improvement from execution traces with human approval
 - **🔀 Multi-AI Router** — Best model for each task, dual-AI code review, 97% cost savings on large context
 - **🏠 Local LLM Support** — Offline, private, zero-cost AI via Ollama/LM Studio/llama.cpp
-- **🔍 Local Code Search** — Hybrid BM25 + Vector search, 100% private, $0 forever
+- **🔍 Local Code Search (RAG)** — Hybrid BM25 + Vector search, 100% private, $0 forever
 - **🔬 Deep Research** — Multi-provider research via Tavily, Perplexity, Gemini Deep Research
 - **🎓 73 Expert Skills** — Auto-loads domain expertise based on your tech stack
 - **⚡ 8 Process Skills** — Enforce TDD, verification, systematic debugging, architect-first

@@ -11,8 +11,6 @@
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with auto-loading expertise, dual-AI review, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 
-> **💡 Other tools make you choose. Dev-AID lets you use the best of everything.**
-
 > **🎯 Dev-AID adds structure to AI-assisted development: expert skills guide AI behavior, verification gates demand proof, and dual-AI review catches what single-model workflows miss.**
 
 > 📊 **For Managers/Stakeholders:** See **[VALUE-PROPOSITION.md](./VALUE-PROPOSITION.md)** for ROI analysis ($6.5M+ annual value for 100-dev teams).

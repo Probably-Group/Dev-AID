@@ -150,7 +150,7 @@ cd ~/my-project
 # Local semantic search ($0, offline, 5 min setup)
 ./.dev-aid/scripts/setup-rag.sh
 
-# Local LLM — zero-cost AI (auto-detects GPU, installs Ollama)
+# Local LLM — zero-cost AI (auto-detects GPU, guides runtime setup)
 ./.dev-aid/scripts/setup-local-llm.sh
 
 # Security scanning tools (Gitleaks, Trivy, Opengrep)

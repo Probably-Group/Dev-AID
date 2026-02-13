@@ -14,6 +14,7 @@ from .models import AgentDefinition, AgentResult, StopWatch, ToolCall
 from .provider_adapter import ProviderAdapter, ProviderResponse
 from .skill_loader import SkillLoader
 from .tool_registry import ToolRegistry
+from .trace_collector import TraceCollector
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +38,7 @@ class AgentRunner:
         on_iteration: Optional[Callable[[int, ProviderResponse], None]] = None,
         max_context_tokens: int = DEFAULT_MAX_CONTEXT_TOKENS,
         max_retries: int = DEFAULT_MAX_RETRIES,
+        trace_collector: Optional[TraceCollector] = None,
     ) -> None:
         self._adapter = adapter
         self._registry = registry
@@ -45,6 +47,7 @@ class AgentRunner:
         self._on_iteration = on_iteration
         self._max_context_tokens = max_context_tokens
         self._max_retries = max_retries
+        self._trace_collector = trace_collector
 
     def _build_system_prompt(
         self,
@@ -259,6 +262,12 @@ class AgentRunner:
         timer = StopWatch()
         system_prompt = self._build_system_prompt(agent_def, extra_context)
 
+        # Start trace if collector is present
+        if self._trace_collector:
+            self._trace_collector.start_trace(
+                agent_def, user_message, system_prompt, model
+            )
+
         # Get tool definitions in the adapter's native format
         tool_defs = self._get_tool_definitions(agent_def)
 
@@ -293,7 +302,7 @@ class AgentRunner:
                 )
             except Exception as e:
                 logger.error("Provider error after retries: %s", e)
-                return AgentResult(
+                error_result = AgentResult(
                     agent_name=agent_def.name,
                     success=False,
                     output=f"Provider error: {e}",
@@ -303,11 +312,30 @@ class AgentRunner:
                     total_cost=total_cost,
                     total_latency_ms=timer.elapsed_ms(),
                 )
+                if self._trace_collector:
+                    self._trace_collector.end_trace(error_result)
+                return error_result
 
             # Accumulate tokens and cost
             total_tokens["input"] += response.tokens_used.get("input", 0)
             total_tokens["output"] += response.tokens_used.get("output", 0)
             total_cost += response.cost
+
+            # Record iteration trace
+            if self._trace_collector:
+                stop_reason = "tool_use" if response.tool_calls else "end_turn"
+                tc_summary = [
+                    {"name": tc.name, "id": tc.id}
+                    for tc in (response.tool_calls or [])
+                ]
+                self._trace_collector.record_iteration(
+                    iteration=iteration,
+                    tokens_used=response.tokens_used,
+                    cost=response.cost,
+                    stop_reason=stop_reason,
+                    tool_calls=tc_summary,
+                    latency_ms=timer.elapsed_ms(),
+                )
 
             # Notify iteration callback
             if self._on_iteration:
@@ -316,7 +344,7 @@ class AgentRunner:
             # If no tool calls, we have the final response
             if not response.tool_calls:
                 final_output = response.content or ""
-                return AgentResult(
+                success_result = AgentResult(
                     agent_name=agent_def.name,
                     success=True,
                     output=final_output,
@@ -326,6 +354,9 @@ class AgentRunner:
                     total_cost=total_cost,
                     total_latency_ms=timer.elapsed_ms(),
                 )
+                if self._trace_collector:
+                    self._trace_collector.end_trace(success_result)
+                return success_result
 
             # Append assistant message with tool calls
             if hasattr(self._adapter, "format_assistant_tool_use"):
@@ -344,8 +375,19 @@ class AgentRunner:
                     self._on_tool_call(tool_call)
 
                 logger.info("Executing tool: %s(%s)", tool_call.name, tool_call.arguments)
+                tool_timer = StopWatch()
                 result = self._registry.execute(tool_call)
                 results.append(result)
+
+                if self._trace_collector:
+                    self._trace_collector.record_tool_result(
+                        iteration=iteration,
+                        tool_name=tool_call.name,
+                        success=result.success,
+                        output_length=len(result.output),
+                        error=result.error,
+                        latency_ms=tool_timer.elapsed_ms(),
+                    )
 
             # Format and append tool results (batched per adapter requirements)
             if hasattr(self._adapter, "format_tool_results"):
@@ -367,7 +409,7 @@ class AgentRunner:
             agent_def.name,
             agent_def.max_iterations,
         )
-        return AgentResult(
+        max_iter_result = AgentResult(
             agent_name=agent_def.name,
             success=False,
             output=(
@@ -380,3 +422,6 @@ class AgentRunner:
             total_cost=total_cost,
             total_latency_ms=timer.elapsed_ms(),
         )
+        if self._trace_collector:
+            self._trace_collector.end_trace(max_iter_result)
+        return max_iter_result

@@ -158,7 +158,7 @@ Run autonomous AI agents powered by Dev-AID's expert skills:
 
 **For CI/scripts**, use the CLI form: `dev-aid-agent pr-reviewer --pr 135 --json`
 
-See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 7 agents, 16 tools, and CLI options.
+See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 8 agents, 16 tools, and CLI options.
 
 ## Next Steps
 

@@ -11,6 +11,10 @@
 .dev-aid/logs/routing-history.json
 .dev-aid/logs/rag-*.log
 
+# Agent traces and optimization (runtime data, user-specific)
+.dev-aid/agent-traces/
+.dev-aid/agent-prompts/
+
 # Temporary files
 .dev-aid/temp/*
 !.dev-aid/temp/.gitkeep

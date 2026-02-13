@@ -213,6 +213,19 @@ This regenerates `CLAUDE.md` with updated memory-bank references.
 
 **AI reads this to**: Implement proper error handling
 
+### agent-optimization.md
+
+**Purpose**: Agent prompt optimization history
+
+**Contents**:
+- APO optimization results (before/after scores)
+- Patterns discovered across agents
+- Prompt engineering lessons learned
+
+**AI reads this to**: Understand agent optimization history and apply learned patterns
+
+**Keywords**: agent, optimization, prompt, apo, trace, performance, improvement
+
 ### activeContext.md
 
 **Purpose**: Current sprint/session state (optional)

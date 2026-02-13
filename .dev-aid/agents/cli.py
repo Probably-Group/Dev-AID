@@ -30,6 +30,8 @@ from .core.skill_loader import SkillLoader
 from .core.team_models import AgentMessage, TeamDefinition
 from .core.team_runner import TeamRunner
 from .core.tool_registry import ToolRegistry
+from .core.apo import APOConfig, APOOptimizer, get_apo_prompt_override
+from .core.trace_collector import TraceCollector, TraceConfig
 from .teams.builtin_teams import BUILTIN_TEAMS
 from .tools import bash_tool, file_tools, git_tools, github_tools, search_tools
 
@@ -180,6 +182,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", dest="json_output", help="JSON output"
     )
     parser.add_argument("--max-iterations", type=int, help="Override max iterations")
+    parser.add_argument(
+        "--trace", action="store_true", help="Enable execution trace collection"
+    )
+    parser.add_argument(
+        "--trace-dir",
+        type=str,
+        help="Directory for trace files (default: .dev-aid/agent-traces)",
+    )
 
     subparsers = parser.add_subparsers(dest="agent", help="Agent to run")
 
@@ -266,6 +276,29 @@ def build_parser() -> argparse.ArgumentParser:
         "--list-teams", action="store_true", help="List available teams"
     )
 
+    # APO subcommand
+    apo_parser = subparsers.add_parser(
+        "apo", help="Automatic Prompt Optimization"
+    )
+    apo_sub = apo_parser.add_subparsers(dest="apo_action", help="APO action")
+
+    apo_opt = apo_sub.add_parser("optimize", help="Optimize an agent's prompt")
+    apo_opt.add_argument("agent_name", help="Agent to optimize")
+    apo_opt.add_argument(
+        "--beam-width", type=int, default=3, help="Number of candidate prompts"
+    )
+
+    apo_rb = apo_sub.add_parser(
+        "rollback", help="Rollback to a previous prompt version"
+    )
+    apo_rb.add_argument("agent_name", help="Agent to rollback")
+    apo_rb.add_argument("--version", type=int, help="Specific version to rollback to")
+
+    apo_hist = apo_sub.add_parser("history", help="Show prompt version history")
+    apo_hist.add_argument("agent_name", help="Agent to show history for")
+
+    apo_sub.add_parser("status", help="Show APO status for all agents")
+
     return parser
 
 
@@ -340,6 +373,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.agent == "team":
         return _handle_team_command(args)
 
+    # Handle APO subcommand
+    if args.agent == "apo":
+        return _handle_apo_command(args)
+
     if args.agent not in AGENTS:
         print(_c(Colors.RED, f"Unknown agent: {args.agent}"), file=sys.stderr)
         return 1
@@ -360,6 +397,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Apply CLI overrides (also via copy)
     if args.max_iterations:
         agent_def = agent_def.copy(max_iterations=args.max_iterations)
+
+    # Apply APO prompt override if available
+    prompts_dir = root / ".dev-aid" / "agent-prompts"
+    apo_override = get_apo_prompt_override(prompts_dir, args.agent)
+    if apo_override:
+        agent_def = agent_def.copy(system_prompt_extra=apo_override)
+        if not getattr(args, "json_output", False):
+            print(_c(Colors.DIM, "  Using APO-optimized prompt"))
 
     provider = args.provider or defaults.get("provider", "anthropic")
     model = args.model or defaults.get("model", "claude-sonnet-4-5-20250929")
@@ -402,12 +447,26 @@ def main(argv: Optional[List[str]] = None) -> int:
                 + (_c(Colors.CYAN, f" ({tools_str})") if tools_str else "")
             )
 
+    # Build trace collector if enabled
+    trace_collector: Optional[TraceCollector] = None
+    if getattr(args, "trace", False):
+        trace_dir = Path(args.trace_dir) if args.trace_dir else root / ".dev-aid" / "agent-traces"
+        trace_config = TraceConfig(enabled=True, trace_dir=trace_dir)
+        trace_collector = TraceCollector(
+            config=trace_config,
+            agent_name=agent_def.name,
+            model=model,
+        )
+        if not args.json_output:
+            print(_c(Colors.DIM, f"  Trace enabled → {trace_dir}/{agent_def.name}/"))
+
     runner = AgentRunner(
         adapter=adapter,
         registry=registry,
         skill_loader=skill_loader,
         on_tool_call=on_tool_call if args.verbose else None,
         on_iteration=on_iteration,
+        trace_collector=trace_collector,
     )
 
     # Print header
@@ -595,6 +654,14 @@ def _handle_team_command(args: argparse.Namespace) -> int:
                 )
             )
 
+    # Build trace config for team if enabled
+    team_trace_config: Optional[TraceConfig] = None
+    if getattr(args, "trace", False):
+        trace_dir = Path(args.trace_dir) if args.trace_dir else root / ".dev-aid" / "agent-traces"
+        team_trace_config = TraceConfig(enabled=True, trace_dir=trace_dir)
+        if not args.json_output:
+            print(_c(Colors.DIM, f"  Trace enabled → {trace_dir}/"))
+
     # Create TeamRunner
     runner = TeamRunner(
         registry_factory=_build_registry,
@@ -603,6 +670,7 @@ def _handle_team_command(args: argparse.Namespace) -> int:
         on_agent_start=on_agent_start,
         on_agent_complete=on_agent_complete,
         on_message=on_message if args.verbose else None,
+        trace_config=team_trace_config,
     )
 
     # Print header
@@ -668,6 +736,96 @@ def _handle_team_command(args: argparse.Namespace) -> int:
         )
 
     return 0 if result.success else 1
+
+
+def _handle_apo_command(args: argparse.Namespace) -> int:
+    """Handle the 'apo' subcommand."""
+    action = getattr(args, "apo_action", None)
+    if not action:
+        print(_c(Colors.RED, "Error: APO action required"), file=sys.stderr)
+        print("Usage: dev-aid-agent apo {optimize|rollback|history|status}", file=sys.stderr)
+        return 1
+
+    # Setup logging
+    log_level = logging.DEBUG if args.verbose else logging.WARNING
+    logging.basicConfig(level=log_level, format="%(name)s: %(message)s")
+
+    root = _find_dev_aid_root()
+    config = _load_config(root)
+    defaults = config.get("defaults", {})
+
+    apo_config = APOConfig(
+        traces_dir=root / ".dev-aid" / "agent-traces",
+        prompts_dir=root / ".dev-aid" / "agent-prompts",
+        golden_tests_path=root / ".dev-aid" / "config" / "golden-tests.json",
+        memory_bank_path=root / ".dev-aid" / "memory-bank",
+    )
+
+    if action == "status":
+        # Status doesn't need an adapter
+        optimizer = APOOptimizer(config=apo_config, adapter=None)  # type: ignore[arg-type]
+        print(optimizer.status(AGENTS))
+        return 0
+
+    # Actions that need agent_name
+    agent_name = getattr(args, "agent_name", None)
+    if not agent_name:
+        print(_c(Colors.RED, "Error: agent name required"), file=sys.stderr)
+        return 1
+
+    if action == "history":
+        optimizer = APOOptimizer(config=apo_config, adapter=None)  # type: ignore[arg-type]
+        versions = optimizer.history(agent_name)
+        if not versions:
+            print(f"No prompt versions found for '{agent_name}'.")
+            return 0
+        print(_c(Colors.BOLD, f"\nPrompt History: {agent_name}"))
+        print("=" * 50)
+        for v in versions:
+            score_str = f", score={v.score:.2f}" if v.score is not None else ""
+            parent_str = f" (from v{v.parent_version})" if v.parent_version else ""
+            print(
+                f"  v{v.version:03d} | {v.source}{parent_str}{score_str} | {v.created_at}"
+            )
+        return 0
+
+    if action == "rollback":
+        optimizer = APOOptimizer(config=apo_config, adapter=None)  # type: ignore[arg-type]
+        to_version = getattr(args, "version", None)
+        success = optimizer.rollback(agent_name, to_version)
+        return 0 if success else 1
+
+    if action == "optimize":
+        if agent_name not in AGENTS:
+            print(_c(Colors.RED, f"Unknown agent: {agent_name}"), file=sys.stderr)
+            return 1
+
+        provider = args.provider or defaults.get("provider", "anthropic")
+        api_key = _resolve_api_key(provider)
+        adapter = create_adapter(provider=provider, api_key=api_key)
+
+        beam_width = getattr(args, "beam_width", 3)
+        apo_config.beam_width = beam_width
+
+        optimizer = APOOptimizer(config=apo_config, adapter=adapter)
+        agent_def = AGENTS[agent_name]
+
+        print(_c(Colors.BOLD, f"\n{'='*60}"))
+        print(_c(Colors.BOLD, f"  APO: Optimizing {agent_name}"))
+        print(_c(Colors.DIM, f"  Beam width: {beam_width}"))
+        if args.dry_run:
+            print(_c(Colors.YELLOW, "  MODE: DRY RUN"))
+        print(_c(Colors.BOLD, f"{'='*60}\n"))
+
+        result = optimizer.optimize(
+            agent_name=agent_name,
+            agent_def=agent_def,
+            dry_run=args.dry_run,
+        )
+        return 0 if result else 1
+
+    print(_c(Colors.RED, f"Unknown APO action: {action}"), file=sys.stderr)
+    return 1
 
 
 def _resolve_api_key(provider: str) -> Optional[str]:

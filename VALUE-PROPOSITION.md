@@ -805,7 +805,7 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 | **🌳 Git Worktree Isolation** | **$156,000** | 10-15 min/switch | • Safe parallel feature development<br>• 5-8x productivity with multi-agent workflows<br>• Architecture locks prevent conflicts | ⭐⭐⭐⭐ |
 | **🔀 Hybrid Search (BM25+Vector)** | **$65,000** | Enhancement | • +7-17% accuracy over pure vector ([arXiv 2024](https://arxiv.org/html/2404.07220v1))<br>• Keyword + semantic = complementary results<br>• Better code discovery | ⭐⭐⭐ |
 | **🚦 TDD Enforcement Gate** | **$62,400** | Enhancement | • Enforces 40-90% defect reduction ([Microsoft/IBM](https://www.microsoft.com/en-us/research/wp-content/uploads/2009/10/Realizing-Quality-Improvement-Through-Test-Driven-Development-Results-and-Experiences-of-Four-Industrial-Teams-nagappan_tdd.pdf))<br>• Blocks code without tests (configurable)<br>• strict/warning/off modes | ⭐⭐⭐⭐ |
-| **🤖 Agent Framework** 🆕 | **$312,000** | 30-60 min/workflow | • 8 agents (PR review, test gen, tech debt, CI fix, conflict, research, onboard, doc audit)<br>• 16 tools with safety enforcement<br>• 4 providers (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts | ⭐⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | **$312,000** | 30-60 min/workflow | • 8 agents (PR review, test gen, tech debt, CI fix, conflict, research, onboard, doc audit)<br>• 16 tools with safety enforcement<br>• 3 providers + local via OpenAI-compatible API<br>• Skill-powered system prompts | ⭐⭐⭐⭐⭐ |
 | **🏠 Local LLM Support** 🆕 | **$540,000** | $45/mo/dev saved | • Offline, private, zero-cost AI inference<br>• 3 runtimes (Ollama, LM Studio, llama.cpp)<br>• Hardware auto-detection + model recommendations<br>• Router integration for smart task routing | ⭐⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** 🆕 | **$104,000** | 30-60 min/research | • Multi-provider (Gemini/Perplexity/Tavily)<br>• Semantic caching (70% similarity threshold)<br>• MCP server integration<br>• Auto-selects best provider per query | ⭐⭐⭐⭐ |
 
@@ -836,7 +836,7 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 - **v1.4.0-beta.1 Total**: $530,900/year ✅
 
 **v1.5.0-beta.3 Features (NEW):**
-- **Agent Framework**: $312,000/year (8 agents, 16 tools, 4 providers, skill-powered)
+- **Agent Framework**: $312,000/year (8 agents, 16 tools, 3 providers + local, skill-powered)
 - **Local LLM Support**: $540,000/year (offline, private, zero-cost, 3 runtimes)
 - **Deep Research MCP**: $104,000/year (Gemini/Perplexity/Tavily, semantic caching)
 - **v1.5.0-beta.3 Total**: $956,000/year

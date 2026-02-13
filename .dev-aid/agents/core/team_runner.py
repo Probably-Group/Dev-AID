@@ -8,6 +8,7 @@ in parallel, sequential, or DAG workflows with shared state.
 import asyncio
 import logging
 import time
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from .agent_runner import AgentRunner
@@ -18,6 +19,8 @@ from .shared_state import BudgetTracker, FileLockSet, MessageBus, SharedTaskList
 from .skill_loader import SkillLoader
 from .team_models import AgentMessage, AgentSlot, TeamDefinition, TeamResult
 from .tool_registry import ToolRegistry
+from .apo import get_apo_prompt_override
+from .trace_collector import TraceCollector, TraceConfig
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,7 @@ class TeamRunner:
         on_agent_start: Optional[Callable[[str], None]] = None,
         on_agent_complete: Optional[Callable[[str, AgentResult], None]] = None,
         on_message: Optional[Callable[[AgentMessage], None]] = None,
+        trace_config: Optional[TraceConfig] = None,
     ) -> None:
         self._registry_factory = registry_factory
         self._skill_loader = skill_loader
@@ -50,6 +54,7 @@ class TeamRunner:
         self._on_agent_start = on_agent_start
         self._on_agent_complete = on_agent_complete
         self._on_message = on_message
+        self._trace_config = trace_config
 
     async def run(
         self,
@@ -367,10 +372,20 @@ class TeamRunner:
         safety = SafetyConfig()
         registry = self._registry_factory(safety)
 
+        # Create per-agent trace collector if tracing is enabled
+        trace_collector: Optional[TraceCollector] = None
+        if self._trace_config and self._trace_config.enabled:
+            trace_collector = TraceCollector(
+                config=self._trace_config,
+                agent_name=slot.name,
+                model=model,
+            )
+
         runner = AgentRunner(
             adapter=adapter,
             registry=registry,
             skill_loader=self._skill_loader,
+            trace_collector=trace_collector,
         )
 
         # Run in thread (AgentRunner.run is synchronous)
@@ -403,9 +418,21 @@ class TeamRunner:
             )
 
         overrides: Dict[str, Any] = {}
+
+        # Apply APO prompt override if available
+        if self._trace_config:
+            prompts_dir = self._trace_config.trace_dir.parent / "agent-prompts"
+        else:
+            prompts_dir = Path(".dev-aid/agent-prompts")
+        apo_override = get_apo_prompt_override(prompts_dir, slot.agent_def_name)
+        if apo_override:
+            overrides["system_prompt_extra"] = apo_override
+
         if slot.role_prompt:
             # Append role_prompt to existing system_prompt_extra
-            new_prompt = base.system_prompt_extra
+            new_prompt = overrides.get(
+                "system_prompt_extra", base.system_prompt_extra
+            )
             if new_prompt:
                 new_prompt += "\n\n"
             new_prompt += slot.role_prompt

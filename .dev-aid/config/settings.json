@@ -19,7 +19,8 @@
       "security.md",
       "performance.md",
       "testing.md",
-      "chaos.md"
+      "chaos.md",
+      "agent-optimization.md"
     ],
     "standing_context_tokens": 1000,
     "standing_context_budget": "balanced",

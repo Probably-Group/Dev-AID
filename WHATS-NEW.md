@@ -70,12 +70,12 @@ Documentation: [Security Tools Reference](.dev-aid/docs/SECURITY-TOOLS-REFERENCE
 ---
 
 ### Provider-Agnostic Agent Framework
-Autonomous AI agents powered by Dev-AID's 73+ expert skills — works with any provider:
+Autonomous AI agents powered by Dev-AID's 86 skills — works with any provider:
 
 - **Agent Runner**: Send → tool calls → execute → repeat loop with safety enforcement
 - **8 Built-in Agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor
 - **16 Built-in Tools**: File I/O, git, GitHub, bash, search — all with risk levels and safety checks
-- **4 Provider Adapters**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
+- **3 Provider Adapters**: Anthropic, OpenAI, Google Gemini + Local via OpenAI-compatible API
 - **Skill-Powered**: Each agent loads specific Dev-AID expert skills as system prompts
 - **Safety**: Command blocklist, dry-run mode, per-tool risk levels, allowed-tool enforcement
 - **CLI**: `dev-aid-agent <agent> [options]` with `--provider`, `--model`, `--dry-run`, `--verbose`, `--json`

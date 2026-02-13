@@ -1,6 +1,6 @@
 # Dev-AID Agent Framework
 
-Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills.
+Provider-agnostic autonomous AI agents powered by Dev-AID's 86 skills.
 
 **Module location:** `.dev-aid/agents/`
 **CLI entry point:** `dev-aid-agent`
@@ -550,7 +550,7 @@ Each agent in a team gets its own `SafetyConfig` and `ToolRegistry`. The `FileLo
 
 ## Provider Adapters
 
-The framework supports 4 providers through a unified `ProviderAdapter` protocol:
+The framework supports 3 providers (+ local via OpenAI-compatible API) through a unified `ProviderAdapter` protocol:
 
 | Provider | Adapter | Tool Format | Notes |
 |----------|---------|-------------|-------|

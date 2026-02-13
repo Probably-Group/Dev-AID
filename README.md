@@ -42,20 +42,18 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 
 Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) with:
 
-- **🤖 8 Autonomous Agents** — PR review, test generation, tech debt scanning, CI fixing, conflict resolution, research, onboarding, doc auditing — run via `/aid-*` commands or Python CLI
-- **👥 Multi-Agent Teams** — Coordinated agent teams with parallel, sequential, and DAG workflows
-- **🧠 Automatic Prompt Optimization** — LLM-driven prompt improvement from execution traces with human approval
-- **🔀 Multi-AI Router** — Best model for each task, dual-AI code review, 97% cost savings on large context
-- **🏠 Local LLM Support** — Offline, private, zero-cost AI via Ollama/LM Studio/llama.cpp
-- **🔍 Local Code Search (RAG)** — Hybrid BM25 + Vector search, 100% private, $0 forever
-- **🔬 Deep Research** — Multi-provider research via Tavily, Perplexity, Gemini Deep Research
-- **🎓 73 Expert Skills** — Auto-loads domain expertise based on your tech stack
-- **⚡ 8 Process Skills** — Enforce TDD, verification, systematic debugging, architect-first
-- **🔒 Security Automation** — CVE, SAST, secrets, misconfig scanning on every commit with language-specific tools
-- **🔌 MCP Integration** — Auto-discovery of MCP servers, smart context gathering, security hardened
-- **⚙️ CI/CD Generator** — Auto-generate production-ready workflows for 9+ languages
-- **💾 Persistent Memory** — Cross-session context with on-demand loading, token budgets, staleness detection
-- **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations
+- **🤖 Autonomous Agents** — 8 agents, 4 teams, 16 tools across 3 providers + local LLMs — PR review, testing, tech debt, CI fixing, research, and more — [guide](.dev-aid/docs/Dev-AID-AGENTS.md)
+- **🧠 Automatic Prompt Optimization (APO)** — LLM-driven agent prompt improvement from execution traces with human approval — [guide](.dev-aid/docs/Dev-AID-AGENTS.md#automatic-prompt-optimization-apo)
+- **🔀 Multi-AI Router** — Route tasks to the best model, dual-AI code review, 97% cost savings on large context — [guide](.dev-aid/docs/CONTEXT-SHARING.md)
+- **🏠 Local LLM Support** — Offline, private, zero-cost AI via Ollama/LM Studio/llama.cpp — [guide](.dev-aid/docs/LOCAL-LLM-GUIDE.md)
+- **🔍 Local Code Search (RAG)** — Hybrid BM25 + Vector search, 100% private, $0 forever — [guide](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)
+- **🔬 Deep Research** — Multi-provider research via Tavily, Perplexity, Gemini Deep Research — [guide](.dev-aid/docs/DEEP-RESEARCH-GUIDE.md)
+- **🎓 86 Skills** — 73 expert (auto-loaded by tech stack) + 8 process (TDD, verification) + 5 core (automated checking) — [architecture](.dev-aid/docs/SKILLS-ARCHITECTURE.md)
+- **🔒 Security Automation** — CVE, SAST, secrets, misconfig scanning on every commit with language-specific tools — [guide](.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md)
+- **🔌 MCP Integration** — Auto-discovery of MCP servers, smart context gathering, 2 built-in servers — [guide](.dev-aid/docs/MCP-GUIDE.md)
+- **💾 Persistent Memory** — Cross-session context with on-demand loading, write-back, staleness detection — [guide](.dev-aid/docs/MEMORY-BANK-GUIDE.md)
+- **⚙️ CI/CD Generator** — Auto-generate production-ready workflows for 9+ languages — [guide](.dev-aid/docs/CI-GENERATOR-GUIDE.md)
+- **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations — [guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
 **No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant.
 
@@ -76,13 +74,13 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
                   ↓
 ┌─────────────────────────────────────────────┐
 │  Your AI Gets Superpowers ⚡                 │
-│  • 8 autonomous agents + multi-agent teams  │
-│  • 73 expert + 8 process + 5 core skills    │
+│  • 8 autonomous agents + 4 multi-agent teams│
+│  • 86 skills (73 expert + 8 process + 5 core│
 │  • Multi-AI orchestration (best tool/task)  │
 │  • 100% local semantic search (private RAG) │
 │  • Deep research (Tavily/Perplexity/Gemini) │
 │  • MCP integration (databases, GitHub, etc) │
-│  • Persistent memory (ADRs, patterns)       │
+│  • Persistent memory with write-back        │
 │  • Automated security (CVE+SAST+secrets)    │
 │  • Auto-generated CI/CD workflows           │
 └─────────────────────────────────────────────┘
@@ -184,16 +182,16 @@ cd ~/my-project
 ## 🎯 Core Features
 
 <details open>
-<summary><strong>🤖 Autonomous Agent Framework + APO</strong> — 8 agents, 16 tools, 4 providers, automatic prompt optimization</summary>
+<summary><strong>🤖 Autonomous Agent Framework + APO</strong> — 8 agents, 16 tools, 3 providers + local, automatic prompt optimization</summary>
 
-Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
+Provider-agnostic autonomous AI agents powered by Dev-AID's 86 skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
 
 | Feature | What It Does | Developer Benefits |
 |---------|-------------|-------------------|
 | **8 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor | Ready-to-use agents for common workflows |
 | **16 Built-in Tools** | File I/O, git, GitHub, bash, search — all with safety enforcement | Agents can read, write, search, and interact with git/GitHub |
-| **4 Provider Adapters** | Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio) | Use any provider — switch with `--provider` |
-| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 73+ skills |
+| **3 Provider Adapters** | Anthropic, OpenAI, Google Gemini + Local via OpenAI-compatible API | Use any provider — switch with `--provider` |
+| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 86 skills |
 | **Safety System** | Command blocklist, dry-run mode, per-tool risk levels | Safe by default — dangerous operations require explicit opt-in |
 | **Trace Collection** | JSONL execution traces with `--trace` flag | Debug agent behavior, feed into APO |
 | **Automatic Prompt Optimization** | LLM-driven prompt improvement with beam search and golden tests | Continuous improvement with human approval gate |
@@ -682,7 +680,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐ |
 | **⚡ 8 Process Skills** | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
-| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 4 providers) | • Provider-agnostic (Anthropic/OpenAI/Google/Local)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (8 agents, 16 tools, 3 providers + local) | • Provider-agnostic (Anthropic/OpenAI/Google + local via OpenAI-compatible API)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **🧠 Agent APO** 🆕 | Automatic Prompt Optimization with trace collection and beam search | • JSONL trace collection (`--trace`)<br>• LLM-driven critique + beam search<br>• Golden test scoring<br>• Human approval gate (no auto-deploy) | ⭐⭐⭐⭐ |
 | **📦 TOON Format** | Token-optimized notation for 40-60% token reduction on structured data | • Pure Python (no Node.js)<br>• JSON ↔ TOON converter<br>• Better accuracy (73.9% vs 69.7%)<br>• $30-50K/year savings | ⭐⭐⭐⭐ |
 | **📋 Commit Planner** | AI-guided atomic commits from unstaged changes | • Prevents mega-commits<br>• Teaches good habits<br>• Safe (no git history manipulation)<br>• Interactive planning | ⭐⭐⭐⭐ |
@@ -727,7 +725,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
 | **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
 | **Process skills** | ✅ 8 behavioral protocols | ❌ | ❌ | ❌ | ❌ |
-| **Agent framework** | ✅ 8 agents, 16 tools, 4 providers | ✅ Background agents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade agent |
+| **Agent framework** | ✅ 8 agents, 16 tools, 3 providers + local | ✅ Background agents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade agent |
 | **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ✅ CodeQL Autofix | ❌ | ⚠️ Platform-level |
 | **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ |
 | **MCP integration** | ✅ Dual-layer (native + router) | ❌ | ❌ | ❌ | ❌ |
@@ -761,7 +759,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ❌ | ❌ | ❌ | ⚠️ Cloud embeddings | ❌ |
 | **Local RAG** | ✅ FAISS + BM25 hybrid ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
 | **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Trufflehog + npm audit | ✅ SAST + dependency scan | ❌ | ❌ | ❌ |
-| **Agent framework** | ✅ 8 agents, 16 tools, 4 providers | ✅ 15+ agents, PM2 orchestration | ✅ 16 orchestrators | ✅ Parallel subagents | ❌ | ⚠️ Subagents |
+| **Agent framework** | ✅ 8 agents, 16 tools, 3 providers + local | ✅ 15+ agents, PM2 orchestration | ✅ 16 orchestrators | ✅ Parallel subagents | ❌ | ⚠️ Subagents |
 | **Process skills (TDD)** | ✅ 8 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
 | **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
 | **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
@@ -813,7 +811,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 🆕 Latest Changes
 
-- **🤖 Autonomous Agent Framework** — 8 agents, 16 tools, 4 providers with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
+- **🤖 Autonomous Agent Framework** — 8 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring
 - **🏠 Local LLM Support** — Offline AI via Ollama/LM Studio/llama.cpp with hardware auto-detection and smart model recommendations
 - **🔍 Hybrid Search** — BM25 + Vector with Reciprocal Rank Fusion, two-agent Architect Mode, Git Worktree Isolation, Session Persistence

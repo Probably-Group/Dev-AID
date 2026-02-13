@@ -113,7 +113,7 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 
 **Features:**
 - 16 built-in tools (file, git, GitHub, bash, search) with safety enforcement
-- Loads Dev-AID expert skills as system prompts (73+ available)
+- Loads Dev-AID expert skills as system prompts (86 available)
 - Provider-agnostic: Anthropic, OpenAI, Google, Local (Ollama/LM Studio)
 - Command blocklist prevents dangerous bash operations
 - Per-tool risk levels (safe/moderate/dangerous)

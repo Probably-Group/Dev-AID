@@ -14,10 +14,10 @@ Continuous improvement system for agent prompts with human oversight:
 
 **Commands:**
 ```bash
-dev-aid-agent pr-reviewer --pr 135 --trace          # Collect execution trace
-dev-aid-agent apo optimize pr-reviewer --beam-width 3  # Optimize prompts
-dev-aid-agent apo rollback pr-reviewer              # Rollback to previous version
-dev-aid-agent apo history pr-reviewer               # View version history
+/aid-apo optimize pr-reviewer              # Optimize prompts (interactive)
+/aid-apo rollback pr-reviewer              # Rollback to previous version
+/aid-apo history pr-reviewer               # View version history
+dev-aid-agent pr-reviewer --pr 135 --trace # Collect execution trace (CLI-only)
 ```
 
 Documentation: [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
@@ -82,20 +82,15 @@ Autonomous AI agents powered by Dev-AID's 73+ expert skills — works with any p
 
 **Quick Start:**
 ```bash
-# Review a PR with security + architecture expertise
-dev-aid-agent pr-reviewer --pr 135 --verbose
+# Interactive (slash commands)
+/aid-pr 135                                # Review a PR
+/aid-test src/auth/                        # Generate tests
+/aid-debt src/ high                        # Scan tech debt
+/aid-research "async patterns" deep        # Research a topic
 
-# Generate tests for a module
-dev-aid-agent test-generator --path src/auth/ --framework pytest
-
-# Scan for tech debt (safe, read-only)
-dev-aid-agent tech-debt-hunter --severity high --dry-run
-
-# Use a different provider
+# CLI (CI/CD, scripts, advanced options)
+dev-aid-agent pr-reviewer --pr 135 --json --verbose
 dev-aid-agent research --topic "async patterns" --provider google
-
-# JSON output for CI
-dev-aid-agent tech-debt-hunter --severity critical --json
 ```
 
 **Architecture:**

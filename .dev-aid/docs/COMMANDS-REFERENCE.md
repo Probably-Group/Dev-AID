@@ -81,68 +81,39 @@ Core skills provide **automated tool execution** on file save:
 
 ---
 
-## 🤖 Autonomous Agents (NEW!)
+## 🤖 Autonomous Agents
 
-### `dev-aid-agent` (CLI Tool)
-**Category:** Automation
-**Purpose:** Run autonomous AI agents powered by Dev-AID's expert skills
-**When to use:** Automated PR reviews, test generation, tech debt scanning, CI debugging, conflict resolution, research, onboarding
-**Location:** `.dev-aid/scripts/dev-aid-agent`
+### 8 Built-in Agents
 
-**Agents:**
-- `pr-reviewer` — Review PRs for security, quality, best practices (`aid-pr`)
-- `test-generator` — Generate tests for untested code (`aid-test`)
-- `tech-debt-hunter` — Scan for code smells and technical debt (`aid-debt`)
-- `ci-fixer` — Diagnose CI failures and propose fixes (`aid-ci`)
-- `conflict-resolver` — Auto-resolve merge conflicts (`aid-conflict`)
-- `research` — Deep research on technical topics (`aid-research`)
-- `onboarding` — Generate codebase onboarding guide (`aid-onboard`)
-- `doc-auditor` — Audit documentation for drift, broken links, gaps (`aid-docs`)
+Type `aid-` in any supported editor to autocomplete all agent commands:
 
-**Global Options:**
-- `--provider <name>` — Override provider (anthropic, google, openai, local)
-- `--model <name>` — Override model
-- `--dry-run` — Show actions without making changes
-- `--verbose` — Show tool call details
-- `--json` — JSON output for scripts/CI
-- `--max-iterations <n>` — Override max iterations
+| Command | Description |
+|---------|-------------|
+| `/aid-pr 135` | Review a PR for security, quality, best practices |
+| `/aid-test src/auth/` | Generate tests for untested code |
+| `/aid-debt src/ high` | Scan for code smells and technical debt |
+| `/aid-ci 12345` | Diagnose CI failures and propose fixes |
+| `/aid-conflict 42 smart` | Auto-resolve merge conflicts |
+| `/aid-research "async patterns" deep` | Deep research on technical topics |
+| `/aid-onboard` | Generate codebase onboarding guide |
+| `/aid-docs . full` | Audit documentation for drift, broken links, gaps |
+| `/aid-team <name> -m "..."` | Run a multi-agent team |
+| `/aid-apo optimize <agent>` | Optimize agent prompts (APO) |
+| `/aid-help` | Show all commands |
 
-**Commands:**
+**CLI equivalent** (for CI/CD, scripts, automation):
 ```bash
-# PR review
-dev-aid-agent pr-reviewer --pr 135
-
-# Generate tests
+dev-aid-agent pr-reviewer --pr 135 --json
 dev-aid-agent test-generator --path src/auth/ --framework pytest
-
-# Tech debt scan
-dev-aid-agent tech-debt-hunter --severity high
-
-# CI debugging
-dev-aid-agent ci-fixer --run-id 12345
-
-# Conflict resolution
-dev-aid-agent conflict-resolver --pr 67 --strategy smart
-
-# Research
-dev-aid-agent research --topic "async patterns" --depth deep
-
-# Onboarding guide
-dev-aid-agent onboarding
-
-# Use different provider
-dev-aid-agent research --topic "migration" --provider google
-
-# JSON output for CI
-dev-aid-agent tech-debt-hunter --severity critical --json
-
-# Dry run (read-only, no changes)
-dev-aid-agent test-generator --path src/ --dry-run
+dev-aid-agent tech-debt-hunter --severity high --dry-run
+dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 ```
+
+**CLI-only flags:** `--provider`, `--model`, `--dry-run`, `--verbose`, `--json`, `--max-iterations`, `--trace`
 
 **Features:**
 - 16 built-in tools (file, git, GitHub, bash, search) with safety enforcement
-- Loads Dev-AID expert skills as system prompts (72+ available)
+- Loads Dev-AID expert skills as system prompts (73+ available)
 - Provider-agnostic: Anthropic, OpenAI, Google, Local (Ollama/LM Studio)
 - Command blocklist prevents dangerous bash operations
 - Per-tool risk levels (safe/moderate/dangerous)

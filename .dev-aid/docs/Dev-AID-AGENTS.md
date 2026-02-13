@@ -10,76 +10,76 @@ Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills.
 
 ## Quick Start
 
+### Interactive (Slash Commands — recommended)
+
+Type `aid-` in any supported editor to autocomplete all commands:
+
 ```bash
-# Review a PR
-dev-aid-agent pr-reviewer --pr 135
-
-# Generate tests
-dev-aid-agent test-generator --path src/auth/
-
-# Scan for tech debt
-dev-aid-agent tech-debt-hunter --severity high --dry-run
-
-# Research a topic with a specific provider
-dev-aid-agent research --topic "async patterns in Python" --provider google
-
-# Audit documentation health
-dev-aid-agent doc-auditor --scope full
-
-# JSON output for scripts/CI
-dev-aid-agent tech-debt-hunter --severity critical --json
-
-# Run a multi-agent team
-dev-aid-agent team pr-review-team -m "Review PR #42"
-
-# List available teams
-dev-aid-agent team --list-teams
+/aid-pr 135                                # Review a PR
+/aid-test src/auth/                        # Generate tests
+/aid-debt src/ high                        # Scan tech debt
+/aid-research "async patterns" deep        # Research a topic
+/aid-docs . full                           # Audit documentation
+/aid-team pr-review-team -m "Review PR #42"  # Multi-agent team
+/aid-apo optimize pr-reviewer              # Optimize agent prompts
+/aid-help                                  # Show all commands
 ```
+
+### CLI (CI/CD & Scripts)
+
+For pipelines, automation, and JSON output:
+
+```bash
+dev-aid-agent pr-reviewer --pr 135 --json
+dev-aid-agent test-generator --path src/auth/ --framework pytest
+dev-aid-agent tech-debt-hunter --severity high --dry-run
+dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
+dev-aid-agent apo optimize pr-reviewer --beam-width 3
+```
+
+### Command Reference
+
+| Slash Command | CLI Equivalent | Description |
+|---------------|---------------|-------------|
+| `/aid-pr 135` | `dev-aid-agent pr-reviewer --pr 135` | Review a PR |
+| `/aid-test src/` | `dev-aid-agent test-generator --path src/` | Generate tests |
+| `/aid-debt src/ high` | `dev-aid-agent tech-debt-hunter --severity high` | Scan tech debt |
+| `/aid-ci 12345` | `dev-aid-agent ci-fixer --run-id 12345` | Fix CI failures |
+| `/aid-conflict 42 smart` | `dev-aid-agent conflict-resolver --pr 42` | Resolve merge conflicts |
+| `/aid-research "async" deep` | `dev-aid-agent research --topic "async"` | Deep research |
+| `/aid-onboard` | `dev-aid-agent onboarding` | Codebase onboarding |
+| `/aid-docs . full` | `dev-aid-agent doc-auditor --scope full` | Audit documentation |
+| `/aid-team <name> -m "..."` | `dev-aid-agent team <name> -m "..."` | Run multi-agent team |
+| `/aid-apo optimize <agent>` | `dev-aid-agent apo optimize <agent>` | Prompt optimization |
+| `/aid-help` | — | Show all commands |
 
 ---
 
-## Two Execution Models: CLI vs Slash Commands
+## Two Execution Models: Slash Commands vs CLI
 
 Dev-AID provides the same agents through **two independent systems** optimized for different workflows:
 
-| | Python CLI (`dev-aid-agent`) | Slash Commands (`/aid-*`) |
+| | Slash Commands (`/aid-*`) | Python CLI (`dev-aid-agent`) |
 |--|--|--|
-| **How it runs** | Separate Python process with its own agent loop | Inline in your AI editor session |
-| **Execution** | `AgentRunner` calls LLM APIs, executes tools programmatically | The AI reads the prompt instructions and uses its own native tools |
-| **Multi-agent** | Yes — `TeamRunner` with parallel/sequential/DAG workflows | No — single agent per invocation |
-| **Multi-provider** | Yes — switch with `--provider` flag, mix within teams | Bound to the editor's AI (Claude in Claude Code, Gemini in Gemini CLI) |
-| **Output** | Markdown + JSON (`--json`), exit codes, cost metrics | Inline markdown in the conversation |
-| **Context** | Fresh context per run (agent's skill prompts only) | Full session context (your conversation, open files, project state) |
-| **Best for** | CI/CD pipelines, automation, scripts, scheduled jobs | Interactive development, quick one-off tasks, iterative work |
+| **How it runs** | Inline in your AI editor session | Separate Python process with its own agent loop |
+| **Execution** | The AI reads the prompt instructions and uses its own native tools | `AgentRunner` calls LLM APIs, executes tools programmatically |
+| **Multi-agent** | No — single agent per invocation | Yes — `TeamRunner` with parallel/sequential/DAG workflows |
+| **Multi-provider** | Bound to the editor's AI (Claude in Claude Code, Gemini in Gemini CLI) | Yes — switch with `--provider` flag, mix within teams |
+| **Output** | Inline markdown in the conversation | Markdown + JSON (`--json`), exit codes, cost metrics |
+| **Context** | Full session context (your conversation, open files, project state) | Fresh context per run (agent's skill prompts only) |
+| **Best for** | Interactive development, quick one-off tasks, iterative work | CI/CD pipelines, automation, scripts, scheduled jobs |
 
 **They do not invoke each other.** Both systems implement the same 8 agents but through different mechanisms. The slash commands are prompt-based instruction files; the Python CLI is a structured code framework with tool registries, safety enforcement, and cost tracking.
 
-### Native Slash Commands
-
-Each agent is available as a **native slash command** for interactive use. Slash commands load directly in the AI session — no separate process.
-
-### Command Mapping
-
-| CLI Command | Slash Command (Full) | Slash Command (Short Alias) |
-|-------------|---------------------|----------------------------|
-| `dev-aid-agent pr-reviewer --pr 135` | `/dev-aid-agent-pr-review 135` | `/aid-pr 135` |
-| `dev-aid-agent test-generator --path src/` | `/dev-aid-agent-test-gen src/` | `/aid-test src/` |
-| `dev-aid-agent tech-debt-hunter --severity high` | `/dev-aid-agent-tech-debt src/ high` | `/aid-debt src/ high` |
-| `dev-aid-agent ci-fixer --run-id 12345` | `/dev-aid-agent-ci-fix 12345` | `/aid-ci 12345` |
-| `dev-aid-agent conflict-resolver --pr 42` | `/dev-aid-agent-conflict-resolve 42 smart` | `/aid-conflict 42 smart` |
-| `dev-aid-agent research --topic "async"` | `/dev-aid-agent-research "async" deep` | `/aid-research "async" deep` |
-| `dev-aid-agent onboarding` | `/dev-aid-agent-onboard` | `/aid-onboard` |
-| `dev-aid-agent doc-auditor --scope full` | `/dev-aid-agent-doc-audit . full` | `/aid-docs . full` |
-| — | — | `/aid-help` |
-
-### When to Use CLI vs Slash Commands
+### When to Use Which
 
 | Use Case | Recommended | Why |
 |----------|-------------|-----|
-| Interactive coding session | Slash commands (`/aid-pr 135`) | Loads in-session, uses your AI's full context |
-| CI/CD pipelines | CLI (`dev-aid-agent pr-reviewer --pr 135 --json`) | Structured output, exit codes, `--dry-run` |
-| Scripts and automation | CLI | Supports `--provider`, `--json`, `--verbose` flags |
-| Quick one-off tasks | Short aliases (`/aid-test src/`) | Fastest to type, autocomplete with `aid-` |
+| Interactive coding session | `/aid-pr 135` | Loads in-session, uses your AI's full context |
+| Quick one-off tasks | `/aid-test src/` | Fastest to type, autocomplete with `aid-` |
+| CI/CD pipelines | `dev-aid-agent pr-reviewer --pr 135 --json` | Structured output, exit codes, `--dry-run` |
+| Scripts and automation | `dev-aid-agent ...` | Supports `--provider`, `--json`, `--verbose` flags |
+| Agent tracing | `dev-aid-agent ... --trace` | CLI-only feature for execution recording |
 
 ### Supported Editors/Tools
 
@@ -388,23 +388,20 @@ dev-aid-agent team --list-teams
 
 ### Examples
 
+**Interactive (slash commands):**
 ```bash
-# Comprehensive PR review from 3 perspectives
-dev-aid-agent team pr-review-team -m "Review PR #42"
+/aid-team pr-review-team -m "Review PR #42"
+/aid-team security-audit-team -m "Audit the auth module"
+/aid-team architect-implement-team -m "Add rate limiting to the API"
+```
 
-# Security audit with custom budget
+**CLI (CI/CD, scripts, advanced options):**
+```bash
+dev-aid-agent team pr-review-team -m "Review PR #42" --json
 dev-aid-agent team security-audit-team -m "Audit the auth module" --budget 5.0
-
-# Architect-implement with JSON output
 dev-aid-agent team architect-implement-team -m "Add rate limiting to the API" --json
-
-# Override workflow (run DAG team sequentially instead)
 dev-aid-agent team issue-resolution-team -m "Fix login timeout bug" --workflow sequential
-
-# List all teams
 dev-aid-agent team --list-teams
-
-# Verbose mode shows inter-agent messages
 dev-aid-agent team pr-review-team -m "Review PR #42" --verbose
 ```
 
@@ -677,7 +674,9 @@ All 8 agents and 4 teams fully support local models via OpenAI-compatible endpoi
 | **LM Studio** | 1234 | Download app, enable local server | Medium |
 | **llama.cpp** | 8080 | Compile and run `llama-server` | Most complex |
 
-#### Quick Start
+#### Quick Start (Local LLMs)
+
+Local LLMs require the Python CLI — slash commands (`/aid-*`) always use the editor's built-in AI.
 
 ```bash
 # 1. Start Ollama and pull a model
@@ -864,7 +863,7 @@ Record agent execution as JSONL for debugging and analysis.
 
 ### Enabling Traces
 
-Add `--trace` to any agent command:
+Add `--trace` to any CLI agent command (tracing is CLI-only — not available via slash commands):
 
 ```bash
 dev-aid-agent pr-reviewer --pr 135 --trace
@@ -912,30 +911,30 @@ LLM-driven critique + beam search to improve agent system prompts, with human ap
 ### Quick Start
 
 ```bash
-# 1. Run the agent several times with --trace to collect data
+# 1. Collect traces (CLI-only — need at least 5)
 dev-aid-agent pr-reviewer --pr 100 --trace
 dev-aid-agent pr-reviewer --pr 101 --trace
-# ... (need at least 5 traces)
 
-# 2. Run APO optimization
-dev-aid-agent apo optimize pr-reviewer
+# 2. Run APO optimization (interactive or CLI)
+/aid-apo optimize pr-reviewer            # slash command
+dev-aid-agent apo optimize pr-reviewer   # CLI equivalent
 
 # 3. Review the diff and approve/decline
 # 4. Check history
-dev-aid-agent apo history pr-reviewer
+/aid-apo history pr-reviewer
 
 # 5. Rollback if needed
-dev-aid-agent apo rollback pr-reviewer
+/aid-apo rollback pr-reviewer
 ```
 
 ### APO Commands
 
-| Command | Description |
-|---------|-------------|
-| `apo optimize <agent> [--beam-width 3] [--dry-run]` | Run optimization pipeline |
-| `apo rollback <agent> [--version N]` | Restore previous prompt version |
-| `apo history <agent>` | Show all prompt versions with scores |
-| `apo status` | Show APO status for all agents |
+| Slash Command | CLI Equivalent | Description |
+|---------------|---------------|-------------|
+| `/aid-apo optimize <agent>` | `dev-aid-agent apo optimize <agent> [--beam-width 3] [--dry-run]` | Run optimization pipeline |
+| `/aid-apo rollback <agent>` | `dev-aid-agent apo rollback <agent> [--version N]` | Restore previous prompt version |
+| `/aid-apo history <agent>` | `dev-aid-agent apo history <agent>` | Show all prompt versions with scores |
+| `/aid-apo status` | `dev-aid-agent apo status` | Show APO status for all agents |
 
 ### How It Works
 

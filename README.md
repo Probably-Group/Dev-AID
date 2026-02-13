@@ -45,6 +45,100 @@ gh dev-aid init                    # Initialize Dev-AID
 
 ---
 
+## 🎯 What is Dev-AID?
+
+Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) with:
+
+- **🤖 8 Autonomous Agents** — PR review, test generation, tech debt scanning, CI fixing, conflict resolution, research, onboarding, doc auditing — run via `/aid-*` commands or Python CLI
+- **👥 Multi-Agent Teams** — Coordinated agent teams with parallel, sequential, and DAG workflows
+- **🧠 Automatic Prompt Optimization** — LLM-driven prompt improvement from execution traces with human approval
+- **🔀 Multi-AI Router** — Best model for each task, dual-AI code review, 97% cost savings on large context
+- **🏠 Local LLM Support** — Offline, private, zero-cost AI via Ollama/LM Studio/llama.cpp
+- **🔍 Local Code Search** — Hybrid BM25 + Vector search, 100% private, $0 forever
+- **🔬 Deep Research** — Multi-provider research via Tavily, Perplexity, Gemini Deep Research
+- **🎓 73 Expert Skills** — Auto-loads domain expertise based on your tech stack
+- **⚡ 8 Process Skills** — Enforce TDD, verification, systematic debugging, architect-first
+- **🔒 Security Automation** — CVE, SAST, secrets, misconfig scanning on every commit with language-specific tools
+- **🔌 MCP Integration** — Auto-discovery of MCP servers, smart context gathering, security hardened
+- **⚙️ CI/CD Generator** — Auto-generate production-ready workflows for 9+ languages
+- **💾 Persistent Memory** — Cross-session context with on-demand loading, token budgets, staleness detection
+- **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations
+
+**No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────┐
+│  Your Familiar Environment                  │
+│  ✨ claude code        (no change needed)   │
+│  ✨ cursor .           (no change needed)   │
+│  ✨ gemini-cli         (no change needed)   │
+│  ✨ codex              (no change needed)   │
+│  ✨ Any AI tool with config support         │
+└─────────────────┬───────────────────────────┘
+                  │
+                  │ Dev-AID Configuration
+                  │ (loaded automatically)
+                  ↓
+┌─────────────────────────────────────────────┐
+│  Your AI Gets Superpowers ⚡                 │
+│  • 8 autonomous agents + multi-agent teams  │
+│  • 73 expert + 8 process + 5 core skills    │
+│  • Multi-AI orchestration (best tool/task)  │
+│  • 100% local semantic search (private RAG) │
+│  • Deep research (Tavily/Perplexity/Gemini) │
+│  • MCP integration (databases, GitHub, etc) │
+│  • Persistent memory (ADRs, patterns)       │
+│  • Automated security (CVE+SAST+secrets)    │
+│  • Auto-generated CI/CD workflows           │
+└─────────────────────────────────────────────┘
+
+Real-World Examples:
+• /aid-pr 135
+  → Multi-perspective PR review (security + quality + test coverage)
+
+• /aid-team security-audit-team -m "Audit auth module"
+  → 3 specialist agents scan in parallel, merged report
+
+• /aid-challenger "Implement OAuth2"
+  → Claude generates code, Gemini reviews security
+
+• "Find authentication functions"
+  → Local RAG searches instantly ($0, never leaves your machine)
+
+• Start coding session
+  → Auto-loads relevant skills based on your tech stack
+
+• git commit
+  → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
+
+• /aid-apo optimize pr-reviewer
+  → LLM analyzes traces, proposes improved prompts, you approve
+```
+
+---
+
+## 😤 What Dev-AID Automates
+
+| Task | Typical Time | Dev-AID Solution | Time Saved |
+|------|-------------|------------------|------------|
+| **PR reviews** | Waiting for reviewers | `/aid-pr` — multi-agent review (security + quality + tests) | 60-80% |
+| **Merge conflicts** | 10-30 min each | `/aid-conflict` — AI understands both sides, resolves intelligently | 90% |
+| **GitHub issues** | 15-45 min to analyze & fix | AI proposes complete solution with code + auto-triage on creation | 80% |
+| **Writing tests** | Hours per feature | `/aid-test` — generates pytest/jest/vitest suites with framework detection | 70-85% |
+| **Tech debt** | Never gets prioritized | `/aid-debt` — scans, categorizes, prioritizes by severity | 75% |
+| **Security reviews** | 30+ min manual checks | Automated on every commit (CVE, SAST, secrets, language-specific) | 100% |
+| **CI/CD setup** | Days of YAML hell | Auto-generated, optimized workflows for 9+ languages | 90% |
+| **Documentation** | "I'll do it later" | `/aid-docs` — audits drift, broken links, naming violations | 55-70% |
+| **Debugging** | 30-45 min root cause | AI diagnosis in <10 min | 70% |
+| **Onboarding** | Days for new devs | `/aid-onboard` — generates comprehensive codebase guide | 80% |
+| **Research** | Hours of searching | `/aid-research` — multi-provider deep research (Tavily, Perplexity, Gemini) | 70% |
+| **Agent tuning** | Manual prompt iteration | `/aid-apo` — automatic prompt optimization from execution traces | 90% |
+| **Context switching** | 50× per day | Works inside your existing tools, memory persists across sessions | 100% |
+
+---
+
 ## 🚀 Quick Start
 
 ### Install Dev-AID into Your Project
@@ -90,92 +184,6 @@ cd ~/my-project
 
 # Security scanning tools (Gitleaks, Trivy, Opengrep)
 ./.dev-aid/automation/tools/install-security-tools.sh
-```
-
----
-
-## 😤 What Dev-AID Automates
-
-| Task | Typical Time | Dev-AID Solution | Time Saved |
-|--------------|-------------|------------------|------------|
-| **Merge conflicts** | 10-30 min each | AI understands both sides, resolves intelligently | 90% |
-| **GitHub issues** | 15-45 min to analyze & fix | AI proposes complete solution with code | 80% |
-| **Writing tests** | Hours per feature | AI generates comprehensive test suites | 70-85% |
-| **PR descriptions** | 5-10 min each | Auto-generated from git diff | 95% |
-| **Security reviews** | 30+ min manual checks | Automated on every commit (CVE, SAST, secrets) | 100% |
-| **Debugging** | 30-45 min root cause | AI diagnosis in <10 min | 70% |
-| **Code reviews** | Waiting for reviewers | Dual-AI review catches bugs instantly | 60% |
-| **CI/CD setup** | Days of YAML hell | Auto-generated, optimized workflows | 90% |
-| **Documentation** | "I'll do it later" | AI keeps docs in sync with code | 55% |
-| **Context switching** | 50× per day | Works inside your existing tools | 100% |
-
----
-
-## 🎯 What is Dev-AID?
-
-Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) with:
-
-- **🤖 Intelligent Automation** - Resolves issues, conflicts, generates tests
-- **🔀 Multi-AI Router** - Best model for each task, dual-AI code review
-- **🏠 Local LLM Support** - Offline, private, zero-cost AI via Ollama/LM Studio 🆕
-- **🔍 Local Code Search** - Hybrid BM25 + Vector search, 100% private, $0 forever
-- **🎓 73 Expert Skills** - Auto-loads domain expertise (DevSecOps, API design, etc.)
-- **⚡ 8 Process Skills** - Enforce TDD, verification, systematic debugging
-- **🏗️ Architect Mode** - Two-agent pattern: plan before implementation
-- **📂 Git Worktree Isolation** - Parallel development with conflict detection
-- **💾 Session Persistence** - Auto-save/restore progress across restarts
-- **🔒 Security Automation** - CVE, SAST, secrets, misconfig scanning on every commit
-- **✅ Skill Validators** - Extensible compliance checking per skill (bash, Python, auto-discovered)
-
-**No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant.
-
-### How It Works
-
-```
-┌─────────────────────────────────────────────┐
-│  Your Familiar Environment                  │
-│  ✨ claude code        (no change needed)   │
-│  ✨ cursor .           (no change needed)   │
-│  ✨ gemini-cli         (no change needed)   │
-│  ✨ codex              (no change needed)   │
-│  ✨ Any AI tool with config support         │
-└─────────────────┬───────────────────────────┘
-                  │
-                  │ Dev-AID Configuration
-                  │ (loaded automatically)
-                  ↓
-┌─────────────────────────────────────────────┐
-│  Your AI Gets Superpowers ⚡                 │
-│  • 100% local semantic search (private RAG) │
-│  • Multi-AI orchestration (best tool/task)  │
-│  • MCP integration (databases, GitHub, etc) │
-│  • 5 core + 73 expert + 8 process skills    │
-│  • Persistent memory (ADRs, patterns)       │
-│  • Automated security (CVE+SAST+secrets)    │
-│  • Specialized workflows (slash commands)   │
-└─────────────────────────────────────────────┘
-
-Real-World Examples:
-• "Find authentication functions"
-  → Local RAG searches instantly ($0, never leaves your machine)
-
-• /aid-challenger "Implement OAuth2"
-  → Claude generates code, Gemini reviews security, all in one command
-
-• "Show me all users in database with open GitHub issues"
-  → MCP servers query Postgres + GitHub, combine results automatically
-
-• Start coding session
-  → Auto-loads relevant skills based on your tech stack (Python, React, Docker...)
-
-• Edit src/auth/password.ts
-  → devsecops-expert skill provides OWASP guidelines in context
-
-• git commit
-  → Automatic security scans (Gitleaks, Trivy, Opengrep) in ~10s
-
-• /aid-router-status
-  → View AI routing decisions and costs across all sessions
 ```
 
 ---

@@ -403,8 +403,9 @@ AI-powered automation for issues, conflicts, and workflows - saving hours of man
 ```bash
 dev-aid-resolve-issue --issue 123 --mode ensemble    # Analyze and resolve GitHub issues
 dev-aid-fix-conflicts --strategy smart               # Resolve merge conflicts intelligently
-.dev-aid/automation/git-hooks/install.sh             # Install git hooks
 ```
+
+> Git hooks are installed automatically during `setup-dev-aid.sh` (Phase 7).
 
 📖 [**Complete Automation Guide**](.dev-aid/docs/AUTOMATION-README.md)
 

@@ -34,11 +34,6 @@
 
 # Security scanning runs automatically on every commit
 git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
-
-# Setup (one-time)
-gh extension install Probably-Group/gh-dev-aid
-gh dev-aid init                    # Initialize Dev-AID
-./.dev-aid/scripts/setup-local-llm.sh  # Optional: local AI ($0, offline)
 ```
 
 ---

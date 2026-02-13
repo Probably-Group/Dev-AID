@@ -137,6 +137,8 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 | `dev-aid-agent-research` | `aid-research` | `aid-research "async patterns"` |
 | `dev-aid-agent-onboard` | `aid-onboard` | `aid-onboard` |
 | `dev-aid-agent-doc-audit` | `aid-docs` | `aid-docs . docs-only` |
+| `dev-aid-agent-team` | `aid-team` | `aid-team security-audit-team -m "Audit"` |
+| `dev-aid-agent-apo` | `aid-apo` | `aid-apo optimize pr-reviewer` |
 
 #### Router Aliases
 

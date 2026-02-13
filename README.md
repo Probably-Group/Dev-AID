@@ -125,7 +125,7 @@ gh dev-aid init
 claude    # or gemini, cursor, windsurf, etc.
 ```
 
-That's it. Type `/aid-help` to see all available commands.
+That's it. Type `/aid-help` to see all available commands, or see the **[Complete Commands Reference](.dev-aid/docs/COMMANDS-REFERENCE.md)**.
 
 <details>
 <summary><strong>Manual installation (without GitHub CLI)</strong></summary>
@@ -820,255 +820,57 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 📚 Available Slash Commands
 
-### 🔍 **RAG Commands** (Local Semantic Search)
-
-**In Claude Code or Gemini CLI:**
+> Type `/aid-` for autocomplete. All commands use short `aid-*` aliases. Full names shown in parentheses.
 
 ```bash
-# Find code with natural language
-You: "Find all authentication functions"
-AI: *uses local RAG, returns relevant code*
+# Router — Multi-AI orchestration
+/aid-challenger "Implement OAuth2"       # Dual-AI: Claude generates, Gemini reviews (dev-aid-router-challenger)
+/aid-challenger-rag "Add password reset" # Challenger + local RAG context (dev-aid-router-challenger-rag)
+/aid-ensemble "Analyze security issues"  # Smart-route to optimal AI per task (dev-aid-router-ensemble)
+/aid-router-status                       # View routing config, costs, budget (dev-aid-router-status)
 
-# Or via router with RAG
-/aid-challenger-rag "Implement password reset"
+# Agents — Autonomous AI workflows
+/aid-pr 135                              # Review PR: security + quality + architecture (dev-aid-agent-pr-review)
+/aid-test src/auth/                      # Generate tests for untested code (dev-aid-agent-test-gen)
+/aid-debt src/ high                      # Scan for tech debt and code smells (dev-aid-agent-tech-debt)
+/aid-ci 12345                            # Diagnose and fix CI failures (dev-aid-agent-ci-fix)
+/aid-conflict 42 smart                   # Resolve merge conflicts intelligently (dev-aid-agent-conflict-resolve)
+/aid-research "async patterns" deep      # Deep research on technical topics (dev-aid-agent-research)
+/aid-onboard                             # Generate codebase onboarding guide (dev-aid-agent-onboard)
+/aid-docs . full                         # Audit documentation for drift and gaps (dev-aid-agent-doc-audit)
+/aid-team security-audit-team -m "Audit" # Run multi-agent teams (dev-aid-agent-team)
+/aid-apo optimize pr-reviewer            # Optimize agent prompts from traces (dev-aid-agent-apo)
+
+# Security
+/aid-audit                               # Security audit: Gitleaks + Trivy + Opengrep (dev-aid-audit)
+/aid-vulnscan                            # Deep CVE scanning with auto-fix recommendations (dev-aid-vulnerability-scan)
+
+# Quality & Analysis
+/aid-health                              # Code health metrics, test coverage (dev-aid-code-health)
+/aid-debt-report                         # Tech debt analysis with severity scoring (dev-aid-debt-analysis)
+/aid-review                              # Pre-commit review of staged changes (dev-aid-review-staged)
+/aid-analyze                             # Codebase analysis and structure mapping (dev-aid-analyze)
+
+# Productivity
+/aid-commit                              # AI-guided atomic commit planning (dev-aid-commit-plan)
+/aid-api --from src/models/user.ts       # Generate OpenAPI specs, TS clients, MSW mocks (dev-aid-api-contract)
+
+# Setup & Configuration
+/aid-status                              # Show Dev-AID configuration status (dev-aid-status)
+/aid-config                              # Enable/disable core skills (dev-aid-config-core-skills)
+/aid-skill                               # Generate custom expert skills (dev-aid-build-skill)
+
+# Operations
+/aid-deploy                              # Pre-deployment validation (dev-aid-deploy-validate)
+/aid-models                              # Update AI model registry (dev-aid-models-update)
+
+# Discovery
+/aid-help                                # Show all Dev-AID commands
 ```
 
-**What happens:**
-1. Searches codebase semantically (local, $0 cost)
-2. Finds similar implementations & patterns
-3. Claude generates using YOUR codebase style
-4. Gemini reviews for security issues
+**For CI/scripts:** Use the Python CLI instead — `dev-aid-agent pr-reviewer --pr 135 --json --provider google`
 
-> 💡 **How does the AI know to use local search?** See [How Local Search Works](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md) for the complete explanation of MCP integration and automatic tool selection.
-
-### 🔀 **Router Commands** (Multi-AI Orchestration)
-
-> **All commands have short `aid-*` aliases.** Type `aid-` in autocomplete to browse everything.
-> Full names (`dev-aid-router-*`) also work.
-
-#### `/aid-challenger` (alias for `dev-aid-router-challenger`)
-**Two-AI review workflow**
-
-```bash
-/aid-challenger "Implement OAuth2 authentication"
-```
-
-**Process:**
-1. Claude generates implementation
-2. Gemini reviews for security issues
-3. Claude refines based on feedback
-4. You see both perspectives
-
-**Best for:** Security-critical features, auth, payments, encryption
-
----
-
-#### `/aid-challenger-rag` (alias for `dev-aid-router-challenger-rag`)
-**Challenger mode + Local RAG**
-
-```bash
-/aid-challenger-rag "Add password validation"
-```
-
-**Process:**
-1. **Local search** finds existing patterns (0.15s, $0)
-2. Claude generates using your patterns
-3. Gemini reviews with same context
-4. Result: Code matching your style + security review
-
-**Best for:** When you have similar code and want consistency
-
----
-
-#### `/aid-ensemble` (alias for `dev-aid-router-ensemble`)
-**Smart routing to optimal AI**
-
-```bash
-/aid-ensemble "Analyze entire codebase for security issues"
-```
-
-**Routing logic:**
-- **Massive context** (100k+ tokens) → Gemini Flash (1M context, 97% cheaper)
-- **Code generation** → Claude Sonnet (best coder)
-- **Security audit** → Claude Sonnet (security expert)
-- **Documentation** → GPT-4o (clear writing)
-- **Complex reasoning** → Claude Opus (maximum capability)
-
-**Best for:** Cost optimization, automatic best-AI selection
-
----
-
-#### `/aid-router-status` (alias for `dev-aid-router-status`)
-**View routing stats**
-
-```bash
-/aid-router-status
-```
-
-**Shows:**
-- Current routing configuration
-- Cost breakdown by model
-- Recent routing decisions
-- Budget status (under/over limit)
-
----
-
-### 🤖 **Automation Commands**
-
-#### `dev-aid-resolve-issue`
-**Analyze and resolve GitHub issues with AI**
-
-```bash
-# Analyze issue and propose solution
-dev-aid-resolve-issue --issue 123
-
-# Preview without changes
-dev-aid-resolve-issue --issue 123 --dry-run
-
-# Use ensemble mode for accuracy
-dev-aid-resolve-issue --issue 123 --mode ensemble
-```
-
-**Features:**
-- Fetches issue from GitHub automatically
-- Safety checks block security/critical issues
-- Multiple orchestration modes
-- Detailed solution proposals
-- Time saved: 15-45 minutes per issue
-
-[Quick Start Guide](.dev-aid/docs/ISSUE-RESOLVER-GUIDE.md)
-
----
-
-#### `dev-aid-fix-conflicts`
-**Resolve merge conflicts intelligently**
-
-```bash
-# Resolve conflicts in current branch
-dev-aid-fix-conflicts
-
-# Resolve conflicts in a PR
-dev-aid-fix-conflicts --pr 67
-
-# Use specific strategy
-dev-aid-fix-conflicts --strategy smart
-
-# Preview resolution
-dev-aid-fix-conflicts --dry-run
-```
-
-**Strategies:**
-- `smart` - Analyzes both sides, creates optimal merge (default)
-- `ours` - Prefers current branch changes
-- `theirs` - Prefers incoming branch changes
-
-**Features:**
-- Understands intent from both sides
-- Preserves functionality
-- Ensemble mode for accuracy
-- Time saved: 10-30 minutes per conflict
-
-[Quick Start Guide](.dev-aid/docs/CONFLICT-RESOLVER-GUIDE.md)
-
----
-
-### 🤖 **Agent Slash Commands** (Interactive)
-
-> Run any Dev-AID agent as a slash command. Each has a **full name** and a **short alias** (`aid-*`).
-> Type `/aid-` in Claude Code or `aid-` in Gemini CLI for autocomplete.
-
-| Short Alias | Full Command | What It Does |
-|------------|-------------|-------------|
-| `/aid-pr 135` | `/dev-aid-agent-pr-review` | Review PR for security, quality, architecture |
-| `/aid-test src/` | `/dev-aid-agent-test-gen` | Generate tests for untested code |
-| `/aid-debt src/ high` | `/dev-aid-agent-tech-debt` | Scan for tech debt and code smells |
-| `/aid-ci 12345` | `/dev-aid-agent-ci-fix` | Diagnose and fix CI failures |
-| `/aid-conflict 42` | `/dev-aid-agent-conflict-resolve` | Resolve merge conflicts intelligently |
-| `/aid-research "topic"` | `/dev-aid-agent-research` | Deep research on technical topics |
-| `/aid-onboard` | `/dev-aid-agent-onboard` | Generate codebase onboarding guide |
-| `/aid-docs .` | `/dev-aid-agent-doc-audit` | Audit documentation for drift and gaps |
-| `/aid-team <team> -m "..."` | `/dev-aid-agent-team` | Run multi-agent teams (PR review, security audit, etc.) |
-| `/aid-help` | — | Show all Dev-AID commands |
-
-**Supported in:** Claude Code, Gemini CLI, Cursor, Windsurf, Cline
-**For CI/scripts:** Use the CLI instead — `dev-aid-agent pr-reviewer --pr 135 --json`
-
----
-
-### 🛠️ **All Slash Commands**
-
-> Every command has a short `aid-*` alias. Type `aid-` for autocomplete.
-
-#### Security
-
-| Alias | Full Command | What It Does |
-|-------|-------------|-------------|
-| `/aid-audit` | `dev-aid-audit` | Comprehensive security audit (Gitleaks + Trivy + Opengrep) |
-| `/aid-vulnscan` | `dev-aid-vulnerability-scan` | Deep CVE scanning with auto-fix recommendations |
-
-#### Quality & Analysis
-
-| Alias | Full Command | What It Does |
-|-------|-------------|-------------|
-| `/aid-health` | `dev-aid-code-health` | Code health metrics, test coverage, maintainability |
-| `/aid-debt-report` | `dev-aid-debt-analysis` | Tech debt analysis with severity scoring |
-| `/aid-review` | `dev-aid-review-staged` | Pre-commit review of staged changes |
-| `/aid-analyze` | `dev-aid-analyze` | Codebase analysis and structure mapping |
-
-#### Productivity
-
-| Alias | Full Command | What It Does |
-|-------|-------------|-------------|
-| `/aid-commit` | `dev-aid-commit-plan` | AI-guided atomic commit planning |
-| `/aid-api` | `dev-aid-api-contract` | Generate OpenAPI specs, TypeScript clients, MSW mocks |
-
-#### Setup & Configuration
-
-| Alias | Full Command | What It Does |
-|-------|-------------|-------------|
-| `/aid-status` | `dev-aid-status` | Show Dev-AID configuration and component status |
-| `/aid-config` | `dev-aid-config-core-skills` | Enable/disable core skills |
-| `/aid-skill` | `dev-aid-build-skill` | Generate custom expert skills |
-
-#### Operations & Maintenance
-
-| Alias | Full Command | What It Does |
-|-------|-------------|-------------|
-| `/aid-deploy` | `dev-aid-deploy-validate` | Pre-deployment validation (deps, configs, security, tests) |
-| `/aid-models` | `dev-aid-models-update` | Update AI model registry with latest releases |
-
-#### Discovery
-
-| Alias | What It Does |
-|-------|-------------|
-| `/aid-help` | Show all Dev-AID commands with descriptions |
-
----
-
-### ✅ **Validation Commands** (Skill Compliance)
-
-#### Validator Runner
-**Run all skill compliance validators**
-
-```bash
-# Scan project with all relevant validators (auto-detected)
-python3 .dev-aid/scripts/run-validators.py --filter-context --target-dir .
-
-# Run specific validator only
-python3 .dev-aid/skills/expert/bash-expert/validate.py --target-dir .
-python3 .dev-aid/skills/expert/python/validate.py --target-dir .
-
-# JSON output for CI pipelines
-python3 .dev-aid/scripts/run-validators.py --json --strict --target-dir .
-```
-
-**Available validators:**
-- **bash-expert** — 14 checks: shebang, strict mode, IFS, trap, syntax, eval/backticks, test brackets, variable braces, local vars, readonly, chmod, mktemp, curl pipe, unquoted subshell
-- **python** — 8 AST checks: shell=True, eval/exec, pickle, hardcoded secrets, generic exceptions, print in libs, type annotations, test coverage
-
-**Extensible:** Any skill can include a `validate.py` — auto-discovered by the runner, no registration needed.
-
-📖 **Full guide:** [Validator Framework](.dev-aid/docs/VALIDATOR-FRAMEWORK.md)
+📖 **[Complete Commands Reference](.dev-aid/docs/COMMANDS-REFERENCE.md)** — Detailed usage, examples, and options for every command.
 
 ---
 
@@ -1266,159 +1068,6 @@ Claude: *automatically uses local RAG*
     ├── pre-commit                     # Security hooks
     └── pre-push                       # Full audit
 ```
-
----
-
-## 💰 Cost Analysis
-
-### Without Dev-AID Router
-
-```
-# All requests go to Claude Sonnet
-100 requests/month × 150k tokens × $3/M = $45/month
-```
-
-### With Dev-AID Router (Ensemble Mode)
-
-```
-# Smart routing
-30 code requests → Claude Sonnet     = $13.50
-50 large context → Gemini Flash      = $0.75
-20 docs → GPT-4o                     = $7.50
-
-Total: $21.75/month
-Savings: $23.25/month (52% reduction)
-```
-
-### With RAG (Local Semantic Search)
-
-```
-# Traditional approach
-100 requests × 150k tokens = 15M tokens
-Embeddings (OpenAI): $1.95
-
-# With Dev-AID Local Search
-100 requests × 50k tokens = 5M tokens (67% reduction)
-Embeddings: $0 (local)
-
-Additional savings: $11.70/month
-Total savings: $35/month (78% reduction)
-```
-
-### With Local LLM (Zero-Cost Mode) 🆕
-
-```
-# Cloud API approach
-100 requests × 150k tokens × $3/M = $45/month
-
-# With Local LLM (Ollama + Qwen2.5-Coder)
-100 requests × 150k tokens = $0/month
-
-Total savings: $45/month (100% reduction)
-
-One-time cost: ~$800-1500 for GPU (RTX 4090)
-ROI: 2-3 months if you use AI heavily
-```
-
-**When to use Local vs Cloud:**
-| Scenario | Recommendation |
-|----------|---------------|
-| Sensitive/proprietary code | ✅ Local LLM |
-| No internet access | ✅ Local LLM |
-| Cost optimization | ✅ Local LLM |
-| Maximum quality needed | Cloud (Claude/GPT) |
-| No GPU available | Cloud (any provider) |
-| Complex reasoning | Cloud (Claude Opus) |
-
----
-
-## 🎓 Expert Skills (73 Skills)
-
-### Core Skills
-- **devsecops-expert** - Security-first development
-- **tdd-expert** - Test-driven development
-- **code-reviewer** - Code quality analysis
-- **secret-scanner** - Credential detection
-
-### Domain Experts (Sample)
-- **api-expert** - REST API design
-- **database-design** - Schema optimization
-- **async-expert** - Async/await patterns
-- **graphql-expert** - GraphQL best practices
-- **fastapi-expert** - FastAPI patterns
-- **rust** - Rust programming
-- **typescript-expert** - TypeScript patterns
-- **cicd-expert** - CI/CD pipelines
-- **appsec-expert** - Application security
-- **llm-integration** - LLM integration patterns
-
-[See full list in `.dev-aid/providers/claude/.claude/skills/expert/`]
-
-### Auto-Activation Rules
-
-Skills auto-activate based on file patterns:
-
-```json
-{
-  "devsecops-expert": ["*auth*", "*password*", "*token*", "*session*"],
-  "database-design": ["*schema*", "*migration*", "*model*"],
-  "api-expert": ["*api*", "*endpoint*", "*route*"]
-}
-```
-
-**Example:**
-```bash
-# Edit src/auth/password.py
-# → devsecops-expert auto-loads
-# → security.md context added
-# → OWASP guidelines active
-```
-
----
-
-## 🔒 Security Automation
-
-### Git Hooks
-
-**Pre-commit (~10s):**
-- ✅ Secrets scan (Gitleaks)
-- ✅ SAST - ERROR only (Opengrep)
-- ✅ Critical CVEs (Trivy)
-
-**Pre-push (~90s):**
-- ✅ Full SAST — 10 universal + auto-detected language rulesets (Opengrep)
-- ✅ Git history scan (Gitleaks)
-- ✅ CVE + misconfig scan — HIGH + CRITICAL (Trivy)
-- ✅ Shell SAST (ShellCheck) — auto-detected
-- ✅ C/C++ SAST (Flawfinder) — auto-detected
-- ✅ Swift SAST (mobsfscan) — auto-detected
-- ✅ Python SAST (Bandit) + dependency audit (pip-audit) — auto-detected
-- ✅ JS/TS dependency audit (npm audit) — auto-detected
-- ✅ Rust dependency audit (cargo audit) — auto-detected
-- ✅ Go vulnerability check (govulncheck) — auto-detected
-
-### Security Tools
-
-**Universal (always run):**
-
-| Tool | Scan Type | Coverage |
-|------|-----------|----------|
-| **Gitleaks** | Secrets | Git history + current files |
-| **Trivy** | CVE + Misconfig + Secrets | Dependencies, Dockerfiles, Terraform, K8s, GitHub Actions |
-| **Opengrep** | SAST (10 universal + 12 language rulesets) | OWASP Top 10, CWE Top 25, CI/CD, command injection, insecure transport, JWT, TrailOfBits |
-
-**Language-specific (auto-detected by file presence):**
-
-| Tool | Language | Scan Type |
-|------|----------|-----------|
-| **ShellCheck** | Bash/Shell | Static analysis (SC warnings) |
-| **Flawfinder** | C/C++ | CWE-mapped security audit |
-| **mobsfscan** | Swift/iOS | OWASP MASVS/MSTG compliance |
-| **Bandit** | Python | SAST (medium+ severity) |
-| **pip-audit** | Python | Dependency vulnerability scan |
-| **npm audit** | JS/TS | Dependency vulnerability scan |
-| **cargo audit** | Rust | RustSec advisory database |
-| **govulncheck** | Go | Official Go vulnerability check |
 
 ---
 

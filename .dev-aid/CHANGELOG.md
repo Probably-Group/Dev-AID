@@ -37,6 +37,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 20+ new tests covering budget enforcement, staleness, on-demand selection, markdown parsing, section extraction
 
 ### Changed
+- **README Restructured**: Major reorder for faster "wow moment"
+  - Quick Start moved from line 867 to line 48 (reachable in 2 scrolls)
+  - New flow: pitch → TL;DR → Quick Start → automations table → features
+  - All 12 core feature sections wrapped in collapsible `<details>` tags
+  - Feature Reference Table, comparison tables, and research results collapsed
+  - "What's New" replaced with 4-bullet summary linking to WHATS-NEW.md and CHANGELOG
+  - Merged 3 comparison tables into one collapsed block, removed redundant Key Differentiators
+  - Net reduction: ~90 lines while preserving all content
 - `_load_memory_bank()` returns `Tuple[Dict, Dict]` (content + metadata) instead of plain `Dict`
 - Solo, Ensemble, and Challenger modes pass `prompt=request` to `build_context()` for query-aware loading
 - `format_context_for_ai()` includes age annotations and write-back maintenance reminder when memory bank is non-empty
@@ -119,7 +127,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Core**: `AgentRunner` loop (send → tool calls → execute → repeat), `ToolRegistry` with per-provider format export, `SkillLoader` for SKILL.md parsing, `SafetyConfig` with command blocklist and dry-run mode
   - **Provider Adapters**: Anthropic (Messages API + optional Claude Agent SDK bridge), OpenAI (+ Ollama/LM Studio compatible), Google Gemini — all via unified `ProviderAdapter` protocol
   - **Built-in Tools**: `read_file`, `write_file`, `list_directory`, `glob_files`, `grep_search`, `find_files`, `run_bash`, `git_status`, `git_diff`, `git_log`, `git_add`, `git_commit`, `gh_issue_view`, `gh_pr_view`, `gh_pr_create`
-  - **7 Built-in Agents**: `pr-reviewer`, `test-generator`, `tech-debt-hunter`, `ci-fixer`, `conflict-resolver`, `research`, `onboarding`
+  - **8 Built-in Agents**: `pr-reviewer`, `test-generator`, `tech-debt-hunter`, `ci-fixer`, `conflict-resolver`, `research`, `onboarding`, `doc-auditor`
   - **CLI**: `dev-aid-agent <agent> [options]` with `--provider`, `--model`, `--dry-run`, `--verbose`, `--json` flags
   - **Safety**: Per-tool risk levels (safe/moderate/dangerous), command blocklist with pattern matching, path restrictions, dry-run mode
   - **Config**: `.dev-aid/config/agents.json` for per-agent defaults

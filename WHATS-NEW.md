@@ -1,6 +1,42 @@
 # What's New in Dev-AID
 
-## v1.5.0 - Autonomous Agent Framework + Comprehensive Security Scanning
+## v1.5.0 - Autonomous Agent Framework + APO + Comprehensive Security Scanning
+
+### Agent Trace Collection & Automatic Prompt Optimization (NEW!)
+Continuous improvement system for agent prompts with human oversight:
+
+- **Trace Collection**: Add `--trace` to any agent or team command to record JSONL execution traces
+- **APO Optimize**: LLM-driven critique + beam search generates improved prompt candidates
+- **Golden Tests**: Predefined test cases for all 8 agents score prompt quality
+- **Human Approval Gate**: No auto-deploy — all prompt changes require review
+- **Version History**: Full rollback support with `apo rollback <agent> [--version N]`
+- **Memory Integration**: APO results stored in `agent-optimization.md` memory bank file
+
+**Commands:**
+```bash
+dev-aid-agent pr-reviewer --pr 135 --trace          # Collect execution trace
+dev-aid-agent apo optimize pr-reviewer --beam-width 3  # Optimize prompts
+dev-aid-agent apo rollback pr-reviewer              # Rollback to previous version
+dev-aid-agent apo history pr-reviewer               # View version history
+```
+
+Documentation: [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
+
+### Multi-Agent Teams (NEW!)
+Run coordinated agent teams with parallel, sequential, or DAG workflows:
+
+| Team | Agents | Workflow |
+|------|--------|----------|
+| `pr-review-team` | security-reviewer, quality-reviewer, test-coverage-reviewer | parallel |
+| `security-audit-team` | vulnerability-scanner, auth-reviewer, dependency-auditor | parallel |
+| `architect-implement-team` | architect → implementer → reviewer | DAG |
+| `issue-resolution-team` | researcher → fixer → test-writer | DAG |
+
+```bash
+/aid-team security-audit-team -m "Audit auth module"
+```
+
+---
 
 ### Language-Specific Security Scanning (NEW!)
 Pre-push hook now auto-detects languages in your repository and runs the appropriate security tools:
@@ -34,10 +70,10 @@ Documentation: [Security Tools Reference](.dev-aid/docs/SECURITY-TOOLS-REFERENCE
 ---
 
 ### Provider-Agnostic Agent Framework
-Autonomous AI agents powered by Dev-AID's 72+ expert skills — works with any provider:
+Autonomous AI agents powered by Dev-AID's 73+ expert skills — works with any provider:
 
 - **Agent Runner**: Send → tool calls → execute → repeat loop with safety enforcement
-- **7 Built-in Agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding
+- **8 Built-in Agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor
 - **16 Built-in Tools**: File I/O, git, GitHub, bash, search — all with risk levels and safety checks
 - **4 Provider Adapters**: Anthropic, OpenAI, Google Gemini, Local (Ollama/LM Studio)
 - **Skill-Powered**: Each agent loads specific Dev-AID expert skills as system prompts
@@ -115,14 +151,7 @@ Configurable enforcement of test-first development:
 - **Gate Check Script**: `.dev-aid/scripts/tdd-gate-check.sh`
 - Configuration: `.dev-aid/config/process-skills.json`
 
-### Comparison with Competitors (Now Matching)
-| Feature | Dev-AID | Anthropic Quickstarts | Superpowers | Claude-Context |
-|---------|---------|----------------------|-------------|----------------|
-| Session Persistence | ✅ Now matches | ✅ | ❌ | ❌ |
-| TDD Enforcement | ✅ Now matches | ❌ | ✅ | ❌ |
-| Hybrid Search | ✅ Now matches | ❌ | ❌ | ✅ (Zilliz) |
-| Git Worktree | ✅ Now matches (with safeguards) | ❌ | ✅ | ❌ |
-| Architect Mode | ✅ Unique | ❌ | ❌ | ❌ |
+> **Full comparison tables**: See [README.md](README.md) → "How Dev-AID Compares" section for detailed feature-by-feature comparison with Cursor, Copilot, Aider, Windsurf, and Claude Code enhancement frameworks.
 
 ---
 

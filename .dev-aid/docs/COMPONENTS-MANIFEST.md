@@ -99,11 +99,11 @@ This manifest maps our elite setup components to their source repositories for i
     └── search_tools.py             # grep_search, find_files
 ```
 
-**Purpose**: Provider-agnostic autonomous AI agents powered by Dev-AID's 72+ expert skills
+**Purpose**: Provider-agnostic autonomous AI agents powered by Dev-AID's 73+ expert skills
 
 **Features**:
 - Agent loop: send → tool calls → execute → repeat
-- 7 built-in agents, 16 built-in tools
+- 8 built-in agents, 16 built-in tools
 - 4 provider adapters (Anthropic, OpenAI, Google, Local)
 - Safety enforcement: command blocklist, dry-run, per-tool risk levels
 - Skill integration: loads SKILL.md files as system prompts

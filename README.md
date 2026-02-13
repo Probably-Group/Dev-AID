@@ -17,27 +17,6 @@
 
 ---
 
-### TL;DR - One Command Examples
-
-```bash
-# All commands use short /aid-* aliases — type /aid- for autocomplete
-
-/aid-challenger "Implement OAuth2 with refresh tokens"  # Dual-AI review
-/aid-pr 135                        # Review a PR
-/aid-test src/auth/                # Generate tests
-/aid-conflict 42 smart             # Resolve merge conflict
-/aid-debt src/ high                # Tech debt scan
-/aid-research "async patterns"     # Deep research
-/aid-audit                         # Security audit
-/aid-commit                        # Plan atomic commits
-/aid-help                          # Show all commands
-
-# Security scanning runs automatically on every commit
-git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
-```
-
----
-
 ## 🎯 What is Dev-AID?
 
 Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsurf, Cline, Codex CLI) with:
@@ -175,6 +154,25 @@ cd ~/my-project
 
 # Security scanning tools (Gitleaks, Trivy, Opengrep)
 ./.dev-aid/automation/tools/install-security-tools.sh
+```
+
+### TL;DR - One Command Examples
+
+```bash
+# All commands use short /aid-* aliases — type /aid- for autocomplete
+
+/aid-challenger "Implement OAuth2 with refresh tokens"  # Dual-AI review
+/aid-pr 135                        # Review a PR
+/aid-test src/auth/                # Generate tests
+/aid-conflict 42 smart             # Resolve merge conflict
+/aid-debt src/ high                # Tech debt scan
+/aid-research "async patterns"     # Deep research
+/aid-audit                         # Security audit
+/aid-commit                        # Plan atomic commits
+/aid-help                          # Show all commands
+
+# Security scanning runs automatically on every commit
+git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 ```
 
 ---

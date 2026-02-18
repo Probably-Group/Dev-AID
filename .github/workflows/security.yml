@@ -80,7 +80,7 @@ jobs:
             --json --output=opengrep.json .
 
       - name: Run Trivy (CVE + Misconfig + Secrets)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         continue-on-error: true
         with:
           version: latest
@@ -98,7 +98,7 @@ jobs:
 
       - name: Run Trivy (Container Scanning)
         if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.34.0
         continue-on-error: true
         with:
           version: latest

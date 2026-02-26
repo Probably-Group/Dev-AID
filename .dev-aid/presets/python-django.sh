@@ -1078,6 +1078,54 @@ from django.utils import timezone
 now = timezone.now()  # always timezone-aware
 ```
 
-Always use `django.utils.timezone.now()` instead of `datetime.now()`.'
+Always use `django.utils.timezone.now()` instead of `datetime.now()`.
+
+## Security Best Practices
+
+### Input Validation & Sanitization
+- Use DRF serializers as the primary validation layer — never trust raw `request.data`
+- Validate all serializer fields with explicit validators: `MaxLengthValidator`, `RegexValidator`, custom `validate_<field>` methods
+- Use `bleach` for HTML sanitization if rendering user content
+
+### SQL Injection Prevention
+- NEVER use `.raw()` or `.extra()` with user input — use parameterized queries
+- Example: `User.objects.raw("SELECT * FROM user WHERE id = %s", [user_id])` (safe)
+- Prefer ORM queries over raw SQL whenever possible
+
+### Dependency Scanning
+```bash
+pip-audit                    # Known vulnerabilities
+safety check                 # Alternative scanner
+bandit -r app/               # Python security anti-patterns
+```
+- Run in CI on every PR
+
+### Secrets Management
+- Never commit `.env` files — use `.env.example` as template
+- Use `django-environ` / `python-decouple` for settings
+- In production: use vault, AWS Secrets Manager, or K8s secrets
+
+### Rate Limiting
+- DRF throttling: configure `DEFAULT_THROTTLE_RATES` in settings
+- Use `django-ratelimit` for view-level rate limiting on sensitive endpoints (login, password reset)
+
+### CSRF Protection
+- Django includes CSRF middleware by default — never disable it
+- For DRF APIs: use `SessionAuthentication` with CSRF, or `TokenAuthentication`/JWT without
+- Always validate `Origin` and `Referer` headers for sensitive operations
+
+## Performance Checklist
+
+### Database
+- Use `select_related()` for ForeignKey (JOIN), `prefetch_related()` for M2M (separate query)
+- Use `.only()` / `.defer()` to load only needed fields
+- Add `db_index=True` to frequently filtered fields
+- Use `django-debug-toolbar` to catch N+1 queries in development
+
+### Caching
+- Use Django'\''s cache framework with Redis: `CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache"}}`
+- Cache expensive querysets: `cache.get_or_set("key", queryset.all, timeout=300)`
+- Use `@cache_page` decorator for view-level caching
+- Invalidate cache explicitly when underlying data changes'
 
 LINT_LANGUAGES="Python (ruff check + ruff format), SQL, YAML, Shell (shellcheck)"

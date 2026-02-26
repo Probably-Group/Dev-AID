@@ -1119,6 +1119,45 @@ All timestamps use **ISO 8601 UTC**: `2026-01-01T12:00:00Z`
 ```python
 from datetime import datetime, timezone
 now = datetime.now(timezone.utc)
-```'
+```
+
+## Security Best Practices
+
+### Data Privacy
+- Never log or print PII (names, emails, SSNs) in notebooks or logs
+- Anonymize datasets before sharing: hash identifiers, mask fields
+- Use `.gitignore` to exclude data files: `data/`, `*.csv`, `*.parquet`
+- Check for PII leakage in model outputs (text generation, embeddings)
+
+### API Key Management
+- Store API keys in `.env`, load with `python-dotenv`
+- Never hardcode API keys in notebooks
+- Revoke and rotate exposed keys immediately
+
+### Reproducibility as Security
+- Pin all package versions: `pip freeze > requirements.txt`
+- Use `conda-lock` or `pip-tools` for reproducible environments
+- Hash data files to detect tampering: `sha256sum data/train.csv`
+
+### Dependency Scanning
+```bash
+pip-audit                    # Known vulnerabilities
+safety check                 # Alternative scanner
+bandit -r src/               # Python security anti-patterns
+```
+- Run in CI on every PR
+
+## Performance Checklist
+
+### Memory Optimization
+- Use `dtype` parameter in `pd.read_csv()`: `pd.read_csv("data.csv", dtype={"id": "int32", "category": "category"})`
+- Process large files in chunks: `pd.read_csv("big.csv", chunksize=10000)`
+- Use `del df` + `gc.collect()` to free memory after processing
+- Monitor memory: `df.memory_usage(deep=True).sum() / 1e6` (MB)
+
+### GPU Performance
+- Clear GPU cache between experiments: `torch.cuda.empty_cache()`
+- Use mixed precision: `torch.amp.autocast("cuda")`
+- Profile with `torch.profiler.profile()`'
 
 LINT_LANGUAGES="Python (ruff check + ruff format), YAML, JSON, Shell (shellcheck), Jupyter (nbstripout)"

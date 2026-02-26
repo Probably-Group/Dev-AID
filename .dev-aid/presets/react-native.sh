@@ -1141,6 +1141,58 @@ const apiUrl = Constants.expoConfig?.extra?.apiUrl;
 ```
 
 For secrets that must not be in the JS bundle, use `expo-secure-store` at runtime
-and fetch from your backend on app launch.'
+and fetch from your backend on app launch.
+
+## Security Best Practices
+
+### Secure Storage
+- Use `expo-secure-store` (backed by Keychain on iOS, Keystore on Android) for tokens and secrets
+- NEVER store tokens in AsyncStorage (plaintext on device, easily extractable)
+- Use biometric authentication for sensitive operations via `expo-local-authentication`
+
+### Certificate Pinning
+- Pin SSL certificates for API communication to prevent MITM attacks
+- Use `react-native-ssl-pinning` or native modules for certificate pinning
+- Update pins before certificate rotation — maintain a rotation schedule
+
+### Code Obfuscation
+- Hermes bytecode provides partial obfuscation by default
+- Never embed API keys in client code — use server-side proxy
+- Use runtime config for API endpoints via `expo-constants` extra fields
+- Strip source maps from production builds
+
+### Input Validation
+- Validate all user input on the client AND on the server
+- Sanitize text input to prevent injection attacks
+- Validate deep links and URL schemes before navigation — reject unexpected schemes
+
+### Dependency Scanning
+```bash
+npm audit                     # Known vulnerabilities in npm packages
+npx expo doctor               # Expo SDK compatibility check
+npx depcheck                  # Find unused dependencies
+```
+- Audit native dependencies (CocoaPods, Gradle) separately
+- Review changelogs before upgrading major versions
+
+## Performance Checklist
+
+### Rendering Performance
+- Use `React.memo` for components that receive stable props
+- Use `FlatList` with `getItemLayout` for fixed-height items (skips measurement)
+- Memoize callbacks with `useCallback` and computed values with `useMemo`
+- Profile with React DevTools Profiler and Flipper
+
+### Memory Management
+- Clean up subscriptions and listeners in `useEffect` cleanup functions
+- Cancel pending API requests on unmount with `AbortController`
+- Avoid memory leaks from unregistered event listeners and timers
+- Monitor memory usage with Flipper or Xcode Instruments
+
+### App Size
+- Use Metro bundle analyzer to identify large dependencies: `npx react-native-bundle-visualizer`
+- Hermes reduces bundle size and startup time — ensure it is enabled
+- Remove unused packages and assets
+- Use `expo-image` instead of `Image` for optimized image loading and caching'
 
 LINT_LANGUAGES="TypeScript (tsc --noEmit + eslint), JSON, Shell (shellcheck)"

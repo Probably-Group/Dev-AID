@@ -1003,6 +1003,61 @@ def test_data_pipeline_chain():
         validate_rows.s(),
     ).apply()  # .apply() runs synchronously
     assert result.get() is not None
-```'
+```
+
+## Security Best Practices
+
+### Input Validation & Sanitization
+- Validate task payloads — never trust data from message brokers
+- Use Pydantic or marshmallow to validate task arguments before processing
+- Sanitize string arguments: reject or escape unexpected characters
+- Use `bleach` for HTML sanitization if rendering user content from tasks
+
+### SQL Injection Prevention
+- Use ORM queries or parameterized queries in task code — never string-format SQL
+- Example: `cursor.execute("SELECT * FROM orders WHERE id = %s", [order_id])` (safe)
+
+### Message Serialization Security
+- NEVER use pickle serializer — it allows arbitrary code execution
+- Always set `accept_content = ["json"]` in celeryconfig.py
+- Validate deserialized message structure before processing
+
+### Dependency Scanning
+```bash
+pip-audit                    # Known vulnerabilities
+safety check                 # Alternative scanner
+bandit -r app/               # Python security anti-patterns
+```
+- Run in CI on every PR
+
+### Secrets Management
+- Never commit `.env` files — use `.env.example` as template
+- Use `python-decouple` / `pydantic-settings` for configuration
+- In production: use vault, AWS Secrets Manager, or K8s secrets
+- Never pass secrets as task arguments — fetch from secure store inside the task
+
+### Broker Security
+- Enable TLS for broker connections: `broker_use_ssl` in celeryconfig.py
+- Use dedicated vhosts and credentials per environment (dev/staging/prod)
+- Restrict RabbitMQ management UI access with firewall rules
+
+## Performance Checklist
+
+### Worker Tuning
+- Match `--concurrency` to workload: CPU-bound = CPU cores, I/O-bound = 2-4x cores
+- Use `--pool=gevent` for I/O-heavy tasks (API calls, email)
+- Set `worker_prefetch_multiplier = 1` for fair scheduling of long tasks
+- Use `task_acks_late = True` for crash resilience (requires idempotent tasks)
+
+### Queue Optimization
+- Route tasks to dedicated queues by type (emails, reports, data)
+- Set `x-message-ttl` on queues to prevent stale message buildup
+- Monitor queue depth with Flower or RabbitMQ management plugin
+- Use `x-max-length` with `x-overflow: reject-publish` to apply backpressure
+
+### Result Backend
+- Disable result backend (`task_ignore_result = True`) if results are not needed
+- Set `result_expires` to auto-clean old results
+- Use Redis result backend for speed, PostgreSQL for durability'
 
 LINT_LANGUAGES="Python (ruff check + ruff format), YAML, Docker (hadolint), Shell (shellcheck)"

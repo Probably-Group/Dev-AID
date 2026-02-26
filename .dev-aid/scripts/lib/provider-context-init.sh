@@ -286,6 +286,61 @@ EOF
     echo ""
 }
 
+# Inject preset-specific content into a context file
+# Adds Context Groups, Plan Execution Protocol, and Proactive Context Loading
+# Args: $1: context_file_path
+inject_preset_content() {
+    local context_file="$1"
+
+    [[ -f "$context_file" ]] || return 0
+
+    # Only inject if preset variables are available
+    if [[ -z "${CONTEXT_GROUPS:-}" ]] && [[ -z "${CONTEXT_LOADING_TABLE:-}" ]]; then
+        return 0
+    fi
+
+    local inject_block=""
+
+    # Context Groups section
+    if [[ -n "${CONTEXT_GROUPS:-}" ]]; then
+        inject_block+="
+## Context Groups
+
+Load a named group to get all relevant files at once:
+
+${CONTEXT_GROUPS}
+"
+    fi
+
+    # Proactive Context Loading table
+    if [[ -n "${CONTEXT_LOADING_TABLE:-}" ]]; then
+        inject_block+="
+## Proactive Context Loading
+
+| Task | Read First |
+|------|-----------|
+${CONTEXT_LOADING_TABLE}
+"
+    fi
+
+    # Plan Execution Protocol
+    inject_block+="
+## Plan Execution Protocol
+
+When working on multi-step tasks:
+
+1. **Before starting**: Create a plan with \`/aid-plan <task>\`
+2. **After each step**: Update the Progress Log
+3. **If interrupted**: The plan file records where you stopped
+4. **On resume**: Read the plan file to pick up where you left off
+
+Always end sessions with: **Stopped at:** Step N -- {what's next}
+"
+
+    # Append to the end of the context file (before any final blank lines)
+    printf '%s\n' "$inject_block" >> "$context_file"
+}
+
 # Create new context file from template
 # Args: $1: project_root, $2: provider
 create_new_context_file() {
@@ -304,6 +359,14 @@ create_new_context_file() {
     echo "$template" > "$provider_dir/$context_filename"
     echo "   ✓ Created: $provider_dir/$context_filename"
     echo ""
+
+    # Inject preset content if available
+    if [[ -n "${CONTEXT_GROUPS:-}" ]] || [[ -n "${CONTEXT_LOADING_TABLE:-}" ]]; then
+        echo "2b. Injecting preset content..."
+        inject_preset_content "$provider_dir/$context_filename"
+        echo "   ✓ Preset content injected"
+        echo ""
+    fi
 
     echo "3️⃣  Creating symlink..."
     create_symlink "$project_root" "$provider"

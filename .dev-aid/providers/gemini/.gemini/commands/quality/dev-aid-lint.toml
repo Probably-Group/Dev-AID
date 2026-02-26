@@ -1,0 +1,30 @@
+[metadata]
+name = "dev-aid-lint"
+description = "Run linters and auto-fix issues"
+category = "quality"
+author = "Dev-AID"
+version = "1.0.0"
+
+[prompt]
+text = """
+# Run Linters with Auto-Fix
+
+Run the appropriate linters for this project and fix issues automatically.
+
+## Commands by Language
+
+- **Python**: `ruff check --fix . && ruff format .`
+- **TypeScript/JS**: `npx eslint --fix . && npx prettier --write .`
+- **Go**: `gofmt -w . && goimports -w .`
+- **Rust**: `cargo fmt`
+- **Shell**: `shellcheck scripts/*.sh`
+
+## Protocol
+
+1. Detect the project language(s) from config files
+2. Run the appropriate linters with auto-fix
+3. Report any issues that require manual intervention
+4. Summarize what was fixed
+
+$ARGUMENTS
+"""

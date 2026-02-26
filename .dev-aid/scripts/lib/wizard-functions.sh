@@ -19,6 +19,8 @@ apply_wizard_defaults() {
     ORCHESTRATION_MODE="solo"
     ENABLED_PROVIDERS=("claude")
     COLLECTED_API_KEYS=()
+    SELECTED_PRESET="generic"
+    SELECTED_PRESET_PATH=""
     declare -gA TASK_MODEL_MAPPING
     TASK_MODEL_MAPPING["default"]="claude-sonnet-4.5"
 }
@@ -84,7 +86,7 @@ ask_context_budget() {
         return
     fi
 
-    print_header "Step 1/6: Standing Context Budget"
+    print_header "Step 1/7: Standing Context Budget"
 
     echo "How much token budget for standing context?"
     echo ""
@@ -146,7 +148,7 @@ ask_auto_activation() {
         return
     fi
 
-    print_header "Step 2/6: Auto-Activation Strategy"
+    print_header "Step 2/7: Auto-Activation Strategy"
 
     echo "How should Dev-AID auto-load skills/capabilities?"
     echo ""
@@ -191,7 +193,45 @@ ask_auto_activation() {
 }
 
 # ============================================================================
-# Step 3: AI Provider Selection
+# Step 3: Project Preset
+# ============================================================================
+
+ask_project_preset() {
+    if [ "$NON_INTERACTIVE" = true ]; then
+        return
+    fi
+
+    # Requires preset-functions.sh to be sourced
+    if ! type detect_preset &>/dev/null; then
+        return
+    fi
+
+    print_header "Step 3/7: Project Preset"
+
+    echo "Dev-AID can generate stack-specific rules, troubleshooting playbooks,"
+    echo "smoke tests, and session recovery plans for your project."
+    echo ""
+
+    echo -e "${CYAN}Detecting project type...${NC}"
+    local detected
+    detected=$(detect_preset "$PROJECT_ROOT") || true
+    echo -e "${GREEN}Detected: ${detected}${NC}"
+    echo ""
+
+    prompt_preset "$detected"
+    echo ""
+
+    if [[ -n "${SELECTED_PRESET:-}" ]] && [[ "$SELECTED_PRESET" != "generic" ]]; then
+        load_preset "$SELECTED_PRESET"
+        echo -e "${GREEN}Loaded preset: ${preset_name:-$SELECTED_PRESET} — ${preset_description:-}${NC}"
+    elif [[ "${SELECTED_PRESET:-}" == "generic" ]]; then
+        load_preset "generic"
+        echo -e "${GREEN}Loaded preset: generic — ${preset_description:-Minimal scaffolding}${NC}"
+    fi
+}
+
+# ============================================================================
+# Step 4: AI Provider Selection
 # ============================================================================
 
 ask_providers() {
@@ -199,7 +239,7 @@ ask_providers() {
         return
     fi
 
-    print_header "Step 3/6: AI Provider Selection"
+    print_header "Step 4/7: AI Provider Selection"
 
     echo "Which AI providers do you have access to?"
     echo "(Select all that apply)"
@@ -270,7 +310,7 @@ ask_orchestration_mode() {
         return
     fi
 
-    print_header "Step 4/6: Orchestration Mode"
+    print_header "Step 5/7: Orchestration Mode"
 
     echo "How should AI models work together?"
     echo ""
@@ -443,14 +483,14 @@ ask_model_assignment() {
     fi
 
     if [ "$ORCHESTRATION_MODE" == "solo" ]; then
-        print_header "Step 5/6: Default Model Selection"
+        print_header "Step 6/7: Default Model Selection"
         echo "Select your default model for all tasks:"
         echo ""
         select_default_model
         return
     fi
 
-    print_header "Step 5/6: Model Assignment per Task Type"
+    print_header "Step 6/7: Model Assignment per Task Type"
 
     echo "Assign AI models to specific task types for optimal performance."
     echo ""
@@ -507,7 +547,7 @@ ask_api_keys() {
         return
     fi
 
-    print_header "Step 6/6: API Key Configuration"
+    print_header "Step 7/7: API Key Configuration"
 
     echo "Enter API keys for your enabled providers."
     print_color "$YELLOW" "Tip: Keys are stored in .dev-aid/config/.env (gitignored)"
@@ -609,6 +649,7 @@ run_wizard() {
     show_welcome
     ask_context_budget
     ask_auto_activation
+    ask_project_preset
     ask_providers
     ask_orchestration_mode
     ask_model_assignment

@@ -72,6 +72,8 @@ STANDING_CONTEXT_BUDGET=""
 STANDING_CONTEXT_TOKENS=""
 AUTO_ACTIVATION=""
 ORCHESTRATION_MODE=""
+SELECTED_PRESET=""
+SELECTED_PRESET_PATH=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -125,6 +127,9 @@ source "$LIB_DIR/wizard-functions.sh"
 
 # shellcheck source=/dev/null
 source "$LIB_DIR/provider-setup.sh"
+
+# shellcheck source=/dev/null
+source "$LIB_DIR/preset-functions.sh"
 
 # Source shared security library if available
 if [[ -f "$DEV_AID_DIR/lib/bash-common.sh" ]]; then
@@ -373,6 +378,8 @@ EOF
   "project_name": "$(basename "$PROJECT_ROOT")",
   "installed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
 
+  "project_preset": "${SELECTED_PRESET:-}",
+
   "standing_context_budget": "${STANDING_CONTEXT_BUDGET:-balanced}",
   "standing_context_tokens": ${STANDING_CONTEXT_TOKENS:-1000},
 
@@ -509,6 +516,22 @@ if should_run_phase 5; then
 
     setup_all_providers "$PROJECT_ROOT" "$NON_INTERACTIVE"
 
+    # Apply preset rules, smoke tests, lint hook, and docs
+    if [[ -n "${SELECTED_PRESET:-}" ]]; then
+        echo ""
+        echo -e "${CYAN}Applying preset: ${SELECTED_PRESET}...${NC}"
+
+        # Load preset if not already loaded (e.g., --yes mode)
+        if [[ -z "${preset_name:-}" ]]; then
+            load_preset "$SELECTED_PRESET"
+        fi
+
+        apply_preset_rules "$PROJECT_ROOT" "${ENABLED_PROVIDERS[@]}"
+        apply_preset_smoke_tests "$PROJECT_ROOT"
+        apply_preset_docs "$PROJECT_ROOT"
+        echo -e "${GREEN}Preset rules, smoke tests, and docs applied${NC}"
+    fi
+
     echo ""
 fi
 
@@ -544,6 +567,15 @@ if should_run_phase 6; then
             rm -f "${local_active_context}.bak"
         fi
         echo -e "${GREEN}Updated activeContext.md with project name${NC}"
+    fi
+
+    # Apply preset memory topics (write_if_missing)
+    if [[ -n "${SELECTED_PRESET:-}" ]]; then
+        if [[ -z "${preset_name:-}" ]]; then
+            load_preset "$SELECTED_PRESET"
+        fi
+        apply_preset_memory "$PROJECT_ROOT"
+        echo -e "${GREEN}Preset memory topics applied${NC}"
     fi
 
     echo ""
@@ -701,6 +733,9 @@ if should_run_phase 8; then
         echo "  Auto-Activation:    ${AUTO_ACTIVATION:-conservative}"
         echo "  Orchestration:      ${ORCHESTRATION_MODE:-solo} mode"
         echo "  Enabled Providers:  ${ENABLED_PROVIDERS[*]}"
+        if [[ -n "${SELECTED_PRESET:-}" ]]; then
+            echo "  Project Preset:     ${SELECTED_PRESET}"
+        fi
         echo ""
     fi
 

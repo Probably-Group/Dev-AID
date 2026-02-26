@@ -143,8 +143,12 @@ dev-aid-agent apo status
 | `aid-health` | `dev-aid-code-health` |
 | `aid-debt-report` | `dev-aid-debt-analysis` |
 | `aid-review` | `dev-aid-review-staged` |
+| `aid-smoke` | `dev-aid-smoke` |
+| `aid-lint` | `dev-aid-lint` |
+| `aid-typecheck` | `dev-aid-typecheck` |
 | `aid-commit` | `dev-aid-commit-plan` |
 | `aid-api` | `dev-aid-api-contract` |
+| `aid-plan` | `dev-aid-plan` |
 | `aid-analyze` | `dev-aid-analyze` |
 | `aid-status` | `dev-aid-status` |
 | `aid-config` | `dev-aid-config-core-skills` |
@@ -184,6 +188,14 @@ When adding any new slash command, always create both the full command and an `a
 │   ├── security/
 │   │   ├── dev-aid-audit.md             # Full command
 │   │   └── aid-audit.md                 # Short alias
+│   ├── productivity/
+│   │   ├── dev-aid-plan.md              # Full command
+│   │   └── aid-plan.md                  # Short alias
+│   ├── quality/
+│   │   ├── dev-aid-smoke.md             # Smoke tests
+│   │   ├── dev-aid-lint.md              # Auto-lint
+│   │   ├── dev-aid-typecheck.md         # Type checking
+│   │   └── aid-*.md                     # Short aliases
 │   └── ...
 └── gemini/.gemini/commands/
     ├── agents/

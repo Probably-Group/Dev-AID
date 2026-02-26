@@ -93,6 +93,28 @@ detect_project_state() {
     command -v gitleaks &>/dev/null && command -v trivy &>/dev/null && STATE_HAS_SECURITY_TOOLS=true
     [ -f "$project_root/.git/hooks/pre-commit" ] && STATE_HAS_GIT_HOOKS=true
 
+    # --- Preset state ---
+    STATE_HAS_PRESET=false
+    STATE_PRESET_NAME=""
+    STATE_HAS_RULES_DIR=false
+    STATE_HAS_PLAN_TEMPLATE=false
+
+    if [ -f "$dev_aid_dir/config/settings.json" ] && command -v jq &>/dev/null; then
+        local preset_val
+        preset_val="$(jq -r '.project_preset // ""' "$dev_aid_dir/config/settings.json" 2>/dev/null)" || preset_val=""
+        if [ -n "$preset_val" ] && [ "$preset_val" != "null" ]; then
+            STATE_HAS_PRESET=true
+            STATE_PRESET_NAME="$preset_val"
+        fi
+    fi
+
+    # Check for provider rules directories
+    [ -d "$dev_aid_dir/providers/claude/.claude/rules" ] && STATE_HAS_RULES_DIR=true
+    [ -d "$dev_aid_dir/providers/gemini/.gemini/rules" ] && STATE_HAS_RULES_DIR=true
+
+    # Check for plan template
+    [ -f "$project_root/docs/plans/.plan-template.md" ] && STATE_HAS_PLAN_TEMPLATE=true
+
     # --- Memory bank ---
     STATE_MEMORY_BANK_COMPLETE=true
     local expected_files=(activeContext.md patterns.md decisions.md security.md performance.md testing.md chaos.md)

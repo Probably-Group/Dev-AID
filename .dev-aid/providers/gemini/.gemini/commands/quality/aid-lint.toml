@@ -1,0 +1,11 @@
+[metadata]
+name = "aid-lint"
+description = "Run linters with auto-fix (alias for dev-aid-lint)"
+category = "quality"
+author = "Dev-AID"
+version = "1.0.0"
+
+[prompt]
+text = """
+Use the full command instructions from `.dev-aid/providers/gemini/.gemini/commands/quality/dev-aid-lint.toml` with these arguments: $ARGUMENTS
+"""

@@ -54,6 +54,9 @@ Print the following reference guide for the user. Do NOT execute any commands ‚Ä
 | `aid-health` | `dev-aid-code-health` | Code quality assessment and metrics |
 | `aid-debt-report` | `dev-aid-debt-analysis` | Tech debt identification and prioritization |
 | `aid-review` | `dev-aid-review-staged` | Pre-commit review (security, quality, tests) |
+| `aid-smoke` | `dev-aid-smoke` | Run smoke tests (PASS/FAIL/WARN health checks) |
+| `aid-lint` | `dev-aid-lint` | Run linters with auto-fix (ruff, eslint, gofmt, etc.) |
+| `aid-typecheck` | `dev-aid-typecheck` | Run TypeScript type checking and fix errors |
 
 ## üöÄ Productivity Commands
 
@@ -61,6 +64,7 @@ Print the following reference guide for the user. Do NOT execute any commands ‚Ä
 |------------|-------------|-------------|
 | `aid-commit` | `dev-aid-commit-plan` | Analyze changes and propose atomic commits |
 | `aid-api` | `dev-aid-api-contract` | Generate OpenAPI specs and TypeScript clients |
+| `aid-plan` | `dev-aid-plan` | Create a session-resilient plan with progress log |
 
 ## ‚öôÔ∏è Setup & Maintenance Commands
 

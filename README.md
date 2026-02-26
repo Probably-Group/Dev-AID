@@ -200,6 +200,7 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐ |
+| **🎛️ Stack Presets** 🆕 | Stack-specific rules, playbooks, smoke tests, session recovery per project type | • 5 presets (generic, FastAPI, TS/Node, fullstack, K8s)<br>• Community presets at `~/.dev-aid/presets/`<br>• Auto-detection from project files<br>• Lint-on-edit hook (8 languages) | ⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐ |
 | **🧠 Agent APO** 🆕 | Automatic Prompt Optimization with trace collection and beam search | • JSONL trace collection (`--trace`)<br>• LLM-driven critique + beam search<br>• Golden test scoring<br>• Human approval gate (no auto-deploy) | ⭐⭐⭐⭐ |
@@ -807,12 +808,38 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 🆕 Latest Changes
 
+- **🎛️ Stack-Specific Presets** — 5 presets (generic, FastAPI, TS/Node, fullstack, K8s) with rules, playbooks, smoke tests, session recovery, lint-on-edit hook, and community preset support
 - **🤖 Autonomous Agent Framework** — 8 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring
 - **🏠 Local LLM Support** — Offline AI via Ollama/LM Studio/llama.cpp with hardware auto-detection and smart model recommendations
 - **🔍 Hybrid Search** — BM25 + Vector with Reciprocal Rank Fusion, two-agent Architect Mode, Git Worktree Isolation, Session Persistence
 
 📖 **[Full release notes →](./WHATS-NEW.md)** | **[Changelog](./.dev-aid/CHANGELOG.md)**
+
+---
+
+## 🎛️ Stack-Specific Presets
+
+During setup, Dev-AID detects your project type and generates **stack-specific rules, troubleshooting playbooks, smoke tests, and session recovery plans**.
+
+| Preset | Generates | Use For |
+|--------|-----------|---------|
+| `generic` | Cross-service patterns, plan template, ADR system | Any project |
+| `python-fastapi` | API contracts, database patterns, Pydantic schemas, ruff checks | FastAPI backends |
+| `typescript-node` | Zod validation, TypeScript patterns, ESLint/Vitest checks | Node.js/TS projects |
+| `fullstack` | Cross-service contracts, CORS config, frontend + backend patterns | Backend + frontend |
+| `kubernetes-gitops` | CiliumNetworkPolicy templates, deployment flow, cluster health checks | K8s infrastructure |
+
+**What presets create:**
+- **Rules files** (`.claude/rules/`) — Substantive patterns (real Pydantic examples, CiliumNetworkPolicy templates, etc.)
+- **Troubleshooting playbooks** — Symptom/Diagnosis/Fix for stack-specific errors
+- **Smoke tests** (`scripts/smoke-*.sh`) — PASS/FAIL/WARN health checks
+- **Session recovery** — Plan template with Progress Log and "Stopped at" markers
+- **ADR system** — Architecture Decision Records with index
+- **Lint-on-edit hook** — Auto-lint after Claude writes (Python, TS/JS, Go, Rust, YAML, JSON, Shell)
+- **Memory topics** — Pre-seeded topic files for your stack
+
+**Community presets:** Drop custom `.sh` files in `~/.dev-aid/presets/` — they appear in the setup menu automatically. See [`.dev-aid/presets/README.md`](.dev-aid/presets/README.md) for the authoring guide.
 
 ---
 
@@ -848,10 +875,14 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 /aid-debt-report                         # Tech debt analysis with severity scoring (dev-aid-debt-analysis)
 /aid-review                              # Pre-commit review of staged changes (dev-aid-review-staged)
 /aid-analyze                             # Codebase analysis and structure mapping (dev-aid-analyze)
+/aid-smoke                               # Run smoke tests with PASS/FAIL/WARN output (dev-aid-smoke)
+/aid-lint                                # Run linters with auto-fix (dev-aid-lint)
+/aid-typecheck                           # TypeScript type checking with fixes (dev-aid-typecheck)
 
 # Productivity
 /aid-commit                              # AI-guided atomic commit planning (dev-aid-commit-plan)
 /aid-api --from src/models/user.ts       # Generate OpenAPI specs, TS clients, MSW mocks (dev-aid-api-contract)
+/aid-plan "Add user authentication"      # Create session-resilient plan with progress log (dev-aid-plan)
 
 # Setup & Configuration
 /aid-status                              # Show Dev-AID configuration status (dev-aid-status)

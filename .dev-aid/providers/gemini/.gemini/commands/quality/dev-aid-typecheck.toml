@@ -1,0 +1,30 @@
+[metadata]
+name = "dev-aid-typecheck"
+description = "Run TypeScript type checking and fix type errors"
+category = "quality"
+author = "Dev-AID"
+version = "1.0.0"
+
+[prompt]
+text = """
+# TypeScript Type Checking
+
+Run TypeScript compiler in check mode and fix any type errors.
+
+## Protocol
+
+1. Run type checking:
+   ```bash
+   npx tsc --noEmit
+   ```
+
+2. If errors found:
+   - Group errors by file
+   - Read each affected file
+   - Apply type-safe fixes (prefer narrowing over `as` assertions)
+   - Re-run to verify all errors resolved
+
+3. Report summary of fixes applied.
+
+$ARGUMENTS
+"""

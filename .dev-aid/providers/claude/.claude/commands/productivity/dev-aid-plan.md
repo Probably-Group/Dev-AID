@@ -1,0 +1,38 @@
+---
+name: dev-aid-plan
+description: Create a session-resilient plan file for a multi-step task
+category: productivity
+author: Dev-AID
+version: 1.0.0
+allowed-tools: Bash(cp:*), Read, Write, Glob
+---
+
+# Create a Session-Resilient Plan
+
+Create a plan file for: **$ARGUMENTS**
+
+## Protocol
+
+1. Copy the plan template:
+   ```bash
+   cp docs/plans/.plan-template.md docs/plans/<kebab-case-title>.md
+   ```
+
+2. Fill in the plan file:
+   - **Objective**: 1-2 sentences on what we're achieving and why
+   - **Context**: repos affected, key files read, dependencies, risk level
+   - **Steps**: checkboxes with file paths and acceptance criteria
+   - **Validation**: how to verify the work is correct
+
+3. Each step should:
+   - Be specific enough to resume from if interrupted
+   - List the exact files to modify
+   - Include acceptance criteria
+
+4. The **Progress Log** section is critical for session recovery:
+   - Update after completing each step
+   - Always end with `**Stopped at:** Step N — {what's next}`
+
+5. Print the plan file path when done.
+
+If `docs/plans/.plan-template.md` doesn't exist, create the plan from scratch using the same structure.

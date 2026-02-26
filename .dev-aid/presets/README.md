@@ -3,15 +3,63 @@
 Stack-specific presets that generate substantive rules, troubleshooting playbooks,
 smoke tests, and session recovery plans for target projects.
 
-## Bundled Presets
+## Bundled Presets (21)
 
-| Preset | Description |
-|--------|-------------|
-| `generic` | Minimal scaffolding for any project |
-| `python-fastapi` | Python/FastAPI backend with API contracts, database patterns |
-| `typescript-node` | TypeScript/Node.js with eslint, vitest, Zod patterns |
-| `fullstack` | Backend + frontend with cross-service contracts |
-| `kubernetes-gitops` | K8s infrastructure with GitOps, network policies, deployment verification |
+### General
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `generic` | Minimal scaffolding for any project | Fallback |
+
+### Python Ecosystem
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `python-fastapi` | FastAPI backend — API contracts, Pydantic v2, async DB | `pyproject.toml`/`requirements.txt` with `fastapi` |
+| `python-django` | Django 5+ / DRF — ORM, serializers, admin, signals | `pyproject.toml`/`requirements.txt` with `django` |
+| `python-data-science` | Jupyter, pandas, scikit-learn, PyTorch — notebook hygiene | `.ipynb` files or `pandas`/`torch` deps |
+| `python-celery-workers` | Celery + RabbitMQ/Redis — task patterns, messaging | `celery`/`kombu` deps |
+
+### JavaScript / TypeScript Ecosystem
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `typescript-node` | Node.js backend — eslint, vitest, Zod validation | `tsconfig.json` or `typescript` dep |
+| `react-nextjs` | React 19 + Next.js 15 App Router — RSC, server actions | `next` dep in `package.json` |
+| `vue-nuxt` | Vue 3.5 + Nuxt 4 — Composition API, `useFetch`, Pinia | `nuxt` or `vue` dep |
+| `angular` | Angular 19+ — standalone components, signals, NgRx | `@angular/core` dep |
+| `svelte-kit` | Svelte 5 + SvelteKit 2 — runes, form actions, load functions | `@sveltejs/kit` or `svelte` dep |
+| `fullstack` | Backend + frontend — cross-service contracts, CORS, auth flow | `backend/`+`frontend/` directories |
+
+### Enterprise Backend
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `java-spring-boot` | Java 21+ / Spring Boot 4 — JPA, Security, Flyway | `pom.xml`/`build.gradle` with `spring-boot` |
+| `dotnet-aspnet` | C# / .NET 9 / ASP.NET Core — Minimal APIs, EF Core | `.csproj` with `Microsoft.AspNetCore` |
+| `php-laravel` | PHP 8.3+ / Laravel 11+ — Eloquent, Blade, Artisan | `composer.json` with `laravel/framework` |
+| `ruby-rails` | Ruby 3.3+ / Rails 7.2+ — ActiveRecord, Hotwire, RuboCop | `Gemfile` with `rails` |
+
+### Systems Languages
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `go-service` | Go 1.23+ — Gin/Echo, structured logging, errgroup | `go.mod` present |
+| `rust-service` | Rust / Axum — Tokio async, SQLx, serde, clippy | `Cargo.toml` present |
+
+### Mobile
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `flutter-dart` | Flutter 3.24+ / Dart 3.5+ — Riverpod, go_router, freezed | `pubspec.yaml` with `flutter:` |
+| `react-native` | React Native 0.76+ / Expo SDK 52+ — Navigation, EAS Build | `react-native` dep in `package.json` |
+
+### Infrastructure
+
+| Preset | Description | Detection |
+|--------|-------------|-----------|
+| `kubernetes-gitops` | K8s + GitOps — network policies, deployment verification | `kustomize/`, `helm/`, `skaffold.yaml` |
+| `talos-kubernetes` | Talos Linux + K8s + Cilium — talosctl, etcd ops, talhelper | `talconfig.yaml` or `talos/` directory |
 
 ## How Presets Work
 

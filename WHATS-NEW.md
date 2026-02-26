@@ -5,18 +5,22 @@
 ### Stack-Specific Presets (NEW!)
 Project-type-aware setup that generates substantive rules, smoke tests, troubleshooting playbooks, and session recovery plans:
 
-**5 Built-in Presets:**
+**21 Built-in Presets:**
 
-| Preset | Target Stack | Generated Content |
-|--------|-------------|-------------------|
-| `generic` | Any project | Cross-service patterns, error handling, logging rules |
-| `python-fastapi` | FastAPI backends | API contracts, Pydantic v2 schemas, SQLAlchemy patterns, pytest |
-| `typescript-node` | Node.js/TypeScript | Zod validation, ESLint/Vitest patterns, Result type |
-| `fullstack` | Backend + Frontend | Cross-service contracts, CORS, auth flow, API client patterns |
-| `kubernetes-gitops` | K8s + GitOps | CiliumNetworkPolicy, deployment flow, security controls, observability |
+| Category | Presets |
+|----------|--------|
+| **General** | `generic` |
+| **Python** | `python-fastapi`, `python-django`, `python-data-science`, `python-celery-workers` |
+| **JavaScript/TypeScript** | `typescript-node`, `react-nextjs`, `vue-nuxt`, `angular`, `svelte-kit`, `fullstack` |
+| **Enterprise Backend** | `java-spring-boot`, `dotnet-aspnet`, `php-laravel`, `ruby-rails` |
+| **Systems Languages** | `go-service`, `rust-service` |
+| **Mobile** | `flutter-dart`, `react-native` |
+| **Infrastructure** | `kubernetes-gitops`, `talos-kubernetes` |
+
+Each preset includes SOTA security best practices (OWASP, XSS/CSRF/SQLi prevention, secrets management, dependency scanning), performance patterns (N+1 prevention, caching, connection pooling, pagination), and code quality standards (linting, strict types, testing, error handling).
 
 **Key Features:**
-- **Auto-Detection**: Parses `pyproject.toml`, `package.json`, directory structure to suggest the best preset
+- **Auto-Detection**: Parses `pyproject.toml`, `package.json`, `go.mod`, `Cargo.toml`, `pubspec.yaml`, `composer.json`, `Gemfile`, `.csproj`, `pom.xml`, `talconfig.yaml`, and directory structure to suggest the best preset
 - **Community Presets**: Drop custom `.sh` presets into `~/.dev-aid/presets/` for auto-discovery
 - **Session Recovery Plans**: Progress Log + "Stopped at" markers for multi-session work
 - **Lint-on-Edit Hook**: Auto-lints after file writes (Python, TS/JS, Go, Rust, YAML, JSON, Shell)

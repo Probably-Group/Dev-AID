@@ -200,7 +200,7 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 | **🔧 Conflict Auto-Resolution** | Smart merge conflict resolution understanding both sides | • Saves 10-30 min/conflict<br>• Preserves intent<br>• Avoids "redo" work | ⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | Connect to databases, GitHub, APIs via Model Context Protocol | • Install once, works everywhere<br>• Secure (key isolation)<br>• Pre-gathers context | ⭐⭐⭐⭐ |
 | **🎯 API Contract Generator** | Generate OpenAPI specs, TypeScript clients, and MSW mocks from models | • Unblocks frontend immediately<br>• Parallel development<br>• Contract-first approach<br>• Auto-generated tests | ⭐⭐⭐⭐ |
-| **🎛️ Stack Presets** 🆕 | Stack-specific rules, playbooks, smoke tests, session recovery per project type | • 5 presets (generic, FastAPI, TS/Node, fullstack, K8s)<br>• Community presets at `~/.dev-aid/presets/`<br>• Auto-detection from project files<br>• Lint-on-edit hook (8 languages) | ⭐⭐⭐⭐ |
+| **🎛️ Stack Presets** 🆕 | Stack-specific rules, playbooks, smoke tests, session recovery per project type | • 21 presets (Python, JS/TS, Java, C#, Go, Rust, PHP, Ruby, Dart, mobile, K8s/Talos)<br>• SOTA security, performance, code quality per stack<br>• Auto-detection from project files<br>• Community presets at `~/.dev-aid/presets/` | ⭐⭐⭐⭐⭐ |
 | **🧠 Smart Context Init** | Intelligent CLAUDE.md/GEMINI.md initialization with quality detection | • Detects existing progressive disclosure<br>• Quality assessment (good/incomplete/draft/poor)<br>• Enhanced templates (OWASP, testing)<br>• Multi-provider support | ⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** | Multi-provider research system (Gemini/Perplexity/Tavily) with smart routing | • Auto-selects best provider per query<br>• Semantic caching (70% similarity)<br>• MCP server integration<br>• CLI: `dev-aid-research` | ⭐⭐⭐⭐ |
 | **🧠 Agent APO** 🆕 | Automatic Prompt Optimization with trace collection and beam search | • JSONL trace collection (`--trace`)<br>• LLM-driven critique + beam search<br>• Golden test scoring<br>• Human approval gate (no auto-deploy) | ⭐⭐⭐⭐ |
@@ -808,7 +808,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 🆕 Latest Changes
 
-- **🎛️ Stack-Specific Presets** — 5 presets (generic, FastAPI, TS/Node, fullstack, K8s) with rules, playbooks, smoke tests, session recovery, lint-on-edit hook, and community preset support
+- **🎛️ Stack-Specific Presets** — 21 presets covering Python, JS/TS, Java, C#, Go, Rust, PHP, Ruby, Dart, mobile, and K8s/Talos — with SOTA security, performance, and quality rules
 - **🤖 Autonomous Agent Framework** — 8 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring
 - **🏠 Local LLM Support** — Offline AI via Ollama/LM Studio/llama.cpp with hardware auto-detection and smart model recommendations
@@ -820,15 +820,17 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 🎛️ Stack-Specific Presets
 
-During setup, Dev-AID detects your project type and generates **stack-specific rules, troubleshooting playbooks, smoke tests, and session recovery plans**.
+During setup, Dev-AID auto-detects your project type and generates **stack-specific rules, troubleshooting playbooks, smoke tests, and session recovery plans** — all with SOTA security, performance, and code quality standards.
 
-| Preset | Generates | Use For |
-|--------|-----------|---------|
-| `generic` | Cross-service patterns, plan template, ADR system | Any project |
-| `python-fastapi` | API contracts, database patterns, Pydantic schemas, ruff checks | FastAPI backends |
-| `typescript-node` | Zod validation, TypeScript patterns, ESLint/Vitest checks | Node.js/TS projects |
-| `fullstack` | Cross-service contracts, CORS config, frontend + backend patterns | Backend + frontend |
-| `kubernetes-gitops` | CiliumNetworkPolicy templates, deployment flow, cluster health checks | K8s infrastructure |
+| Category | Presets | Auto-Detection |
+|----------|--------|----------------|
+| **General** | `generic` | Fallback for any project |
+| **Python** | `python-fastapi`, `python-django`, `python-data-science`, `python-celery-workers` | `pyproject.toml`, `requirements.txt`, `.ipynb` |
+| **JS/TS** | `typescript-node`, `react-nextjs`, `vue-nuxt`, `angular`, `svelte-kit`, `fullstack` | `package.json`, `tsconfig.json`, framework deps |
+| **Enterprise** | `java-spring-boot`, `dotnet-aspnet`, `php-laravel`, `ruby-rails` | `pom.xml`, `.csproj`, `composer.json`, `Gemfile` |
+| **Systems** | `go-service`, `rust-service` | `go.mod`, `Cargo.toml` |
+| **Mobile** | `flutter-dart`, `react-native` | `pubspec.yaml`, `react-native` dep |
+| **Infrastructure** | `kubernetes-gitops`, `talos-kubernetes` | `kustomize/`, `helm/`, `talconfig.yaml` |
 
 **What presets create:**
 - **Rules files** (`.claude/rules/`) — Substantive patterns (real Pydantic examples, CiliumNetworkPolicy templates, etc.)

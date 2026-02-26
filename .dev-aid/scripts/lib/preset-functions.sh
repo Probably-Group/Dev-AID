@@ -11,9 +11,21 @@ PRESET_COMMUNITY_DIR="${HOME}/.dev-aid/presets"
 detect_preset() {
   # Detect the best-matching preset based on project files.
   # Prints the preset name to stdout. Returns 0 if detected, 1 if falling back.
+  # Order: most specific → least specific → generic fallback.
   local project_root="${1:-.}"
 
-  # Check for Kubernetes/GitOps markers first (most specific)
+  # --- Infrastructure presets (most specific, check first) ---
+
+  # Talos Kubernetes: talconfig.yaml or talosctl config files
+  if [[ -f "$project_root/talconfig.yaml" ]] || \
+     [[ -f "$project_root/talosconfig" ]] || \
+     [[ -d "$project_root/talos" ]] || \
+     { [[ -d "$project_root/clusters" ]] && find "$project_root/clusters" -maxdepth 2 -name "talconfig.yaml" 2>/dev/null | grep -q .; }; then
+    echo "talos-kubernetes"
+    return 0
+  fi
+
+  # Kubernetes/GitOps: Kustomize, Helm, manifests, Skaffold
   if [[ -d "$project_root/kustomize" ]] || \
      [[ -d "$project_root/helm" ]] || \
      [[ -d "$project_root/manifests" ]] || \
@@ -23,47 +35,203 @@ detect_preset() {
     return 0
   fi
 
-  # Full-stack: backend + frontend directories with package.json or pyproject.toml
+  # --- Full-stack (backend + frontend directories) ---
+
   if { [[ -d "$project_root/backend" ]] || [[ -d "$project_root/server" ]]; } && \
      { [[ -d "$project_root/frontend" ]] || [[ -d "$project_root/client" ]] || [[ -d "$project_root/web" ]]; }; then
     echo "fullstack"
     return 0
   fi
 
-  # Python/FastAPI: check pyproject.toml or requirements.txt for FastAPI
-  if [[ -f "$project_root/pyproject.toml" ]]; then
-    if grep -qi "fastapi\|uvicorn\|starlette" "$project_root/pyproject.toml" 2>/dev/null; then
-      echo "python-fastapi"
-      return 0
-    fi
-  fi
-  if [[ -f "$project_root/requirements.txt" ]]; then
-    if grep -qi "fastapi\|uvicorn\|starlette" "$project_root/requirements.txt" 2>/dev/null; then
-      echo "python-fastapi"
+  # --- Mobile presets (check before web frameworks) ---
+
+  # Flutter/Dart: pubspec.yaml with flutter SDK
+  if [[ -f "$project_root/pubspec.yaml" ]]; then
+    if grep -q "flutter:" "$project_root/pubspec.yaml" 2>/dev/null; then
+      echo "flutter-dart"
       return 0
     fi
   fi
 
-  # TypeScript/Node.js: package.json with TypeScript
+  # React Native: package.json with react-native
   if [[ -f "$project_root/package.json" ]]; then
+    if grep -q '"react-native"' "$project_root/package.json" 2>/dev/null || \
+       [[ -f "$project_root/app.json" ]] && grep -q '"expo"' "$project_root/app.json" 2>/dev/null; then
+      echo "react-native"
+      return 0
+    fi
+  fi
+
+  # --- Python presets (check specific frameworks before generic Python) ---
+
+  # Helper: check Python dependency files for a pattern
+  _py_has_dep() {
+    local pattern="$1"
+    if [[ -f "$project_root/pyproject.toml" ]]; then
+      grep -qi "$pattern" "$project_root/pyproject.toml" 2>/dev/null && return 0
+    fi
+    if [[ -f "$project_root/requirements.txt" ]]; then
+      grep -qi "$pattern" "$project_root/requirements.txt" 2>/dev/null && return 0
+    fi
+    if [[ -f "$project_root/setup.py" ]]; then
+      grep -qi "$pattern" "$project_root/setup.py" 2>/dev/null && return 0
+    fi
+    return 1
+  }
+
+  # Python/Celery workers: celery dependency
+  if _py_has_dep "celery\|kombu\|rabbitmq"; then
+    echo "python-celery-workers"
+    return 0
+  fi
+
+  # Python/FastAPI: FastAPI or Starlette
+  if _py_has_dep "fastapi\|uvicorn\|starlette"; then
+    echo "python-fastapi"
+    return 0
+  fi
+
+  # Python/Django: Django or DRF
+  if _py_has_dep "django\|djangorestframework"; then
+    echo "python-django"
+    return 0
+  fi
+
+  # Python/Data Science: Jupyter, pandas, scikit-learn, pytorch, tensorflow
+  if _py_has_dep "jupyter\|pandas\|scikit-learn\|torch\|tensorflow\|numpy" || \
+     find "$project_root" -maxdepth 2 -name "*.ipynb" 2>/dev/null | head -1 | grep -q .; then
+    echo "python-data-science"
+    return 0
+  fi
+
+  # --- JVM/CLR presets ---
+
+  # Java/Spring Boot: pom.xml or build.gradle with spring-boot
+  if [[ -f "$project_root/pom.xml" ]]; then
+    if grep -q "spring-boot" "$project_root/pom.xml" 2>/dev/null; then
+      echo "java-spring-boot"
+      return 0
+    fi
+  fi
+  if [[ -f "$project_root/build.gradle" ]] || [[ -f "$project_root/build.gradle.kts" ]]; then
+    if grep -q "spring-boot\|org.springframework" "$project_root/build.gradle" "$project_root/build.gradle.kts" 2>/dev/null; then
+      echo "java-spring-boot"
+      return 0
+    fi
+  fi
+
+  # .NET/ASP.NET Core: .csproj with Microsoft.AspNetCore or .sln with C# projects
+  if find "$project_root" -maxdepth 2 -name "*.csproj" 2>/dev/null | head -1 | grep -q .; then
+    if grep -q "Microsoft.AspNetCore\|Microsoft.NET.Sdk.Web" "$project_root"/*.csproj "$project_root"/*/*.csproj 2>/dev/null; then
+      echo "dotnet-aspnet"
+      return 0
+    fi
+  fi
+
+  # --- Web framework presets (JS/TS — check specific frameworks before generic) ---
+
+  if [[ -f "$project_root/package.json" ]]; then
+    local pkg="$project_root/package.json"
+
+    # Next.js: next dependency
+    if grep -q '"next"' "$pkg" 2>/dev/null; then
+      echo "react-nextjs"
+      return 0
+    fi
+
+    # Nuxt/Vue: nuxt dependency
+    if grep -q '"nuxt"' "$pkg" 2>/dev/null; then
+      echo "vue-nuxt"
+      return 0
+    fi
+
+    # SvelteKit: @sveltejs/kit dependency
+    if grep -q '"@sveltejs/kit"\|"svelte"' "$pkg" 2>/dev/null; then
+      echo "svelte-kit"
+      return 0
+    fi
+
+    # Angular: @angular/core dependency
+    if grep -q '"@angular/core"' "$pkg" 2>/dev/null; then
+      echo "angular"
+      return 0
+    fi
+
+    # Vue.js (without Nuxt): vue dependency
+    if grep -q '"vue"' "$pkg" 2>/dev/null && ! grep -q '"nuxt"' "$pkg" 2>/dev/null; then
+      echo "vue-nuxt"
+      return 0
+    fi
+
+    # Generic TypeScript/Node.js
     if [[ -f "$project_root/tsconfig.json" ]] || \
-       grep -q '"typescript"' "$project_root/package.json" 2>/dev/null; then
+       grep -q '"typescript"' "$pkg" 2>/dev/null; then
       echo "typescript-node"
       return 0
     fi
   fi
 
-  # File extension fallback: count dominant language
-  local py_count ts_count
-  py_count=$(find "$project_root" -maxdepth 3 -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" 2>/dev/null | head -20 | wc -l | tr -d ' ')
-  ts_count=$(find "$project_root" -maxdepth 3 \( -name "*.ts" -o -name "*.tsx" \) -not -path "*/node_modules/*" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  # --- Systems language presets ---
 
-  if [[ "$py_count" -gt 5 ]]; then
-    echo "python-fastapi"
+  # Go: go.mod present
+  if [[ -f "$project_root/go.mod" ]]; then
+    echo "go-service"
     return 0
   fi
-  if [[ "$ts_count" -gt 5 ]]; then
-    echo "typescript-node"
+
+  # Rust: Cargo.toml present
+  if [[ -f "$project_root/Cargo.toml" ]]; then
+    echo "rust-service"
+    return 0
+  fi
+
+  # --- Web framework presets (non-JS) ---
+
+  # PHP/Laravel: composer.json with laravel/framework
+  if [[ -f "$project_root/composer.json" ]]; then
+    if grep -q '"laravel/framework"' "$project_root/composer.json" 2>/dev/null; then
+      echo "php-laravel"
+      return 0
+    fi
+  fi
+
+  # Ruby/Rails: Gemfile with rails
+  if [[ -f "$project_root/Gemfile" ]]; then
+    if grep -q "gem ['\"]rails['\"]" "$project_root/Gemfile" 2>/dev/null || \
+       [[ -f "$project_root/config/application.rb" ]]; then
+      echo "ruby-rails"
+      return 0
+    fi
+  fi
+
+  # --- File extension fallback ---
+
+  local py_count ts_count go_count rs_count rb_count php_count java_count cs_count dart_count
+  py_count=$(find "$project_root" -maxdepth 3 -name "*.py" -not -path "*/venv/*" -not -path "*/.venv/*" -not -path "*/node_modules/*" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  ts_count=$(find "$project_root" -maxdepth 3 \( -name "*.ts" -o -name "*.tsx" \) -not -path "*/node_modules/*" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  go_count=$(find "$project_root" -maxdepth 3 -name "*.go" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  rs_count=$(find "$project_root" -maxdepth 3 -name "*.rs" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  rb_count=$(find "$project_root" -maxdepth 3 -name "*.rb" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  php_count=$(find "$project_root" -maxdepth 3 -name "*.php" -not -path "*/vendor/*" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  java_count=$(find "$project_root" -maxdepth 3 -name "*.java" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  cs_count=$(find "$project_root" -maxdepth 3 -name "*.cs" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+  dart_count=$(find "$project_root" -maxdepth 3 -name "*.dart" 2>/dev/null | head -20 | wc -l | tr -d ' ')
+
+  # Pick the dominant language (threshold: >5 files)
+  local max_count=0 max_preset="generic"
+  for lang_count_preset in "$py_count:python-django" "$ts_count:typescript-node" "$go_count:go-service" \
+                           "$rs_count:rust-service" "$rb_count:ruby-rails" "$php_count:php-laravel" \
+                           "$java_count:java-spring-boot" "$cs_count:dotnet-aspnet" "$dart_count:flutter-dart"; do
+    local count="${lang_count_preset%%:*}"
+    local preset="${lang_count_preset##*:}"
+    if [[ "$count" -gt "$max_count" ]] && [[ "$count" -gt 5 ]]; then
+      max_count="$count"
+      max_preset="$preset"
+    fi
+  done
+
+  if [[ "$max_preset" != "generic" ]]; then
+    echo "$max_preset"
     return 0
   fi
 

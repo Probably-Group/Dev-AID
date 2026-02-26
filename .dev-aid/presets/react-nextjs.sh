@@ -1154,6 +1154,118 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+```
+
+## Security Best Practices
+
+### XSS Prevention
+- React auto-escapes all JSX expressions — this is your primary defense
+- **Never** use `dangerouslySetInnerHTML` with user-supplied input
+- If rendering user HTML is unavoidable, sanitize with DOMPurify:
+```tsx
+import DOMPurify from "dompurify"
+<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(userHtml) }} />
+```
+
+### Content Security Policy
+Configure CSP headers in `next.config.ts`:
+```typescript
+// next.config.ts
+const nextConfig = {
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src '\''self'\''",
+              "script-src '\''self'\''",
+              "style-src '\''self'\'' '\''unsafe-inline'\''",
+              "img-src '\''self'\'' data: https:",
+              "connect-src '\''self'\'' https://api.example.com",
+              "frame-ancestors '\''none'\''",
+            ].join("; "),
+          },
+        ],
+      },
+    ]
+  },
+}
+```
+
+### CSRF Protection
+- Server actions are automatically protected — Next.js validates the `Origin` header
+- For API route handlers, validate the `Origin` header manually:
+```typescript
+export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin")
+  if (origin !== process.env.NEXT_PUBLIC_APP_URL) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  }
+  // ... handle request
+}
+```
+- Use `SameSite=Strict` cookies for session tokens
+
+### Authentication Token Storage
+- **Never** store tokens in `localStorage` (XSS-accessible)
+- Use `httpOnly` cookies for session tokens (not accessible via JavaScript)
+- For SPAs: short-lived access token in memory + `httpOnly` refresh cookie
+- Consider Auth.js (NextAuth) which handles this securely by default
+
+### Dependency Security
+```bash
+npm audit --production
+npx better-npm-audit audit
+```
+Run `npm audit` in CI and block merges on critical/high vulnerabilities.
+
+## Performance Checklist
+
+### Bundle Optimization
+- Use `next/dynamic` for heavy components not needed on initial load:
+```tsx
+import dynamic from "next/dynamic"
+const HeavyChart = dynamic(() => import("@/components/HeavyChart"), {
+  loading: () => <ChartSkeleton />,
+  ssr: false,
+})
+```
+- Tree shaking: use named imports (`import { Button } from "ui"` not `import * as UI from "ui"`)
+- Analyze bundle size:
+```bash
+ANALYZE=true npm run build  # with @next/bundle-analyzer
+```
+
+### Rendering Performance
+- Use `React.memo` for components that receive the same props frequently
+- Use `useMemo` for expensive computations, `useCallback` for stable function references
+- Prefer Server Components (zero client JS) — only add `"use client"` when needed
+- Virtualize long lists with `react-window` or `@tanstack/react-virtual`:
+```tsx
+import { FixedSizeList } from "react-window"
+<FixedSizeList height={600} itemCount={items.length} itemSize={50} width="100%">
+  {({ index, style }) => <div style={style}>{items[index].name}</div>}
+</FixedSizeList>
+```
+
+### Image Optimization
+- Always use `next/image` instead of `<img>` (auto WebP/AVIF, lazy loading, srcset)
+- Specify `width` and `height` to prevent Cumulative Layout Shift
+- Use `priority` for above-the-fold hero images (disables lazy loading)
+- Use `placeholder="blur"` for local images
+
+### Core Web Vitals
+- **LCP < 2.5s:** Preload critical fonts with `next/font`, use `priority` on hero images
+- **FID < 100ms:** Minimize client-side JS, prefer Server Components
+- **CLS < 0.1:** Always set image dimensions, use CSS `aspect-ratio`, avoid layout-shifting ads
+- Use `loading="lazy"` for below-fold images (automatic with `next/image`)
+- Preload critical resources:
+```tsx
+import { preload } from "react-dom"
+preload("/api/critical-data", { as: "fetch" })
 ```'
 
 LINT_LANGUAGES="TypeScript/TSX (next lint + prettier), JSON, YAML, Shell (shellcheck)"

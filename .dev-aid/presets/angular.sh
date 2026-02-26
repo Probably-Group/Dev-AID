@@ -1323,6 +1323,127 @@ console.log("[AuthService]", "User logged in", { userId })
 console.error("[HttpError]", "Request failed", { url, status, message })
 ```
 
-**Never log:** passwords, tokens, PII, full request bodies with sensitive data.'
+**Never log:** passwords, tokens, PII, full request bodies with sensitive data.
+
+## Security Best Practices
+
+### XSS Prevention
+- Angular auto-sanitizes all interpolations (`{{ }}`) and property bindings — this is your primary defense
+- **Never** bypass sanitization with `bypassSecurityTrustHtml()` on user input
+- If rendering user HTML is unavoidable, sanitize with DOMPurify:
+```typescript
+import DOMPurify from "dompurify"
+import { DomSanitizer, SafeHtml } from "@angular/platform-browser"
+
+@Pipe({ name: "safeHtml", standalone: true })
+export class SafeHtmlPipe implements PipeTransform {
+  private sanitizer = inject(DomSanitizer)
+  transform(value: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(value))
+  }
+}
+```
+- Never use `[innerHTML]` with unsanitized user input
+
+### Content Security Policy
+Add CSP via meta tag in `src/index.html` or (preferred) via server headers:
+```html
+<!-- src/index.html -->
+<meta http-equiv="Content-Security-Policy"
+  content="default-src '\''self'\''; script-src '\''self'\''; style-src '\''self'\'' '\''unsafe-inline'\''; img-src '\''self'\'' data: https:; connect-src '\''self'\'' https://api.example.com; frame-ancestors '\''none'\'';">
+```
+For production, configure CSP headers at the reverse proxy / CDN level instead of meta tags.
+
+### CSRF Protection
+- Use `SameSite=Strict` cookies for session tokens
+- Include a CSRF token header in state-changing requests via an interceptor:
+```typescript
+export const csrfInterceptor: HttpInterceptorFn = (req, next) => {
+  if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+    const csrfToken = document.cookie
+      .split("; ")
+      .find(c => c.startsWith("XSRF-TOKEN="))
+      ?.split("=")[1]
+    if (csrfToken) {
+      req = req.clone({ setHeaders: { "X-XSRF-TOKEN": csrfToken } })
+    }
+  }
+  return next(req)
+}
+```
+- Angular'\''s `HttpClient` + `withXsrfConfiguration()` handles XSRF automatically when the backend sets `XSRF-TOKEN` cookie
+
+### Authentication Token Storage
+- **Never** store tokens in `localStorage` (XSS-accessible)
+- Use `httpOnly` cookies for session tokens (not accessible via JavaScript)
+- For SPAs: short-lived access token in memory + `httpOnly` refresh cookie
+- Use `HttpClient` interceptors to attach tokens automatically
+
+### Dependency Security
+```bash
+npm audit --production
+npx better-npm-audit audit
+ng update  # check for Angular security patches
+```
+Run `npm audit` in CI and block merges on critical/high vulnerabilities.
+
+## Performance Checklist
+
+### Bundle Optimization
+- Lazy load routes with `loadComponent` and `loadChildren` (default in standalone architecture):
+```typescript
+{ path: "admin", loadComponent: () => import("./features/admin/admin.component").then(m => m.AdminComponent) }
+```
+- Use `@defer` blocks in templates to lazy load heavy components
+- Tree shaking: use named imports (`import { MatButton } from "@angular/material/button"`)
+- Analyze bundle size:
+```bash
+ng build --stats-json
+npx webpack-bundle-analyzer dist/stats.json
+# Or use source-map-explorer:
+npx source-map-explorer dist/**/*.js
+```
+
+### Rendering Performance
+- Use `ChangeDetectionStrategy.OnPush` (or zoneless with signals — preferred)
+- Use `track` in `@for` loops — always provide a unique identifier
+- Virtualize long lists with `@angular/cdk/scrolling`:
+```typescript
+import { CdkVirtualScrollViewport, CdkVirtualForOf } from "@angular/cdk/scrolling"
+
+@Component({
+  imports: [CdkVirtualScrollViewport, CdkVirtualForOf],
+  template: `
+    <cdk-virtual-scroll-viewport itemSize="48" class="h-[600px]">
+      <div *cdkVirtualFor="let item of items">{{ item.name }}</div>
+    </cdk-virtual-scroll-viewport>
+  `,
+})
+```
+- Use `@defer (on viewport)` for below-the-fold content
+
+### Image Optimization
+- Use `NgOptimizedImage` directive for automatic optimization:
+```typescript
+import { NgOptimizedImage } from "@angular/common"
+
+@Component({
+  imports: [NgOptimizedImage],
+  template: `<img ngSrc="/hero.jpg" width="1200" height="600" priority />`,
+})
+```
+- Always specify `width` and `height` to prevent layout shift
+- Add `priority` to above-the-fold images (LCP candidates)
+- Configure image loader for your CDN in `app.config.ts`
+
+### Core Web Vitals
+- **LCP < 2.5s:** Mark hero images with `priority`, preload critical fonts
+- **FID < 100ms:** Use zoneless change detection to reduce framework overhead
+- **CLS < 0.1:** Always set image dimensions, reserve space for dynamic content
+- Use `loading="lazy"` for below-fold images (automatic with `NgOptimizedImage`)
+- Preload critical fonts in `index.html`:
+```html
+<link rel="preload" href="/assets/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+```'
 
 LINT_LANGUAGES="TypeScript (angular-eslint), HTML templates (angular-eslint), SCSS, JSON, Shell (shellcheck)"

@@ -1052,6 +1052,96 @@ spring:
       ddl-auto: create-drop
   flyway:
     enabled: false  # Use Hibernate DDL for tests
-```'
+```
+
+## Security Best Practices
+
+### Input Validation
+- Validate ALL user input at API boundaries using `@Valid` with Bean Validation annotations
+- Use `@NotBlank`, `@Size`, `@Email`, `@Pattern` on DTO record fields
+- Reject unexpected fields — Jackson ignores unknown fields by default (`FAIL_ON_UNKNOWN_PROPERTIES`)
+- Create custom validation annotations for complex business rules
+
+```java
+public record UserCreateRequest(
+    @NotBlank @Size(max = 255) String name,
+    @NotBlank @Email String email,
+    @NotBlank @Size(min = 8, max = 128) String password
+) {}
+```
+
+### SQL Injection Prevention
+- NEVER concatenate user input into queries
+- Use Spring Data JPA derived queries, `@Query` with named parameters, or `JdbcTemplate` with `?` placeholders
+
+```java
+// SAFE — parameterized JPQL
+@Query("SELECT u FROM User u WHERE u.email = :email")
+Optional<User> findByEmail(@Param("email") String email);
+
+// SAFE — JdbcTemplate
+jdbcTemplate.queryForObject("SELECT * FROM users WHERE email = ?", mapper, email);
+
+// UNSAFE — string concatenation (NEVER do this)
+// entityManager.createQuery("SELECT u FROM User u WHERE u.email = '\''" + email + "'\''");
+```
+
+### Rate Limiting
+- Use `bucket4j-spring-boot-starter` or Spring Cloud Gateway rate limiting
+- Apply stricter limits to auth endpoints (5 requests/min) and general API (100 requests/min)
+- Configure in `application.yml` or programmatically via `@RateLimiter`
+
+### CORS Configuration
+- Configure CORS via `CorsConfigurationSource` bean — never use `@CrossOrigin("*")` in production
+- Whitelist specific origins in `SecurityConfig`
+
+```java
+config.setAllowedOrigins(List.of("https://app.example.com"));
+config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+config.setAllowCredentials(true);
+```
+
+### Secrets Management
+- Never commit secrets to git — use environment variables or Spring Cloud Config
+- Use `${DATABASE_URL}` placeholders in `application.yml` backed by env vars
+- For local dev, use `application-dev.yml` (gitignored) or environment variables
+- Rotate secrets immediately on suspected compromise
+
+### Dependency Scanning
+- Run `mvn org.owasp:dependency-check-maven:check` (or `./gradlew dependencyCheckAnalyze`) in CI on every PR
+- Enable Dependabot or Renovate for automated dependency updates
+- Review transitive dependency changes in `pom.xml`/`build.gradle` PRs
+
+### HTTPS / TLS
+- Enforce HTTPS in production — configure `server.ssl` in `application.yml`
+- Use HSTS header: `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- Add `server.forward-headers-strategy=native` when behind a reverse proxy
+
+## Performance Checklist
+
+### Database Performance
+- Prevent N+1 queries: use `@EntityGraph` or `JOIN FETCH` in JPQL queries
+- Add database indexes via `@Index` on `@Table` or in Flyway migrations
+- Use HikariCP connection pooling (default in Spring Boot) — tune `maximum-pool-size` (default: 10)
+- Profile slow queries: enable `logging.level.org.hibernate.SQL=DEBUG` and use `EXPLAIN ANALYZE`
+
+### Caching Strategy
+- Use Spring Cache with `@Cacheable`, `@CacheEvict`, `@CachePut` annotations
+- Configure Redis as cache backend via `spring-boot-starter-data-redis`
+- Cache expensive computations and external API responses with TTL
+
+```java
+@Cacheable(value = "users", key = "#id", unless = "#result == null")
+public UserResponse findById(Long id) { ... }
+
+@CacheEvict(value = "users", key = "#id")
+public void update(Long id, UserUpdateRequest request) { ... }
+```
+
+### API Response Optimization
+- Always paginate list endpoints with `Pageable` and `Page<T>`
+- Compress responses: enable `server.compression.enabled=true` in `application.yml`
+- Set appropriate `Cache-Control` headers for cacheable responses
+- Use DTO projections instead of full entities for list endpoints'
 
 LINT_LANGUAGES="Java (Checkstyle / SpotBugs / Error Prone), YAML, JSON, Shell (shellcheck)"

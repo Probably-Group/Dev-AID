@@ -687,6 +687,94 @@ govulncheck ./...                         # Check vulnerabilities
 //go:generate mockgen -source=internal/service/user.go -destination=internal/service/mock_user.go
 //go:embed migrations/*.sql
 var migrationsFS embed.FS
-```'
+```
+
+## Security Best Practices
+
+### Input Validation
+- Validate ALL user input at API boundaries using `go-playground/validator` v10
+- Use struct tags: `validate:"required,min=1,max=255"` on every request struct
+- Reject unexpected fields — use explicit struct binding (`ShouldBindJSON`) rather than `map[string]interface{}`
+- Validate path params and query params, not just request bodies
+
+### SQL Injection Prevention
+- NEVER concatenate user input into queries
+- Use parameterized queries with `$1`, `$2` placeholders (pgx/sqlx) or GORM scoped methods
+
+```go
+// SAFE — parameterized query
+row := db.QueryRowContext(ctx, "SELECT * FROM users WHERE email = $1", email)
+
+// UNSAFE — string concatenation (NEVER do this)
+// row := db.QueryRowContext(ctx, "SELECT * FROM users WHERE email = '\''" + email + "'\''")
+
+// SAFE — GORM scoped methods
+db.Where("email = ?", email).First(&user)
+```
+
+### Rate Limiting
+- Use `golang.org/x/time/rate` or middleware like `github.com/ulule/limiter`
+- Apply stricter limits to auth endpoints (5 requests/min) and general API (100 requests/min)
+
+```go
+import "github.com/ulule/limiter/v3"
+rate, _ := limiter.NewRateFromFormatted("100-M") // 100 per minute
+```
+
+### CORS Configuration
+- Use `github.com/rs/cors` or framework-specific CORS middleware
+- Whitelist specific origins — never use `AllowedOrigins: []string{"*"}` in production
+
+```go
+c := cors.New(cors.Options{
+    AllowedOrigins:   []string{"https://app.example.com"},
+    AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH"},
+    AllowedHeaders:   []string{"Authorization", "Content-Type"},
+    AllowCredentials: true,
+    MaxAge:           600,
+})
+```
+
+### Secrets Management
+- Never commit secrets to git — use `.env` locally, secrets manager in production
+- Load secrets via `envconfig` or `viper` from environment variables
+- Rotate secrets immediately on suspected compromise
+
+### Dependency Scanning
+- Run `govulncheck ./...` in CI on every PR to detect known vulnerabilities
+- Run `go mod tidy` regularly to remove unused dependencies
+- Pin Go version in `go.mod` and review `go.sum` changes in PRs
+
+### HTTPS / TLS
+- Enforce HTTPS in production — redirect HTTP to HTTPS
+- Use HSTS header: `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- Use `crypto/tls` with `MinVersion: tls.VersionTLS12`
+
+## Performance Checklist
+
+### Database Performance
+- Prevent N+1 queries: batch-fetch related data with `IN` clauses or JOINs
+- Add database indexes for frequently queried columns (`CREATE INDEX idx_users_email ON users (email)`)
+- Use connection pooling via `db.SetMaxOpenConns(25)` and `db.SetMaxIdleConns(10)`
+- Profile slow queries with `EXPLAIN ANALYZE` and enable `log_min_duration_statement` in PostgreSQL
+
+### Caching Strategy
+- Use Redis (`github.com/redis/go-redis`) or in-memory caches (`sync.Map`, `github.com/dgraph-io/ristretto`)
+- Cache expensive computations and external API responses
+- Use cache invalidation strategies: TTL for read-heavy data, event-based for write-heavy data
+
+```go
+val, err := redis.Get(ctx, "user:123").Result()
+if err == redis.Nil {
+    val = fetchFromDB(ctx, "123")
+    redis.Set(ctx, "user:123", val, 5*time.Minute)
+}
+```
+
+### API Response Optimization
+- Always paginate list endpoints — use `LIMIT`/`OFFSET` or cursor-based pagination
+- Compress responses with `gzip` middleware (Gin: `gin.Default()` includes it)
+- Set appropriate `Cache-Control` headers for cacheable responses
+- Use `context.WithTimeout` to prevent slow queries from blocking responses'
 
 LINT_LANGUAGES="Go (golangci-lint: go vet, staticcheck, gosec, errcheck), SQL, YAML, Shell (shellcheck)"

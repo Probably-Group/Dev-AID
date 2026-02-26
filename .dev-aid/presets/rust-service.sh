@@ -695,6 +695,111 @@ cargo add axum                  # Add dependency
 cargo add tokio --features full # With features
 cargo update                    # Update all
 cargo audit                     # Check vulnerabilities
-```'
+```
+
+## Security Best Practices
+
+### Input Validation
+- Validate ALL user input at API boundaries using Axum extractors with serde deserialization
+- Use `validator` crate for struct-level validation with `#[derive(Validate)]`
+- Reject unexpected fields — use `#[serde(deny_unknown_fields)]` on request structs
+
+```rust
+use validator::Validate;
+
+#[derive(Debug, Deserialize, Validate)]
+#[serde(deny_unknown_fields)]
+pub struct CreateUserRequest {
+    #[validate(length(min = 1, max = 255))]
+    pub name: String,
+    #[validate(email)]
+    pub email: String,
+}
+```
+
+### SQL Injection Prevention
+- NEVER concatenate user input into queries
+- Use SQLx compile-time checked queries with `$1` parameterized placeholders
+
+```rust
+// SAFE — parameterized query (compile-time checked)
+let user = sqlx::query_as!(User,
+    "SELECT * FROM users WHERE email = $1", email
+).fetch_optional(&pool).await?;
+
+// UNSAFE — format string (NEVER do this)
+// let q = format!("SELECT * FROM users WHERE email = '\''{}'\''", email);
+```
+
+### Rate Limiting
+- Use `tower::limit::RateLimitLayer` or `governor` crate for rate limiting
+- Apply stricter limits to auth endpoints (5 requests/min) and general API (100 requests/min)
+
+```rust
+use tower::limit::RateLimitLayer;
+use std::time::Duration;
+
+Router::new()
+    .route("/api/v1/auth/login", post(login))
+    .layer(RateLimitLayer::new(5, Duration::from_secs(60)))
+```
+
+### CORS Configuration
+- Use `tower_http::cors::CorsLayer` — never use `CorsLayer::permissive()` in production
+- Whitelist specific origins
+
+```rust
+use tower_http::cors::{CorsLayer, AllowOrigin};
+
+let cors = CorsLayer::new()
+    .allow_origin(AllowOrigin::exact("https://app.example.com".parse().unwrap()))
+    .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+    .allow_headers([AUTHORIZATION, CONTENT_TYPE])
+    .allow_credentials(true)
+    .max_age(Duration::from_secs(600));
+```
+
+### Secrets Management
+- Never commit secrets to git — use `.env` locally, secrets manager in production
+- Load secrets via `dotenvy` from environment variables
+- Rotate secrets immediately on suspected compromise
+
+### Dependency Scanning
+- Run `cargo audit` in CI on every PR to detect known vulnerabilities
+- Run `cargo deny check` for license and advisory checks
+- Review `Cargo.lock` changes in PRs
+
+### HTTPS / TLS
+- Enforce HTTPS in production — use `axum_server::tls_rustls` for TLS termination
+- Use HSTS header: `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- Configure `rustls` with TLS 1.2+ minimum
+
+## Performance Checklist
+
+### Database Performance
+- Prevent N+1 queries: use JOINs or batch-fetch with `WHERE id = ANY($1)` in SQLx
+- Add database indexes for frequently queried columns
+- Use connection pooling via `PgPoolOptions::new().max_connections(25)`
+- Profile slow queries with `EXPLAIN ANALYZE` and enable query logging in PostgreSQL
+
+### Caching Strategy
+- Use Redis (`fred` or `deadpool-redis`) or in-memory caches (`moka`, `mini-moka`)
+- Cache expensive computations and external API responses
+- Use cache invalidation strategies: TTL for read-heavy data, event-based for write-heavy data
+
+```rust
+use moka::future::Cache;
+
+let cache: Cache<String, User> = Cache::builder()
+    .max_capacity(10_000)
+    .time_to_live(Duration::from_secs(300))
+    .build();
+```
+
+### API Response Optimization
+- Always paginate list endpoints — use `LIMIT`/`OFFSET` or cursor-based pagination
+- Compress responses with `tower_http::compression::CompressionLayer`
+- Set appropriate `Cache-Control` headers for cacheable responses
+- Use `tokio::time::timeout` to prevent slow queries from blocking the runtime'
 
 LINT_LANGUAGES="Rust (cargo clippy + rustfmt), TOML, SQL, YAML, Shell (shellcheck)"

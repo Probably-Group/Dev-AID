@@ -1197,6 +1197,126 @@ public class UserEndpointTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
-```'
+```
+
+## Security Best Practices
+
+### Input Validation
+- Validate ALL user input at API boundaries using FluentValidation or DataAnnotations
+- Use `[Required]`, `[StringLength]`, `[EmailAddress]`, `[Range]` on DTO record properties
+- Reject unexpected fields — `System.Text.Json` ignores unknown properties by default
+- Use `AbstractValidator<T>` for complex cross-field validation rules
+
+```csharp
+public class UserCreateRequestValidator : AbstractValidator<UserCreateRequest>
+{
+    public UserCreateRequestValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(255);
+        RuleFor(x => x.Email).NotEmpty().EmailAddress();
+        RuleFor(x => x.Password).NotEmpty().MinimumLength(8);
+    }
+}
+```
+
+### SQL Injection Prevention
+- NEVER concatenate user input into queries
+- Use EF Core LINQ queries, parameterized `FromSqlInterpolated`, or Dapper with parameters
+
+```csharp
+// SAFE — EF Core LINQ (parameterized automatically)
+var user = await context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+// SAFE — raw SQL with interpolation (EF Core parameterizes it)
+var users = await context.Users
+    .FromSqlInterpolated($"SELECT * FROM users WHERE email = {email}")
+    .ToListAsync();
+
+// UNSAFE — string concatenation (NEVER do this)
+// context.Users.FromSqlRaw("SELECT * FROM users WHERE email = '\''" + email + "'\''");
+```
+
+### Rate Limiting
+- Use built-in `Microsoft.AspNetCore.RateLimiting` middleware (.NET 7+)
+- Apply stricter limits to auth endpoints (5 requests/min) and general API (100 requests/min)
+
+```csharp
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth", opt =>
+    {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+    });
+    options.AddFixedWindowLimiter("api", opt =>
+    {
+        opt.PermitLimit = 100;
+        opt.Window = TimeSpan.FromMinutes(1);
+    });
+});
+app.UseRateLimiter();
+```
+
+### CORS Configuration
+- Configure CORS via `AddCors` with named policies — never use `AllowAnyOrigin()` with credentials
+- Whitelist specific origins
+
+```csharp
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Default", policy =>
+    {
+        policy.WithOrigins("https://app.example.com")
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+```
+
+### Secrets Management
+- Never commit secrets to git — use `dotnet user-secrets` locally, Azure Key Vault or env vars in production
+- Use `IOptions<T>` pattern to bind configuration sections
+- Rotate secrets immediately on suspected compromise
+
+```bash
+dotnet user-secrets set "Jwt:Secret" "your-secret-key" --project src/
+```
+
+### Dependency Scanning
+- Run `dotnet list package --vulnerable` in CI on every PR
+- Enable Dependabot or Renovate for automated NuGet dependency updates
+- Use `dotnet-retire` or Snyk for deeper vulnerability scanning
+
+### HTTPS / TLS
+- Enforce HTTPS in production with `app.UseHsts()` and `app.UseHttpsRedirection()`
+- Use HSTS header: `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- Configure `ForwardedHeaders` when behind a reverse proxy
+
+## Performance Checklist
+
+### Database Performance
+- Prevent N+1 queries: use `.Include()` and `.ThenInclude()` for eager loading
+- Add database indexes via Fluent API (`builder.HasIndex()`) or migrations
+- Use connection pooling (Npgsql pools connections by default) — tune `MaxPoolSize` in connection string
+- Profile slow queries: enable EF Core query logging with `LogLevel.Information` on `Microsoft.EntityFrameworkCore.Database.Command`
+
+### Caching Strategy
+- Use `IMemoryCache` for in-process caching or `IDistributedCache` with Redis
+- Cache expensive computations and external API responses with `MemoryCacheEntryOptions`
+
+```csharp
+var user = await cache.GetOrCreateAsync($"user:{id}", async entry =>
+{
+    entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(5));
+    return await context.Users.FindAsync(id);
+});
+```
+
+### API Response Optimization
+- Always paginate list endpoints using `Skip()`/`Take()` with total count
+- Compress responses: enable `app.UseResponseCompression()` with gzip/brotli
+- Set appropriate `Cache-Control` headers for cacheable responses
+- Use `AsNoTracking()` for read-only queries and DTO projections with `Select()`'
 
 LINT_LANGUAGES="C# (dotnet format, Roslyn analyzers), JSON, YAML, Shell (shellcheck)"

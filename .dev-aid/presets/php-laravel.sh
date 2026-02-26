@@ -1255,6 +1255,110 @@ Log::error("Payment failed", ["order_id" => $order->id, "error" => $e->getMessag
 logger()->info("User logged in", ["user_id" => auth()->id(), "ip" => request()->ip()]);
 ```
 
-**Never log:** passwords, tokens, PII, full request bodies with sensitive data.'
+**Never log:** passwords, tokens, PII, full request bodies with sensitive data.
+
+## Security Best Practices
+
+### Input Validation
+- Validate ALL user input at API boundaries using Form Requests (`php artisan make:request`)
+- Use Laravel validation rules: `required`, `string`, `max:255`, `email`, `unique:users`
+- Reject unexpected fields — only accept fields listed in `$request->validated()` (allowlist approach)
+- Never trust `$request->all()` — always use `$request->validated()` or explicit `$request->only([...])`
+
+```php
+class StoreUserRequest extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            "name" => ["required", "string", "max:255"],
+            "email" => ["required", "email", Rule::unique("users")],
+            "password" => ["required", "string", "min:8", "confirmed"],
+        ];
+    }
+}
+```
+
+### SQL Injection Prevention
+- NEVER concatenate user input into queries
+- Use Eloquent methods or query builder with parameter binding
+
+```php
+// SAFE — Eloquent (parameterized automatically)
+$user = User::where("email", $email)->first();
+
+// SAFE — query builder with bindings
+$users = DB::select("SELECT * FROM users WHERE email = ?", [$email]);
+
+// UNSAFE — raw string concatenation (NEVER do this)
+// DB::select("SELECT * FROM users WHERE email = '\''" . $email . "'\''");
+```
+
+### Rate Limiting
+- Use Laravel built-in `RateLimiter` in `bootstrap/app.php` (Laravel 11+)
+- Apply stricter limits to auth endpoints (5 requests/min) and general API (100 requests/min)
+
+```php
+RateLimiter::for("auth", function (Request $request) {
+    return Limit::perMinute(5)->by($request->ip());
+});
+
+RateLimiter::for("api", function (Request $request) {
+    return Limit::perMinute(100)->by($request->user()?->id ?: $request->ip());
+});
+```
+
+### CORS Configuration
+- Configure CORS in `config/cors.php` — never use `"*"` for `allowed_origins` in production
+- Whitelist specific origins
+
+```php
+// config/cors.php
+"allowed_origins" => [env("FRONTEND_URL", "https://app.example.com")],
+"allowed_methods" => ["GET", "POST", "PUT", "DELETE", "PATCH"],
+"supports_credentials" => true,
+```
+
+### Secrets Management
+- Never commit secrets to git — use `.env` locally (gitignored), secrets manager in production
+- Access config via `config()` helper, never `env()` outside config files
+- Rotate secrets immediately on suspected compromise — regenerate `APP_KEY` with `php artisan key:generate`
+
+### Dependency Scanning
+- Run `composer audit` in CI on every PR to detect known vulnerabilities
+- Enable Dependabot or Renovate for automated Composer dependency updates
+- Review `composer.lock` changes in PRs
+
+### HTTPS / TLS
+- Enforce HTTPS in production — use `App\Http\Middleware\TrustProxies` and `URL::forceScheme("https")`
+- Use HSTS header: `Strict-Transport-Security: max-age=63072000; includeSubDomains`
+- Set `APP_URL` to `https://` in production `.env`
+
+## Performance Checklist
+
+### Database Performance
+- Prevent N+1 queries: always use `with()` for eager loading relationships
+- Enable `Model::preventLazyLoading(!app()->isProduction())` in `AppServiceProvider::boot()`
+- Add database indexes in migrations for frequently queried columns
+- Use connection pooling — configure `pool` settings in `config/database.php` or use PgBouncer
+- Profile slow queries: enable `DB::listen()` in development or use Laravel Debugbar
+
+### Caching Strategy
+- Use Laravel Cache facade with Redis (`CACHE_STORE=redis` in `.env`)
+- Cache expensive computations and external API responses with TTL
+
+```php
+$user = Cache::remember("user:{$id}", now()->addMinutes(5), function () use ($id) {
+    return User::findOrFail($id);
+});
+
+Cache::forget("user:{$id}"); // invalidate on update
+```
+
+### API Response Optimization
+- Always paginate list endpoints using `->paginate(15)` or `->cursorPaginate(15)`
+- Compress responses: enable gzip in web server (nginx/Apache) or use Laravel middleware
+- Set appropriate `Cache-Control` headers for cacheable responses
+- Use `select()` to limit columns and API Resources to control response shape'
 
 LINT_LANGUAGES="PHP (Laravel Pint / PSR-12), Blade (blade-formatter), YAML, JSON, Shell (shellcheck)"

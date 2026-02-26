@@ -2,6 +2,44 @@
 
 ## v1.5.0 - Autonomous Agent Framework + APO + Comprehensive Security Scanning
 
+### Stack-Specific Presets (NEW!)
+Project-type-aware setup that generates substantive rules, smoke tests, troubleshooting playbooks, and session recovery plans:
+
+**5 Built-in Presets:**
+
+| Preset | Target Stack | Generated Content |
+|--------|-------------|-------------------|
+| `generic` | Any project | Cross-service patterns, error handling, logging rules |
+| `python-fastapi` | FastAPI backends | API contracts, Pydantic v2 schemas, SQLAlchemy patterns, pytest |
+| `typescript-node` | Node.js/TypeScript | Zod validation, ESLint/Vitest patterns, Result type |
+| `fullstack` | Backend + Frontend | Cross-service contracts, CORS, auth flow, API client patterns |
+| `kubernetes-gitops` | K8s + GitOps | CiliumNetworkPolicy, deployment flow, security controls, observability |
+
+**Key Features:**
+- **Auto-Detection**: Parses `pyproject.toml`, `package.json`, directory structure to suggest the best preset
+- **Community Presets**: Drop custom `.sh` presets into `~/.dev-aid/presets/` for auto-discovery
+- **Session Recovery Plans**: Progress Log + "Stopped at" markers for multi-session work
+- **Lint-on-Edit Hook**: Auto-lints after file writes (Python, TS/JS, Go, Rust, YAML, JSON, Shell)
+- **Smoke Tests**: PASS/FAIL/WARN colored health checks per stack
+- **Troubleshooting Playbooks**: Symptom → Diagnosis → Fix guides per preset
+- **ADR System**: Architecture Decision Records with index template
+- **Idempotent**: Scaffold-managed files update on re-run; user-customizable files preserved
+
+**New Slash Commands:**
+- `/aid-plan` — Create session-resilient plans with progress tracking
+- `/aid-smoke` — Run smoke tests with colored PASS/FAIL/WARN output
+- `/aid-lint` — Run linters with auto-fix (8 languages)
+- `/aid-typecheck` — Run TypeScript type checking and fix errors
+
+**Setup Integration:**
+- Wizard step 3 (of 7): Interactive preset selection with auto-detection
+- Preset content injected into provider context files (rules, context groups, plan protocol)
+- Preset choice stored in `.dev-aid/config/settings.json`
+
+Documentation: [Preset Authoring Guide](.dev-aid/presets/README.md) | [Commands Reference](.dev-aid/docs/COMMANDS-REFERENCE.md)
+
+---
+
 ### Agent Trace Collection & Automatic Prompt Optimization (NEW!)
 Continuous improvement system for agent prompts with human oversight:
 

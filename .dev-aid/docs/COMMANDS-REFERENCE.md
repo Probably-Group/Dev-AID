@@ -158,6 +158,9 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 | `dev-aid-code-health` | `aid-health` |
 | `dev-aid-debt-analysis` | `aid-debt-report` |
 | `dev-aid-review-staged` | `aid-review` |
+| `dev-aid-smoke` | `aid-smoke` |
+| `dev-aid-lint` | `aid-lint` |
+| `dev-aid-typecheck` | `aid-typecheck` |
 
 #### Productivity & Setup Aliases
 
@@ -165,6 +168,7 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 |-------------|------------|
 | `dev-aid-commit-plan` | `aid-commit` |
 | `dev-aid-api-contract` | `aid-api` |
+| `dev-aid-plan` | `aid-plan` |
 | `dev-aid-analyze` | `aid-analyze` |
 | `dev-aid-status` | `aid-status` |
 | `dev-aid-config-core-skills` | `aid-config` |
@@ -276,6 +280,93 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 - 🔵 Suggestions: Code smells, naming issues, complexity
 
 **Value:** Catches issues early, $1,050,000/year for 100 devs (prevented rework)
+
+### `/aid-smoke` (full: `dev-aid-smoke`)
+**Category:** Quality
+**Purpose:** Run smoke tests with PASS/FAIL/WARN health checks
+**When to use:** After deployment, during CI, quick sanity checks
+**Output:** Colored PASS/FAIL/WARN results for each check
+
+**What it checks:**
+- Application starts without errors
+- Critical endpoints respond
+- Database connections work
+- Required services are reachable
+- Configuration is valid
+
+**Example:**
+```bash
+# Run all smoke tests
+/aid-smoke
+
+# Run specific test script
+/aid-smoke tests/smoke/api-health.sh
+```
+
+**Value:** Fast feedback on deployment health, prevents broken releases
+
+### `/aid-lint` (full: `dev-aid-lint`)
+**Category:** Quality
+**Purpose:** Run linters with auto-fix across multiple languages
+**When to use:** Before committing, during code review, CI
+**Supported:** Python (ruff/black), TypeScript/JavaScript (eslint/prettier), Go (gofmt), Rust (rustfmt), Shell (shellcheck)
+
+**Example:**
+```bash
+# Lint all changed files
+/aid-lint
+
+# Lint specific path
+/aid-lint src/
+
+# Fix mode (auto-correct where possible)
+/aid-lint --fix
+```
+
+**Value:** Consistent code style, catches common errors early
+
+### `/aid-typecheck` (full: `dev-aid-typecheck`)
+**Category:** Quality
+**Purpose:** Run TypeScript type checking and fix type errors
+**When to use:** After TypeScript changes, before committing, CI
+**Output:** Type errors with suggested fixes
+
+**Example:**
+```bash
+# Check entire project
+/aid-typecheck
+
+# Check specific path
+/aid-typecheck src/components/
+
+# Strict mode
+/aid-typecheck --strict
+```
+
+**Value:** Catches type errors before runtime, improves code safety
+
+### `/aid-plan` (full: `dev-aid-plan`)
+**Category:** Productivity
+**Purpose:** Create a session-resilient plan with progress log
+**When to use:** Before starting complex tasks, multi-session work
+**Output:** `docs/plans/<plan-name>.md` with progress tracking
+
+**Features:**
+- Progress Log section with timestamps and completion markers
+- "Stopped at" markers for session recovery
+- Auto-detects interrupted work from previous sessions
+- Links to related ADRs and documentation
+
+**Example:**
+```bash
+# Create a new plan
+/aid-plan "Migrate auth to OAuth2"
+
+# Resume interrupted plan
+/aid-plan --resume
+```
+
+**Value:** Prevents lost context between sessions, structured progress tracking
 
 ### `dev-aid-research` (CLI Tool)
 **Category:** Research & Knowledge
@@ -691,8 +782,8 @@ cat .dev-aid/reports/vulnerabilities.md
 | **Agents** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs` | Autonomous AI agents |
 | **Router** | `aid-challenger`, `aid-challenger-rag`, `aid-ensemble`, `aid-router-status` | Multi-AI orchestration |
 | **Security** | `aid-audit`, `aid-vulnscan` | Security scanning |
-| **Quality** | `aid-health`, `aid-debt-report`, `aid-review` | Code quality |
-| **Productivity** | `aid-api`, `aid-commit` | Development workflow |
+| **Quality** | `aid-health`, `aid-debt-report`, `aid-review`, `aid-smoke`, `aid-lint`, `aid-typecheck` | Code quality |
+| **Productivity** | `aid-api`, `aid-commit`, `aid-plan` | Development workflow |
 | **Setup** | `aid-analyze`, `aid-status`, `aid-config`, `aid-skill` | Initial setup |
 | **Operations** | `aid-deploy` | DevOps workflows |
 | **Maintenance** | `aid-models` | AI model management |
@@ -863,5 +954,5 @@ Dev-AID provides standalone utility scripts for common development tasks:
 
 ---
 
-**Last Updated:** 2026-02-08
-**Version:** 1.5.0-beta.3
+**Last Updated:** 2026-02-26
+**Version:** 1.5.0-beta.4

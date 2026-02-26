@@ -41,13 +41,14 @@ cd ~/your-project
 
 ### 2. Follow the Setup Wizard
 
-`gh dev-aid init` (or `setup-dev-aid.sh`) launches a 6-step wizard:
+`gh dev-aid init` (or `setup-dev-aid.sh`) launches a 7-step wizard:
 1. **Context Budget**: Choose "Balanced" (recommended)
 2. **Auto-Activation**: Choose "Conservative" (recommended)
-3. **Providers**: Select your AI providers
-4. **Orchestration**: Choose mode (Solo for single AI, Ensemble for multi-AI)
-5. **Model Assignment**: Assign models to tasks (if multi-AI)
-6. **Authentication**: Session auth auto-detected, or enter API keys if needed
+3. **Project Preset**: Auto-detected stack preset (generic, python-fastapi, typescript-node, fullstack, kubernetes-gitops)
+4. **Providers**: Select your AI providers
+5. **Orchestration**: Choose mode (Solo for single AI, Ensemble for multi-AI)
+6. **Model Assignment**: Assign models to tasks (if multi-AI)
+7. **Authentication**: Session auth auto-detected, or enter API keys if needed
 
 ### 3. Start Developing
 

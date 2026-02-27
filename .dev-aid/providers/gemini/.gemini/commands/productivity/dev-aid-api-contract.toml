@@ -1,0 +1,68 @@
+name = "dev-aid-api-contract"
+description = "Generate OpenAPI contracts, TypeScript clients, and MSW mocks from data models"
+
+[metadata]
+category = "productivity"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# API Contract Generator - Contract-First Development
+
+Generate complete API implementation from data models: OpenAPI spec, TypeScript client, MSW mocks, and tests.
+
+## Purpose
+Unblock frontend/backend parallel development:
+- Frontend develops against mocks immediately
+- Backend implements to match the contract
+- Contract serves as single source of truth
+- Tests verify both sides match
+
+## Workflow
+
+### 1. Analyze Input Model
+Accept from: TypeScript interface, Zod schema, JSON Schema, Pydantic model, or existing code.
+
+Ask the user for the model if not provided.
+
+### 2. Generate OpenAPI 3.1 Spec
+Create a complete OpenAPI spec with:
+- CRUD endpoints for the model
+- Request/response schemas
+- Error responses (400, 401, 403, 404, 500)
+- Authentication requirements
+- Pagination for list endpoints
+
+### 3. Generate TypeScript Client
+Create a typed API client with:
+- Fetch-based implementation
+- Request/response types
+- Error handling
+- Pagination helpers
+
+### 4. Generate MSW Mocks
+Create Mock Service Worker handlers with:
+- Realistic fake data
+- All CRUD operations
+- Error scenarios
+- Delay simulation
+
+### 5. Generate Tests
+Create contract tests verifying:
+- Response shape matches schema
+- Required fields are present
+- Error responses are correct
+- Pagination works correctly
+
+## Output Structure
+```
+api/
+  openapi.yaml         # OpenAPI 3.1 spec
+  client.ts            # Typed API client
+  mocks/handlers.ts    # MSW mock handlers
+  tests/contract.test.ts  # Contract tests
+```
+
+Begin generating the API contract. Ask the user for the data model if not provided.
+"""

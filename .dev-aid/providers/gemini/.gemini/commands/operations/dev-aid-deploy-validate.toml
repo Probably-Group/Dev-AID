@@ -1,0 +1,89 @@
+name = "dev-aid-deploy-validate"
+description = "Pre-deployment validation with tests, security checks, and environment readiness"
+
+[metadata]
+category = "operations"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Deploy Validation - Pre-Deployment Safety Checks
+
+Perform comprehensive pre-deployment validation to prevent production outages.
+
+## Validation Phases
+
+### Phase 1: Run Test Suite
+```bash
+echo "=== Test Suite ==="
+if [ -f "package.json" ]; then
+  npm test 2>&1 | tail -5
+elif [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+  python -m pytest --tb=short 2>&1 | tail -10
+elif [ -f "go.mod" ]; then
+  go test ./... 2>&1 | tail -10
+elif [ -f "Cargo.toml" ]; then
+  cargo test 2>&1 | tail -10
+fi
+```
+
+### Phase 2: Configuration Safety
+Check for common deployment mistakes:
+- Debug mode enabled in production configs
+- Hardcoded localhost/development URLs
+- Missing environment variables
+- Default/weak secrets
+- Verbose logging in production
+
+```bash
+echo "=== Config Safety ==="
+grep -r "DEBUG.*=.*[Tt]rue\|debug.*:.*true" . --include="*.json" --include="*.yaml" --include="*.toml" --include="*.env" --exclude-dir=node_modules --exclude-dir=.git | head -10
+grep -r "localhost\|127.0.0.1\|0.0.0.0" . --include="*.json" --include="*.yaml" --include="*.env" --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=test | head -10
+```
+
+### Phase 3: Security Pre-Check
+- Run secret scanner on staged changes
+- Check for known vulnerabilities in dependencies
+- Verify no test credentials in production config
+
+### Phase 4: Build Validation
+```bash
+echo "=== Build ==="
+if [ -f "package.json" ]; then
+  npm run build 2>&1 | tail -5
+elif [ -f "Cargo.toml" ]; then
+  cargo build --release 2>&1 | tail -5
+elif [ -f "go.mod" ]; then
+  go build ./... 2>&1
+fi
+```
+
+### Phase 5: Go/No-Go Decision
+
+## Memory Bank Updates
+Update `.dev-aid/memory-bank/activeContext.md` with deployment status.
+
+## Output Format
+
+```markdown
+# Deployment Readiness Report
+
+**Date**: [timestamp]
+**Branch**: [current branch]
+**Last Commit**: [hash + message]
+
+## Checks
+| Check | Status | Details |
+|-------|--------|---------|
+| Tests | PASS/FAIL | [X passed, Y failed] |
+| Config Safety | PASS/WARN | [issues found] |
+| Security | PASS/FAIL | [vulnerabilities] |
+| Build | PASS/FAIL | [build output] |
+
+## Decision: [GO / NO-GO]
+[Justification and any conditions]
+```
+
+Begin pre-deployment validation now.
+"""

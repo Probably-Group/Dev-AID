@@ -1,0 +1,96 @@
+name = "dev-aid-audit"
+description = "Comprehensive security audit with OWASP Top 10, dependency scanning, and vulnerability assessment"
+
+[metadata]
+category = "security"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Security Audit - Comprehensive Security Assessment
+
+Perform a comprehensive security audit following DevSecOps best practices.
+
+## Arguments
+
+The user may provide a target path or scope. Default: entire project.
+
+## Required Expertise
+
+Read these skill files before starting:
+- `~/.claude/skills/appsec-expert/SKILL.md` — OWASP Top 10, threat modeling
+- `~/.claude/skills/devsecops-expert/SKILL.md` — DevSecOps best practices
+
+## Audit Phases
+
+### Phase 1: Tech Stack Detection
+```bash
+echo "=== Tech Stack Detection ==="
+[ -f "package.json" ] && echo "Node.js detected" && jq -r '.dependencies | keys[]' package.json | head -10
+[ -f "requirements.txt" ] || [ -f "pyproject.toml" ] && echo "Python detected"
+[ -f "go.mod" ] && echo "Go detected"
+[ -f "Cargo.toml" ] && echo "Rust detected"
+[ -f "Dockerfile" ] && echo "Docker detected"
+[ -d ".github/workflows" ] && echo "GitHub Actions detected"
+```
+
+### Phase 2: OWASP Top 10 Scanning
+Search for vulnerabilities in each category:
+1. **Injection** — SQL, command, XSS injection patterns
+2. **Broken Auth** — Weak password handling, missing MFA, session issues
+3. **Sensitive Data** — Hardcoded secrets, unencrypted storage
+4. **XXE** — XML parser configurations
+5. **Broken Access Control** — Missing authorization checks
+6. **Security Misconfiguration** — Default configs, debug mode in prod
+7. **XSS** — Unescaped output in templates
+8. **Insecure Deserialization** — Pickle, eval, unsafe JSON parsing
+9. **Known Vulnerabilities** — Outdated dependencies
+10. **Insufficient Logging** — Missing audit trails
+
+### Phase 3: Dependency Security
+```bash
+# Check for known vulnerabilities
+[ -f "package-lock.json" ] && npm audit --json 2>/dev/null | head -50
+[ -f "requirements.txt" ] && pip-audit 2>/dev/null || echo "pip-audit not installed"
+```
+
+### Phase 4: Infrastructure Review
+- Dockerfile best practices (non-root, minimal image, no secrets)
+- CI/CD pipeline security (secrets handling, permissions)
+- Environment variable management
+
+### Phase 5: Generate Report
+
+## Memory Bank Updates
+Update `.dev-aid/memory-bank/security.md` with findings.
+
+## Output Format
+
+```markdown
+# Security Audit Report
+
+**Date**: [timestamp]
+**Scope**: [target]
+**Risk Level**: [LOW|MEDIUM|HIGH|CRITICAL]
+
+## Executive Summary
+[1-2 sentences]
+
+## Findings
+
+| # | Severity | Category | File:Line | Description | Remediation |
+|---|----------|----------|-----------|-------------|-------------|
+
+## Dependency Vulnerabilities
+[CVE list with severity and fix versions]
+
+## Recommendations
+1. [Priority-ordered remediation steps]
+
+## Positive Findings
+- [Security controls already in place]
+```
+
+Begin the security audit now.
+"""

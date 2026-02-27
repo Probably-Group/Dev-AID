@@ -1,0 +1,18 @@
+name = "aid-review"
+description = "Review staged changes before committing"
+
+[metadata]
+category = "quality"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Review Staged (Short Alias)
+
+This is a short alias for the full `dev-aid-review-staged` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/quality/dev-aid-review-staged.toml`
+
+Load that file now and review the staged changes.
+"""

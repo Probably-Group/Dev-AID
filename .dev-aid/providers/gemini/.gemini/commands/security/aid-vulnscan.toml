@@ -1,0 +1,18 @@
+name = "aid-vulnscan"
+description = "Deep CVE scanning for dependencies"
+
+[metadata]
+category = "security"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Vulnerability Scan (Short Alias)
+
+This is a short alias for the full `dev-aid-vulnerability-scan` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/security/dev-aid-vulnerability-scan.toml`
+
+Load that file now and execute the vulnerability scan workflow. The user's input specifies the scope.
+"""

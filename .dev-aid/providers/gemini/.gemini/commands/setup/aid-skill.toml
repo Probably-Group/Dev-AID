@@ -1,0 +1,11 @@
+name = "aid-skill"
+description = "Build a new expert skill"
+
+[prompt]
+content = """
+# Build Skill (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/setup/dev-aid-build-skill.toml`
+
+Load that file now and execute the skill creation workflow.
+"""

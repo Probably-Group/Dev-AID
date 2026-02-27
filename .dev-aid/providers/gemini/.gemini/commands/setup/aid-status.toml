@@ -1,0 +1,11 @@
+name = "aid-status"
+description = "Show Dev-AID configuration status"
+
+[prompt]
+content = """
+# Status (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/setup/dev-aid-status.toml`
+
+Load that file now and show the status.
+"""

@@ -1,0 +1,64 @@
+name = "dev-aid-commit-plan"
+description = "Plan atomic commits from unstaged changes (prevents mega-commits)"
+
+[metadata]
+category = "productivity"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Commit Planner - Atomic Commit Guide
+
+Analyzes unstaged changes and proposes logical, atomic commits.
+
+## Task
+
+1. **Analyze unstaged changes:**
+```bash
+git status
+git diff --stat
+git diff
+```
+
+2. **Identify logical groupings:**
+- Feature additions (new files, new functionality)
+- Bug fixes (error handling, corrections)
+- Refactorings (reorganization, no behavior change)
+- Tests (test files for above changes)
+- Documentation (README, docs, comments)
+
+3. **Group by semantic cohesion and dependency order**
+
+4. **Generate commit plan:**
+
+## Output Format
+
+```markdown
+# Commit Plan
+
+**Total changes**: X files, +N/-M lines
+**Proposed commits**: Y
+
+## Commit 1: [type]: [description]
+Files:
+- `path/to/file1.ts` (new feature)
+- `path/to/file2.ts` (related change)
+
+```bash
+git add path/to/file1.ts path/to/file2.ts
+git commit -m "feat: [description]"
+```
+
+## Commit 2: [type]: [description]
+Files:
+- `path/to/test.ts` (tests for commit 1)
+
+```bash
+git add path/to/test.ts
+git commit -m "test: [description]"
+```
+```
+
+Begin analyzing unstaged changes now.
+"""

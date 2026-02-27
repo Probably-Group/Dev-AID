@@ -1,0 +1,11 @@
+name = "aid-api"
+description = "Generate API contracts from data models"
+
+[prompt]
+content = """
+# API Contract (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/productivity/dev-aid-api-contract.toml`
+
+Load that file now and generate the API contract. The user's input is the data model or model file path.
+"""

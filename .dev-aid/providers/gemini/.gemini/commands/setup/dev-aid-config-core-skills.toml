@@ -1,0 +1,45 @@
+name = "dev-aid-config-core-skills"
+description = "Configure which core skills are auto-loaded at session start"
+
+[metadata]
+category = "setup"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Configure Core Skills
+
+Interactive configuration for core skills (automated checking on file save).
+
+## Available Core Skills
+
+| Skill | Tokens | Purpose |
+|-------|--------|---------|
+| code-reviewer | ~250 | Real-time code quality suggestions |
+| secret-scanner | ~250 | Prevent credential leaks |
+| test-runner | ~250 | Auto-run relevant tests |
+| linter | ~250 | Auto-lint code |
+| type-checker | ~250 | Auto-check types |
+
+## Task
+
+1. **Read current configuration:**
+```bash
+cat .dev-aid/config/core-skills.json 2>/dev/null || echo "No core skills config"
+```
+
+2. **Show current status** with enabled/disabled and token cost
+
+3. **Ask the user** which skills to enable/disable
+
+4. **Update configuration** in `.dev-aid/config/core-skills.json`
+
+5. **Show token impact** — total standing context budget used
+
+## Output
+
+Show before/after configuration with token costs.
+
+Begin core skills configuration now.
+"""

@@ -1,0 +1,18 @@
+name = "aid-audit"
+description = "Run comprehensive security audit"
+
+[metadata]
+category = "security"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Security Audit (Short Alias)
+
+This is a short alias for the full `dev-aid-audit` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/security/dev-aid-audit.toml`
+
+Load that file now and execute the security audit workflow. The user's input specifies the scope.
+"""

@@ -1,0 +1,86 @@
+name = "dev-aid-code-health"
+description = "Codebase health assessment with quality metrics, test coverage, and maintainability analysis"
+
+[metadata]
+category = "quality"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Code Health - Codebase Quality Assessment
+
+Assess overall codebase health with quality metrics, test coverage, and maintainability scoring.
+
+## Phases
+
+### Phase 1: Codebase Statistics
+```bash
+echo "=== Codebase Statistics ==="
+find . -type f -name "*.js" -not -path "*/node_modules/*" | wc -l | xargs echo "JavaScript:"
+find . -type f -name "*.ts" -not -path "*/node_modules/*" | wc -l | xargs echo "TypeScript:"
+find . -type f -name "*.py" -not -path "*/venv/*" | wc -l | xargs echo "Python:"
+find . -type f -name "*.go" | wc -l | xargs echo "Go:"
+find . -type f -name "*.rs" | wc -l | xargs echo "Rust:"
+```
+
+If `cloc` is available, use it for detailed stats:
+```bash
+command -v cloc && cloc . --exclude-dir=node_modules,.git,dist,build,target,venv --quiet
+```
+
+### Phase 2: Code Quality Metrics
+Scan for quality indicators:
+- **TODO/FIXME/HACK count**: Technical debt markers
+- **Large files (>500 lines)**: Complexity hotspots
+- **Deep nesting (>4 levels)**: Readability issues
+- **Long functions (>50 lines)**: Maintainability risk
+- **Duplicate code patterns**: DRY violations
+
+### Phase 3: Test Coverage Analysis
+```bash
+# Detect test frameworks and coverage
+[ -f "package.json" ] && grep -q "jest\|vitest\|mocha" package.json && echo "JS test framework found"
+[ -d "tests" ] || [ -d "test" ] || [ -d "__tests__" ] && echo "Test directory found"
+find . -name "test_*.py" -o -name "*_test.py" -o -name "*.test.ts" -o -name "*.spec.ts" | wc -l | xargs echo "Test files:"
+```
+
+### Phase 4: Documentation Assessment
+- README completeness (setup, usage, contributing sections)
+- API documentation presence
+- Code comment density
+- Changelog/versioning
+
+### Phase 5: Health Scoring
+
+## Memory Bank Updates
+Update `.dev-aid/memory-bank/patterns.md` and `.dev-aid/memory-bank/testing.md`.
+
+## Output Format
+
+```markdown
+# Code Health Report
+
+**Overall Health Score**: [A-F] ([0-100])
+
+## Metrics Summary
+| Metric | Value | Status |
+|--------|-------|--------|
+| Lines of Code | X | - |
+| Test Files | X | OK/WARN |
+| TODO/FIXME | X | OK/WARN |
+| Large Files | X | OK/WARN |
+| Doc Coverage | X% | OK/WARN |
+
+## Quality Issues
+[Prioritized list with file:line references]
+
+## Test Coverage
+[Coverage by module/directory]
+
+## Recommendations
+1. [Priority-ordered improvements]
+```
+
+Begin the code health assessment now.
+"""

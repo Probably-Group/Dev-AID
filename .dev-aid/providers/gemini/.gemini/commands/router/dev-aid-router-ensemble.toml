@@ -1,0 +1,58 @@
+name = "dev-aid-router-ensemble"
+description = "Smart routing - automatically select best AI model based on task type"
+
+[metadata]
+category = "router"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Ensemble Mode - Smart Routing
+
+Automatically route requests to the best AI model based on task type, optimizing for quality and cost.
+
+## Routing Table
+
+| Task Type | Best Model | Why |
+|-----------|-----------|-----|
+| Massive context analysis | Gemini Flash (2M ctx) | Largest context window |
+| Code generation | Claude Sonnet | Best code quality |
+| Security review | Claude Sonnet | Strongest security analysis |
+| Documentation | GPT-4o | Clear, structured writing |
+| Quick questions | Gemini Flash | Fastest, cheapest |
+| Architecture | Claude Opus | Deepest reasoning |
+
+## Task Classification
+
+Classify the user's request into:
+- `code_generation` — Writing new code
+- `code_review` — Reviewing existing code
+- `security` — Security analysis
+- `documentation` — Writing docs
+- `architecture` — Design decisions
+- `research` — Technical research
+- `refactoring` — Code restructuring
+- `debugging` — Finding/fixing bugs
+
+## Configuration
+
+```bash
+cat .dev-aid/config/routing.json 2>/dev/null
+cat .dev-aid/config/models.json 2>/dev/null
+```
+
+## Workflow
+
+1. Classify the task
+2. Select the best model based on routing config
+3. Show the routing decision (if `--explain` flag)
+4. Execute with the selected model
+5. Track cost in `.dev-aid/reports/costs/`
+
+## Output
+
+Show which model was selected and why, then execute the task.
+
+Begin smart routing now.
+"""

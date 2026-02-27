@@ -1,0 +1,75 @@
+name = "dev-aid-status"
+description = "Show current Dev-AID configuration and setup status"
+
+[metadata]
+category = "setup"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Dev-AID Status & Configuration
+
+Display comprehensive information about the current Dev-AID setup.
+
+## Checks to Perform
+
+### 1. Orchestration Configuration
+```bash
+echo "=== Orchestration ==="
+cat .dev-aid/config/routing.json 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); print(f'Mode: {d.get(\"default_mode\",\"N/A\")}'); print(f'Challenger: {\"enabled\" if d.get(\"challenger\",{}).get(\"enabled\") else \"disabled\"}')" 2>/dev/null || echo "No routing config"
+```
+
+### 2. Provider Status
+```bash
+echo "=== Providers ==="
+[ -d ".claude" ] && echo "Claude: configured" || echo "Claude: not configured"
+[ -d ".gemini" ] && echo "Gemini: configured" || echo "Gemini: not configured"
+[ -n "$ANTHROPIC_API_KEY" ] && echo "Anthropic API: set" || echo "Anthropic API: not set"
+[ -n "$GOOGLE_API_KEY" ] && echo "Google API: set" || echo "Google API: not set"
+[ -n "$OPENAI_API_KEY" ] && echo "OpenAI API: set" || echo "OpenAI API: not set"
+```
+
+### 3. Memory Bank Status
+```bash
+echo "=== Memory Bank ==="
+for f in activeContext decisions patterns security testing performance chaos; do
+  [ -f ".dev-aid/memory-bank/$f.md" ] && echo "$f.md: $(wc -l < .dev-aid/memory-bank/$f.md) lines" || echo "$f.md: MISSING"
+done
+```
+
+### 4. Configuration Files
+```bash
+echo "=== Config Files ==="
+for f in settings routing models agents teams; do
+  [ -f ".dev-aid/config/$f.json" ] && echo "$f.json: present" || echo "$f.json: MISSING"
+done
+```
+
+### 5. Skills Available
+```bash
+echo "=== Skills ==="
+ls -d .dev-aid/skills/*/SKILL.md 2>/dev/null | wc -l | xargs echo "Skills available:"
+```
+
+## Output Format
+
+```markdown
+# Dev-AID Status
+
+## Setup Completeness: [X/Y checks passed]
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| Orchestration | OK/WARN | [mode, providers] |
+| Memory Bank | OK/WARN | [X/7 files] |
+| Config | OK/WARN | [X/5 files] |
+| Provider Keys | OK/WARN | [which set] |
+| Skills | OK/WARN | [count] |
+
+## Recommendations
+[Any missing or misconfigured items]
+```
+
+Run the status checks now.
+"""

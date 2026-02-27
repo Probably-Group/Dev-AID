@@ -1,0 +1,11 @@
+name = "aid-analyze"
+description = "Analyze codebase for Dev-AID adaptation"
+
+[prompt]
+content = """
+# Analyze (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/setup/dev-aid-analyze.toml`
+
+Load that file now and execute the codebase analysis.
+"""

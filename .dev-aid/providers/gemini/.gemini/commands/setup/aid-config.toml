@@ -1,0 +1,11 @@
+name = "aid-config"
+description = "Configure core skills"
+
+[prompt]
+content = """
+# Config Core Skills (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/setup/dev-aid-config-core-skills.toml`
+
+Load that file now and configure core skills.
+"""

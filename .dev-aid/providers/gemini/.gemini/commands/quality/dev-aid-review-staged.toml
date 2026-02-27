@@ -1,0 +1,77 @@
+name = "dev-aid-review-staged"
+description = "Review staged changes before committing (pre-commit rubber duck review)"
+
+[metadata]
+category = "quality"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Review Staged Changes - Pre-Commit Rubber Duck Reviewer
+
+Review staged git changes as a senior developer before committing.
+
+## Task
+
+1. **Get staged changes:**
+```bash
+git diff --cached --stat
+git diff --cached
+```
+
+2. **Check for issues across these categories:**
+
+**Blockers (must fix):**
+- Hardcoded secrets, API keys, tokens
+- SQL injection, command injection, XSS
+- Debug code (console.log, debugger, print statements)
+- Broken imports or syntax errors
+
+**Warnings (should fix):**
+- Missing tests for new functionality
+- Poor naming (a, tmp, data, thing)
+- Commented-out code
+- Performance anti-patterns (N+1 queries, unnecessary loops)
+- Long functions (>50 lines)
+
+**Suggestions (nice to have):**
+- Code style improvements
+- Better error messages
+- Documentation gaps
+
+3. **Act as a constructive senior reviewer:**
+- Explain WHY issues matter
+- Suggest concrete fixes with code
+- Prioritize by severity
+
+## Output Format
+
+```
+Staged Changes Review
+=====================
+
+Files: X modified, Y added (+N, -M lines)
+
+BLOCKERS (must fix before commit):
+
+1. [Issue title]
+   File:line
+   Problem: [why it matters]
+   Fix: [concrete code fix]
+
+WARNINGS (should fix):
+
+2. [Issue title]
+   ...
+
+SUGGESTIONS (nice to have):
+
+3. [Issue title]
+   ...
+
+Verdict: [READY TO COMMIT | FIX BLOCKERS FIRST | CONSIDER FIXES]
+```
+
+Begin reviewing staged changes now.
+"""

@@ -1,0 +1,11 @@
+name = "aid-commit"
+description = "Plan atomic commits from unstaged changes"
+
+[prompt]
+content = """
+# Commit Plan (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/productivity/dev-aid-commit-plan.toml`
+
+Load that file now and plan atomic commits from the unstaged changes.
+"""

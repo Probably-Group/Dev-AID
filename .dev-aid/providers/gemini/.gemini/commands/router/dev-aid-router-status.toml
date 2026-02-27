@@ -1,0 +1,78 @@
+name = "dev-aid-router-status"
+description = "Show routing configuration, recent activity, and cost breakdown"
+
+[metadata]
+category = "router"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Router Status & Monitoring
+
+Display current routing configuration, recent activity, and cost analytics.
+
+## Checks to Perform
+
+### 1. Configuration
+```bash
+echo "=== Routing Config ==="
+cat .dev-aid/config/routing.json 2>/dev/null | python3 -m json.tool 2>/dev/null || echo "No routing config"
+```
+
+### 2. Model Registry
+```bash
+echo "=== Models ==="
+cat .dev-aid/config/models.json 2>/dev/null | python3 -c "
+import json, sys
+models = json.load(sys.stdin)
+for name, m in models.items():
+    print(f'  {name}: {m.get(\"model_id\", \"?\")} (ctx: {m.get(\"context_window\", \"?\")})')
+" 2>/dev/null || echo "No models config"
+```
+
+### 3. Cost History
+```bash
+echo "=== Recent Costs ==="
+cat .dev-aid/reports/costs/daily-costs.json 2>/dev/null | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for entry in data[-7:]:
+    print(f'  {entry[\"date\"]}: \${entry[\"total_cost\"]:.4f} ({entry[\"model\"]})')
+" 2>/dev/null || echo "No cost data"
+```
+
+### 4. Provider Status
+```bash
+echo "=== Provider Keys ==="
+[ -n "$ANTHROPIC_API_KEY" ] && echo "Anthropic: configured" || echo "Anthropic: not set"
+[ -n "$GOOGLE_API_KEY" ] && echo "Google: configured" || echo "Google: not set"
+[ -n "$OPENAI_API_KEY" ] && echo "OpenAI: configured" || echo "OpenAI: not set"
+```
+
+## Output Format
+
+```markdown
+# Router Status
+
+## Configuration
+| Setting | Value |
+|---------|-------|
+| Mode | [solo/challenger/ensemble] |
+| Default Model | [model] |
+| Challenger | [enabled/disabled] |
+| Budget Limit | [$X/day] |
+
+## Provider Status
+| Provider | API Key | Models Available |
+|----------|---------|-----------------|
+
+## Cost Summary (Last 7 Days)
+| Date | Model | Requests | Cost |
+|------|-------|----------|------|
+
+## Total: $[amount]
+```
+
+Show the router status now.
+"""

@@ -1,0 +1,11 @@
+name = "aid-deploy"
+description = "Pre-deployment validation"
+
+[prompt]
+content = """
+# Deploy Validate (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/operations/dev-aid-deploy-validate.toml`
+
+Load that file now and run pre-deployment validation.
+"""

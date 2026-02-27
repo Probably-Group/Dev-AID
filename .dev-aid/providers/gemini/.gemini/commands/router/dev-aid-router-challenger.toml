@@ -1,0 +1,65 @@
+name = "dev-aid-router-challenger"
+description = "Execute with Challenger mode - primary AI generates, challenger AI reviews for security"
+
+[metadata]
+category = "router"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Challenger Mode Execution
+
+Execute with two-AI review: primary generates the solution, challenger reviews for security issues, logic errors, and improvements.
+
+## How It Works
+
+1. **Primary AI generates implementation** — Uses devsecops-expert skill, follows security best practices
+2. **Challenger AI reviews** — OWASP Top 10 scan, edge cases, logic errors, performance issues, severity rating
+3. **If issues found, primary refines** — Addresses challenger feedback
+4. **You see both perspectives** — Original, critique, and improved version
+
+## Challenger Review Checklist
+
+### OWASP Top 10
+- Injection flaws (SQL, XSS, command injection)
+- Broken authentication
+- Sensitive data exposure
+- Broken access control
+- Security misconfiguration
+- Insecure deserialization
+
+### Logic & Quality
+- Race conditions, off-by-one errors
+- Null pointer exceptions, edge cases
+- N+1 queries, inefficient algorithms
+- Input validation, rate limiting, error handling
+
+## Context
+
+**Memory Bank:**
+Read `.dev-aid/memory-bank/security.md` for project security context.
+
+**Recent Changes:**
+```bash
+git diff --name-only HEAD~3..HEAD 2>/dev/null | head -10
+```
+
+## Output Format
+
+```
+ISSUES FOUND: <number>
+SEVERITY: <LOW|MEDIUM|HIGH|CRITICAL>
+
+DETAILED CRITIQUE:
+1. [Issue] Location: [file:line] Risk: [type] Impact: [description]
+
+RECOMMENDATIONS:
+- [Specific fix for each issue]
+
+POSITIVE ASPECTS:
+- [What was done well]
+```
+
+Be thorough but constructive. Begin now.
+"""

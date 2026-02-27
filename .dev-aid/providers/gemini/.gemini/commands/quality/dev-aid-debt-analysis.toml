@@ -1,0 +1,98 @@
+name = "dev-aid-debt-analysis"
+description = "Technical debt identification with prioritization, cost analysis, and refactoring roadmap"
+
+[metadata]
+category = "quality"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Technical Debt Analysis - Systematic Debt Identification
+
+Identify, quantify, and prioritize technical debt for strategic refactoring.
+
+## Debt Categories
+
+Scan for these types of technical debt:
+
+### 1. Code Debt
+- TODO/FIXME/HACK comments
+- Large files (>500 lines)
+- Complex functions (cyclomatic complexity >10)
+- Code duplication
+- Dead code and unused imports
+
+### 2. Architecture Debt
+- God classes/modules (too many responsibilities)
+- Circular dependencies
+- Tight coupling between modules
+- Missing abstraction layers
+- Inconsistent patterns across the codebase
+
+### 3. Test Debt
+- Missing tests for critical paths
+- Flaky or skipped tests
+- Low coverage areas
+- Tests without assertions
+
+### 4. Dependency Debt
+- Outdated dependencies (major versions behind)
+- Deprecated APIs in use
+- Unmaintained dependencies
+- Pinned versions that should float
+
+### 5. Documentation Debt
+- Missing README sections
+- Outdated API docs
+- No architecture documentation
+- Missing inline comments on complex logic
+
+### 6. Infrastructure Debt
+- Manual deployment steps
+- Missing CI/CD checks
+- No monitoring/alerting
+- Hardcoded configuration
+
+## Analysis Steps
+
+```bash
+echo "=== Scanning for Technical Debt ==="
+# TODO counts
+grep -r "TODO\|FIXME\|HACK\|XXX" . --include="*.py" --include="*.ts" --include="*.js" --include="*.go" --exclude-dir=node_modules --exclude-dir=.git | wc -l | xargs echo "TODO/FIXME markers:"
+
+# Large files
+find . -type f \( -name "*.py" -o -name "*.ts" -o -name "*.js" \) -not -path "*/node_modules/*" -not -path "*/.git/*" -exec wc -l {} \; | awk '$1 > 500' | sort -rn | head -10
+
+# Outdated deps
+[ -f "package.json" ] && npx npm-check-updates 2>/dev/null | head -20
+```
+
+## Memory Bank Updates
+Update `.dev-aid/memory-bank/patterns.md` and `.dev-aid/memory-bank/decisions.md`.
+
+## Output Format
+
+```markdown
+# Technical Debt Report
+
+**Total Debt Items**: [count]
+**Estimated Remediation**: [hours/days]
+
+## Debt by Category
+| Category | Items | Severity | Effort |
+|----------|-------|----------|--------|
+
+## Top 10 Debt Items (Priority Order)
+| # | Category | File:Line | Description | Impact | Effort |
+|---|----------|-----------|-------------|--------|--------|
+
+## Refactoring Roadmap
+### Quick Wins (< 1 hour)
+### Short Term (1-4 hours)
+### Medium Term (1-2 days)
+### Long Term (requires planning)
+```
+
+Begin the technical debt analysis now.
+"""

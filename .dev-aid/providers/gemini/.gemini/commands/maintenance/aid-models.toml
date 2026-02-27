@@ -1,0 +1,11 @@
+name = "aid-models"
+description = "Update AI model versions"
+
+[prompt]
+content = """
+# Models Update (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/maintenance/dev-aid-models-update.toml`
+
+Load that file now and run model auto-discovery.
+"""

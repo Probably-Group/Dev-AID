@@ -1,0 +1,97 @@
+name = "dev-aid-build-skill"
+description = "Generate a new expert skill using the Dev-AID two-tier template structure"
+
+[metadata]
+category = "setup"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Build New Expert Skill
+
+Create a production-ready skill following Dev-AID's two-tier template system.
+
+## What You'll Create
+- Main SKILL.md file (<500 lines, with security-first framework)
+- References directory with advanced patterns
+- Risk-appropriate security content (LOW/MEDIUM/HIGH)
+- Complete frontmatter configuration
+
+## Architecture
+- Skills stored in `.dev-aid/skills/` (provider-agnostic)
+- Accessible by Claude, Gemini, OpenAI
+- Main SKILL.md MUST be under 500 lines (loading limit)
+- Extract verbose content to `references/` directory
+
+## Workflow
+
+### Phase 1: Gather Information
+
+Ask the user:
+1. **Skill name** (kebab-case, e.g., `mongodb-expert`)
+2. **Domain/technology** (e.g., MongoDB, Kubernetes, React)
+3. **Risk level** (LOW/MEDIUM/HIGH — determines security content depth)
+4. **Key capabilities** (3-5 things this skill should excel at)
+
+### Phase 2: Research
+
+Read the template structure:
+```bash
+cat .dev-aid/templates/SKILL_TEMPLATE.md 2>/dev/null || echo "Template not found"
+ls .dev-aid/skills/ 2>/dev/null | head -10
+```
+
+If existing skills are available, read one as reference for structure.
+
+### Phase 3: Generate Skill
+
+Create the directory and files:
+```
+.dev-aid/skills/{skill-name}/
+  SKILL.md           # Main file (<500 lines)
+  references/
+    advanced-patterns.md
+    security-checklist.md (MEDIUM/HIGH risk)
+    threat-model.md (HIGH risk only)
+```
+
+### Phase 4: Validate
+
+- Verify line count: `wc -l .dev-aid/skills/{name}/SKILL.md`
+- Check frontmatter completeness
+- Verify references are linked from main file
+
+## SKILL.md Structure
+
+```markdown
+---
+name: {skill-name}
+description: {one-line description}
+risk_level: {LOW|MEDIUM|HIGH}
+version: 1.0.0
+---
+
+# {Skill Name}
+
+## Core Concepts
+[Key principles, 5-10 bullet points]
+
+## Workflow
+[Step-by-step usage guide]
+
+## Security Considerations
+[Risk-appropriate security guidance]
+
+## Common Patterns
+[3-5 code patterns with examples]
+
+## Anti-Patterns
+[Common mistakes to avoid]
+
+## References
+- See `references/advanced-patterns.md` for detailed examples
+```
+
+Begin skill creation now. Ask the user for the skill name if not provided.
+"""

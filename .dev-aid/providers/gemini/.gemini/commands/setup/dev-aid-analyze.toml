@@ -1,0 +1,74 @@
+name = "dev-aid-analyze"
+description = "Analyze codebase and generate plan to adapt it to Dev-AID best practices"
+
+[metadata]
+category = "setup"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Codebase Analysis for Dev-AID Adaptation
+
+Analyze the repository and provide an actionable plan for adopting Dev-AID best practices.
+
+## Analysis Areas
+
+### 1. Repository Structure
+- Identify project type (web app, API, CLI, library, mobile)
+- Detect tech stack (languages, frameworks, build tools)
+- Analyze directory structure
+- Check existing CI/CD setup
+- Identify documentation structure
+
+### 2. Memory Bank Assessment
+Evaluate fit for Dev-AID memory bank categories:
+- `activeContext.md` — Current work focus
+- `decisions.md` — Architecture decisions
+- `patterns.md` — Code patterns and conventions
+- `security.md` — Security requirements
+- `testing.md` — Testing strategy
+- `performance.md` — Performance considerations
+- `chaos.md` — Quick notes and edge cases
+
+### 3. Provider Context Files
+Recommend content for `CLAUDE.md`, `GEMINI.md`:
+- Project-specific conventions
+- Build/test commands
+- Architecture overview
+
+### 4. CI/CD Integration
+- Select appropriate CI template from `.dev-aid/templates/`
+- Recommend security scanning configuration
+- Suggest pre-commit hooks
+
+### 5. Skill Selection
+Based on tech stack, recommend which `.dev-aid/skills/` to prioritize.
+
+## Output Format
+
+```markdown
+# Dev-AID Adaptation Plan
+
+## Current State
+- Project: [type]
+- Stack: [languages, frameworks]
+- CI/CD: [current setup or none]
+
+## Recommended Actions
+
+### Quick Setup (< 30 min)
+1. [action]
+
+### Memory Bank Population (1-2 hours)
+1. [what to document in each file]
+
+### CI/CD Integration (1-2 hours)
+1. [template to use, customizations needed]
+
+### Ongoing Practices
+1. [habits to adopt]
+```
+
+Begin the analysis now.
+"""

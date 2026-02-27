@@ -1,0 +1,63 @@
+name = "dev-aid-router-challenger-rag"
+description = "Challenger mode with local semantic code search (100% local, $0 cost)"
+
+[metadata]
+category = "router"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Challenger Mode with Local RAG
+
+Two-AI review enhanced with semantic code search from your local codebase.
+
+## Enhanced Features vs Standard Challenger
+- Semantic code search finds relevant existing code automatically
+- 100% local — code never leaves your machine
+- Zero cost for embeddings
+- Context-aware — AI sees similar implementations
+- Better reviews — checks against your codebase patterns
+
+## Workflow
+
+1. **Semantic Search (local RAG)** — Search codebase for relevant context, find similar implementations, retrieve security guidelines from memory bank
+2. **Primary AI generates** — With perfect context from your codebase, following existing patterns
+3. **Challenger reviews** — With same codebase context, OWASP Top 10 scan, consistency check
+4. **Refinement if needed** — Primary addresses feedback
+5. **You see everything** — Relevant code, implementation, critique, improved version
+
+## RAG Integration
+
+```bash
+# Check if local search is available
+python3 -c "from devaid_local_search import CodeSearchServer" 2>/dev/null && echo "Local search: available" || echo "Local search: not configured"
+
+# Check index status
+dev-aid-search status 2>/dev/null || echo "No index found - run: dev-aid-search index ."
+```
+
+## Context Sources
+1. Local semantic search results (similar code in your codebase)
+2. Memory bank (`.dev-aid/memory-bank/security.md`, `patterns.md`)
+3. Recent git changes
+4. Project configuration
+
+## Output Format
+
+```markdown
+## Relevant Context Found
+[Similar code from your codebase]
+
+## Implementation
+[Primary AI's solution]
+
+## Security Review
+[Challenger's critique with severity ratings]
+
+## Final Implementation
+[Refined version addressing all issues]
+```
+
+Begin the RAG-enhanced challenger workflow now.
+"""

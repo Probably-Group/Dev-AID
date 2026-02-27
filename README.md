@@ -27,7 +27,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **🏠 Local LLM Support** — Offline, private, zero-cost AI via Ollama/LM Studio/llama.cpp — [guide](.dev-aid/docs/LOCAL-LLM-GUIDE.md)
 - **🔍 Local Code Search (RAG)** — Hybrid BM25 + Vector search, 100% private, $0 forever — [guide](.dev-aid/docs/HOW-LOCAL-SEARCH-WORKS.md)
 - **🔬 Deep Research** — Multi-provider research via Tavily, Perplexity, Gemini Deep Research — [guide](.dev-aid/docs/DEEP-RESEARCH-GUIDE.md)
-- **🎓 86 Skills** — 73 expert (auto-loaded by tech stack) + 8 process (TDD, verification) + 5 core (automated checking) — [architecture](.dev-aid/docs/SKILLS-ARCHITECTURE.md)
+- **🎓 87 Skills** — 74 expert (auto-loaded by tech stack) + 8 process (TDD, verification) + 5 core (automated checking) — [architecture](.dev-aid/docs/SKILLS-ARCHITECTURE.md)
 - **🔒 Security Automation** — CVE, SAST, secrets, misconfig scanning on every commit with language-specific tools — [guide](.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md)
 - **🔌 MCP Integration** — Auto-discovery of MCP servers, smart context gathering, 2 built-in servers — [guide](.dev-aid/docs/MCP-GUIDE.md)
 - **💾 Persistent Memory** — Cross-session context with on-demand loading, write-back, staleness detection — [guide](.dev-aid/docs/MEMORY-BANK-GUIDE.md)
@@ -55,7 +55,7 @@ See the [complete feature reference table](#-all-capabilities--ranked-by-develop
 ┌─────────────────────────────────────────────┐
 │  Your AI Gets Superpowers ⚡                 │
 │  • 9 autonomous agents + 4 multi-agent teams│
-│  • 86 skills (73 expert + 8 process + 5 core│
+│  • 87 skills (74 expert + 8 process + 5 core│
 │  • Multi-AI orchestration (best tool/task)  │
 │  • 100% local semantic search (private RAG) │
 │  • Deep research (Tavily/Perplexity/Gemini) │
@@ -189,7 +189,7 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 | **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
-| **🎓 73 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
+| **🎓 74 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
 | **⚡ 8 Process Skills** | Behavioral protocols enforcing TDD, verification, systematic debugging | • TDD: 40-90% defect reduction<br>• Verification-gate: no false completions<br>• Language-aware commands<br>• Configurable (strict/warning/off) | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | Pre-commit/pre-push hooks with CVE, SAST, secrets, misconfig scanning | • 10s pre-commit scan<br>• Catches secrets before push<br>• Covers: deps, Dockerfiles, IaC, code | ⭐⭐⭐⭐⭐ |
 | **🏗️ Architect Mode** | Two-agent pattern: Architect plans, Implementer executes | • Prevents wasted work<br>• User approval before coding<br>• Model-agnostic (any provider)<br>• Fallback to solo mode | ⭐⭐⭐⭐ |
@@ -231,14 +231,14 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 <details open>
 <summary><strong>🤖 Autonomous Agent Framework + APO</strong> — 9 agents, 16 tools, 3 providers + local, automatic prompt optimization</summary>
 
-Provider-agnostic autonomous AI agents powered by Dev-AID's 86 skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
+Provider-agnostic autonomous AI agents powered by Dev-AID's 87 skills. Each agent runs an autonomous loop: send to LLM → parse tool calls → execute tools → repeat.
 
 | Feature | What It Does | Developer Benefits |
 |---------|-------------|-------------------|
 | **9 Built-in Agents** | PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor, DoD gate | Ready-to-use agents for common workflows |
 | **16 Built-in Tools** | File I/O, git, GitHub, bash, search — all with safety enforcement | Agents can read, write, search, and interact with git/GitHub |
 | **3 Provider Adapters** | Anthropic, OpenAI, Google Gemini + Local via OpenAI-compatible API | Use any provider — switch with `--provider` |
-| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 86 skills |
+| **Skill Integration** | Loads SKILL.md files as system prompts | Agents get expert knowledge from Dev-AID's 87 skills |
 | **Safety System** | Command blocklist, dry-run mode, per-tool risk levels | Safe by default — dangerous operations require explicit opt-in |
 | **Trace Collection** | JSONL execution traces with `--trace` flag | Debug agent behavior, feed into APO |
 | **Automatic Prompt Optimization** | LLM-driven prompt improvement with beam search and golden tests | Continuous improvement with human approval gate |
@@ -365,7 +365,7 @@ ollama pull qwen2.5-coder:32b            # Or manually with Ollama
 </details>
 
 <details>
-<summary><strong>🎓 Skills System</strong> — 5 core + 73 expert + 8 process skills for automated checking, domain expertise, and workflow enforcement</summary>
+<summary><strong>🎓 Skills System</strong> — 5 core + 74 expert + 8 process skills for automated checking, domain expertise, and workflow enforcement</summary>
 
 #### 🛡️ 5 Core Skills — Automated Checking
 
@@ -383,7 +383,7 @@ Core skills **actually run tools** automatically (tests, linters, type checkers)
 - **Minimal** (default): code-reviewer + secret-scanner = 500 tokens (0.25%)
 - **Maximum** (all enabled): 1,250 tokens (0.625%)
 
-#### 🎓 73 Expert Skills — Domain Expertise (Hook-Based Auto-Loading)
+#### 🎓 74 Expert Skills — Domain Expertise (Hook-Based Auto-Loading)
 
 Expert skills **give advice** (not automated execution) and auto-load based on context:
 
@@ -722,7 +722,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
 | **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Via API override | ❌ | ✅ Native Ollama | ⚠️ Enterprise only |
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
-| **Expert skills** | ✅ 73 auto-loading | ❌ | ❌ | ❌ | ❌ |
+| **Expert skills** | ✅ 74 auto-loading | ❌ | ❌ | ❌ | ❌ |
 | **Process skills** | ✅ 8 behavioral protocols | ❌ | ❌ | ❌ | ❌ |
 | **Agent framework** | ✅ 9 agents, 16 tools, 3 providers + local | ✅ Background agents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade agent |
 | **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ✅ CodeQL Autofix | ❌ | ⚠️ Platform-level |
@@ -753,7 +753,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 | **GitHub Stars** | ~100 | **42.7K** ⭐ | **28.2K** ⭐ | **48.2K** ⭐ | 5.3K | 1.8K |
 | **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
 | **Multi-provider support** | ✅ 6 native + 3 MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
-| **Expert skills/agents** | 73 + 9 agents + 8 process | 108 agents + 129 skills | 112 agents + 73 plugins | ~15 skills | ❌ | ❌ |
+| **Expert skills/agents** | 74 + 9 agents + 8 process | 108 agents + 129 skills | 112 agents + 73 plugins | ~15 skills | ❌ | ❌ |
 | **Multi-AI router** | ✅ 4 modes (challenger/ensemble/architect/solo) | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
 | **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ❌ | ❌ | ❌ | ⚠️ Cloud embeddings | ❌ |
 | **Local RAG** | ✅ FAISS + BM25 hybrid ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
@@ -1073,7 +1073,7 @@ Claude: *automatically uses local RAG*
 │   │       │   ├── dev-aid-router-challenger-rag.md
 │   │       │   ├── dev-aid-router-ensemble.md
 │   │       │   └── dev-aid-router-status.md
-│   │       └── skills/expert/ (73 skills)
+│   │       └── skills/expert/ (74 skills)
 │   │
 │   └── gemini/
 │       └── .gemini/

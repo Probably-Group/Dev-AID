@@ -13,7 +13,7 @@ AI coding tools are powerful but expensive, fragmented, and generic. Dev-AID is 
 - **80%** vulnerability detection rate with automated security scanning
 - **$0 setup cost** — MIT-licensed, open source
 
-**How:** 73 auto-loading expert skills, 8 process enforcement protocols, dual-AI code review, local semantic search, autonomous agents, and security automation on every commit.
+**How:** 74 auto-loading expert skills, 8 process enforcement protocols, dual-AI code review, local semantic search, autonomous agents, and security automation on every commit.
 
 [Jump to full analysis](#-the-problem-ai-development-is-expensive-and-fragmented) | [Feature value table](#-complete-feature-value-analysis) | [ROI calculation](#for-engineering-managers)
 
@@ -530,7 +530,7 @@ Result: 95% cost reduction, no "goldfish memory", always picks best strategy
 ```
 You: Use Claude Code (no change)
 Dev-AID: Loads expert skills automatically
-Result: Claude now has 73 expert skills based on your project
+Result: Claude now has 74 expert skills based on your project
 ```
 
 **2. Routes to the Best AI for Each Task**
@@ -1532,7 +1532,7 @@ cd ~/my-project && ./.dev-aid/scripts/init-repo.sh
 </details>
 
 **That's it.** Your project now has:
-- 73 expert skills
+- 74 expert skills
 - Multi-AI routing
 - Local RAG ($0 forever)
 - Automated security
@@ -1725,7 +1725,7 @@ Dev-AID: Claude generates, Gemini reviews, all in one place
 │  Your AI Gets Superpowers ⚡                 │
 │  • 100% local RAG (private, $0 forever)     │
 │  • Multi-AI routing (best tool per task)    │
-│  • 73 expert skills (context-aware)        │
+│  • 74 expert skills (context-aware)        │
 │  • Persistent memory (ADRs, patterns)       │
 │  • Automated security (5 tools, git hooks)  │
 │  • GitHub automation (issues, conflicts)    │
@@ -2053,7 +2053,7 @@ Option C: Use Both Manually
 ✅ Multi-AI routing (use best model per task)
 ✅ Local RAG ($0 forever, 90% token reduction)
 ✅ TOON format (40-60% additional savings)
-✅ 73 expert skills (auto-loaded)
+✅ 74 expert skills (auto-loaded)
 ✅ Automated security (5 tools)
 ✅ Zero context switching (works inside all tools)
 
@@ -2125,7 +2125,7 @@ git clone <repo> && cd <repo>
 # Your Claude Code/Cursor now has:
 # ✅ 97% cost savings (multi-AI routing)
 # ✅ $0 forever RAG (100% local)
-# ✅ 73 expert skills (auto-loaded)
+# ✅ 74 expert skills (auto-loaded)
 # ✅ Automated security (5 tools)
 # ✅ GitHub automation (issues, conflicts)
 ```

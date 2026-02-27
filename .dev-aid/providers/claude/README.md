@@ -142,7 +142,7 @@ Skills are shared across all providers via symlinks:
 | Category | Count | Examples |
 |----------|-------|----------|
 | **Core** | 5 | test-runner, linter, type-checker, code-reviewer, secret-scanner |
-| **Expert** | 73 | fastapi-expert, devsecops-expert, api-expert, typescript-expert |
+| **Expert** | 74 | fastapi-expert, devsecops-expert, api-expert, typescript-expert, prd-generator |
 | **Process** | 7 | tdd-protocol, verification-gate, systematic-debugging |
 
 Browse available skills:

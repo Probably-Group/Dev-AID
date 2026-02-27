@@ -46,7 +46,7 @@ Dev-AID enhances your Codex CLI experience with:
 
 Skills are automatically selected based on project context:
 - **Core Skills**: Real-time automated tool execution (tests, linting, type checking)
-- **Expert Skills**: Domain knowledge (73 skills covering DevSecOps, APIs, databases, etc.)
+- **Expert Skills**: Domain knowledge (74 skills covering DevSecOps, APIs, databases, PRDs, etc.)
 - **Process Skills**: Behavioral protocols (TDD, verification, debugging)
 
 ### Multi-AI Router

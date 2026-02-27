@@ -115,7 +115,7 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 
 **Features:**
 - 16 built-in tools (file, git, GitHub, bash, search) with safety enforcement
-- Loads Dev-AID expert skills as system prompts (86 available)
+- Loads Dev-AID expert skills as system prompts (87 available)
 - Provider-agnostic: Anthropic, OpenAI, Google, Local (Ollama/LM Studio)
 - DoD gate verification (`--dod` flag) with 4-dimension acceptance check
 - Lessons ledger for capturing and preventing agent failure patterns
@@ -175,6 +175,8 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 | `dev-aid-commit-plan` | `aid-commit` |
 | `dev-aid-api-contract` | `aid-api` |
 | `dev-aid-plan` | `aid-plan` |
+| `dev-aid-prd` | `aid-prd` |
+| `dev-aid-prd-validate` | `aid-prd-validate` |
 | `dev-aid-analyze` | `aid-analyze` |
 | `dev-aid-status` | `aid-status` |
 | `dev-aid-config-core-skills` | `aid-config` |
@@ -373,6 +375,34 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 ```
 
 **Value:** Prevents lost context between sessions, structured progress tracking
+
+### `/aid-prd` (full: `dev-aid-prd`)
+**Category:** Productivity
+**Purpose:** Generate, validate, or reverse-engineer a Product Requirements Document
+**When to use:** Starting new projects, auditing existing PRDs, or generating PRDs from codebases
+**Output:** `PRD.md` at repo root (builder/reverse-engineer) or inline validation report
+
+**Three modes:**
+- **Builder** (`--build`) — 7-step interactive wizard for creating a PRD from scratch
+- **Validator** (`--validate`) — Score existing PRD against 11-section rubric (grades A-F)
+- **Reverse-Engineer** (`--reverse-engineer`) — Scan codebase to generate draft PRD with confidence tags
+
+**Auto-detection:** Without flags, auto-selects mode based on whether `PRD.md` and code files exist.
+
+**Examples:**
+```bash
+# Auto-detect mode
+/aid-prd
+
+# Force specific mode
+/aid-prd --build
+/aid-prd --validate
+/aid-prd --reverse-engineer
+```
+
+**Shortcut:** `/aid-prd-validate` forces validation mode directly.
+
+**Value:** Structured PRD creation, completeness scoring, codebase-to-PRD generation
 
 ### `dev-aid-research` (CLI Tool)
 **Category:** Research & Knowledge
@@ -789,7 +819,7 @@ cat .dev-aid/reports/vulnerabilities.md
 | **Router** | `aid-challenger`, `aid-challenger-rag`, `aid-ensemble`, `aid-router-status` | Multi-AI orchestration |
 | **Security** | `aid-audit`, `aid-vulnscan` | Security scanning |
 | **Quality** | `aid-health`, `aid-debt-report`, `aid-review`, `aid-smoke`, `aid-lint`, `aid-typecheck` | Code quality |
-| **Productivity** | `aid-api`, `aid-commit`, `aid-plan` | Development workflow |
+| **Productivity** | `aid-api`, `aid-commit`, `aid-plan`, `aid-prd`, `aid-prd-validate` | Development workflow |
 | **Setup** | `aid-analyze`, `aid-status`, `aid-config`, `aid-skill` | Initial setup |
 | **Operations** | `aid-deploy` | DevOps workflows |
 | **Maintenance** | `aid-models` | AI model management |

@@ -1,6 +1,6 @@
 # Dev-AID Skills System
 
-**5 core skills** for automated checking + **73 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **74 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
 
 ## 🔄 Core vs Expert vs Process Skills
 
@@ -23,7 +23,7 @@
 
 **Configuration**: Run `/dev-aid-config-core-skills` to enable/disable
 
-### Expert Skills (73 available)
+### Expert Skills (74 available)
 **Purpose**: Domain-specific knowledge and guidance
 **Loading**: Context-aware (auto-loads based on files/keywords)
 **Token Cost**: ~200-500 tokens each (max 2-3 loaded per prompt)
@@ -86,7 +86,7 @@
 │   ├── test-runner/             # Disabled by default (configurable)
 │   ├── linter/                  # Disabled by default (configurable)
 │   └── type-checker/            # Disabled by default (configurable)
-├── expert/                      # Expert domain skills (72)
+├── expert/                      # Expert domain skills (74)
 │   ├── [skill-name]/
 │   │   ├── SKILL.md            # Main skill file (<500 lines)
 │   │   └── references/         # Extended content (optional)
@@ -115,9 +115,9 @@ All skills follow a unified two-tier template structure:
 
 **Required Sections:**
 - § 0: Security-First Framework & Anti-Hallucination Protocol ⭐ **FULLY ENRICHED**
-  - 0.1: Quick Risk Assessment (LOW/MEDIUM/HIGH) - **100% complete (73/73 skills)**
+  - 0.1: Quick Risk Assessment (LOW/MEDIUM/HIGH) - **100% complete (74/74 skills)**
   - 0.2: Vulnerability Research Protocol (MEDIUM/HIGH only) - **100% complete (57/57 MEDIUM/HIGH skills)**
-  - 0.3: Hallucination Prevention Checklist - **100% complete (73/73 skills)**
+  - 0.3: Hallucination Prevention Checklist - **100% complete (74/74 skills)**
   - 0.4: Progressive Disclosure (500-line limit guidance)
 - § 1: Overview
 - § 2: Core Responsibilities
@@ -161,7 +161,7 @@ All skills follow a unified two-tier template structure:
 
 **Configure**: Run `/dev-aid-config-core-skills` to choose which core skills to enable
 
-### Expert Skills (73)
+### Expert Skills (74)
 
 **Development & Languages (14):**
 - api-expert, async-expert, bash-expert
@@ -203,8 +203,8 @@ All skills follow a unified two-tier template structure:
 - linux-at-spi2, windows-ui-automation
 - tauri
 
-**Other (9):**
-- model-quantization, plan-review-expert
+**Other (10):**
+- model-quantization, plan-review-expert, prd-generator
 - refactoring-expert, web-research-expert
 
 ### Process Skills (7) 🆕

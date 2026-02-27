@@ -25,7 +25,7 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 │   │   │       └── testing-guide.md
 │   │   ├── devsecops-expert/
 │   │   ├── typescript-expert/
-│   │   └── ... (73 total expert skills)
+│   │   └── ... (74 total expert skills)
 │   └── registry/                    # 🆕 Hook-based auto-loading system
 │       └── skills-index.json        # Activation metadata (keywords, patterns, scores)
 │
@@ -199,7 +199,7 @@ Result:         Gemini has no expert knowledge
 
 ### After (Shared)
 ```
-Shared skills:  .dev-aid/skills/expert/ (73 skills)
+Shared skills:  .dev-aid/skills/expert/ (74 skills)
 Claude:         ✅ Access via symlink
 Gemini:         ✅ Access via symlink
 Codex:          ✅ Access via symlink

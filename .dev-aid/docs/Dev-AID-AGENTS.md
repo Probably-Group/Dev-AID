@@ -1,6 +1,6 @@
 # Dev-AID Agent Framework
 
-Provider-agnostic autonomous AI agents powered by Dev-AID's 86 skills.
+Provider-agnostic autonomous AI agents powered by Dev-AID's 87 skills.
 
 **Module location:** `.dev-aid/agents/`
 **CLI entry point:** `dev-aid-agent`

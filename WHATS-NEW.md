@@ -112,7 +112,7 @@ Documentation: [Security Tools Reference](.dev-aid/docs/SECURITY-TOOLS-REFERENCE
 ---
 
 ### Provider-Agnostic Agent Framework
-Autonomous AI agents powered by Dev-AID's 86 skills — works with any provider:
+Autonomous AI agents powered by Dev-AID's 87 skills — works with any provider:
 
 - **Agent Runner**: Send → tool calls → execute → repeat loop with safety enforcement
 - **8 Built-in Agents**: PR reviewer, test generator, tech debt hunter, CI fixer, conflict resolver, research, onboarding, doc auditor

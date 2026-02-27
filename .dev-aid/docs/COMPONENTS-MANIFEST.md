@@ -102,7 +102,7 @@ This manifest maps our elite setup components to their source repositories for i
     └── search_tools.py             # grep_search, find_files
 ```
 
-**Purpose**: Provider-agnostic autonomous AI agents powered by Dev-AID's 86 skills
+**Purpose**: Provider-agnostic autonomous AI agents powered by Dev-AID's 87 skills
 
 **Features**:
 - Agent loop: send → tool calls → execute → repeat

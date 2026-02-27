@@ -7,33 +7,16 @@ risk_level: MEDIUM
 
 # Senior Architect - Code Generation Rules
 
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: MEDIUM
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
-
 ---
 
 ## 1. Architecture Principles
 
 ### 1.1 Complexity Detection (CWE-1120)
 
-**Principle:** Identify O(n²) algorithms, circular dependencies, and unnecessary complexity.
+**Principle:** Identify O(n^2) algorithms, circular dependencies, and unnecessary complexity.
 
 ```python
-# ❌ WRONG - O(n²) hidden in innocent-looking code
+# WRONG - O(n^2) hidden in innocent-looking code
 def find_duplicates(items: list[str]) -> list[str]:
     duplicates = []
     for item in items:
@@ -41,7 +24,7 @@ def find_duplicates(items: list[str]) -> list[str]:
             duplicates.append(item)
     return duplicates
 
-# ✅ CORRECT - O(n) with proper data structure
+# CORRECT - O(n) with proper data structure
 from collections import Counter
 
 def find_duplicates(items: list[str]) -> list[str]:
@@ -54,24 +37,14 @@ def find_duplicates(items: list[str]) -> list[str]:
 **Principle:** Detect circular dependencies, tight coupling, and dependency direction violations.
 
 ```python
-# ❌ WRONG - Circular dependency
+# WRONG - Circular dependency
 # file: user_service.py
 from order_service import OrderService  # user -> order
 
-class UserService:
-    def __init__(self):
-        self.orders = OrderService()
-
 # file: order_service.py
-from user_service import UserService  # order -> user (CIRCULAR!)
+from user_service import UserService    # order -> user (CIRCULAR!)
 
-class OrderService:
-    def __init__(self):
-        self.users = UserService()
-
-# ✅ CORRECT - Dependency inversion
-from abc import ABC, abstractmethod
-
+# CORRECT - Dependency inversion via interfaces
 # file: interfaces.py (no dependencies)
 class UserRepository(ABC):
     @abstractmethod
@@ -81,21 +54,54 @@ class OrderRepository(ABC):
     @abstractmethod
     def get_orders_for_user(self, user_id: str) -> list["Order"]: ...
 
-# file: user_service.py (depends on interface)
+# file: user_service.py (depends on interface, not on order_service)
 class UserService:
     def __init__(self, user_repo: UserRepository, order_repo: OrderRepository):
         self._users = user_repo
         self._orders = order_repo
-
-    def get_user_with_orders(self, user_id: str):
-        user = self._users.get_user(user_id)
-        user.orders = self._orders.get_orders_for_user(user_id)
-        return user
 ```
 
 ### 1.3 Scalability Analysis
 
 **Principle:** Identify bottlenecks before they become production problems.
+
+Common scalability red flags:
+- **N+1 queries**: Fetching related records in a loop instead of a single JOIN/batch
+- **Unbounded collections**: Loading all records without pagination or cursor limits
+- **Synchronous I/O in hot paths**: Blocking calls where async would prevent thread starvation
+- **Missing caching**: Recomputing expensive results that rarely change
+- **Lock contention**: Broad locks where fine-grained or lock-free structures suffice
+
+```python
+# WRONG - N+1 query pattern
+for user in get_all_users():
+    orders = get_orders_for_user(user.id)  # 1 query per user
+
+# CORRECT - Batch fetch
+users = get_all_users()
+orders_by_user = get_orders_for_users([u.id for u in users])  # 1 query total
+```
+
+### 1.4 Layer Architecture Rules
+
+**Principle:** Enforce unidirectional dependency flow between architectural layers.
+
+Define allowed import directions explicitly. Each layer may only depend on layers
+below it in the hierarchy. Violations indicate coupling that will resist future changes.
+
+```
+Allowed dependency direction (top imports from bottom):
+
+  api          -> services, domain
+  services     -> domain, repositories
+  repositories -> domain
+  domain       -> (nothing — pure business logic)
+```
+
+Common layer violations:
+- Domain importing from infrastructure (DB, HTTP, file I/O)
+- Repository importing from API layer (reverse dependency)
+- Service-to-service imports without an orchestration layer
 
 ---
 
@@ -117,19 +123,22 @@ xenon>=0.9.0           # Complexity threshold enforcement
 
 ### WHEN reviewing architecture, analyze dependency structure
 
+Build a structured dependency graph using AST parsing. Walk all Python files to extract
+imports, build a reverse-dependency map, then run DFS for circular dependency detection
+and validate imports against defined layer rules (e.g., `api` may only import `services`).
+
+See `references/architecture_analyzer.py` for the full `ArchitectureAnalyzer` implementation
+with `Module`, `DependencyViolation` data classes and `define_layers()` / `analyze()` API.
+
+Approach summary:
+1. Parse all `.py` files with `ast` to extract import statements
+2. Build a forward and reverse dependency graph (`Module.imports` / `Module.imported_by`)
+3. Run DFS to detect cycles (circular dependencies)
+4. Validate each import against defined layer rules to catch boundary violations
+
+Key data models:
+
 ```python
-# ❌ WRONG - Manual dependency tracking
-dependencies = []
-for file in project_files:
-    imports = extract_imports(file)
-    dependencies.extend(imports)
-
-# ✅ CORRECT - Structured dependency analysis
-from dataclasses import dataclass, field
-from pathlib import Path
-import ast
-from collections import defaultdict
-
 @dataclass
 class Module:
     path: Path
@@ -142,382 +151,66 @@ class DependencyViolation:
     target: str
     violation_type: str  # "circular", "layer_skip", "forbidden"
     description: str
-
-class ArchitectureAnalyzer:
-    def __init__(self, root: Path):
-        self.root = root
-        self.modules: dict[str, Module] = {}
-        self._layer_rules: dict[str, set[str]] = {}
-
-    def define_layers(self, rules: dict[str, list[str]]):
-        """Define allowed dependencies between layers.
-
-        Example:
-            {
-                "api": ["services", "domain"],
-                "services": ["domain", "repositories"],
-                "repositories": ["domain"],
-                "domain": [],  # No dependencies
-            }
-        """
-        self._layer_rules = {k: set(v) for k, v in rules.items()}
-
-    def analyze(self) -> list[DependencyViolation]:
-        violations = []
-
-        # Parse all Python files
-        for py_file in self.root.rglob("*.py"):
-            self._parse_module(py_file)
-
-        # Build reverse dependency graph
-        for mod_name, module in self.modules.items():
-            for imp in module.imports:
-                if imp in self.modules:
-                    self.modules[imp].imported_by.add(mod_name)
-
-        # Check for violations
-        violations.extend(self._find_circular_deps())
-        violations.extend(self._find_layer_violations())
-
-        return violations
-
-    def _parse_module(self, path: Path):
-        rel_path = path.relative_to(self.root)
-        mod_name = str(rel_path).replace("/", ".").replace(".py", "")
-
-        try:
-            tree = ast.parse(path.read_text())
-        except SyntaxError:
-            return
-
-        imports = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    imports.add(alias.name.split(".")[0])
-            elif isinstance(node, ast.ImportFrom):
-                if node.module:
-                    imports.add(node.module.split(".")[0])
-
-        self.modules[mod_name] = Module(path=path, imports=imports)
-
-    def _find_circular_deps(self) -> list[DependencyViolation]:
-        violations = []
-        visited = set()
-        path_stack = []
-
-        def dfs(mod_name: str):
-            if mod_name in path_stack:
-                cycle = path_stack[path_stack.index(mod_name):] + [mod_name]
-                violations.append(DependencyViolation(
-                    source=mod_name,
-                    target=path_stack[-1],
-                    violation_type="circular",
-                    description=f"Circular dependency: {' -> '.join(cycle)}",
-                ))
-                return
-
-            if mod_name in visited:
-                return
-
-            visited.add(mod_name)
-            path_stack.append(mod_name)
-
-            module = self.modules.get(mod_name)
-            if module:
-                for imp in module.imports:
-                    if imp in self.modules:
-                        dfs(imp)
-
-            path_stack.pop()
-
-        for mod_name in self.modules:
-            dfs(mod_name)
-
-        return violations
-
-    def _find_layer_violations(self) -> list[DependencyViolation]:
-        violations = []
-
-        for mod_name, module in self.modules.items():
-            source_layer = self._get_layer(mod_name)
-            if not source_layer:
-                continue
-
-            allowed = self._layer_rules.get(source_layer, set())
-
-            for imp in module.imports:
-                target_layer = self._get_layer(imp)
-                if target_layer and target_layer not in allowed and target_layer != source_layer:
-                    violations.append(DependencyViolation(
-                        source=mod_name,
-                        target=imp,
-                        violation_type="layer_skip",
-                        description=f"Layer violation: {source_layer} cannot import from {target_layer}",
-                    ))
-
-        return violations
-
-    def _get_layer(self, mod_name: str) -> str | None:
-        parts = mod_name.split(".")
-        for part in parts:
-            if part in self._layer_rules:
-                return part
-        return None
 ```
 
 ### WHEN identifying performance issues, measure complexity
 
-```python
-# ❌ WRONG - Subjective complexity assessment
-# "This function looks complex"
+Use AST-based analysis to compute cyclomatic complexity (decision point count) and
+cognitive complexity (nesting-weighted branches). Flag functions exceeding thresholds:
+cyclomatic > 10, cognitive > 15, LOC > 50, parameters > 5.
 
-# ✅ CORRECT - Objective complexity metrics
-import ast
-from dataclasses import dataclass
-from pathlib import Path
+See `references/complexity_analyzer.py` for the full `ComplexityAnalyzer` implementation
+with `ComplexityReport` data class and `analyze_project()` entry point.
 
-@dataclass
-class ComplexityReport:
-    function_name: str
-    file_path: str
-    line_number: int
-    cyclomatic_complexity: int
-    cognitive_complexity: int
-    loc: int
-    parameter_count: int
+Approach summary:
+1. Walk AST nodes to count decision points (`if`, `while`, `for`, `except`, `BoolOp`) for cyclomatic complexity
+2. Add nesting-depth penalties for cognitive complexity (each nested branch costs `1 + depth`)
+3. Collect LOC and parameter count per function
+4. Sort results by complexity (worst first) for prioritized review
 
-    def is_concerning(self) -> bool:
-        return (
-            self.cyclomatic_complexity > 10 or
-            self.cognitive_complexity > 15 or
-            self.loc > 50 or
-            self.parameter_count > 5
-        )
+Thresholds:
 
-class ComplexityAnalyzer(ast.NodeVisitor):
-    def __init__(self):
-        self.reports: list[ComplexityReport] = []
-        self._current_file: str = ""
-
-    def analyze_file(self, path: Path):
-        self._current_file = str(path)
-        tree = ast.parse(path.read_text())
-        self.visit(tree)
-
-    def visit_FunctionDef(self, node: ast.FunctionDef):
-        cyclomatic = self._calculate_cyclomatic(node)
-        cognitive = self._calculate_cognitive(node)
-
-        self.reports.append(ComplexityReport(
-            function_name=node.name,
-            file_path=self._current_file,
-            line_number=node.lineno,
-            cyclomatic_complexity=cyclomatic,
-            cognitive_complexity=cognitive,
-            loc=node.end_lineno - node.lineno + 1,
-            parameter_count=len(node.args.args),
-        ))
-
-        self.generic_visit(node)
-
-    def _calculate_cyclomatic(self, node: ast.FunctionDef) -> int:
-        """Count decision points."""
-        complexity = 1  # Base complexity
-
-        for child in ast.walk(node):
-            if isinstance(child, (ast.If, ast.While, ast.For)):
-                complexity += 1
-            elif isinstance(child, ast.BoolOp):
-                complexity += len(child.values) - 1
-            elif isinstance(child, ast.ExceptHandler):
-                complexity += 1
-            elif isinstance(child, ast.comprehension):
-                complexity += 1
-                if child.ifs:
-                    complexity += len(child.ifs)
-
-        return complexity
-
-    def _calculate_cognitive(self, node: ast.FunctionDef, nesting: int = 0) -> int:
-        """Cognitive complexity considers nesting depth."""
-        complexity = 0
-
-        for child in ast.iter_child_nodes(node):
-            if isinstance(child, (ast.If, ast.While, ast.For)):
-                complexity += 1 + nesting  # Nesting penalty
-                complexity += self._calculate_cognitive(child, nesting + 1)
-            elif isinstance(child, ast.BoolOp):
-                complexity += 1
-            elif isinstance(child, ast.Try):
-                complexity += 1
-                for handler in child.handlers:
-                    complexity += self._calculate_cognitive(handler, nesting + 1)
-
-        return complexity
-
-def analyze_project(root: Path) -> list[ComplexityReport]:
-    analyzer = ComplexityAnalyzer()
-
-    for py_file in root.rglob("*.py"):
-        try:
-            analyzer.analyze_file(py_file)
-        except SyntaxError:
-            continue
-
-    # Sort by complexity, worst first
-    return sorted(
-        analyzer.reports,
-        key=lambda r: (r.cyclomatic_complexity, r.cognitive_complexity),
-        reverse=True,
-    )
-```
+| Metric | Concerning | Action |
+|--------|-----------|--------|
+| Cyclomatic complexity | > 10 | Split function |
+| Cognitive complexity | > 15 | Reduce nesting |
+| Lines of code | > 50 | Extract helpers |
+| Parameter count | > 5 | Introduce parameter object |
 
 ### WHEN designing APIs, enforce consistency patterns
 
-```python
-# ❌ WRONG - Inconsistent API patterns
-# GET /users/{id}          -> { user: {...} }
-# GET /products/{id}       -> {...}           # Different structure!
-# POST /users              -> { id: "123" }
-# POST /orders             -> { order_id: "456" }  # Different key!
+Check all endpoints for naming conventions (lowercase paths, plural nouns), response
+envelope uniformity, HTTP status code consistency, and CRUD completeness per resource.
 
-# ✅ CORRECT - API design consistency checker
-from dataclasses import dataclass
-from enum import Enum
-import re
+See `references/api_consistency_checker.py` for the full `APIConsistencyChecker`
+implementation with `EndpointDefinition`, `APIConsistencyViolation` data classes.
 
-class HTTPMethod(Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    PATCH = "PATCH"
-    DELETE = "DELETE"
+Checks performed:
+1. **Naming conventions** -- Paths must be lowercase; resource names must be plural nouns
+2. **Response envelopes** -- All GET endpoints must use the same wrapper pattern
+3. **Status codes** -- POST endpoints should consistently use 201 for creation, 200 for actions
+4. **CRUD completeness** -- If GET and POST exist for a resource, PUT/PATCH and DELETE should too
 
-@dataclass
-class EndpointDefinition:
-    method: HTTPMethod
-    path: str
-    request_schema: dict | None
-    response_schema: dict
-    status_codes: list[int]
+Common API inconsistencies to catch:
 
-@dataclass
-class APIConsistencyViolation:
-    endpoint: str
-    violation_type: str
-    description: str
-    recommendation: str
-
-class APIConsistencyChecker:
-    def __init__(self):
-        self.endpoints: list[EndpointDefinition] = []
-        self.violations: list[APIConsistencyViolation] = []
-
-    def add_endpoint(self, endpoint: EndpointDefinition):
-        self.endpoints.append(endpoint)
-
-    def check_consistency(self) -> list[APIConsistencyViolation]:
-        self.violations = []
-
-        self._check_naming_conventions()
-        self._check_response_structure()
-        self._check_status_code_usage()
-        self._check_crud_completeness()
-
-        return self.violations
-
-    def _check_naming_conventions(self):
-        """Check URL path naming consistency."""
-        for ep in self.endpoints:
-            # Should use kebab-case or snake_case consistently
-            if re.search(r'[A-Z]', ep.path):
-                self.violations.append(APIConsistencyViolation(
-                    endpoint=f"{ep.method.value} {ep.path}",
-                    violation_type="naming",
-                    description="Path contains uppercase letters",
-                    recommendation="Use lowercase with hyphens: /user-profiles instead of /userProfiles",
-                ))
-
-            # Should use plural nouns for collections
-            parts = ep.path.strip("/").split("/")
-            if parts and not parts[0].endswith("s") and "{" not in parts[0]:
-                self.violations.append(APIConsistencyViolation(
-                    endpoint=f"{ep.method.value} {ep.path}",
-                    violation_type="naming",
-                    description="Resource name should be plural",
-                    recommendation=f"Use /{parts[0]}s instead of /{parts[0]}",
-                ))
-
-    def _check_response_structure(self):
-        """Check response envelope consistency."""
-        envelope_patterns = set()
-
-        for ep in self.endpoints:
-            if ep.method == HTTPMethod.GET:
-                keys = set(ep.response_schema.keys())
-                # Track which wrapper pattern is used
-                if "data" in keys:
-                    envelope_patterns.add("data_wrapper")
-                elif len(keys) == 1:
-                    envelope_patterns.add(f"single_key:{list(keys)[0]}")
-                else:
-                    envelope_patterns.add("direct")
-
-        if len(envelope_patterns) > 1:
-            self.violations.append(APIConsistencyViolation(
-                endpoint="ALL GET endpoints",
-                violation_type="response_structure",
-                description=f"Inconsistent response envelopes: {envelope_patterns}",
-                recommendation="Use consistent envelope: { data: {...}, meta: {...} }",
-            ))
-
-    def _check_status_code_usage(self):
-        """Check HTTP status code consistency."""
-        post_codes = set()
-        for ep in self.endpoints:
-            if ep.method == HTTPMethod.POST:
-                post_codes.update(ep.status_codes)
-
-        if 200 in post_codes and 201 in post_codes:
-            self.violations.append(APIConsistencyViolation(
-                endpoint="POST endpoints",
-                violation_type="status_codes",
-                description="Inconsistent success codes for POST (200 and 201 both used)",
-                recommendation="Use 201 Created for resource creation, 200 for actions",
-            ))
-
-    def _check_crud_completeness(self):
-        """Check if CRUD operations are complete for resources."""
-        resources: dict[str, set[HTTPMethod]] = {}
-
-        for ep in self.endpoints:
-            # Extract resource name from path
-            parts = ep.path.strip("/").split("/")
-            if parts:
-                resource = parts[0]
-                if resource not in resources:
-                    resources[resource] = set()
-                resources[resource].add(ep.method)
-
-        for resource, methods in resources.items():
-            if HTTPMethod.GET in methods and HTTPMethod.POST in methods:
-                # If create and read exist, update and delete should too
-                if HTTPMethod.PUT not in methods and HTTPMethod.PATCH not in methods:
-                    self.violations.append(APIConsistencyViolation(
-                        endpoint=f"/{resource}",
-                        violation_type="crud_completeness",
-                        description="Missing update operation (PUT or PATCH)",
-                        recommendation=f"Add PUT or PATCH /{resource}/{{id}} endpoint",
-                    ))
 ```
+# Inconsistent response envelopes:
+GET /users/{id}    -> { user: {...} }
+GET /products/{id} -> {...}              # Different structure!
+
+# Inconsistent creation response keys:
+POST /users        -> { id: "123" }
+POST /orders       -> { order_id: "456" }  # Different key!
+```
+
+**Rule:** Use consistent envelope `{ data: {...}, meta: {...} }` across all endpoints.
 
 ---
 
 ## 4. Anti-Patterns
 
-**NEVER:**
-- Ignore O(n²) algorithms in hot paths
+Do not:
+- Ignore O(n^2) algorithms in hot paths
 - Allow circular dependencies between modules
 - Skip layer boundary enforcement
 - Accept complexity metrics without investigation
@@ -525,131 +218,67 @@ class APIConsistencyChecker:
 - Leave dead code in the codebase
 - Create god classes/modules (>500 LOC)
 
+### God Class / God Module Detection
+
+A module is a "god module" when it:
+- Exceeds 500 LOC (hard limit) or 300 LOC (review trigger)
+- Has more than 10 direct dependencies (high fan-out)
+- Is imported by more than 10 other modules (high fan-in)
+- Mixes concerns from multiple architectural layers
+
+**Resolution**: Extract cohesive subsets into focused modules. Use the dependency graph
+to identify natural seams -- clusters of functions that share the same imports.
+
+### Premature Abstraction
+
+Equally dangerous as missing abstraction:
+- Interfaces with only one implementation (unless required for testing)
+- Generic frameworks built before the second use case exists
+- Inheritance hierarchies deeper than 3 levels
+- Configuration-driven behavior that could be simple if/else
+
 ---
 
 ## 5. Testing
 
-```python
-import pytest
-from pathlib import Path
-from senior_architect import (
-    ArchitectureAnalyzer,
-    ComplexityAnalyzer,
-    APIConsistencyChecker,
-    HTTPMethod,
-    EndpointDefinition,
-)
+Architectural analysis code should be tested with `tmp_path` fixtures that create
+minimal file structures exercising each violation type (circular deps, layer violations,
+high complexity, naming inconsistencies, response envelope mismatches).
 
-class TestArchitectureAnalysis:
+See `references/example_tests.py` for full test implementations covering
+`ArchitectureAnalyzer`, `ComplexityAnalyzer`, and `APIConsistencyChecker`.
 
-    def test_detects_circular_dependency(self, tmp_path):
-        """Should detect circular imports."""
-        # Create circular dependency
-        (tmp_path / "a.py").write_text("from b import B")
-        (tmp_path / "b.py").write_text("from a import A")
+Key test patterns:
 
-        analyzer = ArchitectureAnalyzer(tmp_path)
-        violations = analyzer.analyze()
-
-        assert any(v.violation_type == "circular" for v in violations)
-
-    def test_detects_layer_violation(self, tmp_path):
-        """Should detect layer boundary violations."""
-        (tmp_path / "api").mkdir()
-        (tmp_path / "api" / "__init__.py").write_text("")
-        (tmp_path / "api" / "routes.py").write_text("from repositories import UserRepo")
-
-        (tmp_path / "repositories").mkdir()
-        (tmp_path / "repositories" / "__init__.py").write_text("class UserRepo: pass")
-
-        analyzer = ArchitectureAnalyzer(tmp_path)
-        analyzer.define_layers({
-            "api": ["services"],  # api can only import services
-            "services": ["repositories"],
-            "repositories": [],
-        })
-
-        violations = analyzer.analyze()
-        assert any(v.violation_type == "layer_skip" for v in violations)
-
-class TestComplexityAnalysis:
-
-    def test_high_cyclomatic_complexity_flagged(self, tmp_path):
-        """Should flag functions with high cyclomatic complexity."""
-        complex_code = """
-def complex_function(a, b, c, d, e):
-    if a:
-        if b:
-            if c:
-                if d:
-                    if e:
-                        return 1
-    return 0
-"""
-        (tmp_path / "complex.py").write_text(complex_code)
-
-        analyzer = ComplexityAnalyzer()
-        analyzer.analyze_file(tmp_path / "complex.py")
-
-        assert len(analyzer.reports) == 1
-        assert analyzer.reports[0].cyclomatic_complexity >= 5
-        assert analyzer.reports[0].is_concerning()
-
-class TestAPIConsistency:
-
-    def test_detects_naming_inconsistency(self):
-        """Should flag inconsistent naming."""
-        checker = APIConsistencyChecker()
-        checker.add_endpoint(EndpointDefinition(
-            method=HTTPMethod.GET,
-            path="/userProfiles",  # Wrong: camelCase
-            request_schema=None,
-            response_schema={"data": {}},
-            status_codes=[200],
-        ))
-
-        violations = checker.check_consistency()
-        assert any(v.violation_type == "naming" for v in violations)
-
-    def test_detects_response_inconsistency(self):
-        """Should flag inconsistent response structures."""
-        checker = APIConsistencyChecker()
-        checker.add_endpoint(EndpointDefinition(
-            method=HTTPMethod.GET,
-            path="/users",
-            request_schema=None,
-            response_schema={"data": []},  # Uses data wrapper
-            status_codes=[200],
-        ))
-        checker.add_endpoint(EndpointDefinition(
-            method=HTTPMethod.GET,
-            path="/products",
-            request_schema=None,
-            response_schema={"products": []},  # Different wrapper
-            status_codes=[200],
-        ))
-
-        violations = checker.check_consistency()
-        assert any(v.violation_type == "response_structure" for v in violations)
-```
+- **Circular dependency detection**: Create two files that import each other, verify `violation_type == "circular"`
+- **Layer violation detection**: Create an `api/` module importing directly from `repositories/`, verify `violation_type == "layer_skip"`
+- **Complexity flagging**: Write a deeply nested function, verify `is_concerning() == True`
+- **API naming**: Add a camelCase endpoint path, verify `violation_type == "naming"`
+- **Response consistency**: Add GET endpoints with different envelope patterns, verify `violation_type == "response_structure"`
 
 ---
 
-## 6. Pre-Generation Checklist
+## 6. Review Workflow
 
-**BEFORE generating architectural code:**
+When conducting an architectural review, follow this sequence:
 
-- [ ] Complexity check: No O(n²) in hot paths
+1. **Dependency analysis** -- Map the module graph, identify cycles and layer violations
+2. **Complexity scan** -- Measure cyclomatic/cognitive complexity, flag hotspots
+3. **API audit** -- Check endpoint consistency (naming, envelopes, status codes, CRUD)
+4. **Dead code sweep** -- Run `vulture` to identify unused exports and unreachable paths
+5. **Scalability assessment** -- Check for N+1 queries, unbounded collections, sync I/O in hot paths
+6. **Report** -- Prioritize findings by impact (P0: production risk, P1: maintainability, P2: style)
+
+---
+
+## 7. Pre-Generation Checklist
+
+Before generating architectural code:
+
+- [ ] Complexity check: No O(n^2) in hot paths
 - [ ] Dependency graph: No circular dependencies
 - [ ] Layer rules: Dependency direction enforced
 - [ ] API consistency: Naming, responses, status codes uniform
-- [ ] Dead code: Removed unused code paths
 - [ ] Module size: No files > 500 LOC
-- [ ] Function complexity: Cyclomatic < 10, cognitive < 15
-- [ ] Parameter count: Functions have < 5 parameters
 
 **Templates**: See `assets/` for reusable output templates.
-
----
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

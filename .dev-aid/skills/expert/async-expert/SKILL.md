@@ -3,40 +3,25 @@ name: async-expert
 version: 2.0.0
 description: "Cross-language async and concurrency patterns for Python asyncio/TaskGroup, TypeScript promises/async-await, and Rust Tokio with proper error handling and cancellation. Use when designing concurrent architectures, debugging race conditions, implementing task pools, or choosing between async patterns across languages. Do NOT use for synchronous-only code without concurrency needs or simple sequential scripts."
 risk_level: MEDIUM
+token_budget: 5000
 ---
-
 # Async Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-362: Race Conditions**
-- NEVER: Shared mutable state without synchronization
-- ALWAYS: Locks, atomic operations, or message passing
+- Do not: Shared mutable state without synchronization
+- Instead: Locks, atomic operations, or message passing
 
 **CWE-400: Unbounded Concurrency**
-- NEVER: Spawn unlimited tasks from user requests
-- ALWAYS: Semaphores, task pools, bounded queues
+- Do not: Spawn unlimited tasks from user requests
+- Instead: Semaphores, task pools, bounded queues
 
 **CWE-404: Resource Leaks**
-- NEVER: Skip cleanup on cancellation
-- ALWAYS: Context managers, finally blocks, cancellation-safe code
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Skip cleanup on cancellation
+- Instead: Context managers, finally blocks, cancellation-safe code
 
 ---
 
@@ -114,7 +99,7 @@ async with asyncio.timeout(30):
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```
 # Python
@@ -739,7 +724,7 @@ async def main():
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `asyncio.create_task()` without tracking the task
 - Access shared state without synchronization
 - Forget to await async functions
@@ -763,69 +748,14 @@ import asyncio
 def event_loop():
     loop = asyncio.new_event_loop()
     yield loop
-    loop.close()
-
-@pytest.mark.asyncio
-async def test_concurrent_map():
-    results = []
-
-    async def slow_task(x):
-        await asyncio.sleep(0.1)
-        return x * 2
-
-    items = [1, 2, 3, 4, 5]
-    results = await concurrent_map(slow_task, items, concurrency=2)
-
-    assert results == [2, 4, 6, 8, 10]
-
-@pytest.mark.asyncio
-async def test_retry_succeeds_after_failures():
-    attempts = 0
-
-    @retry(max_retries=3)
-    async def flaky_function():
-        nonlocal attempts
-        attempts += 1
-        if attempts < 3:
-            raise ConnectionError("Failed")
-        return "success"
-
-    result = await flaky_function()
-
-    assert result == "success"
-    assert attempts == 3
-
-@pytest.mark.asyncio
-async def test_timeout_raises():
-    async def slow_function():
-        await asyncio.sleep(10)
-
-    with pytest.raises(asyncio.TimeoutError):
-        async with asyncio.timeout(0.1):
-            await slow_function()
-
-@pytest.mark.asyncio
-async def test_race_condition_prevented():
-    counter = 0
-    lock = asyncio.Lock()
-
-    async def increment():
-        nonlocal counter
-        async with lock:
-            temp = counter
-            await asyncio.sleep(0.001)
-            counter = temp + 1
-
-    await asyncio.gather(*[increment() for _ in range(100)])
-
-    assert counter == 100  # Without lock, would be < 100
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any async code:**
+Before generating any async code:
 
 - [ ] Shared state protected (locks, atomics, channels)
 - [ ] All async operations have timeouts
@@ -839,5 +769,3 @@ async def test_race_condition_prevented():
 - [ ] Error handling doesn't swallow exceptions
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

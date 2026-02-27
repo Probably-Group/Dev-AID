@@ -3,40 +3,25 @@ name: sandboxing
 version: 2.0.0
 description: "Application sandboxing patterns for process isolation, capability restrictions, and secure containment. Use when implementing sandboxing, restricting process capabilities, or designing isolation boundaries. Do NOT use for container orchestration (use Kubernetes or Tauri skills)."
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # Sandboxing Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-269: Privilege Escalation**
-- NEVER: Sandbox with root/admin capabilities
-- ALWAYS: Drop privileges, use capability restrictions
+- Do not: Sandbox with root/admin capabilities
+- Instead: Drop privileges, use capability restrictions
 
 **CWE-284: Improper Access Control**
-- NEVER: Shared filesystem/network with host
-- ALWAYS: Minimal mounts, network isolation, seccomp filters
+- Do not: Shared filesystem/network with host
+- Instead: Minimal mounts, network isolation, seccomp filters
 
 **CWE-693: Sandbox Escape**
-- NEVER: Trust sandboxed code to stay sandboxed
-- ALWAYS: Defense in depth, monitor for escape attempts
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Trust sandboxed code to stay sandboxed
+- Instead: Defense in depth, monitor for escape attempts
 
 ---
 
@@ -136,7 +121,7 @@ fn execute(code: &str) -> Result<Output, Error> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 # Rust
@@ -592,7 +577,7 @@ async function runUntrustedCode(userCode: string) {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Run untrusted code without sandbox setup
 - Fall back to unsandboxed execution on errors
 - Allow sandbox to access network (unless required)
@@ -615,60 +600,14 @@ mod tests {
     #[test]
     fn test_sandbox_blocks_file_access() {
         let sandbox = create_sandbox("/tmp/test").unwrap();
-
-        // Should not be able to read outside sandbox
-        let result = sandbox.execute("cat /etc/passwd");
-        assert!(result.is_err() || result.unwrap().is_empty());
-    }
-
-    #[test]
-    fn test_sandbox_blocks_network() {
-        let sandbox = create_sandbox("/tmp/test").unwrap();
-
-        let result = sandbox.execute("curl http://example.com");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_sandbox_respects_memory_limit() {
-        let sandbox = create_sandbox_with_limits(
-            "/tmp/test",
-            SandboxLimits { memory_mb: 10, .. }
-        ).unwrap();
-
-        // Attempt to allocate more than limit
-        let result = sandbox.execute("dd if=/dev/zero bs=1M count=100");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_sandbox_respects_cpu_limit() {
-        let sandbox = create_sandbox_with_limits(
-            "/tmp/test",
-            SandboxLimits { cpu_secs: 1, .. }
-        ).unwrap();
-
-        // Infinite loop should be killed
-        let result = sandbox.execute("while true; do :; done");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_sandbox_blocks_syscalls() {
-        apply_seccomp().unwrap();
-
-        // Should not be able to fork
-        let result = std::process::Command::new("echo").spawn();
-        assert!(result.is_err());
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any sandboxing code:**
+Before generating any sandboxing code:
 
 - [ ] Multiple isolation layers (namespace + seccomp + capabilities)
 - [ ] Fail secure - abort if sandbox setup fails
@@ -682,5 +621,3 @@ mod tests {
 - [ ] Platform-specific mechanisms used (Landlock/seccomp on Linux, sandbox-exec on macOS)
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

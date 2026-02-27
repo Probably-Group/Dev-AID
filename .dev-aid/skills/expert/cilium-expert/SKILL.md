@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Kubernetes networking with Cilium eBPF including network policies, service mesh, L7 policies, and Hubble observability. Use when writing CiliumNetworkPolicy resources, configuring eBPF-based networking, setting up Hubble monitoring, or implementing zero-trust network segmentation. Do NOT use for non-Cilium CNI plugins like Calico, Flannel, or Weave."
 compatibility: "Cilium 1.14+, Kubernetes 1.28+, Linux with eBPF"
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # Cilium Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-863: Authorization Bypass (CVE-2025-30162)**
-- NEVER: Assume egress policies work with Gateway API + LB-IPAM/BGP
-- ALWAYS: Test egress policies specifically, upgrade to v1.15.15+/v1.16.8+/v1.17.2+
+- Do not: Assume egress policies work with Gateway API + LB-IPAM/BGP
+- Instead: Test egress policies specifically, upgrade to v1.15.15+/v1.16.8+/v1.17.2+
 
 **CWE-436: IPv6 Policy Bypass (CVE-2023-27594)**
-- NEVER: Route IPv6 through Cilium without verifying policy enforcement
-- ALWAYS: Disable IPv6 if not needed, verify policies for both IP versions
+- Do not: Route IPv6 through Cilium without verifying policy enforcement
+- Instead: Disable IPv6 if not needed, verify policies for both IP versions
 
 **CWE-319: Cleartext Transmission (CVE-2024-25630)**
-- NEVER: Assume all traffic encrypted with WireGuard enabled
-- ALWAYS: Verify encryption on all paths, check for unencrypted packet leaks
+- Do not: Assume all traffic encrypted with WireGuard enabled
+- Instead: Verify encryption on all paths, check for unencrypted packet leaks
 
 **CWE-284: Default Allow Policy**
-- NEVER: Rely on default "allow all" without explicit deny policies
-- ALWAYS: Set `policyEnforcementMode: always`, create default-deny policies
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Rely on default "allow all" without explicit deny policies
+- Instead: Set `policyEnforcementMode: always`, create default-deny policies
 
 ---
 
@@ -119,7 +104,7 @@ spec:
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 cilium: v1.15.0+
@@ -590,7 +575,7 @@ spec:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Deploy without default-deny policies
 - Use IP-based policies (use labels/identities)
 - Allow `world` entity without L7 filtering
@@ -614,32 +599,14 @@ set -euo pipefail
 
 # Verify Cilium is healthy
 cilium status --wait
-
-# Test connectivity
-cilium connectivity test
-
-# Verify policy enforcement
-cilium policy get -o jsonpath='{.spec}'
-
-# Test specific policy
-kubectl run test-pod --image=curlimages/curl --rm -it --restart=Never -- \
-  curl -v --max-time 5 http://api-service.production:8080/health
-
-# Check Hubble flows
-hubble observe --namespace production --verdict DROPPED --last 100
-
-# Verify encryption
-cilium encrypt status
-
-# Export policy for review
-cilium policy get -o yaml > policies-backup.yaml
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Cilium configuration:**
+Before generating any Cilium configuration:
 
 - [ ] Default deny policy exists
 - [ ] Policies use labels, not IPs
@@ -653,5 +620,3 @@ cilium policy get -o yaml > policies-backup.yaml
 - [ ] Rate limiting for public endpoints
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

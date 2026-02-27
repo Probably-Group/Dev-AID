@@ -3,40 +3,25 @@ name: ci-cd
 version: 2.0.0
 description: "Desktop application CI/CD pipelines with code signing, notarization, artifact management, and release automation. Use when building Tauri/Electron release pipelines, configuring code signing certificates, setting up Apple notarization, or automating desktop app distribution. Do NOT use for server-side CI/CD or web deployment pipelines (use cicd-expert)."
 risk_level: HIGH
+token_budget: 4500
 ---
-
 # CI/CD Pipeline Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-321: Signing Key Management**
-- NEVER: Signing keys in repository or plaintext
-- ALWAYS: HSM, secure key storage, separate signing environment
+- Do not: Signing keys in repository or plaintext
+- Instead: HSM, secure key storage, separate signing environment
 
 **CWE-494: Code Signing Bypass**
-- NEVER: Ship unsigned binaries
-- ALWAYS: Sign all artifacts, verify signatures before deployment
+- Do not: Ship unsigned binaries
+- Instead: Sign all artifacts, verify signatures before deployment
 
 **CWE-829: Dependency Confusion**
-- NEVER: Mix public and private package sources without scoping
-- ALWAYS: Scoped registries, namespace prefixes, source pinning
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Mix public and private package sources without scoping
+- Instead: Scoped registries, namespace prefixes, source pinning
 
 ---
 
@@ -105,7 +90,7 @@ jobs:
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 # GitHub Actions
@@ -634,7 +619,7 @@ jobs:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `permissions: write-all`
 - Use unpinned actions (use SHA)
 - Put secrets in workflow files
@@ -668,7 +653,7 @@ actionlint .github/workflows/*.yml
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any CI/CD configuration:**
+Before generating any CI/CD configuration:
 
 - [ ] Minimal permissions declared
 - [ ] All actions pinned by SHA
@@ -682,5 +667,3 @@ actionlint .github/workflows/*.yml
 - [ ] Caching optimized for performance
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

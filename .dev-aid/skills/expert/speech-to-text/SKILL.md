@@ -3,36 +3,21 @@ name: speech-to-text
 version: 2.0.0
 description: "Speech-to-text with Faster Whisper for local transcription, real-time processing, and voice input. Use when implementing speech recognition, transcription pipelines, or voice commands. Do NOT use for cloud STT APIs (use cloud-api-integration)."
 risk_level: MEDIUM
+token_budget: 4000
 ---
-
 # Speech To Text - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-200: Audio Recording Privacy**
-- NEVER: Record without explicit user consent/indicator
-- ALWAYS: Clear recording indicator, consent flow, secure storage
+- Do not: Record without explicit user consent/indicator
+- Instead: Clear recording indicator, consent flow, secure storage
 
 **CWE-312: Transcript Storage**
-- NEVER: Store transcripts with PII unencrypted
-- ALWAYS: Encrypt transcripts, retention policies, user deletion rights
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Store transcripts with PII unencrypted
+- Instead: Encrypt transcripts, retention policies, user deletion rights
 
 ---
 
@@ -510,7 +495,7 @@ def transcribe_multilingual(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Load Whisper models per-request (use singleton pool)
 - Process audio files without size/duration validation
 - Skip VAD for real-time streaming
@@ -531,96 +516,14 @@ from speech_to_text import (
     validate_audio_file,
     FasterWhisperTranscriber,
     WhisperModelPool,
-    ModelConfig,
-    TranscriptionConfig,
-)
-
-class TestAudioValidation:
-
-    def test_rejects_oversized_file(self, tmp_path):
-        """Should reject files over size limit."""
-        large_file = tmp_path / "large.wav"
-        # Create file larger than limit
-        large_file.write_bytes(b"\x00" * (101 * 1024 * 1024))
-
-        result = validate_audio_file(large_file)
-        assert not result.valid
-        assert "too large" in result.error.lower()
-
-    def test_rejects_invalid_format(self, tmp_path):
-        """Should reject unsupported formats."""
-        bad_file = tmp_path / "audio.exe"
-        bad_file.write_bytes(b"not audio")
-
-        result = validate_audio_file(bad_file)
-        assert not result.valid
-        assert "invalid format" in result.error.lower()
-
-    def test_accepts_valid_wav(self, tmp_path):
-        """Should accept valid WAV files."""
-        import soundfile as sf
-
-        wav_file = tmp_path / "test.wav"
-        audio = np.random.randn(16000).astype(np.float32)  # 1 second
-        sf.write(str(wav_file), audio, 16000)
-
-        result = validate_audio_file(wav_file)
-        assert result.valid
-        assert 0.9 < result.duration_seconds < 1.1
-
-class TestModelPool:
-
-    def test_singleton_pattern(self):
-        """Model pool should be singleton."""
-        pool1 = WhisperModelPool()
-        pool2 = WhisperModelPool()
-        assert pool1 is pool2
-
-    def test_concurrency_control(self):
-        """Should limit concurrent model access."""
-        pool = WhisperModelPool()
-        pool.initialize(ModelConfig(model_size="tiny"))
-
-        # First acquire should succeed
-        with pool.acquire() as model:
-            assert model is not None
-
-            # Second acquire should timeout
-            with pytest.raises(TimeoutError):
-                with pool.acquire():
-                    pass
-
-class TestTranscription:
-
-    @pytest.fixture
-    def model_pool(self):
-        pool = WhisperModelPool()
-        pool.initialize(ModelConfig(model_size="tiny"))
-        return pool
-
-    def test_transcription_result_structure(self, model_pool, tmp_path):
-        """Transcription result should have expected structure."""
-        import soundfile as sf
-
-        # Create test audio with speech-like pattern
-        wav_file = tmp_path / "test.wav"
-        audio = np.random.randn(16000 * 3).astype(np.float32)
-        sf.write(str(wav_file), audio, 16000)
-
-        transcriber = FasterWhisperTranscriber(model_pool)
-        result = transcriber.transcribe(wav_file)
-
-        assert hasattr(result, "text")
-        assert hasattr(result, "segments")
-        assert hasattr(result, "language")
-        assert result.duration > 0
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating speech-to-text code:**
+Before generating speech-to-text code:
 
 - [ ] Input validation: Audio size/duration/format checked
 - [ ] Model pooling: Singleton pattern for model management
@@ -632,5 +535,3 @@ class TestTranscription:
 - [ ] Timeout handling: Long transcriptions have timeouts
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

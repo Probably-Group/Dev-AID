@@ -3,40 +3,25 @@ name: json-rpc
 version: 2.0.0
 description: "JSON-RPC 2.0 protocol implementation with method routing, batch requests, error codes, and transport-agnostic design. Use when implementing JSON-RPC servers or clients, designing method registries, handling batch requests, or building MCP-compatible transports. Do NOT use for REST APIs (use rest-api-design), GraphQL (use graphql-expert), or gRPC services."
 risk_level: MEDIUM
+token_budget: 4500
 ---
-
 # JSON-RPC 2.0 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-20: Method Name Injection**
-- NEVER: Dynamic method dispatch from user input
-- ALWAYS: Whitelist allowed methods, validate method exists
+- Do not: Dynamic method dispatch from user input
+- Instead: Whitelist allowed methods, validate method exists
 
 **CWE-94: Code Injection via Params**
-- NEVER: `eval()` or dynamic execution of parameters
-- ALWAYS: Strict schema validation for each method's params
+- Do not: `eval()` or dynamic execution of parameters
+- Instead: Strict schema validation for each method's params
 
 **CWE-285: Batch Request Authorization**
-- NEVER: Skip auth checks for batch requests
-- ALWAYS: Authorize EACH request in batch independently
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Skip auth checks for batch requests
+- Instead: Authorize EACH request in batch independently
 
 ---
 
@@ -126,7 +111,7 @@ async function handleBatch(requests: JsonRpcRequest[]) {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -722,7 +707,7 @@ server.method('admin.getStats', async (params, context: AuthenticatedContext) =>
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Execute methods from arbitrary strings without allowlist
 - Skip parameter validation
 - Expose stack traces in error responses
@@ -745,101 +730,14 @@ describe('JSON-RPC Server', () => {
 
   beforeAll(() => {
     server = createTestServer();
-  });
-
-  it('handles valid request', async () => {
-    const response = await server.handle(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'user.get',
-        params: { id: 'test-uuid' },
-        id: 1,
-      }),
-      {}
-    );
-
-    const parsed = JSON.parse(response!);
-    expect(parsed.jsonrpc).toBe('2.0');
-    expect(parsed.result).toBeDefined();
-    expect(parsed.id).toBe(1);
-  });
-
-  it('returns method not found for unknown method', async () => {
-    const response = await server.handle(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'unknown.method',
-        id: 1,
-      }),
-      {}
-    );
-
-    const parsed = JSON.parse(response!);
-    expect(parsed.error.code).toBe(-32601);
-  });
-
-  it('returns invalid params for bad input', async () => {
-    const response = await server.handle(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'user.get',
-        params: { id: 'not-a-uuid' },
-        id: 1,
-      }),
-      {}
-    );
-
-    const parsed = JSON.parse(response!);
-    expect(parsed.error.code).toBe(-32602);
-  });
-
-  it('handles batch requests', async () => {
-    const response = await server.handle(
-      JSON.stringify([
-        { jsonrpc: '2.0', method: 'user.get', params: { id: 'id1' }, id: 1 },
-        { jsonrpc: '2.0', method: 'user.get', params: { id: 'id2' }, id: 2 },
-      ]),
-      {}
-    );
-
-    const parsed = JSON.parse(response!);
-    expect(parsed).toHaveLength(2);
-  });
-
-  it('rejects oversized batches', async () => {
-    const requests = Array(200).fill({
-      jsonrpc: '2.0',
-      method: 'user.get',
-      params: { id: 'id' },
-      id: 1,
-    });
-
-    const response = await server.handle(JSON.stringify(requests), {});
-    const parsed = JSON.parse(response!);
-    expect(parsed.error.code).toBe(-32600);
-  });
-
-  it('returns null for notifications', async () => {
-    const response = await server.handle(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'log.event',
-        params: { event: 'test' },
-        // No id = notification
-      }),
-      {}
-    );
-
-    expect(response).toBeNull();
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any JSON-RPC code:**
+Before generating any JSON-RPC code:
 
 - [ ] Method names explicitly allowlisted
 - [ ] All parameters validated with Zod schemas
@@ -853,5 +751,3 @@ describe('JSON-RPC Server', () => {
 - [ ] Parse errors return proper JSON-RPC error
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

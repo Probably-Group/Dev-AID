@@ -1,27 +1,19 @@
 ---
 name: skill-creation-expert
-version: 4.0.0
+version: 5.0.0
 description: "Creating Claude Code skills with anti-hallucination protocols, CWE security patterns, and SKILL.md structure. Use when building new skills, writing SKILL.md files, or structuring skill templates. Do NOT use for general documentation."
+token_budget: 2000
 ---
 
 # Skill Creation Template
 
-## 0. Anti-Hallucination Protocol
+## 0. Pre-Creation
 
-### 0.1 Mandatory Verification
-
-**BEFORE creating any skill:**
+Before creating any skill:
 1. Run `/list-skills` to verify no duplicate/similar skill exists
 2. Determine if Technical or Non-Technical domain
 3. Research authoritative sources for the technology
 4. Never invent CWE patterns - use known vulnerabilities
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Validate skill structure follows template
-- Ensure Section 0.2 has proper CWE patterns (not generic links)
-- Confirm NEVER/ALWAYS rules are actionable
 
 ---
 
@@ -29,140 +21,83 @@ description: "Creating Claude Code skills with anti-hallucination protocols, CWE
 
 Skills are **instructions for Claude** loaded into context when invoked. Every section must answer: **"What should Claude do when generating code?"**
 
-**NOT documentation** - Claude doesn't need explanations, it needs rules.
+Not documentation — Claude doesn't need explanations, it needs rules.
 
 ---
 
 ## 2. Required Skill Structure
 
-Every skill MUST follow this structure:
+Every skill follows this structure. Section 0.1/0.3 are handled by the shared preamble in `skill_loader.py` — do not include them in SKILL.md.
 
 ```markdown
 ---
 name: [technology]-expert
 version: 1.0.0
-description: "[15-25 word elevator pitch - visible in /list-skills]"
+description: "[15-25 word elevator pitch]"
 risk_level: [LOW|MEDIUM|HIGH|CRITICAL]
+token_budget: [estimated tokens, rounded to 500]
 ---
 
 # [Technology] Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-[Standard verification steps]
-
-### 0.2 Security Patterns (NEVER violate)  ← TECHNICAL SKILLS ONLY
+### 0.2 Security Patterns (security rules)  <- TECHNICAL SKILLS ONLY
 [Technology-specific CWE patterns - see Section 4]
-
-### 0.3 Risk Level: [LEVEL]
-[Verification requirements for this risk level]
 
 ---
 
 ## 1. Security Principles
-[NEVER/ALWAYS rules with ❌ WRONG / ✅ CORRECT code]
+[Principle statements with short CORRECT code examples]
 
 ## 2. Version Requirements
-[Minimum safe versions to use]
+[Minimum safe versions]
 
 ## 3. Code Patterns
-[WHEN X → use this exact template]
+[WHEN X -> use this pattern. Max 3 examples.]
 
 ## 4. Anti-Patterns
-[NEVER do X - with code examples]
+[Short bullet list of what not to do]
 
 ## 5. Testing
-[How to test in this technology]
+[Brief testing guidance, not full test implementations]
 
 ## 6. Pre-Generation Checklist
-[Final verification before generating]
+[Top 5 domain-specific items only]
 ```
 
----
+### Content Size Targets
 
-## 3. Skill Categories
-
-### Technical Skills (require Section 0.2 with CWE patterns)
-
-| Category | Skills | Key CWEs |
-|----------|--------|----------|
-| **Backend/Python** | fastapi, python, celery | CWE-89, CWE-78, CWE-502 |
-| **Frontend/JS** | javascript, typescript, vue3, nuxt4 | CWE-79, CWE-1321, CWE-94 |
-| **Bash/Shell** | bash-expert | CWE-78, CWE-20, CWE-377 |
-| **Rust** | rust, tauri | CWE-119, CWE-252, CWE-362 |
-| **Database** | sqlite, sqlcipher, database-design | CWE-89, CWE-312, CWE-732 |
-| **APIs** | api-expert, graphql, rest-api, websocket | CWE-285, CWE-918, CWE-352 |
-| **DevOps/K8s** | cicd, argo, cilium, harbor, talos | CWE-798, CWE-829, CWE-306 |
-| **Security** | encryption, appsec, sandboxing | CWE-327, CWE-287, CWE-269 |
-| **AI/ML** | llm-integration, cloud-api | CWE-74 (prompt injection) |
-
-### Non-Technical Skills (simpler Section 0.2)
-
-- `design-systems`, `ui-ux-design`, `accessibility-wcag`
-- `deep-research-expert`, `web-research-expert`
-- `senior-architect`, `plan-review-expert`, `refactoring-expert`
-- `prompt-engineering`, `prompt-engineering-expert`
+- Expert skills: **300-500 lines** (not 600+)
+- Section 3: Max **3 code pattern examples** (move extras to `references/`)
+- Section 6: Max **5 checklist items** (domain-specific only)
+- No generic advice LLMs already know (basic OWASP prose, obvious wrong patterns)
 
 ---
 
-## 4. Section 0.2: CWE Security Patterns
+## 3. Section 0.2: CWE Security Patterns
 
 ### For Technical Skills
 
-**Section 0.2 MUST contain technology-specific NEVER/ALWAYS rules:**
+Section 0.2 contains technology-specific Do not/Instead rules:
 
 ```markdown
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89: SQL Injection**
-- NEVER: `f"SELECT * FROM users WHERE id = {user_id}"`
-- ALWAYS: `cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))`
+- Do not: `f"SELECT * FROM users WHERE id = {user_id}"`
+- Instead: `cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))`
 
 **CWE-78: Command Injection**
-- NEVER: `os.system(user_input)` or `subprocess.run(cmd, shell=True)`
-- ALWAYS: `subprocess.run([binary, arg1], shell=False)`
-
-**CWE-79: XSS**
-- NEVER: `element.innerHTML = userInput`
-- ALWAYS: `element.textContent = userInput`
+- Do not: `os.system(user_input)` or `subprocess.run(cmd, shell=True)`
+- Instead: `subprocess.run([binary, arg1], shell=False)`
 ```
 
 ### For Non-Technical Skills
 
-```markdown
-### 0.2 Risk Level: [LEVEL]
+Omit Section 0.2 entirely — the shared preamble handles verification.
 
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
-```
-
----
-
-## 5. Researching Security Patterns
-
-### Hybrid Approach (Recommended)
-
-**For well-known technologies** (Python, JS, Bash, Rust, SQL):
-- Use established CWE patterns from training knowledge
-- These are timeless vulnerability classes, not specific CVEs
-- Focus on 3-5 most critical patterns per technology
-
-**For niche technologies** (Kanidm, SurrealDB, Cilium, etc.):
-- Web search for security advisories and CVEs
-- Check: GitHub Security Advisories, OSV.dev, CISA KEV
-- Look for documented attack patterns in official docs
-
-### Research Checklist
-
-1. **Search for CVEs**: `"[technology] CVE site:github.com/advisories"`
-2. **Check official security docs**: `[technology] security best practices`
-3. **Find injection patterns**: `"[technology] injection" OR "[technology] security vulnerability"`
-4. **Look for OWASP mappings**: `OWASP [technology]`
-
-### Common CWE Categories by Technology Type
+### Common CWE Categories
 
 | Tech Type | Primary CWEs |
 |-----------|--------------|
@@ -176,133 +111,74 @@ risk_level: [LOW|MEDIUM|HIGH|CRITICAL]
 
 ---
 
-## 6. Creating a New Skill - Workflow
+## 4. Content Trimming Guide
 
-### Step 1: Pre-Creation Research
+### What to include (LLMs won't do this reliably without instruction)
 
-```bash
-# Check for duplicates
-/list-skills
+- **Niche CVE patterns** — version-specific vulnerabilities not reliably in training data
+- **Version-specific API patterns** — e.g., Pydantic v2 `field_validator` vs v1 `validator`
+- **Framework-specific gotchas** — e.g., Celery `accept_content=['pickle']` footgun
+- **CORRECT code examples** — keep short, trim verbose inline comments
+- **Version requirements** — prevents recommending outdated versions
 
-# Determine category
-Is this Technical or Non-Technical?
+### What to omit (LLMs already know this)
+
+- Generic security prose ("SQL injection is a vulnerability where...")
+- Obvious WRONG patterns every LLM avoids (`hashlib.md5(password)`, `os.system(f"ping {host}")`)
+- Full implementation classes (move to `references/` subdirectory)
+- Full pytest test classes (describe what to test in bullet points)
+- Generic checklist items ("secrets from environment", "debug disabled")
+- Passive documentation that describes rather than instructs
+
+### Where removed code goes
+
+Large code examples belong in `references/` subdirectory, not system prompts:
+
 ```
-
-### Step 2: Create Directory
-
-```bash
-mkdir -p ~/.claude/skills/[skill-name]
-```
-
-### Step 3: Write SKILL.md
-
-1. **Frontmatter**: name, version, description (15-25 words), risk_level
-2. **Section 0**: Anti-Hallucination Protocol
-   - 0.1: Mandatory Verification
-   - 0.2: Security Patterns (technical) OR Risk Level (non-technical)
-   - 0.3: Risk Level and requirements
-3. **Sections 1-6**: Follow template structure
-
-### Step 4: Research Security Patterns (Technical Skills)
-
-```markdown
-For [technology]:
-1. What are the common injection vectors?
-2. What authentication/authorization issues exist?
-3. What data exposure risks exist?
-4. What resource exhaustion attacks are possible?
-```
-
-### Step 5: Write CWE Patterns
-
-For each vulnerability found:
-
-```markdown
-**CWE-XXX: [Vulnerability Name]**
-- NEVER: `[bad code pattern]`
-- ALWAYS: `[good code pattern]`
-```
-
-### Step 6: Test the Skill
-
-```bash
-# Invoke the skill
-/[skill-name]
-
-# Verify it loads and patterns are actionable
+.dev-aid/skills/expert/<skill-name>/
+├── SKILL.md          # Trimmed (instructions only, 300-500 lines)
+└── references/       # Full code examples for humans/APO
 ```
 
 ---
 
-## 7. Anti-Patterns in Skill Writing
+## 5. Anti-Patterns in Skill Writing
 
-**NEVER** write generic research links:
+Do not write generic research links:
 ```markdown
 # ❌ WRONG - not actionable
 ### 0.2 Vulnerability Research
 Check these sources: GHSA, OSV, CISA KEV
 
 # ✅ CORRECT - actionable patterns
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 **CWE-89: SQL Injection**
-- NEVER: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
-- ALWAYS: `db.execute("SELECT * FROM users WHERE id = ?", [id])`
+- Do not: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
+- Instead: `db.execute("SELECT * FROM users WHERE id = ?", [id])`
 ```
 
-**NEVER** write passive documentation:
+Do not write passive documentation:
 ```markdown
 # ❌ WRONG - describes, doesn't instruct
 SQL injection is a vulnerability where attackers can execute
 malicious SQL code. It's important to use parameterized queries.
 
 # ✅ CORRECT - actionable rule
-**NEVER** use f-strings in SQL (CWE-89):
-```python
-# ❌ WRONG
-query = f"SELECT * FROM users WHERE id = {user_id}"
-
-# ✅ CORRECT
-cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-```
-```
-
-**NEVER** forget the WHY (CWE reference):
-```markdown
-# ❌ WRONG - no justification
-Don't use eval().
-
-# ✅ CORRECT - references vulnerability
-**NEVER** use `eval()` with external data (CWE-94):
+Do not use f-strings in SQL (CWE-89):
+- WRONG: `query = f"SELECT * FROM users WHERE id = {user_id}"`
+- CORRECT: `cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))`
 ```
 
 ---
 
-## 8. Checklist for New Skills
+## 6. Checklist for New Skills
 
-### Structure
-- [ ] Has frontmatter with name, version, description, risk_level
-- [ ] Description is 15-25 words (visible in /list-skills)
-- [ ] Section 0 (Anti-Hallucination) is present
-- [ ] Section 0.2 has CWE patterns (technical) or Risk Level (non-technical)
-
-### Content Quality
-- [ ] All rules are WHEN/NEVER/ALWAYS format
-- [ ] All bad patterns have ❌ WRONG example
-- [ ] All good patterns have ✅ CORRECT example
-- [ ] CWE references on security patterns
+- [ ] Frontmatter: name, version, description (15-25 words), risk_level, token_budget
+- [ ] Section 0.2 has CWE patterns (technical) or is omitted (non-technical)
+- [ ] No Section 0.1/0.3 (handled by shared preamble)
+- [ ] All rules use WHEN/Do not/Instead format with code examples
+- [ ] Skill is 300-500 lines (not 600+)
+- [ ] Section 3 has max 3 code examples (extras in `references/`)
+- [ ] Section 6 has max 5 domain-specific checklist items
 - [ ] No passive documentation, only actionable rules
-
-### Security (Technical Skills)
-- [ ] 3-5 CWE patterns in Section 0.2
-- [ ] Patterns are technology-specific (not generic)
-- [ ] Patterns researched from CVEs/advisories (niche tech)
-- [ ] Patterns from training knowledge (well-known tech)
-
-### Final
-- [ ] Skill invocable via `/[skill-name]`
-- [ ] No similar/duplicate skill exists
-- [ ] Follows 6-section structure after Section 0
-
----
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.
+- [ ] No generic advice LLMs already know

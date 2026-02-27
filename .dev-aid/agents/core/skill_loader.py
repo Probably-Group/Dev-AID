@@ -13,6 +13,16 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+# Shared preamble injected once at the top of combined system prompts,
+# instead of repeating Section 0.1/0.3 in every SKILL.md file.
+SHARED_PREAMBLE = (
+    "Before generating code or guidance: verify patterns exist in official docs, "
+    "check version compatibility, never invent method names or parameters. "
+    "If unsure, state uncertainty explicitly.\n\n"
+    "For HIGH/CRITICAL risk skills: test all generated code before presenting, "
+    "include error handling for edge cases, validate security implications."
+)
+
 # Try to use PyYAML for robust parsing, fall back to custom parser
 try:
     import yaml as _yaml  # type: ignore[import-untyped]
@@ -51,6 +61,51 @@ class LoadedSkill:
     metadata: SkillMetadata
     body: str  # Markdown content after frontmatter
     source_path: Path = field(default_factory=lambda: Path("."))
+    sections: Dict[str, str] = field(default_factory=dict)
+
+
+# Section priority for budget-aware loading (lower number = higher priority).
+# Maps section heading patterns to priority tier.
+SECTION_PRIORITY: List[tuple] = [
+    (re.compile(r"^## 0"), 0),  # Anti-hallucination / security patterns
+    (re.compile(r"^## 1"), 1),  # Principles
+    (re.compile(r"^## 2"), 2),  # Version requirements
+    (re.compile(r"^## 3"), 3),  # Code patterns
+    (re.compile(r"^## 4"), 4),  # Anti-patterns
+    (re.compile(r"^## 5"), 5),  # Testing
+    (re.compile(r"^## 6"), 6),  # Checklists
+]
+
+
+def _parse_sections(body: str) -> Dict[str, str]:
+    """Split skill body into sections keyed by ## header text."""
+    sections: Dict[str, str] = {}
+    current_header: Optional[str] = None
+    current_lines: List[str] = []
+
+    for line in body.split("\n"):
+        if line.startswith("## "):
+            # Flush previous section
+            if current_header is not None:
+                sections[current_header] = "\n".join(current_lines).strip()
+            current_header = line.strip()
+            current_lines = []
+        else:
+            current_lines.append(line)
+
+    # Flush last section
+    if current_header is not None:
+        sections[current_header] = "\n".join(current_lines).strip()
+
+    return sections
+
+
+def _section_priority(header: str) -> int:
+    """Return the priority tier for a section header (lower = higher priority)."""
+    for pattern, priority in SECTION_PRIORITY:
+        if pattern.match(header):
+            return priority
+    return 99  # Unknown sections get lowest priority
 
 
 def _parse_yaml_value(value: str) -> Any:
@@ -165,7 +220,9 @@ def parse_skill_file(path: Path) -> LoadedSkill:
         raw=raw,
     )
 
-    return LoadedSkill(metadata=metadata, body=body, source_path=path)
+    sections = _parse_sections(body)
+
+    return LoadedSkill(metadata=metadata, body=body, source_path=path, sections=sections)
 
 
 class SkillLoader:
@@ -219,12 +276,16 @@ class SkillLoader:
         return loaded
 
     def build_system_prompt(self, skill_names: List[str]) -> str:
-        """Build a combined system prompt from multiple skills."""
+        """Build a combined system prompt from multiple skills.
+
+        Injects the shared preamble once at the top, then appends
+        each skill's unique body content.
+        """
         skills = self.load_skills(skill_names)
         if not skills:
             return ""
 
-        sections: List[str] = []
+        sections: List[str] = [SHARED_PREAMBLE]
         for skill in skills:
             header = f"## Skill: {skill.metadata.name}"
             if skill.metadata.description:
@@ -232,3 +293,81 @@ class SkillLoader:
             sections.append(f"{header}\n\n{skill.body}")
 
         return "\n\n---\n\n".join(sections)
+
+    def build_system_prompt_with_budget(
+        self,
+        skill_names: List[str],
+        max_tokens: int = 16000,
+    ) -> str:
+        """Build a system prompt that fits within a token budget.
+
+        Loads sections in priority order (security > principles > code patterns
+        > testing > checklists) until the budget is exhausted. The shared
+        preamble is always included.
+
+        Args:
+            skill_names: Skill names to load.
+            max_tokens: Maximum estimated token budget for the combined prompt.
+
+        Returns:
+            Combined system prompt within the budget.
+        """
+        skills = self.load_skills(skill_names)
+        if not skills:
+            return ""
+
+        preamble_tokens = len(SHARED_PREAMBLE) // 4
+        remaining = max_tokens - preamble_tokens
+
+        # Collect all (priority, header, content, skill_name) tuples
+        candidates: List[tuple] = []
+        for skill in skills:
+            # Title header is always included
+            header_text = f"## Skill: {skill.metadata.name}"
+            if skill.metadata.description:
+                header_text += f"\n*{skill.metadata.description}*"
+
+            # If skill has no parsed sections, include full body
+            if not skill.sections:
+                candidates.append((0, header_text, skill.body, skill.metadata.name))
+                continue
+
+            # Add title header as priority 0
+            candidates.append((-1, header_text, "", skill.metadata.name))
+
+            # Add each section with its priority
+            for section_header, section_body in skill.sections.items():
+                priority = _section_priority(section_header)
+                full_section = f"{section_header}\n\n{section_body}"
+                candidates.append(
+                    (priority, section_header, full_section, skill.metadata.name)
+                )
+
+        # Sort by priority (headers first, then sections by priority)
+        candidates.sort(key=lambda c: c[0])
+
+        # Greedily add sections within budget
+        parts: List[str] = [SHARED_PREAMBLE]
+        included_by_skill: Dict[str, List[str]] = {}
+        for _priority, header, content, skill_name in candidates:
+            if not content and header:
+                # This is a skill title header — always include
+                parts.append(header)
+                continue
+
+            tokens = len(content) // 4
+            if tokens <= remaining:
+                parts.append(content)
+                remaining -= tokens
+                included_by_skill.setdefault(skill_name, []).append(header)
+            else:
+                logger.info(
+                    "Budget exceeded: skipping section '%s' from '%s' "
+                    "(%d tokens, %d remaining)",
+                    header,
+                    skill_name,
+                    tokens,
+                    remaining,
+                )
+
+        return "\n\n---\n\n".join(parts)

@@ -4,48 +4,33 @@ version: 2.0.0
 description: "Tauri 2.0 desktop app development with Rust backend, IPC patterns, plugin system, and native OS integration. Use when building Tauri apps, configuring IPC commands, or integrating native features. Do NOT use for Electron or web-only applications."
 compatibility: "Rust 1.70+, Tauri 2.0+, Node.js 18+"
 risk_level: HIGH
+token_budget: 3000
 ---
-
 # Tauri Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-78: Command Injection via IPC**
-- NEVER: Execute shell commands with frontend-provided strings
-- ALWAYS: Whitelist commands, validate all IPC arguments in Rust
+- Do not: Execute shell commands with frontend-provided strings
+- Instead: Whitelist commands, validate all IPC arguments in Rust
 
 **CWE-22: Path Traversal**
-- NEVER: `fs::read(frontend_provided_path)` without validation
-- ALWAYS: Use `tauri::api::path` scopes, validate paths are within allowed directories
+- Do not: `fs::read(frontend_provided_path)` without validation
+- Instead: Use `tauri::api::path` scopes, validate paths are within allowed directories
 
 **CWE-79: XSS in WebView**
-- NEVER: `window.__TAURI__.invoke` results directly into innerHTML
-- ALWAYS: Sanitize any data displayed, use CSP headers
+- Do not: `window.__TAURI__.invoke` results directly into innerHTML
+- Instead: Sanitize any data displayed, use CSP headers
 
 **CWE-200: IPC Data Exposure**
-- NEVER: Send sensitive data (tokens, keys) to frontend
-- ALWAYS: Keep secrets in Rust backend, use secure storage APIs
+- Do not: Send sensitive data (tokens, keys) to frontend
+- Instead: Keep secrets in Rust backend, use secure storage APIs
 
 **CWE-306: Missing IPC Authentication**
-- NEVER: Allow all IPC commands without origin check
-- ALWAYS: Use `tauri.conf.json` security settings, validate window origin
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Allow all IPC commands without origin check
+- Instead: Use `tauri.conf.json` security settings, validate window origin
 
 ---
 
@@ -204,7 +189,7 @@ fn store_api_key(service: String, key: String) -> Result<(), String> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 [dependencies]
@@ -385,7 +370,7 @@ async fn open_file_dialog(app: tauri::AppHandle) -> Result<Option<String>, Strin
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Pass shell commands from frontend to backend
 - Trust frontend input without validation
 - Expose internal error details to frontend
@@ -397,7 +382,7 @@ async fn open_file_dialog(app: tauri::AppHandle) -> Result<Option<String>, Strin
 
 ## 5. Testing
 
-**ALWAYS write security tests:**
+Write security tests:
 
 ```rust
 #[cfg(test)]
@@ -407,58 +392,14 @@ mod tests {
     #[test]
     fn test_path_traversal_blocked() {
         let attacks = [
-            "../../../etc/passwd",
-            "..\\..\\windows\\system32",
-            "foo/../../etc/passwd",
-            "/etc/passwd",
-        ];
-
-        for attack in attacks {
-            let result = validate_path(attack);
-            assert!(result.is_err(), "Path traversal not blocked: {}", attack);
-        }
-    }
-
-    #[test]
-    fn test_command_injection_blocked() {
-        let attacks = [
-            "; rm -rf /",
-            "| cat /etc/passwd",
-            "$(whoami)",
-            "`id`",
-        ];
-
-        for attack in attacks {
-            let input = SaveFileInput {
-                filename: attack.to_string(),
-                content: "test".to_string(),
-            };
-            assert!(input.validate().is_err());
-        }
-    }
-
-    #[test]
-    fn test_input_validation() {
-        let valid = CreateItemInput {
-            name: "test".to_string(),
-            quantity: 10,
-        };
-        assert!(valid.validate().is_ok());
-
-        let invalid = CreateItemInput {
-            name: "".to_string(),  // Too short
-            quantity: 10000,       // Too large
-        };
-        assert!(invalid.validate().is_err());
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Tauri code:**
+Before generating any Tauri code:
 
 - [ ] Commands validate all input at boundary (validator crate)
 - [ ] Paths canonicalized and containment verified (dunce crate)
@@ -472,5 +413,3 @@ mod tests {
 - [ ] Tests cover path traversal and input validation
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

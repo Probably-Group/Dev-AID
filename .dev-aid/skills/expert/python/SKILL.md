@@ -4,48 +4,33 @@ version: 2.0.0
 description: "Python backend service development with type hints, async programming, packaging, and secure coding practices. Use when writing Python modules, designing async services, configuring logging, or implementing CLI tools with Python. Do NOT use for FastAPI-specific patterns (use fastapi-expert) or Django framework development."
 compatibility: "Python 3.11+"
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # Python Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89: SQL Injection**
-- NEVER: `f"SELECT * FROM users WHERE id = {user_id}"` or `.format()`
-- ALWAYS: Parameterized queries or ORM methods
+- Do not: `f"SELECT * FROM users WHERE id = {user_id}"` or `.format()`
+- Instead: Parameterized queries or ORM methods
 
 **CWE-78: OS Command Injection**
-- NEVER: `os.system(user_input)` or `subprocess.run(cmd, shell=True)` with user data
-- ALWAYS: `subprocess.run([binary, arg1, arg2], shell=False)` with validated args
+- Do not: `os.system(user_input)` or `subprocess.run(cmd, shell=True)` with user data
+- Instead: `subprocess.run([binary, arg1, arg2], shell=False)` with validated args
 
 **CWE-22: Path Traversal**
-- NEVER: `open(user_provided_path)` without validation
-- ALWAYS: Use `pathlib`, resolve paths, verify within allowed directory
+- Do not: `open(user_provided_path)` without validation
+- Instead: Use `pathlib`, resolve paths, verify within allowed directory
 
 **CWE-502: Insecure Deserialization**
-- NEVER: `pickle.loads(user_data)` or `yaml.load(data, Loader=yaml.Loader)`
-- ALWAYS: `yaml.safe_load()`, validate JSON schema, avoid pickle with untrusted data
+- Do not: `pickle.loads(user_data)` or `yaml.load(data, Loader=yaml.Loader)`
+- Instead: `yaml.safe_load()`, validate JSON schema, avoid pickle with untrusted data
 
 **CWE-798: Hardcoded Credentials**
-- NEVER: `password = "secret123"` in code
-- ALWAYS: Environment variables, secrets manager, never commit secrets
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `password = "secret123"` in code
+- Instead: Environment variables, secrets manager, never commit secrets
 
 ---
 
@@ -273,7 +258,7 @@ user_id = validated.user_id  # Now validated
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 ```
 python>=3.12.8          # CVE-2024-12718 tarfile bypass, CVE-2024-12254 asyncio
 pydantic>=2.5.0         # Validation
@@ -476,7 +461,7 @@ result = ast.literal_eval(user_input)  # Only parses literals
 
 ## 5. Testing
 
-**ALWAYS write security tests:**
+Write security tests:
 ```python
 import pytest
 
@@ -485,28 +470,7 @@ class TestSecurityPatterns:
         service = UserService(db_session)
         # These should not cause errors or return unexpected results
         payloads = ["'; DROP TABLE users; --", "' OR '1'='1", "admin'--"]
-        for payload in payloads:
-            result = service.get_user_by_username(payload)
-            assert result is None
-
-    def test_path_traversal_blocked(self):
-        attacks = ["../etc/passwd", "..\\..\\etc\\passwd", "foo/../../etc/passwd"]
-        for attack in attacks:
-            with pytest.raises(ValueError, match="traversal"):
-                safe_read_file(attack)
-
-    def test_command_injection_blocked(self):
-        attacks = ["; rm -rf /", "| cat /etc/passwd", "$(whoami)"]
-        for attack in attacks:
-            with pytest.raises(ValueError):
-                run_command("ls", [attack])
-
-    def test_deserialization_uses_json_not_pickle(self):
-        # Verify pickle is not used for untrusted data
-        import pickle
-        malicious = pickle.dumps({"__reduce__": (os.system, ("whoami",))})
-        with pytest.raises(Exception):  # Should fail, not execute
-            process_untrusted_data(malicious)
+# ... (additional test cases follow same pattern)
 ```
 
 **Test coverage requirements:**
@@ -520,7 +484,7 @@ class TestSecurityPatterns:
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Python code:**
+Before generating any Python code:
 
 - [ ] Data ≠ Code: No f-strings in SQL/commands/eval
 - [ ] Input validation: All external input through Pydantic
@@ -534,5 +498,3 @@ class TestSecurityPatterns:
 - [ ] Error handling: Fail closed, no internals in messages
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

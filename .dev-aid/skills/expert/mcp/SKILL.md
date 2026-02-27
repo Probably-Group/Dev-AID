@@ -3,40 +3,25 @@ name: mcp
 version: 2.0.0
 description: "Model Context Protocol server implementation for extending Claude with custom tools, resources, and prompts. Use when building MCP servers, MCP tools, or resource providers. Do NOT use for general API design (use api-expert)."
 risk_level: HIGH
+token_budget: 4500
 ---
-
 # Model Context Protocol (MCP) - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-78: Tool Command Injection**
-- NEVER: Pass user input directly to shell tools
-- ALWAYS: Validate/sanitize all tool parameters
+- Do not: Pass user input directly to shell tools
+- Instead: Validate/sanitize all tool parameters
 
 **CWE-285: Resource Authorization**
-- NEVER: Expose resources without access control
-- ALWAYS: Scope resources to user context, validate permissions
+- Do not: Expose resources without access control
+- Instead: Scope resources to user context, validate permissions
 
 **CWE-200: Context Exposure**
-- NEVER: Include secrets in tool responses
-- ALWAYS: Filter sensitive data from responses
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Include secrets in tool responses
+- Instead: Filter sensitive data from responses
 
 ---
 
@@ -129,7 +114,7 @@ server.tool("connect", async ({ url }) => {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -699,7 +684,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Execute arbitrary commands from tool arguments
 - Allow path traversal in file operations
 - Expose secrets in tool responses or errors
@@ -722,78 +707,14 @@ import { createServer } from "./server.js";
 
 describe("MCP Server", () => {
   let client: Client;
-  let cleanup: () => Promise<void>;
-
-  beforeAll(async () => {
-    const server = createServer();
-    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
-
-    client = new Client({ name: "test", version: "1.0.0" }, {});
-    await Promise.all([
-      client.connect(clientTransport),
-      server.connect(serverTransport),
-    ]);
-
-    cleanup = async () => {
-      await client.close();
-    };
-  });
-
-  afterAll(async () => {
-    await cleanup();
-  });
-
-  it("lists available tools", async () => {
-    const result = await client.listTools();
-    expect(result.tools).toContainEqual(
-      expect.objectContaining({ name: "search" })
-    );
-  });
-
-  it("executes search tool", async () => {
-    const result = await client.callTool({
-      name: "search",
-      arguments: { query: "test", limit: 5 },
-    });
-
-    expect(result.content).toHaveLength(1);
-    expect(result.content[0].type).toBe("text");
-  });
-
-  it("rejects invalid tool arguments", async () => {
-    await expect(
-      client.callTool({
-        name: "search",
-        arguments: { query: "" }, // Empty query
-      })
-    ).rejects.toThrow(/invalid/i);
-  });
-
-  it("prevents path traversal", async () => {
-    await expect(
-      client.callTool({
-        name: "read_file",
-        arguments: { path: "../../../etc/passwd" },
-      })
-    ).rejects.toThrow(/traversal|denied/i);
-  });
-
-  it("handles unknown tools", async () => {
-    await expect(
-      client.callTool({
-        name: "unknown_tool",
-        arguments: {},
-      })
-    ).rejects.toThrow(/unknown/i);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any MCP code:**
+Before generating any MCP code:
 
 - [ ] All tool inputs validated with Zod schemas
 - [ ] Path operations prevent traversal attacks
@@ -807,5 +728,3 @@ describe("MCP Server", () => {
 - [ ] Tool descriptions accurate and complete
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

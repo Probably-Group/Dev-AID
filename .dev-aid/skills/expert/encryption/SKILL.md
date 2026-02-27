@@ -3,48 +3,33 @@ name: encryption
 version: 2.0.0
 description: "Cryptography patterns for encryption, key management, secure key derivation, TLS, and certificate handling. Use when implementing encryption, managing keys, configuring TLS certificates, or choosing cryptographic algorithms. Do NOT use for general authentication patterns (use appsec-expert or kanidm-expert)."
 risk_level: CRITICAL
+token_budget: 3500
 ---
-
 # Encryption Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-327: Broken Crypto**
-- NEVER: MD5, SHA1 for security, DES, RC4, ECB mode
-- ALWAYS: SHA-256+, AES-256-GCM, ChaCha20-Poly1305
+- Do not: MD5, SHA1 for security, DES, RC4, ECB mode
+- Instead: SHA-256+, AES-256-GCM, ChaCha20-Poly1305
 
 **CWE-321: Hardcoded Keys**
-- NEVER: Encryption keys in source code
-- ALWAYS: Key management service, HSM, secure key derivation
+- Do not: Encryption keys in source code
+- Instead: Key management service, HSM, secure key derivation
 
 **CWE-328: Weak KDF**
-- NEVER: Single SHA256(password) for key derivation
-- ALWAYS: Argon2id, PBKDF2 (100k+ iterations), scrypt
+- Do not: Single SHA256(password) for key derivation
+- Instead: Argon2id, PBKDF2 (100k+ iterations), scrypt
 
 **CWE-329: Missing IV/Nonce**
-- NEVER: Reuse IV/nonce with same key
-- ALWAYS: Random IV per encryption, store IV with ciphertext
+- Do not: Reuse IV/nonce with same key
+- Instead: Random IV per encryption, store IV with ciphertext
 
 **CWE-347: Missing Signature Verification**
-- NEVER: Trust encrypted data without authentication
-- ALWAYS: Use AEAD (GCM, Poly1305) or encrypt-then-MAC
-
-### 0.3 Risk Level: CRITICAL
-
-**Verification requirements for CRITICAL risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Trust encrypted data without authentication
+- Instead: Use AEAD (GCM, Poly1305) or encrypt-then-MAC
 
 ---
 
@@ -193,7 +178,7 @@ if hmac.compare_digest(user_token, stored_token):
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```
 # Python
@@ -452,7 +437,7 @@ class KeyRotatingEncryption:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use MD5, SHA1, or unsalted SHA256 for passwords
 - Use ECB mode for any encryption
 - Use DES, 3DES, RC4, or Blowfish
@@ -467,7 +452,7 @@ class KeyRotatingEncryption:
 
 ## 5. Testing
 
-**ALWAYS write security tests:**
+Write security tests:
 
 ```python
 import pytest
@@ -477,64 +462,14 @@ def test_encryption_roundtrip():
     """Verify encrypt/decrypt returns original data."""
     storage = EncryptedStorage("test-password")
     plaintext = b"secret message"
-
-    encrypted = storage.encrypt(plaintext)
-    decrypted = storage.decrypt(encrypted)
-
-    assert decrypted == plaintext
-
-def test_different_ciphertext_each_time():
-    """Verify random nonce produces different ciphertext."""
-    storage = EncryptedStorage("test-password")
-    plaintext = b"same message"
-
-    ct1 = storage.encrypt(plaintext)
-    ct2 = storage.encrypt(plaintext)
-
-    assert ct1 != ct2  # Different nonces
-
-def test_tampered_ciphertext_rejected():
-    """Verify authentication detects tampering."""
-    storage = EncryptedStorage("test-password")
-    encrypted = storage.encrypt(b"secret")
-
-    # Tamper with ciphertext
-    tampered = bytearray(encrypted)
-    tampered[-1] ^= 0xFF
-
-    with pytest.raises(Exception):  # InvalidTag
-        storage.decrypt(bytes(tampered))
-
-def test_wrong_password_fails():
-    """Verify wrong password cannot decrypt."""
-    storage1 = EncryptedStorage("password1")
-    storage2 = EncryptedStorage("password2")
-
-    encrypted = storage1.encrypt(b"secret")
-
-    with pytest.raises(Exception):
-        storage2.decrypt(encrypted)
-
-def test_password_hash_not_reversible():
-    """Verify password hashes are one-way."""
-    from argon2 import PasswordHasher
-    ph = PasswordHasher()
-
-    hash1 = ph.hash("password123")
-    hash2 = ph.hash("password123")
-
-    # Same password, different hashes (random salt)
-    assert hash1 != hash2
-    # Both verify correctly
-    assert ph.verify(hash1, "password123")
-    assert ph.verify(hash2, "password123")
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any cryptographic code:**
+Before generating any cryptographic code:
 
 - [ ] Using AES-256-GCM or ChaCha20-Poly1305 (authenticated encryption)
 - [ ] Using Argon2id for password hashing
@@ -548,5 +483,3 @@ def test_password_hash_not_reversible():
 - [ ] Minimum key sizes: AES-256, RSA-3072, Ed25519
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

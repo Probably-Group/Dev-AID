@@ -3,26 +3,9 @@ name: motion-design
 version: 2.0.0
 description: "Motion design principles for UI animations, transitions, easing curves, and micro-interactions. Use when planning animation strategies, choosing easing curves, or designing transition choreography. Do NOT use for GSAP-specific implementation (use gsap)."
 risk_level: LOW
+token_budget: 3000
 ---
-
 # Motion Design - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -495,7 +478,7 @@ function createMagneticEffect(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Animate `left`/`top`/`width`/`height` when transform works
 - Ignore `prefers-reduced-motion` media query
 - Create unbounded animation loops without kill conditions
@@ -516,75 +499,14 @@ describe('Motion Design Patterns', () => {
   beforeEach(() => {
     // Reset GSAP
     gsap.killTweensOf('*');
-  });
-
-  it('respects prefers-reduced-motion', () => {
-    // Mock reduced motion preference
-    window.matchMedia = vi.fn().mockImplementation(query => ({
-      matches: query === '(prefers-reduced-motion: reduce)',
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    }));
-
-    const element = document.createElement('div');
-    animate(element);
-
-    // Should use gsap.set instead of gsap.to
-    expect(gsap.getTweensOf(element)).toHaveLength(0);
-  });
-
-  it('cleans up event listeners on unmount', () => {
-    const button = document.createElement('button');
-    const removeEventListenerSpy = vi.spyOn(button, 'removeEventListener');
-
-    const cleanup = createPressEffect(button);
-    cleanup();
-
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerdown', expect.any(Function));
-    expect(removeEventListenerSpy).toHaveBeenCalledWith('pointerup', expect.any(Function));
-  });
-
-  it('limits concurrent animations', () => {
-    const items = Array.from({ length: 100 }, () => document.createElement('div'));
-
-    // Should batch/limit animations
-    createScrollReveal(items);
-
-    // Verify stagger is applied, not 100 simultaneous
-    const tweens = gsap.getTweensOf(items);
-    expect(tweens.length).toBeLessThanOrEqual(100);
-  });
-
-  it('timeline can be reversed', async () => {
-    const modal = document.createElement('div');
-    modal.innerHTML = '<div class="overlay"></div><div class="content"></div>';
-    document.body.appendChild(modal);
-
-    const anim = createModalAnimation(modal);
-
-    // Play forward
-    anim.play();
-    await anim.then();
-
-    // Reverse
-    anim.reverse();
-    await anim.then();
-
-    // Overlay should be hidden
-    const overlay = modal.querySelector('.overlay') as HTMLElement;
-    expect(gsap.getProperty(overlay, 'opacity')).toBe(0);
-
-    document.body.removeChild(modal);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating animation code:**
+Before generating animation code:
 
 - [ ] Reduced motion: `prefers-reduced-motion` check implemented
 - [ ] GPU properties: Using transform/opacity over layout properties
@@ -597,5 +519,3 @@ describe('Motion Design Patterns', () => {
 - [ ] Seizure safety: No flashing > 3Hz
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

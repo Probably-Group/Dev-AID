@@ -3,36 +3,21 @@ name: wake-word-detection
 version: 2.0.0
 description: "Wake word detection with openWakeWord for local keyword spotting and voice-activated triggers. Use when implementing wake words, keyword detection, or always-on listening. Do NOT use for full voice assistants or cloud wake word services."
 risk_level: MEDIUM
+token_budget: 4500
 ---
-
 # Wake Word Detection - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-200: Always-On Listening Privacy**
-- NEVER: Process/store audio beyond wake word detection
-- ALWAYS: Local-only processing, clear privacy indicators
+- Do not: Process/store audio beyond wake word detection
+- Instead: Local-only processing, clear privacy indicators
 
 **CWE-287: Wake Word Spoofing**
-- NEVER: Single wake word as authentication
-- ALWAYS: Wake word triggers auth flow, not direct actions
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Single wake word as authentication
+- Instead: Wake word triggers auth flow, not direct actions
 
 ---
 
@@ -569,7 +554,7 @@ def validate_training_data(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Store raw audio longer than necessary (privacy risk)
 - Load model files without integrity verification
 - Process audio without resource limits (DoS risk)
@@ -590,93 +575,14 @@ from wake_word_detection import (
     WakeWordConfig,
     SecureAudioBuffer,
     PrivacyConfig,
-)
-
-class TestSecureAudioBuffer:
-
-    def test_secure_wipe_clears_data(self):
-        """Buffer should overwrite data before clearing."""
-        config = PrivacyConfig(secure_wipe=True)
-        buffer = SecureAudioBuffer(16000, config)
-
-        # Add some data
-        original = np.array([0.5, 0.6, 0.7], dtype=np.float32)
-        buffer.add(original)
-
-        # Store reference to internal buffer
-        internal_data = list(buffer._buffer)
-
-        # Clear with secure wipe
-        buffer.clear()
-
-        # Original values should be overwritten
-        assert len(buffer._buffer) == 0
-
-    def test_max_buffer_size_enforced(self):
-        """Buffer should not exceed max size."""
-        config = PrivacyConfig(max_buffer_seconds=0.1)  # 0.1s = 1600 samples
-        buffer = SecureAudioBuffer(16000, config)
-
-        # Add more than max
-        buffer.add(np.zeros(5000, dtype=np.float32))
-
-        # Should be capped
-        assert len(buffer.get_audio()) <= 1600
-
-class TestWakeWordDetector:
-
-    @pytest.fixture
-    def detector(self):
-        config = WakeWordConfig(
-            model_names=["alexa"],
-            threshold=0.5,
-            trigger_level=3,
-        )
-        return OpenWakeWordDetector(config)
-
-    def test_requires_consecutive_detections(self, detector):
-        """Should only trigger after trigger_level consecutive detections."""
-        # Mock high-confidence audio (would be actual wake word)
-        high_score_audio = np.random.randn(1280).astype(np.float32)
-
-        # First two should not trigger
-        results1 = detector.process(high_score_audio)
-        results2 = detector.process(high_score_audio)
-
-        # Note: In real test, mock the model to return high scores
-        # This is demonstrating the pattern
-
-    def test_reset_clears_state(self, detector):
-        """Reset should clear detection counts."""
-        detector._detection_counts["alexa"] = 2
-        detector.reset()
-        assert detector._detection_counts["alexa"] == 0
-
-class TestCooldown:
-
-    def test_cooldown_prevents_rapid_triggers(self):
-        """Should not trigger twice within cooldown period."""
-        events = []
-
-        listener = WakeWordListener(
-            detector=mock_detector,
-            cooldown_seconds=2.0,
-        )
-        listener.on_detection(events.append)
-
-        # Simulate two quick detections
-        listener._last_detection = time.time() - 1.0  # 1s ago
-        listener.process_audio(wake_word_audio)
-
-        # Should not trigger (still in cooldown)
-        assert len(events) == 0
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating wake word detection code:**
+Before generating wake word detection code:
 
 - [ ] Privacy: Audio buffer has max duration, secure wipe
 - [ ] Model integrity: SHA256 verification before loading
@@ -688,5 +594,3 @@ class TestCooldown:
 - [ ] Testing: Mock models for unit tests
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

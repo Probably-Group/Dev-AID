@@ -3,36 +3,21 @@ name: text-to-speech
 version: 2.0.0
 description: "Text-to-speech with Kokoro TTS for local voice synthesis, SSML processing, and audio generation. Use when implementing voice output, speech synthesis, or TTS pipelines. Do NOT use for cloud TTS APIs (use cloud-api-integration)."
 risk_level: MEDIUM
+token_budget: 4000
 ---
-
 # Text To Speech - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: SSML Injection**
-- NEVER: `<speak>${userText}</speak>` without escaping
-- ALWAYS: Escape SSML special characters, validate SSML structure
+- Do not: `<speak>${userText}</speak>` without escaping
+- Instead: Escape SSML special characters, validate SSML structure
 
 **CWE-200: Voice Cloning Consent**
-- NEVER: Clone voices without explicit consent
-- ALWAYS: Consent for custom voices, watermarking if applicable
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Clone voices without explicit consent
+- Instead: Consent for custom voices, watermarking if applicable
 
 ---
 
@@ -519,7 +504,7 @@ class VoiceRegistry:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Load TTS model per request (use singleton pool)
 - Synthesize unsanitized user input
 - Block main thread during synthesis
@@ -540,91 +525,14 @@ from text_to_speech import (
     sanitize_text,
     validate_audio,
     TTSModelPool,
-    ModelConfig,
-    KokoroSynthesizer,
-    VoiceConfig,
-)
-
-class TestTextSanitization:
-
-    def test_removes_control_characters(self):
-        """Should remove control characters."""
-        text = "Hello\x00World\x1f"
-        result = sanitize_text(text)
-        assert "\x00" not in result
-        assert "\x1f" not in result
-
-    def test_limits_length(self):
-        """Should truncate long text."""
-        text = "a" * 10000
-        result = sanitize_text(text, TTSConfig(max_length=1000))
-        assert len(result) == 1000
-
-    def test_removes_ssml_tags(self):
-        """Should remove potential SSML injection."""
-        text = "Hello <break time='10s'/> World"
-        result = sanitize_text(text)
-        assert "<" not in result
-
-class TestAudioValidation:
-
-    def test_rejects_empty_audio(self):
-        """Should reject empty arrays."""
-        result = validate_audio(np.array([]), 24000)
-        assert not result.valid
-
-    def test_rejects_nan(self):
-        """Should reject audio with NaN."""
-        audio = np.array([0.1, np.nan, 0.2])
-        result = validate_audio(audio, 24000)
-        assert not result.valid
-
-    def test_rejects_silent_audio(self):
-        """Should reject silent audio."""
-        audio = np.zeros(24000)  # 1 second of silence
-        result = validate_audio(audio, 24000)
-        assert not result.valid
-
-    def test_accepts_valid_audio(self):
-        """Should accept valid audio."""
-        audio = np.sin(2 * np.pi * 440 * np.linspace(0, 1, 24000))
-        audio = audio.astype(np.float32)
-        result = validate_audio(audio, 24000)
-        assert result.valid
-
-class TestSynthesizer:
-
-    @pytest.fixture
-    def model_pool(self):
-        pool = TTSModelPool()
-        pool.initialize(ModelConfig(model_name="kokoro-v0.19"))
-        return pool
-
-    def test_synthesis_produces_audio(self, model_pool):
-        """Should produce valid audio output."""
-        synth = KokoroSynthesizer(model_pool)
-        result = synth.synthesize("Hello world")
-
-        assert result.audio.size > 0
-        assert result.duration_seconds > 0
-        assert result.sample_rate == 24000
-
-    def test_synthesis_to_file(self, model_pool, tmp_path):
-        """Should save audio to file."""
-        synth = KokoroSynthesizer(model_pool)
-        output = tmp_path / "test.wav"
-
-        result = synth.synthesize_to_file("Hello world", output)
-
-        assert output.exists()
-        assert output.stat().st_size > 0
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating TTS code:**
+Before generating TTS code:
 
 - [ ] Input sanitization: Control chars, SSML tags, length limits
 - [ ] Model pooling: Singleton pattern for model management
@@ -636,5 +544,3 @@ class TestSynthesizer:
 - [ ] Streaming support: Non-blocking playback option
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

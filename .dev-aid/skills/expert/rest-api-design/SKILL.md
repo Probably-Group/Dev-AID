@@ -3,44 +3,29 @@ name: rest-api-design
 version: 2.0.0
 description: "RESTful API design patterns with resource modeling, HATEOAS, pagination, versioning, OpenAPI specifications, and proper HTTP semantics. Use when designing REST endpoints, writing OpenAPI specs, implementing pagination strategies, or structuring API resource hierarchies. Do NOT use for GraphQL APIs (use graphql-expert) or gRPC service definitions."
 risk_level: MEDIUM
+token_budget: 4500
 ---
-
 # REST API Design - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-285: IDOR (Insecure Direct Object Reference)**
-- NEVER: `/api/users/123/orders` without verifying user 123 is requester
-- ALWAYS: Check ownership/permissions for every resource access
+- Do not: `/api/users/123/orders` without verifying user 123 is requester
+- Instead: Check ownership/permissions for every resource access
 
 **CWE-359: Mass Assignment**
-- NEVER: `user.update(**request.json())` - updating all fields from input
-- ALWAYS: Whitelist allowed fields, use DTOs/schemas
+- Do not: `user.update(**request.json())` - updating all fields from input
+- Instead: Whitelist allowed fields, use DTOs/schemas
 
 **CWE-204: Information Exposure in Response**
-- NEVER: Return internal IDs, stack traces, or sensitive fields
-- ALWAYS: Explicit response schemas, filter sensitive data
+- Do not: Return internal IDs, stack traces, or sensitive fields
+- Instead: Explicit response schemas, filter sensitive data
 
 **CWE-400: Unbounded Resource Consumption**
-- NEVER: Return unlimited results: `GET /users` returning 1M records
-- ALWAYS: Pagination with max page size, cursor-based for large datasets
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Return unlimited results: `GET /users` returning 1M records
+- Instead: Pagination with max page size, cursor-based for large datasets
 
 ---
 
@@ -715,7 +700,7 @@ paths:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use verbs in resource URLs (`/getUsers`, `/createUser`)
 - Return 200 for all responses (use proper status codes)
 - Return different error shapes
@@ -739,72 +724,14 @@ describe('REST API Contract', () => {
     it('returns paginated list', async () => {
       const response = await fetch('/api/v1/users?page=1&limit=10');
       expect(response.status).toBe(200);
-
-      const body = await response.json();
-      expect(body).toHaveProperty('data');
-      expect(body).toHaveProperty('meta');
-      expect(body.meta).toHaveProperty('page', 1);
-      expect(body.meta).toHaveProperty('limit', 10);
-      expect(body.meta).toHaveProperty('total');
-    });
-
-    it('enforces max limit', async () => {
-      const response = await fetch('/api/v1/users?limit=1000');
-      expect(response.status).toBe(200);
-
-      const body = await response.json();
-      expect(body.meta.limit).toBeLessThanOrEqual(100);
-    });
-  });
-
-  describe('POST /api/v1/users', () => {
-    it('creates user with 201', async () => {
-      const response = await fetch('/api/v1/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: 'test@example.com',
-          name: 'Test User',
-          password: 'securePassword123',
-        }),
-      });
-
-      expect(response.status).toBe(201);
-      expect(response.headers.get('Location')).toMatch(/\/users\/[\w-]+/);
-    });
-
-    it('returns 400 for invalid data', async () => {
-      const response = await fetch('/api/v1/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'invalid' }),
-      });
-
-      expect(response.status).toBe(400);
-      const body = await response.json();
-      expect(body.code).toBe('VALIDATION_ERROR');
-    });
-  });
-
-  describe('DELETE /api/v1/users/{id}', () => {
-    it('returns 204 on success', async () => {
-      const response = await fetch('/api/v1/users/123', { method: 'DELETE' });
-      expect(response.status).toBe(204);
-    });
-
-    it('is idempotent (204 even if not found)', async () => {
-      const response = await fetch('/api/v1/users/nonexistent', { method: 'DELETE' });
-      expect([204, 404]).toContain(response.status);
-    });
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any REST API design:**
+Before generating any REST API design:
 
 - [ ] Authentication required on all endpoints
 - [ ] Authorization checked per resource
@@ -820,5 +747,3 @@ describe('REST API Contract', () => {
 **Templates**: See `assets/` for reusable output templates.
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -4,36 +4,21 @@ version: 2.0.0
 description: "Windows UI Automation with UIA, Win32 API, and accessibility tree navigation for desktop testing and control. Use when automating Windows desktop apps, UIA patterns, or Win32 interactions. Do NOT use for macOS or Linux automation."
 compatibility: "Windows 10+, .NET or Win32 API access"
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # Windows UI Automation - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-284: UIAutomation Permissions**
-- NEVER: Run automation with admin when not needed
-- ALWAYS: Minimum required privileges, UAC awareness
+- Do not: Run automation with admin when not needed
+- Instead: Minimum required privileges, UAC awareness
 
 **CWE-200: Sensitive Data Capture**
-- NEVER: Capture/log password fields
-- ALWAYS: Skip password controls, mask sensitive patterns
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Capture/log password fields
+- Instead: Skip password controls, mask sensitive patterns
 
 ---
 
@@ -504,7 +489,7 @@ fn find_elements(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Automate system security dialogs (UAC, credentials)
 - Skip process validation before sending input
 - Use deprecated mouse_event/keybd_event APIs
@@ -526,59 +511,14 @@ mod tests {
     #[test]
     fn test_blocked_window_classes() {
         let config = ProcessConfig::default();
-
-        // Should block security dialogs
-        assert!(config.blocked_window_classes.contains("UAC"));
-        assert!(config.blocked_window_classes.contains("Windows Security"));
-    }
-
-    #[test]
-    fn test_validate_rejects_blocked_class() {
-        let config = ProcessConfig::default();
-
-        // Create mock HWND for testing
-        // In real tests, use a test window
-        let result = validate_target_class("#32770", &config);
-        assert!(matches!(result, Err(AutomationError::BlockedWindow(_))));
-    }
-
-    #[test]
-    fn test_com_guard_cleanup() {
-        // Verify COM is properly cleaned up
-        {
-            let _guard = ComGuard::new(COINIT_APARTMENTTHREADED).unwrap();
-            // COM initialized
-        }
-        // Guard dropped, COM uninitialized
-
-        // Can initialize again (would fail if not properly cleaned up)
-        let _guard = ComGuard::new(COINIT_APARTMENTTHREADED).unwrap();
-    }
-
-    #[test]
-    fn test_traversal_respects_limits() {
-        let config = TraversalConfig {
-            max_depth: 2,
-            max_elements: 5,
-            timeout: Duration::from_secs(1),
-        };
-
-        // Create deep mock tree
-        let root = create_mock_tree(depth: 10, width: 10);
-
-        let found = find_elements(&root, &any_condition(), &config).unwrap();
-
-        // Should respect limits
-        assert!(found.len() <= config.max_elements);
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Windows UI Automation code:**
+Before generating Windows UI Automation code:
 
 - [ ] Process validation: Allowlist of target executables
 - [ ] Blocked windows: Security dialogs, UAC prompts excluded
@@ -590,5 +530,3 @@ mod tests {
 - [ ] Tree traversal: Depth and element count limits
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

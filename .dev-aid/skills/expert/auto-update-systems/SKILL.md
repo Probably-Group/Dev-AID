@@ -3,40 +3,25 @@ name: auto-update-systems
 version: 2.0.0
 description: "Auto-update implementation with cryptographic signature verification, staged rollouts, delta updates, and rollback capabilities for desktop apps. Use when implementing Tauri updater, designing update server infrastructure, configuring update signing keys, or building staged rollout strategies. Do NOT use for manual update flows, app store distribution, or server-side deployment strategies."
 risk_level: CRITICAL
+token_budget: 3000
 ---
-
 # Auto-Update Systems Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-494: Unsigned Updates**
-- NEVER: Apply updates without signature verification
-- ALWAYS: Cryptographic signature on all update packages
+- Do not: Apply updates without signature verification
+- Instead: Cryptographic signature on all update packages
 
 **CWE-295: Improper Certificate Validation**
-- NEVER: Skip TLS verification for update downloads
-- ALWAYS: Pin certificates or verify chain, use HTTPS only
+- Do not: Skip TLS verification for update downloads
+- Instead: Pin certificates or verify chain, use HTTPS only
 
 **CWE-829: Update Server Compromise**
-- NEVER: Single point of failure for updates
-- ALWAYS: Multiple signature keys, threshold signing, rollback capability
-
-### 0.3 Risk Level: CRITICAL
-
-**Verification requirements for CRITICAL risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Single point of failure for updates
+- Instead: Multiple signature keys, threshold signing, rollback capability
 
 ---
 
@@ -172,7 +157,7 @@ fn should_update(remote_version: &str) -> Result<bool, Error> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 [dependencies]
@@ -427,7 +412,7 @@ jobs:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Install updates without signature verification
 - Use HTTP for update downloads
 - Allow downgrade attacks (always compare versions)
@@ -450,54 +435,14 @@ mod tests {
     #[test]
     fn test_signature_verification_rejects_invalid() {
         let valid_binary = include_bytes!("../fixtures/valid_update.bin");
-        let invalid_sig = &[0u8; 64];
-
-        let result = verify_signature(valid_binary, invalid_sig);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_signature_verification_accepts_valid() {
-        let valid_binary = include_bytes!("../fixtures/valid_update.bin");
-        let valid_sig = include_bytes!("../fixtures/valid_update.sig");
-
-        let result = verify_signature(valid_binary, valid_sig);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_downgrade_prevention() {
-        assert!(!should_update("1.0.0").unwrap());  // Current is 2.0.0
-        assert!(should_update("2.1.0").unwrap());
-        assert!(should_update("3.0.0").unwrap());
-    }
-
-    #[test]
-    fn test_staged_rollout_deterministic() {
-        let rollout = StagedRollout {
-            percentage: 50,
-            salt: "test-salt".into(),
-        };
-
-        // Same ID should always get same result
-        let id = "user-123";
-        let result1 = rollout.should_update(id);
-        let result2 = rollout.should_update(id);
-        assert_eq!(result1, result2);
-    }
-
-    #[test]
-    fn test_rollback_on_failure() {
-        // Simulate update failure and verify rollback works
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any auto-update code:**
+Before generating any auto-update code:
 
 - [ ] Ed25519 signature verification implemented
 - [ ] Public key embedded, private key in CI secrets only
@@ -511,5 +456,3 @@ mod tests {
 - [ ] Installation verification after update
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

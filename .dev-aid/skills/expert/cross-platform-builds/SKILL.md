@@ -3,36 +3,21 @@ name: cross-platform-builds
 version: 2.0.0
 description: "Cross-platform build systems for Windows, macOS, and Linux desktop applications with code signing, cross-compilation, and distribution packaging. Use when configuring multi-platform CI builds, setting up platform-specific code signing, creating installers (MSI, DMG, AppImage), or managing cross-compile toolchains. Do NOT use for web-only builds or server-side deployments."
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # Cross-Platform Builds Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-494: Missing Code Signing**
-- NEVER: Distribute unsigned binaries
-- ALWAYS: Sign all platforms, verify signatures in installer
+- Do not: Distribute unsigned binaries
+- Instead: Sign all platforms, verify signatures in installer
 
 **CWE-829: Build Dependency Attacks**
-- NEVER: Build with unverified tools/compilers
-- ALWAYS: Verified toolchains, reproducible builds, SBOM
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Build with unverified tools/compilers
+- Instead: Verified toolchains, reproducible builds, SBOM
 
 ---
 
@@ -98,7 +83,7 @@ fn build_and_sign() -> Result<()> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 # Rust
@@ -579,7 +564,7 @@ async fn check_for_updates(app: tauri::AppHandle) -> Result<(), Box<dyn std::err
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Distribute unsigned binaries
 - Skip notarization for macOS
 - Hardcode path separators (`/` or `\`)
@@ -603,34 +588,14 @@ set -euo pipefail
 
 # Test each target
 targets=(
-    "x86_64-apple-darwin"
-    "aarch64-apple-darwin"
-    "x86_64-unknown-linux-gnu"
-    "x86_64-pc-windows-msvc"
-)
-
-for target in "${targets[@]}"; do
-    echo "Testing build for $target..."
-    cargo check --target "$target" 2>/dev/null || echo "Skipped (target not installed)"
-done
-
-# Verify no platform-specific assumptions
-echo "Checking for hardcoded paths..."
-! grep -r '\\\\' src/ --include="*.rs" || echo "WARNING: Backslash paths found"
-! grep -r '"/home' src/ --include="*.rs" || echo "WARNING: Hardcoded Linux paths"
-! grep -r '"C:\\' src/ --include="*.rs" || echo "WARNING: Hardcoded Windows paths"
-
-# Test path handling
-cargo test path_tests
-
-echo "Cross-platform checks complete!"
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any cross-platform build code:**
+Before generating any cross-platform build code:
 
 - [ ] Code signing configured for all platforms
 - [ ] macOS notarization set up
@@ -644,5 +609,3 @@ echo "Cross-platform checks complete!"
 - [ ] Testing covers all target platforms
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

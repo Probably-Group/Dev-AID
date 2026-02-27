@@ -3,36 +3,21 @@ name: linux-at-spi2
 version: 2.0.0
 description: "Linux accessibility automation with AT-SPI2 for GTK/Qt application testing, D-Bus a11y, and UI control. Use when automating Linux desktop apps via AT-SPI or accessibility APIs. Do NOT use for macOS automation (use macos-accessibility)."
 risk_level: MEDIUM
+token_budget: 2500
 ---
-
 # Linux AT-SPI2 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-284: D-Bus Access Control**
-- NEVER: Open D-Bus accessibility to all users
-- ALWAYS: Restrict to session bus, validate caller
+- Do not: Open D-Bus accessibility to all users
+- Instead: Restrict to session bus, validate caller
 
 **CWE-78: Command Injection via Accessibility**
-- NEVER: Execute commands from accessibility text content
-- ALWAYS: Treat all accessibility data as untrusted input
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Execute commands from accessibility text content
+- Instead: Treat all accessibility data as untrusted input
 
 ---
 
@@ -357,7 +342,7 @@ def find_by_match_rule(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Traverse accessibility trees without depth limits
 - Assume D-Bus responses are immediate (use timeouts)
 - Hold references to stale Accessible objects
@@ -377,48 +362,14 @@ from gi.repository import Atspi, GLib
 class TestATSPIClient:
     @pytest.fixture
     def mock_desktop(self):
-        desktop = Mock(spec=Atspi.Accessible)
-        desktop.get_child_count.return_value = 2
-        return desktop
-
-    def test_bounded_traversal_respects_depth_limit(self, mock_desktop):
-        """Verify traversal stops at MAX_DEPTH."""
-        # Create deeply nested structure
-        current = mock_desktop
-        for _ in range(20):
-            child = Mock(spec=Atspi.Accessible)
-            child.get_child_count.return_value = 1
-            child.get_role.return_value = Atspi.Role.PANEL
-            current.get_child_at_index.return_value = child
-            current = child
-
-        result = find_buttons_bounded(mock_desktop)
-        # Should not traverse full depth
-        assert mock_desktop.get_child_at_index.call_count < 20
-
-    def test_handles_dbus_disconnection(self, mock_desktop):
-        """Verify graceful handling of D-Bus errors."""
-        mock_desktop.get_child_at_index.side_effect = GLib.Error("Disconnected")
-
-        result = find_buttons_bounded(mock_desktop)
-        assert result == []  # No crash
-
-    def test_safe_click_verifies_state(self):
-        """Verify click checks element state."""
-        button = Mock(spec=Atspi.Accessible)
-        state_set = Mock()
-        state_set.contains.return_value = False  # Not visible
-        button.get_state_set.return_value = state_set
-
-        result = safe_click(button)
-        assert result is False
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating AT-SPI2 code:**
+Before generating AT-SPI2 code:
 
 - [ ] Depth limits: Tree traversal bounded (MAX_DEPTH=15)
 - [ ] Timeouts: All D-Bus calls have timeout handling
@@ -430,5 +381,3 @@ class TestATSPIClient:
 - [ ] GLib main loop: Async operations use proper event loop
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

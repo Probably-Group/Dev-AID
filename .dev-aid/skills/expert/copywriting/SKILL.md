@@ -23,44 +23,6 @@ tags: [copywriting, content, marketing, seo, conversion]
 
 ---
 
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Quick Risk Assessment
-
-**Risk Level**: LOW
-
-**Key Risk Factors**:
-- Content accuracy and factual claims
-- Brand voice consistency
-- Legal/compliance concerns (claims, disclaimers)
-- Cultural sensitivity and inclusivity
-
-**Immediate Actions**:
-1. Verify all factual claims before publishing
-2. Maintain consistent brand voice across all content
-3. Avoid unsubstantiated superlatives or claims
-4. Review for legal compliance (testimonials, guarantees)
-
-### 0.3 Hallucination Prevention Checklist
-
-**CRITICAL**: These rules are ABSOLUTE.
-
-**Domain-Specific Rules**:
-
-- NEVER make unverified factual claims
-- NEVER use false urgency or manipulative tactics
-- NEVER plagiarize or copy existing content
-- ALWAYS maintain brand voice consistency
-- ALWAYS include required disclaimers
-
-**Before ANY content generation**:
-1. Verify brand guidelines are understood
-2. Check target audience is defined
-3. Validate all claims are factual
-4. Confirm legal compliance requirements
-
-**If uncertain**: STOP and research. Never fabricate facts.
-
 ---
 
 ## 1. Overview
@@ -417,5 +379,3 @@ Short paragraph with one main idea.
 - `references/seo-copywriting.md` - SEO best practices
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -3,36 +3,21 @@ name: os-keychain
 version: 2.0.0
 description: "OS keychain integration for secure credential storage on macOS Keychain, Windows Credential Manager, and Linux Secret Service. Use when storing secrets in platform keychains, implementing credential management, or securing sensitive tokens. Do NOT use for application-level secrets via environment variables."
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # OS Keychain Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-522: Weak Credential Storage**
-- NEVER: Store secrets in plaintext files or environment
-- ALWAYS: OS keychain APIs (Keychain, Credential Manager, Secret Service)
+- Do not: Store secrets in plaintext files or environment
+- Instead: OS keychain APIs (Keychain, Credential Manager, Secret Service)
 
 **CWE-311: Missing Access Control**
-- NEVER: Store credentials accessible to all apps
-- ALWAYS: Per-app isolation, require user auth for sensitive items
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Store credentials accessible to all apps
+- Instead: Per-app isolation, require user auth for sensitive items
 
 ---
 
@@ -127,7 +112,7 @@ fn get_secret(name: &str) -> Result<String, Error> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 # Rust
@@ -460,7 +445,7 @@ pub fn migrate_to_keychain(config_path: &PathBuf) -> Result<(), Error> {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Hardcode secrets in source code
 - Store secrets in config files
 - Use generic service names (use reverse-domain)
@@ -483,53 +468,14 @@ mod tests {
     #[test]
     fn test_set_get_delete() {
         let key = "test_secret";
-        let value = "test_value_123";
-
-        // Set
-        SecretStore::set(key, value).unwrap();
-
-        // Get
-        let retrieved = SecretStore::get(key).unwrap();
-        assert_eq!(retrieved, value);
-
-        // Delete
-        SecretStore::delete(key).unwrap();
-
-        // Verify deleted
-        assert!(matches!(
-            SecretStore::get(key),
-            Err(SecretError::NotFound)
-        ));
-    }
-
-    #[test]
-    fn test_invalid_key_rejected() {
-        assert!(SecretStore::get("").is_err());
-        assert!(SecretStore::get("key with spaces").is_err());
-        assert!(SecretStore::get("key;injection").is_err());
-        assert!(SecretStore::get(&"a".repeat(300)).is_err());
-    }
-
-    #[test]
-    fn test_exists_check() {
-        let key = "existence_test";
-
-        assert!(!SecretStore::exists(key).unwrap());
-
-        SecretStore::set(key, "value").unwrap();
-        assert!(SecretStore::exists(key).unwrap());
-
-        SecretStore::delete(key).unwrap();
-        assert!(!SecretStore::exists(key).unwrap());
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any keychain code:**
+Before generating any keychain code:
 
 - [ ] Using reverse-domain service identifier
 - [ ] Key names validated (alphanumeric + underscore/hyphen)
@@ -543,5 +489,3 @@ mod tests {
 - [ ] Tauri commands return generic errors only
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

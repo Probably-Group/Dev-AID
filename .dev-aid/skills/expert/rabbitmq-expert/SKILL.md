@@ -3,40 +3,25 @@ name: rabbitmq-expert
 version: 2.0.0
 description: "RabbitMQ message broker patterns with exchange topologies, queue configuration, dead letter handling, and clustering for high availability. Use when designing AMQP exchange/queue architectures, configuring RabbitMQ clustering, implementing pub/sub messaging, or troubleshooting message routing. Do NOT use for Kafka, Redis pub/sub, or NATS messaging systems."
 risk_level: HIGH
+token_budget: 3000
 ---
-
 # RabbitMQ Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-502: Message Deserialization**
-- NEVER: Deserialize pickled/arbitrary format messages
-- ALWAYS: JSON with schema validation, reject unknown message types
+- Do not: Deserialize pickled/arbitrary format messages
+- Instead: JSON with schema validation, reject unknown message types
 
 **CWE-306: Missing Authentication**
-- NEVER: Default guest/guest credentials in production
-- ALWAYS: Strong credentials, TLS for connections, vhost isolation
+- Do not: Default guest/guest credentials in production
+- Instead: Strong credentials, TLS for connections, vhost isolation
 
 **CWE-285: Queue Permissions**
-- NEVER: Single user with full permissions
-- ALWAYS: Separate users per service, minimum required permissions
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Single user with full permissions
+- Instead: Separate users per service, minimum required permissions
 
 ---
 
@@ -153,7 +138,7 @@ def callback(ch, method, properties, body):
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```
 # Python
@@ -422,7 +407,7 @@ async def consume_orders():
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use auto_ack=True for important messages
 - Acknowledge before processing completes
 - Hardcode credentials in connection strings
@@ -445,38 +430,14 @@ from testcontainers.rabbitmq import RabbitMqContainer
 def rabbitmq_container():
     with RabbitMqContainer("rabbitmq:3.12-management") as rabbitmq:
         yield rabbitmq
-
-def test_message_validation(rabbitmq_container):
-    """Verify invalid messages are rejected."""
-    # Publish invalid message
-    channel.basic_publish(
-        exchange='',
-        routing_key='orders',
-        body=json.dumps({'invalid': 'data'}),
-    )
-
-    # Should end up in DLQ
-    time.sleep(1)
-    method, _, body = channel.basic_get('orders.dlq')
-    assert method is not None
-
-def test_retry_logic(rabbitmq_container):
-    """Verify retry count increments."""
-    # Simulate failure
-    with mock.patch('handler.process_order', side_effect=RecoverableError):
-        # Consume and verify retry header
-        pass
-
-def test_dlq_on_fatal_error(rabbitmq_container):
-    """Verify fatal errors go to DLQ."""
-    pass
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any RabbitMQ code:**
+Before generating any RabbitMQ code:
 
 - [ ] TLS enabled for all connections
 - [ ] Credentials from environment variables
@@ -490,5 +451,3 @@ def test_dlq_on_fatal_error(rabbitmq_container):
 - [ ] Publisher confirms for critical messages
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

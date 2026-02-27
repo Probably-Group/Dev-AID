@@ -3,26 +3,9 @@ name: web-research-expert
 version: 2.0.0
 description: "Web research for finding solutions on GitHub, Stack Overflow, Reddit, and technical forums. Use when searching for technical solutions, debugging with community resources, or finding library comparisons. Do NOT use for deep research (use deep-research-expert)."
 risk_level: LOW
+token_budget: 3500
 ---
-
 # Web Research Expert - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -481,7 +464,7 @@ def create_research_note(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Trust a single source for technical information
 - Use results without checking publication date
 - Ignore source credibility when presenting findings
@@ -502,60 +485,14 @@ from web_research import (
     SourceTier,
     filter_by_freshness,
     extract_error_pattern,
-)
-
-class TestSourceTier:
-
-    def test_authoritative_sources(self):
-        """Official docs should be authoritative."""
-        assert get_source_tier("https://docs.python.org/3/library/json.html") == SourceTier.AUTHORITATIVE
-        assert get_source_tier("https://developer.mozilla.org/en-US/docs/Web") == SourceTier.AUTHORITATIVE
-
-    def test_blocked_sources(self):
-        """Known low-quality sources should be blocked."""
-        assert get_source_tier("https://w3schools.com/python/") == SourceTier.UNTRUSTED
-
-    def test_github_org_ranking(self):
-        """Major org repos should be HIGH tier."""
-        assert get_source_tier("https://github.com/microsoft/vscode/issues/123") == SourceTier.HIGH
-
-class TestFreshness:
-
-    def test_filters_old_content(self):
-        """Should filter content older than max_age."""
-        old_result = SearchResult(
-            url="https://example.com",
-            published_date=datetime.now() - timedelta(days=400),
-        )
-        recent_result = SearchResult(
-            url="https://example.com",
-            published_date=datetime.now() - timedelta(days=30),
-        )
-
-        filtered = filter_by_freshness([old_result, recent_result], "react")
-        assert len(filtered) == 1
-        assert filtered[0] == recent_result
-
-class TestErrorPattern:
-
-    def test_extracts_error_type(self):
-        """Should extract error type from Python traceback."""
-        error = "TypeError: cannot unpack non-iterable NoneType object"
-        pattern = extract_error_pattern(error)
-        assert pattern.error_type == "TypeError"
-
-    def test_normalizes_file_paths(self):
-        """Should remove specific file paths."""
-        error = 'File "/home/user/project/main.py", line 42, in foo\n  raise ValueError("test")'
-        pattern = extract_error_pattern(error)
-        assert "/home/user" not in pattern.message_template
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating research code:**
+Before generating research code:
 
 - [ ] Source ranking: Implemented tier system for credibility
 - [ ] Cross-reference: Minimum 2 sources for claims
@@ -567,5 +504,3 @@ class TestErrorPattern:
 - [ ] Version awareness: Technology versions tracked
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

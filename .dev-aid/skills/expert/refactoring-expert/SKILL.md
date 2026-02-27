@@ -3,26 +3,9 @@ name: refactoring-expert
 version: 2.0.0
 description: "Legacy code refactoring with technical debt reduction, incremental migration, and safe transformation patterns. Use when refactoring legacy code, reducing tech debt, or modernizing codebases. Do NOT use for greenfield architecture (use senior-architect)."
 risk_level: MEDIUM
+token_budget: 3500
 ---
-
 # Refactoring Expert - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: MEDIUM
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -437,7 +420,7 @@ def test_get_user_from_cache():
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Refactor without tests (or skip running tests after changes)
 - Remove validation "for simplicity"
 - Abstract after seeing duplication once (Rule of Three)
@@ -458,72 +441,14 @@ from unittest.mock import Mock
 class TestShippingRefactoring:
 
     @pytest.mark.parametrize("shipping_type,total,expected", [
-        ("standard", Decimal("30"), Decimal("5.99")),
-        ("standard", Decimal("60"), Decimal("0")),
-        ("express", Decimal("50"), Decimal("14.99")),
-        ("express", Decimal("150"), Decimal("9.99")),
-        ("overnight", Decimal("100"), Decimal("24.99")),
-    ])
-    def test_shipping_calculation_matches_original(
-        self, shipping_type, total, expected
-    ):
-        """Verify refactored code produces same results as original."""
-        order = Order(shipping_type=shipping_type, total=total, country="US")
-        result = calculate_shipping(order)
-        assert result == expected
-
-    def test_unknown_shipping_type_raises(self):
-        """Error handling preserved after refactoring."""
-        order = Order(shipping_type="teleport", total=Decimal("100"), country="US")
-        with pytest.raises(ValueError, match="Unknown shipping type"):
-            calculate_shipping(order)
-
-class TestDependencyInjection:
-
-    def test_user_service_uses_cache_first(self):
-        """Verify cache is checked before database."""
-        mock_db = Mock(spec=Database)
-        mock_cache = Mock(spec=Cache)
-        mock_cache.get.return_value = User(id="123", name="Cached")
-
-        service = UserService(mock_db, mock_cache, Mock())
-        user = service.get_user("123")
-
-        mock_cache.get.assert_called_once()
-        mock_db.query.assert_not_called()  # Should not hit DB
-        assert user.name == "Cached"
-
-    def test_user_service_falls_back_to_db(self):
-        """Verify DB is used when cache misses."""
-        mock_db = Mock(spec=Database)
-        mock_db.query.return_value.get.return_value = User(id="123", name="FromDB")
-        mock_cache = Mock(spec=Cache)
-        mock_cache.get.return_value = None
-
-        service = UserService(mock_db, mock_cache, Mock())
-        user = service.get_user("123")
-
-        mock_db.query.assert_called_once()
-        mock_cache.set.assert_called_once()  # Should cache result
-        assert user.name == "FromDB"
-
-class TestSecurityPreservation:
-
-    def test_validation_preserved_after_refactoring(self):
-        """Security validation must survive refactoring."""
-        # Test that invalid IDs are still rejected
-        with pytest.raises(ValueError, match="Invalid user ID"):
-            get_user("../../../etc/passwd")
-
-        with pytest.raises(ValueError, match="Invalid user ID"):
-            get_user("'; DROP TABLE users;--")
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE refactoring code:**
+Before refactoring code:
 
 - [ ] Tests exist: Code has tests that pass before refactoring
 - [ ] Security audit: Identified all security controls to preserve
@@ -537,5 +462,3 @@ class TestSecurityPreservation:
 **Templates**: See `assets/` for reusable output templates.
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

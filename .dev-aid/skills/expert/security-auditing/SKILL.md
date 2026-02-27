@@ -3,44 +3,29 @@ name: security-auditing
 version: 2.0.0
 description: "Security audit methodology with vulnerability assessment, compliance checking, and remediation tracking. Use when conducting security audits, evaluating infrastructure compliance, or tracking remediation efforts. Do NOT use for application code review (use appsec-expert)."
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # Security Auditing - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-778: Insufficient Logging**
-- NEVER: Skip logging for security events
-- ALWAYS: Log auth attempts, access control failures, input validation failures
+- Do not: Skip logging for security events
+- Instead: Log auth attempts, access control failures, input validation failures
 
 **CWE-209: Error Information Leakage**
-- NEVER: Return stack traces or internal errors to users
-- ALWAYS: Generic error messages, detailed logs server-side
+- Do not: Return stack traces or internal errors to users
+- Instead: Generic error messages, detailed logs server-side
 
 **CWE-523: Unprotected Transport**
-- NEVER: HTTP for any authenticated endpoint
-- ALWAYS: HTTPS, HSTS, secure cookies
+- Do not: HTTP for any authenticated endpoint
+- Instead: HTTPS, HSTS, secure cookies
 
 **CWE-250: Excessive Privileges**
-- NEVER: Run services as root/admin
-- ALWAYS: Principle of least privilege, dedicated service accounts
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Run services as root/admin
+- Instead: Principle of least privilege, dedicated service accounts
 
 ---
 
@@ -577,7 +562,7 @@ class AuditReport:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Report vulnerabilities without proof of concept
 - Skip severity classification on findings
 - Store audit logs in modifiable locations
@@ -598,91 +583,14 @@ from security_auditing import (
     AuditEvent,
     AuditAction,
     SecurityFinding,
-    Severity,
-    Exploitability,
-)
-
-class TestAuditLogging:
-
-    def test_audit_chain_integrity(self):
-        """Verify audit log chain detects tampering."""
-        storage = InMemoryAuditStorage()
-        logger = AuditLogger(storage)
-
-        event1 = logger.log(
-            action=AuditAction.LOGIN,
-            actor_id="user1",
-            actor_ip="192.168.1.1",
-            resource_type="session",
-            resource_id="sess123",
-            outcome="success",
-        )
-
-        event2 = logger.log(
-            action=AuditAction.READ,
-            actor_id="user1",
-            actor_ip="192.168.1.1",
-            resource_type="document",
-            resource_id="doc456",
-            outcome="success",
-        )
-
-        # Chain should be linked
-        assert event2.previous_hash == event1.compute_hash()
-
-    def test_finding_severity_ordering(self):
-        """Findings should be sorted by severity."""
-        report = AuditReport(
-            title="Test",
-            scope="test",
-            methodology="test",
-            start_date=datetime.now(),
-            end_date=datetime.now(),
-            auditor="test",
-        )
-
-        report.add_finding(SecurityFinding(
-            id="LOW-1", title="Low", severity=Severity.LOW,
-            exploitability=Exploitability.DIFFICULT,
-            cwe_id="CWE-1", affected_component="test",
-            description="", proof_of_concept=None,
-            remediation="", references=[],
-        ))
-
-        report.add_finding(SecurityFinding(
-            id="CRIT-1", title="Critical", severity=Severity.CRITICAL,
-            exploitability=Exploitability.TRIVIAL,
-            cwe_id="CWE-2", affected_component="test",
-            description="", proof_of_concept=None,
-            remediation="", references=[],
-        ))
-
-        # Critical should be first
-        assert report.findings[0].severity == Severity.CRITICAL
-
-class TestSecretScanning:
-
-    def test_secrets_are_redacted_in_findings(self):
-        """Secret values must be redacted in findings."""
-        finding = SecretFinding(
-            detector="test",
-            secret_type="api_key",
-            file_path="config.py",
-            line_number=10,
-            commit=None,
-            snippet="sk-1234...5678",  # Already redacted
-            verified=False,
-        )
-
-        # Should not contain full secret
-        assert "1234567890" not in str(finding)
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating security audit code:**
+Before generating security audit code:
 
 - [ ] Authorization: Written permission for active scanning
 - [ ] Audit logging: Tamper-evident chain implemented
@@ -696,5 +604,3 @@ class TestSecretScanning:
 **Templates**: See `assets/` for reusable output templates.
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

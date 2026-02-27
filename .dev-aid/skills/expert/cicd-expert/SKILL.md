@@ -4,44 +4,29 @@ version: 2.0.0
 description: "CI/CD pipeline design for GitHub Actions and GitLab CI with security gates, caching, artifact management, and deployment strategies. Use when creating workflows, optimizing build pipelines, adding security scanning steps, or configuring deployment environments. Do NOT use for ArgoCD GitOps delivery (use argo-expert) or desktop app code signing pipelines (use ci-cd)."
 compatibility: "GitHub Actions or GitLab CI"
 risk_level: MEDIUM
+token_budget: 1500
 ---
-
 # Cicd Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-798: Hardcoded Secrets**
-- NEVER: Secrets in pipeline files, environment in logs
-- ALWAYS: Secret management (Vault, GitHub Secrets), mask in logs
+- Do not: Secrets in pipeline files, environment in logs
+- Instead: Secret management (Vault, GitHub Secrets), mask in logs
 
 **CWE-829: Untrusted Dependencies**
-- NEVER: Pull dependencies without verification
-- ALWAYS: Lock files, checksum verification, dependency scanning
+- Do not: Pull dependencies without verification
+- Instead: Lock files, checksum verification, dependency scanning
 
 **CWE-94: Code Injection in Pipelines**
-- NEVER: `run: ${{ github.event.issue.title }}` - user input in commands
-- ALWAYS: Sanitize inputs, use intermediate environment variables
+- Do not: `run: ${{ github.event.issue.title }}` - user input in commands
+- Instead: Sanitize inputs, use intermediate environment variables
 
 **CWE-250: Excessive Pipeline Permissions**
-- NEVER: Full repo/admin access for all jobs
-- ALWAYS: Minimal permissions per job, OIDC for cloud auth
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Full repo/admin access for all jobs
+- Instead: Minimal permissions per job, OIDC for cloud auth
 
 ---
 
@@ -237,7 +222,7 @@ security:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Construct code from untrusted data
 - Skip input validation
 - Hardcode secrets
@@ -260,7 +245,7 @@ Test coverage requirements:
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any code:**
+Before generating code:
 
 - [ ] Data ≠ Code: No string concatenation for queries/commands
 - [ ] Input validation: All external input validated
@@ -271,5 +256,3 @@ Test coverage requirements:
 **Templates**: See `assets/` for reusable output templates.
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

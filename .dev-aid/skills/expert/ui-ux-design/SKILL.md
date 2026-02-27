@@ -3,26 +3,9 @@ name: ui-ux-design
 version: 2.0.0
 description: "UI/UX design patterns for user flows, wireframes, interaction design, and form security patterns. Use when designing user flows, creating wireframes, or implementing secure form interactions. Do NOT use for user research or usability testing (use ui-ux-expert)."
 risk_level: LOW
+token_budget: 3000
 ---
-
 # UI/UX Design - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -415,7 +398,7 @@ module.exports = {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Create forms without CSRF protection
 - Show detailed error messages to users (log details server-side)
 - Enable autocomplete on sensitive fields (SSN, credit card)
@@ -437,55 +420,14 @@ import LoginForm from './LoginForm.vue';
 
 expect.extend(toHaveNoViolations);
 
-describe('LoginForm', () => {
-  it('should have no accessibility violations', async () => {
-    const { container } = render(LoginForm);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-
-  it('should announce errors to screen readers', async () => {
-    render(LoginForm);
-
-    const emailInput = screen.getByLabelText(/email/i);
-    await fireEvent.update(emailInput, 'invalid');
-    await fireEvent.blur(emailInput);
-
-    const error = screen.getByRole('alert');
-    expect(error).toBeInTheDocument();
-    expect(error).toHaveTextContent(/valid email/i);
-  });
-
-  it('should disable submit during loading', async () => {
-    render(LoginForm);
-
-    const submitBtn = screen.getByRole('button', { name: /sign in/i });
-    await fireEvent.click(submitBtn);
-
-    expect(submitBtn).toBeDisabled();
-    expect(submitBtn).toHaveAttribute('aria-busy', 'true');
-  });
-
-  it('should toggle password visibility', async () => {
-    render(LoginForm);
-
-    const passwordInput = screen.getByLabelText(/password/i);
-    const toggleBtn = screen.getByRole('button', { name: /show password/i });
-
-    expect(passwordInput).toHaveAttribute('type', 'password');
-
-    await fireEvent.click(toggleBtn);
-    expect(passwordInput).toHaveAttribute('type', 'text');
-    expect(toggleBtn).toHaveAccessibleName(/hide password/i);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating UI code:**
+Before generating UI code:
 
 - [ ] Forms: CSRF tokens, proper labels, validation messages
 - [ ] Accessibility: ARIA attributes, focus management, screen reader text
@@ -497,5 +439,3 @@ describe('LoginForm', () => {
 - [ ] Touch targets: Minimum 44x44px for mobile
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

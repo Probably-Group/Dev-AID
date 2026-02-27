@@ -3,26 +3,9 @@ name: design-systems
 version: 2.0.0
 description: "Design system architecture with token-based theming, component APIs, and cross-platform consistency. Use when building design systems, defining design tokens, or creating component libraries. Do NOT use for individual component styling (use tailwindcss)."
 risk_level: LOW
+token_budget: 4500
 ---
-
 # Design Systems - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -95,7 +78,7 @@ const Theme = ({ colorKey }: { colorKey: string }) => {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -687,7 +670,7 @@ export function Box<T extends React.ElementType = 'div'>({
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use magic numbers for spacing/sizing
 - Interpolate user input into styles
 - Skip dark mode support in new components
@@ -711,79 +694,14 @@ import { axe, toHaveNoViolations } from 'jest-axe';
 expect.extend(toHaveNoViolations);
 
 describe('Button', () => {
-  it('renders with correct variant styles', () => {
-    render(<Button intent="primary">Click me</Button>);
-    const button = screen.getByRole('button');
-    expect(button).toHaveClass(expect.stringContaining('primary'));
-  });
-
-  it('supports keyboard interaction', async () => {
-    const onClick = jest.fn();
-    render(<Button onClick={onClick}>Click me</Button>);
-
-    const button = screen.getByRole('button');
-    button.focus();
-    await userEvent.keyboard('{Enter}');
-
-    expect(onClick).toHaveBeenCalled();
-  });
-
-  it('has no accessibility violations', async () => {
-    const { container } = render(<Button>Click me</Button>);
-    const results = await axe(container);
-    expect(results).toHaveNoViolations();
-  });
-
-  it('shows focus indicator', () => {
-    render(<Button>Click me</Button>);
-    const button = screen.getByRole('button');
-    button.focus();
-
-    // Check focus styles are applied
-    expect(button).toHaveFocus();
-    expect(getComputedStyle(button).outlineWidth).not.toBe('0px');
-  });
-});
-
-describe('Theme', () => {
-  it('applies dark theme correctly', () => {
-    render(
-      <ThemeProvider defaultTheme="dark">
-        <Box backgroundColor="background" data-testid="box" />
-      </ThemeProvider>
-    );
-
-    const box = screen.getByTestId('box');
-    expect(getComputedStyle(box).backgroundColor).toBe('rgb(15, 23, 42)');
-  });
-
-  it('respects system preference', () => {
-    // Mock matchMedia
-    window.matchMedia = jest.fn().mockImplementation(query => ({
-      matches: query === '(prefers-color-scheme: dark)',
-      media: query,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    }));
-
-    render(
-      <ThemeProvider>
-        <Box backgroundColor="background" data-testid="box" />
-      </ThemeProvider>
-    );
-
-    // Should use dark theme based on system preference
-    const root = document.documentElement;
-    expect(root.classList.contains(darkTheme)).toBe(true);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any design system code:**
+Before generating any design system code:
 
 - [ ] Tokens defined in structured format (Style Dictionary)
 - [ ] Type-safe variant system (recipes or similar)
@@ -797,5 +715,3 @@ describe('Theme', () => {
 - [ ] Components tested with axe
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

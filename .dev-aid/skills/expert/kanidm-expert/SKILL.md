@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Kanidm identity management server with OAuth2/OIDC provider configuration, LDAP compatibility, and WebAuthn passwordless authentication. Use when deploying Kanidm, configuring OAuth2 clients in Kanidm, setting up LDAP gateway, or implementing WebAuthn with Kanidm as IdP. Do NOT use for general OAuth2/OIDC flows without Kanidm or other identity providers like Keycloak or Auth0."
 compatibility: "Kanidm 1.3+"
 risk_level: HIGH
+token_budget: 5500
 ---
-
 # Kanidm Identity Management Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-532: Sensitive Info in Logs (CVE-2025-30205)**
-- NEVER: Use NixOS module with `adminPasswordFile` on unpatched versions
-- ALWAYS: Audit logs for leaked creds, rotate exposed passwords
+- Do not: Use NixOS module with `adminPasswordFile` on unpatched versions
+- Instead: Audit logs for leaked creds, rotate exposed passwords
 
 **CWE-287: OAuth2 Auth Code Reuse**
-- NEVER: Assume auth codes are one-time-use without verification
-- ALWAYS: Implement client-side validation, monitor for code reuse
+- Do not: Assume auth codes are one-time-use without verification
+- Instead: Implement client-side validation, monitor for code reuse
 
 **CWE-269: Account Policy Downgrade**
-- NEVER: Assume MFA policies persist across migrations
-- ALWAYS: Review `idm_all_accounts` policies after upgrades, verify MFA settings
+- Do not: Assume MFA policies persist across migrations
+- Instead: Review `idm_all_accounts` policies after upgrades, verify MFA settings
 
 **CWE-90: LDAP Injection**
-- NEVER: Use LDAP gateway with unsanitized user input in filters
-- ALWAYS: Parameterized queries, escape `( ) ! | & *` chars, whitelist validation
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Use LDAP gateway with unsanitized user input in filters
+- Instead: Parameterized queries, escape `( ) ! | & *` chars, whitelist validation
 
 ---
 
@@ -99,7 +84,7 @@ scope_maps = [
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 kanidm-server: v1.3.0+
@@ -734,7 +719,7 @@ pub enum AuthenticationContext {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Disable PKCE for OAuth2 clients
 - Use wildcard redirect URIs
 - Store credentials outside Kanidm
@@ -759,61 +744,14 @@ KANIDM_URL="${KANIDM_URL:-https://idm.example.com}"
 
 echo "=== Kanidm Security Tests ==="
 
-# Test 1: TLS verification
-echo "Test 1: TLS certificate..."
-openssl s_client -connect "${KANIDM_URL#https://}:443" -servername "${KANIDM_URL#https://}" </dev/null 2>/dev/null | \
-    openssl x509 -noout -dates || {
-    echo "FAIL: TLS certificate issue"
-    exit 1
-}
-echo "PASS: TLS certificate valid"
-
-# Test 2: OAuth2 discovery endpoint
-echo "Test 2: OIDC discovery..."
-curl -sf "$KANIDM_URL/oauth2/openid/myapp/.well-known/openid-configuration" | \
-    jq -e '.authorization_endpoint and .token_endpoint' > /dev/null || {
-    echo "FAIL: OIDC discovery not working"
-    exit 1
-}
-echo "PASS: OIDC discovery working"
-
-# Test 3: PKCE required
-echo "Test 3: PKCE enforcement..."
-# Attempt auth without PKCE should fail or warn
-RESPONSE=$(curl -sf "$KANIDM_URL/oauth2/authorise?client_id=myapp&response_type=code&redirect_uri=https://myapp.example.com/callback" 2>&1 || true)
-if echo "$RESPONSE" | grep -qi "pkce"; then
-    echo "PASS: PKCE enforcement working"
-else
-    echo "WARN: Could not verify PKCE enforcement"
-fi
-
-# Test 4: LDAPS connectivity
-echo "Test 4: LDAPS..."
-openssl s_client -connect "${KANIDM_URL#https://}:636" </dev/null 2>/dev/null | \
-    grep -q "BEGIN CERTIFICATE" || {
-    echo "FAIL: LDAPS not available"
-    exit 1
-}
-echo "PASS: LDAPS available"
-
-# Test 5: API authentication required
-echo "Test 5: API authentication..."
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$KANIDM_URL/v1/self")
-if [ "$STATUS" == "401" ]; then
-    echo "PASS: API requires authentication"
-else
-    echo "FAIL: API accessible without auth"
-    exit 1
-fi
-
-echo "=== All Kanidm Security Tests Passed ==="
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Kanidm code:**
+Before generating any Kanidm code:
 
 - [ ] TLS configured for all endpoints
 - [ ] OAuth2 clients use PKCE
@@ -827,5 +765,3 @@ echo "=== All Kanidm Security Tests Passed ==="
 - [ ] Credential policies defined
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

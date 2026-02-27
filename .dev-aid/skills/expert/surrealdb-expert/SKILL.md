@@ -4,44 +4,29 @@ version: 2.0.0
 description: "SurrealDB multi-model database with SurrealQL, graph queries, real-time subscriptions, and document storage. Use when designing SurrealDB schemas, writing SurrealQL, or building multi-model data layers. Do NOT use for traditional SQL databases (use database-design)."
 compatibility: "SurrealDB 1.4+"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # SurrealDB Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89: SurrealQL Injection (GHSA-ccj3-5p93-8p42)**
-- NEVER: Concatenate user input into SurrealQL with string interpolation
-- ALWAYS: Use `bind` method or `vars` argument for parameters
+- Do not: Concatenate user input into SurrealQL with string interpolation
+- Instead: Use `bind` method or `vars` argument for parameters
 
 **CWE-200: LIVE Query Exposure (CVE-2025-11060)**
-- NEVER: Allow untrusted users LIVE query subscriptions without restrictions
-- ALWAYS: Fine-grained DEFINE TABLE/FIELD permissions, restrict by role
+- Do not: Allow untrusted users LIVE query subscriptions without restrictions
+- Instead: Fine-grained DEFINE TABLE/FIELD permissions, restrict by role
 
 **CWE-674: Parser Stack Overflow**
-- NEVER: Accept deeply nested SurrealQL without depth limits
-- ALWAYS: Upgrade to 1.1.0+, implement query complexity limits
+- Do not: Accept deeply nested SurrealQL without depth limits
+- Instead: Upgrade to 1.1.0+, implement query complexity limits
 
 **CWE-284: Backup Import Injection**
-- NEVER: Import backups from untrusted sources
-- ALWAYS: Validate backup integrity, audit imported data
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Import backups from untrusted sources
+- Instead: Validate backup integrity, audit imported data
 
 ---
 
@@ -381,7 +366,7 @@ async def transfer_credits(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use SCHEMALESS tables in production (use SCHEMAFULL)
 - Skip PERMISSIONS on tables
 - Interpolate user data into SurrealQL queries
@@ -402,49 +387,14 @@ from surrealdb import Surreal
 async def db():
     """Test database with isolated namespace."""
     db = Surreal("ws://localhost:8000/rpc")
-    await db.connect()
-    await db.signin({"user": "root", "pass": "root"})
-    await db.use("test", f"test_{uuid.uuid4().hex[:8]}")
-    yield db
-    # Cleanup
-    await db.query("REMOVE DATABASE IF EXISTS $db", {"db": db._database})
-    await db.close()
-
-class TestPermissions:
-    async def test_user_cannot_access_other_users(self, db):
-        """Users should only see their own data."""
-        # Setup
-        await db.query("""
-            DEFINE TABLE users SCHEMAFULL
-                PERMISSIONS FOR select WHERE id = $auth.id;
-        """)
-        await db.query("CREATE users:alice SET name = 'Alice'")
-        await db.query("CREATE users:bob SET name = 'Bob'")
-
-        # Authenticate as Alice
-        await db.authenticate(alice_token)
-
-        # Should only see Alice
-        result = await db.query("SELECT * FROM users")
-        assert len(result[0]["result"]) == 1
-        assert result[0]["result"][0]["id"] == "users:alice"
-
-    async def test_injection_prevented(self, db):
-        """SurrealQL injection should be prevented."""
-        malicious_input = "'; DELETE users; --"
-        result = await db.query(
-            "SELECT * FROM users WHERE name = $name",
-            {"name": malicious_input}
-        )
-        # Should return empty, not execute injection
-        assert result[0]["status"] == "OK"
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating SurrealDB code:**
+Before generating SurrealDB code:
 
 - [ ] Tables use SCHEMAFULL with ASSERT constraints
 - [ ] PERMISSIONS defined on all tables
@@ -457,5 +407,3 @@ class TestPermissions:
 - [ ] No root credentials in application code
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

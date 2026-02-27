@@ -3,44 +3,29 @@ name: graphql-expert
 version: 2.0.0
 description: "GraphQL API design with schema patterns, resolver implementation, real-time subscriptions, and Apollo federation for distributed graphs. Use when designing GraphQL schemas, implementing resolvers, configuring Apollo Gateway/Federation, or adding query depth/complexity limits. Do NOT use for REST API design (use rest-api-design) or gRPC services."
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # GraphQL Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-400: Query Complexity DoS**
-- NEVER: Allow unlimited query depth/complexity
-- ALWAYS: Depth limiting, complexity analysis, query cost limits
+- Do not: Allow unlimited query depth/complexity
+- Instead: Depth limiting, complexity analysis, query cost limits
 
 **CWE-285: Authorization in Resolvers**
-- NEVER: Trust query structure for authorization
-- ALWAYS: Check permissions in EVERY resolver, not just entry points
+- Do not: Trust query structure for authorization
+- Instead: Check permissions in EVERY resolver, not just entry points
 
 **CWE-200: Introspection in Production**
-- NEVER: Enable introspection in production (exposes schema)
-- ALWAYS: Disable introspection or restrict to authenticated users
+- Do not: Enable introspection in production (exposes schema)
+- Instead: Disable introspection or restrict to authenticated users
 
 **CWE-943: N+1 Query Injection**
-- NEVER: Unbounded nested queries
-- ALWAYS: Use DataLoader, limit nesting depth, query cost analysis
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Unbounded nested queries
+- Instead: Use DataLoader, limit nesting depth, query cost analysis
 
 ---
 
@@ -225,7 +210,7 @@ const server = new ApolloServer({
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -520,7 +505,7 @@ useServer(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Allow unbounded query depth or complexity
 - Skip authorization checks in resolvers
 - Expose raw database errors to clients
@@ -533,7 +518,7 @@ useServer(
 
 ## 5. Testing
 
-**ALWAYS write security tests:**
+Write security tests:
 
 ```typescript
 import { createTestClient } from '@apollo/server/testing';
@@ -543,74 +528,14 @@ describe('GraphQL Security', () => {
     const { query } = createTestClient(server);
 
     const result = await query({
-      query: `
-        query DeepQuery {
-          user(id: "1") {
-            friends {
-              friends {
-                friends {
-                  friends {
-                    friends {
-                      id  # 6 levels deep - should be rejected
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      `,
-    });
-
-    expect(result.errors).toBeDefined();
-    expect(result.errors[0].message).toContain('depth');
-  });
-
-  test('requires authentication', async () => {
-    const { query } = createTestClient(server);
-
-    const result = await query({
-      query: `query { user(id: "1") { id } }`,
-    });
-
-    expect(result.errors[0].extensions.code).toBe('UNAUTHENTICATED');
-  });
-
-  test('enforces authorization', async () => {
-    const { query } = createTestClient(server, {
-      contextValue: { user: { id: '2', role: 'user' } },
-    });
-
-    const result = await query({
-      query: `mutation { deleteUser(id: "1") }`,
-    });
-
-    expect(result.errors[0].extensions.code).toBe('FORBIDDEN');
-  });
-
-  test('validates input', async () => {
-    const { mutate } = createTestClient(server, {
-      contextValue: { user: { id: '1', role: 'admin' } },
-    });
-
-    const result = await mutate({
-      mutation: `
-        mutation {
-          createUser(input: { username: "a", email: "invalid" }) { id }
-        }
-      `,
-    });
-
-    expect(result.errors[0].extensions.code).toBe('BAD_USER_INPUT');
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any GraphQL code:**
+Before generating any GraphQL code:
 
 - [ ] Query depth limit configured (max 5-7 levels)
 - [ ] Query complexity limit configured
@@ -624,5 +549,3 @@ describe('GraphQL Security', () => {
 - [ ] Subscriptions authenticated and rate-limited
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

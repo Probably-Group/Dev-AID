@@ -3,36 +3,21 @@ name: webgl
 version: 2.0.0
 description: "WebGL rendering with shaders, buffers, textures, and GPU performance optimization. Use when building WebGL shaders, rendering pipelines, or GPU effects. Do NOT use for Three.js abstraction layers (use threejs-tresjs)."
 risk_level: MEDIUM
+token_budget: 3500
 ---
-
 # WebGL - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-119: Shader Buffer Overflow**
-- NEVER: Unbounded array access in shaders
-- ALWAYS: Bounds checking, validate array indices
+- Do not: Unbounded array access in shaders
+- Instead: Bounds checking, validate array indices
 
 **CWE-400: GPU Resource Exhaustion**
-- NEVER: Unlimited texture size or draw calls from user input
-- ALWAYS: Limit texture dimensions, max vertices, monitor GPU memory
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Unlimited texture size or draw calls from user input
+- Instead: Limit texture dimensions, max vertices, monitor GPU memory
 
 ---
 
@@ -514,7 +499,7 @@ class ShaderProgram {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Skip shader compilation error checking
 - Ignore WebGL context loss events
 - Create textures larger than MAX_TEXTURE_SIZE
@@ -535,55 +520,14 @@ describe('WebGL utilities', () => {
   let gl: WebGLRenderingContext;
 
   beforeEach(() => {
-    gl = createContext(800, 600);
-  });
-
-  afterEach(() => {
-    gl.getExtension('STACKGL_destroy_context')?.destroy();
-  });
-
-  describe('createShaderSafe', () => {
-    it('should throw on invalid shader', () => {
-      const invalidSource = 'this is not valid GLSL';
-      expect(() => {
-        createShaderSafe(gl, invalidSource, gl.FRAGMENT_SHADER);
-      }).toThrow('Shader compilation failed');
-    });
-
-    it('should compile valid shader', () => {
-      const source = `
-        precision mediump float;
-        void main() { gl_FragColor = vec4(1.0); }
-      `;
-      const shader = createShaderSafe(gl, source, gl.FRAGMENT_SHADER);
-      expect(shader).toBeTruthy();
-    });
-  });
-
-  describe('getWebGLLimits', () => {
-    it('should return reasonable limits', () => {
-      const limits = getWebGLLimits(gl);
-      expect(limits.maxTextureSize).toBeGreaterThanOrEqual(1024);
-      expect(limits.maxTextureUnits).toBeGreaterThanOrEqual(8);
-    });
-  });
-
-  describe('createTextureSafe', () => {
-    it('should reject oversized textures', () => {
-      const limits = getWebGLLimits(gl);
-      expect(() => {
-        createTextureSafe(gl, limits.maxTextureSize + 1, 1, limits);
-      }).toThrow('exceeds maximum');
-    });
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating WebGL code:**
+Before generating WebGL code:
 
 - [ ] Shader compilation: Error checking on compile and link
 - [ ] Context loss: Event listeners, resource recreation
@@ -595,5 +539,3 @@ describe('WebGL utilities', () => {
 - [ ] GL errors: Check getError() after critical operations
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

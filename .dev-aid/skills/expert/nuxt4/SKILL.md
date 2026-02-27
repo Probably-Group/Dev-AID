@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Nuxt 4 full-stack patterns with server routes, useFetch, hybrid rendering, and runtime config security. Use when building Nuxt applications, configuring SSR/SSG, or implementing server routes. Do NOT use for plain Vue without SSR or routing (use vue3)."
 compatibility: "Nuxt 4+, Vue 3.3+, Node.js 18+"
 risk_level: MEDIUM
+token_budget: 4000
 ---
-
 # Nuxt 4 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-20: Server Route Input Validation**
-- NEVER: `const body = await readBody(event)` without validation
-- ALWAYS: `const body = await readValidatedBody(event, schema.parse)`
+- Do not: `const body = await readBody(event)` without validation
+- Instead: `const body = await readValidatedBody(event, schema.parse)`
 
 **CWE-200: Runtime Config Secrets**
-- NEVER: `runtimeConfig: { public: { apiKey: process.env.SECRET } }` - exposed to client
-- ALWAYS: Secrets in `runtimeConfig` root (private), only safe values in `public`
+- Do not: `runtimeConfig: { public: { apiKey: process.env.SECRET } }` - exposed to client
+- Instead: Secrets in `runtimeConfig` root (private), only safe values in `public`
 
 **CWE-79: XSS in SSR**
-- NEVER: `<div v-html="serverData">` with user content
-- ALWAYS: Text interpolation `{{ content }}` or sanitize with isomorphic-dompurify
+- Do not: `<div v-html="serverData">` with user content
+- Instead: Text interpolation `{{ content }}` or sanitize with isomorphic-dompurify
 
 **CWE-352: CSRF on Server Routes**
-- NEVER: State-changing routes without CSRF validation
-- ALWAYS: Validate CSRF token from header against session
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: State-changing routes without CSRF validation
+- Instead: Validate CSRF token from header against session
 
 ---
 
@@ -605,7 +590,7 @@ declare module 'vue' {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Expose secrets in `runtimeConfig.public`
 - Use `v-html` with unsanitized user content
 - Skip input validation in server routes
@@ -627,70 +612,14 @@ describe('Nuxt 4 Application', () => {
   beforeEach(async () => {
     await setup({
       server: true,
-      browser: true,
-    });
-  });
-
-  describe('Server Routes', () => {
-    it('should validate input and return 400 for invalid data', async () => {
-      const response = await $fetch('/api/users', {
-        method: 'POST',
-        body: { email: 'invalid' },
-        ignoreResponseError: true,
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it('should not expose private config', async () => {
-      const page = await createPage('/');
-      const config = await page.evaluate(() => {
-        return (window as any).__NUXT__.config;
-      });
-
-      expect(config.apiKey).toBeUndefined();
-      expect(config.public.apiBase).toBeDefined();
-    });
-  });
-
-  describe('CSRF Protection', () => {
-    it('should reject requests without CSRF token', async () => {
-      const response = await $fetch('/api/users/123', {
-        method: 'DELETE',
-        ignoreResponseError: true,
-      });
-
-      expect(response.statusCode).toBe(403);
-    });
-  });
-
-  describe('XSS Prevention', () => {
-    it('should sanitize user content', async () => {
-      const page = await createPage('/content');
-      const html = await page.innerHTML('.user-content');
-
-      expect(html).not.toContain('<script>');
-      expect(html).not.toContain('onerror=');
-    });
-  });
-
-  describe('Data Fetching', () => {
-    it('should handle useFetch errors gracefully', async () => {
-      const page = await createPage('/users/nonexistent');
-
-      // Should show error state, not crash
-      const errorMessage = await page.textContent('.error-message');
-      expect(errorMessage).toContain('not found');
-    });
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Nuxt 4 code:**
+Before generating Nuxt 4 code:
 
 - [ ] Runtime config: Secrets in private only, public for client-safe values
 - [ ] Server routes: Input validation with Zod on all endpoints
@@ -704,5 +633,3 @@ describe('Nuxt 4 Application', () => {
 - [ ] State: Centralized in composables, proper typing with useState
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

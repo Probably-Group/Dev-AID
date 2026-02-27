@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Distributed task queues with Celery including Redis/RabbitMQ backends, Flower monitoring, beat scheduling, and task chaining. Use when configuring Celery workers, designing task workflows with chains and chords, setting up periodic tasks, or debugging task failures. Do NOT use for simple Python threading, non-Python task queues, or raw RabbitMQ without Celery (use rabbitmq-expert)."
 compatibility: "Python 3.11+, Celery 5.3+, Redis or RabbitMQ"
 risk_level: MEDIUM
+token_budget: 3500
 ---
-
 # Celery Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-502: Insecure Deserialization**
-- NEVER: `accept_content = ['pickle']` in Celery config
-- ALWAYS: `accept_content = ['json']`, avoid pickle serialization
+- Do not: `accept_content = ['pickle']` in Celery config
+- Instead: `accept_content = ['json']`, avoid pickle serialization
 
 **CWE-94: Code Injection via Task Names**
-- NEVER: Dynamic task names from user input
-- ALWAYS: Whitelist allowed task names, validate before dispatch
+- Do not: Dynamic task names from user input
+- Instead: Whitelist allowed task names, validate before dispatch
 
 **CWE-400: Resource Exhaustion**
-- NEVER: Unlimited task retries or no timeouts
-- ALWAYS: `@task(max_retries=3, time_limit=300, soft_time_limit=240)`
+- Do not: Unlimited task retries or no timeouts
+- Instead: `@task(max_retries=3, time_limit=300, soft_time_limit=240)`
 
 **CWE-285: Improper Authorization**
-- NEVER: Trust task arguments for authorization decisions
-- ALWAYS: Re-validate permissions inside task, fetch fresh user context
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Trust task arguments for authorization decisions
+- Instead: Re-validate permissions inside task, fetch fresh user context
 
 ---
 
@@ -260,7 +245,7 @@ broker_use_ssl={
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 ```
 celery>=5.3.0           # Security fixes, Python 3.12 support
 redis>=4.5.0            # Async support, security fixes
@@ -489,38 +474,7 @@ from celery.contrib.testing.tasks import ping
 def celery_config():
     return {
         'broker_url': 'memory://',
-        'result_backend': 'cache+memory://',
-        'task_always_eager': True,
-        'task_eager_propagates': True,
-        'task_serializer': 'json',
-        'accept_content': ['json'],
-    }
-
-class TestProcessOrder:
-    def test_task_success(self, celery_app, celery_worker):
-        from myapp.tasks import process_order
-        result = process_order.delay(order_id=123)
-        assert result.get(timeout=10)['status'] == 'success'
-
-    def test_task_idempotent(self, celery_app, celery_worker):
-        from myapp.tasks import process_order
-        r1 = process_order.delay(order_id=123).get(timeout=10)
-        r2 = process_order.delay(order_id=123).get(timeout=10)
-        # Both should succeed without duplicate processing
-
-    def test_task_validates_input(self, celery_app, celery_worker):
-        from myapp.tasks import process_order
-        from pydantic import ValidationError
-        with pytest.raises(ValidationError):
-            process_order.delay(order_id=-1).get(timeout=10)
-
-    def test_task_retries_on_temporary_error(self, celery_app, celery_worker, mocker):
-        from myapp.tasks import process_order
-        mock = mocker.patch('myapp.tasks.do_processing')
-        mock.side_effect = [TemporaryError(), {'result': 'ok'}]
-        result = process_order.delay(order_id=123).get(timeout=10)
-        assert result['status'] == 'success'
-        assert mock.call_count == 2
+# ... (additional test cases follow same pattern)
 ```
 
 **Test coverage requirements:**
@@ -534,7 +488,7 @@ class TestProcessOrder:
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Celery code:**
+Before generating any Celery code:
 
 - [ ] Serialization: JSON only, never pickle
 - [ ] Time limits: Both soft_time_limit and time_limit set
@@ -548,5 +502,3 @@ class TestProcessOrder:
 - [ ] Logging: Correlation ID (task_id) in all logs
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

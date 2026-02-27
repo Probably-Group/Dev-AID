@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Graph database design with traversal queries, relationship modeling, and Cypher/Gremlin optimization. Use when designing graph schemas, writing traversal queries, or modeling complex relationships. Do NOT use for document or relational databases (use database-design)."
 compatibility: "Neo4j 5+ or similar"
 risk_level: MEDIUM
+token_budget: 5000
 ---
-
 # Graph Database Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-943: Cypher/Gremlin Injection**
-- NEVER: Build queries with string concatenation: `"MATCH (n) WHERE n.id = '" + input + "'"`
-- ALWAYS: Parameterized queries: `MATCH (n) WHERE n.id = $id` with params
+- Do not: Build queries with string concatenation: `"MATCH (n) WHERE n.id = '" + input + "'"`
+- Instead: Parameterized queries: `MATCH (n) WHERE n.id = $id` with params
 
 **CWE-918: SSRF via LOAD CSV**
-- NEVER: Allow user-controlled URLs in `LOAD CSV FROM` statements
-- ALWAYS: Whitelist sources, disable `apoc.import.file.use_neo4j_config=false`
+- Do not: Allow user-controlled URLs in `LOAD CSV FROM` statements
+- Instead: Whitelist sources, disable `apoc.import.file.use_neo4j_config=false`
 
 **CWE-400: Traversal DoS**
-- NEVER: Unbounded traversals: `MATCH path=(n)-[*]->(m)` without limits
-- ALWAYS: Set `dbms.cypher.max_plan_depth`, use LIMIT, query timeouts
+- Do not: Unbounded traversals: `MATCH path=(n)-[*]->(m)` without limits
+- Instead: Set `dbms.cypher.max_plan_depth`, use LIMIT, query timeouts
 
 **CWE-611: XXE in GraphML (CVE-2023-23926)**
-- NEVER: Use `apoc.import.graphml` without secure parser config
-- ALWAYS: Upgrade APOC to 5.5.0+, disable external entity resolution
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Use `apoc.import.graphml` without secure parser config
+- Instead: Upgrade APOC to 5.5.0+, disable external entity resolution
 
 ---
 
@@ -101,7 +86,7 @@ MATCH path = (a)-[*1..5]-(b) RETURN path LIMIT 100
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 # Neo4j
@@ -660,7 +645,7 @@ LIMIT 20
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Construct Cypher/Gremlin queries from user input
 - Allow unbounded graph traversals
 - Skip connection encryption (TLS)
@@ -684,70 +669,14 @@ describe('Neo4jRepository', () => {
 
   beforeAll(async () => {
     repo = new Neo4jRepository({
-      uri: process.env.NEO4J_TEST_URI!,
-      username: 'neo4j',
-      password: 'test',
-      database: 'test',
-    });
-  });
-
-  afterAll(async () => {
-    await repo.close();
-  });
-
-  it('prevents Cypher injection', async () => {
-    const maliciousInput = "' OR 1=1 --";
-    const result = await repo.findUserById(maliciousInput);
-    expect(result).toBeNull(); // Should not find anything
-  });
-
-  it('enforces traversal depth limits', async () => {
-    await expect(
-      repo.findUserConnections('user-1', 'FOLLOWS', 10)
-    ).rejects.toThrow('Max depth cannot exceed 5');
-  });
-
-  it('validates relationship types', async () => {
-    await expect(
-      repo.findUserConnections('user-1', 'MALICIOUS_REL', 2)
-    ).rejects.toThrow('Invalid relationship type');
-  });
-
-  it('respects result limits', async () => {
-    const results = await repo.findUserConnections('user-1', 'FOLLOWS', 3, 10);
-    expect(results.length).toBeLessThanOrEqual(10);
-  });
-
-  it('handles transactions correctly', async () => {
-    const user = await repo.createUserWithTransaction({
-      id: crypto.randomUUID(),
-      email: 'test@example.com',
-      name: 'Test User',
-    });
-
-    expect(user.id).toBeDefined();
-
-    // Verify audit log was created
-    const session = repo['driver'].session();
-    try {
-      const result = await session.run(
-        `MATCH (u:User {id: $id})-[:HAS_AUDIT]->(log:AuditLog)
-         RETURN log`,
-        { id: user.id }
-      );
-      expect(result.records.length).toBe(1);
-    } finally {
-      await session.close();
-    }
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any graph database code:**
+Before generating any graph database code:
 
 - [ ] All queries use parameterization (no string concatenation)
 - [ ] Traversal depth is bounded (max 5-10 levels)
@@ -761,5 +690,3 @@ describe('Neo4jRepository', () => {
 - [ ] Node IDs are UUIDs (not internal IDs)
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -4,48 +4,33 @@ version: 2.0.0
 description: "Production FastAPI applications with OAuth2/JWT authentication, Pydantic v2 validation, SQLAlchemy 2.0 async patterns, and middleware configuration. Use when building authenticated APIs, implementing database models with SQLAlchemy 2.0, configuring OAuth2 flows, or optimizing async endpoint performance. Do NOT use for Django, Flask, or GraphQL API development (use graphql-expert)."
 compatibility: "Python 3.11+, FastAPI 0.115+, SQLAlchemy 2.0+, Pydantic 2.5+"
 risk_level: HIGH
+token_budget: 2500
 ---
-
 # FastAPI Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89: SQL Injection**
-- NEVER: `text(f"SELECT * FROM users WHERE id = {id}")`
-- ALWAYS: `select(User).where(User.id == bindparam('id'))`
+- Do not: `text(f"SELECT * FROM users WHERE id = {id}")`
+- Instead: `select(User).where(User.id == bindparam('id'))`
 
 **CWE-285: Improper Authorization**
-- NEVER: `async def get_item(user_id: int)` - trusting client-provided ID
-- ALWAYS: `async def get_item(current_user: User = Depends(get_current_user))`
+- Do not: `async def get_item(user_id: int)` - trusting client-provided ID
+- Instead: `async def get_item(current_user: User = Depends(get_current_user))`
 
 **CWE-522: Weak Password Storage**
-- NEVER: Store plaintext passwords or use MD5/SHA1
-- ALWAYS: `passlib.hash.bcrypt.hash(password)` with cost factor ≥12
+- Do not: Store plaintext passwords or use MD5/SHA1
+- Instead: `passlib.hash.bcrypt.hash(password)` with cost factor ≥12
 
 **CWE-614: Missing Secure Cookie Flag**
-- NEVER: Session cookies without secure flags
-- ALWAYS: `response.set_cookie(key, value, httponly=True, secure=True, samesite="lax")`
+- Do not: Session cookies without secure flags
+- Instead: `response.set_cookie(key, value, httponly=True, secure=True, samesite="lax")`
 
 **CWE-918: SSRF**
-- NEVER: `httpx.get(user_provided_url)` without validation
-- ALWAYS: Allowlist domains, block private IP ranges (10.x, 172.16.x, 192.168.x)
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `httpx.get(user_provided_url)` without validation
+- Instead: Allowlist domains, block private IP ranges (10.x, 172.16.x, 192.168.x)
 
 ---
 
@@ -374,39 +359,14 @@ from app.main import app
 @pytest.fixture
 async def client():
     transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as c:
-        yield c
-
-@pytest.mark.asyncio
-async def test_create_item_success(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/api/v1/items/",
-        json={"name": "Test", "price": 10.0},
-        headers=auth_headers
-    )
-    assert response.status_code == 201
-    assert response.json()["name"] == "Test"
-
-@pytest.mark.asyncio
-async def test_create_item_unauthorized(client: AsyncClient):
-    response = await client.post("/api/v1/items/", json={"name": "Test", "price": 10.0})
-    assert response.status_code == 401
-
-@pytest.mark.asyncio
-async def test_create_item_invalid_price(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/api/v1/items/",
-        json={"name": "Test", "price": -5},
-        headers=auth_headers
-    )
-    assert response.status_code == 422
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 7. Pre-Commit Checklist
 
-**BEFORE generating any FastAPI code, verify:**
+Before generating any FastAPI code, verify:
 
 - [ ] All user inputs have Pydantic validation with Field constraints
 - [ ] All database queries use parameterized statements
@@ -419,5 +379,3 @@ async def test_create_item_invalid_price(client: AsyncClient, auth_headers):
 - [ ] All I/O uses async/await
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

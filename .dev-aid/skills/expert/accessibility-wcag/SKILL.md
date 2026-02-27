@@ -3,26 +3,9 @@ name: accessibility-wcag
 version: 2.0.0
 description: "WCAG 2.2 compliance patterns for accessible web applications with ARIA, keyboard navigation, and screen reader support. Use when implementing accessibility features, auditing WCAG compliance, or fixing a11y issues. Do NOT use for general UI design decisions (use ui-ux-expert)."
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # Accessibility WCAG - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: HIGH
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -81,7 +64,7 @@ element.setAttribute('aria-label', sanitizeText(userInput));
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -705,7 +688,7 @@ function Toast({ message, type }: { message: string; type: 'success' | 'error' }
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use color alone to convey information
 - Remove focus outlines without replacement
 - Use `tabindex` > 0 (disrupts natural order)
@@ -729,78 +712,14 @@ test.describe('Accessibility', () => {
   test('homepage has no WCAG violations', async ({ page }) => {
     await page.goto('/');
 
-    const results = await new AxeBuilder({ page })
-      .withTags(['wcag2a', 'wcag2aa', 'wcag22aa'])
-      .analyze();
-
-    expect(results.violations).toEqual([]);
-  });
-
-  test('form is keyboard navigable', async ({ page }) => {
-    await page.goto('/contact');
-
-    // Tab through form
-    await page.keyboard.press('Tab');
-    await expect(page.locator('input[name="name"]')).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(page.locator('input[name="email"]')).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(page.locator('textarea')).toBeFocused();
-
-    await page.keyboard.press('Tab');
-    await expect(page.locator('button[type="submit"]')).toBeFocused();
-  });
-
-  test('modal traps focus', async ({ page }) => {
-    await page.goto('/');
-    await page.click('button[aria-haspopup="dialog"]');
-
-    // Focus should be inside modal
-    const modal = page.locator('[role="dialog"]');
-    await expect(modal).toBeVisible();
-
-    // Tab should cycle within modal
-    const firstFocusable = modal.locator('button').first();
-    const lastFocusable = modal.locator('button').last();
-
-    await lastFocusable.focus();
-    await page.keyboard.press('Tab');
-    await expect(firstFocusable).toBeFocused();
-  });
-
-  test('images have alt text', async ({ page }) => {
-    await page.goto('/');
-
-    const images = await page.locator('img').all();
-    for (const img of images) {
-      const alt = await img.getAttribute('alt');
-      const role = await img.getAttribute('role');
-
-      // Must have alt (can be empty for decorative)
-      expect(alt !== null || role === 'presentation').toBeTruthy();
-    }
-  });
-
-  test('screen reader announcements work', async ({ page }) => {
-    await page.goto('/form');
-
-    // Submit invalid form
-    await page.click('button[type="submit"]');
-
-    // Check live region announces error
-    const liveRegion = page.locator('[role="alert"]');
-    await expect(liveRegion).toContainText('error');
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any UI code:**
+Before generating any UI code:
 
 - [ ] All interactive elements keyboard accessible
 - [ ] Focus order is logical (no positive tabindex)
@@ -814,5 +733,3 @@ test.describe('Accessibility', () => {
 - [ ] Reduced motion preference respected
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

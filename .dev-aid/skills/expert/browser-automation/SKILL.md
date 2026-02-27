@@ -3,40 +3,25 @@ name: browser-automation
 version: 2.0.0
 description: "Browser automation with Puppeteer, Playwright, CDP, and WebDriver for testing, scraping, and web interaction. Use when automating browsers, web scraping, or end-to-end testing. Do NOT use for native app automation."
 risk_level: HIGH
+token_budget: 3500
 ---
-
 # Browser Automation Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: XSS via evaluate**
-- NEVER: `page.evaluate(userString)` - execute user code
-- ALWAYS: Parameterize, use `evaluateHandle` with sanitized data
+- Do not: `page.evaluate(userString)` - execute user code
+- Instead: Parameterize, use `evaluateHandle` with sanitized data
 
 **CWE-200: Credential Exposure**
-- NEVER: Screenshot/video with credentials visible
-- ALWAYS: Mask sensitive data, use environment variables for creds
+- Do not: Screenshot/video with credentials visible
+- Instead: Mask sensitive data, use environment variables for creds
 
 **CWE-611: SSRF via Navigation**
-- NEVER: `page.goto(userUrl)` without validation
-- ALWAYS: Allowlist domains, validate URL format
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `page.goto(userUrl)` without validation
+- Instead: Allowlist domains, validate URL format
 
 ---
 
@@ -107,7 +92,7 @@ await page.screenshot({ path: 'debug.png' });
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -499,7 +484,7 @@ async function withRetry<T>(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Execute user-provided code via page.evaluate()
 - Screenshot pages with visible credentials
 - Navigate to non-whitelisted domains
@@ -522,41 +507,14 @@ test.describe('Scraper Security', () => {
     const maliciousSelector = "'); alert(1); //";
 
     await expect(
-      scrape(page, maliciousSelector)
-    ).rejects.toThrow('Invalid selector');
-  });
-
-  test('blocks non-whitelisted domains', async ({ page }) => {
-    await expect(
-      navigateSafely(page, 'https://evil.com')
-    ).rejects.toThrow('Domain not allowed');
-  });
-
-  test('validates extracted data', async ({ page }) => {
-    await page.setContent('<h1></h1>');  // Empty title
-
-    const result = await extractProduct(page);
-    expect(result).toBeNull();  // Fails validation
-  });
-
-  test('enforces rate limiting', async ({ page }) => {
-    const scraper = new RateLimitedScraper(100, 2);
-
-    await scraper.scrape(page, async () => {});
-    await scraper.scrape(page, async () => {});
-
-    await expect(
-      scraper.scrape(page, async () => {})
-    ).rejects.toThrow('Request limit exceeded');
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any browser automation code:**
+Before generating any browser automation code:
 
 - [ ] No user input in page.evaluate() code strings
 - [ ] URL validation and domain whitelisting
@@ -570,5 +528,3 @@ test.describe('Scraper Security', () => {
 - [ ] Retry logic with exponential backoff
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

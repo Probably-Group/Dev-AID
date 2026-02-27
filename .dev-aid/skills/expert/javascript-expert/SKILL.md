@@ -4,48 +4,33 @@ version: 2.0.0
 description: "Modern JavaScript with ES6+ patterns, async/await, module systems, and Node.js best practices. Use when writing vanilla JS, working with promises, or building Node.js services. Do NOT use for TypeScript-specific features like generics or branded types (use typescript-expert)."
 compatibility: "Node.js 18+, ES2022+"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # JavaScript Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: Cross-Site Scripting (XSS)**
-- NEVER: `element.innerHTML = userInput` or `document.write(userInput)`
-- ALWAYS: `element.textContent = userInput` or sanitize with DOMPurify
+- Do not: `element.innerHTML = userInput` or `document.write(userInput)`
+- Instead: `element.textContent = userInput` or sanitize with DOMPurify
 
 **CWE-1321: Prototype Pollution**
-- NEVER: `Object.assign(target, JSON.parse(userInput))` without validation
-- ALWAYS: Validate keys, use `Object.create(null)` for dictionaries, reject `__proto__`
+- Do not: `Object.assign(target, JSON.parse(userInput))` without validation
+- Instead: Validate keys, use `Object.create(null)` for dictionaries, reject `__proto__`
 
 **CWE-94: eval Injection**
-- NEVER: `eval(userInput)` or `new Function(userInput)()`
-- ALWAYS: Use JSON.parse for data, avoid dynamic code execution
+- Do not: `eval(userInput)` or `new Function(userInput)()`
+- Instead: Use JSON.parse for data, avoid dynamic code execution
 
 **CWE-918: SSRF in Node.js**
-- NEVER: `fetch(userProvidedUrl)` without validation
-- ALWAYS: Allowlist domains, validate URL scheme (https only), block private IPs
+- Do not: `fetch(userProvidedUrl)` without validation
+- Instead: Allowlist domains, validate URL scheme (https only), block private IPs
 
 **CWE-400: ReDoS (Regular Expression DoS)**
-- NEVER: Complex regex with user input: `new RegExp(userInput)`
-- ALWAYS: Sanitize regex special chars, use timeout, prefer simple patterns
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Complex regex with user input: `new RegExp(userInput)`
+- Instead: Sanitize regex special chars, use timeout, prefer simple patterns
 
 ---
 
@@ -116,7 +101,7 @@ const merged = { ...target, ...source };
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -497,7 +482,7 @@ function lazyLoadImages() {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `eval()` or `new Function()` with user input
 - Use `innerHTML` with untrusted data
 - Mutate function arguments
@@ -521,62 +506,14 @@ describe('fetchData', () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ data: [1, 2, 3] }),
-    });
-
-    const result = await fetchData('/api/data');
-    expect(result).toEqual({ data: [1, 2, 3] });
-  });
-
-  it('throws on HTTP error', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
-      statusText: 'Not Found',
-    });
-
-    await expect(fetchData('/api/data'))
-      .rejects.toThrow('HTTP 404');
-  });
-
-  it('handles network errors', async () => {
-    global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
-
-    await expect(fetchData('/api/data'))
-      .rejects.toThrow('Network error');
-  });
-});
-
-describe('validation', () => {
-  it('accepts valid user data', () => {
-    const input = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      email: 'test@example.com',
-      age: 25,
-      role: 'user',
-    };
-
-    expect(() => UserSchema.parse(input)).not.toThrow();
-  });
-
-  it('rejects invalid email', () => {
-    const input = {
-      id: '550e8400-e29b-41d4-a716-446655440000',
-      email: 'not-an-email',
-      age: 25,
-      role: 'user',
-    };
-
-    const result = UserSchema.safeParse(input);
-    expect(result.success).toBe(false);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any JavaScript code:**
+Before generating any JavaScript code:
 
 - [ ] No innerHTML with untrusted data
 - [ ] No eval() or new Function() with user input
@@ -590,5 +527,3 @@ describe('validation', () => {
 - [ ] No prototype pollution vectors
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -4,36 +4,21 @@ version: 2.0.0
 description: "macOS accessibility automation with AXUIElement for UI testing, element inspection, and system control. Use when automating macOS UI via accessibility APIs or AXUIElement. Do NOT use for Linux accessibility (use linux-at-spi2)."
 compatibility: "macOS 10.15+, Xcode Command Line Tools"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # macOS Accessibility - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-284: Accessibility Permission Abuse**
-- NEVER: Request accessibility for non-accessibility purposes
-- ALWAYS: Minimal permissions, document why accessibility is needed
+- Do not: Request accessibility for non-accessibility purposes
+- Instead: Minimal permissions, document why accessibility is needed
 
 **CWE-200: Screen Content Exposure**
-- NEVER: Log or transmit screen content without consent
-- ALWAYS: Mask sensitive areas, user consent for any capture
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Log or transmit screen content without consent
+- Instead: Mask sensitive areas, user consent for any capture
 
 ---
 
@@ -435,7 +420,7 @@ class AXUIObserver {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Cache AXUIElement references without validation
 - Ignore AXError return codes
 - Traverse UI trees without depth/count limits
@@ -456,62 +441,14 @@ class AXUIElementTests: XCTestCase {
 
     func testPermissionCheckDoesNotCrash() {
         // Should not crash even if permission denied
-        let hasPermission = checkAccessibilityPermission()
-        // Just verify it returns a boolean
-        XCTAssertNotNil(hasPermission)
-    }
-
-    func testBoundedTraversalRespectsLimits() {
-        // Create mock app element (in real tests, use actual app)
-        let app = AXUIElementCreateApplication(getpid())
-
-        let config = AXSearchConfig(maxDepth: 2, maxResults: 10, timeout: 1.0)
-        let results = findElements(
-            root: app,
-            matching: { _ in true },
-            config: config
-        )
-
-        XCTAssertLessThanOrEqual(results.count, 10)
-    }
-
-    func testSafeActionHandlesInvalidElement() {
-        // Create invalid element reference
-        let invalidElement = AXUIElementCreateApplication(99999)
-
-        let result = safePerformAction(invalidElement, action: kAXPressAction as String)
-
-        switch result {
-        case .failure(.elementInvalid), .failure(.actionFailed):
-            // Expected
-            break
-        default:
-            XCTFail("Should fail for invalid element")
-        }
-    }
-
-    func testObserverCleanup() {
-        // Verify no leaks (run with Instruments)
-        weak var weakObserver: AXUIObserver?
-
-        autoreleasepool {
-            let app = AXUIElementCreateApplication(getpid())
-            let observer = AXUIObserver(pid: getpid(), element: app) { _, _ in }
-            weakObserver = observer
-            _ = observer?.observe(kAXFocusedUIElementChangedNotification as String)
-        }
-
-        // Observer should be deallocated
-        XCTAssertNil(weakObserver)
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating macOS Accessibility code:**
+Before generating macOS Accessibility code:
 
 - [ ] Permission check: `AXIsProcessTrustedWithOptions` called first
 - [ ] Error handling: All AXError cases handled explicitly
@@ -523,5 +460,3 @@ class AXUIElementTests: XCTestCase {
 - [ ] Cycle detection: Track visited elements via CFHash
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

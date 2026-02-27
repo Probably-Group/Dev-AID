@@ -4,48 +4,33 @@ version: 2.0.0
 description: "Rust systems programming with memory safety, error handling, async Tokio, and FFI patterns. Use when writing Rust code, designing safe abstractions, or implementing async services. Do NOT use for Tauri-specific patterns like IPC or plugins (use tauri)."
 compatibility: "Rust 1.70+, cargo"
 risk_level: MEDIUM
+token_budget: 3500
 ---
-
 # Rust Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-119: Unsafe Memory Access**
-- NEVER: `unsafe {}` without documented justification and safety invariants
-- ALWAYS: Prefer safe abstractions, document why unsafe is necessary
+- Do not: `unsafe {}` without documented justification and safety invariants
+- Instead: Prefer safe abstractions, document why unsafe is necessary
 
 **CWE-78: Command Injection**
-- NEVER: `Command::new("sh").arg("-c").arg(user_string)`
-- ALWAYS: `Command::new(binary).args(&validated_args)` - no shell
+- Do not: `Command::new("sh").arg("-c").arg(user_string)`
+- Instead: `Command::new(binary).args(&validated_args)` - no shell
 
 **CWE-252: Unchecked Return Value**
-- NEVER: `.unwrap()` in production code or libraries
-- ALWAYS: Proper error handling with `?`, `match`, or `unwrap_or_default()`
+- Do not: `.unwrap()` in production code or libraries
+- Instead: Proper error handling with `?`, `match`, or `unwrap_or_default()`
 
 **CWE-457: Uninitialized Memory**
-- NEVER: `MaybeUninit` without proper initialization
-- ALWAYS: Initialize all memory before use, use safe constructors
+- Do not: `MaybeUninit` without proper initialization
+- Instead: Initialize all memory before use, use safe constructors
 
 **CWE-362: Race Conditions**
-- NEVER: `static mut` variables
-- ALWAYS: Use `Mutex`, `RwLock`, `AtomicT`, or message passing
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `static mut` variables
+- Instead: Use `Mutex`, `RwLock`, `AtomicT`, or message passing
 
 ---
 
@@ -320,7 +305,7 @@ impl Serialize for AppError {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 ```toml
 [dependencies]
 # Core (CVE-2024-24576, CVE-2024-43402 fixes require 1.77.2+)
@@ -522,35 +507,7 @@ mod tests {
     #[test]
     fn test_path_traversal_blocked() {
         let base = Path::new("/app/data");
-        let attacks = ["../etc/passwd", "..\\..\\windows\\system32", "foo/../../etc/passwd"];
-
-        for attack in attacks {
-            let result = safe_read_file(base, attack);
-            assert!(result.is_err(), "Path traversal not blocked: {}", attack);
-        }
-    }
-
-    #[test]
-    fn test_command_allowlist() {
-        assert!(safe_command("rm", &["-rf", "/"]).is_err());
-        assert!(safe_command("git", &["status"]).is_ok());
-    }
-
-    #[test]
-    fn test_input_validation() {
-        let valid = UserInput { name: "alice".into(), age: 25 };
-        assert!(valid.validate().is_ok());
-
-        let invalid = UserInput { name: "".into(), age: 200 };
-        assert!(invalid.validate().is_err());
-    }
-
-    #[tokio::test]
-    async fn test_async_operation() {
-        let result = fetch_user(1).await;
-        assert!(result.is_ok());
-    }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 **Test coverage requirements:**
@@ -564,7 +521,7 @@ mod tests {
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Rust code:**
+Before generating any Rust code:
 
 - [ ] Data ≠ Code: No shell strings, use Command::new().arg()
 - [ ] Input validation: validator crate at all boundaries
@@ -578,5 +535,3 @@ mod tests {
 - [ ] Tests: Security tests for boundaries
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

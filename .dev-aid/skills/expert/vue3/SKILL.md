@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Vue 3 Composition API patterns with reactivity, composables, provide/inject, and XSS prevention. Use when building Vue 3 components, managing reactivity, or creating composables. Do NOT use for Nuxt-specific features like SSR or server routes (use nuxt4), or for React or Angular."
 compatibility: "Vue 3.3+, Node.js 18+"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # Vue 3 - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: XSS via v-html**
-- NEVER: `<div v-html="userContent"></div>` with untrusted data
-- ALWAYS: `<div>{{ userContent }}</div>` (auto-escaped) or sanitize with DOMPurify
+- Do not: `<div v-html="userContent"></div>` with untrusted data
+- Instead: `<div>{{ userContent }}</div>` (auto-escaped) or sanitize with DOMPurify
 
 **CWE-20: Props Validation**
-- NEVER: Trust props at runtime - TypeScript types are compile-time only
-- ALWAYS: Runtime validation with Zod in `onMounted` for external data
+- Do not: Trust props at runtime - TypeScript types are compile-time only
+- Instead: Runtime validation with Zod in `onMounted` for external data
 
 **CWE-200: Secrets Exposure**
-- NEVER: `const API_KEY = import.meta.env.VITE_SECRET` - bundled into client JS
-- ALWAYS: Secrets on server only, use API routes for sensitive operations
+- Do not: `const API_KEY = import.meta.env.VITE_SECRET` - bundled into client JS
+- Instead: Secrets on server only, use API routes for sensitive operations
 
 **CWE-352: CSRF**
-- NEVER: State-changing requests without CSRF protection
-- ALWAYS: Include CSRF token in headers for mutations, validate server-side
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: State-changing requests without CSRF protection
+- Instead: Include CSRF token in headers for mutations, validate server-side
 
 ---
 
@@ -449,7 +434,7 @@ const model = computed({
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use v-html with untrusted user content
 - Destructure reactive objects without toRefs
 - Forget cleanup in composables (event listeners, timers)
@@ -470,68 +455,14 @@ import UserCard from './UserCard.vue';
 
 describe('UserCard', () => {
   it('renders user name', () => {
-    const wrapper = mount(UserCard, {
-      props: {
-        user: { id: '1', name: 'John', email: 'john@example.com' },
-      },
-    });
-
-    expect(wrapper.text()).toContain('John');
-  });
-
-  it('emits delete event with user id', async () => {
-    const wrapper = mount(UserCard, {
-      props: {
-        user: { id: '123', name: 'John', email: 'john@example.com' },
-      },
-    });
-
-    await wrapper.find('[data-testid="delete-btn"]').trigger('click');
-
-    expect(wrapper.emitted('delete')).toEqual([['123']]);
-  });
-
-  it('handles loading state', async () => {
-    const wrapper = mount(UserCard, {
-      props: {
-        user: null,
-        loading: true,
-      },
-    });
-
-    expect(wrapper.find('.skeleton').exists()).toBe(true);
-  });
-});
-
-// Testing composables
-import { useWindowSize } from './useWindowSize';
-
-describe('useWindowSize', () => {
-  it('returns current window dimensions', () => {
-    const { width, height } = useWindowSize();
-
-    expect(width.value).toBe(window.innerWidth);
-    expect(height.value).toBe(window.innerHeight);
-  });
-
-  it('updates on resize', async () => {
-    const { width } = useWindowSize();
-
-    // Simulate resize
-    window.innerWidth = 800;
-    window.dispatchEvent(new Event('resize'));
-
-    await nextTick();
-    expect(width.value).toBe(800);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Vue 3 code:**
+Before generating Vue 3 code:
 
 - [ ] XSS: No v-html with untrusted content, use DOMPurify if needed
 - [ ] Props: Runtime validation with Zod for external data
@@ -545,5 +476,3 @@ describe('useWindowSize', () => {
 - [ ] Tests: Cover props, emits, and composables
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

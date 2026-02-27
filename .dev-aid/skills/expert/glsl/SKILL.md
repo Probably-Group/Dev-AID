@@ -3,36 +3,21 @@ name: glsl
 version: 2.0.0
 description: "GLSL shader programming for fragment and vertex shaders with WebGL integration and visual effects. Use when writing GLSL shaders, shader math, or GPU rendering logic. Do NOT use for high-level 3D frameworks (use threejs-tresjs)."
 risk_level: LOW
+token_budget: 4500
 ---
-
 # GLSL Shader Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-119: Buffer Access**
-- NEVER: `array[userIndex]` without bounds check
-- ALWAYS: Clamp indices, use defined array bounds
+- Do not: `array[userIndex]` without bounds check
+- Instead: Clamp indices, use defined array bounds
 
 **CWE-835: Infinite Loops**
-- NEVER: `while(true)` or unbounded loops in shaders
-- ALWAYS: Maximum iteration counts, early exit conditions
-
-### 0.3 Risk Level: LOW
-
-**Verification requirements for LOW risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `while(true)` or unbounded loops in shaders
+- Instead: Maximum iteration counts, early exit conditions
 
 ---
 
@@ -705,7 +690,7 @@ function animate(material: THREE.ShaderMaterial, clock: THREE.Clock) {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Construct shaders from user input
 - Use unbounded loops
 - Skip precision declarations
@@ -729,80 +714,14 @@ describe('Shader Compilation', () => {
     const gl = createWebGLContext();
     const shader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(shader, vertexShader);
-    gl.compileShader(shader);
-
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    if (!success) {
-      console.error(gl.getShaderInfoLog(shader));
-    }
-    expect(success).toBe(true);
-  });
-
-  it('compiles fragment shader without errors', () => {
-    const gl = createWebGLContext();
-    const shader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(shader, fragmentShader);
-    gl.compileShader(shader);
-
-    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-    expect(success).toBe(true);
-  });
-
-  it('links program successfully', () => {
-    const gl = createWebGLContext();
-    const program = createProgram(gl, vertexShader, fragmentShader);
-
-    const success = gl.getProgramParameter(program, gl.LINK_STATUS);
-    expect(success).toBe(true);
-  });
-
-  it('handles uniform updates without errors', () => {
-    const gl = createWebGLContext();
-    const program = createProgram(gl, vertexShader, fragmentShader);
-    gl.useProgram(program);
-
-    const timeLoc = gl.getUniformLocation(program, 'u_time');
-    expect(timeLoc).not.toBeNull();
-
-    // Should not throw
-    gl.uniform1f(timeLoc, 1.5);
-  });
-});
-
-function createWebGLContext(): WebGL2RenderingContext {
-  const canvas = document.createElement('canvas');
-  const gl = canvas.getContext('webgl2');
-  if (!gl) throw new Error('WebGL2 not supported');
-  return gl;
-}
-
-function createProgram(
-  gl: WebGL2RenderingContext,
-  vsSource: string,
-  fsSource: string
-): WebGLProgram {
-  const vs = gl.createShader(gl.VERTEX_SHADER)!;
-  gl.shaderSource(vs, vsSource);
-  gl.compileShader(vs);
-
-  const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
-  gl.shaderSource(fs, fsSource);
-  gl.compileShader(fs);
-
-  const program = gl.createProgram()!;
-  gl.attachShader(program, vs);
-  gl.attachShader(program, fs);
-  gl.linkProgram(program);
-
-  return program;
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any GLSL code:**
+Before generating any GLSL code:
 
 - [ ] Precision specified for all floats
 - [ ] All loops have compile-time bounds
@@ -816,5 +735,3 @@ function createProgram(
 - [ ] Performance profiled on target hardware
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

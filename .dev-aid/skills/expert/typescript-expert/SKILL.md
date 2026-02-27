@@ -4,48 +4,33 @@ version: 2.0.0
 description: "TypeScript patterns with runtime validation (Zod), branded types, generics, utility types, and strict type safety. Use when designing type-safe APIs, implementing runtime validation, or working with advanced TypeScript features. Do NOT use for plain JavaScript without types (use javascript-expert)."
 compatibility: "TypeScript 5.0+, Node.js 18+"
 risk_level: MEDIUM
+token_budget: 4000
 ---
-
 # TypeScript Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-20: Types ≠ Runtime Validation**
-- NEVER: Trust TypeScript types for security: `function process(input: SafeInput)`
-- ALWAYS: Runtime validation with Zod: `const validated = SafeInputSchema.parse(input)`
+- Do not: Trust TypeScript types for security: `function process(input: SafeInput)`
+- Instead: Runtime validation with Zod: `const validated = SafeInputSchema.parse(input)`
 
 **CWE-79: XSS**
-- NEVER: `element.innerHTML = userInput` even with typed input
-- ALWAYS: `textContent` or sanitize with DOMPurify
+- Do not: `element.innerHTML = userInput` even with typed input
+- Instead: `textContent` or sanitize with DOMPurify
 
 **CWE-1321: Prototype Pollution**
-- NEVER: Spread untrusted objects: `{...base, ...userObject}`
-- ALWAYS: Validate with Zod `.strict()`, use `Object.create(null)`
+- Do not: Spread untrusted objects: `{...base, ...userObject}`
+- Instead: Validate with Zod `.strict()`, use `Object.create(null)`
 
 **CWE-704: Incorrect Type Assertion**
-- NEVER: `const user = data as User` without validation
-- ALWAYS: `const user = UserSchema.parse(data)` - validate then type
+- Do not: `const user = data as User` without validation
+- Instead: `const user = UserSchema.parse(data)` - validate then type
 
 **CWE-476: Null Pointer via Non-null Assertion**
-- NEVER: `user.profile!.name` without certainty
-- ALWAYS: `user.profile?.name ?? 'default'` with optional chaining
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `user.profile!.name` without certainty
+- Instead: `user.profile?.name ?? 'default'` with optional chaining
 
 ---
 
@@ -277,7 +262,7 @@ git add package-lock.json
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 ```
 typescript>=5.3.0       # satisfies operator, better inference
 zod>=3.22.0             # Runtime validation
@@ -581,28 +566,7 @@ describe('createUser', () => {
     it('should create user with valid input', () => {
         const user = createUser({ name: 'John', email: 'john@example.com' });
         expect(user.name).toBe('John');
-        expect(user.email).toBe('john@example.com');
-    });
-
-    it('should reject invalid email', () => {
-        expect(() => createUser({ name: 'John', email: 'invalid' }))
-            .toThrow('Invalid email');
-    });
-
-    it('should have correct types', () => {
-        const user = createUser({ name: 'John', email: 'john@example.com' });
-        expectTypeOf(user).toMatchTypeOf<User>();
-        expectTypeOf(user.name).toBeString();
-    });
-});
-
-// Type-level tests
-describe('types', () => {
-    it('ApiResponse type is correct', () => {
-        type SuccessResponse = Extract<ApiResponse<User>, { success: true }>;
-        expectTypeOf<SuccessResponse>().toHaveProperty('data');
-    });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 **Test coverage requirements:**
@@ -615,7 +579,7 @@ describe('types', () => {
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any TypeScript code:**
+Before generating any TypeScript code:
 
 - [ ] Strict mode: `"strict": true` in tsconfig.json
 - [ ] No `any`: Use `unknown` and narrow types
@@ -629,5 +593,3 @@ describe('types', () => {
 - [ ] Discriminated unions: For state management
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

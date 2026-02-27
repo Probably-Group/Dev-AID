@@ -3,32 +3,17 @@ name: model-quantization
 version: 2.0.0
 description: "Model quantization techniques for 4-bit/8-bit inference with GGUF format conversion and optimization. Use when quantizing models, converting to GGUF, or optimizing inference size. Do NOT use for model training or fine-tuning."
 risk_level: MEDIUM
+token_budget: 3500
 ---
-
 # Model Quantization - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-502: Model File Deserialization**
-- NEVER: Load models from untrusted sources (pickle-based formats)
-- ALWAYS: Verify model checksums, use safetensors format, scan for malware
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Load models from untrusted sources (pickle-based formats)
+- Instead: Verify model checksums, use safetensors format, scan for malware
 
 ---
 
@@ -490,7 +475,7 @@ def convert_hf_to_gguf(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Load model files without validating magic bytes/format
 - Use `shell=True` in subprocess calls for quantization
 - Trust user-provided paths without traversal checks
@@ -511,55 +496,14 @@ from unittest.mock import patch, MagicMock
 class TestModelQuantization:
 
     def test_validate_model_file_rejects_invalid_magic(self, tmp_path):
-        """Verify invalid GGUF files are rejected."""
-        fake_model = tmp_path / "fake.gguf"
-        fake_model.write_bytes(b"FAKE" + b"\x00" * 100)
-
-        with pytest.raises(ValueError, match="Invalid GGUF"):
-            validate_model_file(fake_model)
-
-    def test_path_traversal_prevention(self):
-        """Verify path traversal attacks are blocked."""
-        with pytest.raises(ValueError, match="traversal"):
-            safe_model_path("../../../etc/passwd")
-
-        with pytest.raises(ValueError, match="Invalid model name"):
-            safe_model_path("model; rm -rf /")
-
-    def test_resource_check_prevents_oom(self):
-        """Verify resource checks catch insufficient memory."""
-        with patch('psutil.virtual_memory') as mock_mem:
-            mock_mem.return_value.available = 4 * 1024 ** 3  # 4GB
-
-            # 70B model requires more than 4GB
-            with pytest.raises(MemoryError):
-                check_resources(model_params_b=70, quant_type='q4_k_m')
-
-    def test_inference_config_validation(self):
-        """Verify inference config bounds are enforced."""
-        # Valid config
-        config = InferenceConfig(max_tokens=100, temperature=0.5)
-        assert config.max_tokens == 100
-
-        # Invalid temperature
-        with pytest.raises(ValueError):
-            InferenceConfig(temperature=3.0)
-
-        # Invalid max_tokens
-        with pytest.raises(ValueError):
-            InferenceConfig(max_tokens=10000)
-
-    def test_quant_type_enum_coverage(self):
-        """Verify all quant types have memory multipliers."""
-        for quant_type in GGUFQuantType:
-            assert quant_type.value in QUANT_MEMORY_MULTIPLIERS
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating quantization code:**
+Before generating quantization code:
 
 - [ ] Model validation: Magic bytes checked before loading
 - [ ] Path safety: User paths validated against traversal
@@ -571,5 +515,3 @@ class TestModelQuantization:
 - [ ] Timeout handling: Long operations have timeout guards
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

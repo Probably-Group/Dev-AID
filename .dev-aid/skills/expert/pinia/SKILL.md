@@ -4,40 +4,25 @@ version: 2.0.0
 description: "Pinia state management for Vue 3 with typed stores, plugins, and SSR hydration patterns. Use when managing Vue application state, creating stores, or handling SSR hydration. Do NOT use for Vuex, Redux, or non-Vue state management."
 compatibility: "Vue 3.3+, Pinia 2.1+"
 risk_level: LOW
+token_budget: 3000
 ---
-
 # Pinia Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-200: Sensitive Data in Store**
-- NEVER: Store secrets/tokens in Pinia state (visible in devtools, SSR serialization)
-- ALWAYS: Use httpOnly cookies for auth, keep secrets server-side
+- Do not: Store secrets/tokens in Pinia state (visible in devtools, SSR serialization)
+- Instead: Use httpOnly cookies for auth, keep secrets server-side
 
 **CWE-20: Action Input Validation**
-- NEVER: Trust action parameters: `setUser(userData: User)`
-- ALWAYS: Validate in action: `setUser(data: unknown) { const user = UserSchema.parse(data) }`
+- Do not: Trust action parameters: `setUser(userData: User)`
+- Instead: Validate in action: `setUser(data: unknown) { const user = UserSchema.parse(data) }`
 
 **CWE-352: CSRF in Actions**
-- NEVER: Mutation actions without CSRF protection
-- ALWAYS: Include CSRF token in API calls from actions
-
-### 0.3 Risk Level: LOW
-
-**Verification requirements for LOW risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Mutation actions without CSRF protection
+- Instead: Include CSRF token in API calls from actions
 
 ---
 
@@ -114,7 +99,7 @@ function setUser(data: unknown) {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -491,7 +476,7 @@ describe('Todo Store', () => {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Store sensitive data (tokens, passwords) in Pinia state
 - Trust hydrated/persisted state without validation
 - Use `any` type in store definitions
@@ -513,40 +498,14 @@ describe('Auth Store Security', () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
-
-  it('clears state on logout even if API fails', async () => {
-    const store = useAuthStore();
-    store.user = { id: '1', email: 'test@test.com', name: 'Test', role: 'user' };
-
-    global.fetch = vi.fn().mockRejectedValue(new Error('API error'));
-
-    await store.logout();
-
-    expect(store.user).toBeNull();
-    expect(store.isAuthenticated).toBe(false);
-  });
-
-  it('validates user data from API', async () => {
-    const store = useAuthStore();
-
-    global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ user: { id: '1', email: 'invalid' } }),
-    });
-
-    await expect(store.login('test@test.com', 'password'))
-      .rejects.toThrow('Invalid user data');
-
-    expect(store.user).toBeNull();
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Pinia code:**
+Before generating any Pinia code:
 
 - [ ] No sensitive data (tokens, passwords) in state
 - [ ] Input validation on all action parameters
@@ -560,5 +519,3 @@ describe('Auth Store Security', () => {
 - [ ] $reset function for clearing state
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

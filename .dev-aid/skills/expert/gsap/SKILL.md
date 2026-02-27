@@ -4,32 +4,17 @@ version: 2.0.0
 description: "GSAP animation patterns for timelines, tweens, ScrollTrigger, and complex motion sequences. Use when implementing GSAP animations, building scroll-driven effects, or orchestrating timeline sequences. Do NOT use for CSS transitions or non-GSAP animation libraries."
 compatibility: "GSAP 3.12+"
 risk_level: LOW
+token_budget: 4500
 ---
-
 # GSAP Animation Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: XSS via Animation Targets**
-- NEVER: `gsap.to(userSelector, {innerHTML: userContent})`
-- ALWAYS: Sanitize selectors, never animate innerHTML with user data
-
-### 0.3 Risk Level: LOW
-
-**Verification requirements for LOW risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `gsap.to(userSelector, {innerHTML: userContent})`
+- Instead: Sanitize selectors, never animate innerHTML with user data
 
 ---
 
@@ -100,7 +85,7 @@ gsap.to('.element', {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -709,7 +694,7 @@ function PerformantAnimations() {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Animate layout properties (left, top, width, height)
 - Use user-provided selectors without validation
 - Skip animation cleanup on unmount
@@ -733,71 +718,14 @@ describe('GSAP Animations', () => {
   beforeEach(() => {
     // Speed up animations for testing
     gsap.globalTimeline.timeScale(100);
-  });
-
-  afterEach(() => {
-    // Clean up all animations
-    gsap.killTweensOf('*');
-    gsap.globalTimeline.timeScale(1);
-  });
-
-  it('animates element to target position', async () => {
-    const element = document.createElement('div');
-    document.body.appendChild(element);
-
-    gsap.to(element, { x: 100, duration: 1 });
-
-    // Wait for animation to complete
-    await gsap.globalTimeline.then();
-
-    const transform = element.style.transform;
-    expect(transform).toContain('translate');
-  });
-
-  it('respects reduced motion preference', () => {
-    // Mock matchMedia
-    vi.spyOn(window, 'matchMedia').mockReturnValue({
-      matches: true,
-      media: '(prefers-reduced-motion: reduce)',
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn(),
-    } as unknown as MediaQueryList);
-
-    const animations = new AccessibleAnimations();
-    expect(animations.reducedMotion).toBe(true);
-  });
-
-  it('cleans up animations on kill', () => {
-    const element = document.createElement('div');
-    const tween = gsap.to(element, { x: 100, duration: 10 });
-
-    expect(tween.isActive()).toBe(true);
-
-    tween.kill();
-
-    expect(tween.isActive()).toBe(false);
-  });
-
-  it('timeline completes in correct order', async () => {
-    const calls: string[] = [];
-
-    const tl = gsap.timeline();
-    tl.call(() => calls.push('first'))
-      .call(() => calls.push('second'), [], '+=0.1')
-      .call(() => calls.push('third'), [], '+=0.1');
-
-    await tl.then();
-
-    expect(calls).toEqual(['first', 'second', 'third']);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any GSAP code:**
+Before generating any GSAP code:
 
 - [ ] Using transform properties (x, y, scale, rotation)
 - [ ] Animation cleanup on component unmount
@@ -811,5 +739,3 @@ describe('GSAP Animations', () => {
 - [ ] useGSAP hook used for React integration
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

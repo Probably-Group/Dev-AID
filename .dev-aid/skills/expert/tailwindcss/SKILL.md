@@ -4,40 +4,25 @@ version: 2.0.0
 description: "Tailwind CSS patterns with utility composition, custom plugins, responsive design, and dark mode. Use when styling with Tailwind utilities, creating custom plugins, or building responsive layouts. Do NOT use for CSS-in-JS or styled-components approaches."
 compatibility: "Tailwind CSS 3.4+, Node.js 18+"
 risk_level: LOW
+token_budget: 3000
 ---
-
 # Tailwind CSS Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: XSS via Dynamic Classes**
-- NEVER: `class="${userInput}"` or dynamic class names from user input
-- ALWAYS: Whitelist allowed classes, use static class mappings
+- Do not: `class="${userInput}"` or dynamic class names from user input
+- Instead: Whitelist allowed classes, use static class mappings
 
 **CWE-94: Arbitrary Code in Config**
-- NEVER: `tailwind.config.js` with dynamic imports from user input
-- ALWAYS: Static config, validate any customization inputs
+- Do not: `tailwind.config.js` with dynamic imports from user input
+- Instead: Static config, validate any customization inputs
 
 **CWE-400: Build-time DoS**
-- NEVER: Allow user-controlled content in Tailwind's content paths
-- ALWAYS: Restrict content scanning to known directories
-
-### 0.3 Risk Level: LOW
-
-**Verification requirements for LOW risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Allow user-controlled content in Tailwind's content paths
+- Instead: Restrict content scanning to known directories
 
 ---
 
@@ -114,7 +99,7 @@ module.exports = {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -512,7 +497,7 @@ module.exports = {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Construct class names dynamically from user input
 - Use string interpolation for class names
 - Inline styles when Tailwind classes exist
@@ -534,39 +519,14 @@ import Button from './Button.vue';
 describe('Button Component', () => {
   it('applies correct size classes', () => {
     const wrapper = mount(Button, {
-      props: { size: 'lg' },
-      slots: { default: 'Click me' },
-    });
-
-    expect(wrapper.classes()).toContain('px-6');
-    expect(wrapper.classes()).toContain('py-3');
-  });
-
-  it('applies correct variant classes', () => {
-    const wrapper = mount(Button, {
-      props: { variant: 'danger' },
-    });
-
-    expect(wrapper.classes()).toContain('bg-red-600');
-    expect(wrapper.classes()).toContain('hover:bg-red-700');
-  });
-
-  it('shows loading state', () => {
-    const wrapper = mount(Button, {
-      props: { loading: true },
-    });
-
-    expect(wrapper.find('svg').exists()).toBe(true);
-    expect(wrapper.attributes('disabled')).toBeDefined();
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Tailwind code:**
+Before generating any Tailwind code:
 
 - [ ] No dynamic class name construction from user input
 - [ ] Complete class names used (not interpolated)
@@ -580,5 +540,3 @@ describe('Button Component', () => {
 - [ ] Form plugin for form elements
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

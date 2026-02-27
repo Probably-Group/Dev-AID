@@ -60,9 +60,12 @@ class AgentRunner:
         """Build the system prompt from skills and agent config."""
         parts: List[str] = []
 
-        # Load skill prompts
+        # Load skill prompts (budget-aware: 25% of context for skills)
         if self._skill_loader and agent_def.skills:
-            skill_prompt = self._skill_loader.build_system_prompt(agent_def.skills)
+            skill_budget = self._max_context_tokens // 4
+            skill_prompt = self._skill_loader.build_system_prompt_with_budget(
+                agent_def.skills, max_tokens=skill_budget
+            )
             if skill_prompt:
                 parts.append(skill_prompt)
 

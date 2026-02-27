@@ -4,36 +4,21 @@ version: 2.0.0
 description: "3D rendering with Three.js and TresJS for Vue with scene management, WebGL optimization, and asset loading. Use when building 3D scenes, integrating Three.js with Vue, or optimizing WebGL performance. Do NOT use for 2D canvas rendering or non-WebGL graphics."
 compatibility: "Three.js r160+, TresJS 4+, Vue 3.3+"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # Three.js / TresJS - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-79: XSS via 3D Content**
-- NEVER: Load GLTF/textures from user URLs without validation
-- ALWAYS: Allowlist origins, validate content types
+- Do not: Load GLTF/textures from user URLs without validation
+- Instead: Allowlist origins, validate content types
 
 **CWE-400: Scene Complexity DoS**
-- NEVER: Load unbounded user models directly
-- ALWAYS: Limit polygon count, texture size, object count
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Load unbounded user models directly
+- Instead: Limit polygon count, texture size, object count
 
 ---
 
@@ -418,7 +403,7 @@ class PostProcessingManager {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Load 3D models from untrusted sources without validation
 - Create geometries/materials without disposal plan
 - Use innerHTML for 3D text labels (XSS risk)
@@ -439,64 +424,14 @@ describe('SceneManager', () => {
   let manager: SceneManager;
 
   afterEach(() => {
-    manager?.dispose();
-  });
-
-  it('should dispose all resources on cleanup', () => {
-    manager = new SceneManager();
-
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshBasicMaterial();
-    const mesh = manager.createMesh(geometry, material);
-
-    const geometryDispose = vi.spyOn(geometry, 'dispose');
-    const materialDispose = vi.spyOn(material, 'dispose');
-
-    manager.dispose();
-
-    expect(geometryDispose).toHaveBeenCalled();
-    expect(materialDispose).toHaveBeenCalled();
-  });
-
-  it('should reject untrusted model origins', async () => {
-    await expect(
-      loadModelSafe('https://malicious.com/model.glb')
-    ).rejects.toThrow('Untrusted model origin');
-  });
-
-  it('should reject oversized models', async () => {
-    // Mock fetch to return large content-length
-    global.fetch = vi.fn().mockResolvedValue({
-      headers: { get: () => '100000000' }, // 100MB
-    });
-
-    await expect(
-      loadModelSafe('https://cdn.example.com/model.glb')
-    ).rejects.toThrow('Model too large');
-  });
-});
-
-describe('Animation timing', () => {
-  it('should cap delta to prevent large jumps', () => {
-    const controller = new AnimationController();
-    const deltas: number[] = [];
-
-    controller.start((delta) => {
-      deltas.push(delta);
-      if (deltas.length >= 5) controller.stop();
-    });
-
-    // All deltas should be <= 0.1 (100ms cap)
-    deltas.forEach(d => expect(d).toBeLessThanOrEqual(0.1));
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Three.js/TresJS code:**
+Before generating Three.js/TresJS code:
 
 - [ ] Model loading: Origin validation, size limits, triangle count
 - [ ] Resource disposal: All geometries, materials, textures tracked
@@ -508,5 +443,3 @@ describe('Animation timing', () => {
 - [ ] Vue integration: shallowRef for Three.js objects
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Harbor container registry management with vulnerability scanning, Trivy integration, Notary artifact signing, and RBAC configuration. Use when deploying Harbor, configuring image scanning policies, setting up replication rules, or managing registry access control. Do NOT use for Docker Hub, ECR, GCR, or other non-Harbor registries."
 compatibility: "Harbor 2.9+, Docker/containerd"
 risk_level: HIGH
+token_budget: 5500
 ---
-
 # Harbor Container Registry Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-639: BOLA Vulnerability (CVE-2024-22278)**
-- NEVER: Grant Maintainer role to untrusted users (can manipulate cross-project)
-- ALWAYS: Upgrade to v2.9.5+/v2.10.3+/v2.11.0+, apply least privilege
+- Do not: Grant Maintainer role to untrusted users (can manipulate cross-project)
+- Instead: Upgrade to v2.9.5+/v2.10.3+/v2.11.0+, apply least privilege
 
 **CWE-269: Privilege Escalation (CVE-2019-16097)**
-- NEVER: Expose Harbor with default settings to internet
-- ALWAYS: Change default admin creds, disable self-registration, network controls
+- Do not: Expose Harbor with default settings to internet
+- Instead: Change default admin creds, disable self-registration, network controls
 
 **CWE-862: Missing Authorization (CVE-2022-46463)**
-- NEVER: Assume private repos are inaccessible to unauthenticated users
-- ALWAYS: Penetration test access controls, implement network segmentation
+- Do not: Assume private repos are inaccessible to unauthenticated users
+- Instead: Penetration test access controls, implement network segmentation
 
 **CWE-345: Missing Signature Verification**
-- NEVER: Pull images without content trust/signature verification
-- ALWAYS: Enable Notary/Cosign, configure "Prevent Vulnerable Images" policy
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Pull images without content trust/signature verification
+- Instead: Enable Notary/Cosign, configure "Prevent Vulnerable Images" policy
 
 ---
 
@@ -109,7 +94,7 @@ spec:
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 harbor: v2.10.0+
@@ -403,7 +388,6 @@ class HarborClient:
         response.raise_for_status()
         return response.json()
 
-
 # Example: Setup projects
 def setup_harbor_projects():
     config = HarborConfig(
@@ -654,7 +638,6 @@ class HarborReplication:
         ).json()
         return policies[0]["id"]
 
-
 # Example: Setup cross-region replication
 def setup_replication():
     client = HarborClient(config)
@@ -785,7 +768,7 @@ class HarborScanning:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `latest` tag in production
 - Deploy unsigned images
 - Skip vulnerability scanning
@@ -810,62 +793,14 @@ HARBOR_URL="${HARBOR_URL:-https://harbor.example.com}"
 PROJECT="${PROJECT:-test-project}"
 
 echo "=== Harbor Security Tests ==="
-
-# Test 1: Verify TLS
-echo "Test 1: TLS verification..."
-curl -sI "$HARBOR_URL" | grep -q "HTTP/2 200" || {
-    echo "FAIL: TLS not working"
-    exit 1
-}
-echo "PASS: TLS verified"
-
-# Test 2: Anonymous access blocked
-echo "Test 2: Anonymous access..."
-STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$HARBOR_URL/api/v2.0/projects")
-if [ "$STATUS" == "401" ]; then
-    echo "PASS: Anonymous access blocked"
-else
-    echo "FAIL: Anonymous access allowed"
-    exit 1
-fi
-
-# Test 3: Robot account works
-echo "Test 3: Robot account..."
-curl -sf -u "robot\$ci-push:$ROBOT_TOKEN" \
-    "$HARBOR_URL/api/v2.0/projects/$PROJECT" > /dev/null || {
-    echo "FAIL: Robot account not working"
-    exit 1
-}
-echo "PASS: Robot account works"
-
-# Test 4: Image signing required
-echo "Test 4: Content trust..."
-PROJECT_META=$(curl -sf -u "admin:$ADMIN_PASS" \
-    "$HARBOR_URL/api/v2.0/projects/$PROJECT")
-if echo "$PROJECT_META" | jq -e '.metadata.enable_content_trust == "true"' > /dev/null; then
-    echo "PASS: Content trust enabled"
-else
-    echo "FAIL: Content trust not enabled"
-    exit 1
-fi
-
-# Test 5: Auto-scan enabled
-echo "Test 5: Auto-scan..."
-if echo "$PROJECT_META" | jq -e '.metadata.auto_scan == "true"' > /dev/null; then
-    echo "PASS: Auto-scan enabled"
-else
-    echo "FAIL: Auto-scan not enabled"
-    exit 1
-fi
-
-echo "=== All Harbor Security Tests Passed ==="
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Harbor code:**
+Before generating any Harbor code:
 
 - [ ] TLS enabled for all connections
 - [ ] OIDC/LDAP configured (not local auth)
@@ -879,5 +814,3 @@ echo "=== All Harbor Security Tests Passed ==="
 - [ ] Webhook authentication configured
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

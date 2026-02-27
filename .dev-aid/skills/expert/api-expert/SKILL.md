@@ -3,48 +3,33 @@ name: api-expert
 version: 2.0.0
 description: "API architecture and design patterns spanning REST, GraphQL, and gRPC with versioning strategies, rate limiting, gateway configuration, and security best practices. Use when making architectural decisions about API style, designing API gateways, planning API versioning, or establishing cross-cutting API concerns. Do NOT use for specific framework implementation details like FastAPI routes or Apollo resolvers."
 risk_level: MEDIUM
+token_budget: 4000
 ---
-
 # API Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-285: Improper Authorization**
-- NEVER: Rely solely on authentication - always check authorization
-- ALWAYS: Verify user has permission for specific resource/action
+- Do not: Rely solely on authentication - always check authorization
+- Instead: Verify user has permission for specific resource/action
 
 **CWE-918: SSRF**
-- NEVER: Fetch user-provided URLs without validation
-- ALWAYS: Allowlist domains, block private IPs, validate schemes
+- Do not: Fetch user-provided URLs without validation
+- Instead: Allowlist domains, block private IPs, validate schemes
 
 **CWE-311: Missing TLS**
-- NEVER: Transmit sensitive data over HTTP
-- ALWAYS: HTTPS only, HSTS headers, TLS 1.2+
+- Do not: Transmit sensitive data over HTTP
+- Instead: HTTPS only, HSTS headers, TLS 1.2+
 
 **CWE-770: Missing Rate Limiting**
-- NEVER: Unlimited API requests
-- ALWAYS: Rate limiting per user/IP, exponential backoff
+- Do not: Unlimited API requests
+- Instead: Rate limiting per user/IP, exponential backoff
 
 **CWE-942: Permissive CORS**
-- NEVER: `Access-Control-Allow-Origin: *` with credentials
-- ALWAYS: Specific origins, validate against allowlist
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `Access-Control-Allow-Origin: *` with credentials
+- Instead: Specific origins, validate against allowlist
 
 ---
 
@@ -127,7 +112,7 @@ app.use(cors({
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -635,7 +620,7 @@ app.use('*', timing());
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use verbs in REST URLs (`/getUser`, `/createUser`)
 - Return 200 for errors (use proper status codes)
 - Expose internal IDs or stack traces in errors
@@ -658,65 +643,14 @@ describe('Users API', () => {
 
   beforeAll(async () => {
     // Login to get token
-    const res = await app.request('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'password123',
-      }),
-    });
-    const data = await res.json();
-    authToken = data.token;
-  });
-
-  it('returns 401 without auth', async () => {
-    const res = await app.request('/api/protected/me');
-    expect(res.status).toBe(401);
-  });
-
-  it('returns user with valid token', async () => {
-    const res = await app.request('/api/protected/me', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data).toHaveProperty('id');
-    expect(data).toHaveProperty('email');
-  });
-
-  it('validates input and returns 400', async () => {
-    const res = await app.request('/api/users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${authToken}`,
-      },
-      body: JSON.stringify({ email: 'invalid' }),
-    });
-    expect(res.status).toBe(400);
-    const data = await res.json();
-    expect(data.code).toBe('VALIDATION_ERROR');
-  });
-
-  it('paginates results correctly', async () => {
-    const res = await app.request('/api/users?page=1&limit=10', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
-    expect(res.status).toBe(200);
-    const data = await res.json();
-    expect(data).toHaveProperty('data');
-    expect(data).toHaveProperty('pagination');
-    expect(data.pagination.limit).toBe(10);
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any API code:**
+Before generating any API code:
 
 - [ ] Authentication on protected endpoints
 - [ ] Authorization checks (ownership, roles)
@@ -730,5 +664,3 @@ describe('Users API', () => {
 - [ ] OpenAPI documentation generated
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

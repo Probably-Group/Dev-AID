@@ -3,8 +3,8 @@ name: senior-architect
 version: 2.0.0
 description: "Architectural review for identifying anti-patterns, scalability issues, and systemic design problems. Use when reviewing architecture, evaluating trade-offs, or diagnosing O(n squared) bottlenecks. Do NOT use for code-level refactoring (use refactoring-expert)."
 risk_level: MEDIUM
+token_budget: 2500
 ---
-
 # Senior Architect - Code Generation Rules
 
 ---

@@ -3,36 +3,21 @@ name: web-audio-api
 version: 2.0.0
 description: "Web Audio API for browser-based audio processing, synthesis, visualization, and real-time effects. Use when building audio nodes, sound synthesis, or audio visualizations in the browser. Do NOT use for server-side audio processing."
 risk_level: LOW
+token_budget: 3000
 ---
-
 # Web Audio API - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-200: Audio Fingerprinting**
-- NEVER: Use AudioContext for fingerprinting without consent
-- ALWAYS: Document audio usage in privacy policy
+- Do not: Use AudioContext for fingerprinting without consent
+- Instead: Document audio usage in privacy policy
 
 **CWE-400: Audio Buffer Exhaustion**
-- NEVER: Unlimited audio buffer allocation from user input
-- ALWAYS: Limit buffer size, max nodes, sample rate
-
-### 0.3 Risk Level: LOW
-
-**Verification requirements for LOW risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Unlimited audio buffer allocation from user input
+- Instead: Limit buffer size, max nodes, sample rate
 
 ---
 
@@ -450,7 +435,7 @@ class AudioScheduler {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Create AudioContext before user interaction (will be suspended)
 - Connect microphone directly to destination (feedback loop)
 - Use ScriptProcessorNode (deprecated, use AudioWorklet)
@@ -471,68 +456,14 @@ describe('AudioManager', () => {
 
   beforeEach(() => {
     manager = new AudioManager();
-  });
-
-  afterEach(() => {
-    manager.dispose();
-  });
-
-  it('should resume suspended context on getContext', async () => {
-    // Mock suspended context
-    const mockContext = {
-      state: 'suspended',
-      resume: vi.fn().mockResolvedValue(undefined),
-    };
-
-    vi.spyOn(window, 'AudioContext').mockImplementation(
-      () => mockContext as unknown as AudioContext
-    );
-
-    await manager.getContext();
-
-    expect(mockContext.resume).toHaveBeenCalled();
-  });
-
-  it('should reject oversized audio files', async () => {
-    global.fetch = vi.fn().mockResolvedValue({
-      headers: {
-        get: (name: string) => {
-          if (name === 'content-length') return '100000000'; // 100MB
-          if (name === 'content-type') return 'audio/wav';
-          return null;
-        },
-      },
-    });
-
-    await expect(
-      loadAudioSafe('https://example.com/huge.wav')
-    ).rejects.toThrow('Audio file too large');
-  });
-});
-
-describe('AudioGraph', () => {
-  it('should disconnect all nodes on dispose', () => {
-    const mockContext = new AudioContext();
-    const graph = new AudioGraph(mockContext);
-
-    const gain = graph.createGain();
-    const filter = graph.createFilter('lowpass');
-    graph.connect(gain, filter);
-
-    const disconnectSpy = vi.spyOn(gain, 'disconnect');
-
-    graph.dispose();
-
-    expect(disconnectSpy).toHaveBeenCalled();
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Web Audio code:**
+Before generating Web Audio code:
 
 - [ ] AudioContext: Created after user interaction, resume if suspended
 - [ ] Audio loading: Size and duration limits enforced
@@ -544,5 +475,3 @@ describe('AudioGraph', () => {
 - [ ] Output clamping: Values limited to [-1, 1] range
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

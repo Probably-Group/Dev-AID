@@ -3,26 +3,9 @@ name: plan-review-expert
 version: 2.0.0
 description: "Implementation plan review for identifying critical flaws, missing edge cases, and better alternatives. Use when reviewing implementation plans, technical proposals, or design documents. Do NOT use for code review (use appsec-expert)."
 risk_level: LOW
+token_budget: 3500
 ---
-
 # Plan Review Expert - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -456,7 +439,7 @@ def security_review(plan_content: str) -> list[ReviewComment]:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Approve plans without checking for missing requirements
 - Skip security review for "internal" services
 - Ignore scalability concerns for "MVP"
@@ -476,59 +459,14 @@ class TestPlanReview:
 
     def test_detects_missing_rate_limiting(self):
         """Plans without rate limiting should be flagged."""
-        plan = """
-        # Auth Plan
-        ## Login Endpoint
-        Users submit credentials and receive JWT token.
-        """
-        review = review_authentication_plan(plan)
-        assert "Rate Limiting" in review.missing_sections
-
-    def test_blocks_jwt_in_localstorage(self):
-        """JWT in localStorage should block approval."""
-        plan = """
-        Store JWT in localStorage for persistence.
-        """
-        review = review_authentication_plan(plan)
-        assert review.verdict.value == "block"
-        assert any(c.blocking for c in review.comments)
-
-    def test_detects_god_object_antipattern(self):
-        """Should detect god object descriptions."""
-        plan = "The UserService class handles all user operations."
-        comments = detect_antipatterns(plan)
-        assert any("God Object" in c.section for c in comments)
-
-    def test_detects_shared_database(self):
-        """Should flag shared database pattern."""
-        plan = "All microservices connect to the shared database."
-        comments = detect_antipatterns(plan)
-        assert any("Shared Database" in c.section for c in comments)
-
-    def test_markdown_output_format(self):
-        """Review should produce valid markdown."""
-        review = PlanReview(
-            verdict=ReviewVerdict.APPROVE_WITH_COMMENTS,
-            summary="Solid plan with minor suggestions.",
-            comments=[
-                ReviewComment(
-                    section="API Design",
-                    severity=Severity.LOW,
-                    issue="Consider pagination",
-                    suggestion="Add cursor-based pagination",
-                )
-            ]
-        )
-        md = review.to_markdown()
-        assert "# Plan Review" in md
-        assert "APPROVE_WITH_COMMENTS" in md
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE approving any plan:**
+Before approving any plan:
 
 - [ ] Requirements coverage: All requirements mapped to plan sections
 - [ ] Security review: STRIDE checklist completed
@@ -542,5 +480,3 @@ class TestPlanReview:
 **Templates**: See `assets/` for reusable output templates.
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

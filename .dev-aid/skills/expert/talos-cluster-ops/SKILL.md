@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Kubernetes cluster operations on Talos Linux including troubleshooting, health monitoring, upgrades, and workload debugging. Use when diagnosing pod crashes, node issues, cluster health, Cilium networking, Longhorn storage, or ArgoCD sync failures on Talos clusters. Do NOT use for Talos machine config generation or OS-level configuration (use talos-os-expert)."
 compatibility: "Kubernetes 1.28+, talosctl, kubectl"
 risk_level: HIGH
+token_budget: 3000
 ---
-
 # Talos Cluster Ops - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-256: Unprotected Credentials Storage**
-- NEVER: Store `talosconfig` or cluster secrets in unencrypted Git repos
-- ALWAYS: Encrypt with SOPS, store in secure vaults, never commit secrets
+- Do not: Store `talosconfig` or cluster secrets in unencrypted Git repos
+- Instead: Encrypt with SOPS, store in secure vaults, never commit secrets
 
 **CWE-306: Missing API Authentication**
-- NEVER: Expose Talos API (port 50000) without mTLS authentication
-- ALWAYS: Use cluster ID/secret tokens, keep discovery tokens secure
+- Do not: Expose Talos API (port 50000) without mTLS authentication
+- Instead: Use cluster ID/secret tokens, keep discovery tokens secure
 
 **CWE-284: Improper Access Control**
-- NEVER: Use VIP for `talosctl` access (single point of compromise)
-- ALWAYS: VIP for `kubectl` only; distribute `talosctl` across control plane nodes
+- Do not: Use VIP for `talosctl` access (single point of compromise)
+- Instead: VIP for `kubectl` only; distribute `talosctl` across control plane nodes
 
 **CWE-693: Protection Mechanism Failure**
-- NEVER: Disable control plane taints for workload scheduling
-- ALWAYS: Maintain control plane isolation, use dedicated worker nodes
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Disable control plane taints for workload scheduling
+- Instead: Maintain control plane isolation, use dedicated worker nodes
 
 ---
 
@@ -407,7 +392,7 @@ safe_node_maintenance() {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Store talosconfig/kubeconfig in Git repositories
 - Run containers as root or privileged
 - Skip network policies (default allow-all)
@@ -429,60 +414,14 @@ set -euo pipefail
 test_cluster_operations() {
     local failed=0
 
-    echo "TEST: Node health check"
-    if ! talosctl health --wait-timeout 60s; then
-        echo "FAIL: Talos health check"
-        ((failed++))
-    fi
-
-    echo "TEST: Kubernetes API reachable"
-    if ! kubectl cluster-info; then
-        echo "FAIL: Kubernetes API unreachable"
-        ((failed++))
-    fi
-
-    echo "TEST: CoreDNS resolution"
-    if ! kubectl run dns-test --rm -i --restart=Never \
-        --image=busybox:1.36 -- nslookup kubernetes.default; then
-        echo "FAIL: DNS resolution"
-        ((failed++))
-    fi
-
-    echo "TEST: Cilium connectivity"
-    if ! cilium connectivity test --single-node; then
-        echo "FAIL: Cilium connectivity"
-        ((failed++))
-    fi
-
-    echo "TEST: Storage provisioning"
-    kubectl apply -f - <<EOF
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: test-pvc
-  namespace: default
-spec:
-  accessModes: [ReadWriteOnce]
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: longhorn
-EOF
-    if ! kubectl wait pvc/test-pvc --for=condition=Bound --timeout=60s; then
-        echo "FAIL: Storage provisioning"
-        ((failed++))
-    fi
-    kubectl delete pvc test-pvc
-
-    return $failed
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Talos/K8s operations code:**
+Before generating Talos/K8s operations code:
 
 - [ ] Credentials from environment, not hardcoded
 - [ ] Network policies enforce zero-trust (default deny)
@@ -495,5 +434,3 @@ EOF
 - [ ] Maintenance scripts include proper draining
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

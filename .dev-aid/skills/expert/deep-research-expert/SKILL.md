@@ -3,26 +3,9 @@ name: deep-research-expert
 version: 2.0.0
 description: "Deep research workflows with Gemini, Tavily, and Perplexity for comprehensive technical investigation and synthesis. Use when conducting deep technical research, multi-source analysis, or comprehensive investigations. Do NOT use for web scraping (use browser-automation)."
 risk_level: LOW
+token_budget: 4500
 ---
-
 # Deep Research Expert - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -144,7 +127,7 @@ config = ResearchConfig()  # Loads from RESEARCH_TAVILY_API_KEY, etc.
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```python
 # Research APIs
@@ -585,7 +568,7 @@ class Citation:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Trust a single source without verification
 - Fabricate or hallucinate citations
 - Ignore source recency (prefer recent sources)
@@ -609,67 +592,14 @@ from unittest.mock import AsyncMock, patch
 async def test_multi_source_verification():
     """Test that claims require multiple sources."""
     researcher = DeepResearcher(config)
-
-    # Mock search results
-    with patch.object(researcher, '_broad_search') as mock_search:
-        mock_search.return_value = [
-            {"content": "Python 3.12 released", "tier": SourceTier.PRIMARY},
-            {"content": "Python 3.12 is out", "tier": SourceTier.SECONDARY},
-        ]
-
-        result = await researcher.research("Python 3.12 release")
-
-        # Should have verified claim with 2 sources
-        assert len(result.findings) >= 1
-        assert result.findings[0].confidence >= 0.7
-
-@pytest.mark.asyncio
-async def test_citation_validation():
-    """Test that invalid citations are rejected."""
-    synthesizer = GeminiResearchSynthesizer(api_key="test")
-
-    # Text with invalid citation
-    text_with_invalid = "According to [5], this is true."
-    sources = [VerifiedClaim(claim="test", sources=[], confidence=0.8, contradictions=[])]
-
-    with pytest.raises(ValueError, match="Invalid citation"):
-        synthesizer._validate_citations(text_with_invalid, max_citation=1)
-
-@pytest.mark.asyncio
-async def test_source_tier_classification():
-    """Test correct source tier assignment."""
-    researcher = DeepResearcher(config)
-
-    assert researcher._classify_source("https://arxiv.org/paper") == SourceTier.PRIMARY
-    assert researcher._classify_source("https://stackoverflow.com/q") == SourceTier.SECONDARY
-    assert researcher._classify_source("https://random-blog.com") == SourceTier.TERTIARY
-
-@pytest.mark.asyncio
-async def test_cache_freshness():
-    """Test cache respects TTL."""
-    cache = ResearchCache(Path("/tmp/test_cache"), default_ttl=timedelta(seconds=1))
-
-    # First fetch
-    result1 = await cache.get_or_fetch("test", "source", lambda: "data1")
-    assert result1 == "data1"
-
-    # Should return cached
-    result2 = await cache.get_or_fetch("test", "source", lambda: "data2")
-    assert result2 == "data1"
-
-    # Wait for TTL expiry
-    await asyncio.sleep(1.5)
-
-    # Should fetch fresh
-    result3 = await cache.get_or_fetch("test", "source", lambda: "data3")
-    assert result3 == "data3"
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any research code:**
+Before generating any research code:
 
 - [ ] Multiple sources configured (not single API)
 - [ ] Source verification implemented
@@ -683,5 +613,3 @@ async def test_cache_freshness():
 - [ ] Error handling for API failures
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

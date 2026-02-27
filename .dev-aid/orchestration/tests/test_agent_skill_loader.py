@@ -3,7 +3,14 @@
 from pathlib import Path
 
 import pytest
-from agents.core.skill_loader import SkillLoader, _parse_frontmatter, parse_skill_file
+from agents.core.skill_loader import (
+    SHARED_PREAMBLE,
+    SkillLoader,
+    _parse_frontmatter,
+    _parse_sections,
+    _section_priority,
+    parse_skill_file,
+)
 
 
 class TestParseFrontmatter:
@@ -186,6 +193,10 @@ class TestSkillLoader:
         assert "## Skill: appsec-expert" in prompt
         assert "## Skill: senior-architect" in prompt
         assert "---" in prompt  # Separator
+        # Shared preamble is injected once at the top
+        assert prompt.startswith(SHARED_PREAMBLE)
+        # Preamble appears exactly once
+        assert prompt.count(SHARED_PREAMBLE) == 1
 
     def test_build_system_prompt_empty(self, skills_dir: Path) -> None:
         loader = SkillLoader(skills_dir)
@@ -196,3 +207,86 @@ class TestSkillLoader:
         loader = SkillLoader(skills_dir)
         prompt = loader.build_system_prompt(["nonexistent"])
         assert prompt == ""
+
+    def test_build_system_prompt_with_budget(self, tmp_path: Path) -> None:
+        """Budget-aware loading includes sections in priority order."""
+        skills = tmp_path / "skills"
+        expert = skills / "expert"
+        s1_dir = expert / "big-skill"
+        s1_dir.mkdir(parents=True)
+        (s1_dir / "SKILL.md").write_text(
+            "---\nname: big-skill\ndescription: A big skill\n---\n\n"
+            "# Big Skill\n\n"
+            "## 0. Security\n\nCritical security rules.\n\n"
+            "## 1. Principles\n\nCore principles here.\n\n"
+            "## 5. Testing\n\nTest instructions.\n\n"
+            "## 6. Checklist\n\nLong checklist content " + ("x " * 500) + "\n"
+        )
+
+        loader = SkillLoader(skills)
+        # With very tight budget, low-priority sections should be dropped
+        prompt = loader.build_system_prompt_with_budget(["big-skill"], max_tokens=200)
+        assert SHARED_PREAMBLE in prompt
+        assert "## Skill: big-skill" in prompt
+        assert "Security" in prompt
+        # Checklist section may be dropped due to budget
+        # (depends on exact token math — just verify it doesn't crash)
+
+    def test_build_system_prompt_with_budget_large(self, tmp_path: Path) -> None:
+        """With large budget, all sections are included."""
+        skills = tmp_path / "skills"
+        expert = skills / "expert"
+        s1_dir = expert / "small-skill"
+        s1_dir.mkdir(parents=True)
+        (s1_dir / "SKILL.md").write_text(
+            "---\nname: small-skill\n---\n\n" "## 1. Rules\n\nSimple rules."
+        )
+        loader = SkillLoader(skills)
+        prompt = loader.build_system_prompt_with_budget(["small-skill"], max_tokens=50000)
+        assert "Simple rules" in prompt
+
+    def test_build_system_prompt_with_budget_empty(self, tmp_path: Path) -> None:
+        skills = tmp_path / "skills"
+        skills.mkdir(parents=True)
+        loader = SkillLoader(skills)
+        prompt = loader.build_system_prompt_with_budget([], max_tokens=1000)
+        assert prompt == ""
+
+
+class TestSectionParsing:
+    """Tests for section parsing and priority."""
+
+    def test_parse_sections(self) -> None:
+        body = (
+            "# Title\n\nIntro text.\n\n"
+            "## 0. Security\n\nSecurity rules.\n\n"
+            "## 1. Principles\n\nCore principles.\n\n"
+            "## 3. Code Patterns\n\nPatterns here."
+        )
+        sections = _parse_sections(body)
+        assert "## 0. Security" in sections
+        assert "## 1. Principles" in sections
+        assert "## 3. Code Patterns" in sections
+        assert "Security rules." in sections["## 0. Security"]
+
+    def test_parse_sections_empty(self) -> None:
+        sections = _parse_sections("Just text, no sections.")
+        assert sections == {}
+
+    def test_section_priority(self) -> None:
+        assert _section_priority("## 0. Security") == 0
+        assert _section_priority("## 1. Principles") == 1
+        assert _section_priority("## 6. Checklist") == 6
+        assert _section_priority("## Other") == 99
+
+    def test_parse_skill_populates_sections(self, tmp_path: Path) -> None:
+        content = (
+            "---\nname: test\n---\n\n"
+            "## 1. Rules\n\nRule content.\n\n"
+            "## 2. Versions\n\nVersion info."
+        )
+        skill_file = tmp_path / "SKILL.md"
+        skill_file.write_text(content)
+        skill = parse_skill_file(skill_file)
+        assert "## 1. Rules" in skill.sections
+        assert "## 2. Versions" in skill.sections

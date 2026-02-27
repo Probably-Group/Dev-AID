@@ -4,8 +4,8 @@ version: 2.0.0
 description: "DevSecOps practices with shift-left security automation, SAST/DAST pipeline integration, supply chain security, and compliance as code. Use when embedding security scanning in CI/CD, implementing SBOM generation, configuring dependency vulnerability checks, or designing security gate policies. Do NOT use for application-level security patterns like OWASP Top 10 remediation (use appsec-expert)."
 compatibility: "GitHub Actions or GitLab CI"
 risk_level: HIGH
+token_budget: 2000
 ---
-
 # DevSecOps Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol

@@ -3,36 +3,21 @@ name: dbus
 version: 2.0.0
 description: "D-Bus IPC on Linux for system service integration, signal handling, and inter-process communication. Use when implementing D-Bus services, system bus interfaces, or Linux IPC. Do NOT use for macOS or Windows IPC mechanisms."
 risk_level: MEDIUM
+token_budget: 4500
 ---
-
 # D-Bus Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-306: Missing Authentication**
-- NEVER: System bus services without authentication
-- ALWAYS: PolicyKit integration, verify caller credentials
+- Do not: System bus services without authentication
+- Instead: PolicyKit integration, verify caller credentials
 
 **CWE-78: Method Injection**
-- NEVER: Dynamic method names from untrusted input
-- ALWAYS: Whitelist allowed methods, validate all parameters
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Dynamic method names from untrusted input
+- Instead: Whitelist allowed methods, validate all parameters
 
 ---
 
@@ -110,7 +95,7 @@ fn set_value(&self, value: &str) -> Result<(), Error> {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```toml
 # Rust
@@ -517,7 +502,6 @@ class MyServiceClient:
             self._bus = None
             self._interface = None
 
-
 # Usage
 async def main():
     client = MyServiceClient()
@@ -590,7 +574,7 @@ Alias=dbus-com.company.MyService.service
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Allow `send_destination="*"` in policies
 - Skip caller verification for privileged methods
 - Trust D-Bus message content without validation
@@ -614,37 +598,14 @@ set -euo pipefail
 
 SERVICE="com.company.MyService"
 OBJECT="/com/company/MyService"
-INTERFACE="com.company.MyService"
-
-# Test service is running
-dbus-send --session --print-reply \
-  --dest=org.freedesktop.DBus / org.freedesktop.DBus.ListNames | \
-  grep -q "$SERVICE" || echo "Service not running"
-
-# Test public method
-dbus-send --session --print-reply \
-  --dest="$SERVICE" "$OBJECT" \
-  "$INTERFACE.GetVersion"
-
-# Test access control (should fail for unprivileged user)
-if dbus-send --session --print-reply \
-  --dest="$SERVICE" "$OBJECT" \
-  "$INTERFACE.SetConfig" \
-  string:"test.key" string:"value" 2>&1 | grep -q "AccessDenied"; then
-  echo "Access control working"
-else
-  echo "WARNING: Access control may not be working"
-fi
-
-# Monitor signals
-timeout 5 dbus-monitor "type='signal',interface='$INTERFACE'" || true
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any D-Bus code:**
+Before generating any D-Bus code:
 
 - [ ] D-Bus policy file defines explicit permissions
 - [ ] Default policy denies all access
@@ -658,5 +619,3 @@ timeout 5 dbus-monitor "type='signal',interface='$INTERFACE'" || true
 - [ ] Async patterns used (no blocking)
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

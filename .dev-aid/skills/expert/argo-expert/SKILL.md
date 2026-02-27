@@ -4,48 +4,33 @@ version: 2.0.0
 description: "GitOps with ArgoCD, Argo Workflows, and Argo Rollouts for Kubernetes continuous delivery and progressive deployments. Use when configuring ArgoCD Applications, writing Argo Workflow templates, setting up progressive rollouts, or debugging GitOps sync issues. Do NOT use for general CI/CD pipeline design without ArgoCD (use cicd-expert)."
 compatibility: "ArgoCD 2.8+, Kubernetes 1.28+"
 risk_level: HIGH
+token_budget: 4500
 ---
-
 # Argo Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-200: Sensitive Information Exposure (CVE-2025-55190, CVSS 10.0)**
-- NEVER: Allow low-privileged users `clusters, update` permissions
-- ALWAYS: Restrict cluster access via RBAC, use `destinations` and `clusterResourceWhitelist`
+- Do not: Allow low-privileged users `clusters, update` permissions
+- Instead: Restrict cluster access via RBAC, use `destinations` and `clusterResourceWhitelist`
 
 **CWE-287: Improper Authentication (CVE-2024-37152)**
-- NEVER: Expose `/api/v1/settings` without authentication
-- ALWAYS: Require auth on all endpoints, upgrade to patched versions
+- Do not: Expose `/api/v1/settings` without authentication
+- Instead: Require auth on all endpoints, upgrade to patched versions
 
 **CWE-312: Cleartext Storage of Secrets**
-- NEVER: Store secrets in Git repos or rely on `last-applied-configuration`
-- ALWAYS: Use External Secrets Operator, Sealed Secrets, or Vault
+- Do not: Store secrets in Git repos or rely on `last-applied-configuration`
+- Instead: Use External Secrets Operator, Sealed Secrets, or Vault
 
 **CWE-862: Missing Authorization**
-- NEVER: Rely solely on namespace patterns when sharding is enabled
-- ALWAYS: Verify RBAC at namespace AND application level
+- Do not: Rely solely on namespace patterns when sharding is enabled
+- Instead: Verify RBAC at namespace AND application level
 
 **CWE-307: Brute Force**
-- NEVER: Deploy without rate limiting (crash resets login counters)
-- ALWAYS: Network-level rate limiting, monitor crash-restart patterns
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Deploy without rate limiting (crash resets login counters)
+- Instead: Network-level rate limiting, monitor crash-restart patterns
 
 ---
 
@@ -164,7 +149,7 @@ spec:
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```yaml
 # ArgoCD
@@ -703,7 +688,7 @@ data:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `cluster-admin` for Argo service accounts
 - Store secrets in Git (use External Secrets)
 - Enable auto-prune in production without approval
@@ -727,38 +712,14 @@ set -euo pipefail
 
 # Validate YAML syntax
 echo "Validating YAML..."
-find . -name "*.yaml" -o -name "*.yml" | xargs -I {} yamllint {}
-
-# Validate Kubernetes manifests
-echo "Validating Kubernetes manifests..."
-find . -name "*.yaml" | xargs -I {} kubectl --dry-run=client apply -f {}
-
-# Validate ArgoCD Application specs
-echo "Validating ArgoCD Applications..."
-argocd app list --grpc-web || true
-
-# Check for secrets in Git
-echo "Checking for secrets..."
-if grep -r "kind: Secret" --include="*.yaml" .; then
-  echo "WARNING: Plain Secrets found. Use SealedSecrets or ExternalSecrets"
-  exit 1
-fi
-
-# Validate Helm charts
-echo "Validating Helm charts..."
-find . -name "Chart.yaml" -exec dirname {} \; | while read chart; do
-  helm lint "$chart"
-  helm template "$chart" > /dev/null
-done
-
-echo "All validations passed!"
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any Argo configurations:**
+Before generating any Argo configurations:
 
 - [ ] Service accounts use least-privilege RBAC
 - [ ] Secrets use External Secrets or Sealed Secrets
@@ -772,5 +733,3 @@ echo "All validations passed!"
 - [ ] Pod security contexts enforce non-root
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

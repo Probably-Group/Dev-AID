@@ -4,44 +4,29 @@ version: 2.0.0
 description: "SQLCipher encrypted database patterns with key management, migration, re-keying, and secure key derivation. Use when implementing database encryption, managing encryption keys, or migrating between SQLCipher versions. Do NOT use for unencrypted SQLite databases (use sqlite)."
 compatibility: "SQLCipher 4.5+"
 risk_level: HIGH
+token_budget: 4500
 ---
-
 # SQLCipher - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-321: Hard-coded Encryption Key**
-- NEVER: `PRAGMA key = 'hardcoded-password'` in code
-- ALWAYS: Derive key from user input or secure keychain
+- Do not: `PRAGMA key = 'hardcoded-password'` in code
+- Instead: Derive key from user input or secure keychain
 
 **CWE-328: Weak Key Derivation**
-- NEVER: Use password directly as key
-- ALWAYS: `PRAGMA kdf_iter = 256000` (or higher), use PBKDF2-SHA256
+- Do not: Use password directly as key
+- Instead: `PRAGMA kdf_iter = 256000` (or higher), use PBKDF2-SHA256
 
 **CWE-311: Missing Re-keying**
-- NEVER: Keep same key indefinitely
-- ALWAYS: Implement key rotation strategy, use `PRAGMA rekey`
+- Do not: Keep same key indefinitely
+- Instead: Implement key rotation strategy, use `PRAGMA rekey`
 
 **CWE-89: SQL Injection**
-- NEVER: String concatenation even with encrypted DB
-- ALWAYS: Parameterized queries - encryption doesn't prevent injection
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: String concatenation even with encrypted DB
+- Instead: Parameterized queries - encryption doesn't prevent injection
 
 ---
 
@@ -636,7 +621,7 @@ def migrate_to_encrypted(
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Hardcode encryption keys in source code
 - Use weak KDF iterations (< 256000 for PBKDF2)
 - Store keys in the same location as the database
@@ -657,105 +642,14 @@ from sqlcipher import (
     create_encrypted_database,
     open_encrypted_db,
     rotate_encryption_key,
-    SQLCipherConfig,
-    DatabaseSchema,
-)
-
-class TestSQLCipherEncryption:
-
-    @pytest.fixture
-    def db_path(self, tmp_path):
-        return tmp_path / "test.db"
-
-    @pytest.fixture
-    def test_key(self):
-        return "a" * 64  # 256-bit hex key
-
-    def test_create_encrypted_database(self, db_path, test_key):
-        """Should create encrypted database."""
-        schema = DatabaseSchema(
-            version=1,
-            migrations=[lambda c: c.execute("CREATE TABLE test (id INTEGER)")]
-        )
-
-        create_encrypted_database(
-            db_path,
-            key_provider=lambda: test_key,
-            schema=schema,
-        )
-
-        assert db_path.exists()
-
-        # Verify it's encrypted (can't open without key)
-        conn = sqlite3.connect(str(db_path))
-        with pytest.raises(sqlite3.DatabaseError):
-            conn.execute("SELECT * FROM test")
-        conn.close()
-
-    def test_wrong_key_rejected(self, db_path, test_key):
-        """Should reject wrong encryption key."""
-        schema = DatabaseSchema(version=1, migrations=[])
-        create_encrypted_database(db_path, lambda: test_key, schema)
-
-        config = SQLCipherConfig(db_path=db_path)
-
-        # Opening with wrong key should fail
-        with pytest.raises(ValueError, match="Invalid encryption key"):
-            open_encrypted_db_with_key(config, "wrong_key")
-
-    def test_key_rotation(self, db_path, test_key):
-        """Should rotate encryption key."""
-        new_key = "b" * 64
-
-        schema = DatabaseSchema(
-            version=1,
-            migrations=[lambda c: c.execute("CREATE TABLE test (val TEXT)")]
-        )
-        create_encrypted_database(db_path, lambda: test_key, schema)
-
-        # Insert test data
-        config = SQLCipherConfig(db_path=db_path)
-        conn = open_encrypted_db_with_key(config, test_key)
-        conn.execute("INSERT INTO test VALUES ('secret')")
-        conn.commit()
-        conn.close()
-
-        # Rotate key
-        rotate_encryption_key(db_path, test_key, new_key)
-
-        # Verify old key no longer works
-        with pytest.raises(ValueError):
-            open_encrypted_db_with_key(config, test_key)
-
-        # Verify new key works and data preserved
-        conn = open_encrypted_db_with_key(config, new_key)
-        result = conn.execute("SELECT val FROM test").fetchone()
-        assert result[0] == "secret"
-        conn.close()
-
-class TestSecureString:
-
-    def test_clears_memory_on_exit(self):
-        """SecureString should clear memory when exiting context."""
-        with SecureString("sensitive") as ss:
-            assert ss.get() == "sensitive"
-
-        # After exit, should be cleared (can't easily verify memory,
-        # but at least verify API)
-        assert ss._bytes == b''
-
-    def test_explicit_clear(self):
-        """Should clear memory on explicit call."""
-        ss = SecureString("sensitive")
-        ss.clear()
-        assert ss._bytes == b''
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating SQLCipher code:**
+Before generating SQLCipher code:
 
 - [ ] Key source: Key from keychain/HSM, not hardcoded
 - [ ] KDF iterations: >= 256000 for PBKDF2
@@ -767,5 +661,3 @@ class TestSecureString:
 - [ ] Migration path: Export/import for plain->encrypted
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

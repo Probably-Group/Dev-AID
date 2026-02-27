@@ -4,48 +4,33 @@ version: 2.0.0
 description: "FastAPI development patterns for JARVIS project including async API endpoints, WebSocket communication, and Pydantic model validation. Use when building JARVIS FastAPI services, adding WebSocket endpoints, or writing Pydantic schemas for the JARVIS assistant. Do NOT use for production auth patterns like OAuth2/JWT or SQLAlchemy integration (use fastapi-expert)."
 compatibility: "Python 3.11+, FastAPI 0.115+"
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # FastAPI Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89: SQL Injection**
-- NEVER: f-strings in queries: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
-- ALWAYS: SQLAlchemy ORM or parameterized: `db.execute(select(User).where(User.id == id))`
+- Do not: f-strings in queries: `db.execute(f"SELECT * FROM users WHERE id = {id}")`
+- Instead: SQLAlchemy ORM or parameterized: `db.execute(select(User).where(User.id == id))`
 
 **CWE-285: Improper Authorization**
-- NEVER: Trust client-provided user ID for authorization
-- ALWAYS: Extract user from validated JWT token, check permissions server-side
+- Do not: Trust client-provided user ID for authorization
+- Instead: Extract user from validated JWT token, check permissions server-side
 
 **CWE-352: CSRF**
-- NEVER: State-changing GET requests
-- ALWAYS: Use POST/PUT/DELETE with CSRF tokens for browser clients
+- Do not: State-changing GET requests
+- Instead: Use POST/PUT/DELETE with CSRF tokens for browser clients
 
 **CWE-22: Path Traversal in StaticFiles**
-- NEVER: `StaticFiles(directory=user_input)` or serve user-controlled paths
-- ALWAYS: Hardcode static directories, validate any file paths
+- Do not: `StaticFiles(directory=user_input)` or serve user-controlled paths
+- Instead: Hardcode static directories, validate any file paths
 
 **CWE-400: Resource Exhaustion**
-- NEVER: Unlimited file uploads or request body size
-- ALWAYS: Set `max_upload_size`, use streaming for large files
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Unlimited file uploads or request body size
+- Instead: Set `max_upload_size`, use streaming for large files
 
 ---
 
@@ -122,7 +107,7 @@ async def create_user(data: UserCreate):
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```
 fastapi>=0.115.0
@@ -543,7 +528,7 @@ async def get_db() -> AsyncSession:
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use f-strings in SQL queries
 - Skip Pydantic validation for request bodies
 - Return 200 for all responses
@@ -567,64 +552,14 @@ from unittest.mock import AsyncMock, patch
 @pytest.fixture
 async def client():
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        yield ac
-
-@pytest.fixture
-def auth_headers():
-    token = create_test_token(user_id="test-user", role="user")
-    return {"Authorization": f"Bearer {token}"}
-
-@pytest.mark.asyncio
-async def test_create_user_success(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/api/v1/users",
-        json={
-            "email": "new@example.com",
-            "name": "New User",
-            "password": "SecurePass123",
-        },
-        headers=auth_headers,
-    )
-
-    assert response.status_code == 201
-    data = response.json()
-    assert data["email"] == "new@example.com"
-    assert "password" not in data
-
-@pytest.mark.asyncio
-async def test_create_user_invalid_email(client: AsyncClient, auth_headers):
-    response = await client.post(
-        "/api/v1/users",
-        json={"email": "invalid", "name": "Test", "password": "SecurePass123"},
-        headers=auth_headers,
-    )
-
-    assert response.status_code == 422
-
-@pytest.mark.asyncio
-async def test_unauthorized_without_token(client: AsyncClient):
-    response = await client.get("/api/v1/users")
-    assert response.status_code == 401
-
-@pytest.mark.asyncio
-async def test_rate_limiting(client: AsyncClient):
-    # Make requests until rate limited
-    for i in range(10):
-        response = await client.post(
-            "/auth/login",
-            json={"email": "test@test.com", "password": "wrong"},
-        )
-        if response.status_code == 429:
-            break
-
-    assert response.status_code == 429
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any FastAPI code:**
+Before generating any FastAPI code:
 
 - [ ] Pydantic models for all request/response bodies
 - [ ] Authentication dependency on protected endpoints
@@ -638,5 +573,3 @@ async def test_rate_limiting(client: AsyncClient):
 - [ ] Async database sessions
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

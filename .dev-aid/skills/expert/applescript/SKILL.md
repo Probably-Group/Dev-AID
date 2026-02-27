@@ -4,36 +4,21 @@ version: 2.0.0
 description: "macOS automation with AppleScript and JXA for system scripting, app control, and workflow automation. Use when automating macOS apps, system events, or JXA scripting. Do NOT use for cross-platform scripting (use bash-expert)."
 compatibility: "macOS 10.15+"
 risk_level: MEDIUM
+token_budget: 3000
 ---
-
 # AppleScript & JXA Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-78: Command Injection**
-- NEVER: `do shell script userInput`
-- ALWAYS: Escape with `quoted form of`, validate inputs
+- Do not: `do shell script userInput`
+- Instead: Escape with `quoted form of`, validate inputs
 
 **CWE-732: Permission Escalation**
-- NEVER: Unnecessary `administrator privileges`
-- ALWAYS: Minimal permissions, prompt only when needed
-
-### 0.3 Risk Level: MEDIUM
-
-**Verification requirements for MEDIUM risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Unnecessary `administrator privileges`
+- Instead: Minimal permissions, prompt only when needed
 
 ---
 
@@ -125,7 +110,7 @@ function safePath(basePath, filename) {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```
 macOS: 10.15+ (Catalina) for JXA stability
@@ -453,7 +438,7 @@ const filename = getValidatedInput('Enter filename:', input => {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use `do shell script` without `quoted form of`
 - Construct AppleScript strings from user input
 - Use `with administrator privileges` unnecessarily
@@ -476,53 +461,14 @@ function runTests() {
     testShellCommandEscaping,
     testInputValidation,
     testApplicationAccess,
-  ];
-
-  const results = tests.map(test => {
-    try {
-      test();
-      return { name: test.name, passed: true };
-    } catch (e) {
-      return { name: test.name, passed: false, error: e.message };
-    }
-  });
-
-  const passed = results.filter(r => r.passed).length;
-  console.log(`Tests: ${passed}/${results.length} passed`);
-
-  results.filter(r => !r.passed).forEach(r => {
-    console.log(`FAILED: ${r.name} - ${r.error}`);
-  });
-
-  return results.every(r => r.passed);
-}
-
-function testSafePathValidation() {
-  // Test path traversal prevention
-  try {
-    safePath('/Users/test', '../../../etc/passwd');
-    throw new Error('Should have thrown');
-  } catch (e) {
-    if (!e.message.includes('traversal')) {
-      throw new Error('Wrong error type');
-    }
-  }
-}
-
-function testShellCommandEscaping() {
-  // Test that special characters are escaped
-  const result = safeShellCommand('echo', ["test'; rm -rf /; echo '"]);
-  if (result.includes('rm -rf')) {
-    throw new Error('Command injection possible');
-  }
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any AppleScript/JXA code:**
+Before generating any AppleScript/JXA code:
 
 - [ ] Using JXA instead of AppleScript where possible
 - [ ] Shell commands use `quoted form of` or proper escaping
@@ -536,5 +482,3 @@ function testShellCommandEscaping() {
 - [ ] Input validation for all dialogs
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

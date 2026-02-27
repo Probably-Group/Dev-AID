@@ -4,49 +4,34 @@ version: 2.0.0
 description: "Bash scripting with shellcheck compliance, proper quoting, error handling, and shell automation. Use when writing bash scripts, shell commands, or CLI tools. Do NOT use for Python scripts (use python) or macOS automation (use applescript)."
 compatibility: "Bash 4.4+, shellcheck"
 risk_level: HIGH
+token_budget: 3000
 ---
-
 # Bash Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-78: Command Injection**
-- NEVER: `eval "$user_input"` or backticks with user data
-- NEVER: `cmd="ls $userpath"; $cmd` - indirect execution
-- ALWAYS: Quote variables, use arrays for commands
+- Do not: `eval "$user_input"` or backticks with user data
+- Do not: `cmd="ls $userpath"; $cmd` - indirect execution
+- Instead: Quote variables, use arrays for commands
 
 **CWE-20: Unquoted Variables**
-- NEVER: `rm -rf $path` or `[ $var = "value" ]`
-- ALWAYS: `rm -rf "$path"` and `[ "$var" = "value" ]`
+- Do not: `rm -rf $path` or `[ $var = "value" ]`
+- Instead: `rm -rf "$path"` and `[ "$var" = "value" ]`
 
 **CWE-22: Path Traversal**
-- NEVER: `cat "$userdir/$userfile"` without validation
-- ALWAYS: Validate path doesn't contain `..`, use `realpath` and check prefix
+- Do not: `cat "$userdir/$userfile"` without validation
+- Instead: Validate path doesn't contain `..`, use `realpath` and check prefix
 
 **CWE-377: Insecure Temp Files**
-- NEVER: `echo "$data" > /tmp/myfile` - predictable name
-- ALWAYS: `tmpfile=$(mktemp)` or `mktemp -d` for directories
+- Do not: `echo "$data" > /tmp/myfile` - predictable name
+- Instead: `tmpfile=$(mktemp)` or `mktemp -d` for directories
 
 **CWE-732: Insecure Permissions**
-- NEVER: `chmod 777 file` or world-writable scripts
-- ALWAYS: `chmod 600` for sensitive files, `700` for scripts
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: `chmod 777 file` or world-writable scripts
+- Instead: `chmod 600` for sensitive files, `700` for scripts
 
 ---
 
@@ -534,59 +519,14 @@ set -euo pipefail
 
 # Source the script being tested (without executing main)
 source ./myscript.sh --source-only 2>/dev/null || true
-
-test_validate_path() {
-    local result
-
-    # Test valid path
-    result="$(validate_path "/data" "file.txt")"
-    [[ "$result" == "/data/file.txt" ]] || { echo "FAIL: valid path"; return 1; }
-
-    # Test path traversal blocked
-    if validate_path "/data" "../etc/passwd" 2>/dev/null; then
-        echo "FAIL: path traversal not blocked"
-        return 1
-    fi
-
-    echo "PASS: validate_path"
-}
-
-test_require_command() {
-    # Test existing command
-    require_command bash || { echo "FAIL: bash not found"; return 1; }
-
-    # Test missing command
-    if require_command nonexistent_command_12345 2>/dev/null; then
-        echo "FAIL: missing command not detected"
-        return 1
-    fi
-
-    echo "PASS: require_command"
-}
-
-# Run tests
-main() {
-    local failed=0
-
-    test_validate_path || ((failed++))
-    test_require_command || ((failed++))
-
-    if [[ $failed -gt 0 ]]; then
-        echo "FAILED: $failed tests"
-        exit 1
-    fi
-
-    echo "All tests passed"
-}
-
-main "$@"
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 8. Pre-Generation Checklist
 
-**BEFORE generating any Bash code, verify:**
+Before generating any Bash code, verify:
 
 - [ ] Script starts with `#!/usr/bin/env bash` and `set -euo pipefail`
 - [ ] All variables are quoted: `"${var}"`
@@ -600,5 +540,3 @@ main "$@"
 - [ ] No running as root unless absolutely required
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

@@ -3,26 +3,9 @@ name: ui-ux-expert
 version: 2.0.0
 description: "UI/UX expertise for user research, usability testing, responsive design systems, and frontend security patterns. Use when conducting user research, planning usability tests, or designing responsive layouts. Do NOT use for accessibility compliance auditing (use accessibility-wcag)."
 risk_level: LOW
+token_budget: 4000
 ---
-
 # UI/UX Expert - Code Generation Rules
-
-## 0. Anti-Hallucination Protocol
-
-### 0.1 Mandatory Verification
-
-**BEFORE providing guidance:**
-1. Verify claims against authoritative sources
-2. Distinguish between established practices and opinions
-3. Never invent statistics, studies, or references
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Risk Level: LOW
-
-**Verification requirements:**
-- Cross-reference recommendations with industry standards
-- Cite sources when making specific claims
-- Acknowledge when best practices vary by context
 
 ---
 
@@ -567,7 +550,7 @@ defineExpose({ addToast, removeToast });
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Use target="_blank" without rel="noopener noreferrer"
 - Build modals without focus trap and escape key handling
 - Create dropdowns without arrow key navigation
@@ -589,75 +572,14 @@ import Modal from './Modal.vue';
 import Dropdown from './Dropdown.vue';
 
 describe('Modal', () => {
-  it('should trap focus within modal', async () => {
-    const user = userEvent.setup();
-    render(Modal, {
-      props: { open: true, title: 'Test Modal' },
-      slots: {
-        default: '<button>Button 1</button><button>Button 2</button>',
-      },
-    });
-
-    // Focus should be trapped
-    const button1 = screen.getByText('Button 1');
-    const button2 = screen.getByText('Button 2');
-    const closeBtn = screen.getByText('Cancel');
-
-    await user.tab();
-    expect(button1).toHaveFocus();
-
-    await user.tab();
-    expect(button2).toHaveFocus();
-
-    await user.tab();
-    expect(closeBtn).toHaveFocus();
-
-    // Tab should wrap back
-    await user.tab();
-    expect(button1).toHaveFocus();
-  });
-
-  it('should close on Escape key', async () => {
-    const onClose = vi.fn();
-    render(Modal, {
-      props: { open: true, title: 'Test Modal' },
-      listeners: { close: onClose },
-    });
-
-    await fireEvent.keyDown(document, { key: 'Escape' });
-    expect(onClose).toHaveBeenCalled();
-  });
-});
-
-describe('Dropdown', () => {
-  const items = [
-    { label: 'Edit', action: vi.fn() },
-    { label: 'Delete', action: vi.fn(), danger: true },
-  ];
-
-  it('should support arrow key navigation', async () => {
-    const user = userEvent.setup();
-    render(Dropdown, { props: { items } });
-
-    // Open menu
-    await user.click(screen.getByRole('button'));
-
-    // Arrow down to first item
-    await user.keyboard('{ArrowDown}');
-    expect(screen.getByText('Edit').closest('button')).toHaveFocus();
-
-    // Arrow down to second item
-    await user.keyboard('{ArrowDown}');
-    expect(screen.getByText('Delete').closest('button')).toHaveFocus();
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating UI component code:**
+Before generating UI component code:
 
 - [ ] External links: rel="noopener noreferrer" on target="_blank"
 - [ ] Modals: Focus trap, escape key, proper ARIA roles
@@ -669,5 +591,3 @@ describe('Dropdown', () => {
 - [ ] Focus management: Visible focus indicators, logical tab order
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

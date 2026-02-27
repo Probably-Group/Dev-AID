@@ -3,44 +3,29 @@ name: websocket
 version: 2.0.0
 description: "WebSocket implementation for real-time bidirectional communication with connection lifecycle management, heartbeat protocols, reconnection strategies, and CSWSH prevention. Use when building real-time features, implementing WebSocket servers/clients, designing message protocols, or handling connection state. Do NOT use for SSE-only streams, HTTP long-polling, or unidirectional push notifications."
 risk_level: HIGH
+token_budget: 4000
 ---
-
 # WebSocket Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-1275: CSWSH (Cross-Site WebSocket Hijacking)**
-- NEVER: Accept connections without origin validation
-- ALWAYS: Check Origin header against allowlist on connection
+- Do not: Accept connections without origin validation
+- Instead: Check Origin header against allowlist on connection
 
 **CWE-306: Missing Authentication**
-- NEVER: Open WebSocket without authentication
-- ALWAYS: Authenticate before upgrade, validate token in handshake
+- Do not: Open WebSocket without authentication
+- Instead: Authenticate before upgrade, validate token in handshake
 
 **CWE-400: Resource Exhaustion**
-- NEVER: Unlimited message size or connection count
-- ALWAYS: Max message size, per-IP connection limits, heartbeat timeouts
+- Do not: Unlimited message size or connection count
+- Instead: Max message size, per-IP connection limits, heartbeat timeouts
 
 **CWE-20: Message Validation**
-- NEVER: Trust message content/structure
-- ALWAYS: Validate/sanitize all incoming messages, use schema validation
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Trust message content/structure
+- Instead: Validate/sanitize all incoming messages, use schema validation
 
 ---
 
@@ -231,7 +216,7 @@ ws.on('message', (data) => {
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 
 ```json
 {
@@ -555,7 +540,7 @@ class WebSocketClient {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Accept connections without origin validation
 - Skip authentication on WebSocket upgrade
 - Trust message content without validation
@@ -568,7 +553,7 @@ class WebSocketClient {
 
 ## 5. Testing
 
-**ALWAYS write security tests:**
+Write security tests:
 
 ```typescript
 import WebSocket from 'ws';
@@ -578,61 +563,14 @@ describe('WebSocket Security', () => {
     const ws = new WebSocket('ws://localhost:3000/ws', {
       headers: { origin: 'https://evil.com' },
     });
-
-    ws.on('close', (code) => {
-      expect(code).toBe(4003);
-      done();
-    });
-  });
-
-  test('rejects missing token', (done) => {
-    const ws = new WebSocket('ws://localhost:3000/ws');
-
-    ws.on('close', (code) => {
-      expect(code).toBe(4001);
-      done();
-    });
-  });
-
-  test('rejects invalid token', (done) => {
-    const ws = new WebSocket('ws://localhost:3000/ws?token=invalid');
-
-    ws.on('close', (code) => {
-      expect(code).toBe(4001);
-      done();
-    });
-  });
-
-  test('rate limits excessive messages', async () => {
-    const ws = await connectWithAuth();
-
-    // Send 150 messages rapidly
-    for (let i = 0; i < 150; i++) {
-      ws.send(JSON.stringify({ type: 'ping' }));
-    }
-
-    // Should receive rate limit error
-    const response = await waitForMessage(ws);
-    expect(response.type).toBe('error');
-    expect(response.message).toContain('Rate limit');
-  });
-
-  test('validates message format', async () => {
-    const ws = await connectWithAuth();
-
-    ws.send(JSON.stringify({ type: 'invalid' }));
-
-    const response = await waitForMessage(ws);
-    expect(response.type).toBe('error');
-  });
-});
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating any WebSocket code:**
+Before generating any WebSocket code:
 
 - [ ] Origin validation on upgrade (CSWSH prevention)
 - [ ] Token authentication before accepting connection
@@ -646,5 +584,3 @@ describe('WebSocket Security', () => {
 - [ ] No sensitive data in URL query parameters (except tokens)
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

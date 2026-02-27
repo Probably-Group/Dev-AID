@@ -4,44 +4,29 @@ version: 2.0.0
 description: "Talos Linux deployment and configuration with machine configs, secure boot, disk encryption, and OS upgrades. Use when writing talosctl commands, generating machine configs, configuring Talos secure boot, or planning Talos OS upgrades. Do NOT use for general Kubernetes cluster operations or workload troubleshooting (use talos-cluster-ops)."
 compatibility: "Talos Linux 1.6+, talosctl"
 risk_level: HIGH
+token_budget: 2500
 ---
-
 # Talos OS Expert - Code Generation Rules
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-522: Insufficiently Protected Credentials**
-- NEVER: Generate machine configs without reviewing included secrets
-- ALWAYS: `talosctl gen secrets` separately, store securely, pass with `--from-secrets`
+- Do not: Generate machine configs without reviewing included secrets
+- Instead: `talosctl gen secrets` separately, store securely, pass with `--from-secrets`
 
 **CWE-306: Missing Authentication**
-- NEVER: Expose Talos API endpoints without mTLS
-- ALWAYS: Require client certificates for all API access
+- Do not: Expose Talos API endpoints without mTLS
+- Instead: Require client certificates for all API access
 
 **CWE-311: Missing Encryption**
-- NEVER: Store machine configs with plaintext secrets
-- ALWAYS: Enable disk encryption, encrypt configs at rest
+- Do not: Store machine configs with plaintext secrets
+- Instead: Enable disk encryption, encrypt configs at rest
 
 **CWE-250: Execution with Unnecessary Privilege**
-- NEVER: Run workloads on control plane nodes
-- ALWAYS: Use taints/tolerations, dedicated worker nodes
-
-### 0.3 Risk Level: HIGH
-
-**Verification requirements for HIGH risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Run workloads on control plane nodes
+- Instead: Use taints/tolerations, dedicated worker nodes
 
 ---
 
@@ -415,7 +400,7 @@ bootstrap_node() {
 
 ## 4. Anti-Patterns
 
-**NEVER:**
+Do not:
 - Store machine configs with plaintext secrets in Git
 - Skip Secure Boot on supported hardware
 - Use `--insecure` in production scripts
@@ -437,64 +422,14 @@ test_talos_config() {
     local config_file=$1
     local failed=0
 
-    echo "TEST: Config syntax validation"
-    if ! talosctl validate --config "$config_file" --mode metal; then
-        echo "FAIL: Invalid config syntax"
-        ((failed++))
-    fi
-
-    echo "TEST: RBAC enabled"
-    if ! yq '.machine.features.rbac' "$config_file" | grep -q "true"; then
-        echo "FAIL: RBAC not enabled"
-        ((failed++))
-    fi
-
-    echo "TEST: No plaintext secrets"
-    if yq '.machine.token' "$config_file" | grep -qv "^ENC\["; then
-        echo "FAIL: Plaintext token detected"
-        ((failed++))
-    fi
-
-    echo "TEST: Disk encryption configured"
-    if ! yq '.machine.systemDiskEncryption' "$config_file" | grep -q "luks2"; then
-        echo "WARN: Disk encryption not configured"
-    fi
-
-    echo "TEST: Kernel hardening sysctls"
-    if ! yq '.machine.sysctls' "$config_file" | grep -q "rp_filter"; then
-        echo "WARN: Kernel hardening not applied"
-    fi
-
-    return $failed
-}
-
-test_live_node() {
-    local node=$1
-
-    echo "TEST: Node health"
-    talosctl --nodes "$node" health --wait-timeout 60s
-
-    echo "TEST: Secure boot status"
-    talosctl --nodes "$node" read /sys/firmware/efi/efivars/SecureBoot-* 2>/dev/null || \
-        echo "INFO: Secure Boot status unavailable"
-
-    echo "TEST: Disk encryption active"
-    talosctl --nodes "$node" ls /dev/mapper/ | grep -q "luks" || \
-        echo "WARN: Disk encryption may not be active"
-
-    echo "TEST: API RBAC"
-    # Should fail without proper role
-    if talosctl --nodes "$node" reboot --dry-run 2>&1 | grep -q "access denied"; then
-        echo "PASS: RBAC restricting access"
-    fi
-}
+# ... (additional test cases follow same pattern)
 ```
 
 ---
 
 ## 6. Pre-Generation Checklist
 
-**BEFORE generating Talos configs:**
+Before generating Talos configs:
 
 - [ ] Secrets encrypted with SOPS or similar
 - [ ] RBAC enabled for Talos API
@@ -507,5 +442,3 @@ test_live_node() {
 - [ ] kubernetesTalosAPIAccess restricted
 
 ---
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.

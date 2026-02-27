@@ -1,0 +1,1105 @@
+{
+  "skills": {
+    "code-reviewer": {
+      "name": "code-reviewer",
+      "category": "core",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/core/code-reviewer/SKILL.md",
+      "lines": 57,
+      "chars": 1360,
+      "tokens": 340,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "linter": {
+      "name": "linter",
+      "category": "core",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/core/linter/SKILL.md",
+      "lines": 71,
+      "chars": 1680,
+      "tokens": 420,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "secret-scanner": {
+      "name": "secret-scanner",
+      "category": "core",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/core/secret-scanner/SKILL.md",
+      "lines": 51,
+      "chars": 1416,
+      "tokens": 354,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "test-runner": {
+      "name": "test-runner",
+      "category": "core",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/core/test-runner/SKILL.md",
+      "lines": 62,
+      "chars": 1659,
+      "tokens": 414,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "type-checker": {
+      "name": "type-checker",
+      "category": "core",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/core/type-checker/SKILL.md",
+      "lines": 68,
+      "chars": 1797,
+      "tokens": 449,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "accessibility-wcag": {
+      "name": "accessibility-wcag",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/accessibility-wcag/SKILL.md",
+      "lines": 818,
+      "chars": 18939,
+      "tokens": 4734,
+      "aggressive_language": {
+        "NEVER": 1,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 3
+    },
+    "api-expert": {
+      "name": "api-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/api-expert/SKILL.md",
+      "lines": 734,
+      "chars": 18279,
+      "tokens": 4569,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 14
+    },
+    "applescript": {
+      "name": "applescript",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/applescript/SKILL.md",
+      "lines": 540,
+      "chars": 13623,
+      "tokens": 3405,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 8
+    },
+    "appsec-expert": {
+      "name": "appsec-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/appsec-expert/SKILL.md",
+      "lines": 531,
+      "chars": 15342,
+      "tokens": 3835,
+      "aggressive_language": {
+        "NEVER": 9,
+        "ALWAYS": 7,
+        "CRITICAL": 3
+      },
+      "aggressive_total": 19
+    },
+    "argo-expert": {
+      "name": "argo-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/argo-expert/SKILL.md",
+      "lines": 776,
+      "chars": 18407,
+      "tokens": 4601,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7,
+        "WARNING": 1
+      },
+      "aggressive_total": 15
+    },
+    "async-expert": {
+      "name": "async-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/async-expert/SKILL.md",
+      "lines": 843,
+      "chars": 22203,
+      "tokens": 5550,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "auto-update-systems": {
+      "name": "auto-update-systems",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/auto-update-systems/SKILL.md",
+      "lines": 515,
+      "chars": 13987,
+      "tokens": 3496,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 5,
+        "CRITICAL": 3
+      },
+      "aggressive_total": 14
+    },
+    "bash-expert": {
+      "name": "bash-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/bash-expert/SKILL.md",
+      "lines": 604,
+      "chars": 13033,
+      "tokens": 3258,
+      "aggressive_language": {
+        "NEVER": 14,
+        "ALWAYS": 11
+      },
+      "aggressive_total": 25
+    },
+    "browser-automation": {
+      "name": "browser-automation",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/browser-automation/SKILL.md",
+      "lines": 574,
+      "chars": 14729,
+      "tokens": 3682,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "celery-expert": {
+      "name": "celery-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/celery-expert/SKILL.md",
+      "lines": 552,
+      "chars": 15133,
+      "tokens": 3783,
+      "aggressive_language": {
+        "NEVER": 10,
+        "ALWAYS": 6,
+        "MUST": 1
+      },
+      "aggressive_total": 17
+    },
+    "ci-cd": {
+      "name": "ci-cd",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/ci-cd/SKILL.md",
+      "lines": 686,
+      "chars": 17842,
+      "tokens": 4460,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5,
+        "CRITICAL": 1
+      },
+      "aggressive_total": 11
+    },
+    "cicd-expert": {
+      "name": "cicd-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/cicd-expert/SKILL.md",
+      "lines": 275,
+      "chars": 6242,
+      "tokens": 1560,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6,
+        "CRITICAL": 1
+      },
+      "aggressive_total": 13
+    },
+    "cilium-expert": {
+      "name": "cilium-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/cilium-expert/SKILL.md",
+      "lines": 657,
+      "chars": 15769,
+      "tokens": 3942,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "cloud-api-integration": {
+      "name": "cloud-api-integration",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/cloud-api-integration/SKILL.md",
+      "lines": 620,
+      "chars": 18879,
+      "tokens": 4719,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "copywriting": {
+      "name": "copywriting",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/copywriting/SKILL.md",
+      "lines": 421,
+      "chars": 11471,
+      "tokens": 2867,
+      "aggressive_language": {
+        "NEVER": 3,
+        "ALWAYS": 2,
+        "CRITICAL": 2,
+        "MUST": 1
+      },
+      "aggressive_total": 8
+    },
+    "cross-platform-builds": {
+      "name": "cross-platform-builds",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/cross-platform-builds/SKILL.md",
+      "lines": 648,
+      "chars": 16997,
+      "tokens": 4249,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 4,
+        "WARNING": 3
+      },
+      "aggressive_total": 11
+    },
+    "database-design": {
+      "name": "database-design",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/database-design/SKILL.md",
+      "lines": 464,
+      "chars": 13069,
+      "tokens": 3267,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "dbus": {
+      "name": "dbus",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/dbus/SKILL.md",
+      "lines": 662,
+      "chars": 18459,
+      "tokens": 4614,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 4,
+        "WARNING": 1
+      },
+      "aggressive_total": 9
+    },
+    "deep-research-expert": {
+      "name": "deep-research-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/deep-research-expert/SKILL.md",
+      "lines": 687,
+      "chars": 20792,
+      "tokens": 5198,
+      "aggressive_language": {
+        "NEVER": 1,
+        "ALWAYS": 2,
+        "MUST": 1
+      },
+      "aggressive_total": 4
+    },
+    "design-systems": {
+      "name": "design-systems",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/design-systems/SKILL.md",
+      "lines": 801,
+      "chars": 19626,
+      "tokens": 4906,
+      "aggressive_language": {
+        "NEVER": 1,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 3
+    },
+    "devsecops-expert": {
+      "name": "devsecops-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/devsecops-expert/SKILL.md",
+      "lines": 850,
+      "chars": 22066,
+      "tokens": 5516,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5,
+        "CRITICAL": 2
+      },
+      "aggressive_total": 12
+    },
+    "encryption": {
+      "name": "encryption",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/encryption/SKILL.md",
+      "lines": 552,
+      "chars": 15648,
+      "tokens": 3912,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7,
+        "CRITICAL": 3
+      },
+      "aggressive_total": 17
+    },
+    "fastapi": {
+      "name": "fastapi",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/fastapi/SKILL.md",
+      "lines": 642,
+      "chars": 17772,
+      "tokens": 4443,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 14
+    },
+    "fastapi-expert": {
+      "name": "fastapi-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/fastapi-expert/SKILL.md",
+      "lines": 423,
+      "chars": 12054,
+      "tokens": 3013,
+      "aggressive_language": {
+        "NEVER": 11,
+        "ALWAYS": 11
+      },
+      "aggressive_total": 22
+    },
+    "glsl": {
+      "name": "glsl",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/glsl/SKILL.md",
+      "lines": 820,
+      "chars": 20250,
+      "tokens": 5062,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 8
+    },
+    "graph-database-expert": {
+      "name": "graph-database-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/graph-database-expert/SKILL.md",
+      "lines": 765,
+      "chars": 21692,
+      "tokens": 5423,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "graphql-expert": {
+      "name": "graphql-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/graphql-expert/SKILL.md",
+      "lines": 628,
+      "chars": 15218,
+      "tokens": 3804,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "gsap": {
+      "name": "gsap",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/gsap/SKILL.md",
+      "lines": 815,
+      "chars": 19884,
+      "tokens": 4971,
+      "aggressive_language": {
+        "NEVER": 3,
+        "ALWAYS": 3
+      },
+      "aggressive_total": 6
+    },
+    "harbor-expert": {
+      "name": "harbor-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/harbor-expert/SKILL.md",
+      "lines": 883,
+      "chars": 24163,
+      "tokens": 6040,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6,
+        "CRITICAL": 1
+      },
+      "aggressive_total": 13
+    },
+    "javascript-expert": {
+      "name": "javascript-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/javascript-expert/SKILL.md",
+      "lines": 594,
+      "chars": 14352,
+      "tokens": 3588,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 14
+    },
+    "json-rpc": {
+      "name": "json-rpc",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/json-rpc/SKILL.md",
+      "lines": 857,
+      "chars": 21286,
+      "tokens": 5321,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "kanidm-expert": {
+      "name": "kanidm-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/kanidm-expert/SKILL.md",
+      "lines": 831,
+      "chars": 23549,
+      "tokens": 5887,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "linux-at-spi2": {
+      "name": "linux-at-spi2",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/linux-at-spi2/SKILL.md",
+      "lines": 434,
+      "chars": 12236,
+      "tokens": 3059,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "llm-integration": {
+      "name": "llm-integration",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/llm-integration/SKILL.md",
+      "lines": 591,
+      "chars": 17356,
+      "tokens": 4339,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 11
+    },
+    "macos-accessibility": {
+      "name": "macos-accessibility",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/macos-accessibility/SKILL.md",
+      "lines": 527,
+      "chars": 14373,
+      "tokens": 3593,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "mcp": {
+      "name": "mcp",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/mcp/SKILL.md",
+      "lines": 811,
+      "chars": 19704,
+      "tokens": 4926,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "model-quantization": {
+      "name": "model-quantization",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/model-quantization/SKILL.md",
+      "lines": 575,
+      "chars": 17066,
+      "tokens": 4266,
+      "aggressive_language": {
+        "NEVER": 3,
+        "ALWAYS": 1
+      },
+      "aggressive_total": 4
+    },
+    "motion-design": {
+      "name": "motion-design",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/motion-design/SKILL.md",
+      "lines": 601,
+      "chars": 15320,
+      "tokens": 3830,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "nuxt4": {
+      "name": "nuxt4",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/nuxt4/SKILL.md",
+      "lines": 708,
+      "chars": 17637,
+      "tokens": 4409,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 10
+    },
+    "os-keychain": {
+      "name": "os-keychain",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/os-keychain/SKILL.md",
+      "lines": 547,
+      "chars": 14845,
+      "tokens": 3711,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 8
+    },
+    "pinia": {
+      "name": "pinia",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/pinia/SKILL.md",
+      "lines": 564,
+      "chars": 13566,
+      "tokens": 3391,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 12
+    },
+    "plan-review-expert": {
+      "name": "plan-review-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/plan-review-expert/SKILL.md",
+      "lines": 546,
+      "chars": 16314,
+      "tokens": 4078,
+      "aggressive_language": {
+        "NEVER": 1,
+        "CRITICAL": 5
+      },
+      "aggressive_total": 6
+    },
+    "prompt-engineering": {
+      "name": "prompt-engineering",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/prompt-engineering/SKILL.md",
+      "lines": 463,
+      "chars": 14405,
+      "tokens": 3601,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "prompt-engineering-expert": {
+      "name": "prompt-engineering-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/prompt-engineering-expert/SKILL.md",
+      "lines": 668,
+      "chars": 20299,
+      "tokens": 5074,
+      "aggressive_language": {
+        "NEVER": 4,
+        "CRITICAL": 6
+      },
+      "aggressive_total": 10
+    },
+    "python": {
+      "name": "python",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/python/SKILL.md",
+      "lines": 538,
+      "chars": 15190,
+      "tokens": 3797,
+      "aggressive_language": {
+        "NEVER": 11,
+        "ALWAYS": 8
+      },
+      "aggressive_total": 19
+    },
+    "rabbitmq-expert": {
+      "name": "rabbitmq-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/rabbitmq-expert/SKILL.md",
+      "lines": 494,
+      "chars": 14244,
+      "tokens": 3561,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "refactoring-expert": {
+      "name": "refactoring-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/refactoring-expert/SKILL.md",
+      "lines": 541,
+      "chars": 17067,
+      "tokens": 4266,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "rest-api-design": {
+      "name": "rest-api-design",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/rest-api-design/SKILL.md",
+      "lines": 824,
+      "chars": 20498,
+      "tokens": 5124,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "rust": {
+      "name": "rust",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/rust/SKILL.md",
+      "lines": 582,
+      "chars": 15203,
+      "tokens": 3800,
+      "aggressive_language": {
+        "NEVER": 11,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 18
+    },
+    "sandboxing": {
+      "name": "sandboxing",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/sandboxing/SKILL.md",
+      "lines": 686,
+      "chars": 17476,
+      "tokens": 4369,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "security-auditing": {
+      "name": "security-auditing",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/security-auditing/SKILL.md",
+      "lines": 700,
+      "chars": 19288,
+      "tokens": 4822,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4,
+        "CRITICAL": 3
+      },
+      "aggressive_total": 13
+    },
+    "senior-architect": {
+      "name": "senior-architect",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/senior-architect/SKILL.md",
+      "lines": 655,
+      "chars": 21198,
+      "tokens": 5299,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "skill-creation-expert": {
+      "name": "skill-creation-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/skill-creation-expert/SKILL.md",
+      "lines": 308,
+      "chars": 8914,
+      "tokens": 2228,
+      "aggressive_language": {
+        "NEVER": 18,
+        "ALWAYS": 9,
+        "CRITICAL": 1,
+        "MUST": 2
+      },
+      "aggressive_total": 30
+    },
+    "speech-to-text": {
+      "name": "speech-to-text",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/speech-to-text/SKILL.md",
+      "lines": 636,
+      "chars": 19011,
+      "tokens": 4752,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "sqlcipher": {
+      "name": "sqlcipher",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/sqlcipher/SKILL.md",
+      "lines": 771,
+      "chars": 21924,
+      "tokens": 5481,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 10
+    },
+    "sqlite": {
+      "name": "sqlite",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/sqlite/SKILL.md",
+      "lines": 495,
+      "chars": 14100,
+      "tokens": 3525,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "surrealdb-expert": {
+      "name": "surrealdb-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/surrealdb-expert/SKILL.md",
+      "lines": 461,
+      "chars": 13557,
+      "tokens": 3389,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 10
+    },
+    "tailwindcss": {
+      "name": "tailwindcss",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/tailwindcss/SKILL.md",
+      "lines": 584,
+      "chars": 13863,
+      "tokens": 3465,
+      "aggressive_language": {
+        "NEVER": 5,
+        "ALWAYS": 5
+      },
+      "aggressive_total": 10
+    },
+    "talos-cluster-ops": {
+      "name": "talos-cluster-ops",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/talos-cluster-ops/SKILL.md",
+      "lines": 499,
+      "chars": 13266,
+      "tokens": 3316,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 10
+    },
+    "talos-os-expert": {
+      "name": "talos-os-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/talos-os-expert/SKILL.md",
+      "lines": 511,
+      "chars": 13160,
+      "tokens": 3290,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4,
+        "WARNING": 1
+      },
+      "aggressive_total": 11
+    },
+    "tauri": {
+      "name": "tauri",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/tauri/SKILL.md",
+      "lines": 476,
+      "chars": 12795,
+      "tokens": 3198,
+      "aggressive_language": {
+        "NEVER": 7,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 14
+    },
+    "text-to-speech": {
+      "name": "text-to-speech",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/text-to-speech/SKILL.md",
+      "lines": 640,
+      "chars": 18057,
+      "tokens": 4514,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "threejs-tresjs": {
+      "name": "threejs-tresjs",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/threejs-tresjs/SKILL.md",
+      "lines": 512,
+      "chars": 13948,
+      "tokens": 3487,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "typescript-expert": {
+      "name": "typescript-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/typescript-expert/SKILL.md",
+      "lines": 633,
+      "chars": 17164,
+      "tokens": 4291,
+      "aggressive_language": {
+        "NEVER": 10,
+        "ALWAYS": 7
+      },
+      "aggressive_total": 17
+    },
+    "ui-ux-design": {
+      "name": "ui-ux-design",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/ui-ux-design/SKILL.md",
+      "lines": 501,
+      "chars": 13441,
+      "tokens": 3360,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "ui-ux-expert": {
+      "name": "ui-ux-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/ui-ux-expert/SKILL.md",
+      "lines": 673,
+      "chars": 17756,
+      "tokens": 4439,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "vue3": {
+      "name": "vue3",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/vue3/SKILL.md",
+      "lines": 549,
+      "chars": 13486,
+      "tokens": 3371,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 4
+      },
+      "aggressive_total": 10
+    },
+    "wake-word-detection": {
+      "name": "wake-word-detection",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/wake-word-detection/SKILL.md",
+      "lines": 692,
+      "chars": 20708,
+      "tokens": 5177,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "web-audio-api": {
+      "name": "web-audio-api",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/web-audio-api/SKILL.md",
+      "lines": 548,
+      "chars": 14568,
+      "tokens": 3642,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "web-research-expert": {
+      "name": "web-research-expert",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/web-research-expert/SKILL.md",
+      "lines": 571,
+      "chars": 16964,
+      "tokens": 4241,
+      "aggressive_language": {
+        "NEVER": 1
+      },
+      "aggressive_total": 1
+    },
+    "webgl": {
+      "name": "webgl",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/webgl/SKILL.md",
+      "lines": 599,
+      "chars": 15947,
+      "tokens": 3986,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "websocket": {
+      "name": "websocket",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/websocket/SKILL.md",
+      "lines": 650,
+      "chars": 16835,
+      "tokens": 4208,
+      "aggressive_language": {
+        "NEVER": 6,
+        "ALWAYS": 6
+      },
+      "aggressive_total": 12
+    },
+    "windows-ui-automation": {
+      "name": "windows-ui-automation",
+      "category": "expert",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/expert/windows-ui-automation/SKILL.md",
+      "lines": 594,
+      "chars": 16430,
+      "tokens": 4107,
+      "aggressive_language": {
+        "NEVER": 4,
+        "ALWAYS": 2
+      },
+      "aggressive_total": 6
+    },
+    "architect-protocol": {
+      "name": "architect-protocol",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/architect-protocol/SKILL.md",
+      "lines": 254,
+      "chars": 8180,
+      "tokens": 2045,
+      "aggressive_language": {
+        "MUST": 4
+      },
+      "aggressive_total": 4
+    },
+    "design-first": {
+      "name": "design-first",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/design-first/SKILL.md",
+      "lines": 257,
+      "chars": 7690,
+      "tokens": 1922,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "isolated-development": {
+      "name": "isolated-development",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/isolated-development/SKILL.md",
+      "lines": 246,
+      "chars": 7027,
+      "tokens": 1756,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "plan-execution": {
+      "name": "plan-execution",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/plan-execution/SKILL.md",
+      "lines": 269,
+      "chars": 8223,
+      "tokens": 2055,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "staged-review": {
+      "name": "staged-review",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/staged-review/SKILL.md",
+      "lines": 251,
+      "chars": 8397,
+      "tokens": 2099,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "systematic-debugging": {
+      "name": "systematic-debugging",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/systematic-debugging/SKILL.md",
+      "lines": 271,
+      "chars": 9948,
+      "tokens": 2487,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    },
+    "tdd-protocol": {
+      "name": "tdd-protocol",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/tdd-protocol/SKILL.md",
+      "lines": 272,
+      "chars": 10110,
+      "tokens": 2527,
+      "aggressive_language": {
+        "MUST": 3
+      },
+      "aggressive_total": 3
+    },
+    "verification-gate": {
+      "name": "verification-gate",
+      "category": "process",
+      "path": "/Users/martinholovsky/Github/Dev-AID/.dev-aid/skills/process/verification-gate/SKILL.md",
+      "lines": 186,
+      "chars": 6393,
+      "tokens": 1598,
+      "aggressive_language": {},
+      "aggressive_total": 0
+    }
+  },
+  "totals": {
+    "skill_count": 86,
+    "total_lines": 47341,
+    "total_chars": 1283814,
+    "total_tokens": 320923,
+    "total_aggressive": 747
+  }
+}

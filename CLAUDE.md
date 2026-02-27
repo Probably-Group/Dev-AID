@@ -19,7 +19,7 @@ The orchestration module (`.dev-aid/orchestration/`) has pre-commit hooks that r
 
 ## Agent Framework (`.dev-aid/agents/`)
 
-Provider-agnostic agent system with 8 built-in agents, multi-agent teams, and CI/CD automation.
+Provider-agnostic agent system with 9 built-in agents, multi-agent teams, and CI/CD automation.
 
 ### Architecture
 
@@ -33,10 +33,11 @@ Provider-agnostic agent system with 8 built-in agents, multi-agent teams, and CI
 │   ├── team_runner.py       # Multi-agent team orchestration
 │   ├── team_models.py       # Team data models (slots, tasks, messages)
 │   ├── shared_state.py      # Shared state between team agents
+│   ├── lessons.py           # Lessons Ledger (failure pattern tracking)
 │   ├── safety.py            # Risk-level tool execution checks
 │   ├── cost.py              # Per-model cost tracking
 │   └── models.py            # AgentDefinition, AgentResult, ToolCall
-├── agents/                  # 8 built-in agents
+├── agents/                  # 9 built-in agents
 │   ├── pr_reviewer.py       # PR review (security, quality, architecture)
 │   ├── test_generator.py    # Test generation (pytest/jest/vitest)
 │   ├── tech_debt_hunter.py  # Tech debt scanning & prioritization
@@ -44,7 +45,8 @@ Provider-agnostic agent system with 8 built-in agents, multi-agent teams, and CI
 │   ├── conflict_resolver.py # Merge conflict resolution (smart/ours/theirs)
 │   ├── research_agent.py    # Technical research with web + codebase
 │   ├── onboarding_agent.py  # Codebase onboarding guide generation
-│   └── doc_auditor.py       # Documentation audit & health scoring
+│   ├── doc_auditor.py       # Documentation audit & health scoring
+│   └── dod_gate.py          # Definition of Done verification gate
 ├── adapters/                # LLM provider adapters
 │   ├── anthropic_adapter.py # Claude (Anthropic Messages API)
 │   ├── google_adapter.py    # Gemini
@@ -124,6 +126,8 @@ dev-aid-agent apo status
 | `aid-docs` | `dev-aid-agent-doc-audit` | `aid-docs . docs-only` |
 | `aid-team` | `dev-aid-agent-team` | `aid-team security-audit-team -m "Audit auth"` |
 | `aid-apo` | `dev-aid-agent-apo` | `aid-apo optimize pr-reviewer` |
+| `aid-lessons` | `dev-aid-agent-lessons` | `aid-lessons list` |
+| `aid-dod` | `dev-aid-agent-dod-gate` | `aid-dod` |
 
 ### Router Aliases
 

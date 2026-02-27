@@ -1,0 +1,64 @@
+name = "dev-aid-agent-lessons"
+description = "Manage the lessons ledger — view, add, resolve, and clear agent failure patterns"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# Lessons Ledger
+
+You manage the Lessons Ledger — a structured record of agent failure patterns injected into future agent runs to avoid repeating mistakes.
+
+## Arguments
+
+Parse from user input:
+- **action** (required): `list`, `add`, `resolve`, `clear-resolved`
+- For `add`: `--agent <name> --failure-mode <text> --detection-signal <text> --prevention-rule <text>`
+- For `resolve`: `<lesson-id> [--note <text>]`
+
+Examples:
+- `list` — show all active lessons
+- `add --agent pr-reviewer --failure-mode "missed XSS" --detection-signal "no input validation" --prevention-rule "always check sanitization"`
+- `resolve abc12345 --note "Fixed in PR #142"`
+- `clear-resolved` — remove all resolved lessons
+
+## How It Works
+
+1. **Automatic recording**: Agents auto-record lessons on failure (provider errors, max iterations, DoD failures)
+2. **Prompt injection**: Active lessons are injected into agent system prompts before each run
+3. **Manual lessons**: Add lessons manually for observed patterns
+4. **Resolution**: Mark lessons resolved once the underlying issue is fixed
+5. **Cleanup**: Clear resolved lessons to keep the ledger focused
+
+## Storage
+
+Lessons stored in `.dev-aid/memory-bank/lessons-ledger.md` in structured markdown.
+
+## Workflow
+
+### For `list`:
+Read `.dev-aid/memory-bank/lessons-ledger.md`, display all lessons with ID, agent, failure mode, signal, rule, status.
+
+### For `add`:
+Validate fields, add new entry, confirm lesson ID.
+
+### For `resolve`:
+Find lesson by ID, mark resolved with optional note, confirm.
+
+### For `clear-resolved`:
+Count and remove resolved lessons, report count.
+
+## CLI
+
+```bash
+dev-aid-agent lessons list
+dev-aid-agent lessons add --agent pr-reviewer --failure-mode "timeout" --detection-signal "exceeded 60s" --prevention-rule "set shorter timeout"
+dev-aid-agent lessons resolve abc12345 --note "Fixed"
+dev-aid-agent lessons clear-resolved
+```
+
+Execute lessons command now.
+"""

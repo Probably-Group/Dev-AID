@@ -17,12 +17,14 @@ from typing import Any, Dict, List, Optional
 from .agents.ci_fixer import CI_FIXER
 from .agents.conflict_resolver import CONFLICT_RESOLVER
 from .agents.doc_auditor import DOC_AUDITOR
+from .agents.dod_gate import DOD_GATE
 from .agents.onboarding_agent import ONBOARDING_AGENT
 from .agents.pr_reviewer import PR_REVIEWER
 from .agents.research_agent import RESEARCH_AGENT
 from .agents.tech_debt_hunter import TECH_DEBT_HUNTER
 from .agents.test_generator import TEST_GENERATOR
 from .core.agent_runner import AgentRunner
+from .core.lessons import LessonsConfig, LessonsLedger
 from .core.models import AgentDefinition, AgentResult, ToolCall
 from .core.provider_adapter import ProviderResponse, create_adapter
 from .core.safety import SafetyConfig
@@ -48,6 +50,7 @@ AGENTS: Dict[str, AgentDefinition] = {
     "research": RESEARCH_AGENT,
     "onboarding": ONBOARDING_AGENT,
     "doc-auditor": DOC_AUDITOR,
+    "dod-gate": DOD_GATE,
 }
 
 
@@ -190,6 +193,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         help="Directory for trace files (default: .dev-aid/agent-traces)",
     )
+    parser.add_argument(
+        "--dod",
+        action="store_true",
+        help="Run DoD gate after agent completes to verify output quality",
+    )
 
     subparsers = parser.add_subparsers(dest="agent", help="Agent to run")
 
@@ -277,9 +285,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     # APO subcommand
-    apo_parser = subparsers.add_parser(
-        "apo", help="Automatic Prompt Optimization"
-    )
+    apo_parser = subparsers.add_parser("apo", help="Automatic Prompt Optimization")
     apo_sub = apo_parser.add_subparsers(dest="apo_action", help="APO action")
 
     apo_opt = apo_sub.add_parser("optimize", help="Optimize an agent's prompt")
@@ -298,6 +304,36 @@ def build_parser() -> argparse.ArgumentParser:
     apo_hist.add_argument("agent_name", help="Agent to show history for")
 
     apo_sub.add_parser("status", help="Show APO status for all agents")
+
+    # Lessons subcommand
+    lessons_parser = subparsers.add_parser(
+        "lessons", help="Manage the lessons ledger (failure patterns)"
+    )
+    lessons_sub = lessons_parser.add_subparsers(
+        dest="lessons_action", help="Lessons action"
+    )
+
+    lessons_sub.add_parser("list", help="List all active lessons")
+
+    lessons_add = lessons_sub.add_parser("add", help="Manually add a lesson")
+    lessons_add.add_argument("--agent", required=True, help="Agent name")
+    lessons_add.add_argument(
+        "--failure-mode", required=True, help="Short description of failure"
+    )
+    lessons_add.add_argument(
+        "--detection-signal", required=True, help="How to detect this failure"
+    )
+    lessons_add.add_argument(
+        "--prevention-rule", required=True, help="How to prevent this failure"
+    )
+
+    lessons_resolve = lessons_sub.add_parser(
+        "resolve", help="Mark a lesson as resolved"
+    )
+    lessons_resolve.add_argument("lesson_id", help="Lesson ID to resolve")
+    lessons_resolve.add_argument("--note", default="", help="Resolution note")
+
+    lessons_sub.add_parser("clear-resolved", help="Remove all resolved lessons")
 
     return parser
 
@@ -377,6 +413,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.agent == "apo":
         return _handle_apo_command(args)
 
+    # Handle lessons subcommand
+    if args.agent == "lessons":
+        return _handle_lessons_command(args)
+
     if args.agent not in AGENTS:
         print(_c(Colors.RED, f"Unknown agent: {args.agent}"), file=sys.stderr)
         return 1
@@ -450,7 +490,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Build trace collector if enabled
     trace_collector: Optional[TraceCollector] = None
     if getattr(args, "trace", False):
-        trace_dir = Path(args.trace_dir) if args.trace_dir else root / ".dev-aid" / "agent-traces"
+        trace_dir = (
+            Path(args.trace_dir)
+            if args.trace_dir
+            else root / ".dev-aid" / "agent-traces"
+        )
         trace_config = TraceConfig(enabled=True, trace_dir=trace_dir)
         trace_collector = TraceCollector(
             config=trace_config,
@@ -460,6 +504,11 @@ def main(argv: Optional[List[str]] = None) -> int:
         if not args.json_output:
             print(_c(Colors.DIM, f"  Trace enabled → {trace_dir}/{agent_def.name}/"))
 
+    # Build lessons ledger
+    ledger_path = root / ".dev-aid" / "memory-bank" / "lessons-ledger.md"
+    lessons_config = LessonsConfig(ledger_path=ledger_path)
+    lessons_ledger = LessonsLedger(lessons_config)
+
     runner = AgentRunner(
         adapter=adapter,
         registry=registry,
@@ -467,6 +516,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         on_tool_call=on_tool_call if args.verbose else None,
         on_iteration=on_iteration,
         trace_collector=trace_collector,
+        lessons_ledger=lessons_ledger,
     )
 
     # Print header
@@ -488,9 +538,21 @@ def main(argv: Optional[List[str]] = None) -> int:
         model=model,
     )
 
+    # Run DoD gate if requested and agent succeeded
+    dod_result: Optional[AgentResult] = None
+    if getattr(args, "dod", False) and result.success:
+        dod_result = _run_dod_gate(
+            runner=runner,
+            user_message=user_message,
+            agent_result=result,
+            model=model,
+            lessons_ledger=lessons_ledger,
+            json_output=args.json_output,
+        )
+
     # Output
     if args.json_output:
-        output = {
+        output: Dict[str, Any] = {
             "agent": result.agent_name,
             "success": result.success,
             "output": result.output,
@@ -502,6 +564,13 @@ def main(argv: Optional[List[str]] = None) -> int:
                 "latency_ms": round(result.total_latency_ms, 1),
             },
         }
+        if dod_result:
+            verdict = _parse_dod_verdict(dod_result.output)
+            output["dod_gate"] = {
+                "verdict": verdict,
+                "output": dod_result.output,
+                "summary": _extract_dod_summary(dod_result.output),
+            }
         print(json.dumps(output, indent=2))
     else:
         if result.success:
@@ -515,6 +584,20 @@ def main(argv: Optional[List[str]] = None) -> int:
                     f"{result.total_latency_ms/1000:.1f}s{cost_str} ---",
                 )
             )
+            if dod_result:
+                verdict = _parse_dod_verdict(dod_result.output)
+                color = (
+                    Colors.GREEN
+                    if verdict == "PASS"
+                    else Colors.YELLOW if verdict == "WARN" else Colors.RED
+                )
+                print(_c(color, f"\n  DoD Gate: {verdict}"))
+                summary = _extract_dod_summary(dod_result.output)
+                if summary:
+                    print(_c(Colors.DIM, f"  {summary}"))
+                suggestions = _extract_dod_suggestions(dod_result.output)
+                for s in suggestions:
+                    print(_c(Colors.DIM, f"    - {s}"))
         else:
             print(_c(Colors.RED, f"Agent failed: {result.output}"), file=sys.stderr)
 
@@ -657,10 +740,19 @@ def _handle_team_command(args: argparse.Namespace) -> int:
     # Build trace config for team if enabled
     team_trace_config: Optional[TraceConfig] = None
     if getattr(args, "trace", False):
-        trace_dir = Path(args.trace_dir) if args.trace_dir else root / ".dev-aid" / "agent-traces"
+        trace_dir = (
+            Path(args.trace_dir)
+            if args.trace_dir
+            else root / ".dev-aid" / "agent-traces"
+        )
         team_trace_config = TraceConfig(enabled=True, trace_dir=trace_dir)
         if not args.json_output:
             print(_c(Colors.DIM, f"  Trace enabled → {trace_dir}/"))
+
+    # Build lessons ledger for team
+    ledger_path = root / ".dev-aid" / "memory-bank" / "lessons-ledger.md"
+    team_lessons_config = LessonsConfig(ledger_path=ledger_path)
+    team_lessons_ledger = LessonsLedger(team_lessons_config)
 
     # Create TeamRunner
     runner = TeamRunner(
@@ -671,6 +763,7 @@ def _handle_team_command(args: argparse.Namespace) -> int:
         on_agent_complete=on_agent_complete,
         on_message=on_message if args.verbose else None,
         trace_config=team_trace_config,
+        lessons_ledger=team_lessons_ledger,
     )
 
     # Print header
@@ -743,7 +836,10 @@ def _handle_apo_command(args: argparse.Namespace) -> int:
     action = getattr(args, "apo_action", None)
     if not action:
         print(_c(Colors.RED, "Error: APO action required"), file=sys.stderr)
-        print("Usage: dev-aid-agent apo {optimize|rollback|history|status}", file=sys.stderr)
+        print(
+            "Usage: dev-aid-agent apo {optimize|rollback|history|status}",
+            file=sys.stderr,
+        )
         return 1
 
     # Setup logging
@@ -826,6 +922,183 @@ def _handle_apo_command(args: argparse.Namespace) -> int:
 
     print(_c(Colors.RED, f"Unknown APO action: {action}"), file=sys.stderr)
     return 1
+
+
+# ── Lessons Ledger Command ────────────────────────────────────────────
+
+
+def _handle_lessons_command(args: argparse.Namespace) -> int:
+    """Handle the 'lessons' subcommand."""
+    action = getattr(args, "lessons_action", None)
+    if not action:
+        print(_c(Colors.RED, "Error: lessons action required"), file=sys.stderr)
+        print(
+            "Usage: dev-aid-agent lessons {list|add|resolve|clear-resolved}",
+            file=sys.stderr,
+        )
+        return 1
+
+    root = _find_dev_aid_root()
+    ledger_path = root / ".dev-aid" / "memory-bank" / "lessons-ledger.md"
+    config = LessonsConfig(ledger_path=ledger_path)
+    ledger = LessonsLedger(config)
+
+    if action == "list":
+        lessons = ledger.get_lessons(include_resolved=True)
+        if not lessons:
+            print("No lessons recorded.")
+            return 0
+        print(_c(Colors.BOLD, f"\nLessons Ledger ({len(lessons)} entries)"))
+        print("=" * 60)
+        for lesson in lessons:
+            resolved_mark = " [RESOLVED]" if lesson.resolved else ""
+            print(
+                f"\n  {_c(Colors.CYAN, f'LESSON-{lesson.id}')}"
+                f" | {lesson.agent_name}{resolved_mark}"
+            )
+            print(f"    Failure: {lesson.failure_mode}")
+            print(f"    Signal:  {lesson.detection_signal}")
+            print(f"    Rule:    {lesson.prevention_rule}")
+            print(f"    Source:  {lesson.source} | {lesson.timestamp}")
+            if lesson.resolution_note:
+                print(f"    Note:    {lesson.resolution_note}")
+        print()
+        return 0
+
+    elif action == "add":
+        agent_name = getattr(args, "agent", "")
+        failure_mode = getattr(args, "failure_mode", "")
+        detection_signal = getattr(args, "detection_signal", "")
+        prevention_rule = getattr(args, "prevention_rule", "")
+        lesson = ledger.add_lesson(
+            agent_name=agent_name,
+            failure_mode=failure_mode,
+            detection_signal=detection_signal,
+            prevention_rule=prevention_rule,
+            source="manual",
+        )
+        print(_c(Colors.GREEN, f"Added lesson LESSON-{lesson.id}"))
+        return 0
+
+    elif action == "resolve":
+        lesson_id = getattr(args, "lesson_id", "")
+        note = getattr(args, "note", "")
+        if ledger.mark_resolved(lesson_id, note):
+            print(_c(Colors.GREEN, f"Resolved LESSON-{lesson_id}"))
+            return 0
+        else:
+            print(
+                _c(Colors.RED, f"Lesson '{lesson_id}' not found"),
+                file=sys.stderr,
+            )
+            return 1
+
+    elif action == "clear-resolved":
+        removed = ledger.clear_resolved()
+        print(_c(Colors.GREEN, f"Cleared {removed} resolved lessons"))
+        return 0
+
+    print(_c(Colors.RED, f"Unknown lessons action: {action}"), file=sys.stderr)
+    return 1
+
+
+# ── DoD Gate ─────────────────────────────────────────────────────────
+
+
+def _run_dod_gate(
+    runner: AgentRunner,
+    user_message: str,
+    agent_result: AgentResult,
+    model: str,
+    lessons_ledger: LessonsLedger,
+    json_output: bool,
+) -> AgentResult:
+    """Run the DoD gate against a completed agent's output."""
+    if not json_output:
+        print(_c(Colors.DIM, "\n  Running DoD gate verification..."))
+
+    composite_message = (
+        f"## Original Request\n\n{user_message}\n\n"
+        f"## Agent Output ({agent_result.agent_name})\n\n"
+        f"{agent_result.output}"
+    )
+
+    dod_result = runner.run(
+        agent_def=DOD_GATE,
+        user_message=composite_message,
+        model=model,
+    )
+
+    # Auto-create lesson on FAIL or WARN
+    verdict = _parse_dod_verdict(dod_result.output)
+    if verdict in ("FAIL", "WARN"):
+        summary = _extract_dod_summary(dod_result.output)
+        suggestions = _extract_dod_suggestions(dod_result.output)
+        lessons_ledger.add_lesson(
+            agent_name=agent_result.agent_name,
+            failure_mode=f"dod_gate_{verdict.lower()}",
+            detection_signal=summary or f"DoD gate returned {verdict}",
+            prevention_rule=(
+                "; ".join(suggestions)
+                if suggestions
+                else "Ensure output includes concrete artifacts and verification"
+            ),
+            source="dod-gate",
+        )
+
+    return dod_result
+
+
+def _parse_dod_verdict(output: str) -> str:
+    """Extract the overall verdict from DoD gate output.
+
+    Looks for **Overall Verdict**: PASS/WARN/FAIL pattern.
+    Returns "UNKNOWN" if not found.
+    """
+    import re
+
+    match = re.search(
+        r"\*\*Overall Verdict\*\*\s*:\s*(PASS|WARN|FAIL)",
+        output,
+        re.IGNORECASE,
+    )
+    if match:
+        return match.group(1).upper()
+    return "UNKNOWN"
+
+
+def _extract_dod_summary(output: str) -> str:
+    """Extract the summary line from DoD gate output."""
+    import re
+
+    match = re.search(
+        r"\*\*Summary\*\*\s*:\s*(.+?)(?:\n|$)",
+        output,
+    )
+    if match:
+        return match.group(1).strip()
+    return ""
+
+
+def _extract_dod_suggestions(output: str) -> List[str]:
+    """Extract suggestion bullet points from DoD gate output."""
+    import re
+
+    suggestions: List[str] = []
+    in_suggestions = False
+    for line in output.split("\n"):
+        stripped = line.strip()
+        if re.match(r"\*\*Suggestions?\*\*", stripped, re.IGNORECASE):
+            in_suggestions = True
+            continue
+        if in_suggestions:
+            if stripped.startswith("- "):
+                suggestions.append(stripped[2:])
+            elif stripped.startswith("#") or (
+                stripped and not stripped.startswith("-")
+            ):
+                break
+    return suggestions
 
 
 def _resolve_api_key(provider: str) -> Optional[str]:

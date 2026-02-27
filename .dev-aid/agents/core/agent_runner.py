@@ -10,6 +10,7 @@ import logging
 import time
 from typing import Any, Callable, Dict, List, Optional
 
+from .lessons import LessonsLedger
 from .models import AgentDefinition, AgentResult, StopWatch, ToolCall
 from .provider_adapter import ProviderAdapter, ProviderResponse
 from .skill_loader import SkillLoader
@@ -39,6 +40,7 @@ class AgentRunner:
         max_context_tokens: int = DEFAULT_MAX_CONTEXT_TOKENS,
         max_retries: int = DEFAULT_MAX_RETRIES,
         trace_collector: Optional[TraceCollector] = None,
+        lessons_ledger: Optional[LessonsLedger] = None,
     ) -> None:
         self._adapter = adapter
         self._registry = registry
@@ -48,6 +50,7 @@ class AgentRunner:
         self._max_context_tokens = max_context_tokens
         self._max_retries = max_retries
         self._trace_collector = trace_collector
+        self._lessons_ledger = lessons_ledger
 
     def _build_system_prompt(
         self,
@@ -71,9 +74,17 @@ class AgentRunner:
         if extra_context:
             parts.append(extra_context)
 
+        # Inject lessons from past failures
+        if self._lessons_ledger:
+            lessons_context = self._lessons_ledger.format_for_prompt(agent_def.name)
+            if lessons_context:
+                parts.append(lessons_context)
+
         # Output format instructions
         if agent_def.output_format:
-            parts.append(f"\nOutput your final response in {agent_def.output_format} format.")
+            parts.append(
+                f"\nOutput your final response in {agent_def.output_format} format."
+            )
 
         return "\n\n---\n\n".join(parts) if parts else ""
 
@@ -223,7 +234,10 @@ class AgentRunner:
                         text = part["text"]
                         if isinstance(text, str) and len(text) > truncation_limit:
                             new_parts.append(
-                                {"text": text[:truncation_limit] + "\n... [truncated] ..."}
+                                {
+                                    "text": text[:truncation_limit]
+                                    + "\n... [truncated] ..."
+                                }
                             )
                         else:
                             new_parts.append(part)
@@ -314,6 +328,19 @@ class AgentRunner:
                 )
                 if self._trace_collector:
                     self._trace_collector.end_trace(error_result)
+                if (
+                    self._lessons_ledger
+                    and self._lessons_ledger.config.auto_record_on_failure
+                ):
+                    self._lessons_ledger.add_lesson(
+                        agent_name=agent_def.name,
+                        failure_mode="provider_error",
+                        detection_signal=str(e)[:200],
+                        prevention_rule=(
+                            "Check API key validity and provider availability "
+                            "before running agent"
+                        ),
+                    )
                 return error_result
 
             # Accumulate tokens and cost
@@ -325,8 +352,7 @@ class AgentRunner:
             if self._trace_collector:
                 stop_reason = "tool_use" if response.tool_calls else "end_turn"
                 tc_summary = [
-                    {"name": tc.name, "id": tc.id}
-                    for tc in (response.tool_calls or [])
+                    {"name": tc.name, "id": tc.id} for tc in (response.tool_calls or [])
                 ]
                 self._trace_collector.record_iteration(
                     iteration=iteration,
@@ -374,7 +400,9 @@ class AgentRunner:
                 if self._on_tool_call:
                     self._on_tool_call(tool_call)
 
-                logger.info("Executing tool: %s(%s)", tool_call.name, tool_call.arguments)
+                logger.info(
+                    "Executing tool: %s(%s)", tool_call.name, tool_call.arguments
+                )
                 tool_timer = StopWatch()
                 result = self._registry.execute(tool_call)
                 results.append(result)
@@ -424,4 +452,16 @@ class AgentRunner:
         )
         if self._trace_collector:
             self._trace_collector.end_trace(max_iter_result)
+        if self._lessons_ledger and self._lessons_ledger.config.auto_record_on_failure:
+            self._lessons_ledger.add_lesson(
+                agent_name=agent_def.name,
+                failure_mode="max_iterations_reached",
+                detection_signal=(
+                    f"Agent exhausted {agent_def.max_iterations} iterations"
+                ),
+                prevention_rule=(
+                    "Break complex tasks into smaller sub-tasks or "
+                    "increase max_iterations for this agent"
+                ),
+            )
         return max_iter_result

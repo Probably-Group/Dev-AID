@@ -96,5 +96,27 @@
         "Provides a health score or summary"
       ]
     }
+  ],
+  "dod-gate": [
+    {
+      "id": "dod-gate-pass",
+      "user_message": "## Original Request\n\nAdd input validation to the login endpoint\n\n## Agent Output (ci-fixer)\n\nAdded input validation to `src/auth/login.py`:\n- Email format validation using regex\n- Password length check (8-128 chars)\n- Rate limiting (5 attempts per minute)\n\nFiles modified:\n- `src/auth/login.py` (lines 42-67)\n- `tests/test_login.py` (added 4 new test cases)\n\nAll tests pass:\n```\n$ pytest tests/test_login.py -v\n4 passed in 0.3s\n```",
+      "expected_behaviors": [
+        "Checks all 4 verification dimensions",
+        "Produces PASS or WARN overall verdict",
+        "Identifies concrete file paths as artifacts",
+        "Notes the test evidence as verification story"
+      ]
+    },
+    {
+      "id": "dod-gate-fail",
+      "user_message": "## Original Request\n\nFix the authentication bypass vulnerability\n\n## Agent Output (research)\n\nI looked into the authentication system. It seems like there might be some issues with how tokens are validated. You should probably add better validation. Let me know if you need more help.",
+      "expected_behaviors": [
+        "Flags lack of concrete artifacts (FAIL or WARN)",
+        "Flags absence of verification evidence",
+        "Produces FAIL or WARN overall verdict",
+        "Suggests specific improvements needed"
+      ]
+    }
   ]
 }

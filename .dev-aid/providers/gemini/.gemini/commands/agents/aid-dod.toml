@@ -1,0 +1,18 @@
+name = "aid-dod"
+description = "Verify agent output meets Definition of Done"
+
+[metadata]
+category = "agents"
+author = "Dev-AID Team (https://probably.group)"
+version = "1.0.0"
+
+[prompt]
+content = """
+# DoD Gate (Short Alias)
+
+This is a short alias for the full `dev-aid-agent-dod-gate` command.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/agents/dev-aid-agent-dod-gate.toml`
+
+Load that file now and execute the DoD gate verification. The user's input is the request and output to verify.
+"""

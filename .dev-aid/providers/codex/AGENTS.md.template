@@ -215,6 +215,34 @@ Dev-AID includes intelligent multi-step agent workflows. When the user's request
 7. Structural audit: language tags, heading hierarchy, TODOs
 8. Output: Health Score (A-F), Critical Issues, Broken Links, Missing Docs, Naming Violations, Recommendations
 
+### DoD Gate Agent
+
+**Trigger phrases**: "verify output", "check DoD", "definition of done", "dod gate", "verify agent output"
+
+**Required input**: original request + agent output to verify
+
+**Skills**: None (self-contained)
+
+**Workflow**:
+1. Parse the original request and the agent output
+2. Perform 4 verification checks: Request Addressed, Concrete Artifacts, Verification Story, Risk Assessment
+3. Rate each check as PASS/WARN/FAIL
+4. Produce overall verdict: PASS (all pass), WARN (1-2 warns), FAIL (any fail)
+5. Include summary and suggestions for WARN/FAIL cases
+6. Auto-record lessons from FAIL/WARN verdicts
+
+### Lessons Ledger
+
+**Trigger phrases**: "lessons", "failure patterns", "show lessons", "add lesson", "resolve lesson"
+
+**Required input**: action (list/add/resolve/clear-resolved) + parameters
+
+**Workflow**:
+1. Read lessons from `.dev-aid/memory-bank/lessons-ledger.md`
+2. Execute the requested action (list, add, resolve, clear-resolved)
+3. Lessons are automatically injected into agent prompts on future runs
+4. Auto-recorded on agent failures (provider errors, max iterations, DoD gate)
+
 ---
 
 ## Multi-Agent Team Workflows

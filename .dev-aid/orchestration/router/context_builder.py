@@ -1055,7 +1055,7 @@ class ContextBuilder:
             search_terms = self._extract_search_terms(prompt)
 
             result = await self.mcp_pool.call_tool(
-                "code-search", "search", {"query": search_terms, "limit": 5}
+                "code-search", "search_code", {"query": search_terms, "limit": 5}
             )
 
             return {"search_results": result.get("content", []), "query": search_terms}

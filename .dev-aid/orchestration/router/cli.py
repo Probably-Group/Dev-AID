@@ -16,6 +16,7 @@ from typing import Any, cast
 from pydantic import ValidationError
 
 from .config_loader import load_config
+from .dashboard import render_dashboard
 from .executor import RouterExecutor, execute_request
 from .mcp_registry import MCPRegistry
 from .validators import ExecuteRequest
@@ -260,6 +261,46 @@ def cmd_auth_status(args: Any) -> int:
         return 1
 
 
+def cmd_dashboard(args: Any) -> int:
+    """Show rich TUI cost analytics dashboard"""
+    try:
+        root = Path(args.root) if args.root else None
+
+        # Resolve root
+        if root is None:
+            cwd = Path.cwd()
+            root = cwd
+            while root != root.parent:
+                if (root / ".dev-aid").is_dir():
+                    break
+                root = root.parent
+
+        logs_dir = root / ".dev-aid" / "logs"
+        if not logs_dir.exists():
+            print("No logs directory found. Run some router requests first.", file=sys.stderr)
+            return 1
+
+        from .cost_tracker import CostTracker
+
+        tracker = CostTracker(logs_dir)
+
+        # Determine budget
+        daily_limit = args.budget
+        if daily_limit is None:
+            try:
+                config = load_config(root)
+                daily_limit = config.get_cost_limit()
+            except Exception:
+                daily_limit = 100.0
+
+        render_dashboard(tracker, daily_limit=daily_limit, history_days=args.days)
+        return 0
+
+    except Exception as e:
+        print(f"❌ Error: {e}", file=sys.stderr)
+        return 1
+
+
 def cmd_mcp_discover(args: Any) -> int:
     """Discover available MCP servers"""
     try:
@@ -441,6 +482,18 @@ Examples:
     # Test command
     test_parser = subparsers.add_parser("test", help="Test configuration")
     test_parser.set_defaults(func=cmd_test)
+
+    # Dashboard command
+    dashboard_parser = subparsers.add_parser(
+        "dashboard", help="Show rich TUI cost analytics dashboard"
+    )
+    dashboard_parser.add_argument(
+        "--days", type=int, default=7, help="Number of days for history (default: 7)"
+    )
+    dashboard_parser.add_argument(
+        "--budget", type=float, default=None, help="Daily budget override (default: from config)"
+    )
+    dashboard_parser.set_defaults(func=cmd_dashboard)
 
     # Auth status command
     auth_status_parser = subparsers.add_parser(

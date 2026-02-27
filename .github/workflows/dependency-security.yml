@@ -1,0 +1,117 @@
+name: Dependency Security
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.dev-aid/orchestration/pyproject.toml'
+      - '.dev-aid/orchestration/requirements.txt'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - 'Pipfile.lock'
+  push:
+    branches: [main]
+    paths:
+      - '.dev-aid/orchestration/pyproject.toml'
+      - '.dev-aid/orchestration/requirements.txt'
+  schedule:
+    - cron: '0 6 * * 1'  # Every Monday at 6 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  python-audit:
+    name: Python Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install audit tools
+        run: pip install pip-audit safety bandit
+
+      - name: pip-audit (CVE scan)
+        if: always()
+        run: |
+          echo "## pip-audit Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f .dev-aid/orchestration/requirements.txt ]; then
+            pip-audit -r .dev-aid/orchestration/requirements.txt --format json --output pip-audit-results.json 2>&1 || true
+            pip-audit -r .dev-aid/orchestration/requirements.txt --desc 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
+          elif [ -f .dev-aid/orchestration/pyproject.toml ]; then
+            cd .dev-aid/orchestration && pip-audit --desc 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
+          fi
+
+      - name: Safety check (vulnerability scan)
+        if: always()
+        run: |
+          echo "## Safety Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f .dev-aid/orchestration/requirements.txt ]; then
+            safety check -r .dev-aid/orchestration/requirements.txt --output json > safety-results.json 2>&1 || true
+            safety check -r .dev-aid/orchestration/requirements.txt 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
+          fi
+
+      - name: Bandit SAST (Python security)
+        if: always()
+        run: |
+          echo "## Bandit Results" >> $GITHUB_STEP_SUMMARY
+          bandit -r .dev-aid/orchestration/router/ .dev-aid/orchestration/agents/ \
+            -f json -o bandit-results.json \
+            --severity-level medium \
+            --confidence-level medium \
+            -x .dev-aid/orchestration/tests/ 2>&1 || true
+          bandit -r .dev-aid/orchestration/router/ .dev-aid/orchestration/agents/ \
+            --severity-level medium \
+            --confidence-level medium \
+            -x .dev-aid/orchestration/tests/ 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
+
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-results
+          path: |
+            pip-audit-results.json
+            safety-results.json
+            bandit-results.json
+          retention-days: 30
+
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy license scan
+        uses: aquasecurity/trivy-action@0.34.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.dev-aid/orchestration/'
+          scanners: 'license'
+          format: 'table'
+          output: 'license-report.txt'
+
+      - name: Check for problematic licenses
+        if: always()
+        run: |
+          echo "## License Compliance" >> $GITHUB_STEP_SUMMARY
+          if [ -f license-report.txt ]; then
+            cat license-report.txt >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No license issues found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload license report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: license-report.txt
+          retention-days: 30

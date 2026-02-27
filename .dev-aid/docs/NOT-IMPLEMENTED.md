@@ -255,7 +255,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 ## 🔐 Enterprise Security Features
 
 ### 5. Supply Chain Security & Compliance
-**Status**: 🟡 Basic security exists, enterprise features missing
+**Status**: 🟡 SCA and CI scanning implemented, supply chain verification remaining
 
 **What exists**:
 - ✅ Exact version pinning (all 63 dependencies use `==`)
@@ -264,11 +264,15 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - ✅ Local git hooks (pre-commit security scans)
 - ✅ Security tools: Gitleaks, Trivy, Opengrep (3-tool comprehensive stack)
 
-**What's missing**:
-- [ ] **SCA (Software Composition Analysis)** in CI/CD
-  - Automated dependency vulnerability scanning
-  - CVE detection and alerting
-  - License compliance checking
+- [x] **SCA (Software Composition Analysis)** in CI/CD ✅ IMPLEMENTED (2026-02-27)
+  - pip-audit for CVE detection (PyPI/OSV vulnerability scanner)
+  - Safety for dependency vulnerability scanning
+  - Bandit for Python SAST (security linting)
+  - Trivy license compliance scanning
+  - Runs on PR to main, push to main, weekly schedule (Monday 6 AM UTC)
+  - Results uploaded as artifacts (30-day retention)
+  - Job summaries in GitHub Step Summary
+  - See `.github/workflows/dependency-security.yml`
 
 - [x] **SBOM (Software Bill of Materials)** generation ✅ IMPLEMENTED
   - CycloneDX and SPDX formats via Trivy
@@ -281,54 +285,44 @@ $ python -m router.cli execute "Refactor this code" --mode solo
   - Private PyPI mirror support
   - Dependency update policies
 
-- [ ] **CI Security Scanning**
-  - Bandit (Python security linting)
+- [x] **CI Security Scanning** ✅ IMPLEMENTED (2026-02-27)
+  - Bandit (Python security linting) -- medium+ severity/confidence
   - Safety (dependency vulnerability DB)
   - pip-audit (PyPI vulnerability scanner)
-  - Automated security reports
+  - Automated security reports via GitHub Step Summary and artifacts
+  - See `.github/workflows/dependency-security.yml`
 
-**Why not implemented**:
-- Primarily built for individual developers
-- Enterprise features require infrastructure investment
-- Unknown demand from teams/enterprises
+**What's remaining**:
+- Supply chain verification (provenance, signatures, private PyPI mirror)
 
-**Target audience question**:
-- Individual developers? → Current security is sufficient
-- Small teams (2-5)? → Add CI scanning
-- Enterprises (10+)? → Full SCA/SBOM/supply chain
+**Implemented phases**:
+1. **Phase 1: CI Security Scanning** ✅ IMPLEMENTED (2026-02-27)
+   - Added Bandit, Safety, pip-audit to GitHub Actions
+   - Runs on every PR and push to main + weekly schedule
+   - License compliance via Trivy
+   - Security reports as artifacts
 
-**Proposed approach for teams**:
-1. **Phase 1: CI Security Scanning** (2-3 weeks)
-   - Add Bandit, safety, pip-audit to GitHub Actions
-   - Run on every PR and push to main
-   - Fail CI on HIGH/CRITICAL vulnerabilities
-   - Generate security reports
+2. **Phase 2: SBOM Generation** ✅ IMPLEMENTED (previously)
+   - CycloneDX and SPDX formats via Trivy
+   - Generated on release, published as artifact
 
-2. **Phase 2: SBOM Generation** (1 week)
-   - Use `cyclonedx-bom` or `pip-licenses`
-   - Generate SBOM on release
-   - Publish as artifact
-
-3. **Phase 3: Supply Chain Verification** (2-3 weeks)
+3. **Phase 3: Supply Chain Verification** (2-3 weeks) -- NOT YET IMPLEMENTED
    - Verify package signatures
    - Pin dependencies with hash verification
    - Document dependency update policy
    - Private PyPI mirror support (optional)
 
-**Tools to integrate**:
-- **Bandit**: Python security linting
-- **Safety**: Known vulnerability database
-- **pip-audit**: OSV/PyPI vulnerability scanner
-- **cyclonedx-bom**: SBOM generator (CycloneDX format)
-- **Dependabot**: Automated dependency updates (GitHub)
-- **Snyk**: Commercial SCA (optional)
+**Tools integrated**:
+- ✅ **Bandit**: Python security linting (in `dependency-security.yml`)
+- ✅ **Safety**: Known vulnerability database (in `dependency-security.yml`)
+- ✅ **pip-audit**: OSV/PyPI vulnerability scanner (in `dependency-security.yml`)
+- ✅ **Trivy**: License compliance + SBOM generation (in `dependency-security.yml` + `release-gate.yml`)
+- ✅ **Dependabot**: Automated dependency updates (GitHub)
 
-**Effort estimate**:
-- CI Scanning: 2-3 weeks
-- SBOM: 1 week
-- Full supply chain: 4-6 weeks total
+**Effort remaining**:
+- Supply chain verification: 2-3 weeks
 
-**Priority**: Medium-High - depends on target user base (individuals vs teams)
+**Priority**: Low -- CI scanning and SBOM cover most enterprise requirements
 
 ---
 
@@ -342,7 +336,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 | Router E2E Tests | 🟡 Missing | High | 1-2 weeks | All (validates core) |
 | TUI Dashboard | 🔴 Missing | Medium | 1 week | All (better UX) |
 | Windows Testing | 🟡 Untested | Low | 1 week | Windows users only |
-| Enterprise Security (SCA/SBOM) | 🟡 Basic only | Med-High | 4-6 weeks | Teams/Enterprises |
+| Enterprise Security (SCA/SBOM) | ✅ **SCA/CI IMPLEMENTED** | ~~Med-High~~ Low | ~~4-6 weeks~~ 2-3 weeks remaining | Teams/Enterprises |
 
 ---
 

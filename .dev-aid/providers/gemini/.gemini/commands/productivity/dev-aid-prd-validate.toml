@@ -1,0 +1,13 @@
+name = "dev-aid-prd-validate"
+description = "Validate an existing PRD for completeness and score it"
+
+[prompt]
+content = """
+# PRD Validator (Shortcut)
+
+This is a shortcut that forces Mode 2 (Validator) of the PRD generator.
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/productivity/dev-aid-prd.toml`
+
+Load that file now and execute the PRD workflow with: --validate $ARGUMENTS
+"""

@@ -115,6 +115,10 @@ detect_project_state() {
     # Check for plan template
     [ -f "$project_root/docs/plans/.plan-template.md" ] && STATE_HAS_PLAN_TEMPLATE=true
 
+    # --- PRD (Product Requirements Document) ---
+    STATE_HAS_PRD=false
+    [ -f "$project_root/PRD.md" ] && STATE_HAS_PRD=true
+
     # --- Memory bank ---
     STATE_MEMORY_BANK_COMPLETE=true
     local expected_files=(activeContext.md patterns.md decisions.md security.md performance.md testing.md chaos.md)

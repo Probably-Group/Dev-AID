@@ -1,0 +1,11 @@
+name = "aid-prd"
+description = "Generate, validate, or reverse-engineer a PRD"
+
+[prompt]
+content = """
+# PRD Generator (Short Alias)
+
+**Read and follow all instructions from:** `.dev-aid/providers/gemini/.gemini/commands/productivity/dev-aid-prd.toml`
+
+Load that file now and execute the PRD workflow with arguments: $ARGUMENTS
+"""

@@ -67,6 +67,8 @@ Print the following reference guide for the user. Do NOT execute any commands �
 | `aid-commit` | `dev-aid-commit-plan` | Analyze changes and propose atomic commits |
 | `aid-api` | `dev-aid-api-contract` | Generate OpenAPI specs and TypeScript clients |
 | `aid-plan` | `dev-aid-plan` | Create a session-resilient plan with progress log |
+| `aid-prd` | `dev-aid-prd` | Generate, validate, or reverse-engineer a PRD |
+| `aid-prd-validate` | `dev-aid-prd-validate` | Validate PRD completeness and score it |
 
 ## ⚙️ Setup & Maintenance Commands
 

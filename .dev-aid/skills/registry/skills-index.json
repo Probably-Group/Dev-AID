@@ -1467,6 +1467,33 @@
       ]
     }
   },
+  "prd-generator": {
+    "activation": {
+      "confidence_weights": {
+        "PRD": 0.4,
+        "product requirements document": 0.35,
+        "project requirements": 0.2
+      },
+      "exclude_with": [],
+      "file_patterns": [
+        "PRD.md",
+        "*-prd.md"
+      ],
+      "primary_keywords": [
+        "PRD",
+        "product requirements document",
+        "project requirements"
+      ],
+      "requires": [],
+      "secondary_keywords": [
+        "product spec",
+        "feature spec",
+        "MVP definition",
+        "project scope"
+      ],
+      "technologies": []
+    }
+  },
   "prompt-engineering": {
     "activation": {
       "confidence_weights": {

@@ -134,6 +134,8 @@ dev-aid-agent apo status
 | `aid-commit` | `dev-aid-commit-plan` |
 | `aid-api` | `dev-aid-api-contract` |
 | `aid-plan` | `dev-aid-plan` |
+| `aid-prd` | `dev-aid-prd` |
+| `aid-prd-validate` | `dev-aid-prd-validate` |
 | `aid-analyze` | `dev-aid-analyze` |
 | `aid-status` | `dev-aid-status` |
 | `aid-config` | `dev-aid-config-core-skills` |

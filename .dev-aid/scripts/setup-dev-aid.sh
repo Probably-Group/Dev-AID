@@ -131,6 +131,9 @@ source "$LIB_DIR/provider-setup.sh"
 # shellcheck source=/dev/null
 source "$LIB_DIR/preset-functions.sh"
 
+# shellcheck source=/dev/null
+source "$LIB_DIR/prd-functions.sh"
+
 # Source shared security library if available
 if [[ -f "$DEV_AID_DIR/lib/bash-common.sh" ]]; then
     # shellcheck source=/dev/null
@@ -576,6 +579,32 @@ if should_run_phase 6; then
         fi
         apply_preset_memory "$PROJECT_ROOT"
         echo -e "${GREEN}Preset memory topics applied${NC}"
+    fi
+
+    # --- PRD Check (sub-step of Phase 6) ---
+    suggest_prd_mode "$PROJECT_ROOT"
+    if [ "$STATE_HAS_PRD" = true ]; then
+        echo -e "${GREEN}PRD.md found${NC}"
+        echo "  Tip: /dev-aid-prd-validate to check completeness"
+    elif [ "$NON_INTERACTIVE" = false ]; then
+        case "$SUGGESTED_PRD_MODE" in
+            build)
+                read -p "No PRD.md found. Create one now? (y/N) " -n 1 -r local_prd_reply
+                echo
+                if [[ $local_prd_reply =~ ^[Yy]$ ]]; then
+                    run_prd_wizard "$PROJECT_ROOT"
+                fi
+                ;;
+            choose)
+                echo -e "${YELLOW}No PRD.md found, but code exists.${NC}"
+                echo "  Tip: /dev-aid-prd --build to create from scratch"
+                echo "  Tip: /dev-aid-prd --reverse-engineer to generate from codebase"
+                ;;
+            reverse-engineer)
+                echo -e "${YELLOW}No PRD.md found.${NC}"
+                echo "  Tip: /dev-aid-prd --reverse-engineer to generate from existing code"
+                ;;
+        esac
     fi
 
     echo ""

@@ -1,0 +1,62 @@
+# Extracted from SKILL.md Section 3.3 — DAST with OWASP ZAP
+# Demonstrates: post-deployment ZAP baseline + full scan in CI/CD,
+# health-check wait, configurable rules.tsv, SARIF upload.
+
+name: DAST Scan
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Staging"]
+    types:
+      - completed
+
+jobs:
+  dast:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for deployment
+        run: |
+          for i in {1..30}; do
+            if curl -sf https://staging.example.com/health; then
+              echo "Application is ready"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Timeout waiting for application"
+          exit 1
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'https://staging.example.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+      - name: ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.10.0
+        with:
+          target: 'https://staging.example.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j'
+
+      - name: Upload ZAP Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-report
+          path: report_html.html
+
+# .zap/rules.tsv - Configure scan rules
+# WARN = warning only, FAIL = fail the build
+# ID    Action
+10021   WARN    # X-Content-Type-Options Missing
+10038   FAIL    # Content Security Policy Missing
+40012   FAIL    # Cross-Site Scripting (Reflected)
+40014   FAIL    # Cross-Site Scripting (Persistent)
+90019   FAIL    # Server Side Code Injection
+90020   FAIL    # Remote OS Command Injection

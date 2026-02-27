@@ -1,0 +1,134 @@
+# Extracted from SKILL.md Section 3.2 — Kyverno security policies
+# Policies: image signature verification, security context enforcement,
+# resource limits, privileged container denial, default-deny network policies.
+
+---
+# Require signed images
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-image-signature
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: verify-signature
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      verifyImages:
+        - imageReferences:
+            - "ghcr.io/myorg/*"
+          attestors:
+            - entries:
+                - keyless:
+                    subject: "https://github.com/myorg/*"
+                    issuer: "https://token.actions.githubusercontent.com"
+                    rekor:
+                      url: https://rekor.sigstore.dev
+---
+# Require security context
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-security-context
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-run-as-non-root
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+      validate:
+        message: "Containers must run as non-root"
+        pattern:
+          spec:
+            securityContext:
+              runAsNonRoot: true
+            containers:
+              - securityContext:
+                  runAsNonRoot: true
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                      - ALL
+                  readOnlyRootFilesystem: true
+
+    - name: require-resource-limits
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Resource limits are required"
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+                  requests:
+                    memory: "?*"
+                    cpu: "?*"
+---
+# Disallow privileged containers
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: deny-privileged
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Privileged containers are not allowed"
+        pattern:
+          spec:
+            containers:
+              - =(securityContext):
+                  =(privileged): false
+            =(initContainers):
+              - =(securityContext):
+                  =(privileged): false
+---
+# Require network policies
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-network-policy
+spec:
+  validationFailureAction: Audit
+  rules:
+    - name: require-network-policy
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+      generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: default-deny
+        namespace: "{{request.object.metadata.name}}"
+        data:
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress

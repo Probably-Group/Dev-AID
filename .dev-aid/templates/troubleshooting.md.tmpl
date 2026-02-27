@@ -5,4 +5,170 @@
 >
 > **Read first for:** Any error investigation, failed builds, broken connectivity.
 
+## Setup & Installation
+
+### Provider API Keys Not Detected
+**Symptoms:** `auth_detector` returns no providers, agents fail with "No API key"
+**Check:**
+```bash
+echo $ANTHROPIC_API_KEY | head -c 8
+echo $OPENAI_API_KEY | head -c 8
+echo $GOOGLE_API_KEY | head -c 8
+```
+**Fix:** Ensure keys are exported in your shell profile (`~/.zshrc`, `~/.bashrc`). Re-run `setup-dev-aid.sh` to regenerate `.env`.
+
+### Setup Script Fails Mid-Phase
+**Symptoms:** `setup-dev-aid.sh` exits with error during a specific phase
+**Fix:** Re-run with the specific phase flag: `--wizard-only` or `--infrastructure-only`. The script is idempotent — safe to re-run.
+
+### Provider Commands Not Available
+**Symptoms:** Slash commands (`/dev-aid-*`) not showing in Claude Code or Gemini CLI
+**Check:** Verify symlinks exist:
+```bash
+ls -la .claude/commands/ 2>/dev/null
+ls -la .gemini/commands/ 2>/dev/null
+```
+**Fix:** Re-run `setup-dev-aid.sh` or manually: `source .dev-aid/scripts/lib/provider-setup.sh`
+
+## Agent Framework
+
+### Agent Exceeds Max Iterations
+**Symptoms:** Agent completes with `max_iterations` reached, output may be incomplete
+**Fix:** Increase via CLI (`--max-iterations 40`) or in `.dev-aid/config/agents.json`:
+```json
+{ "agents": { "agent-name": { "max_iterations": 40 } } }
+```
+
+### Agent Tool Blocked by Safety Config
+**Symptoms:** `SafetyError: Tool 'run_bash' not in allowed tools for this agent`
+**Cause:** Agent definition restricts available tools via `tools` list
+**Fix:** This is intentional — agents only get tools they need. If a tool is genuinely needed, update the agent definition.
+
+### Team Runner Budget Exceeded
+**Symptoms:** `BudgetExceededError` during multi-agent team execution
+**Fix:** Increase budget via CLI (`--budget 10.0`) or in `.dev-aid/config/teams.json`:
+```json
+{ "teams": { "team-name": { "max_budget_usd": 10.0 } } }
+```
+
+### Adapter Connection Failures
+**Symptoms:** `ProviderError`, timeout, or HTTP 429 (rate limit)
+**Check:**
+```bash
+# Test Anthropic
+curl -s https://api.anthropic.com/v1/messages -H "x-api-key: $ANTHROPIC_API_KEY" -H "anthropic-version: 2023-06-01" -d '{}' | head -c 200
+
+# Test OpenAI
+curl -s https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY" | head -c 200
+```
+**Fix:** For rate limits, the runner has built-in exponential backoff (3 retries). For persistent failures, check API status pages.
+
+## Orchestration Router
+
+### Router Returns Wrong Model
+**Symptoms:** Task routed to unexpected model (e.g., cheap model for complex task)
+**Check:** Review routing config:
+```bash
+cat .dev-aid/config/routing.json | python3 -m json.tool
+```
+**Fix:** Adjust `task_classifier` thresholds or use `--model` override for specific tasks.
+
+### Cost Tracker Shows $0
+**Symptoms:** Cost tracking reports zero despite agent execution
+**Cause:** Local models (Ollama, LM Studio) have zero cost; or `cost.py` doesn't have pricing for the model
+**Fix:** Check `MODEL_COSTS` in `.dev-aid/agents/core/cost.py` — add pricing if using a new model.
+
+### MCP Server Connection Refused
+**Symptoms:** `ConnectionRefusedError` when context builder queries MCP servers
+**Check:**
+```bash
+# Verify MCP servers are running
+cat .dev-aid/config/mcp-template.json
+# Test deep-research MCP
+echo '{"jsonrpc":"2.0","method":"tools/list","id":1}' | python3 -m devaid_deep_research.mcp_server.server
+```
+**Fix:** Ensure MCP servers are installed (`pip install -e .dev-aid/deep-research/`) and configured in your IDE's MCP settings.
+
+## Deep Research
+
+### Tavily/Perplexity Returns Empty Results
+**Symptoms:** Research tool returns no sources or empty content
+**Check:** Verify API keys: `echo $TAVILY_API_KEY | head -c 8` / `echo $PERPLEXITY_API_KEY | head -c 8`
+**Fix:** Check provider availability with `dev-aid-research providers`. Some providers require paid plans for deep research.
+
+### Gemini Deep Research Times Out
+**Symptoms:** Research hangs for >5 minutes then fails
+**Cause:** Gemini deep research uses async polling with a 5-minute default timeout
+**Fix:** For simpler queries, use `quick_research` or `research` (standard depth) instead.
+
+### Cache Stale Results
+**Symptoms:** Research returns outdated information
+**Fix:**
+```bash
+dev-aid-research clear-cache          # Clear all cache
+dev-aid-research cache                # View cache stats
+```
+Cache TTL is 24-48 hours by default.
+
+## Local Search
+
+### Embedding Model Download Fails
+**Symptoms:** `OSError` or `ConnectionError` when initializing `CodeEmbedder`
+**Fix:** Download model manually:
+```bash
+python3 -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('google/embeddinggemma-300m', cache_folder='~/.devaid-search/models')"
+```
+
+### FAISS Index Corrupted
+**Symptoms:** `RuntimeError` when loading search index
+**Fix:** Rebuild the index:
+```bash
+dev-aid-search clear --project <name>
+dev-aid-search index <directory>
+```
+Index uses JSON storage (not pickle) — corruption is rare but possible after interrupted writes.
+
+### MPS (Apple Silicon) Out of Memory
+**Symptoms:** `RuntimeError: MPS backend out of memory` during embedding
+**Fix:** Reduce batch size or force CPU:
+```python
+# In embedder initialization, override device
+embedder = CodeEmbedder()
+embedder.device = "cpu"  # Force CPU fallback
+```
+
+## CI/CD & Pre-commit
+
+### Pre-commit Hook Fails on Black Formatting
+**Symptoms:** Commit rejected with Black formatting errors
+**Fix:**
+```bash
+cd .dev-aid/orchestration && venv/bin/python -m black .
+```
+
+### MyPy Strict Mode Errors
+**Symptoms:** `error: Missing type annotation` or `error: Need type annotation for variable`
+**Common fixes:**
+- Use `Dict[str, Any]` not bare `dict`
+- Use `List[str]` not bare `list`
+- Keep `# type: ignore[import-untyped]` for untyped packages (e.g., `requests`)
+- Run: `cd .dev-aid/orchestration && venv/bin/python -m mypy router/ agents/ --strict`
+
+### Pytest Coverage Below 80%
+**Symptoms:** `FAIL Required test coverage of 80% not reached`
+**Fix:** Add tests for uncovered code paths. Check coverage report:
+```bash
+cd .dev-aid/orchestration && venv/bin/python -m pytest tests/ -v --cov --cov-report=term-missing
+```
+
+## Git & GitHub Workflows
+
+### GitHub Action Secrets Not Available
+**Symptoms:** Workflow fails with `Error: Input required and not supplied: token`
+**Fix:** Add secrets in repo Settings > Secrets > Actions. Required: `ANTHROPIC_API_KEY` for auto-fix workflows.
+
+### Security Scan False Positives
+**Symptoms:** Gitleaks/Opengrep flags non-secret strings
+**Fix:** Add exceptions to `.gitleaks.toml` or inline `# gitleaks:allow` comments. For Opengrep, use `# nosemgrep` comments.
+
 {{TROUBLESHOOTING_SECTIONS}}

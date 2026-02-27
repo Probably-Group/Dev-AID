@@ -83,7 +83,7 @@ Core skills provide **automated tool execution** on file save:
 
 ## 🤖 Autonomous Agents
 
-### 8 Built-in Agents
+### 9 Built-in Agents
 
 Type `aid-` in any supported editor to autocomplete all agent commands:
 
@@ -99,6 +99,8 @@ Type `aid-` in any supported editor to autocomplete all agent commands:
 | `/aid-docs . full` | Audit documentation for drift, broken links, gaps |
 | `/aid-team <name> -m "..."` | Run a multi-agent team |
 | `/aid-apo optimize <agent>` | Optimize agent prompts (APO) |
+| `/aid-dod` | Run DoD gate verification on agent output |
+| `/aid-lessons list` | Manage agent failure lessons ledger |
 | `/aid-help` | Show all commands |
 
 **CLI equivalent** (for CI/CD, scripts, automation):
@@ -109,12 +111,14 @@ dev-aid-agent tech-debt-hunter --severity high --dry-run
 dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 ```
 
-**CLI-only flags:** `--provider`, `--model`, `--dry-run`, `--verbose`, `--json`, `--max-iterations`, `--trace`
+**CLI-only flags:** `--provider`, `--model`, `--dry-run`, `--verbose`, `--json`, `--max-iterations`, `--trace`, `--dod`
 
 **Features:**
 - 16 built-in tools (file, git, GitHub, bash, search) with safety enforcement
 - Loads Dev-AID expert skills as system prompts (86 available)
 - Provider-agnostic: Anthropic, OpenAI, Google, Local (Ollama/LM Studio)
+- DoD gate verification (`--dod` flag) with 4-dimension acceptance check
+- Lessons ledger for capturing and preventing agent failure patterns
 - Command blocklist prevents dangerous bash operations
 - Per-tool risk levels (safe/moderate/dangerous)
 - Exit code 0 on success, 1 on failure
@@ -139,6 +143,8 @@ dev-aid-agent team pr-review-team -m "Review PR #42" --budget 2.0
 | `dev-aid-agent-doc-audit` | `aid-docs` | `aid-docs . docs-only` |
 | `dev-aid-agent-team` | `aid-team` | `aid-team security-audit-team -m "Audit"` |
 | `dev-aid-agent-apo` | `aid-apo` | `aid-apo optimize pr-reviewer` |
+| `dev-aid-agent-dod-gate` | `aid-dod` | `aid-dod` |
+| `dev-aid-agent-lessons` | `aid-lessons` | `aid-lessons list` |
 
 #### Router Aliases
 
@@ -779,7 +785,7 @@ cat .dev-aid/reports/vulnerabilities.md
 
 | Category | Short Aliases (`aid-*`) | Purpose |
 |----------|------------------------|---------|
-| **Agents** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs` | Autonomous AI agents |
+| **Agents** | `aid-pr`, `aid-test`, `aid-debt`, `aid-ci`, `aid-conflict`, `aid-research`, `aid-onboard`, `aid-docs`, `aid-dod`, `aid-lessons` | Autonomous AI agents |
 | **Router** | `aid-challenger`, `aid-challenger-rag`, `aid-ensemble`, `aid-router-status` | Multi-AI orchestration |
 | **Security** | `aid-audit`, `aid-vulnscan` | Security scanning |
 | **Quality** | `aid-health`, `aid-debt-report`, `aid-review`, `aid-smoke`, `aid-lint`, `aid-typecheck` | Code quality |

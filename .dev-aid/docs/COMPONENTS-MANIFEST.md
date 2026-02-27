@@ -78,7 +78,8 @@ This manifest maps our elite setup components to their source repositories for i
 │   ├── tool_registry.py            # Register/discover/execute tools, provider format export
 │   ├── skill_loader.py             # Parse SKILL.md files into system prompts
 │   ├── provider_adapter.py         # ProviderAdapter protocol + create_adapter() factory
-│   └── safety.py                   # SafetyConfig, command blocklist, dry-run
+│   ├── safety.py                   # SafetyConfig, command blocklist, dry-run
+│   └── lessons.py                  # LessonsLedger, Lesson dataclass, markdown I/O
 ├── adapters/
 │   ├── anthropic_adapter.py        # Anthropic Messages API
 │   ├── openai_adapter.py           # OpenAI + Ollama/LM Studio
@@ -90,7 +91,9 @@ This manifest maps our elite setup components to their source repositories for i
 │   ├── ci_fixer.py                 # CI/CD Fixer
 │   ├── conflict_resolver.py        # Merge Conflict Resolver
 │   ├── research_agent.py           # Deep Research
-│   └── onboarding_agent.py         # Codebase Onboarding
+│   ├── onboarding_agent.py         # Codebase Onboarding
+│   ├── doc_auditor.py              # Documentation Auditor
+│   └── dod_gate.py                 # DoD Gate (Definition of Done verification)
 └── tools/
     ├── file_tools.py               # read_file, write_file, list_directory, glob_files
     ├── bash_tool.py                # run_bash (timeout, blocklist)
@@ -103,7 +106,7 @@ This manifest maps our elite setup components to their source repositories for i
 
 **Features**:
 - Agent loop: send → tool calls → execute → repeat
-- 8 built-in agents, 16 built-in tools
+- 9 built-in agents, 16 built-in tools
 - 3 provider adapters (Anthropic, OpenAI, Google) + local via OpenAI-compatible API
 - Safety enforcement: command blocklist, dry-run, per-tool risk levels
 - Skill integration: loads SKILL.md files as system prompts

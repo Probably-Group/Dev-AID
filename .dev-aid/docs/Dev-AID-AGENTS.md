@@ -51,6 +51,8 @@ dev-aid-agent apo optimize pr-reviewer --beam-width 3
 | `/aid-docs . full` | `dev-aid-agent doc-auditor --scope full` | Audit documentation |
 | `/aid-team <name> -m "..."` | `dev-aid-agent team <name> -m "..."` | Run multi-agent team |
 | `/aid-apo optimize <agent>` | `dev-aid-agent apo optimize <agent>` | Prompt optimization |
+| `/aid-dod` | `dev-aid-agent dod-gate` | DoD verification gate |
+| `/aid-lessons list` | `dev-aid-agent lessons list` | Manage failure lessons |
 | `/aid-help` | — | Show all commands |
 
 ---
@@ -69,7 +71,7 @@ Dev-AID provides the same agents through **two independent systems** optimized f
 | **Context** | Full session context (your conversation, open files, project state) | Fresh context per run (agent's skill prompts only) |
 | **Best for** | Interactive development, quick one-off tasks, iterative work | CI/CD pipelines, automation, scripts, scheduled jobs |
 
-**They do not invoke each other.** Both systems implement the same 8 agents but through different mechanisms. The slash commands are prompt-based instruction files; the Python CLI is a structured code framework with tool registries, safety enforcement, and cost tracking.
+**They do not invoke each other.** Both systems implement the same 9 agents but through different mechanisms. The slash commands are prompt-based instruction files; the Python CLI is a structured code framework with tool registries, safety enforcement, and cost tracking.
 
 ### When to Use Which
 
@@ -107,7 +109,7 @@ The `.dev-aid/providers/openai/` directory provides context files (`OPENAI.md`) 
 | **ChatGPT (web/app)** | Context only | Upload `OPENAI.md` manually; no slash commands |
 | **Custom GPTs** | Context only | Paste instructions from `OPENAI.md`; no tool calling |
 
-**For programmatic OpenAI usage**, the Python CLI fully supports `--provider openai` with all 8 agents and 4 teams. The gap is only in the interactive slash command layer.
+**For programmatic OpenAI usage**, the Python CLI fully supports `--provider openai` with all 9 agents and 4 teams. The gap is only in the interactive slash command layer.
 
 ---
 
@@ -172,6 +174,8 @@ dev-aid-agent team <team-name> -m <message> [options]
 | `--verbose` | Show individual tool call details |
 | `--json` | JSON output (for scripts and CI pipelines) |
 | `--max-iterations <n>` | Override maximum agent loop iterations |
+| `--dod` | Run DoD gate verification after agent completes |
+| `--trace` | Record JSONL execution trace for debugging and APO |
 
 ### Agent Subcommands
 
@@ -229,6 +233,30 @@ Audit documentation for drift, broken links, missing docs, and naming violations
 
 ```bash
 dev-aid-agent doc-auditor [--scope full|docs-only|code-only] [--path <project-root>]
+```
+
+#### `dod-gate`
+Run Definition of Done verification on agent output. Checks 4 dimensions: Request Addressed, Concrete Artifacts, Verification Story, Risk Assessment.
+
+```bash
+dev-aid-agent dod-gate
+```
+
+The DoD gate is typically used via the `--dod` flag on other agents rather than run directly:
+
+```bash
+dev-aid-agent pr-reviewer --pr 135 --dod    # Run PR review, then verify output
+```
+
+#### `lessons`
+Manage the agent failure lessons ledger. Lessons capture failure patterns and are injected into future agent runs to prevent repeat mistakes.
+
+```bash
+dev-aid-agent lessons list                    # List active lessons
+dev-aid-agent lessons add --agent pr-reviewer --failure-mode timeout \
+  --detection-signal "exceeded 60s" --prevention-rule "set shorter timeout"
+dev-aid-agent lessons resolve <lesson-id> --note "fixed in v2"
+dev-aid-agent lessons clear-resolved          # Remove resolved lessons
 ```
 
 #### `team`
@@ -311,6 +339,7 @@ The `partial` flag is `true` when some agents failed but the team still produced
 | **research** | deep-research-expert, web-research-expert | read_file, glob_files, grep_search | safe | Deep research on technical topics |
 | **onboarding** | senior-architect | read_file, glob_files, grep_search, git_log, list_directory | safe | Generate codebase onboarding guide |
 | **doc-auditor** | senior-architect | read_file, glob_files, grep_search, list_directory, find_files, git_log | safe | Audit docs for drift, broken links, gaps |
+| **dod-gate** | (self-contained) | read_file, glob_files, grep_search | safe | Verify agent output meets acceptance criteria |
 
 ---
 
@@ -790,7 +819,8 @@ Your security review instructions here...
 │   ├── tool_registry.py            # Tool registration, execution, format export
 │   ├── skill_loader.py             # SKILL.md parsing and prompt building
 │   ├── provider_adapter.py         # ProviderAdapter protocol + create_adapter()
-│   └── safety.py                   # SafetyConfig, blocklist, dry-run
+│   ├── safety.py                   # SafetyConfig, blocklist, dry-run
+│   └── lessons.py                  # LessonsLedger, Lesson dataclass, markdown I/O
 ├── adapters/
 │   ├── __init__.py
 │   ├── anthropic_adapter.py        # Anthropic Messages API
@@ -805,7 +835,8 @@ Your security review instructions here...
 │   ├── conflict_resolver.py        # Merge Conflict Resolver
 │   ├── research_agent.py           # Deep Research
 │   ├── onboarding_agent.py         # Codebase Onboarding
-│   └── doc_auditor.py              # Documentation Auditor
+│   ├── doc_auditor.py              # Documentation Auditor
+│   └── dod_gate.py                 # DoD Gate (Definition of Done verification)
 ├── teams/
 │   ├── __init__.py                 # Team package exports
 │   └── builtin_teams.py            # 4 pre-built team definitions
@@ -852,8 +883,11 @@ venv/bin/python -m pytest tests/test_team_*.py tests/test_builtin_teams.py -v
 | `test_team_runner.py` | Parallel/sequential/DAG execution, budget enforcement, aggregation |
 | `test_builtin_teams.py` | Built-in team loading, agent references, DAG cycle detection |
 | `test_doc_auditor.py` | Doc-auditor definition validation, CLI integration, scope handling |
+| `test_dod_gate.py` | DoD gate definition, verdict parsing (PASS/FAIL/WARN), CLI integration |
+| `test_lessons_ledger.py` | Lesson dataclass, LessonsLedger CRUD, markdown persistence, prompt formatting |
+| `test_agent_cli.py` | CLI argument parsing, config overrides, API key resolution, agent registry |
 
-**Coverage:** 903 tests, all passing. No real API calls — everything is mocked.
+**Coverage:** 984 tests, all passing. No real API calls — everything is mocked.
 
 ---
 

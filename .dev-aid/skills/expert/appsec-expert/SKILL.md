@@ -9,42 +9,27 @@ risk_level: CRITICAL
 
 ## 0. Anti-Hallucination Protocol
 
-### 0.1 Mandatory Verification
-
-**BEFORE generating any code:**
-1. Verify the pattern exists in official documentation
-2. Check version compatibility for all APIs used
-3. Never invent method names or parameters
-4. If unsure, state uncertainty explicitly
-
-### 0.2 Security Patterns (NEVER violate)
+### 0.2 Security Patterns (security rules)
 
 **CWE-89/78/79: Injection Flaws**
-- NEVER: Concatenate user input into queries, commands, or HTML
-- ALWAYS: Parameterization, encoding, sanitization per context
+- Do not: Concatenate user input into queries, commands, or HTML
+- Instead: Parameterization, encoding, sanitization per context
 
 **CWE-287: Broken Authentication**
-- NEVER: Custom auth schemes, weak session tokens
-- ALWAYS: Proven frameworks, secure session management, MFA
+- Do not: Custom auth schemes, weak session tokens
+- Instead: Proven frameworks, secure session management, MFA
 
 **CWE-862: Missing Authorization**
-- NEVER: Assume authenticated = authorized
-- ALWAYS: Check permissions for every action/resource
+- Do not: Assume authenticated = authorized
+- Instead: Check permissions for every action/resource
 
 **CWE-311: Missing Encryption**
-- NEVER: Sensitive data without encryption in transit/at rest
-- ALWAYS: TLS everywhere, encrypt PII and secrets at rest
+- Do not: Sensitive data without encryption in transit/at rest
+- Instead: TLS everywhere, encrypt PII and secrets at rest
 
 **CWE-502: Insecure Deserialization**
-- NEVER: Deserialize untrusted data
-- ALWAYS: JSON with strict schemas, never pickle/yaml.load
-
-### 0.3 Risk Level: CRITICAL
-
-**Verification requirements for CRITICAL risk:**
-- Test all generated code before presenting
-- Include error handling for edge cases
-- Validate security implications of patterns used
+- Do not: Deserialize untrusted data
+- Instead: JSON with strict schemas, never pickle/yaml.load
 
 ---
 
@@ -55,22 +40,12 @@ risk_level: CRITICAL
 **Principle:** Authorize every request. Never trust client-side checks.
 
 ```python
-# ❌ WRONG - No authorization check (IDOR vulnerability)
-@app.get("/users/{user_id}/documents")
-async def get_documents(user_id: int):
-    return db.query(Document).filter(Document.user_id == user_id).all()
-
-# ❌ WRONG - Client-side only authorization
-# Frontend: if (user.role === 'admin') showDeleteButton()
-# Backend has no check!
-
-# ✅ CORRECT - Server-side authorization on every request
+# ✅ Server-side authorization on every request
 @app.get("/users/{user_id}/documents")
 async def get_documents(
     user_id: int,
     current_user: User = Depends(get_current_user)
 ):
-    # Verify ownership or admin role
     if current_user.id != user_id and not current_user.is_admin:
         raise HTTPException(403, "Access denied")
     return db.query(Document).filter(Document.user_id == user_id).all()
@@ -81,52 +56,30 @@ async def get_documents(
 **Principle:** Use modern cryptography. Never roll your own.
 
 ```python
-# ❌ WRONG - Weak password hashing
-import hashlib
-password_hash = hashlib.md5(password.encode()).hexdigest()
-password_hash = hashlib.sha256(password.encode()).hexdigest()
-
-# ❌ WRONG - Weak encryption
-from Crypto.Cipher import DES  # DES is broken
-cipher = DES.new(key, DES.MODE_ECB)  # ECB mode is insecure
-
-# ✅ CORRECT - Argon2id for passwords
+# ✅ Argon2id for passwords
 from argon2 import PasswordHasher
 ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
 hash = ph.hash(password)
 
-# ✅ CORRECT - AES-GCM for encryption
+# ✅ AES-GCM for encryption
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 key = AESGCM.generate_key(bit_length=256)
 aesgcm = AESGCM(key)
-nonce = os.urandom(12)
-ciphertext = aesgcm.encrypt(nonce, plaintext, associated_data)
+ciphertext = aesgcm.encrypt(os.urandom(12), plaintext, associated_data)
 ```
 
 ### 1.3 A03: Injection (CWE-89, CWE-78, CWE-79)
 
-**Principle:** Data ≠ Code. Never construct queries/commands from user input.
+**Principle:** Data != Code. Never construct queries/commands from user input.
 
 ```python
-# ❌ WRONG - SQL injection
-query = f"SELECT * FROM users WHERE id = {user_id}"
-cursor.execute(query)
-
-# ❌ WRONG - Command injection
-os.system(f"ping {hostname}")
-subprocess.run(f"convert {filename}", shell=True)
-
-# ❌ WRONG - XSS
-return f"<div>Hello, {username}</div>"
-
-# ✅ CORRECT - Parameterized SQL
+# ✅ Parameterized SQL
 cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
 
-# ✅ CORRECT - Safe command execution
+# ✅ Safe command execution
 subprocess.run(["ping", "-c", "4", hostname], check=True)
 
-# ✅ CORRECT - Output encoding
-import html
+# ✅ Output encoding
 return f"<div>Hello, {html.escape(username)}</div>"
 ```
 
@@ -135,21 +88,13 @@ return f"<div>Hello, {html.escape(username)}</div>"
 **Principle:** Security must be designed in, not bolted on.
 
 ```python
-# ❌ WRONG - No rate limiting on authentication
-@app.post("/login")
-async def login(credentials: Credentials):
-    user = authenticate(credentials)  # No limit = brute force!
-
-# ❌ WRONG - No account lockout
-failed_attempts = 0  # Only in memory, reset on restart
-
-# ✅ CORRECT - Rate limiting + account lockout
+# ✅ Rate limiting + account lockout
 from slowapi import Limiter
 
 limiter = Limiter(key_func=get_remote_address)
 
 @app.post("/login")
-@limiter.limit("5/minute")  # 5 attempts per minute per IP
+@limiter.limit("5/minute")
 async def login(credentials: Credentials, request: Request):
     if is_account_locked(credentials.username):
         raise HTTPException(429, "Account locked. Try again later.")
@@ -167,32 +112,14 @@ async def login(credentials: Credentials, request: Request):
 
 ### 1.5 A05: Security Misconfiguration (CWE-16)
 
-**Principle:** Secure defaults. Disable debug in production.
+**Principle:** Secure defaults. Restrict CORS. Add security headers.
 
 ```python
-# ❌ WRONG - Debug enabled in production
-app = FastAPI(debug=True)  # Exposes stack traces!
-
-# ❌ WRONG - Permissive CORS
-app.add_middleware(CORSMiddleware, allow_origins=["*"])
-
-# ❌ WRONG - Missing security headers
-# No CSP, HSTS, X-Frame-Options
-
-# ✅ CORRECT - Secure configuration
-import os
-app = FastAPI(debug=os.getenv("DEBUG", "false").lower() == "true")
-
-# ✅ CORRECT - Restricted CORS
+# ✅ Restricted CORS + security headers
 ALLOWED_ORIGINS = os.environ["ALLOWED_ORIGINS"].split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True, allow_methods=["GET", "POST", "PUT", "DELETE"])
 
-# ✅ CORRECT - Security headers
 @app.middleware("http")
 async def security_headers(request, call_next):
     response = await call_next(request)
@@ -203,58 +130,20 @@ async def security_headers(request, call_next):
     return response
 ```
 
-### 1.6 A06: Vulnerable Components (CWE-829)
+### 1.6 A07: Authentication Failures (CWE-287, CWE-384)
 
-**Principle:** Audit dependencies. Pin versions. Update regularly.
-
-```bash
-# ❌ WRONG - No version pinning
-pip install requests
-npm install lodash
-
-# ❌ WRONG - Never audited
-# No CI/CD security checks
-
-# ✅ CORRECT - Pin versions
-pip install requests==2.31.0
-npm install --save-exact lodash@4.17.21
-
-# ✅ CORRECT - Audit in CI/CD
-pip-audit
-npm audit
-snyk test
-dependabot alerts enabled
-```
-
-### 1.7 A07: Authentication Failures (CWE-287, CWE-384)
-
-**Principle:** Secure session management. Short-lived tokens.
+**Principle:** Short-lived tokens with proper validation.
 
 ```python
-# ❌ WRONG - Long-lived tokens
-ACCESS_TOKEN_EXPIRE = timedelta(days=30)  # Way too long!
-
-# ❌ WRONG - Secrets in code
-SECRET_KEY = "my-secret-key-12345"
-
-# ❌ WRONG - No token expiration check
-def get_current_user(token):
-    payload = jwt.decode(token, SECRET_KEY)  # No verification!
-    return payload["sub"]
-
-# ✅ CORRECT - Short-lived access, longer refresh
 ACCESS_TOKEN_EXPIRE = timedelta(minutes=15)
 REFRESH_TOKEN_EXPIRE = timedelta(days=7)
-
-SECRET_KEY = os.environ["JWT_SECRET_KEY"]  # From environment
+SECRET_KEY = os.environ["JWT_SECRET_KEY"]
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=["HS256"],
-            options={"require_exp": True}  # Require expiration
+            token, SECRET_KEY, algorithms=["HS256"],
+            options={"require_exp": True}
         )
         user_id = payload.get("sub")
         if user_id is None:
@@ -266,18 +155,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(401, "Invalid token")
 ```
 
-### 1.8 A10: Server-Side Request Forgery (CWE-918)
+### 1.7 A10: Server-Side Request Forgery (CWE-918)
 
 **Principle:** Validate and restrict outbound requests.
 
 ```python
-# ❌ WRONG - User controls URL
-@app.get("/fetch")
-async def fetch_url(url: str):
-    response = requests.get(url)  # Can access internal services!
-    return response.text
-
-# ✅ CORRECT - URL validation and allowlist
 import ipaddress
 from urllib.parse import urlparse
 
@@ -286,21 +168,10 @@ ALLOWED_DOMAINS = {"api.example.com", "cdn.example.com"}
 def is_safe_url(url: str) -> bool:
     try:
         parsed = urlparse(url)
-
-        # Only HTTPS
-        if parsed.scheme != "https":
+        if parsed.scheme != "https" or parsed.hostname not in ALLOWED_DOMAINS:
             return False
-
-        # Domain allowlist
-        if parsed.hostname not in ALLOWED_DOMAINS:
-            return False
-
-        # Block internal IPs
         ip = ipaddress.ip_address(parsed.hostname)
-        if ip.is_private or ip.is_loopback or ip.is_reserved:
-            return False
-
-        return True
+        return not (ip.is_private or ip.is_loopback or ip.is_reserved)
     except:
         return False
 
@@ -308,15 +179,14 @@ def is_safe_url(url: str) -> bool:
 async def fetch_url(url: str):
     if not is_safe_url(url):
         raise HTTPException(400, "Invalid URL")
-    response = requests.get(url, timeout=10)
-    return response.text
+    return requests.get(url, timeout=10).text
 ```
 
 ---
 
 ## 2. Version Requirements
 
-**ALWAYS use these minimum versions:**
+Use these minimum versions:
 ```
 # Python Security
 argon2-cffi>=21.3.0     # Password hashing
@@ -343,13 +213,12 @@ jsonwebtoken>=9.0.0     # JWT
 ```python
 from datetime import datetime, timedelta, timezone
 from argon2 import PasswordHasher
-from jose import jwt, JWTError
+from jose import jwt
 import os
 
 SECRET_KEY = os.environ["JWT_SECRET_KEY"]
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE = timedelta(minutes=15)
-
 ph = PasswordHasher(time_cost=3, memory_cost=65536, parallelism=4)
 
 def hash_password(password: str) -> str:
@@ -363,12 +232,9 @@ def verify_password(hash: str, password: str) -> bool:
         return False
 
 def create_access_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + ACCESS_TOKEN_EXPIRE
     return jwt.encode(
-        {"sub": str(user_id), "exp": expire},
-        SECRET_KEY,
-        algorithm=ALGORITHM
-    )
+        {"sub": str(user_id), "exp": datetime.now(timezone.utc) + ACCESS_TOKEN_EXPIRE},
+        SECRET_KEY, algorithm=ALGORITHM)
 ```
 
 ### 3.2 WHEN implementing authorization
@@ -390,12 +256,6 @@ def require_role(required_role: Role):
             return await func(*args, current_user=current_user, **kwargs)
         return wrapper
     return decorator
-
-@app.delete("/users/{user_id}")
-@require_role(Role.ADMIN)
-async def delete_user(user_id: int, current_user: User = Depends(get_current_user)):
-    # Only admins can reach here
-    db.delete(User, user_id)
 ```
 
 ### 3.3 WHEN implementing input validation
@@ -426,106 +286,26 @@ class UserInput(BaseModel):
 
 ---
 
-## 4. Anti-Patterns
+## 4. Security Testing
 
-### 4.1 Client-Side Authorization
+Always write tests covering:
+- **Injection**: Send SQL/XSS payloads, verify they are neutralized
+- **Authorization**: Verify regular users get 403 on admin endpoints, test IDOR by accessing other users' resources
+- **Rate limiting**: Exceed login attempts, verify 429 response
+- **Token expiry**: Use expired JWT, verify rejection
+- **SSRF**: Attempt internal IP/localhost URLs, verify rejection
 
-**NEVER** rely on client-side checks:
-```javascript
-// ❌ WRONG - Frontend-only authorization
-if (user.role === 'admin') {
-    showDeleteButton();  // Anyone can modify JS!
-}
-
-// ✅ CORRECT - Server validates every request
-// Backend must check authorization regardless of UI
-```
-
-### 4.2 Insecure Randomness
-
-**NEVER** use weak random for security:
-```python
-# ❌ WRONG - Predictable
-import random
-token = ''.join(random.choices(string.ascii_letters, k=32))
-
-# ✅ CORRECT - Cryptographically secure
-import secrets
-token = secrets.token_urlsafe(32)
-```
-
-### 4.3 Error Message Information Disclosure
-
-**NEVER** expose internal details:
-```python
-# ❌ WRONG - Leaks database schema
-except Exception as e:
-    return {"error": str(e)}  # "Column 'password_hash' doesn't exist"
-
-# ✅ CORRECT - Generic message
-except Exception as e:
-    logger.error(f"Database error: {e}")  # Log internally
-    return {"error": "An error occurred"}  # Generic to user
-```
+Use `secrets.token_urlsafe(32)` for any security-relevant randomness (never `random`).
+Log errors internally with detail, return generic messages to users.
 
 ---
 
-## 5. Testing
+## 5. Pre-Generation Checklist
 
-**ALWAYS write security tests:**
-```python
-import pytest
+Before generating security-sensitive code:
 
-class TestAuthSecurity:
-    def test_sql_injection_blocked(self, client):
-        payloads = ["' OR '1'='1", "'; DROP TABLE users; --", "admin'--"]
-        for payload in payloads:
-            response = client.get(f"/users?search={payload}")
-            assert response.status_code in [200, 400]
-            assert "DROP" not in response.text
-
-    def test_authorization_enforced(self, client, regular_user_token):
-        # Regular user cannot access admin endpoint
-        response = client.delete(
-            "/admin/users/1",
-            headers={"Authorization": f"Bearer {regular_user_token}"}
-        )
-        assert response.status_code == 403
-
-    def test_rate_limiting_works(self, client):
-        # Exceed rate limit
-        for _ in range(10):
-            client.post("/login", json={"username": "test", "password": "wrong"})
-        response = client.post("/login", json={"username": "test", "password": "wrong"})
-        assert response.status_code == 429
-
-    def test_xss_prevented(self, client, auth_headers):
-        response = client.post(
-            "/comments",
-            json={"content": "<script>alert('xss')</script>"},
-            headers=auth_headers
-        )
-        assert "<script>" not in response.text
-```
-
----
-
-## 6. Pre-Generation Checklist
-
-**BEFORE generating any security-sensitive code:**
-
-- [ ] A01: Authorization check on every endpoint
+- [ ] A01: Authorization check on every endpoint (server-side, not client-only)
 - [ ] A02: Argon2id for passwords, AES-GCM for encryption
-- [ ] A03: Parameterized queries, no string concatenation
-- [ ] A04: Rate limiting, account lockout
-- [ ] A05: Debug disabled, security headers set
-- [ ] A06: Dependencies audited, versions pinned
-- [ ] A07: JWT expires (15min access, 7d refresh)
-- [ ] A10: URL validation, domain allowlist for SSRF
-- [ ] Secrets from environment, never hardcoded
-- [ ] Generic error messages to users
-- [ ] Security tests written
-
----
-
-**Performance**: Quality over speed. Verify all code examples compile. Never skip security checks. See `template-references/performance-notes.md` for full guidelines.
+- [ ] A04: Rate limiting and account lockout on auth endpoints
+- [ ] A07: JWT 15min access / 7d refresh, `require_exp` enforced
+- [ ] A10: URL validation with domain allowlist + private IP blocking for SSRF

@@ -1,5 +1,7 @@
 import subprocess
 import time
+from pathlib import Path
+from typing import Any, Dict
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -918,3 +920,1137 @@ class TestAutoRAGTrigger:
 
         assert result1 == result2
         assert call_count_after_second == call_count_after_first
+
+
+class TestValidateAndReadFile:
+    """Test _validate_and_read_file path traversal and error handling."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        b = ContextBuilder(config)
+        (tmp_path / "memory-bank").mkdir(parents=True, exist_ok=True)
+        return b
+
+    def test_traversal_with_dotdot(self, builder: ContextBuilder) -> None:
+        """Filenames containing '..' should be rejected."""
+        result = builder._validate_and_read_file("../etc/passwd")
+        assert result is None
+
+    def test_traversal_with_absolute_path(self, builder: ContextBuilder) -> None:
+        """Absolute path filenames should be rejected."""
+        result = builder._validate_and_read_file("/etc/passwd")
+        assert result is None
+
+    def test_read_exception(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """File read errors should return None, not raise."""
+        memory_path = tmp_path / "memory-bank"
+        test_file = memory_path / "broken.md"
+        test_file.write_text("content")
+        builder.memory_bank_path = memory_path
+
+        with patch("builtins.open", side_effect=PermissionError("denied")):
+            result = builder._validate_and_read_file("broken.md")
+            assert result is None
+
+    def test_path_resolve_error(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """OSError during path resolution should return None."""
+        builder.memory_bank_path = tmp_path / "memory-bank"
+
+        with patch.object(Path, "resolve", side_effect=OSError("bad path")):
+            result = builder._validate_and_read_file("some_file.md")
+            assert result is None
+
+
+class TestFileStalenessDayAge:
+    """Test _get_file_staleness for edge cases."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_one_day_old(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """File modified 1 day ago should show '1 day ago'."""
+        import os as os_mod
+
+        test_file = tmp_path / "one_day.md"
+        test_file.write_text("content")
+        old_time = time.time() - (1.5 * 86400)
+        os_mod.utime(test_file, (old_time, old_time))
+
+        staleness = builder._get_file_staleness(test_file, warning_days=30)
+        assert staleness["age_days"] == 1
+        assert staleness["age_human"] == "1 day ago"
+        assert staleness["is_stale"] is False
+
+
+class TestTokenBudgetEdgeCases:
+    """Test _enforce_token_budget edge cases: duplicates, exhaustion."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_duplicate_on_demand_skipped(self, builder: ContextBuilder) -> None:
+        """On-demand file with same name as auto_load should be skipped."""
+        auto = {"dup.md": "auto content"}
+        on_demand = {"dup.md": "on_demand content"}
+        result, counts = builder._enforce_token_budget(auto, on_demand, 10000)
+        # Only auto_load version should be present
+        assert result["dup.md"] == "auto content"
+        assert len(result) == 1
+
+    def test_budget_exhausted_break(self, builder: ContextBuilder) -> None:
+        """When budget is exhausted, remaining files should be skipped."""
+        auto = {"a.md": "word " * 500}  # ~650 tokens
+        on_demand = {
+            "b.md": "word " * 500,  # ~650 tokens
+            "c.md": "extra content",  # should be dropped
+        }
+        result, counts = builder._enforce_token_budget(auto, on_demand, 700)
+        assert "a.md" in result
+        # c.md should not be included (budget exhausted)
+        assert "c.md" not in result
+
+
+class TestExtractRelevantSectionsEdgeCases:
+    """Test _extract_relevant_sections no-prompt and empty-sections paths."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_no_prompt_truncation(self, builder: ContextBuilder) -> None:
+        """Without prompt, content should be truncated by word count."""
+        content = "word " * 500  # ~650 tokens
+        result = builder._extract_relevant_sections(content, None, 50)
+        assert len(result) < len(content)
+
+    def test_empty_sections_fallback(self, builder: ContextBuilder) -> None:
+        """When _parse_markdown_sections returns empty, should truncate."""
+        content = "word " * 500
+        with patch.object(builder, "_parse_markdown_sections", return_value=[]):
+            result = builder._extract_relevant_sections(content, "some query", 50)
+            assert len(result) < len(content)
+
+
+class TestLoadMemoryBankOnDemandDuplicate:
+    """Test _load_memory_bank skipping on-demand files already in auto_load."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=["shared.md"])
+        config.get_on_demand_files = Mock(return_value=["shared.md"])
+        config.get_standing_context_tokens = Mock(return_value=10000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {
+            "project_name": "test",
+            "memory_bank": {
+                "standing_context_budget": "balanced",
+                "staleness_warning_days": 30,
+            },
+        }
+        b = ContextBuilder(config)
+        memory_path = tmp_path / "memory-bank"
+        memory_path.mkdir(parents=True, exist_ok=True)
+        (memory_path / "shared.md").write_text("# Shared content")
+        return b
+
+    def test_on_demand_duplicate_skipped(self, builder: ContextBuilder) -> None:
+        """On-demand file same as auto_load should only appear once as auto_load."""
+        # Use a prompt that would normally match the on-demand file
+        with patch.object(builder, "_select_on_demand_files", return_value=["shared.md"]):
+            content, metadata = builder._load_memory_bank(prompt="test security")
+        assert "shared.md" in content
+        assert metadata["shared.md"]["category"] == "auto_load"
+
+
+class TestAsyncGitContext:
+    """Test _get_git_context_async."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_async_git_context_success(self, builder: ContextBuilder) -> None:
+        """Successful async git context should return branch/commit/status."""
+        mock_proc = AsyncMock()
+        mock_proc.returncode = 0
+
+        # Three calls: branch, last_commit, status
+        mock_proc.communicate = AsyncMock(
+            side_effect=[
+                (b"feature-branch\n", b""),
+                (b"abc123 Initial commit\n", b""),
+                (b"M file.py\n", b""),
+            ]
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+            result = await builder._get_git_context_async()
+
+        assert result is not None
+        assert result["branch"] == "feature-branch"
+        assert result["last_commit"] == "abc123 Initial commit"
+        assert result["status"] == "M file.py"
+
+    @pytest.mark.asyncio
+    async def test_async_git_context_clean_status(self, builder: ContextBuilder) -> None:
+        """Empty status should return '(clean)'."""
+        mock_proc = AsyncMock()
+        mock_proc.returncode = 0
+        mock_proc.communicate = AsyncMock(
+            side_effect=[
+                (b"main\n", b""),
+                (b"abc123 commit\n", b""),
+                (b"", b""),
+            ]
+        )
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+            result = await builder._get_git_context_async()
+
+        assert result is not None
+        assert result["status"] == "(clean)"
+
+    @pytest.mark.asyncio
+    async def test_async_git_context_failure(self, builder: ContextBuilder) -> None:
+        """Git failure should return None."""
+        mock_proc = AsyncMock()
+        mock_proc.returncode = 128
+        mock_proc.communicate = AsyncMock(return_value=(b"", b""))
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+            result = await builder._get_git_context_async()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_git_context_timeout(self, builder: ContextBuilder) -> None:
+        """Timeout should return None."""
+        with patch(
+            "asyncio.create_subprocess_exec",
+            side_effect=OSError("git not found"),
+        ):
+            result = await builder._get_git_context_async()
+
+        assert result is None
+
+
+class TestAsyncSkillDetection:
+    """Test _detect_active_skills_async."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_async_skills_scripts_missing(self, builder: ContextBuilder) -> None:
+        """Missing scripts should return None."""
+        result = await builder._detect_active_skills_async()
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_skills_success(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """Successful skill detection should return list of skills."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        mock_proc_detect = AsyncMock()
+        mock_proc_detect.returncode = 0
+        mock_proc_detect.communicate = AsyncMock(return_value=(b"python,fastapi\n", b""))
+
+        mock_proc_select = AsyncMock()
+        mock_proc_select.returncode = 0
+        mock_proc_select.communicate = AsyncMock(return_value=(b"python\nfastapi\n", b""))
+
+        with patch(
+            "asyncio.create_subprocess_exec",
+            side_effect=[mock_proc_detect, mock_proc_select],
+        ):
+            result = await builder._detect_active_skills_async()
+
+        assert result == ["python", "fastapi"]
+
+    @pytest.mark.asyncio
+    async def test_async_skills_detect_failure(
+        self, builder: ContextBuilder, tmp_path: Path
+    ) -> None:
+        """Non-zero return code from detect script should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        mock_proc = AsyncMock()
+        mock_proc.returncode = 1
+        mock_proc.communicate = AsyncMock(return_value=(b"", b"error"))
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+            result = await builder._detect_active_skills_async()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_skills_empty_context_output(
+        self, builder: ContextBuilder, tmp_path: Path
+    ) -> None:
+        """Empty context output should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        mock_proc = AsyncMock()
+        mock_proc.returncode = 0
+        mock_proc.communicate = AsyncMock(return_value=(b"", b""))
+
+        with patch("asyncio.create_subprocess_exec", return_value=mock_proc):
+            result = await builder._detect_active_skills_async()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_skills_empty_skills_output(
+        self, builder: ContextBuilder, tmp_path: Path
+    ) -> None:
+        """Empty skills output should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        mock_proc_detect = AsyncMock()
+        mock_proc_detect.returncode = 0
+        mock_proc_detect.communicate = AsyncMock(return_value=(b"python,fastapi\n", b""))
+
+        mock_proc_select = AsyncMock()
+        mock_proc_select.returncode = 0
+        mock_proc_select.communicate = AsyncMock(return_value=(b"\n", b""))
+
+        with patch(
+            "asyncio.create_subprocess_exec",
+            side_effect=[mock_proc_detect, mock_proc_select],
+        ):
+            result = await builder._detect_active_skills_async()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_skills_select_nonzero(
+        self, builder: ContextBuilder, tmp_path: Path
+    ) -> None:
+        """Non-zero returncode from select-skills should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        mock_proc_detect = AsyncMock()
+        mock_proc_detect.returncode = 0
+        mock_proc_detect.communicate = AsyncMock(return_value=(b"python\n", b""))
+
+        mock_proc_select = AsyncMock()
+        mock_proc_select.returncode = 1
+        mock_proc_select.communicate = AsyncMock(return_value=(b"", b"err"))
+
+        with patch(
+            "asyncio.create_subprocess_exec",
+            side_effect=[mock_proc_detect, mock_proc_select],
+        ):
+            result = await builder._detect_active_skills_async()
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_async_skills_exception(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """Exception in skill detection should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        with patch(
+            "asyncio.create_subprocess_exec",
+            side_effect=Exception("unexpected"),
+        ):
+            result = await builder._detect_active_skills_async()
+
+        assert result is None
+
+
+class TestBuildContextAsync:
+    """Test build_context_async method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_build_context_async_basic(self, builder: ContextBuilder) -> None:
+        """build_context_async should return a DevAIDContext."""
+        with (
+            patch.object(builder, "_get_git_context_async", return_value={"branch": "main"}),
+            patch.object(builder, "_detect_active_skills_async", return_value=["python"]),
+        ):
+            context = await builder.build_context_async()
+
+        assert isinstance(context, DevAIDContext)
+        assert context.project_info["name"] == "test-project"
+        assert context.git_context == {"branch": "main"}
+        assert context.active_skills == ["python"]
+
+    @pytest.mark.asyncio
+    async def test_build_context_async_without_memory(self, builder: ContextBuilder) -> None:
+        """build_context_async with include_memory=False should have empty memory_bank."""
+        with (
+            patch.object(builder, "_get_git_context_async", return_value=None),
+            patch.object(builder, "_detect_active_skills_async", return_value=None),
+        ):
+            context = await builder.build_context_async(include_memory=False)
+
+        assert context.memory_bank == {}
+
+
+class TestServerContextKey:
+    """Test _server_context_key static method."""
+
+    def test_code_search_key(self) -> None:
+        assert ContextBuilder._server_context_key("code-search") == "code_search"
+
+    def test_deep_research_key(self) -> None:
+        assert ContextBuilder._server_context_key("deep-research") == "external_research"
+
+    def test_postgres_key(self) -> None:
+        assert ContextBuilder._server_context_key("postgres-main") == "database_schema"
+
+    def test_database_key(self) -> None:
+        assert ContextBuilder._server_context_key("my-database") == "database_schema"
+
+    def test_github_key(self) -> None:
+        assert ContextBuilder._server_context_key("github-mcp") == "github"
+
+    def test_unknown_key(self) -> None:
+        assert ContextBuilder._server_context_key("custom-server") == "custom-server"
+
+
+class TestNeedsExternalResearch:
+    """Test _needs_external_research method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        b = ContextBuilder(config)
+        b.mcp_pool = Mock()
+        b.mcp_pool.clients = {"deep-research": True, "code-search": True}
+        return b
+
+    def test_already_has_research(self, builder: ContextBuilder) -> None:
+        """Should return False if external_research already gathered."""
+        context: Dict[str, Any] = {"external_research": {"content": "data"}}
+        assert builder._needs_external_research("latest version", context) is False
+
+    def test_no_deep_research_pool(self, builder: ContextBuilder) -> None:
+        """Should return False if deep-research not available."""
+        builder.mcp_pool = None
+        assert builder._needs_external_research("latest version", {}) is False
+
+    def test_no_deep_research_client(self, builder: ContextBuilder) -> None:
+        """Should return False if deep-research not in clients."""
+        builder.mcp_pool.clients = {"code-search": True}
+        assert builder._needs_external_research("latest version", {}) is False
+
+    def test_empty_search_with_research_keyword(self, builder: ContextBuilder) -> None:
+        """Empty local search + research keyword should trigger research."""
+        context: Dict[str, Any] = {"code_search": {"search_results": []}}
+        assert builder._needs_external_research("what is the latest version", context) is True
+
+    def test_explicit_research_request(self, builder: ContextBuilder) -> None:
+        """Explicit 'research' keyword should always trigger."""
+        context: Dict[str, Any] = {"code_search": {"search_results": ["file.py"]}}
+        assert builder._needs_external_research("research best practices", context) is True
+
+    def test_explicit_external_request(self, builder: ContextBuilder) -> None:
+        """Explicit 'external' keyword should trigger."""
+        context: Dict[str, Any] = {"code_search": {"search_results": ["file.py"]}}
+        assert builder._needs_external_research("get external docs", context) is True
+
+    def test_no_research_needed(self, builder: ContextBuilder) -> None:
+        """Local results + no research keywords should return False."""
+        context: Dict[str, Any] = {"code_search": {"search_results": ["file.py"]}}
+        assert builder._needs_external_research("find the login function", context) is False
+
+
+class TestTriggerResearchFallback:
+    """Test _trigger_research_fallback method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_no_pool(self, builder: ContextBuilder) -> None:
+        """No MCP pool should return None."""
+        builder.mcp_pool = None
+        result = await builder._trigger_research_fallback("test")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_no_deep_research_client(self, builder: ContextBuilder) -> None:
+        """No deep-research in clients should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        result = await builder._trigger_research_fallback("test")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_success(self, builder: ContextBuilder) -> None:
+        """Successful research should return formatted result."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"deep-research": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "content": "Research findings",
+            "citations": ["https://example.com"],
+            "provider": "gemini",
+            "cached": False,
+            "routing_reasoning": "auto",
+        }
+        result = await builder._trigger_research_fallback("latest react docs")
+        assert result is not None
+        assert result["source"] == "deep-research"
+        assert result["content"] == "Research findings"
+        assert result["provider"] == "gemini"
+        assert result["citations"] == ["https://example.com"]
+
+    @pytest.mark.asyncio
+    async def test_empty_result(self, builder: ContextBuilder) -> None:
+        """Empty result from MCP should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"deep-research": True}
+        builder.mcp_pool.call_tool.return_value = None
+        result = await builder._trigger_research_fallback("test")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_exception(self, builder: ContextBuilder) -> None:
+        """Exception in research should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"deep-research": True}
+        builder.mcp_pool.call_tool.side_effect = Exception("network error")
+        result = await builder._trigger_research_fallback("test")
+        assert result is None
+
+
+class TestQueryDeepResearch:
+    """Test _query_deep_research method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_success(self, builder: ContextBuilder) -> None:
+        """Successful research query should return formatted result."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.return_value = {
+            "content": "deep research results",
+            "citations": [],
+            "provider": "gemini",
+            "cached": True,
+        }
+        result = await builder._query_deep_research("what is python 4")
+        assert result is not None
+        assert result["source"] == "deep-research"
+        assert result["content"] == "deep research results"
+
+    @pytest.mark.asyncio
+    async def test_empty_result(self, builder: ContextBuilder) -> None:
+        """Empty result should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.return_value = None
+        result = await builder._query_deep_research("test")
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_exception(self, builder: ContextBuilder) -> None:
+        """Exception should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.side_effect = Exception("fail")
+        result = await builder._query_deep_research("test")
+        assert result is None
+
+
+class TestQueryDatabaseSchema:
+    """Test _query_database_schema method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_success(self, builder: ContextBuilder) -> None:
+        """Successful schema query should return schema info."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.return_value = {"tables": ["users", "posts"]}
+        result = await builder._query_database_schema("postgres-main")
+        assert result is not None
+        assert result["schema"] == {"tables": ["users", "posts"]}
+        assert result["server"] == "postgres-main"
+
+    @pytest.mark.asyncio
+    async def test_exception(self, builder: ContextBuilder) -> None:
+        """Exception should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.side_effect = Exception("connection failed")
+        result = await builder._query_database_schema("postgres-main")
+        assert result is None
+
+
+class TestQueryGithubContext:
+    """Test _query_github_context method."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_success(self, builder: ContextBuilder) -> None:
+        """Successful GitHub query should return issues."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.return_value = {
+            "issues": [{"title": "Bug #1"}, {"title": "Feature #2"}]
+        }
+        result = await builder._query_github_context("github-mcp", "authentication bug")
+        assert result is not None
+        assert len(result["issues"]) == 2
+        assert "query" in result
+
+    @pytest.mark.asyncio
+    async def test_exception(self, builder: ContextBuilder) -> None:
+        """Exception should return None."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.call_tool.side_effect = Exception("API error")
+        result = await builder._query_github_context("github-mcp", "test")
+        assert result is None
+
+
+class TestAutoSelectMCPsFilesystem:
+    """Test _auto_select_mcps filesystem selection."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_filesystem_selected(self, builder: ContextBuilder) -> None:
+        """File-related prompt should select filesystem MCP."""
+        builder.mcp_pool = Mock()
+        builder.mcp_pool.clients = {"code-search": True, "filesystem-mcp": True}
+        selected = builder._auto_select_mcps("list files in the directory", None)
+        assert "filesystem-mcp" in selected
+
+    def test_fs_shortname_selected(self, builder: ContextBuilder) -> None:
+        """FS-named server should be selected for file queries."""
+        builder.mcp_pool = Mock()
+        builder.mcp_pool.clients = {"code-search": True, "local-fs": True}
+        selected = builder._auto_select_mcps("read file contents", None)
+        assert "local-fs" in selected
+
+
+class TestFormatContextMCPSections:
+    """Test format_context_for_ai MCP subsections: database, github, external_research."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_database_schema_section(self, builder: ContextBuilder) -> None:
+        """Database schema in MCP context should appear in formatted output."""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            mcp_context={
+                "database_schema": {
+                    "server": "postgres-main",
+                    "schema": {"tables": ["users", "posts"]},
+                }
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        assert "Database Schema" in formatted
+        assert "postgres-main" in formatted
+
+    def test_github_section(self, builder: ContextBuilder) -> None:
+        """GitHub context should appear in formatted output."""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            mcp_context={
+                "github": {
+                    "query": "auth bug",
+                    "issues": ["#1 Auth broken", "#2 Login fails"],
+                }
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        assert "GitHub Issues/PRs" in formatted
+        assert "auth bug" in formatted
+        assert "#1 Auth broken" in formatted
+
+    def test_external_research_section(self, builder: ContextBuilder) -> None:
+        """External research in MCP context should appear in formatted output."""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            mcp_context={
+                "external_research": {
+                    "provider": "gemini",
+                    "cached": True,
+                    "content": "React 19 was released with new features...",
+                    "citations": ["https://react.dev/blog"],
+                }
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        assert "External Research" in formatted
+        assert "gemini" in formatted
+        assert "(Cached result)" in formatted
+        assert "React 19" in formatted
+        assert "https://react.dev/blog" in formatted
+
+    def test_external_research_no_cache(self, builder: ContextBuilder) -> None:
+        """Non-cached research should not show (Cached result)."""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            mcp_context={
+                "external_research": {
+                    "provider": "gemini",
+                    "cached": False,
+                    "content": "findings",
+                    "citations": [],
+                }
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        assert "External Research" in formatted
+        assert "(Cached result)" not in formatted
+
+    def test_external_research_long_content_truncated(self, builder: ContextBuilder) -> None:
+        """Research content over 2000 chars should be truncated."""
+        long_content = "A" * 3000
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            mcp_context={
+                "external_research": {
+                    "provider": "gemini",
+                    "cached": False,
+                    "content": long_content,
+                }
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        # The content in the formatted output should be truncated to 2000 chars
+        assert "A" * 2000 in formatted
+        assert "A" * 2001 not in formatted
+
+    def test_git_last_commit_and_status(self, builder: ContextBuilder) -> None:
+        """Git context should show last_commit and status."""
+        context = DevAIDContext(
+            memory_bank={},
+            project_info={"name": "Test"},
+            git_context={
+                "branch": "feature",
+                "last_commit": "abc123 Fix bug",
+                "status": "M src/main.py",
+            },
+        )
+        formatted = builder.format_context_for_ai(context)
+        assert "Last Commit: abc123 Fix bug" in formatted
+        assert "Status: M src/main.py" in formatted
+
+
+class TestGetMinimalContextException:
+    """Test get_minimal_context exception path."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_read_exception(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """File read failure in get_minimal_context should return fallback."""
+        memory_path = tmp_path / "memory-bank"
+        memory_path.mkdir(parents=True, exist_ok=True)
+        active_file = memory_path / "activeContext.md"
+        active_file.write_text("content")
+        builder.memory_bank_path = memory_path
+
+        with patch("builtins.open", side_effect=PermissionError("denied")):
+            result = builder.get_minimal_context()
+        assert "No active context available" in result
+
+
+class TestGatherMCPContextServerDispatching:
+    """Test gather_mcp_context dispatching to different server types."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_deep_research_dispatch(self, builder: ContextBuilder) -> None:
+        """Requested deep-research server should call _query_deep_research."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"deep-research": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "content": "research data",
+            "citations": [],
+            "provider": "gemini",
+            "cached": False,
+        }
+
+        with (
+            patch.object(
+                builder,
+                "_get_codebase_size",
+                return_value={
+                    "size_category": "small",
+                    "total_chunks": 0,
+                    "indexed_files_count": 0,
+                },
+            ),
+            patch.object(builder, "_needs_external_research", return_value=False),
+        ):
+            context = await builder.gather_mcp_context(
+                "latest docs", requested_servers=["deep-research"]
+            )
+
+        assert "external_research" in context
+
+    @pytest.mark.asyncio
+    async def test_database_dispatch(self, builder: ContextBuilder) -> None:
+        """Requested postgres server should call _query_database_schema."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"postgres-main": True}
+        builder.mcp_pool.call_tool.return_value = {"tables": ["users"]}
+
+        with (
+            patch.object(
+                builder,
+                "_get_codebase_size",
+                return_value={
+                    "size_category": "small",
+                    "total_chunks": 0,
+                    "indexed_files_count": 0,
+                },
+            ),
+            patch.object(builder, "_needs_external_research", return_value=False),
+        ):
+            context = await builder.gather_mcp_context(
+                "show schema", requested_servers=["postgres-main"]
+            )
+
+        assert "database_schema" in context
+
+    @pytest.mark.asyncio
+    async def test_github_dispatch(self, builder: ContextBuilder) -> None:
+        """Requested github server should call _query_github_context."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"github-mcp": True}
+        builder.mcp_pool.call_tool.return_value = {"issues": [{"title": "Bug"}]}
+
+        with (
+            patch.object(
+                builder,
+                "_get_codebase_size",
+                return_value={
+                    "size_category": "small",
+                    "total_chunks": 0,
+                    "indexed_files_count": 0,
+                },
+            ),
+            patch.object(builder, "_needs_external_research", return_value=False),
+        ):
+            context = await builder.gather_mcp_context(
+                "check issues", requested_servers=["github-mcp"]
+            )
+
+        assert "github" in context
+
+    @pytest.mark.asyncio
+    async def test_gather_exception_in_server_query(self, builder: ContextBuilder) -> None:
+        """Exception from a server query should be handled gracefully."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.side_effect = Exception("boom")
+
+        with (
+            patch.object(
+                builder,
+                "_get_codebase_size",
+                return_value={
+                    "size_category": "small",
+                    "total_chunks": 0,
+                    "indexed_files_count": 0,
+                },
+            ),
+            patch.object(builder, "_needs_external_research", return_value=False),
+        ):
+            context = await builder.gather_mcp_context("test", requested_servers=["code-search"])
+
+        # Should return empty context, not raise
+        assert context == {}
+
+    @pytest.mark.asyncio
+    async def test_research_fallback_triggered(self, builder: ContextBuilder) -> None:
+        """When _needs_external_research returns True, research fallback fires."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True, "deep-research": True}
+        builder.mcp_pool.call_tool.return_value = {"content": []}
+
+        with (
+            patch.object(
+                builder,
+                "_get_codebase_size",
+                return_value={
+                    "size_category": "small",
+                    "total_chunks": 0,
+                    "indexed_files_count": 0,
+                },
+            ),
+            patch.object(builder, "_needs_external_research", return_value=True),
+            patch.object(
+                builder,
+                "_trigger_research_fallback",
+                return_value={"source": "deep-research", "content": "fallback data"},
+            ),
+        ):
+            context = await builder.gather_mcp_context(
+                "latest React version",
+                requested_servers=["code-search"],
+            )
+
+        assert "external_research" in context
+        assert context["external_research"]["content"] == "fallback data"
+
+    @pytest.mark.asyncio
+    async def test_gather_top_level_exception(self, builder: ContextBuilder) -> None:
+        """Top-level exception in gather_mcp_context should return empty dict."""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+
+        with patch.object(builder, "_get_codebase_size", side_effect=Exception("catastrophic")):
+            context = await builder.gather_mcp_context("test")
+
+        assert context == {}
+
+
+class TestDetectActiveSkillsEnhancedFallback:
+    """Test _detect_active_skills enhanced script fallback."""
+
+    @pytest.fixture
+    def builder(self, tmp_path: Path) -> ContextBuilder:
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    def test_enhanced_script_exists(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """When enhanced script exists, it should be used."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context-enhanced.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        with patch("subprocess.check_output") as mock_check:
+            mock_check.side_effect = [
+                "python,fastapi\n",  # detect-context-enhanced.sh
+                "python\nfastapi\n",  # select-skills.sh
+            ]
+            skills = builder._detect_active_skills()
+
+        assert skills == ["python", "fastapi"]
+
+    def test_empty_context_output(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """Empty context output should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        with patch("subprocess.check_output") as mock_check:
+            mock_check.return_value = ""
+            skills = builder._detect_active_skills()
+
+        assert skills is None
+
+    def test_empty_skills_output(self, builder: ContextBuilder, tmp_path: Path) -> None:
+        """Empty skills output should return None."""
+        orch_dir = tmp_path / ".dev-aid" / "orchestration"
+        orch_dir.mkdir(parents=True)
+        (orch_dir / "detect-context.sh").touch(mode=0o755)
+        (orch_dir / "select-skills.sh").touch(mode=0o755)
+
+        with patch("subprocess.check_output") as mock_check:
+            mock_check.side_effect = [
+                "python,fastapi\n",  # detect-context.sh
+                "",  # select-skills.sh returns empty
+            ]
+            skills = builder._detect_active_skills()
+
+        assert skills is None

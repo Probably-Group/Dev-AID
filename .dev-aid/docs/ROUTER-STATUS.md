@@ -175,22 +175,16 @@
 
 ## ⚠️ Known Limitations
 
-### 1. Model IDs May Need Update
+### 1. Model IDs — Verified 2026-02-28
 
-**Issue**: Model IDs in `models.json` might not match actual API IDs
+**Status**: ✅ All model IDs verified against live API docs
 
-**Example**:
-```json
-"sonnet-4.5": {
-  "id": "claude-sonnet-4-5",  // ← May need update
-}
-```
-
-**Fix Required**: Update to actual Anthropic model IDs:
-- Check: https://docs.anthropic.com/claude/docs/models-overview
-- Update: `.dev-aid/config/models.json`
-
-**Status**: ⚠️ Needs verification with live API
+Updated in v1.6:
+- Anthropic: `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5`
+- Google: `gemini-2.5-flash`, `gemini-2.5-pro`
+- OpenAI: `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `o4-mini`
+- Removed deprecated: `gpt-4-turbo-2024-04-09`, `gpt-3.5-turbo`
+- Pricing updated to current rates
 
 ### 2. Token Count Estimation for Gemini
 

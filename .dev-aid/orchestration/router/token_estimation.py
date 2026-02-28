@@ -1,11 +1,14 @@
 """Shared token estimation utilities for Dev-AID Router"""
 
-from .constants import TOKEN_ESTIMATION_FACTOR
+from .constants import CHARS_PER_TOKEN, TOKEN_ESTIMATION_FACTOR  # noqa: F401
 
 
 def estimate_tokens(text: str) -> int:
     """
-    Estimate token count from text using word-based heuristic.
+    Estimate token count from text using character-based heuristic.
+
+    Uses ~4 characters per token, which is more accurate than word-based
+    estimation across languages and code.
 
     Args:
         text: Text to estimate tokens for
@@ -15,4 +18,4 @@ def estimate_tokens(text: str) -> int:
     """
     if not text:
         return 0
-    return int(len(text.split()) * TOKEN_ESTIMATION_FACTOR)
+    return int(len(text) / CHARS_PER_TOKEN)

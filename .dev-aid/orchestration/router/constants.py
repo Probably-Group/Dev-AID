@@ -8,6 +8,9 @@ from typing import Dict
 # Token estimation factor: ~1.3 words per token for English text and code
 TOKEN_ESTIMATION_FACTOR = 1.3
 
+# Character-based token estimation: ~4 characters per token (standard approximation)
+CHARS_PER_TOKEN = 4
+
 # Default timeout for MCP server communication (seconds)
 MCP_DEFAULT_TIMEOUT = 30.0
 

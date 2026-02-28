@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
 
 from .constants import (
+    CHARS_PER_TOKEN,
     CODEBASE_SEARCH_TOP_K,
     CODEBASE_SIZE_CACHE_TTL,
     CODEBASE_SIZE_MEDIUM_MAX_CHUNKS,
@@ -438,15 +439,13 @@ class ContextBuilder:
 
         if not prompt:
             # No prompt: just truncate
-            words = content.split()
-            target_words = int(max_tokens / 1.3) if max_tokens > 0 else 0
-            return " ".join(words[:target_words])
+            target_chars = int(max_tokens * CHARS_PER_TOKEN) if max_tokens > 0 else 0
+            return content[:target_chars]
 
         sections = self._parse_markdown_sections(content)
         if not sections:
-            words = content.split()
-            target_words = int(max_tokens / 1.3) if max_tokens > 0 else 0
-            return " ".join(words[:target_words])
+            target_chars = int(max_tokens * CHARS_PER_TOKEN) if max_tokens > 0 else 0
+            return content[:target_chars]
 
         prompt_lower = prompt.lower()
         prompt_words = set(prompt_lower.split())

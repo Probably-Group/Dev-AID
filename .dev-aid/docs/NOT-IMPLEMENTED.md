@@ -50,7 +50,7 @@
 - [x] Graceful degradation: Python-only components work natively, bash features warn
 
 **What's remaining**:
-- [ ] Windows-specific installation guide / WSL setup docs
+- [x] Windows-specific installation guide / WSL setup docs — See [WINDOWS-SETUP.md](./WINDOWS-SETUP.md)
 - [ ] PowerShell wrapper for common commands (optional, low priority)
 - [ ] Full end-to-end setup-dev-aid.sh testing under WSL in CI
 

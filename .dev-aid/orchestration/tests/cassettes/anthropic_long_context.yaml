@@ -1,0 +1,43 @@
+# Synthetic VCR cassette: Anthropic long context request
+# Simulates: POST https://api.anthropic.com/v1/messages
+# Multi-turn conversation about quantum computing
+# Model: claude-sonnet-4-20250514
+interactions:
+- request:
+    body: '{"model": "claude-sonnet-4", "max_tokens": 4096, "temperature": 0.7,
+      "messages": [{"role": "user", "content": "Explain quantum computing in simple
+      terms."}, {"role": "assistant", "content": "Quantum computing uses quantum mechanics
+      principles..."}, {"role": "user", "content": "Can you give a practical example?"}]}'
+    headers:
+      accept:
+      - application/json
+      content-type:
+      - application/json
+      x-api-key:
+      - REDACTED
+      anthropic-version:
+      - "2023-06-01"
+    method: POST
+    uri: https://api.anthropic.com/v1/messages
+  response:
+    body:
+      string: '{"id": "msg_02YGEVFKhBBDawa3npuWpZMQ", "type": "message", "role":
+        "assistant", "content": [{"type": "text", "text": "A practical example of
+        quantum computing is drug discovery. Classical computers struggle to simulate
+        molecular interactions because the number of possible configurations grows
+        exponentially. A quantum computer can represent all these configurations simultaneously
+        using superposition, testing millions of molecular arrangements in parallel.
+        For instance, researchers at IBM used a quantum computer to simulate the behavior
+        of lithium hydride molecules, which could lead to better battery designs.
+        Similarly, pharmaceutical companies are exploring quantum simulations to model
+        how drug molecules interact with proteins, potentially cutting years off the
+        drug development process."}], "model": "claude-sonnet-4-20250514", "stop_reason":
+        "end_turn", "stop_sequence": null, "usage": {"input_tokens": 72, "output_tokens":
+        118}}'
+    headers:
+      content-type:
+      - application/json
+    status:
+      code: 200
+      message: OK
+version: 1

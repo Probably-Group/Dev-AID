@@ -1,0 +1,26 @@
+# Synthetic VCR cassette: Google Gemini simple request
+# Simulates: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent
+# Prompt: "Say 'Hello' in one word."
+# Model: gemini-flash
+interactions:
+- request:
+    body: '{"contents": [{"parts": [{"text": "Say ''Hello'' in one word."}], "role":
+      "user"}], "generationConfig": {"temperature": 0.7, "maxOutputTokens": 4096}}'
+    headers:
+      content-type:
+      - application/json
+    method: POST
+    uri: https://generativelanguage.googleapis.com/v1beta/models/gemini-flash:generateContent?key=REDACTED
+  response:
+    body:
+      string: '{"candidates": [{"content": {"parts": [{"text": "Hello"}], "role":
+        "model"}, "finishReason": "STOP", "avgLogprobs": -0.0012}], "usageMetadata":
+        {"promptTokenCount": 10, "candidatesTokenCount": 2, "totalTokenCount": 12},
+        "modelVersion": "gemini-2.0-flash"}'
+    headers:
+      content-type:
+      - application/json; charset=UTF-8
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -39,7 +39,7 @@ class TaskClassifier:
             r"\b(entire|whole|all|every)\s+(codebase|repository|project|files?)\b",
             r"\banalyze\s+everything\b",
             r"\bread\s+all\b",
-            r"\brevie w\s+entire\b",
+            r"\breview\s+entire\b",
             r"\b(100|200|many)\s+files\b",
             r"\brepository[- ]wide\b",
             # File count indicators

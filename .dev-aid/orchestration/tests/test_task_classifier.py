@@ -49,3 +49,44 @@ class TestTaskClassifier:
         explanation = classifier.explain_classification(TaskType.DEBUGGING, ["bug"], 0.8)
         assert "Bug investigation" in explanation
         assert "80%" in explanation
+
+    def test_classify_documentation(self, classifier):
+        task_type, keywords, conf = classifier.classify("write documentation for the API")
+        assert task_type == TaskType.DOCUMENTATION
+
+    def test_classify_debugging(self, classifier):
+        task_type, keywords, conf = classifier.classify("debug this error, find the bug")
+        assert task_type == TaskType.DEBUGGING
+
+    def test_classify_complex_reasoning(self, classifier):
+        task_type, keywords, conf = classifier.classify(
+            "design the architecture and evaluate trade-offs"
+        )
+        assert task_type == TaskType.COMPLEX_REASONING
+
+    def test_confidence_cap(self, classifier):
+        # Input with many matching keywords — confidence should never exceed 1.0
+        task_type, keywords, conf = classifier.classify(
+            "fix the bug error problem broken failing crash exception"
+        )
+        assert conf <= 1.0
+
+    def test_get_model_for_task_defaults(self, classifier):
+        empty_config: dict = {}
+        assert (
+            classifier.get_model_for_task(TaskType.MASSIVE_CONTEXT, empty_config) == "gemini-flash"
+        )
+        assert classifier.get_model_for_task(TaskType.DOCUMENTATION, empty_config) == "gpt-4o"
+        assert classifier.get_model_for_task(TaskType.DEBUGGING, empty_config) == "claude-sonnet"
+
+    def test_explain_all_types(self, classifier):
+        for task_type in TaskType:
+            explanation = classifier.explain_classification(task_type, ["test"], 0.5)
+            assert "50%" in explanation
+
+    def test_classify_competing_patterns(self, classifier):
+        # Security keywords dominate: "vulnerability" + "security" + "sql injection"
+        task_type, keywords, conf = classifier.classify(
+            "check for sql injection vulnerability in the security module"
+        )
+        assert task_type == TaskType.SECURITY_AUDIT

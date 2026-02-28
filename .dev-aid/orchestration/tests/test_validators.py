@@ -1,7 +1,15 @@
 import pytest
 from pydantic import ValidationError
 
-from router.validators import CostLimit, ExecuteRequest, ModelConfig, SafePath, SubprocessCommand
+from router.validators import (
+    APIKeyConfig,
+    CostLimit,
+    ExecuteRequest,
+    MCPServerConfig,
+    ModelConfig,
+    SafePath,
+    SubprocessCommand,
+)
 
 
 class TestExecuteRequest:
@@ -28,6 +36,35 @@ class TestModelConfig:
             ModelConfig(provider="anthropic", model_id="claude; rm -rf")
 
 
+class TestAPIKeyConfig:
+    def test_valid_api_key(self):
+        config = APIKeyConfig(provider="anthropic", api_key="sk-ant-1234567890abcdef")
+        assert config.api_key == "sk-ant-1234567890abcdef"
+
+    def test_whitespace_only_key_rejected(self):
+        with pytest.raises(ValidationError, match="at least 10 characters"):
+            APIKeyConfig(provider="anthropic", api_key="          ")
+
+    def test_key_with_newline_rejected(self):
+        with pytest.raises(ValidationError, match="invalid characters"):
+            APIKeyConfig(provider="openai", api_key="sk-12345\n67890abcdef")
+
+
+class TestMCPServerConfig:
+    def test_valid_mcp_config(self):
+        config = MCPServerConfig(name="test-server", command="node", args=["server.js"])
+        assert config.name == "test-server"
+        assert config.command == "node"
+
+    def test_invalid_command_prefix_rejected(self):
+        with pytest.raises(ValidationError, match="Command must start with"):
+            MCPServerConfig(name="bad-server", command="curl http://evil.com")
+
+    def test_valid_command_accepted(self):
+        config = MCPServerConfig(name="py-server", command="python3", args=["-m", "mcp"])
+        assert config.command == "python3"
+
+
 class TestSafePath:
     def test_traversal(self):
         with pytest.raises(ValidationError, match="traversal"):
@@ -48,6 +85,10 @@ class TestSafePath:
         path = SafePath(path="file.txt", base_dir=cwd)
         assert path.path == "file.txt"
 
+    def test_control_chars_rejected(self):
+        with pytest.raises(ValidationError, match="control characters"):
+            SafePath(path="file\x01.txt")
+
 
 class TestSubprocessCommand:
     def test_valid(self):
@@ -62,6 +103,18 @@ class TestSubprocessCommand:
         with pytest.raises(ValidationError, match="Input should be"):
             SubprocessCommand(program="evil_script", args=[])
 
+    def test_null_byte_in_arg(self):
+        with pytest.raises(ValidationError, match="null bytes"):
+            SubprocessCommand(program="git", args=["status\0evil"])
+
+    def test_validate_cwd_none(self):
+        cmd = SubprocessCommand(program="git", args=["status"], cwd=None)
+        assert cmd.cwd is None
+
+    def test_validate_cwd_invalid(self):
+        with pytest.raises(ValidationError, match="traversal"):
+            SubprocessCommand(program="git", args=["status"], cwd="../../../etc")
+
 
 class TestCostLimit:
     def test_valid(self):
@@ -71,3 +124,7 @@ class TestCostLimit:
     def test_invalid_threshold(self):
         with pytest.raises(ValidationError, match="less than or equal to"):
             CostLimit(daily_limit=10.0, warning_threshold=1.5)
+
+    def test_threshold_exactly_one(self):
+        with pytest.raises(ValidationError, match="less than 1.0"):
+            CostLimit(daily_limit=10.0, warning_threshold=1.0)

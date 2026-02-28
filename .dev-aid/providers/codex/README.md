@@ -119,7 +119,7 @@ Reference skills directly in your AGENTS.md:
 |----------|-------|----------|
 | **Core** | 5 | test-runner, linter, type-checker, code-reviewer, secret-scanner |
 | **Expert** | 74 | fastapi-expert, devsecops-expert, api-expert, typescript-expert, prd-generator |
-| **Process** | 7 | tdd-protocol, verification-gate, systematic-debugging |
+| **Process** | 8 | tdd-protocol, verification-gate, systematic-debugging, design-first |
 
 Browse all skills:
 ```bash
@@ -233,7 +233,7 @@ The template provides natural language trigger phrases for all 26 Dev-AID comman
 | Feature | Codex CLI | Claude Code | Gemini CLI |
 |---------|-----------|-------------|------------|
 | Context file | `AGENTS.md` | `CLAUDE.md` | `GEMINI.md` |
-| Command discovery | Natural language triggers (26) | `/slash` commands (26) | `/slash` commands (26) |
+| Command discovery | Natural language triggers (26) | `/slash` commands (70) | `/slash` commands (78) |
 | Skills directory | `.codex/skills/` | `.claude/skills/` | `.gemini/` (via refs) |
 | File references | `@file` syntax | `@file` syntax | `@file` syntax |
 | Hooks config | `config.toml` | `hooks.json` | `hooks.toml` |

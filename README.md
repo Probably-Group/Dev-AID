@@ -811,7 +811,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 ## 🆕 Latest Changes
 
 - **🎛️ Stack-Specific Presets** — 21 presets covering Python, JS/TS, Java, C#, Go, Rust, PHP, Ruby, Dart, mobile, and K8s/Talos — with SOTA security, performance, and quality rules
-- **🤖 Autonomous Agent Framework** — 9 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`, `/aid-dod`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
+- **🤖 Autonomous Agent Framework** — 12 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`, `/aid-dod`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring
 - **🏠 Local LLM Support** — Offline AI via Ollama/LM Studio/llama.cpp with hardware auto-detection and smart model recommendations
 - **🔍 Hybrid Search** — BM25 + Vector with Reciprocal Rank Fusion, two-agent Architect Mode, Git Worktree Isolation, Session Persistence
@@ -1151,8 +1151,8 @@ Claude: *automatically uses local RAG*
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Contribution guidelines
 
 ### Provider Docs
-- **[Claude Provider](.dev-aid/providers/claude/README.md)** — Primary provider: 53 slash commands, 5 hooks, Markdown format
-- **[Gemini Provider](.dev-aid/providers/gemini/README.md)** — Gemini CLI: 31 slash commands, TOML format
+- **[Claude Provider](.dev-aid/providers/claude/README.md)** — Primary provider: 70 slash commands, 5 hooks, Markdown format
+- **[Gemini Provider](.dev-aid/providers/gemini/README.md)** — Gemini CLI: 78 slash commands, TOML format
 - **[Local LLM Provider](.dev-aid/providers/local/README.md)** - Local model setup, agent compatibility, tool calling requirement, recommended models
 - **[OpenAI Provider](.dev-aid/providers/openai/README.md)** - OpenAI integration, slash command gap explanation, workarounds
 - **[Codex CLI Provider](.dev-aid/providers/codex/README.md)** - Codex CLI integration, skills loading, hook configuration

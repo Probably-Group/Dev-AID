@@ -4,7 +4,7 @@ This directory provides Dev-AID integration for [Claude Code](https://docs.anthr
 
 ## Overview
 
-Claude Code uses Markdown-based slash commands with YAML frontmatter. Dev-AID provides **53 slash commands** across 8 categories, all with short `aid-*` aliases for quick discovery. Skills are shared via symlinks for automatic synchronization.
+Claude Code uses Markdown-based slash commands with YAML frontmatter. Dev-AID provides **70 slash commands** across 8 categories, all with short `aid-*` aliases for quick discovery. Skills are shared via symlinks for automatic synchronization.
 
 ## Prerequisites
 
@@ -52,7 +52,7 @@ cp .dev-aid/providers/claude/CLAUDE.md CLAUDE.md
 .dev-aid/providers/claude/
 ├── README.md                    # This file
 └── .claude/
-    ├── commands/                # 53 slash commands (.md files)
+    ├── commands/                # 70 slash commands (.md files)
     │   ├── agents/              # PR review, test gen, tech debt, CI fix, etc.
     │   ├── maintenance/         # Update models, deploy validation
     │   ├── operations/          # Deploy validation
@@ -143,7 +143,7 @@ Skills are shared across all providers via symlinks:
 |----------|-------|----------|
 | **Core** | 5 | test-runner, linter, type-checker, code-reviewer, secret-scanner |
 | **Expert** | 74 | fastapi-expert, devsecops-expert, api-expert, typescript-expert, prd-generator |
-| **Process** | 7 | tdd-protocol, verification-gate, systematic-debugging |
+| **Process** | 8 | tdd-protocol, verification-gate, systematic-debugging, design-first |
 
 Browse available skills:
 ```bash
@@ -211,7 +211,7 @@ ln -s ../../../../.dev-aid/skills/process process
 |---------|-------------|------------|-----------|
 | Context file | `CLAUDE.md` | `GEMINI.md` | `AGENTS.md` |
 | Command format | Markdown (.md) | TOML (.toml) | Natural language triggers |
-| Command discovery | `/slash` commands (53) | `/slash` commands (31) | Trigger phrases (26) |
+| Command discovery | `/slash` commands (70) | `/slash` commands (78) | Trigger phrases (26) |
 | Skills directory | `.claude/skills/` | `.gemini/skills/` | `.codex/skills/` |
 | Hooks count | 5 | 1 | 1 |
 | Skill format | YAML frontmatter + MD | YAML frontmatter + MD | YAML frontmatter + MD |

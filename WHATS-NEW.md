@@ -1,5 +1,56 @@
 # What's New in Dev-AID
 
+## v1.5.1 - Infrastructure Hardening + TUI Dashboard + Enterprise Security
+
+### TOON Format Phases 2-4 (Complete)
+All phases of Token-Optimized Object Notation now delivered:
+- **Phase 2**: Measurement script (`measure-toon-savings.py`) quantifies 40-60% token savings across config files
+- **Phase 3**: TOON Format Guide documentation for skill developers
+- **Phase 4**: NOT-IMPLEMENTED.md fully updated, migration tooling complete
+
+### TUI Dashboard for Cost Analytics (NEW!)
+Rich-based terminal dashboard for router cost monitoring:
+- Budget status with colored progress bar (green < 60%, yellow 60-85%, red > 85%)
+- All-time summary: total cost, active days, average daily cost
+- Model and provider usage tables with per-call averages
+- Daily history and recent routing decisions
+- Usage: `python -m router.cli dashboard [--days 7] [--budget 100]`
+
+### Router E2E Integration Tests (NEW!)
+30 end-to-end tests across 9 test classes with mocked API responses:
+- Solo, ensemble, and challenger mode full-pipeline validation
+- Budget enforcement (over-budget rejection, zero-budget)
+- Fallback chains (provider failure, API error surfacing)
+- Cost persistence (costs.json structure, accumulation, model stats)
+- Mode selection (config default, explicit override, invalid mode)
+- Zero API cost (all providers mocked)
+
+### Enterprise Security CI (NEW!)
+`dependency-security.yml` GitHub Actions workflow:
+- **pip-audit**: CVE scanning against PyPI/OSV database
+- **Safety**: Vulnerability scanning against Safety DB
+- **Bandit**: Python SAST at medium+ severity/confidence
+- **Trivy**: License compliance scanning
+- Triggers: PR to main, push to main, weekly schedule, manual dispatch
+- Results uploaded as artifacts with 30-day retention
+
+### RAG Integration Fix
+Fixed MCP tool name mismatch in context_builder.py (`search` → `search_code`) to match the actual local-search MCP server tool registration. All three router modes (solo, ensemble, challenger) now correctly integrate with local semantic code search.
+
+### PRD Generator Skill (NEW!)
+Three-mode Product Requirements Document generator:
+- **Interactive Builder**: 7-step guided wizard for new projects
+- **Validator**: 11-section completeness scoring (grades A-F)
+- **Reverse-Engineer**: Infer PRD from existing codebase with confidence tags
+- Slash commands: `/aid-prd`, `/aid-prd-validate`
+- Init system integration: auto-offers PRD creation during setup
+
+### GitHub Sponsors
+- `.github/FUNDING.yml` created for Probably-Group organization
+- Detailed proposal with 5 tiers ($5-$500/mo) at `.dev-aid/docs/GITHUB-SPONSORS-PROPOSAL.md`
+
+---
+
 ## v1.5.0 - Autonomous Agent Framework + APO + Comprehensive Security Scanning
 
 ### Stack-Specific Presets (NEW!)

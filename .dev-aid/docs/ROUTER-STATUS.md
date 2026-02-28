@@ -1,8 +1,8 @@
 # Router Implementation Status
 
-**Date**: 2025-12-03
-**Version**: 1.0.0
-**Status**: ✅ **FUNCTIONAL** (Phase 1-3 Complete)
+**Date**: 2026-02-28
+**Version**: 1.5.1
+**Status**: ✅ **FUNCTIONAL** (Phase 1-4 Complete, Phase 5 Partial)
 
 ---
 
@@ -21,7 +21,8 @@
 | **Ensemble Mode** | ✅ Complete | `router/modes/ensemble.py` | 214 |
 | **Challenger Mode** | ✅ Complete | `router/modes/challenger.py` | 390 |
 | **Executor** | ✅ Complete | `router/executor.py` | 250 |
-| **CLI Interface** | ✅ Complete | `router/cli.py` | 235 |
+| **CLI Interface** | ✅ Complete | `router/cli.py` | 530 |
+| **TUI Dashboard** | ✅ Complete | `router/dashboard.py` | 262 |
 | **Bash Wrappers** | ✅ Complete | `router-cli.sh`, `router.sh` | 50 |
 
 **Total Implementation**: ~2,360 lines of Python + documentation
@@ -72,6 +73,9 @@
 - [x] CLI interface (`python -m router.cli`)
 - [x] Bash wrapper for slash command integration
 - [x] Test configuration command
+- [x] Rich TUI dashboard (`python -m router.cli dashboard`)
+- [x] Auth status command (`python -m router.cli auth-status`)
+- [x] MCP server discovery and management
 
 **Result**: Full visibility into routing and costs
 
@@ -90,12 +94,23 @@
 - [x] Error handling (missing keys, invalid config)
 - [x] Budget limit enforcement
 
+### E2E Integration Tests (30 tests)
+
+- [x] Solo mode: response, request passthrough, cost tracking, routing log
+- [x] Ensemble mode: task classification, confidence, model selection
+- [x] Challenger mode: primary-only, force challenge, trigger keywords, auto-refine, graceful failure
+- [x] Budget enforcement: over-budget rejection, zero-budget, budget status
+- [x] Fallback chains: provider failure, API error surfacing
+- [x] Cost persistence: costs.json structure, accumulation, routing.log growth, model stats
+- [x] Mode selection: config default, explicit override, invalid mode
+- [x] Output formatting: solo success, failure, verbose metrics
+- [x] All tests use mocked API clients (no real API calls, $0 cost)
+
 ### Not Yet Tested
 
-- [ ] Actual API calls (requires API keys)
 - [ ] Cross-platform compatibility (macOS, Windows, Linux)
 - [ ] Large-scale usage (100+ requests)
-- [ ] Edge cases (API failures, timeouts)
+- [ ] Live API integration tests (would cost real money)
 
 ---
 
@@ -126,7 +141,13 @@
    # Shows today's costs, requests, budget status
    ```
 
-5. **Test configuration**
+5. **Rich TUI dashboard**
+   ```bash
+   python -m router.cli dashboard
+   # Budget bar, model tables, daily history, recent decisions
+   ```
+
+6. **Test configuration**
    ```bash
    python -m router.cli test
    # Validates providers, API keys, memory bank
@@ -136,16 +157,20 @@
 
 ## 🚧 What's NOT Implemented
 
-### Phase 5: RAG Integration (Not Started)
+### Phase 5: RAG Integration (Partial)
 
-- [ ] RAG query integration with `claude-context-local`
-- [ ] Context injection from semantic search
-- [ ] `/aid-router-challenger-rag` command implementation
+- [x] MCP client and registry for MCP server discovery
+- [x] Context builder integration (`gather_mcp_context()` method)
+- [x] Smart MCP server selection based on task type
+- [x] All 3 modes (solo, ensemble, challenger) consume MCP context via kwargs
+- [x] Tool name fix: `search` → `search_code` matching local-search MCP server
+- [ ] `/aid-router-challenger-rag` command wiring to actual router (doc exists, not wired)
+- [ ] MCP query caching and parallel queries (MCP Phase 4 advanced features)
 - [ ] Automatic RAG trigger for large codebases
 
-**Impact**: RAG-enhanced routing documented but not functional yet
+**Status**: MCP pipeline is functional end-to-end when the local-search MCP server is running. The `context_builder.py` queries `search_code` via MCP, results are injected into the system prompt for all modes. The challenger-rag slash command exists as documentation but isn't wired through the Python router.
 
-**Workaround**: Context builder loads memory bank files with query-aware on-demand selection, token budgets, and section-level extraction
+**Remaining work**: Wire the challenger-rag slash command to the router executor, add MCP query caching for repeated queries
 
 ---
 
@@ -180,7 +205,7 @@
 
 ### 3. Automated Tests
 
-**Status**: ✅ 936 tests, 82% coverage (pytest + coverage threshold enforced by pre-commit hooks)
+**Status**: ✅ 1,156 tests (including 30 E2E router tests), coverage enforced by pre-commit hooks
 
 ---
 
@@ -228,7 +253,9 @@ Installs:
 | **Cost tracking** | ✅ Yes | Automatic |
 | **Budget limits** | ✅ Yes | Set in routing.json |
 | **Slash command integration** | ✅ Yes | Via bash wrappers |
-| **RAG integration** | ❌ No | Phase 5 (future) |
+| **RAG integration** | ⚠️ Partial | MCP pipeline works; challenger-rag command not wired |
+| **TUI dashboard** | ✅ Yes | `python -m router.cli dashboard` |
+| **E2E tests** | ✅ Yes | 30 tests with mocked APIs |
 
 ---
 
@@ -303,9 +330,8 @@ python -m router.cli execute "What is 2+2?" --verbose
 
 ### What's Missing
 
-❌ RAG integration (Phase 5)
-❌ Automated tests
-❌ Production battle-testing
+⚠️ RAG integration — MCP pipeline works, challenger-rag command not wired
+❌ Production battle-testing with live APIs
 
 ### Recommendation
 

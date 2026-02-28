@@ -1,6 +1,6 @@
 # Dev-AID Skills System
 
-**5 core skills** for automated checking + **74 expert skills** for domain expertise + **7 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **74 expert skills** for domain expertise + **8 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
 
 ## 🔄 Core vs Expert vs Process Skills
 
@@ -36,7 +36,7 @@
 
 **Example**: `typescript-expert` tells you "Use strict types", but doesn't run `tsc`
 
-### Process Skills (7 available) 🆕
+### Process Skills (8 available) 🆕
 **Purpose**: Behavioral protocols that enforce disciplined workflows
 **Loading**: Auto-triggers on specific events/keywords (configurable)
 **Token Cost**: ~300-450 tokens each

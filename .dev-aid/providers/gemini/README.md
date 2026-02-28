@@ -4,7 +4,7 @@ This directory provides Dev-AID integration for [Gemini CLI](https://github.com/
 
 ## Overview
 
-Gemini CLI uses TOML-based slash commands with `[metadata]` and `[prompt]` sections. Dev-AID provides **31 slash commands** across 5 categories, all with short `aid-*` aliases. Skills are shared via symlinks for automatic synchronization.
+Gemini CLI uses TOML-based slash commands with `[metadata]` and `[prompt]` sections. Dev-AID provides **78 slash commands** across 11 categories, all with short `aid-*` aliases. Skills are shared via symlinks for automatic synchronization.
 
 ## Prerequisites
 
@@ -53,7 +53,7 @@ cp .dev-aid/providers/gemini/GEMINI.md GEMINI.md
 .dev-aid/providers/gemini/
 ├── README.md                    # This file
 └── .gemini/
-    ├── commands/                # 31 slash commands (.toml files)
+    ├── commands/                # 78 slash commands (.toml files)
     │   ├── agents/              # PR review, test gen, tech debt, CI fix, etc.
     │   ├── creation/            # Skill creation commands
     │   ├── planning/            # Planning commands
@@ -136,7 +136,7 @@ Skills are shared across all providers via symlinks:
 |----------|-------|----------|
 | **Core** | 5 | test-runner, linter, type-checker, code-reviewer, secret-scanner |
 | **Expert** | 74 | fastapi-expert, devsecops-expert, api-expert, typescript-expert, prd-generator |
-| **Process** | 7 | tdd-protocol, verification-gate, systematic-debugging |
+| **Process** | 8 | tdd-protocol, verification-gate, systematic-debugging, design-first |
 
 Browse available skills:
 ```bash
@@ -214,7 +214,7 @@ ln -s ../../../../.dev-aid/skills/process process
 |---------|------------|-------------|-----------|
 | Context file | `GEMINI.md` | `CLAUDE.md` | `AGENTS.md` |
 | Command format | TOML (.toml) | Markdown (.md) | Natural language triggers |
-| Command discovery | `/slash` commands (31) | `/slash` commands (53) | Trigger phrases (26) |
+| Command discovery | `/slash` commands (78) | `/slash` commands (70) | Trigger phrases (26) |
 | Skills directory | `.gemini/skills/` | `.claude/skills/` | `.codex/skills/` |
 | Hooks config | `hooks.toml` | `settings.json` | `config.toml` |
 | Hooks count | 1 | 5 | 1 |

@@ -1,0 +1,38 @@
+"$schema": "https://modelcontextprotocol.io/schema/mcp.json"
+mcpServers:
+  "code-search":
+    description: Local semantic code search powered by claude-context-local
+    command: uv
+    args[5]: run,"--directory","${HOME}/.local/share/claude-context-local",python,mcp_server/server.py
+    enabled: true
+    features:
+      semantic_search: true
+      ast_parsing: true
+      local_only: true
+      zero_cost: true
+  "deep-research":
+    description: "Multi-provider deep research using Gemini, Tavily, and Perplexity"
+    command: python
+    args[2]: "-m",deep_research.mcp_server.server
+    env:
+      PYTHONPATH: "${DEV_AID_ROOT}/.dev-aid/deep-research"
+    enabled: true
+    features:
+      web_research: true
+      multi_provider: true
+      auto_routing: true
+      caching: true
+    providers:
+      tavily:
+        api_key_env: TAVILY_API_KEY
+        capabilities[2]: quick,standard
+      perplexity:
+        api_key_env: PERPLEXITY_API_KEY
+        capabilities[2]: standard,deep
+      gemini:
+        api_key_env: GOOGLE_API_KEY
+        capabilities[1]: deep
+settings:
+  auto_index_on_startup: false
+  index_on_file_save: false
+  excluded_dirs[6]: node_modules,.venv,__pycache__,build,dist,.git

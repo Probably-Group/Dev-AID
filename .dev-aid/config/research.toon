@@ -1,0 +1,47 @@
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+description: Dev-AID Deep Research Provider Configuration
+version: 1.0.0
+providers:
+  gemini:
+    enabled: true
+    api_key_env: GOOGLE_API_KEY
+    model: deep-research-pro-preview-12-2025
+    timeout_seconds: 300
+    capabilities[1]: deep
+    cost_notes: "Uses Gemini API credits. Free Google Search until Jan 5, 2026."
+  tavily:
+    enabled: true
+    api_key_env: TAVILY_API_KEY
+    endpoint: "https://api.tavily.com/search"
+    capabilities[2]: quick,standard
+    cost_notes: "Free tier: 1000 credits/month. Basic=1 credit, Advanced=2 credits."
+  perplexity:
+    enabled: true
+    api_key_env: PERPLEXITY_API_KEY
+    endpoint: "https://api.perplexity.ai/chat/completions"
+    models:
+      standard: sonar
+      deep: sonar-deep-research
+    capabilities[2]: standard,deep
+    cost_notes: "$0.002/1K input tokens, $0.008/1K output tokens"
+cache:
+  enabled: true
+  default_ttl_hours: 24
+  max_ttl_hours: 48
+  directory: ~/.dev-aid/cache/research
+  cleanup_on_startup: true
+routing:
+  auto_enabled: true
+  prefer_speed: false
+  deep_research_keywords[10]: comprehensive,in-depth,analyze,compare,pros and cons,best practices,architecture,design patterns,tradeoffs,alternatives
+  quick_search_keywords[7]: what is,define,syntax,error,how to,latest version,documentation
+fallback:
+  enabled: true
+  trigger_on_empty_local_search: true
+  trigger_keywords[8]: latest,best practice,compare,alternatives,documentation,"2024","2025","2026"
+mcp:
+  server_name: deep-research
+  description: Dev-AID Deep Research MCP Server
+  command: python
+  args[2]: "-m",deep_research.mcp_server.server
+  working_directory: "${DEV_AID_ROOT}/.dev-aid/deep-research"

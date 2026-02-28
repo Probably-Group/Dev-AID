@@ -1,0 +1,44 @@
+version: 1.0.0
+description: Dev-AID Local Search Configuration
+search_mode: hybrid
+modes:
+  vector:
+    description: Pure vector/semantic search using FAISS
+    enabled: true
+  bm25:
+    description: Pure keyword/lexical search using BM25
+    enabled: true
+  hybrid:
+    description: Combined BM25 + Vector search with configurable weighting
+    enabled: true
+hybrid:
+  alpha: 0.5
+  description: "Weight for vector search (0.0 = pure BM25, 1.0 = pure vector)"
+  fusion_method: reciprocal_rank
+  normalize_scores: true
+bm25:
+  k1: 1.2
+  b: 0.75
+  description: "BM25 parameters: k1 controls term frequency saturation, b controls document length normalization"
+vector:
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  embedding_dim: 384
+  index_type: flat
+  metric: cosine
+preprocessing:
+  code_tokenizer: simple
+  remove_comments: false
+  lowercase: false
+  camel_case_split: true
+  snake_case_split: true
+defaults:
+  top_k: 10
+  min_score: 0.1
+  deduplicate: true
+  include_context: true
+  context_lines: 5
+index:
+  path: .dev-aid/local-search/index
+  auto_update: true
+  update_on_save: false
+  ignore_patterns[6]: **/node_modules/**,**/.git/**,**/venv/**,**/__pycache__/**,**/dist/**,**/build/**

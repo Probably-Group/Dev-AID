@@ -1,0 +1,90 @@
+version: 1.0.0
+description: Conservative Auto-Load Rules - File Pattern Matching
+created: 2025-11-25
+strategy: Load max 2-3 skills when file patterns match with high confidence
+rules[9]:
+  - id: testing-context
+    confidence: high
+    trigger:
+      files[6]: *.test.*,*.spec.*,*test*.ts,*test*.js,__tests__/*,tests/*
+      patterns[8]: test,testing,TDD,spec,coverage,jest,vitest,pytest
+    skills[1]: tdd-master
+    maxLoad: 1
+    reason: Testing file detected - load TDD skill for test-first development
+  - id: security-context
+    confidence: high
+    trigger:
+      files[6]: *auth*,*login*,*security*,*crypto*,*password*,*.env*
+      patterns[8]: security,auth,authentication,authorization,crypto,password,token,secret
+    skills[2]: devsecops-expert,owasp-guardian
+    maxLoad: 2
+    reason: Security-sensitive code detected - load security skills
+  - id: database-context
+    confidence: high
+    trigger:
+      files[5]: *migration*,*schema*,*model*,*entity*,*repository*
+      patterns[8]: database,query,SQL,migration,schema,ORM,Prisma,TypeORM
+    skills[1]: database-design
+    maxLoad: 1
+    reason: Database code detected - load database design skill
+  - id: api-context
+    confidence: high
+    trigger:
+      files[6]: *route*,*controller*,*endpoint*,*api*,*/routes/*,*/controllers/*
+      patterns[6]: API,endpoint,route,controller,REST,GraphQL
+    skills[2]: api-expert,backend-dev-guidelines
+    maxLoad: 2
+    reason: API code detected - load API and backend skills
+  - id: frontend-context
+    confidence: high
+    trigger:
+      files[5]: *.tsx,*.jsx,*component*,*/components/*,*/pages/*
+      patterns[6]: React,Vue,Angular,component,useState,useEffect
+    skills[1]: frontend-dev-guidelines
+    maxLoad: 1
+    reason: Frontend code detected - load frontend skill
+  - id: performance-context
+    confidence: medium
+    trigger:
+      patterns[6]: performance,slow,optimize,bottleneck,cache,profiling
+    skills[1]: performance-expert
+    maxLoad: 1
+    autoLoad: false
+    reason: Performance work mentioned - SUGGEST performance-expert skill
+  - id: microservices-context
+    confidence: medium
+    trigger:
+      files[3]: *service*,*/services/*,*microservice*
+      patterns[4]: microservice,service mesh,distributed,event-driven
+    skills[2]: microservices,event-driven
+    maxLoad: 2
+    autoLoad: false
+    reason: Microservices work - SUGGEST microservices skills
+  - id: cicd-context
+    confidence: high
+    trigger:
+      files[4]: .github/workflows/*,.gitlab-ci.yml,Jenkinsfile,*pipeline*
+      patterns[5]: CI/CD,pipeline,deployment,GitHub Actions,GitLab CI
+    skills[1]: cicd-expert
+    maxLoad: 1
+    reason: CI/CD configuration detected - load cicd-expert
+  - id: clean-code-context
+    confidence: medium
+    trigger:
+      patterns[5]: refactor,clean code,SOLID,design pattern,code smell
+    skills[2]: clean-code,design-patterns
+    maxLoad: 2
+    autoLoad: false
+    reason: Clean code/refactoring - SUGGEST clean code skills
+config:
+  maxSkillsPerPrompt: 3
+  highConfidenceThreshold: 0.8
+  autoLoadOnlyHighConfidence: true
+  suggestMediumConfidence: true
+  tokenBudget:
+    perSkill: 200
+    maximum: 600
+alwaysLoaded:
+  description: "These load at SessionStart, not via rules"
+  skills[2]: code-reviewer,secret-scanner
+  totalTokens: 500

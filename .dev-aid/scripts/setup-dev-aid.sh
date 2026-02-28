@@ -57,6 +57,52 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 # ============================================================================
+# Platform detection
+# ============================================================================
+
+detect_platform() {
+    local kernel
+    kernel="$(uname -s 2>/dev/null || echo 'unknown')"
+
+    case "$kernel" in
+        Linux*)   PLATFORM="linux"   ;;
+        Darwin*)  PLATFORM="macos"   ;;
+        CYGWIN*|MINGW*|MSYS*)  PLATFORM="windows-bash" ;;
+        *)
+            # Fallback: check Windows-specific environment variables
+            if [[ -n "${MSYSTEM:-}" ]] || [[ "${OSTYPE:-}" == msys* ]] || [[ "${OSTYPE:-}" == cygwin* ]]; then
+                PLATFORM="windows-bash"
+            else
+                PLATFORM="unknown"
+            fi
+            ;;
+    esac
+    export PLATFORM
+}
+
+detect_platform
+
+if [[ "$PLATFORM" == "windows-bash" ]]; then
+    echo -e "${YELLOW}Warning: Running on Windows via ${MSYSTEM:-bash compatibility layer}.${NC}"
+    echo -e "${YELLOW}Full Dev-AID functionality requires WSL (Windows Subsystem for Linux).${NC}"
+    echo -e "${YELLOW}Python components (router, orchestration) work natively on Windows.${NC}"
+    echo -e "${YELLOW}Bash-based features (git hooks, security tools) may have limited support.${NC}"
+    echo ""
+    if [ "${NON_INTERACTIVE:-false}" = false ]; then
+        read -p "Continue anyway? (Y/n) " -n 1 -r platform_reply
+        echo
+        if [[ "$platform_reply" =~ ^[Nn]$ ]]; then
+            echo -e "${CYAN}Tip: Install WSL with 'wsl --install' for full compatibility.${NC}"
+            exit 0
+        fi
+    fi
+elif [[ "$PLATFORM" == "unknown" ]]; then
+    echo -e "${YELLOW}Warning: Unrecognized platform ($(uname -s 2>/dev/null || echo 'unknown')).${NC}"
+    echo -e "${YELLOW}Dev-AID is tested on macOS and Linux. Proceed with caution.${NC}"
+    echo ""
+fi
+
+# ============================================================================
 # Parse flags
 # ============================================================================
 

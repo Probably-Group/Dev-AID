@@ -204,7 +204,7 @@
 
 ### 3. Automated Tests
 
-**Status**: ✅ 1,156 tests (including 30 E2E router tests), coverage enforced by pre-commit hooks
+**Status**: ✅ 1,226 tests (including 30 E2E router tests + 109 MCP tests), coverage enforced by pre-commit hooks
 
 ---
 

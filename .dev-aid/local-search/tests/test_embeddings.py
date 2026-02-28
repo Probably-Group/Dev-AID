@@ -66,7 +66,10 @@ class TestCodeEmbedder:
     def test_device_selection_cpu(self):
         """Test CPU fallback when no accelerator available"""
         with patch('torch.cuda.is_available', return_value=False):
-            with patch('hasattr', return_value=False):  # No MPS
+            mock_mps = MagicMock()
+            mock_mps.is_available.return_value = False
+
+            with patch('torch.backends.mps', mock_mps, create=True):
                 with patch('embeddings.embedder.SentenceTransformer') as mock_st:
                     embedder = CodeEmbedder()
 

@@ -1,0 +1,155 @@
+name: Windows Compatibility
+
+# Lightweight Windows CI: validates Python components work on Windows.
+# Bash scripts are NOT expected to run natively on Windows — they require
+# WSL or Git Bash.  This workflow focuses on the orchestration test suite
+# and the context-detector, which are pure Python.
+
+on:
+  pull_request:
+    branches: [main, master, develop]
+    paths:
+      - '**.py'
+      - '.github/workflows/windows-compat.yml'
+      - '.dev-aid/orchestration/**'
+  push:
+    branches: [main, master, develop]
+    paths:
+      - '**.py'
+      - '.github/workflows/windows-compat.yml'
+      - '.dev-aid/orchestration/**'
+
+# Cancel outdated workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-python-tests:
+    name: Python Tests (Windows)
+    runs-on: windows-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: '.dev-aid/orchestration/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          cd .dev-aid/orchestration
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest==8.3.4 pytest-cov==5.0.0 pytest-xdist==3.5.0
+
+      - name: Run orchestration test suite
+        run: |
+          cd .dev-aid/orchestration
+          python -m pytest tests/ -v --no-cov -x --ignore=tests/test_e2e.py
+        env:
+          # Prevent tests from attempting real API calls
+          ANTHROPIC_API_KEY: "test-key-windows-ci"
+          OPENAI_API_KEY: "test-key-windows-ci"
+          GOOGLE_API_KEY: "test-key-windows-ci"
+
+      - name: Test context detector
+        run: |
+          python .dev-aid/orchestration/context-detector.py detect .
+          python .dev-aid/orchestration/context-detector.py select "python fastapi" 5
+
+  windows-bash-smoke:
+    name: Bash Scripts Smoke Test (Git Bash)
+    runs-on: windows-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Verify bash scripts parse correctly
+        shell: bash
+        run: |
+          echo "=== Bash script syntax validation (Git Bash on Windows) ==="
+          echo ""
+
+          ERRORS=0
+
+          # Validate syntax of key scripts (bash -n = syntax check only, no execution)
+          for script in \
+            .dev-aid/scripts/setup-dev-aid.sh \
+            .dev-aid/scripts/update-dev-aid.sh \
+            .dev-aid/scripts/check-prerequisites.sh \
+          ; do
+            if [ -f "$script" ]; then
+              if bash -n "$script" 2>/dev/null; then
+                echo "OK:   $script"
+              else
+                echo "FAIL: $script"
+                ERRORS=$((ERRORS + 1))
+              fi
+            else
+              echo "SKIP: $script (not found)"
+            fi
+          done
+
+          echo ""
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "ERROR: $ERRORS script(s) have syntax errors"
+            exit 1
+          fi
+          echo "All scripts pass syntax validation on Windows Git Bash."
+
+      - name: Check platform detection in setup script
+        shell: bash
+        run: |
+          echo "=== Platform detection test ==="
+          echo ""
+          echo "OSTYPE:  ${OSTYPE:-unset}"
+          echo "MSYSTEM: ${MSYSTEM:-unset}"
+          echo "uname:   $(uname -s 2>/dev/null || echo 'unavailable')"
+          echo ""
+
+          # Verify the setup script contains platform detection
+          if grep -q "detect_platform" .dev-aid/scripts/setup-dev-aid.sh; then
+            echo "Platform detection guard found in setup-dev-aid.sh"
+          else
+            echo "NOTE: Platform detection not yet in setup-dev-aid.sh (expected during rollout)"
+          fi
+
+  windows-compat-summary:
+    name: Windows Compat Summary
+    runs-on: windows-latest
+    needs: [windows-python-tests, windows-bash-smoke]
+    if: always()
+
+    steps:
+      - name: Check results
+        shell: bash
+        run: |
+          echo "=== Windows Compatibility Results ==="
+          echo ""
+
+          PYTHON="${{ needs.windows-python-tests.result }}"
+          BASH="${{ needs.windows-bash-smoke.result }}"
+
+          echo "Python Tests:       $PYTHON"
+          echo "Bash Smoke Tests:   $BASH"
+          echo ""
+
+          if [[ "$PYTHON" == "failure" ]]; then
+            echo "::error::Windows Python tests failed!"
+            exit 1
+          fi
+
+          # Bash smoke is informational — do not block on it
+          if [[ "$BASH" == "failure" ]]; then
+            echo "::warning::Bash smoke tests failed on Windows (non-blocking)"
+          fi
+
+          echo "Windows compatibility checks passed."

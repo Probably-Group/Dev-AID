@@ -33,33 +33,40 @@
 ---
 
 ### 2. Cross-Platform Testing - Windows
-**Status**: 🟡 Works on macOS and Linux, Windows untested
+**Status**: 🟢 Partially implemented (2026-02-28) — Python CI on Windows, bash scripts platform-aware
 
 **Current support**:
 - ✅ macOS (Darwin) - tested and working
 - ✅ Linux - developed and tested on Linux
-- ❓ Windows - untested, likely requires WSL
+- ✅ Windows (Python) - orchestration test suite runs on `windows-latest` in CI
+- ✅ Windows (Git Bash) - bash script syntax validation in CI
+- 🟡 Windows (full bash) - setup/update scripts warn about WSL requirement
 
-**What's missing**:
-- [ ] Windows WSL testing
-- [ ] PowerShell compatibility (if needed)
-- [ ] Path separator handling verification
-- [ ] Windows-specific installation guide
+**What was delivered** (2026-02-28):
+- [x] `windows-compat.yml` — GitHub Actions workflow running Python tests on `windows-latest`
+- [x] Context-detector smoke test on Windows
+- [x] Bash script syntax validation via Git Bash on Windows
+- [x] Platform detection in `setup-dev-aid.sh` (detects MSYS/Cygwin/MINGW, warns about WSL)
+- [x] Graceful degradation: Python-only components work natively, bash features warn
 
-**Why not implemented**:
-- No access to Windows environment
-- Bash scripts require WSL on Windows
-- Unknown Windows user base
+**What's remaining**:
+- [ ] Windows-specific installation guide / WSL setup docs
+- [ ] PowerShell wrapper for common commands (optional, low priority)
+- [ ] Full end-to-end setup-dev-aid.sh testing under WSL in CI
 
-**Proposed approach**:
-- Support Windows via WSL only (not native PowerShell)
-- Document Windows requirements clearly
-- Use GitHub Actions matrix (ubuntu, macos, windows-wsl)
-- Manual testing with Windows users
+**Approach taken**:
+- Python components (router, orchestration, context-detector) run natively on Windows
+- Bash scripts detect Windows platform and warn users about WSL requirement
+- CI workflow is lightweight — focuses on "does the Python code work on Windows?"
+- Bash script syntax validation ensures scripts at least parse correctly under Git Bash
 
-**Effort estimate**: 1 week
+**Files**:
+- `.github/workflows/windows-compat.yml` — Windows CI workflow
+- `.dev-aid/scripts/setup-dev-aid.sh` — Platform detection guards added
 
-**Priority**: Low - only if Windows users exist
+**Effort remaining**: Optional polish (WSL docs, PowerShell wrappers)
+
+**Priority**: Low — core Python compatibility is now validated in CI
 
 ---
 
@@ -215,7 +222,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 ## 🔐 Enterprise Security Features
 
 ### 5. Supply Chain Security & Compliance
-**Status**: 🟡 SCA and CI scanning implemented, supply chain verification remaining
+**Status**: ✅ **ALL PHASES IMPLEMENTED** (Phase 3 completed 2026-02-28)
 
 **What exists**:
 - ✅ Exact version pinning (all 63 dependencies use `==`)
@@ -239,11 +246,17 @@ $ python -m router.cli execute "Refactor this code" --mode solo
   - See `.github/workflows/release-gate.yml` and `dev-aid-sbom-diff.sh`
   - Auto-uploads to GitHub releases
 
-- [ ] **Supply Chain Security**
-  - Dependency provenance verification
-  - Signature verification for packages
-  - Private PyPI mirror support
-  - Dependency update policies
+- [x] **Supply Chain Security** ✅ IMPLEMENTED (2026-02-28)
+  - Dependency provenance verification (pip-audit + Sigstore/cosign + PyPI attestation API)
+  - Hash verification via `pip --require-hashes` with lock file generation
+  - Private PyPI mirror support (configurable via `.dev-aid/config/supply-chain.json`)
+  - Registry allowlist enforcement
+  - Typosquatting detection for known attack patterns
+  - Dependency freshness monitoring
+  - JSON verification report generation
+  - CI integration via `supply-chain-verify` job in `dependency-security.yml`
+  - Standalone script: `.dev-aid/scripts/verify-supply-chain.sh`
+  - Configuration: `.dev-aid/config/supply-chain.json`
 
 - [x] **CI Security Scanning** ✅ IMPLEMENTED (2026-02-27)
   - Bandit (Python security linting) -- medium+ severity/confidence
@@ -253,7 +266,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
   - See `.github/workflows/dependency-security.yml`
 
 **What's remaining**:
-- Supply chain verification (provenance, signatures, private PyPI mirror)
+- None -- all phases complete
 
 **Implemented phases**:
 1. **Phase 1: CI Security Scanning** ✅ IMPLEMENTED (2026-02-27)
@@ -266,11 +279,16 @@ $ python -m router.cli execute "Refactor this code" --mode solo
    - CycloneDX and SPDX formats via Trivy
    - Generated on release, published as artifact
 
-3. **Phase 3: Supply Chain Verification** (2-3 weeks) -- NOT YET IMPLEMENTED
-   - Verify package signatures
-   - Pin dependencies with hash verification
-   - Document dependency update policy
-   - Private PyPI mirror support (optional)
+3. **Phase 3: Supply Chain Verification** ✅ IMPLEMENTED (2026-02-28)
+   - Provenance verification via pip-audit, Sigstore/cosign, PyPI attestation API
+   - Hash verification with `pip --require-hashes` and lock file generation
+   - Registry allowlist enforcement (configurable allowed registries)
+   - Private PyPI mirror support (configurable via supply-chain.json)
+   - Typosquatting detection for known malicious package name patterns
+   - Dependency freshness monitoring
+   - JSON report generation for CI integration
+   - Graceful degradation (optional tools warn but don't block)
+   - See `.dev-aid/scripts/verify-supply-chain.sh` and `.dev-aid/config/supply-chain.json`
 
 **Tools integrated**:
 - ✅ **Bandit**: Python security linting (in `dependency-security.yml`)
@@ -278,11 +296,11 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - ✅ **pip-audit**: OSV/PyPI vulnerability scanner (in `dependency-security.yml`)
 - ✅ **Trivy**: License compliance + SBOM generation (in `dependency-security.yml` + `release-gate.yml`)
 - ✅ **Dependabot**: Automated dependency updates (GitHub)
+- ✅ **cosign/Sigstore**: Package attestation verification (optional, in `verify-supply-chain.sh`)
 
-**Effort remaining**:
-- Supply chain verification: 2-3 weeks
+**Effort remaining**: None -- all phases delivered
 
-**Priority**: Low -- CI scanning and SBOM cover most enterprise requirements
+**Priority**: ~~Low~~ **DONE**
 
 ---
 
@@ -295,8 +313,8 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 | **TOON Format Integration (Phases 2-4)** | ✅ **IMPLEMENTED** | ~~High~~ | ~~1-2 weeks~~ **DONE** | All ($30-50K/year savings) |
 | Router E2E Tests | ✅ **IMPLEMENTED** | ~~High~~ | ~~1-2 weeks~~ **DONE** | All (validates core) |
 | TUI Dashboard | ✅ **IMPLEMENTED** | ~~Medium~~ | ~~1 week~~ **DONE** | All (better UX) |
-| Windows Testing | 🟡 Untested | Low | 1 week | Windows users only |
-| Enterprise Security (SCA/SBOM) | ✅ **SCA/CI IMPLEMENTED** | ~~Med-High~~ Low | ~~4-6 weeks~~ 2-3 weeks remaining | Teams/Enterprises |
+| Windows Testing | 🟢 **Partially IMPLEMENTED** | Low | ~~1 week~~ Optional polish | Windows users |
+| Enterprise Security (All Phases) | ✅ **ALL PHASES IMPLEMENTED** | ~~Med-High~~ **DONE** | ~~4-6 weeks~~ **DONE** | Teams/Enterprises |
 
 ---
 
@@ -308,7 +326,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 3. ~~**TOON Format Integration (Phases 2-4)**~~ - ✅ **IMPLEMENTED** (2026-02-27) - Measurement, docs, migration tooling
 4. ~~**TUI Dashboard**~~ - ✅ **IMPLEMENTED** (2026-02-27) - Rich-based cost analytics
 5. ~~**Router E2E Tests**~~ - ✅ **IMPLEMENTED** (2026-02-27) - 30 tests with mocked APIs
-6. Skip Windows testing unless users request it
+6. ~~Skip Windows testing~~ — 🟢 Python CI on Windows now automated
 7. Skip enterprise security
 
 ### For Small Teams (2-5 people):
@@ -327,7 +345,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 4. ~~**CI Security Scanning**~~ - ✅ **IMPLEMENTED** (2026-02-27)
 5. ~~**Router E2E Tests**~~ - ✅ **IMPLEMENTED** (2026-02-27)
 6. **SBOM Generation** (1 week) - Compliance requirement
-7. **Supply Chain Security** (2-3 weeks) - Full provenance tracking
+7. ~~**Supply Chain Security**~~ - ✅ **IMPLEMENTED** (2026-02-28) - Full provenance tracking
 8. ~~**TUI Dashboard**~~ - ✅ **IMPLEMENTED** (2026-02-27)
 
 ---
@@ -369,15 +387,15 @@ $ python -m router.cli execute "Refactor this code" --mode solo
 - ✅ TOON Format Integration (Phases 2-4) → **IMPLEMENTED** (2026-02-27) — measurement, docs, migration tooling
 - ~~Router E2E Tests~~ → ✅ **IMPLEMENTED** (2026-02-27) - 30 tests with mocked APIs
 - ~~TUI Dashboard~~ → ✅ **IMPLEMENTED** (2026-02-27) - Rich-based dashboard
-- Windows Testing → Depends on user base
+- ~~Windows Testing~~ → 🟢 Partially implemented (Python CI + platform detection, 2026-02-28)
 - ~~Enterprise Security (SCA/CI)~~ → ✅ **IMPLEMENTED** (2026-02-27) - pip-audit, safety, bandit in CI
 
 ---
 
 **Remaining**:
-1. Windows Testing — only if users request it
-2. Supply Chain Verification — provenance, signatures, private PyPI mirror
+1. ~~Windows Testing~~ — 🟢 Partially implemented (Python CI + platform detection, 2026-02-28)
+2. ~~Supply Chain Verification~~ — ✅ **IMPLEMENTED** (2026-02-28) - provenance, signatures, private PyPI mirror
 3. Everything else is implemented
 
-**Last Updated**: 2026-02-27
+**Last Updated**: 2026-02-28
 

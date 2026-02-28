@@ -1,0 +1,42 @@
+"pr-reviewer"[2]:
+  - id: pr-review-security
+    user_message: Review this PR that adds a login endpoint with password handling
+    expected_behaviors[4]: Checks for input validation,Evaluates password hashing approach,Provides a clear verdict (approve/request changes),References specific code locations
+  - id: pr-review-quality
+    user_message: Review this PR that refactors the database connection pool
+    expected_behaviors[3]: Checks for error handling,Evaluates connection lifecycle management,Considers backwards compatibility
+"test-generator"[1]:
+  - id: test-gen-python
+    user_message: Generate pytest tests for src/auth/login.py
+    expected_behaviors[3]: Generates valid pytest test functions,Includes both happy path and error cases,Uses appropriate fixtures or mocks
+"tech-debt-hunter"[1]:
+  - id: debt-scan-basic
+    user_message: Scan src/ for technical debt at medium severity or higher
+    expected_behaviors[3]: Identifies code duplication or complexity issues,Assigns severity levels to findings,Provides actionable remediation suggestions
+"ci-fixer"[1]:
+  - id: ci-fix-basic
+    user_message: Diagnose and fix the CI failure for run 12345
+    expected_behaviors[3]: Reads CI logs to identify the failure,Proposes a specific fix,Considers whether the fix could break other tests
+"conflict-resolver"[1]:
+  - id: conflict-resolve-smart
+    user_message: Resolve merge conflicts in PR #42 using smart strategy
+    expected_behaviors[3]: Identifies all conflicting files,Applies context-aware resolution,Preserves intent from both branches
+research[1]:
+  - id: research-standard
+    user_message: "Research topic: async patterns in Python. Depth: standard"
+    expected_behaviors[3]: "Covers multiple async approaches (asyncio, threading, multiprocessing)",Provides code examples or references,Compares trade-offs between approaches
+onboarding[1]:
+  - id: onboard-basic
+    user_message: Generate a comprehensive onboarding guide for this codebase
+    expected_behaviors[3]: Identifies the project structure,Lists key technologies and dependencies,Provides getting-started instructions
+"doc-auditor"[1]:
+  - id: doc-audit-full
+    user_message: "Audit documentation in the project. Scope: full"
+    expected_behaviors[3]: Checks for broken links or missing references,Identifies documentation gaps,Provides a health score or summary
+"dod-gate"[2]:
+  - id: dod-gate-pass
+    user_message: "## Original Request\n\nAdd input validation to the login endpoint\n\n## Agent Output (ci-fixer)\n\nAdded input validation to `src/auth/login.py`:\n- Email format validation using regex\n- Password length check (8-128 chars)\n- Rate limiting (5 attempts per minute)\n\nFiles modified:\n- `src/auth/login.py` (lines 42-67)\n- `tests/test_login.py` (added 4 new test cases)\n\nAll tests pass:\n```\n$ pytest tests/test_login.py -v\n4 passed in 0.3s\n```"
+    expected_behaviors[4]: Checks all 4 verification dimensions,Produces PASS or WARN overall verdict,Identifies concrete file paths as artifacts,Notes the test evidence as verification story
+  - id: dod-gate-fail
+    user_message: "## Original Request\n\nFix the authentication bypass vulnerability\n\n## Agent Output (research)\n\nI looked into the authentication system. It seems like there might be some issues with how tokens are validated. You should probably add better validation. Let me know if you need more help."
+    expected_behaviors[4]: Flags lack of concrete artifacts (FAIL or WARN),Flags absence of verification evidence,Produces FAIL or WARN overall verdict,Suggests specific improvements needed

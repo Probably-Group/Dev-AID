@@ -18,7 +18,7 @@
 - 21 unit tests passing (100% pass rate)
 - Single Python dependency
 
-🔄 **Phase 2-4 In Progress** - Skill/config conversion coming soon
+✅ **Phase 2-4 Complete** - TOON encoder/decoder, config loader support, migration & measurement scripts ready
 
 ## Quick Examples
 
@@ -191,22 +191,21 @@ claude:
       context_window: 200000
 ```
 
-## Next Steps (Upcoming Phases)
+## Completed Phases
 
-### Phase 2: Skill Conversion (Coming Soon)
-- Convert architecture-mapper skill to output TOON
-- Convert devsecops-expert skill to output TOON
-- Convert test-data-factory skill to output TOON
+### Phase 2: Config Loader Support ✅
+- Config loader tries `.toon` before `.json` fallback
+- Seamless transparent loading via `config_loader.py`
 
-### Phase 3: Config Migration (Coming Soon)
-- Migrate models.json → models.toon
-- Migrate routing.json → routing.toon
-- Update config loaders to support TOON
+### Phase 3: Migration Tooling ✅
+- Migration script: `.dev-aid/scripts/migrate-to-toon.sh`
+- Measurement script: `.dev-aid/scripts/measure-toon-savings.py`
+- TOON Format Guide: `.dev-aid/docs/TOON-FORMAT-GUIDE.md`
 
-### Phase 4: Full Deployment (Coming Soon)
+### Phase 4: Full Integration ✅
 - Complete documentation
-- Measure actual token savings in production
-- Roll out to all users
+- Token savings measurement tools
+- Ready for production config conversion
 
 ## API Reference
 
@@ -253,6 +252,6 @@ For questions or issues:
 
 ---
 
-**Status**: ✅ Phase 1 Complete | 🔄 Phases 2-4 In Progress
-**Version**: 1.3.0
-**Last Updated**: 2025-12-15
+**Status**: ✅ All Phases Complete (1-4)
+**Version**: 1.5.1
+**Last Updated**: 2026-02-28

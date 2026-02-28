@@ -196,7 +196,7 @@ class TestCodeSearchIndex:
         assert index.chunks == []
 
     def test_pickle_migration(self, index_dir, sample_chunks, sample_embeddings):
-        """Test migration from legacy pickle format to JSON"""
+        """Test that legacy pickle format is refused for security (CWE-502)"""
         # Build index
         index = CodeSearchIndex(index_dir)
         index.build(sample_chunks, sample_embeddings)
@@ -206,7 +206,7 @@ class TestCodeSearchIndex:
         import faiss
         faiss.write_index(index.index, str(index_path / "index.faiss"))
 
-        # Save chunks as pickle (legacy format)
+        # Save chunks as pickle (legacy format) -- no JSON file
         chunks_pkl_file = index_path / "chunks.pkl"
         with open(chunks_pkl_file, 'wb') as f:
             pickle.dump(sample_chunks, f)
@@ -215,16 +215,22 @@ class TestCodeSearchIndex:
         with open(index_path / "metadata.json", 'w') as f:
             json.dump(index.metadata, f)
 
+        # Remove any JSON chunks file so only pickle is available
+        chunks_json_file = index_path / "chunks.json"
+        if chunks_json_file.exists():
+            chunks_json_file.unlink()
+
         # Verify pickle file exists
         assert chunks_pkl_file.exists()
 
-        # Load index (should migrate)
+        # Load index -- should refuse pickle deserialization
         index2 = CodeSearchIndex(index_dir)
 
-        # Verify migration succeeded
-        assert len(index2.chunks) == 3
-        assert (index_path / "chunks.json").exists()
-        assert not chunks_pkl_file.exists()  # Pickle file should be deleted
+        # Verify security hardening: pickle is NOT loaded
+        assert len(index2.chunks) == 0
+        assert index2.index is None
+        # Pickle file should still exist (not deleted, just refused)
+        assert chunks_pkl_file.exists()
 
     def test_json_format_security(self, index_dir, sample_chunks, sample_embeddings):
         """Test that JSON format is used (not pickle) for security"""

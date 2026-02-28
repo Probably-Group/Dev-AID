@@ -1,0 +1,164 @@
+claude:
+  enabled: true
+  provider: anthropic
+  api_key_env: ANTHROPIC_API_KEY
+  models:
+    "sonnet-4.5":
+      id: claude-sonnet-4-5
+      context_window: 200000
+      capabilities[4]: code,analysis,security,reasoning
+      cost_per_1m_tokens:
+        input: 3.0
+        output: 15.0
+    "opus-4.5":
+      id: claude-opus-4-5
+      context_window: 200000
+      capabilities[3]: complex_reasoning,deep_analysis,architecture
+      cost_per_1m_tokens:
+        input: 15.0
+        output: 75.0
+    "haiku-4.5":
+      id: claude-haiku-4-5
+      context_window: 200000
+      capabilities[3]: speed,simple_tasks,quick_responses
+      cost_per_1m_tokens:
+        input: 0.25
+        output: 1.25
+  default: sonnet-4.5
+  primary_capabilities[3]: code,analysis,security
+gemini:
+  enabled: false
+  provider: google
+  api_key_env: GOOGLE_API_KEY
+  models:
+    "flash-2.0":
+      id: gemini-2.0-flash
+      context_window: 1000000
+      capabilities[3]: massive_context,fast_analysis,multimodal
+      cost_per_1m_tokens:
+        input: 0.075
+        output: 0.3
+    "pro-2.0":
+      id: gemini-2.0-pro
+      context_window: 2000000
+      capabilities[3]: massive_context,deep_reasoning,multimodal
+      cost_per_1m_tokens:
+        input: 1.25
+        output: 5.0
+  default: flash-2.0
+  primary_capabilities[2]: massive_context,analysis
+openai:
+  enabled: false
+  provider: openai
+  api_key_env: OPENAI_API_KEY
+  models:
+    "gpt-4-turbo":
+      id: gpt-4-turbo-2024-04-09
+      context_window: 128000
+      capabilities[3]: general,docs,conversation
+      cost_per_1m_tokens:
+        input: 10.0
+        output: 30.0
+    "gpt-4o":
+      id: gpt-4o
+      context_window: 128000
+      capabilities[3]: general,multimodal,speed
+      cost_per_1m_tokens:
+        input: 5.0
+        output: 15.0
+    "gpt-4.1":
+      id: gpt-4.1
+      context_window: 1000000
+      capabilities[4]: general,coding,instruction_following,massive_context
+      cost_per_1m_tokens:
+        input: 5.0
+        output: 15.0
+    "gpt-3.5-turbo":
+      id: gpt-3.5-turbo
+      context_window: 16385
+      capabilities[3]: simple_tasks,speed,low_cost
+      cost_per_1m_tokens:
+        input: 0.5
+        output: 1.5
+  default: gpt-4o
+  primary_capabilities[2]: general,docs
+openrouter:
+  enabled: false
+  provider: openrouter
+  api_key_env: OPENROUTER_API_KEY
+  base_url: "https://openrouter.ai/api/v1"
+  models:
+    auto:
+      id: openrouter/auto
+      description: Automatically routes to best available model
+      capabilities[2]: routing,fallback
+  default: auto
+  primary_capabilities[2]: routing,fallback
+local:
+  enabled: false
+  provider: local
+  inference_backend: ollama
+  base_url: "http://localhost:11434/v1"
+  models:
+    "phi-4-mini":
+      id: phi4-mini
+      context_window: 16384
+      capabilities[3]: code,general,fast
+      vram_min_gb: 3
+      score: 58
+      tier: entry
+      cost_per_1m_tokens:
+        input: 0.0
+        output: 0.0
+    "codestral-22b":
+      id: "codestral:22b"
+      context_window: 32768
+      capabilities[3]: code,analysis,reasoning
+      vram_min_gb: 14
+      score: 72
+      tier: mid
+      cost_per_1m_tokens:
+        input: 0.0
+        output: 0.0
+    "qwen2.5-coder-32b":
+      id: "qwen2.5-coder:32b"
+      context_window: 32768
+      capabilities[4]: code,analysis,reasoning,complex_tasks
+      vram_min_gb: 20
+      score: 68
+      tier: high
+      cost_per_1m_tokens:
+        input: 0.0
+        output: 0.0
+    "glm-4.7-thinking":
+      id: "glm4:9b"
+      context_window: 131072
+      capabilities[4]: code,reasoning,deep_analysis,long_context
+      vram_min_gb: 48
+      score: 74
+      tier: pro
+      cost_per_1m_tokens:
+        input: 0.0
+        output: 0.0
+    "kimi-k2-thinking":
+      id: kimi-k2
+      context_window: 131072
+      capabilities[4]: code,reasoning,complex_reasoning,architecture
+      vram_min_gb: 80
+      score: 83
+      tier: enterprise
+      cost_per_1m_tokens:
+        input: 0.0
+        output: 0.0
+  default: phi-4-mini
+  primary_capabilities[4]: code,offline,private,zero_cost
+  backends:
+    ollama:
+      default_port: 11434
+      base_url: "http://localhost:11434/v1"
+    lm_studio:
+      default_port: 1234
+      base_url: "http://localhost:1234/v1"
+    llama_cpp:
+      default_port: 8080
+      base_url: "http://localhost:8080/v1"

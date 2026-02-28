@@ -140,11 +140,9 @@ class TestMultiLanguageChunker:
             assert "module" not in chunk.file_path
 
     def test_chunk_nonexistent_file(self, chunker):
-        """Test chunking a file that doesn't exist"""
-        chunks = chunker.chunk_file("/nonexistent/file.py")
-
-        # Should return empty list, not raise exception
-        assert chunks == []
+        """Test chunking a file that doesn't exist raises FileNotFoundError"""
+        with pytest.raises(FileNotFoundError):
+            chunker.chunk_file("/nonexistent/file.py")
 
     def test_chunk_content_not_empty(self, chunker, sample_python_file):
         """Test that chunks have non-empty content"""

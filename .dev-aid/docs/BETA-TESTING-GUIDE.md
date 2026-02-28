@@ -1,7 +1,7 @@
-# Beta Testing Guide — Dev-AID v1.5.0-beta.3
+# Beta Testing Guide — Dev-AID v1.5.1
 
 **Status**: Active Beta
-**Last Updated**: 2026-02-09
+**Last Updated**: 2026-02-28
 **Issue Template**: [Beta Feedback](../../.github/ISSUE_TEMPLATE/beta_feedback.yml)
 
 ---
@@ -52,7 +52,7 @@ export OPENAI_API_KEY="sk-..."
 
 # 4. Verify installation
 cat .dev-aid/VERSION
-# Expected: 1.5.0-beta.3
+# Expected: 1.5.1
 ```
 
 ### Verify Installation
@@ -461,12 +461,9 @@ These are documented issues that are **not bugs** — they're known gaps in the 
 
 | Limitation | Details | Workaround |
 |------------|---------|------------|
-| No E2E router tests | Unit tests exist (199+ passing), but end-to-end integration tests are missing | Test manually with the checklist in section 2.5 |
 | Windows untested | Dev-AID works on macOS and Linux; Windows support is untested | Use WSL on Windows |
-| No TUI dashboard | Cost analytics are available via CLI and JSON files, but no visual dashboard exists | Check `.dev-aid/logs/costs.json` directly |
 | Router costs real money | Each router test uses API credits (~$0.10-0.50) | Test selectively; use solo mode for cheaper tests |
 | Docker required for scanners | Gitleaks, Trivy, and Opengrep require Docker | Install Docker, or accept that security hooks will skip scanner checks |
-| TOON format partial | Phase 1 (encoder/decoder) complete; skill/config conversion pending | Use JSON format (default) |
 
 ---
 

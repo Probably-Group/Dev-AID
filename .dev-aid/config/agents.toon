@@ -1,0 +1,42 @@
+defaults:
+  provider: anthropic
+  model: claude-sonnet-4-5-20250929
+  max_tokens: 4096
+  temperature: 0.3
+  max_iterations: 25
+agents:
+  "pr-reviewer":
+    description: "Review PRs for security, quality, and best practices"
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 15
+    risk_level: safe
+  "test-generator":
+    description: Generate tests for untested code
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 20
+    risk_level: moderate
+  "tech-debt-hunter":
+    description: Scan codebase for code smells and tech debt
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 20
+    risk_level: safe
+  "ci-fixer":
+    description: Diagnose CI failures and propose fixes
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 25
+    risk_level: moderate
+  "conflict-resolver":
+    description: Auto-resolve merge conflicts
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 15
+    risk_level: moderate
+  research:
+    description: Deep research on technical topics
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 30
+    risk_level: safe
+  onboarding:
+    description: Generate codebase onboarding guide
+    model: claude-sonnet-4-5-20250929
+    max_iterations: 20
+    risk_level: safe

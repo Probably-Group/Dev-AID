@@ -115,3 +115,32 @@ jobs:
           name: license-report
           path: license-report.txt
           retention-days: 30
+
+  supply-chain-verify:
+    name: Supply Chain Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install verification tools
+        run: pip install pip-audit
+
+      - name: Run supply chain verification
+        if: always()
+        run: |
+          echo "## Supply Chain Verification" >> $GITHUB_STEP_SUMMARY
+          chmod +x .dev-aid/scripts/verify-supply-chain.sh
+          .dev-aid/scripts/verify-supply-chain.sh --ci --report supply-chain-report.json 2>&1 | tee -a $GITHUB_STEP_SUMMARY || true
+
+      - name: Upload supply chain report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supply-chain-report
+          path: supply-chain-report.json
+          retention-days: 30

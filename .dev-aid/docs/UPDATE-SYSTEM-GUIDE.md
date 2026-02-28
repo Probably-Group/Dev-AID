@@ -1,8 +1,8 @@
 # Dev-AID Update System Guide
 
-**Version:** 1.1.0
+**Version:** 2.0.0
 **Status:** Beta Implementation
-**Last Updated:** 2026-02-09
+**Last Updated:** 2026-02-28
 
 ---
 
@@ -74,13 +74,13 @@ Dev-AID automatically checks for updates on every session start (Claude Code and
 | **Checksum Verification** | SHA256 verification of downloads | Protection against MITM attacks |
 | **Protected Paths** | Never overwrites .env, memory-bank, custom skills | Critical data always preserved |
 
-### 🧠 **Phase 2: Intelligence Features** (Ready for Enhancement)
+### 🧠 **Phase 2: Intelligence Features** (Complete)
 
 | Feature | Status | Description |
 |---------|--------|-------------|
 | **Semantic Versioning** | ✅ Implemented in lib | Warns on major version changes |
 | **Breaking Change Detection** | ✅ Implemented in lib | Prompts before applying breaking updates |
-| **Selective Updates** | 🔜 Planned | Choose which components to update |
+| **Selective Updates** | ✅ Implemented | Choose which components to update via `--component` flag |
 
 ### 🤖 **Phase 3: Automation Features** (Implemented)
 
@@ -219,6 +219,49 @@ Checking for conflicts...
 ✅ Dry run complete - no changes made
    Run without --dry-run to apply update
 ```
+
+### Selective Updates
+
+Update only specific components instead of everything:
+
+```bash
+# List available components
+$ ./.dev-aid/scripts/update-dev-aid.sh --list-components
+
+Available components for selective update:
+
+  COMPONENT      DESCRIPTION                                        PATHS
+  ─────────────  ──────────────────────────────────────────────────  ──────────────────────
+  router         Orchestration router, context detection, routing    orchestration/
+  skills         Skill definitions (core, expert, process)           skills/
+  agents         Agent framework, adapters, teams                    agents/
+  scripts        Utility scripts and CLI tools                       scripts/
+  security       Security scanning, checks, config                   orchestration/run_security_checks.sh,...
+  templates      CI templates, ADR templates, onboarding             templates/
+  providers      Provider configurations (Claude, Gemini, etc.)      providers/
+  docs           Documentation files                                 docs/,CHANGELOG.md,...
+  config         Configuration files (models, routing, teams)        config/
+  search         Local search and RAG integration                    local-search/,deep-research/
+  automation     Automation workflows and presets                     automation/,presets/
+```
+
+```bash
+# Update only the router
+$ ./.dev-aid/scripts/update-dev-aid.sh --component router
+
+# Update skills and agents together
+$ ./.dev-aid/scripts/update-dev-aid.sh --component skills --component agents
+
+# Preview a selective update (dry-run)
+$ ./.dev-aid/scripts/update-dev-aid.sh --component router --dry-run
+```
+
+**Notes:**
+- The `--component` flag is repeatable -- pass it multiple times for multiple components
+- Protected paths are still respected during selective updates
+- Backup and rollback work the same way for selective updates
+- Python dependencies are only updated when the `router` component is included
+- Without `--component`, the script updates everything (backward compatible)
 
 ---
 
@@ -682,7 +725,7 @@ A: No. Custom skills in `.dev-aid/providers/*/skills/custom/` are protected and 
 A: API keys in `.env` files are never overwritten. They're backed up and restored after updates.
 
 **Q: Can I update just the router code?**
-A: Not yet. Selective updates are planned for Phase 2. Currently it's all-or-nothing (but conflicts give you control).
+A: Yes! Use `--component router` to update only the router. You can also combine components: `--component skills --component agents`. Use `--list-components` to see all available components.
 
 **Q: How do I disable update notifications?**
 A: Remove `.dev-aid/scripts/check-update-notify.sh` or delete the `check_update` function from your provider's session-start hook.
@@ -714,11 +757,20 @@ A: Partially. You can update from local copy (`--source` flag), but GitHub API c
 
 ## Changelog
 
+### v2.0.0 (2026-02-28)
+- ✅ Phase 2: Intelligence features — selective updates
+- ✨ `--component <name>` flag for updating specific components
+- ✨ `--list-components` flag to display available components
+- ✨ 11 components: router, skills, agents, scripts, security, templates, providers, docs, config, search, automation
+- ✨ Component-aware conflict detection (only checks files in selected components)
+- ✨ Component-aware rsync filtering (only syncs files in selected components)
+- ✨ Smart dependency updates (only when router component is selected)
+- ✨ Backward compatible (no flags = update everything)
+
 ### v1.0.0 (2025-12-10)
 - ✨ Initial implementation
 - ✅ Phase 1: Safety features (conflict detection, dry-run, rollback, checksums)
 - ✅ Phase 3: Automation features (weekly checks, GitHub API)
-- 🔜 Phase 2: Intelligence features (selective updates) - coming soon
 
 ---
 

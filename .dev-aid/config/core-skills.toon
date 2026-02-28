@@ -1,0 +1,63 @@
+version: 1.0.0
+description: Core skills configuration - always loaded at session start
+lastUpdated: "2025-12-11T20:30:00Z"
+enabled[2]: code-reviewer,secret-scanner
+disabled[3]: test-runner,linter,type-checker
+skillDetails:
+  "code-reviewer":
+    tokenBudget: 250
+    category: quality
+    mandatory: false
+    description: Real-time code quality checks
+    recommendedFor: all
+  "secret-scanner":
+    tokenBudget: 250
+    category: security
+    mandatory: false
+    description: Prevent credential leaks
+    recommendedFor: all
+  "test-runner":
+    tokenBudget: 250
+    category: quality
+    mandatory: false
+    description: Auto-run tests on file save
+    recommendedFor: no-ide-setup
+  linter:
+    tokenBudget: 250
+    category: quality
+    mandatory: false
+    description: Auto-lint on file save
+    recommendedFor: no-ide-setup
+  "type-checker":
+    tokenBudget: 250
+    category: quality
+    mandatory: false
+    description: Auto-check types on file save
+    recommendedFor: no-ide-setup
+profiles:
+  minimal:
+    description: Zero-config defaults (recommended)
+    enabled[2]: code-reviewer,secret-scanner
+    tokenBudget: 500
+  "ide-user":
+    description: "For developers with IDE extensions (ESLint, TypeScript, etc.)"
+    enabled[2]: code-reviewer,secret-scanner
+    tokenBudget: 500
+  "no-ide-setup":
+    description: For command-line developers without IDE extensions
+    enabled[5]: code-reviewer,secret-scanner,test-runner,linter,type-checker
+    tokenBudget: 1250
+  "ci-cd":
+    description: Minimal for CI/CD environments
+    enabled[1]: secret-scanner
+    tokenBudget: 250
+currentProfile: minimal
+tokenUsage:
+  current: 500
+  maximum: 1250
+  percentage: 0.25
+  budget: 200000
+comments:
+  configuration: Modify this file or use /dev-aid-config-core-skills command
+  team_settings: Commit this file to share team defaults
+  personal_overrides: Use .dev-aid/config/core-skills.local.json for personal settings (gitignored)

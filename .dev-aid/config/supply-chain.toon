@@ -1,0 +1,11 @@
+private_pypi_mirror: null
+require_hashes: true
+check_provenance: true
+allowed_registries[1]: "https://pypi.org/simple/"
+trusted_publishers[0]:
+hash_algorithm: sha256
+lock_file: .dev-aid/orchestration/requirements.lock.txt
+requirements_file: .dev-aid/orchestration/requirements.txt
+fail_on_missing_hash: false
+fail_on_provenance_error: false
+report_format: json

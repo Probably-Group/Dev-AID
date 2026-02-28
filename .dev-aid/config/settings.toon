@@ -1,0 +1,19 @@
+dev_aid_version: 2.0.0
+project_name: my-project
+auto_activation: conservative
+auto_load_max_skills: 3
+orchestration_mode: solo
+enabled_providers[1]: claude
+default_model: claude-sonnet-4.5
+memory_bank:
+  auto_load[1]: activeContext.md
+  on_demand[7]: patterns.md,decisions.md,security.md,performance.md,testing.md,chaos.md,agent-optimization.md
+  standing_context_tokens: 1000
+  standing_context_budget: balanced
+  staleness_warning_days: 30
+hooks:
+  enabled: true
+  session_start: true
+  user_prompt_submit: true
+  post_tool_use: false
+  stop: true

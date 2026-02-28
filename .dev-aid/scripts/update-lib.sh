@@ -563,6 +563,143 @@ validate_dev_aid_repo() {
 }
 
 # ============================================================================
+# Component Definitions (for selective updates)
+# ============================================================================
+
+# Available components and their file paths (relative to .dev-aid/)
+# Format: component_name|description|path1,path2,...
+COMPONENT_DEFINITIONS=(
+    "router|Orchestration router, context detection, routing logic|orchestration/"
+    "skills|Skill definitions (core, expert, process)|skills/"
+    "agents|Agent framework, adapters, teams|agents/"
+    "scripts|Utility scripts and CLI tools|scripts/"
+    "security|Security scanning, checks, config|orchestration/run_security_checks.sh,orchestration/SECURITY.md,config/settings.json"
+    "templates|CI templates, ADR templates, onboarding|templates/"
+    "providers|Provider configurations (Claude, Gemini, etc.)|providers/"
+    "docs|Documentation files|docs/,CHANGELOG.md,RAG-SETUP.md"
+    "config|Configuration files (models, routing, teams)|config/"
+    "search|Local search and RAG integration|local-search/,deep-research/"
+    "automation|Automation workflows and presets|automation/,presets/"
+)
+
+# Get component names as a list
+get_component_names() {
+    for entry in "${COMPONENT_DEFINITIONS[@]}"; do
+        echo "${entry%%|*}"
+    done
+}
+
+# Get component description
+# Args: component_name
+get_component_description() {
+    local name="$1"
+    for entry in "${COMPONENT_DEFINITIONS[@]}"; do
+        local comp_name="${entry%%|*}"
+        if [[ "$comp_name" == "$name" ]]; then
+            local rest="${entry#*|}"
+            echo "${rest%%|*}"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Get component paths (comma-separated)
+# Args: component_name
+get_component_paths() {
+    local name="$1"
+    for entry in "${COMPONENT_DEFINITIONS[@]}"; do
+        local comp_name="${entry%%|*}"
+        if [[ "$comp_name" == "$name" ]]; then
+            local rest="${entry#*|}"
+            local paths="${rest#*|}"
+            echo "$paths"
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Validate that a component name exists
+# Args: component_name
+# Returns: 0 if valid, 1 if invalid
+validate_component() {
+    local name="$1"
+    for entry in "${COMPONENT_DEFINITIONS[@]}"; do
+        local comp_name="${entry%%|*}"
+        if [[ "$comp_name" == "$name" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Display available components
+list_components() {
+    echo -e "${BLUE}Available components for selective update:${NC}"
+    echo ""
+    printf "  ${CYAN}%-14s${NC} %-50s %s\n" "COMPONENT" "DESCRIPTION" "PATHS"
+    printf "  %-14s %-50s %s\n" "─────────────" "──────────────────────────────────────────────────" "──────────────────────"
+    for entry in "${COMPONENT_DEFINITIONS[@]}"; do
+        local comp_name="${entry%%|*}"
+        local rest="${entry#*|}"
+        local description="${rest%%|*}"
+        local paths="${rest#*|}"
+        printf "  ${GREEN}%-14s${NC} %-50s ${YELLOW}%s${NC}\n" "$comp_name" "$description" "$paths"
+    done
+    echo ""
+    echo -e "${BLUE}Usage:${NC}"
+    echo "  update-dev-aid.sh --component router"
+    echo "  update-dev-aid.sh --component skills --component agents"
+    echo "  update-dev-aid.sh --component router --dry-run"
+    echo ""
+}
+
+# Build rsync include/exclude args for component-only update
+# Args: component_names (space-separated)
+# Outputs: rsync filter args (one per line)
+build_component_rsync_filters() {
+    local components=("$@")
+    local include_paths=()
+
+    # Collect all paths for requested components
+    for comp in "${components[@]}"; do
+        local paths_csv
+        paths_csv=$(get_component_paths "$comp")
+        IFS=',' read -ra comp_paths <<< "$paths_csv"
+        for p in "${comp_paths[@]}"; do
+            include_paths+=("$p")
+        done
+    done
+
+    # Build rsync filters: include specified paths, exclude everything else
+    # We need to include parent directories for nested paths
+    local filter_args=()
+    for p in "${include_paths[@]}"; do
+        # If path ends with /, it's a directory - include it and all contents
+        if [[ "$p" == */ ]]; then
+            filter_args+=("--include=${p}***")
+        else
+            # Individual file
+            filter_args+=("--include=${p}")
+        fi
+        # Also include parent dirs leading to this path
+        local parent
+        parent=$(dirname "$p")
+        while [[ "$parent" != "." && "$parent" != "/" ]]; do
+            filter_args+=("--include=${parent}/")
+            parent=$(dirname "$parent")
+        done
+    done
+
+    # Exclude everything else
+    filter_args+=("--exclude=*")
+
+    # Output unique filters (preserve order, remove duplicates)
+    printf '%s\n' "${filter_args[@]}" | awk '!seen[$0]++'
+}
+
+# ============================================================================
 # Export functions for use in other scripts
 # ============================================================================
 
@@ -586,3 +723,9 @@ export -f exec_unless_dry_run
 export -f show_update_summary
 export -f show_next_steps
 export -f validate_dev_aid_repo
+export -f get_component_names
+export -f get_component_description
+export -f get_component_paths
+export -f validate_component
+export -f list_components
+export -f build_component_rsync_filters

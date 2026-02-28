@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Dev-AID Enhanced Update Script
 # Safely updates Dev-AID with conflict detection, checksums, and rollback
-# Version: 2.0.0
+# Version: 3.0.0 — Selective update support (Phase 2)
 
 set -euo pipefail
 
@@ -13,6 +13,7 @@ source "$SCRIPT_DIR/update-lib.sh"
 DRY_RUN=false
 FORCE=false
 SKIP_CONFLICTS=false
+SELECTED_COMPONENTS=()
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -28,25 +29,58 @@ while [[ $# -gt 0 ]]; do
             SKIP_CONFLICTS=true
             shift
             ;;
+        --component)
+            if [[ -z "${2:-}" ]]; then
+                echo -e "${RED}Error: --component requires a value${NC}"
+                echo "Use --list-components to see available components"
+                exit 1
+            fi
+            if ! validate_component "$2"; then
+                echo -e "${RED}Error: Unknown component '$2'${NC}"
+                echo ""
+                list_components
+                exit 1
+            fi
+            SELECTED_COMPONENTS+=("$2")
+            shift 2
+            ;;
+        --list-components)
+            list_components
+            exit 0
+            ;;
         --help|-h)
             cat <<EOF
 Usage: update-dev-aid.sh [options]
 
 Options:
-  --dry-run         Preview changes without applying them
-  --force           Skip conflict resolution (take all upstream)
-  --skip-conflicts  Skip files with conflicts (don't update)
-  --help, -h        Show this help message
+  --dry-run              Preview changes without applying them
+  --force                Skip conflict resolution (take all upstream)
+  --skip-conflicts       Skip files with conflicts (don't update)
+  --component <name>     Update only a specific component (repeatable)
+  --list-components      List available components and exit
+  --help, -h             Show this help message
 
 Examples:
   # Preview update
   ./update-dev-aid.sh --dry-run
 
-  # Interactive update with conflict resolution
+  # Interactive update with conflict resolution (all components)
   ./update-dev-aid.sh
 
   # Force update (overwrite all conflicts)
   ./update-dev-aid.sh --force
+
+  # Update only the router component
+  ./update-dev-aid.sh --component router
+
+  # Update skills and agents together
+  ./update-dev-aid.sh --component skills --component agents
+
+  # Preview a selective update
+  ./update-dev-aid.sh --component router --dry-run
+
+  # List available components
+  ./update-dev-aid.sh --list-components
 
 For more information, see: .dev-aid/docs/UPDATE-SYSTEM-GUIDE.md
 EOF
@@ -60,6 +94,12 @@ EOF
     esac
 done
 
+# Determine update mode
+SELECTIVE_UPDATE=false
+if [ ${#SELECTED_COMPONENTS[@]} -gt 0 ]; then
+    SELECTIVE_UPDATE=true
+fi
+
 # Header
 echo -e "${BLUE}╔════════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║     Dev-AID Enhanced Update Tool           ║${NC}"
@@ -68,6 +108,18 @@ echo ""
 
 if $DRY_RUN; then
     echo -e "${CYAN}🔍 DRY RUN MODE (no changes will be made)${NC}"
+    echo ""
+fi
+
+if $SELECTIVE_UPDATE; then
+    echo -e "${CYAN}📦 SELECTIVE UPDATE MODE${NC}"
+    echo -e "${CYAN}   Components: ${SELECTED_COMPONENTS[*]}${NC}"
+    for comp in "${SELECTED_COMPONENTS[@]}"; do
+        local_desc=$(get_component_description "$comp")
+        local_paths=$(get_component_paths "$comp")
+        echo -e "   ${GREEN}$comp${NC} — $local_desc"
+        echo -e "     Paths: ${YELLOW}$local_paths${NC}"
+    done
     echo ""
 fi
 
@@ -239,6 +291,27 @@ if [ -d "$TEMP_DIR/.dev-aid" ] || $DRY_RUN; then
     if ! $DRY_RUN; then
         # Generate list of files that will be updated
         find "$TEMP_DIR/.dev-aid" -type f -printf "%P\n" > "$FILE_LIST"
+
+        # If selective update, filter file list to only include component paths
+        if $SELECTIVE_UPDATE; then
+            FILTERED_LIST="$TEMP_DIR/files-filtered.txt"
+            > "$FILTERED_LIST"
+            for comp in "${SELECTED_COMPONENTS[@]}"; do
+                comp_paths=$(get_component_paths "$comp")
+                IFS=',' read -ra path_array <<< "$comp_paths"
+                for p in "${path_array[@]}"; do
+                    # Match files under directory paths or exact file paths
+                    if [[ "$p" == */ ]]; then
+                        grep "^${p}" "$FILE_LIST" >> "$FILTERED_LIST" 2>/dev/null || true
+                    else
+                        grep "^${p}$" "$FILE_LIST" >> "$FILTERED_LIST" 2>/dev/null || true
+                    fi
+                done
+            done
+            # Replace the file list with the filtered version
+            sort -u "$FILTERED_LIST" > "$FILE_LIST"
+            echo -e "${BLUE}→ Filtered to $(wc -l < "$FILE_LIST") files for selected components${NC}"
+        fi
     else
         echo -e "${CYAN}[DRY-RUN] Would scan for conflicts${NC}"
         # Create dummy file list for dry-run
@@ -293,16 +366,35 @@ if ! $DRY_RUN; then
 
     # Use rsync with exclusions for protected paths
     PROTECTED_PATHS=$(get_protected_paths)
-    EXCLUDE_ARGS_ARRAY=()
+    RSYNC_ARGS_ARRAY=()
     while IFS= read -r path; do
-        EXCLUDE_ARGS_ARRAY+=(--exclude="$path")
+        RSYNC_ARGS_ARRAY+=(--exclude="$path")
     done <<< "$PROTECTED_PATHS"
 
-    rsync -av "${EXCLUDE_ARGS_ARRAY[@]}" "$TEMP_DIR/.dev-aid/" ".dev-aid/"
+    # If selective update, add component include/exclude filters
+    if $SELECTIVE_UPDATE; then
+        echo -e "${BLUE}→ Applying selective filters for: ${SELECTED_COMPONENTS[*]}${NC}"
+
+        COMPONENT_FILTERS=$(build_component_rsync_filters "${SELECTED_COMPONENTS[@]}")
+        while IFS= read -r filter_arg; do
+            RSYNC_ARGS_ARRAY+=("$filter_arg")
+        done <<< "$COMPONENT_FILTERS"
+    fi
+
+    rsync -av "${RSYNC_ARGS_ARRAY[@]}" "$TEMP_DIR/.dev-aid/" ".dev-aid/"
 
     echo -e "${GREEN}✓ Files updated${NC}"
 else
-    echo -e "${CYAN}[DRY-RUN] Would copy files with rsync (excluding protected paths)${NC}"
+    if $SELECTIVE_UPDATE; then
+        echo -e "${CYAN}[DRY-RUN] Would copy files with rsync for components: ${SELECTED_COMPONENTS[*]}${NC}"
+        echo -e "${CYAN}[DRY-RUN] Component filters:${NC}"
+        COMPONENT_FILTERS=$(build_component_rsync_filters "${SELECTED_COMPONENTS[@]}")
+        while IFS= read -r filter_arg; do
+            echo -e "${CYAN}  $filter_arg${NC}"
+        done <<< "$COMPONENT_FILTERS"
+    else
+        echo -e "${CYAN}[DRY-RUN] Would copy files with rsync (excluding protected paths)${NC}"
+    fi
 fi
 
 echo ""
@@ -321,11 +413,26 @@ fi
 
 echo ""
 
-# Update dependencies
-if ! $DRY_RUN; then
-    update_python_deps ".dev-aid/orchestration/.venv"
+# Update dependencies (only when router component is included or updating all)
+SHOULD_UPDATE_DEPS=true
+if $SELECTIVE_UPDATE; then
+    SHOULD_UPDATE_DEPS=false
+    for comp in "${SELECTED_COMPONENTS[@]}"; do
+        if [[ "$comp" == "router" ]]; then
+            SHOULD_UPDATE_DEPS=true
+            break
+        fi
+    done
+fi
+
+if $SHOULD_UPDATE_DEPS; then
+    if ! $DRY_RUN; then
+        update_python_deps ".dev-aid/orchestration/.venv"
+    else
+        echo -e "${CYAN}[DRY-RUN] Would update Python dependencies${NC}"
+    fi
 else
-    echo -e "${CYAN}[DRY-RUN] Would update Python dependencies${NC}"
+    echo -e "${BLUE}→ Skipping dependency update (router not in selected components)${NC}"
 fi
 
 # Get new version
@@ -341,7 +448,26 @@ fi
 # Show summary
 echo ""
 if ! $DRY_RUN; then
-    show_update_summary "$CURRENT_VERSION" "$NEW_VERSION" "$BACKUP_DIR"
+    if $SELECTIVE_UPDATE; then
+        echo ""
+        echo -e "${GREEN}╔════════════════════════════════════════════╗${NC}"
+        echo -e "${GREEN}║     Selective Update Complete! 🎉          ║${NC}"
+        echo -e "${GREEN}╚════════════════════════════════════════════╝${NC}"
+        echo ""
+        echo -e "${BLUE}Version: $CURRENT_VERSION → $NEW_VERSION${NC}"
+        echo ""
+        echo -e "${BLUE}Components updated:${NC}"
+        for comp in "${SELECTED_COMPONENTS[@]}"; do
+            local_desc=$(get_component_description "$comp")
+            echo "  ✓ $comp — $local_desc"
+        done
+        echo ""
+        echo -e "${BLUE}Backup location:${NC}"
+        echo "  $BACKUP_DIR"
+        echo ""
+    else
+        show_update_summary "$CURRENT_VERSION" "$NEW_VERSION" "$BACKUP_DIR"
+    fi
     show_next_steps "$BACKUP_DIR"
 
     # Cleanup old backups
@@ -353,8 +479,13 @@ else
     echo ""
     echo "No changes were made to your installation."
     echo ""
-    echo "To apply this update, run:"
-    echo "  ./update-dev-aid.sh"
+    if $SELECTIVE_UPDATE; then
+        echo "To apply this selective update, run:"
+        echo "  ./update-dev-aid.sh --component ${SELECTED_COMPONENTS[*]}"
+    else
+        echo "To apply this update, run:"
+        echo "  ./update-dev-aid.sh"
+    fi
     echo ""
 fi
 

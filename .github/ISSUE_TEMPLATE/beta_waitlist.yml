@@ -1,0 +1,78 @@
+name: Beta Waitlist
+description: Join the Dev-AID beta program
+title: "[Beta] "
+labels: ["beta-waitlist"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in Dev-AID! Fill out this form to join our beta program.
+
+  - type: input
+    id: name
+    attributes:
+      label: Name
+      description: Your name or GitHub handle
+      placeholder: e.g., Jane Developer
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Primary Use Case
+      description: How do you plan to use Dev-AID?
+      placeholder: |
+        e.g., I want to use multi-AI routing for a large monorepo with
+        mixed Python/TypeScript code. Currently switching between Claude
+        and GPT manually.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: providers
+    attributes:
+      label: AI Providers You Currently Use
+      description: Select all that apply
+      options:
+        - label: Claude (Anthropic)
+        - label: GPT / ChatGPT (OpenAI)
+        - label: Gemini (Google)
+        - label: Cursor
+        - label: Windsurf / Codeium
+        - label: Local models (Ollama, LM Studio, etc.)
+        - label: Other
+
+  - type: dropdown
+    id: experience
+    attributes:
+      label: Experience with AI Coding Assistants
+      options:
+        - Beginner (< 3 months)
+        - Intermediate (3-12 months)
+        - Advanced (1+ years)
+        - Expert (building AI tools)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: referral
+    attributes:
+      label: How Did You Hear About Dev-AID?
+      options:
+        - GitHub (browsing/search)
+        - Hacker News
+        - Reddit
+        - Twitter/X
+        - YouTube
+        - Friend/colleague
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Anything Else?
+      description: Optional — features you're most excited about, concerns, etc.
+      placeholder: e.g., I'm most interested in the challenger mode for code review

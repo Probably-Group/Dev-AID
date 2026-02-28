@@ -292,6 +292,18 @@ ask_providers() {
     fi
     echo ""
 
+    # AI/ML API
+    print_color "$CYAN" "5. AI/ML API (200+ models, single key)"
+    echo "   * Strengths: Access to 200+ AI models from all major providers"
+    echo "   * Single API key for Claude, GPT, Gemini, Llama, and more"
+    echo "   * Affiliate: Dev-AID may receive a referral commission at no extra cost to you"
+    read -p "   Enable AI/ML API? [y/N]: " enable_aimlapi
+    if [[ $enable_aimlapi =~ ^[Yy]$ ]]; then
+        ENABLED_PROVIDERS+=("aimlapi")
+        print_color "$GREEN" "   AI/ML API enabled"
+    fi
+    echo ""
+
     # Ensure at least one provider
     if [ ${#ENABLED_PROVIDERS[@]} -eq 0 ]; then
         print_color "$YELLOW" "No providers enabled. Defaulting to Claude."
@@ -606,6 +618,20 @@ ask_api_keys() {
                     COLLECTED_API_KEYS+=("OPENROUTER_API_KEY=$openrouter_key")
                     unset openrouter_key
                     print_color "$GREEN" "OpenRouter API key saved"
+                else
+                    print_color "$YELLOW" "Skipped (you can add it later)"
+                fi
+                echo ""
+                ;;
+            aimlapi)
+                print_color "$CYAN" "AI/ML API Key"
+                echo "Get your key from: https://aimlapi.com/?via=dev-aid"
+                read -sp "AIMLAPI_API_KEY: " aimlapi_key
+                echo ""
+                if [ -n "$aimlapi_key" ]; then
+                    COLLECTED_API_KEYS+=("AIMLAPI_API_KEY=$aimlapi_key")
+                    unset aimlapi_key
+                    print_color "$GREEN" "AI/ML API key saved"
                 else
                     print_color "$YELLOW" "Skipped (you can add it later)"
                 fi

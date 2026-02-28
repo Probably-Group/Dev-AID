@@ -158,6 +158,8 @@ cd ~/my-project
 ./.dev-aid/automation/tools/install-security-tools.sh
 ```
 
+*Affiliate disclosure: Dev-AID's setup wizard includes [AI/ML API](https://aimlapi.com/?via=dev-aid) as an optional provider. If you sign up through this link, Dev-AID may receive a referral commission at no extra cost to you. This helps fund development.*
+
 ### TL;DR - One Command Examples
 
 ```bash

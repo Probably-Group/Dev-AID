@@ -110,6 +110,23 @@
     "primary_capabilities": ["general", "docs"]
   },
 
+  "aimlapi": {
+    "enabled": false,
+    "provider": "aimlapi",
+    "api_key_env": "AIMLAPI_API_KEY",
+    "base_url": "https://api.aimlapi.com/v1",
+    "models": {
+      "auto": {
+        "id": "auto",
+        "description": "Routes to the best available model across 200+ options",
+        "capabilities": ["routing", "multi_provider", "fallback"]
+      }
+    },
+    "default": "auto",
+    "primary_capabilities": ["routing", "multi_provider"],
+    "affiliate_url": "https://aimlapi.com/?via=dev-aid"
+  },
+
   "openrouter": {
     "enabled": false,
     "provider": "openrouter",

@@ -14,10 +14,20 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
+from hashlib import sha256
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
 
-from .constants import MEMORY_BANK_BUDGET_MULTIPLIERS
+from .constants import (
+    CODEBASE_SEARCH_TOP_K,
+    CODEBASE_SIZE_CACHE_TTL,
+    CODEBASE_SIZE_MEDIUM_MAX_CHUNKS,
+    CODEBASE_SIZE_MEDIUM_MAX_FILES,
+    CODEBASE_SIZE_SMALL_MAX_CHUNKS,
+    CODEBASE_SIZE_SMALL_MAX_FILES,
+    MEMORY_BANK_BUDGET_MULTIPLIERS,
+    MCP_CACHE_TTL,
+)
 from .security_utils import validate_safe_path
 from .token_estimation import estimate_tokens
 
@@ -128,6 +138,19 @@ class DevAIDContext:
     )  # per-file metadata
 
 
+@dataclass
+class _CacheEntry:
+    """TTL cache entry for MCP query results."""
+
+    result: Dict[str, Any]
+    timestamp: float
+    ttl: float = MCP_CACHE_TTL
+
+    @property
+    def is_expired(self) -> bool:
+        return (time.time() - self.timestamp) > self.ttl
+
+
 class ContextBuilder:
     """Builds context from Dev-AID configuration and state"""
 
@@ -143,6 +166,29 @@ class ContextBuilder:
         self.root = config_loader.root
         self.memory_bank_path = config_loader.get_memory_bank_path()
         self.mcp_pool = mcp_pool
+        self._mcp_cache: Dict[str, _CacheEntry] = {}
+
+    def _cache_key(self, prompt: str, server_name: str) -> str:
+        """Generate cache key from prompt and server."""
+        raw = f"{server_name}:{prompt.strip().lower()}"
+        return sha256(raw.encode()).hexdigest()[:16]
+
+    def _get_cached(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get cached MCP result if not expired."""
+        entry = self._mcp_cache.get(key)
+        if entry and not entry.is_expired:
+            return entry.result
+        if entry:
+            del self._mcp_cache[key]
+        return None
+
+    def _set_cached(self, key: str, result: Dict[str, Any], ttl: float = MCP_CACHE_TTL) -> None:
+        """Cache an MCP query result."""
+        self._mcp_cache[key] = _CacheEntry(result=result, timestamp=time.time(), ttl=ttl)
+
+    def clear_mcp_cache(self) -> None:
+        """Clear the MCP query cache."""
+        self._mcp_cache.clear()
 
     def build_context(
         self,
@@ -775,6 +821,61 @@ class ContextBuilder:
             memory_bank_metadata=memory_bank_metadata,
         )
 
+    async def _get_codebase_size(self) -> Dict[str, Any]:
+        """Query codebase size from local search index."""
+        cache_key = self._cache_key("__index_status__", "code-search")
+        cached = self._get_cached(cache_key)
+        if cached is not None:
+            return cached
+
+        result: Dict[str, Any] = {
+            "total_chunks": 0,
+            "indexed_files_count": 0,
+            "size_category": "small",
+        }
+
+        try:
+            if self.mcp_pool and "code-search" in self.mcp_pool.clients:
+                status = await self.mcp_pool.call_tool(
+                    "code-search",
+                    "get_index_status",
+                    {"project_path": str(self.root)},
+                )
+                total_chunks = status.get("total_chunks", 0)
+                indexed_files = status.get("indexed_files", [])
+                file_count = len(indexed_files) if isinstance(indexed_files, list) else 0
+                result["total_chunks"] = total_chunks
+                result["indexed_files_count"] = file_count
+
+                if (
+                    file_count > CODEBASE_SIZE_MEDIUM_MAX_FILES
+                    or total_chunks > CODEBASE_SIZE_MEDIUM_MAX_CHUNKS
+                ):
+                    result["size_category"] = "large"
+                elif (
+                    file_count > CODEBASE_SIZE_SMALL_MAX_FILES
+                    or total_chunks > CODEBASE_SIZE_SMALL_MAX_CHUNKS
+                ):
+                    result["size_category"] = "medium"
+        except Exception as e:
+            logger.debug("Codebase size detection failed: %s", e)
+
+        self._set_cached(cache_key, result, ttl=CODEBASE_SIZE_CACHE_TTL)
+        return result
+
+    @staticmethod
+    def _server_context_key(server_name: str) -> str:
+        """Map MCP server name to context dictionary key."""
+        if server_name == "code-search":
+            return "code_search"
+        elif server_name == "deep-research":
+            return "external_research"
+        elif "postgres" in server_name or "database" in server_name:
+            return "database_schema"
+        elif "github" in server_name:
+            return "github"
+        return server_name
+
     async def gather_mcp_context(
         self,
         prompt: str,
@@ -795,35 +896,54 @@ class ContextBuilder:
         if not self.mcp_pool:
             return {}
 
-        mcp_context = {}
+        mcp_context: Dict[str, Any] = {}
 
         try:
+            # Detect codebase size for adaptive search depth
+            codebase_info = await self._get_codebase_size()
+            size_category = codebase_info.get("size_category", "small")
+            search_top_k = CODEBASE_SEARCH_TOP_K.get(size_category, 5)
+
             # Auto-select MCPs based on task type if not specified
             if requested_servers is None:
-                requested_servers = self._auto_select_mcps(prompt, task_type)
+                requested_servers = self._auto_select_mcps(
+                    prompt, task_type, size_category=size_category
+                )
 
             # Gather context from all servers in parallel
             async def _query_server(
                 server_name: str,
-            ) -> tuple[Optional[str], Optional[Dict[str, Any]]]:
+            ) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
                 """Query a single MCP server, returning (context_key, result)"""
+                # Check cache first
+                cache_key = self._cache_key(prompt, server_name)
+                cached = self._get_cached(cache_key)
+                if cached is not None:
+                    return (self._server_context_key(server_name), cached)
+
+                context_key: Optional[str] = None
+                result: Optional[Dict[str, Any]] = None
                 try:
                     if server_name == "code-search":
-                        return ("code_search", await self._query_code_search(prompt))
+                        context_key = "code_search"
+                        result = await self._query_code_search(prompt, top_k=search_top_k)
                     elif server_name == "deep-research":
-                        return ("external_research", await self._query_deep_research(prompt))
+                        context_key = "external_research"
+                        result = await self._query_deep_research(prompt)
                     elif "postgres" in server_name or "database" in server_name:
-                        return (
-                            "database_schema",
-                            await self._query_database_schema(server_name),
-                        )
+                        context_key = "database_schema"
+                        result = await self._query_database_schema(server_name)
                     elif "github" in server_name:
-                        return (
-                            "github",
-                            await self._query_github_context(server_name, prompt),
-                        )
+                        context_key = "github"
+                        result = await self._query_github_context(server_name, prompt)
                 except Exception as e:
                     logger.warning("Failed to gather context from %s: %s", server_name, e)
+
+                # Cache successful results
+                if context_key and result:
+                    self._set_cached(cache_key, result)
+                    return (context_key, result)
+
                 return (None, None)
 
             gather_results = await asyncio.gather(
@@ -988,18 +1108,24 @@ class ContextBuilder:
             logger.warning("Deep research query failed: %s", e)
             return None
 
-    def _auto_select_mcps(self, prompt: str, task_type: Optional[str]) -> List[str]:
+    def _auto_select_mcps(
+        self,
+        prompt: str,
+        task_type: Optional[str],
+        size_category: str = "small",
+    ) -> List[str]:
         """
         Automatically select which MCP servers to query based on prompt/task type
 
         Args:
             prompt: User's prompt
             task_type: Task type classification
+            size_category: Codebase size ("small", "medium", "large")
 
         Returns:
             List of MCP server names to query
         """
-        selected = []
+        selected: List[str] = []
         prompt_lower = prompt.lower()
 
         # Always include code-search if available
@@ -1033,7 +1159,7 @@ class ContextBuilder:
                     selected.append(server_name)
                     break
 
-        # Research-related (explicit request)
+        # Research-related (explicit request or large codebase with broad queries)
         research_keywords = [
             "research",
             "latest version",
@@ -1042,20 +1168,30 @@ class ContextBuilder:
             "alternatives",
             "documentation",
         ]
-        if task_type == "research" or any(kw in prompt_lower for kw in research_keywords):
+        broad_impl_keywords = ["implement", "build", "create", "design", "architect"]
+        needs_research = task_type == "research" or any(
+            kw in prompt_lower for kw in research_keywords
+        )
+        # Large codebases with broad implementation queries also benefit from research
+        if not needs_research and size_category == "large":
+            needs_research = any(kw in prompt_lower for kw in broad_impl_keywords)
+
+        if needs_research:
             if self.mcp_pool and "deep-research" in self.mcp_pool.clients:
                 selected.append("deep-research")
 
         return selected
 
-    async def _query_code_search(self, prompt: str) -> Optional[Dict[str, Any]]:
+    async def _query_code_search(self, prompt: str, top_k: int = 5) -> Optional[Dict[str, Any]]:
         """Query Dev-AID Local Search MCP"""
         try:
             # Extract search query from prompt
             search_terms = self._extract_search_terms(prompt)
 
             result = await self.mcp_pool.call_tool(
-                "code-search", "search_code", {"query": search_terms, "limit": 5}
+                "code-search",
+                "search_code",
+                {"query": search_terms, "limit": top_k},
             )
 
             return {"search_results": result.get("content", []), "query": search_terms}

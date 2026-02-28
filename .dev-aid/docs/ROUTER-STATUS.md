@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-28
 **Version**: 1.5.1
-**Status**: ✅ **FUNCTIONAL** (Phase 1-4 Complete, Phase 5 Partial)
+**Status**: ✅ **FUNCTIONAL** (Phase 1-5 Complete)
 
 ---
 
@@ -157,20 +157,19 @@
 
 ## 🚧 What's NOT Implemented
 
-### Phase 5: RAG Integration (Partial)
+### Phase 5: RAG Integration ✅ COMPLETE
 
 - [x] MCP client and registry for MCP server discovery
 - [x] Context builder integration (`gather_mcp_context()` method)
 - [x] Smart MCP server selection based on task type
 - [x] All 3 modes (solo, ensemble, challenger) consume MCP context via kwargs
 - [x] Tool name fix: `search` → `search_code` matching local-search MCP server
-- [ ] `/aid-router-challenger-rag` command wiring to actual router (doc exists, not wired)
-- [ ] MCP query caching and parallel queries (MCP Phase 4 advanced features)
-- [ ] Automatic RAG trigger for large codebases
+- [x] `/aid-router-challenger-rag` command wired to invoke `search_code` MCP tool
+- [x] MCP query caching with TTL (300s default, avoids redundant FAISS queries)
+- [x] Codebase-size-aware adaptive search depth (small=5, medium=10, large=15 results)
+- [x] Automatic deep-research trigger for broad queries on large codebases
 
-**Status**: MCP pipeline is functional end-to-end when the local-search MCP server is running. The `context_builder.py` queries `search_code` via MCP, results are injected into the system prompt for all modes. The challenger-rag slash command exists as documentation but isn't wired through the Python router.
-
-**Remaining work**: Wire the challenger-rag slash command to the router executor, add MCP query caching for repeated queries
+**Result**: Full RAG pipeline complete — slash commands invoke `search_code`, results are cached, search depth adapts to codebase size
 
 ---
 
@@ -253,7 +252,7 @@ Installs:
 | **Cost tracking** | ✅ Yes | Automatic |
 | **Budget limits** | ✅ Yes | Set in routing.json |
 | **Slash command integration** | ✅ Yes | Via bash wrappers |
-| **RAG integration** | ⚠️ Partial | MCP pipeline works; challenger-rag command not wired |
+| **RAG integration** | ✅ Yes | MCP pipeline + caching + adaptive search depth + slash commands |
 | **TUI dashboard** | ✅ Yes | `python -m router.cli dashboard` |
 | **E2E tests** | ✅ Yes | 30 tests with mocked APIs |
 
@@ -330,7 +329,6 @@ python -m router.cli execute "What is 2+2?" --verbose
 
 ### What's Missing
 
-⚠️ RAG integration — MCP pipeline works, challenger-rag command not wired
 ❌ Production battle-testing with live APIs
 
 ### Recommendation

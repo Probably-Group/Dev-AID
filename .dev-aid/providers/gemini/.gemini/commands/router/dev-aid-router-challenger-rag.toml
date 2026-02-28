@@ -4,7 +4,7 @@ description = "Challenger mode with local semantic code search (100% local, $0 c
 [metadata]
 category = "router"
 author = "Dev-AID Team (https://probably.group)"
-version = "1.0.0"
+version = "2.0.0"
 
 [prompt]
 content = """
@@ -12,51 +12,62 @@ content = """
 
 Two-AI review enhanced with semantic code search from your local codebase.
 
-## Enhanced Features vs Standard Challenger
-- Semantic code search finds relevant existing code automatically
-- 100% local — code never leaves your machine
-- Zero cost for embeddings
-- Context-aware — AI sees similar implementations
-- Better reviews — checks against your codebase patterns
+## Step 1: MUST call `search_code` MCP tool
 
-## Workflow
+Before generating anything, you MUST invoke the `search_code` tool from the `code-search` MCP server to find relevant code context.
 
-1. **Semantic Search (local RAG)** — Search codebase for relevant context, find similar implementations, retrieve security guidelines from memory bank
-2. **Primary AI generates** — With perfect context from your codebase, following existing patterns
-3. **Challenger reviews** — With same codebase context, OWASP Top 10 scan, consistency check
-4. **Refinement if needed** — Primary addresses feedback
-5. **You see everything** — Relevant code, implementation, critique, improved version
+Tool call:
+  Tool: search_code
+  Arguments: { "query": "<extract key terms from the user request>", "limit": 10 }
 
-## RAG Integration
+Extract meaningful search terms from the request. For example:
+- "Implement OAuth2 authentication" -> query: "OAuth2 authentication JWT token"
+- "Add password reset" -> query: "password reset email verification"
 
-```bash
-# Check if local search is available
-python3 -c "from devaid_local_search import CodeSearchServer" 2>/dev/null && echo "Local search: available" || echo "Local search: not configured"
+If `search_code` is not available, fall back to reading memory bank files directly:
+- .dev-aid/memory-bank/security.md
+- .dev-aid/memory-bank/patterns.md
+- .dev-aid/memory-bank/activeContext.md
 
-# Check index status
-dev-aid-search status 2>/dev/null || echo "No index found - run: dev-aid-search index ."
+## Step 2: Generate implementation
+
+Using search results as context:
+- Follow existing patterns found in the codebase
+- Reference similar implementations from search results
+- Apply security best practices from memory bank
+
+## Step 3: Challenger review
+
+Review the implementation against:
+- OWASP Top 10 vulnerabilities (injection, broken auth, XSS, etc.)
+- Logic errors (race conditions, edge cases, off-by-one)
+- Performance issues (N+1 queries, memory leaks)
+- Consistency with existing codebase patterns from search results
+
+## Step 4: Refine if issues found
+
+Address any issues identified in the review.
+
+## Step 5: Output format
+
 ```
-
-## Context Sources
-1. Local semantic search results (similar code in your codebase)
-2. Memory bank (`.dev-aid/memory-bank/security.md`, `patterns.md`)
-3. Recent git changes
-4. Project configuration
-
-## Output Format
-
-```markdown
 ## Relevant Context Found
-[Similar code from your codebase]
+[Code from search_code results]
 
 ## Implementation
-[Primary AI's solution]
+[Solution following existing patterns]
 
 ## Security Review
-[Challenger's critique with severity ratings]
+ISSUES FOUND: <number>
+SEVERITY: <LOW|MEDIUM|HIGH|CRITICAL>
+
+1. [Issue] -- Location: [where] -- Risk: [impact]
+   Fix: [remediation]
+
+POSITIVE: [What follows best practices]
 
 ## Final Implementation
-[Refined version addressing all issues]
+[Refined version or original if no issues]
 ```
 
 Begin the RAG-enhanced challenger workflow now.

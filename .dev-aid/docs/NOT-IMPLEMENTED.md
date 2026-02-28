@@ -356,7 +356,7 @@ $ python -m router.cli execute "Refactor this code" --mode solo
   - See: `.dev-aid/docs/TOON-QUICK-START.md`, `.dev-aid/docs/TOON-IMPLEMENTATION-PLAN.md`
 
 **Removed**:
-- ✅ RAG Integration → Already implemented (`.dev-aid/local-search/`)
+- ✅ RAG Integration → Fully complete (MCP pipeline + query caching + adaptive search depth + slash commands wired)
 - ✅ MCP Integration → Already implemented (598 lines of code)
 - ✅ Interactive Installer → Already implemented (setup-dev-aid.sh with 8-phase unified setup)
 - ✅ Cross-Platform (macOS/Linux) → Already working

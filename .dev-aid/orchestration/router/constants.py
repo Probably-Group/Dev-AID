@@ -23,3 +23,16 @@ MEMORY_BANK_BUDGET_MULTIPLIERS: Dict[str, float] = {
     "balanced": 1.0,
     "generous": 2.0,
 }
+
+# MCP query cache TTL (seconds)
+MCP_CACHE_TTL = 300.0
+
+# Codebase size thresholds for adaptive search depth
+CODEBASE_SIZE_SMALL_MAX_FILES = 100
+CODEBASE_SIZE_SMALL_MAX_CHUNKS = 500
+CODEBASE_SIZE_MEDIUM_MAX_FILES = 500
+CODEBASE_SIZE_MEDIUM_MAX_CHUNKS = 2000
+CODEBASE_SEARCH_TOP_K: Dict[str, int] = {"small": 5, "medium": 10, "large": 15}
+
+# Codebase size detection cache TTL (seconds) — longer since index rarely changes
+CODEBASE_SIZE_CACHE_TTL = 600.0

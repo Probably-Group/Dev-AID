@@ -725,3 +725,196 @@ class TestBuildSystemPrompt:
         assert "expert AI development assistant" in prompt
         assert "Project Context" in prompt
         assert "test-project" in prompt
+
+
+class TestMCPQueryCache:
+    """Test MCP query result caching"""
+
+    @pytest.fixture
+    def builder(self, tmp_path):
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_cache_hit_avoids_mcp_call(self, builder):
+        """Second identical query should use cache, not call MCP again"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {"content": "found"}
+
+        # First call — hits MCP
+        await builder.gather_mcp_context("find login logic")
+        first_call_count = builder.mcp_pool.call_tool.call_count
+
+        # Second identical call — should use cache
+        await builder.gather_mcp_context("find login logic")
+        second_call_count = builder.mcp_pool.call_tool.call_count
+
+        # Call count should not increase for the code-search query
+        # (get_index_status is also called, so we check it didn't double)
+        assert second_call_count < first_call_count * 2
+
+    @pytest.mark.asyncio
+    async def test_cache_miss_on_different_query(self, builder):
+        """Different queries should each call MCP"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {"content": "found"}
+
+        await builder.gather_mcp_context("find login logic")
+        await builder.gather_mcp_context("find payment processing")
+
+        # Both queries should have triggered MCP calls
+        assert builder.mcp_pool.call_tool.call_count >= 2
+
+    @pytest.mark.asyncio
+    async def test_cache_expiry(self, builder):
+        """Expired cache entries should be evicted"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {"content": "found"}
+
+        # Manually insert an expired cache entry
+        key = builder._cache_key("test query", "code-search")
+        builder._set_cached(key, {"old": "data"}, ttl=0.0)
+
+        # Wait briefly to ensure expiry
+        time.sleep(0.01)
+
+        # Should return None since entry is expired
+        cached = builder._get_cached(key)
+        assert cached is None
+
+    def test_clear_cache(self, builder):
+        """clear_mcp_cache should empty the cache"""
+        builder._set_cached("key1", {"data": 1})
+        builder._set_cached("key2", {"data": 2})
+
+        assert len(builder._mcp_cache) == 2
+
+        builder.clear_mcp_cache()
+
+        assert len(builder._mcp_cache) == 0
+
+    def test_cache_key_deterministic(self, builder):
+        """Same input should produce the same cache key"""
+        key1 = builder._cache_key("find login", "code-search")
+        key2 = builder._cache_key("find login", "code-search")
+        assert key1 == key2
+
+    def test_cache_key_case_insensitive(self, builder):
+        """Prompt case should not affect cache key"""
+        key1 = builder._cache_key("Find Login", "code-search")
+        key2 = builder._cache_key("find login", "code-search")
+        assert key1 == key2
+
+    def test_cache_key_different_servers(self, builder):
+        """Same prompt on different servers should get different keys"""
+        key1 = builder._cache_key("find login", "code-search")
+        key2 = builder._cache_key("find login", "deep-research")
+        assert key1 != key2
+
+
+class TestAutoRAGTrigger:
+    """Test codebase-size-aware automatic RAG triggering"""
+
+    @pytest.fixture
+    def builder(self, tmp_path):
+        config = Mock()
+        config.get_orchestration_mode = Mock(return_value="solo")
+        config.get_enabled_providers = Mock(return_value=["claude"])
+        config.get_memory_bank_files = Mock(return_value=[])
+        config.get_on_demand_files = Mock(return_value=[])
+        config.get_standing_context_tokens = Mock(return_value=1000)
+        config.get_memory_bank_path = Mock(return_value=tmp_path / "memory-bank")
+        config.root = tmp_path
+        config.settings = {"project_name": "test-project"}
+        return ContextBuilder(config)
+
+    @pytest.mark.asyncio
+    async def test_small_codebase_detection(self, builder):
+        """<100 files should be classified as 'small'"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "total_chunks": 200,
+            "indexed_files": ["f"] * 50,
+        }
+
+        result = await builder._get_codebase_size()
+        assert result["size_category"] == "small"
+
+    @pytest.mark.asyncio
+    async def test_medium_codebase_detection(self, builder):
+        """100-500 files should be classified as 'medium'"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "total_chunks": 1000,
+            "indexed_files": ["f"] * 250,
+        }
+
+        result = await builder._get_codebase_size()
+        assert result["size_category"] == "medium"
+
+    @pytest.mark.asyncio
+    async def test_large_codebase_detection(self, builder):
+        """>500 files should be classified as 'large'"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "total_chunks": 5000,
+            "indexed_files": ["f"] * 800,
+        }
+
+        result = await builder._get_codebase_size()
+        assert result["size_category"] == "large"
+
+    def test_large_codebase_triggers_research(self, builder):
+        """_auto_select_mcps should include deep-research for broad queries on large codebases"""
+        builder.mcp_pool = Mock()
+        builder.mcp_pool.clients = {"code-search": True, "deep-research": True}
+
+        selected = builder._auto_select_mcps(
+            "implement a new authentication system", None, size_category="large"
+        )
+        assert "deep-research" in selected
+
+    def test_small_codebase_no_research(self, builder):
+        """_auto_select_mcps should NOT include deep-research for broad queries on small codebases"""
+        builder.mcp_pool = Mock()
+        builder.mcp_pool.clients = {"code-search": True, "deep-research": True}
+
+        selected = builder._auto_select_mcps(
+            "implement a new authentication system", None, size_category="small"
+        )
+        assert "deep-research" not in selected
+
+    @pytest.mark.asyncio
+    async def test_codebase_size_cached(self, builder):
+        """Second call to _get_codebase_size should use cache"""
+        builder.mcp_pool = AsyncMock()
+        builder.mcp_pool.clients = {"code-search": True}
+        builder.mcp_pool.call_tool.return_value = {
+            "total_chunks": 200,
+            "indexed_files": ["f"] * 50,
+        }
+
+        # First call — hits MCP
+        result1 = await builder._get_codebase_size()
+        call_count_after_first = builder.mcp_pool.call_tool.call_count
+
+        # Second call — should use cache
+        result2 = await builder._get_codebase_size()
+        call_count_after_second = builder.mcp_pool.call_tool.call_count
+
+        assert result1 == result2
+        assert call_count_after_second == call_count_after_first

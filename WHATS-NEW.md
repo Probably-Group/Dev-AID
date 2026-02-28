@@ -34,8 +34,13 @@ Rich-based terminal dashboard for router cost monitoring:
 - Triggers: PR to main, push to main, weekly schedule, manual dispatch
 - Results uploaded as artifacts with 30-day retention
 
-### RAG Integration Fix
-Fixed MCP tool name mismatch in context_builder.py (`search` → `search_code`) to match the actual local-search MCP server tool registration. All three router modes (solo, ensemble, challenger) now correctly integrate with local semantic code search.
+### RAG Integration Complete
+Full RAG pipeline now operational:
+- **MCP query caching** with 300s TTL — identical queries skip FAISS, reducing latency
+- **Codebase-size-aware search depth** — small codebases get top 5, medium get 10, large get 15 results
+- **Slash commands wired** — `/aid-router-challenger-rag` now explicitly invokes `search_code` MCP tool
+- **Adaptive deep-research** — large codebases with broad implementation queries automatically trigger external research
+- Previous fix: MCP tool name mismatch (`search` → `search_code`)
 
 ### PRD Generator Skill (NEW!)
 Three-mode Product Requirements Document generator:

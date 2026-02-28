@@ -8,6 +8,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Version](https://img.shields.io/badge/version-1.5.0--beta.3-brightgreen.svg)](.dev-aid/VERSION)
+[![Sponsor](https://img.shields.io/badge/Sponsor-Dev--AID-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/Probably-Group)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with auto-loading expertise, dual-AI review, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
 

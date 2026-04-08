@@ -39,7 +39,7 @@ pytest-asyncio==0.24.0      # Async test support
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
 pytest-xdist==3.5.0         # Parallel testing support
-vcrpy==6.0.2                # Record/replay HTTP interactions for testing
+vcrpy==8.1.1                # Record/replay HTTP interactions for testing - 8.1+ required for Python 3.14 (fixes iscoroutinefunction deprecation)
 hypothesis==6.113.0          # Property-based testing
 
 # Security & Quality

@@ -285,19 +285,46 @@ test_installation() {
 
     deactivate
 
+    echo ""
     if [ ${#failed_imports[@]} -eq 0 ]; then
-        print_success "All ${passed} critical packages import successfully"
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${GREEN}✅  Dev-AID router is ready to use${NC}"
+        echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        echo "  All ${passed} critical packages import cleanly inside the venv."
+        echo "  Dev-AID's router, agents, and slash commands will work normally."
+        echo ""
+        echo "  (Dev-only tools like pytest/mypy/black are not import-tested here;"
+        echo "   they're verified by the orchestration test suite if/when you run it.)"
+        echo ""
         return 0
     else
-        print_error "${passed}/${#critical_packages[@]} critical packages OK, ${#failed_imports[@]} failed:"
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo -e "${RED}❌  Dev-AID router will NOT work — ${#failed_imports[@]} critical package(s) broken${NC}"
+        echo -e "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo ""
+        echo "  ${passed} of ${#critical_packages[@]} critical imports passed."
+        echo "  ${#failed_imports[@]} failed:"
         local fp
         for fp in "${failed_imports[@]}"; do
             echo "    ✗ ${fp}"
         done
         echo ""
-        print_warning "The venv is partially installed. The router will fail on commands"
-        print_warning "that depend on the missing packages. Check the pip log printed"
-        print_warning "above for the root cause (most often: Python version mismatch)."
+        echo "  ${YELLOW}What this means:${NC}"
+        echo "    • The orchestration router (solo / ensemble / challenger modes) will fail."
+        echo "    • The autonomous agents (/aid-pr, /aid-test, /aid-debt, etc.) will fail."
+        echo "    • Slash commands that don't need the venv (/aid-help, /aid-skills) still work."
+        echo "    • Skills, security hooks, and local search are not affected."
+        echo ""
+        echo "  ${YELLOW}How to fix:${NC}"
+        echo "    1. Read the pip install log printed above (full log in"
+        echo "       .dev-aid/orchestration/logs/pip-install-*.log)"
+        echo "    2. The most common cause is a Python version mismatch — try"
+        echo "       installing Python 3.13 via pyenv or brew and re-running setup."
+        echo "    3. After fixing the root cause:"
+        echo "       rm -rf .dev-aid/orchestration/.venv"
+        echo "       ./.dev-aid/orchestration/setup-venv.sh"
+        echo ""
         return 1
     fi
 }

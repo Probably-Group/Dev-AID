@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation: README, QUICK-START, FAQ, DEV-AID-STYLE-GUIDE, ROUTER-STATUS, STORAGE-LOCATIONS, OpenAI README, MEMORY-BANK-GUIDE
 - `setup-venv.sh` uses plain `realpath` instead of `realpath -m` for macOS BSD compatibility (the `-m` flag is GNU-only and crashed Phase 7 of setup on macOS).
 - `search.json` `vector` block updated to document the runtime defaults (`google/embeddinggemma-300m`, dim 768) instead of the stale `all-MiniLM-L6-v2` placeholder. The block is still informational only — `hybrid_scorer._load_config()` does not currently read it.
-- README "native with X editors" claim corrected to match reality: full slash-command parity for Claude Code, Gemini CLI; AGENTS.md integration for Codex CLI; rules-only for Cursor; MCP for VS Code Copilot Chat, Zed, JetBrains AI Assistant.
+- README + LinkedIn post: added a one-line clarification to the "native with 6 editors" claim noting that Cursor, Windsurf, and Cline are Claude-compatible (they read `.claude/commands/` natively, so every `/aid-*` slash command works in all 6 editors with no extra setup).
 
 ### Removed
 - Legacy bash mode scripts at `.dev-aid/orchestration/modes/{solo,ensemble,challenger,none}.sh` (~340 LOC). Zero references in the repo. The real implementations are at `.dev-aid/orchestration/router/modes/*.py` and have been since the Python router migration.

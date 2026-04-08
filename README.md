@@ -35,7 +35,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **⚙️ CI/CD Generator** — Auto-generate production-ready workflows for 9+ languages — [guide](.dev-aid/docs/CI-GENERATOR-GUIDE.md)
 - **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations — [guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
-**No new CLI to learn.** Works inside the tools you already use — full `/aid-*` slash-command support in Claude Code and Gemini CLI; AGENTS.md integration for Codex CLI; rules-based integration for Cursor; MCP integration with VS Code Copilot Chat, Zed, and JetBrains AI Assistant.
+**No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant. (Cursor, Windsurf, and Cline read `.claude/commands/` natively as Claude-compatible clients, so they pick up every `/aid-*` command without extra setup.)
 See the [complete feature reference table](#-all-capabilities--ranked-by-developer-impact) for all 40+ capabilities ranked by developer impact.
 
 ### How It Works

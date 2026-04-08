@@ -7,15 +7,20 @@
   "enableAllProjectMcpServers": false,
 
   "permissions": {
+    "_comment": "Claude Code v2.x permission syntax: 'Tool' for blanket allow, 'Tool(pattern)' for specific. The 'Tool:*' form does NOT exist and is silently ignored — early Dev-AID versions used it and beta testers got prompted on every command. Fixed in 1.5.1. WebSearch + WebFetch are required by /aid-research and the research agent.",
     "allow": [
-      "Edit:*",
-      "Write:*",
-      "MultiEdit:*",
-      "NotebookEdit:*",
-      "Bash:*",
-      "Read:*",
-      "Grep:*",
-      "Glob:*"
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "NotebookEdit",
+      "Glob",
+      "Grep",
+      "Bash",
+      "WebSearch",
+      "WebFetch",
+      "Task",
+      "TodoWrite"
     ],
     "defaultMode": "acceptEdits"
   },

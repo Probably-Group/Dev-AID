@@ -1,5 +1,11 @@
 # LightRAG Analysis & File Format Support Comparison
 
+> **Status (2026-04-08):** Historical background / comparison doc from the
+> RAG vendor evaluation in late 2025. Dev-AID ships its own embedded local
+> semantic search module (`.dev-aid/local-search/`) — see
+> `.dev-aid/RAG-SETUP.md` for current behaviour. LightRAG was not adopted;
+> this file is kept as rationale.
+
 ## LightRAG Deep Dive
 
 ### What is LightRAG?

@@ -1,69 +1,41 @@
-# Testing Status & Known Issues
+# Testing Status
 
-## Current Test Results
-
-### ✅ Passing Tests
-- Type checking (mypy)
-- Most unit tests (68 out of 80 tests passing)
-
-### ❌ Known Failing Tests
-
-The following tests have pre-existing failures that need investigation:
-
-#### 1. API Client Tests
-- `test_send_request_error_handling` - AttributeError: module 'router.api_clients' has no attribute 'anthropic'
-- **Cause**: Test setup issue with mocking
-
-#### 2. Config Loader Tests  
-- `test_validate_provider_success` - Validation logic needs review
-- **Cause**: Test expectations vs actual behavior mismatch
-
-#### 3. Context Builder Tests
-- `test_build_context_basic` - Context building logic issue
-- `test_format_context` - Format output verification failure
-- **Cause**: Integration test expectations
-
-#### 4. Security Tests
-- `test_control_characters` - Input sanitization edge case
-- `test_template_injection_detection[{{7*7}}]` - Jinja2 template detection
-- `test_template_injection_detection[{{config}}]` - Template variable detection
-- **Cause**: Regex pattern matching needs tuning
-
-#### 5. Task Classifier Tests
-- `test_classify_security` - Classification algorithm issue
-- **Cause**: Task classification logic
-
-#### 6. Validator Tests
-- `test_invalid_injection` - Injection detection
-- `test_containment` - Path containment validation
-- `test_invalid_program` - Program allowlist validation  
-- `test_invalid_threshold` - Cost threshold validation
-- **Cause**: Validation rule edge cases
-
-## Test Coverage
-- Current: 68/80 tests passing (85%)
-- Target: 100% (all tests passing)
-
-## Next Steps
-1. Investigate each failing test individually
-2. Fix test setup and mocking issues
-3. Update validation logic where needed
-4. Add missing test cases for edge conditions
-5. Improve test documentation
+The orchestration module enforces a minimum 80% coverage threshold via the
+pytest pre-commit hook. Tests are run using the project-local virtual
+environment at `.dev-aid/orchestration/venv/`.
 
 ## Running Tests
+
 ```bash
 cd .dev-aid/orchestration
-pytest tests/ -v
+
+# Full suite with coverage (matches pre-commit hook behaviour)
+venv/bin/python -m pytest tests/ -v --cov=router --cov-fail-under=80
+
+# Quick run, no coverage
+venv/bin/python -m pytest tests/ -v
 ```
 
 ## Test Organization
-- `tests/test_api_clients.py` - API client unit tests
-- `tests/test_config_loader.py` - Configuration loading tests
-- `tests/test_context_builder.py` - Context building tests
-- `tests/test_security.py` - Security validation tests
-- `tests/test_task_classifier.py` - Task classification tests
-- `tests/test_validators.py` - Input validation tests
+
+- `tests/test_api_clients/` - Provider adapter unit tests
+- `tests/test_config_loader*.py` - Configuration loading and validation
+- `tests/test_context_builder*.py` - Memory bank / context assembly
+- `tests/test_security.py` - Input validation, path traversal, injection defenses
+- `tests/test_task_classifier.py` - Ensemble mode task classification
+- `tests/test_validators.py` - Pydantic request validators
+- `tests/test_memory_bank*.py` - On-demand loading, staleness, section extraction
+- `tests/test_mcp.py` - MCP subprocess environment isolation
+
+## Known Environmental Skips
+
+A small number of tests skip in sandboxed environments:
+
+- `test_update_system.py` — GitHub API tests require outbound DNS.
+  Workaround: tests are non-critical and can be skipped with standard
+  pytest markers; CI runs them normally.
+
+All other tests are expected to pass cleanly before a commit is accepted.
 
 ---
-Last updated: 2025-12-06
+Last updated: 2026-04-08

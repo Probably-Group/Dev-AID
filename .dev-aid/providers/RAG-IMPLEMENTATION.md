@@ -1,8 +1,14 @@
 # RAG Implementation for Dev-AID
 
+> **Status (2026-04-08):** Historical design doc. The lightweight-RAG decision
+> below was taken in December 2025. Since then Dev-AID ships its own embedded
+> local semantic search module at `.dev-aid/local-search/` (FAISS +
+> EmbeddingGemma + tree-sitter chunker over 8 languages). For current setup
+> and usage, see `.dev-aid/RAG-SETUP.md`.
+
 ## Decision: Lightweight RAG vs Full LlamaIndex
 
-**Status:** Approved
+**Status:** Approved — shipped as `.dev-aid/local-search/`
 **Date:** 2025-12-03
 **Decision:** Implement lightweight RAG for codebase context retrieval, WITHOUT full LlamaIndex orchestration
 

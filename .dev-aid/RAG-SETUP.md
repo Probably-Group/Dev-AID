@@ -1,7 +1,7 @@
 # Local Semantic Search Setup
 
-**Status:** Embedded in Dev-AID
-**Solution:** claude-context-local by FarhanAliRaza
+**Status:** Embedded in Dev-AID (`.dev-aid/local-search/`)
+**Inspired by:** claude-context-local by FarhanAliRaza (reimplemented as a self-contained Dev-AID module)
 **Cost:** $0 forever
 **Privacy:** 100% local
 
@@ -43,7 +43,7 @@ cd dev-aid
 - ✅ EmbeddingGemma model (Google, 768-dim, ~1.2GB)
 - ✅ FAISS vector index (GPU-accelerated if available)
 - ✅ MCP server integration
-- ✅ tree-sitter parsers (9+ languages)
+- ✅ tree-sitter parsers (8 languages: python, javascript, typescript, java, go, rust, c, cpp)
 
 **Storage:**
 ```
@@ -91,16 +91,15 @@ AI responds with perfect context
 
 ### What Gets Indexed
 
-**Parsed with AST/tree-sitter:**
+**Parsed with AST/tree-sitter (8 languages):**
 - Python (.py) - Functions, classes, methods
 - JavaScript (.js, .jsx)
 - TypeScript (.ts, .tsx)
 - Java (.java)
 - Go (.go)
 - Rust (.rs)
-- C/C++ (.c, .cpp, .h)
-- C# (.cs)
-- Svelte (.svelte)
+- C (.c, .h)
+- C++ (.cpp, .cc, .cxx, .hpp)
 
 **Indexed as text:**
 - Markdown (.md)
@@ -266,17 +265,16 @@ Savings: $15-250/year
 
 | Language | Support | Parser | Features |
 |----------|---------|--------|----------|
-| Python | ✅ Full | AST | Functions, classes, methods, docstrings |
+| Python | ✅ Full | tree-sitter | Functions, classes, methods |
 | JavaScript | ✅ Full | tree-sitter | Functions, classes, exports |
 | TypeScript | ✅ Full | tree-sitter | Types, interfaces, functions |
 | Java | ✅ Full | tree-sitter | Classes, methods, interfaces |
 | Go | ✅ Full | tree-sitter | Functions, structs, interfaces |
 | Rust | ✅ Full | tree-sitter | Functions, structs, traits |
-| C/C++ | ✅ Full | tree-sitter | Functions, classes, structs |
-| C# | ✅ Full | tree-sitter | Classes, methods, properties |
-| Svelte | ✅ Full | tree-sitter | Components, scripts |
-| Markdown | ⚠️ Text | None | Full text, no structure |
-| JSON/TOML | ⚠️ Text | None | Full text |
+| C | ✅ Full | tree-sitter | Functions, structs |
+| C++ | ✅ Full | tree-sitter | Functions, classes, structs |
+| Markdown | ⚠️ Text | None | Line-based fallback |
+| JSON/TOML | ⚠️ Text | None | Line-based fallback |
 
 ---
 
@@ -438,7 +436,7 @@ exclude_dirs = [
 | **Privacy** | 100% local | Cloud optional | Local optional |
 | **Setup** | 5 min (1 command) | 10-15 min | 30 min |
 | **MCP Native** | ✅ Yes | ✅ Yes | ❌ No |
-| **AST Parsing** | ✅ 9+ languages | ✅ Yes | ❌ Text only |
+| **AST Parsing** | ✅ 8 languages (tree-sitter) | ✅ Yes | ❌ Text only |
 | **PDF/DOCX** | ❌ No | ❌ No | ✅ Yes |
 | **Offline** | ✅ Always | Partial | Yes |
 | **API Keys** | ✅ None | Required* | Required |
@@ -505,6 +503,6 @@ claude-context-local --help
 
 ---
 
-**Last Updated:** 2025-12-03
-**Version:** 1.0.0
+**Last Updated:** 2026-04-08
+**Version:** 1.5.1
 **Status:** Production-ready

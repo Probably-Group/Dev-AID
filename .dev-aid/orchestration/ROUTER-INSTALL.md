@@ -2,7 +2,16 @@
 
 Complete guide to installing and using the Dev-AID Router for multi-AI orchestration.
 
-## 🚀 Quick Start (5 Minutes)
+> **Note:** Most users should install Dev-AID (including the router and venv) with a single command:
+>
+> ```bash
+> gh extension install Probably-Group/gh-dev-aid
+> gh dev-aid init
+> ```
+>
+> `gh dev-aid init` runs `setup-dev-aid.sh`, which creates the orchestration venv, installs pinned deps, wires up provider commands, and validates the environment. The manual steps below are for advanced or troubleshooting use.
+
+## 🚀 Manual Quick Start (5 Minutes)
 
 ### Step 1: Setup Virtual Environment (Recommended)
 
@@ -338,7 +347,7 @@ The router integrates with slash commands via bash wrappers:
 ```json
 {
   "orchestration_mode": "solo",
-  "default_model": "claude-sonnet-4.5"
+  "default_model": "claude-sonnet-4.6"
 }
 ```
 
@@ -491,7 +500,7 @@ Main Dev-AID settings:
 ```json
 {
   "orchestration_mode": "solo",  // or "ensemble", "challenger"
-  "default_model": "claude-sonnet-4.5",
+  "default_model": "claude-sonnet-4.6",
   "enabled_providers": ["claude", "gemini"]
 }
 ```
@@ -523,14 +532,16 @@ Model definitions and costs:
     "enabled": true,
     "api_key_env": "ANTHROPIC_API_KEY",
     "models": {
-      "sonnet-4.5": {
-        "id": "claude-sonnet-4-5",
+      "sonnet-4.6": {
+        "id": "claude-sonnet-4-6",
         "cost_per_1m_tokens": { "input": 3.00, "output": 15.00 }
       }
     }
   }
 }
 ```
+
+> See `.dev-aid/config/models.json` for the authoritative, always-current model registry.
 
 ---
 
@@ -602,7 +613,7 @@ Error: Python 3 is required but not found
 
 **Solution**:
 ```bash
-# Install Python 3.9+
+# Install Python 3.11+
 # Ubuntu/Debian
 sudo apt install python3 python3-pip
 
@@ -610,7 +621,7 @@ sudo apt install python3 python3-pip
 brew install python3
 
 # Verify
-python3 --version  # Should be 3.9+
+python3 --version  # Should be 3.11+
 ```
 
 ### Problem: Over budget
@@ -713,7 +724,7 @@ python -m router.cli execute "Implement OAuth2" --mode challenger
 
 ## ✅ Verification Checklist
 
-- [ ] Python 3.9+ installed (`python3 --version`)
+- [ ] Python 3.11+ installed (`python3 --version`)
 - [ ] Virtual environment created (`./setup-venv.sh`)
 - [ ] Dependencies installed (done by setup-venv.sh)
 - [ ] Authentication configured (session auth via `claude login`/`gcloud auth` OR API keys in `.dev-aid/config/.env`)

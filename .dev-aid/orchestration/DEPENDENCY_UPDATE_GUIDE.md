@@ -86,11 +86,11 @@ pip install -r requirements.txt
 # Show outdated packages
 pip list --outdated
 
-# Example output:
+# Example output (illustrative only — versions drift over time):
 # Package                Version   Latest    Type
 # ---------------------- --------- --------- -----
-# anthropic              0.39.0    0.40.0    wheel
-# pydantic               2.10.3    2.11.0    wheel
+# anthropic              0.74.0    0.75.0    wheel
+# pydantic               2.12.4    2.12.5    wheel
 ```
 
 ### Step 3: Research Changes
@@ -403,7 +403,7 @@ We follow semantic versioning when updating:
 - Keep dependencies **within 6 months** of latest stable
 - Update **immediately** for security issues
 - Test **thoroughly** before major version bumps
-- Maintain **compatibility** with Python 3.8+
+- Maintain **compatibility** with Python 3.11+
 
 ---
 
@@ -417,5 +417,5 @@ We follow semantic versioning when updating:
 
 ---
 
-**Last Updated**: 2025-12-07
-**Version**: 1.0.0
+**Last Updated**: 2026-04-08
+**Version**: 1.5.1

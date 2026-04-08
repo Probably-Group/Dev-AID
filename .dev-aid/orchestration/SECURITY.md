@@ -146,11 +146,12 @@ All dependencies are pinned to **exact versions** in `requirements.txt`.
 ```txt
 # SECURITY: All dependencies are pinned to exact versions for reproducibility.
 # This prevents supply chain attacks and ensures deterministic builds.
+# See requirements.txt in this directory for the authoritative pinned set.
 
 anthropic==0.75.0
 google-genai==1.53.0
 openai==1.54.5
-pydantic==2.10.3
+pydantic==2.12.5
 ```
 
 ### Why Pinning Matters
@@ -298,5 +299,5 @@ Before deploying to production:
 
 ---
 
-**Last Updated**: 2025-12-07
-**Version**: 1.0.0
+**Last Updated**: 2026-04-08
+**Version**: 1.5.1

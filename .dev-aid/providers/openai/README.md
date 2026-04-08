@@ -28,7 +28,7 @@ OpenAI does not provide a standardized CLI with command discovery (unlike Claude
 
 | Tool | Agent Access | How |
 |------|-------------|-----|
-| **Python CLI** | Full (all 8 agents + 4 teams) | `dev-aid-agent pr-reviewer --pr 42 --provider openai` |
+| **Python CLI** | Full (all 9 agents + 4 teams) | `dev-aid-agent pr-reviewer --pr 42 --provider openai` |
 | **Codex CLI** | Full (26 trigger phrases) | `AGENTS.md.template` with natural language triggers for all agents, teams, and utility commands |
 | **Cursor / Windsurf / Cline** | Full slash commands | These editors read `.claude/commands/` natively |
 | **ChatGPT** | Context only | Upload `OPENAI.md` manually |
@@ -65,8 +65,6 @@ The router enforces a configurable token budget and annotates stale files (>30 d
 
 ## Models Supported
 
-From `models.json`:
-- `gpt-4o` (default) - Latest multimodal model
-- `gpt-4-turbo` - Fast GPT-4 variant
-- `gpt-4.1` - Extended context version
-- `gpt-3.5-turbo` - Cost-effective option
+See `.dev-aid/config/models.json` for the authoritative, always-current list
+of enabled OpenAI models, IDs, pricing, and context windows. At the time of
+writing (v1.5.1) the default is `gpt-5.4` (1.1M context).

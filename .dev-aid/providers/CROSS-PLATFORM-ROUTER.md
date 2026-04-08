@@ -241,20 +241,22 @@ Model registry with costs and capabilities:
   "models": {
     "claude-sonnet": {
       "provider": "anthropic",
-      "model": "claude-sonnet-4.5-20250929",
+      "model": "claude-sonnet-4-6",
       "cost_per_mtok": {"input": 3.0, "output": 15.0},
       "strengths": ["code_generation", "security"]
     },
-    "gemini-flash": {
+    "gemini-pro": {
       "provider": "google",
-      "model": "gemini-2.0-flash-exp",
-      "cost_per_mtok": {"input": 0.075, "output": 0.30},
-      "max_context": 2000000,
-      "strengths": ["massive_context", "cost_effective"]
+      "model": "gemini-3.1-pro",
+      "cost_per_mtok": {"input": 2.0, "output": 12.0},
+      "max_context": 1000000,
+      "strengths": ["massive_context", "multimodal"]
     }
   }
 }
 ```
+
+> See `.dev-aid/config/models.json` for the authoritative, always-current model registry.
 
 ## Implementation Details
 
@@ -534,6 +536,6 @@ session_start = ".codex/hooks/session-start.sh"
 
 ---
 
-**Last Updated:** 2026-02-03
-**Version:** 1.1.0
+**Last Updated:** 2026-04-08
+**Version:** 1.5.1
 **Status:** Production-ready for Claude Code, Gemini CLI, and Codex CLI

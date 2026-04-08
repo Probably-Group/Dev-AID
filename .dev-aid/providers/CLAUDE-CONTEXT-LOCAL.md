@@ -1,4 +1,11 @@
-# claude-context-local: The Superior Choice for Dev-AID
+# claude-context-local: Reference / Background
+
+> **Status (2026-04-08):** Dev-AID's local semantic search module
+> (`.dev-aid/local-search/`) was **inspired by** `claude-context-local` but is
+> now a self-contained reimplementation embedded in this repo. This document
+> is kept as historical background on the upstream project and as rationale
+> for why we chose this approach. For current setup and usage, see
+> `.dev-aid/RAG-SETUP.md` and `.dev-aid/local-search/README.md`.
 
 ## TL;DR: Why This Is Better
 

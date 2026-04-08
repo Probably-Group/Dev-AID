@@ -8,18 +8,19 @@
 
 ## Current Sprint/Focus
 
-### Active Work
-- [x] v1.5.1 improvements: test coverage, model accuracy, growth prep
+### Active Work (current state as of v1.5.1)
+- [x] v1.5.1 shipped: test coverage, model accuracy, beta infrastructure
 - [x] Token estimation upgraded to char-based heuristic
-- [x] Model IDs verified and updated to February 2026
-- [x] Tree-sitter AST chunker wired up (was a line-based stub)
+- [x] Model IDs verified against canonical models.json
+- [x] Tree-sitter AST chunker wired up (8 languages: python, js, ts, java, go, rust, c, cpp)
 - [x] Legacy bash mode scripts removed (router/modes/*.py is canonical)
-- [ ] Beta launch preparation
+- [x] `/aid-skills` command, modification log hook, uninstall script shipped
+- [x] Memory bank on-demand loading with token budgets and staleness detection
+- [ ] Post-beta growth + docs audit sweep
 
 ### Recent Changes
-- **2026-04-08**: Beta-readiness audit — version drift fixed, search.json reconciled, realpath portability fix, CHANGELOG moved to [1.5.1]
-- **2026-04-08**: Tree-sitter AST chunker shipped — 8 languages (python, js, ts, java, go, rust, c, cpp)
-- **2026-02-28**: v1.5.1 complete — model IDs updated, token estimation improved, RAG integration done
+- **2026-04-08**: Docs audit sweep — memory-bank, orchestration, providers, CHANGELOG reconciliation
+- **2026-04-08**: v1.5.1 released — tree-sitter chunker, /aid-skills, modification log, uninstall-dev-aid.sh, memory bank engine improvements
 
 ---
 
@@ -50,7 +51,7 @@ venv/bin/python -m router.cli dashboard
 - `router/api_clients/` — Anthropic, Google, OpenAI client adapters
 - `config/models.json` — Provider/model configuration (source of truth)
 - `config/routing.json` — Routing rules and budget limits
-- `tests/` — 1300+ tests with 80%+ coverage threshold
+- `tests/` — comprehensive suite with 80%+ coverage threshold enforced via pre-commit
 
 ### Environment Setup
 - Python: 3.11+

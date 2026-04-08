@@ -1,6 +1,6 @@
 # Dev-AID Skills System
 
-**5 core skills** for automated checking + **74 expert skills** for domain expertise + **8 process skills** for workflow enforcement, all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
+**5 core skills** for automated checking + **74 expert skills** for domain expertise + **8 process skills** for workflow enforcement (87 total), all following the **two-tier template v2.0.0** with comprehensive quality assurance and progressive disclosure.
 
 ## 🔄 Core vs Expert vs Process Skills
 
@@ -54,6 +54,7 @@
 - ⚠️ `design-first` - Think before coding
 - ⚠️ `staged-review` - Two-stage review (spec → quality)
 - ⚠️ `plan-execution` - Batch execution with checkpoints
+- ⚠️ `architect-protocol` - Think like an architect before implementing
 
 **Legend**: ✅ = strict, ⚠️ = warning, ⏸️ = off
 
@@ -94,7 +95,7 @@
 │   │       ├── implementation-patterns.md
 │   │       ├── performance-patterns.md
 │   │       └── ...
-├── process/                     # Process workflow skills (7) 🆕
+├── process/                     # Process workflow skills (8) 🆕
 │   ├── README.md               # Process skills overview
 │   ├── verification-gate/      # No completion claims without evidence
 │   ├── tdd-protocol/           # RED-GREEN-REFACTOR enforcement
@@ -102,7 +103,8 @@
 │   ├── isolated-development/   # Git worktree per feature
 │   ├── design-first/           # Think before coding
 │   ├── staged-review/          # Two-stage code review
-│   └── plan-execution/         # Batch execution with checkpoints
+│   ├── plan-execution/         # Batch execution with checkpoints
+│   └── architect-protocol/     # Architect-level thinking before implementation
 └── registry/
     └── skills-index.json        # Skill metadata and activation triggers
 ```
@@ -207,7 +209,7 @@ All skills follow a unified two-tier template structure:
 - model-quantization, plan-review-expert, prd-generator
 - refactoring-expert, web-research-expert
 
-### Process Skills (7) 🆕
+### Process Skills (8) 🆕
 
 **Quality Enforcement:**
 - `verification-gate` (~300 tokens) - No completion claims without evidence
@@ -219,6 +221,7 @@ All skills follow a unified two-tier template structure:
 - `isolated-development` (~300 tokens) - Git worktree per feature/issue
 - `design-first` (~350 tokens) - Think before coding
 - `plan-execution` (~350 tokens) - Batch execution with checkpoints
+- `architect-protocol` (~400 tokens) - Architect-level thinking before implementation
 
 **Total token cost:**
 - Balanced profile (default): ~1,500 tokens

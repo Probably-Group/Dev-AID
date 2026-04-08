@@ -172,7 +172,7 @@ For Dev-AID router: **venv is perfect!**
 .dev-aid/orchestration/
 ├── .venv/                    # Virtual environment (gitignored)
 │   ├── bin/
-│   │   ├── python            # Python 3.9+
+│   │   ├── python            # Python 3.11+
 │   │   ├── pip               # Package installer
 │   │   └── activate          # Activation script
 │   ├── lib/

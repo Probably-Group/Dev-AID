@@ -3,7 +3,16 @@
 # Provides: detect_preset, prompt_preset, load_preset, apply_preset_*
 
 # Preset directory paths
-PRESET_BUNDLED_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}/.dev-aid/presets"
+#
+# IMPORTANT: Compute the bundled preset dir purely from BASH_SOURCE so we
+# don't accidentally inherit SCRIPT_DIR from the calling script. The previous
+# `${SCRIPT_DIR:-fallback}` form picked up setup-dev-aid.sh's SCRIPT_DIR
+# (which is .dev-aid/scripts/) and produced .dev-aid/scripts/.dev-aid/presets,
+# crashing the wizard at "Project Preset" step. The fallback was also wrong
+# (off-by-one on the parent traversal). This script lives at
+#   .dev-aid/scripts/lib/preset-functions.sh
+# so two `..` jumps land at .dev-aid, then append `/presets`.
+PRESET_BUNDLED_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/presets"
 PRESET_COMMUNITY_DIR="${HOME}/.dev-aid/presets"
 
 # --- Preset Detection ---

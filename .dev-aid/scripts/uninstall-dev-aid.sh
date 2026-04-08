@@ -77,6 +77,52 @@ _maybe_add "$PROJECT_ROOT/OPENAI.md"
 _maybe_add "$PROJECT_ROOT/.claude"
 _maybe_add "$PROJECT_ROOT/.gemini"
 _maybe_add "$PROJECT_ROOT/.codex"
+# These are convenience symlinks Dev-AID drops at project root pointing
+# into .dev-aid/backups/. They become broken symlinks after we remove
+# .dev-aid/, so clean them up explicitly.
+_maybe_add "$PROJECT_ROOT/CLAUDE_original-backup.md"
+_maybe_add "$PROJECT_ROOT/GEMINI_original-backup.md"
+_maybe_add "$PROJECT_ROOT/OPENAI_original-backup.md"
+
+# ─────────────────────────────────────────────────────────────────────
+# Find user's pre-Dev-AID originals so we can restore them.
+#
+# When Dev-AID installs, it moves any pre-existing CLAUDE.md / GEMINI.md
+# / OPENAI.md to .dev-aid/backups/<NAME>_original-backup_TIMESTAMP.md
+# and replaces the project-root file with a symlink into .dev-aid/. If
+# we just remove .dev-aid/ without restoring, the user PERMANENTLY
+# LOSES their original context file. That's a data-loss bug, so we
+# rescue the originals before destroying the backup directory.
+#
+# Strategy: pick the OLDEST timestamped backup for each provider — the
+# oldest one is the user's true pre-Dev-AID original. Subsequent
+# backups are Dev-AID-modified versions from later re-installs.
+# ─────────────────────────────────────────────────────────────────────
+declare -A RESTORE_MAP=()  # provider_name → backup_path_to_restore_from
+
+_find_oldest_backup() {
+    # Print the path to the oldest backup file matching the pattern.
+    # Args: $1 = backup directory, $2 = filename glob (e.g. "CLAUDE_original-backup_*.md")
+    local backup_dir="$1"
+    local glob="$2"
+    [ -d "$backup_dir" ] || return 1
+    # Sort filenames (timestamps embedded in name) and take first.
+    # Resolve any nested symlinks and verify the target is a real file.
+    local first
+    first=$(find "$backup_dir" -maxdepth 1 -type f -name "$glob" 2>/dev/null | sort | head -1)
+    if [ -n "$first" ] && [ -s "$first" ]; then
+        echo "$first"
+        return 0
+    fi
+    return 1
+}
+
+if [ -d "$PROJECT_ROOT/.dev-aid/backups" ]; then
+    for provider in CLAUDE GEMINI OPENAI; do
+        backup_path=$(_find_oldest_backup "$PROJECT_ROOT/.dev-aid/backups" "${provider}_original-backup_*.md") || continue
+        RESTORE_MAP["$provider"]="$backup_path"
+    done
+fi
 
 # Cursor rules: only remove rule files that mention dev-aid, not the whole dir
 # (the user may have other Cursor rules unrelated to Dev-AID).
@@ -107,6 +153,19 @@ for rule in "${CURSOR_DEVAID_RULES[@]}"; do
     echo "  📄 $rule"
 done
 echo ""
+
+# Show what we're going to restore from backups
+if [ ${#RESTORE_MAP[@]} -gt 0 ]; then
+    echo -e "${GREEN}Pre-Dev-AID originals that will be RESTORED before removal:${NC}"
+    echo ""
+    for provider in "${!RESTORE_MAP[@]}"; do
+        local_target="$PROJECT_ROOT/${provider}.md"
+        local_source="${RESTORE_MAP[$provider]}"
+        echo "  📥 $local_source"
+        echo "      → ${local_target} (your pre-Dev-AID version)"
+    done
+    echo ""
+fi
 
 # Memory bank export
 MEMORY_BANK="$PROJECT_ROOT/.dev-aid/memory-bank"
@@ -148,7 +207,32 @@ if [ "$NON_INTERACTIVE" = false ]; then
     echo ""
 fi
 
-# Remove
+# ─────────────────────────────────────────────────────────────────────
+# STEP 1: Rescue the user's pre-Dev-AID originals BEFORE we touch
+# anything destructive. We copy them to a safe temp location first,
+# then restore after the symlinks/.dev-aid are gone.
+# ─────────────────────────────────────────────────────────────────────
+declare -A RESTORE_TEMP=()
+if [ ${#RESTORE_MAP[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${CYAN}Rescuing pre-Dev-AID originals to a temp directory...${NC}"
+    rescue_dir=$(mktemp -d "${TMPDIR:-/tmp}/dev-aid-rescue-XXXXXX")
+    for provider in "${!RESTORE_MAP[@]}"; do
+        src="${RESTORE_MAP[$provider]}"
+        tmp_copy="$rescue_dir/${provider}.md"
+        if cp -- "$src" "$tmp_copy"; then
+            RESTORE_TEMP["$provider"]="$tmp_copy"
+            echo -e "  ${GREEN}rescued${NC} ${provider}.md (${src})"
+        else
+            echo -e "  ${RED}WARNING${NC}: failed to rescue $src — ${provider}.md will be LOST"
+        fi
+    done
+    echo ""
+fi
+
+# ─────────────────────────────────────────────────────────────────────
+# STEP 2: Remove all Dev-AID artifacts (the destructive part).
+# ─────────────────────────────────────────────────────────────────────
 for path in "${TO_REMOVE[@]}"; do
     if [ -L "$path" ]; then
         rm -- "$path"
@@ -161,6 +245,28 @@ for rule in "${CURSOR_DEVAID_RULES[@]}"; do
     rm -- "$rule"
     echo -e "  ${GREEN}removed${NC} $rule"
 done
+
+# ─────────────────────────────────────────────────────────────────────
+# STEP 3: Restore the rescued originals to project root.
+# ─────────────────────────────────────────────────────────────────────
+if [ ${#RESTORE_TEMP[@]} -gt 0 ]; then
+    echo ""
+    echo -e "${CYAN}Restoring pre-Dev-AID originals to project root...${NC}"
+    for provider in "${!RESTORE_TEMP[@]}"; do
+        target="$PROJECT_ROOT/${provider}.md"
+        src="${RESTORE_TEMP[$provider]}"
+        if mv -- "$src" "$target"; then
+            echo -e "  ${GREEN}restored${NC} $target"
+        else
+            echo -e "  ${RED}WARNING${NC}: failed to restore $target from $src"
+            echo -e "  ${YELLOW}Your original is at:${NC} $src"
+            echo -e "  ${YELLOW}Recover with:${NC} mv '$src' '$target'"
+        fi
+    done
+    # Clean up rescue dir if it's empty
+    rmdir "$rescue_dir" 2>/dev/null || true
+    echo ""
+fi
 
 echo ""
 echo -e "${GREEN}✅ Dev-AID uninstalled.${NC}"

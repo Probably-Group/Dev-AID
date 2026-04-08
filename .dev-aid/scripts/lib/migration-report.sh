@@ -103,7 +103,7 @@ EOF
                 echo "**Action**: $action_text"
                 echo ""
 
-                ((issue_num++))
+                issue_num=$((issue_num + 1))
             done
         fi
     fi
@@ -174,7 +174,7 @@ EOF
                 local desc=$(echo "$issue" | grep -o '"description": *"[^"]*"' | cut -d'"' -f4)
                 local line=$(echo "$issue" | grep -o '"line": *[0-9]*' | grep -o '[0-9]*')
                 echo "  $review_num. Line $line: $desc"
-                ((review_num++))
+                review_num=$((review_num + 1))
             fi
         done
 

@@ -201,7 +201,7 @@ cleanup_old_backups() {
     local count=0
 
     while IFS= read -r backup; do
-        ((count++))
+        count=$((count + 1))
         if [ $count -gt $keep_count ]; then
             rm -f "$backup"
             echo "Removed old backup: $(basename "$backup")"

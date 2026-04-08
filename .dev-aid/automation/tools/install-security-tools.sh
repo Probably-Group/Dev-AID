@@ -160,19 +160,19 @@ install_python_security_tools() {
     for tool in bandit pip-audit flawfinder mobsfscan; do
         if is_installed "$tool"; then
             log_warning "$tool already installed: $($tool --version 2>&1 | head -1)"
-            ((tools_installed++))
+            tools_installed=$((tools_installed + 1))
             continue
         fi
 
         if is_installed pipx; then
             log_info "Installing $tool via pipx..."
-            pipx install "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pipx" || log_warning "Failed to install $tool via pipx"
+            pipx install "$tool" 2>/dev/null && tools_installed=$((tools_installed + 1)) && log_success "$tool installed via pipx" || log_warning "Failed to install $tool via pipx"
         elif is_installed pip3; then
             log_info "Installing $tool via pip3 --user..."
-            pip3 install --user "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pip3" || log_warning "Failed to install $tool via pip3"
+            pip3 install --user "$tool" 2>/dev/null && tools_installed=$((tools_installed + 1)) && log_success "$tool installed via pip3" || log_warning "Failed to install $tool via pip3"
         elif is_installed pip; then
             log_info "Installing $tool via pip --user..."
-            pip install --user "$tool" 2>/dev/null && ((tools_installed++)) && log_success "$tool installed via pip" || log_warning "Failed to install $tool via pip"
+            pip install --user "$tool" 2>/dev/null && tools_installed=$((tools_installed + 1)) && log_success "$tool installed via pip" || log_warning "Failed to install $tool via pip"
         else
             log_warning "No pip/pipx found. Install Python first, then: pipx install $tool"
         fi
@@ -237,11 +237,11 @@ verify_tools() {
 
         if is_installed "$cmd"; then
             log_success "✓ $name installed"
-            ((SUCCESS_COUNT++))
+            SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         else
             if [ "$type" = "required" ]; then
                 log_error "✗ $name NOT installed (required)"
-                ((FAIL_COUNT++))
+                FAIL_COUNT=$((FAIL_COUNT + 1))
             else
                 log_warning "✗ $name NOT installed (optional)"
             fi

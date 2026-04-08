@@ -398,29 +398,29 @@ select_model_for_task() {
             claude)
                 available_models+=("claude-sonnet-4.5")
                 echo "  $i) claude-sonnet-4.5 (Balanced, \$3/1M)"
-                ((i++))
+                i=$((i + 1))
                 available_models+=("claude-opus-4.5")
                 echo "  $i) claude-opus-4.5 (Most capable, \$15/1M)"
-                ((i++))
+                i=$((i + 1))
                 available_models+=("claude-haiku-4.5")
                 echo "  $i) claude-haiku-4.5 (Fastest, \$0.25/1M)"
-                ((i++))
+                i=$((i + 1))
                 ;;
             gemini)
                 available_models+=("gemini-2.0-flash")
                 echo "  $i) gemini-2.0-flash (1M context, \$0.075/1M)"
-                ((i++))
+                i=$((i + 1))
                 available_models+=("gemini-2.0-pro")
                 echo "  $i) gemini-2.0-pro (2M context, \$1.25/1M)"
-                ((i++))
+                i=$((i + 1))
                 ;;
             openai)
                 available_models+=("gpt-4o")
                 echo "  $i) gpt-4o (Versatile, \$5/1M)"
-                ((i++))
+                i=$((i + 1))
                 available_models+=("gpt-4-turbo")
                 echo "  $i) gpt-4-turbo (Capable, \$10/1M)"
-                ((i++))
+                i=$((i + 1))
                 ;;
         esac
     done
@@ -459,17 +459,17 @@ select_default_model() {
             claude)
                 available_models+=("claude-sonnet-4.5")
                 echo "  $i) claude-sonnet-4.5 (Recommended)"
-                ((i++))
+                i=$((i + 1))
                 ;;
             gemini)
                 available_models+=("gemini-2.0-flash")
                 echo "  $i) gemini-2.0-flash"
-                ((i++))
+                i=$((i + 1))
                 ;;
             openai)
                 available_models+=("gpt-4o")
                 echo "  $i) gpt-4o"
-                ((i++))
+                i=$((i + 1))
                 ;;
         esac
     done

@@ -327,7 +327,7 @@ validate_duplicate_sections() {
                 done
                 seen+=("$header")
             fi
-            ((line_num++))
+            line_num=$((line_num + 1))
         done < "$claude_md_file"
     fi
 }
@@ -471,7 +471,7 @@ validate_recommended_sections() {
         if ! echo "$content_lower" | grep -qE "$pattern"; then
             add_issue "MISSING_SECTION" "0" "Missing recommended section: ${section_names[$idx]}" "low" "true"
         fi
-        ((idx++))
+        idx=$((idx + 1))
     done
 }
 
@@ -487,7 +487,7 @@ validate_section_content() {
     local line_num=0
 
     while IFS= read -r line; do
-        ((line_num++))
+        line_num=$((line_num + 1))
 
         # Check if this is a header
         if [[ "$line" =~ ^#{1,3}[[:space:]](.+)$ ]]; then
@@ -502,7 +502,7 @@ validate_section_content() {
             section_start_line=$line_num
         elif [ -n "$current_section" ] && [[ "$line" =~ [^[:space:]] ]]; then
             # Non-empty line in current section
-            ((section_lines++))
+            section_lines=$((section_lines + 1))
         fi
     done <<< "$content"
 
@@ -649,15 +649,15 @@ get_validation_summary() {
 
     for issue in "${VALIDATION_ISSUES[@]}"; do
         if echo "$issue" | grep -q '"severity": "high"'; then
-            ((high++))
+            high=$((high + 1))
         elif echo "$issue" | grep -q '"severity": "medium"'; then
-            ((medium++))
+            medium=$((medium + 1))
         else
-            ((low++))
+            low=$((low + 1))
         fi
 
         if echo "$issue" | grep -q '"auto_fix": true'; then
-            ((auto_fixable++))
+            auto_fixable=$((auto_fixable + 1))
         fi
     done
 

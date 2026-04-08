@@ -288,7 +288,7 @@ prompt_preset() {
     if [[ "$name" == "$detected" ]]; then
       default_idx=$i
     fi
-    ((i++))
+    i=$((i + 1))
   done < <(list_presets)
 
   if [[ ${#presets[@]} -eq 0 ]]; then

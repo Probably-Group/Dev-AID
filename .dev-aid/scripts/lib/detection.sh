@@ -170,24 +170,24 @@ print_state_summary() {
 
     # Configs
     local configs_found=0
-    [ "$STATE_HAS_SETTINGS_JSON" = true ] && ((configs_found++))
-    [ "$STATE_HAS_ROUTING_JSON" = true ]  && ((configs_found++))
-    [ "$STATE_HAS_MODELS_JSON" = true ]   && ((configs_found++))
-    [ "$STATE_HAS_ENV" = true ]           && ((configs_found++))
+    [ "$STATE_HAS_SETTINGS_JSON" = true ] && configs_found=$((configs_found + 1))
+    [ "$STATE_HAS_ROUTING_JSON" = true ]  && configs_found=$((configs_found + 1))
+    [ "$STATE_HAS_MODELS_JSON" = true ]   && configs_found=$((configs_found + 1))
+    [ "$STATE_HAS_ENV" = true ]           && configs_found=$((configs_found + 1))
     echo "  Config files:    $configs_found/4"
 
     # Providers
     local providers_found=0
-    [ "$STATE_CLAUDE_SYMLINK" = true ] && ((providers_found++))
-    [ "$STATE_GEMINI_SYMLINK" = true ] && ((providers_found++))
+    [ "$STATE_CLAUDE_SYMLINK" = true ] && providers_found=$((providers_found + 1))
+    [ "$STATE_GEMINI_SYMLINK" = true ] && providers_found=$((providers_found + 1))
     echo "  Provider links:  $providers_found configured"
 
     # Infrastructure
     local infra_found=0
-    [ "$STATE_HAS_ROUTER_VENV" = true ]    && ((infra_found++))
-    [ "$STATE_HAS_RAG" = true ]            && ((infra_found++))
-    [ "$STATE_HAS_SECURITY_TOOLS" = true ] && ((infra_found++))
-    [ "$STATE_HAS_GIT_HOOKS" = true ]      && ((infra_found++))
+    [ "$STATE_HAS_ROUTER_VENV" = true ]    && infra_found=$((infra_found + 1))
+    [ "$STATE_HAS_RAG" = true ]            && infra_found=$((infra_found + 1))
+    [ "$STATE_HAS_SECURITY_TOOLS" = true ] && infra_found=$((infra_found + 1))
+    [ "$STATE_HAS_GIT_HOOKS" = true ]      && infra_found=$((infra_found + 1))
     echo "  Infrastructure:  $infra_found/4"
 
     # Memory bank

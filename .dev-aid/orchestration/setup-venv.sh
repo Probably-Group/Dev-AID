@@ -229,7 +229,7 @@ test_installation() {
             print_success "$package"
         else
             print_error "$package (import failed)"
-            ((failed++))
+            failed=$((failed + 1))
         fi
     done
 

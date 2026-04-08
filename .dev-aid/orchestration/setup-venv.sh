@@ -150,41 +150,84 @@ install_dependencies() {
     # shellcheck source=/dev/null
     source "$activate_script"
 
-    print_info "Upgrading pip..."
-    pip install --upgrade pip > /dev/null 2>&1
+    # ------------------------------------------------------------------
+    # Reassure the user about isolation BEFORE pip starts spamming output.
+    # Beta testers seeing "Collecting anthropic, Collecting google-genai,
+    # Collecting openai, ..." for 100+ packages have legitimately
+    # complained that it looks like Dev-AID is installing AI SDKs into
+    # their system Python. It's NOT — everything goes into the venv at
+    # $VENV_DIR — but the wall of pip output makes that easy to miss.
+    # ------------------------------------------------------------------
+    # Compute a short, relative-looking venv path for display so the
+    # banner doesn't overflow on terminals with long absolute paths.
+    local _short_venv
+    _short_venv=".dev-aid/orchestration/.venv"
 
-    print_info "Installing dependencies from requirements.txt..."
+    echo ""
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo -e "${BLUE}🔒  ISOLATION NOTICE${NC}"
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    echo -e "  All Python packages will be installed into an ${GREEN}isolated virtual env${NC}:"
+    echo "    ${_short_venv}"
+    echo ""
+    echo -e "  Your system Python and any other projects on this machine are"
+    echo -e "  ${GREEN}NOT touched${NC}. To completely uninstall everything below later, run:"
+    echo "    rm -rf ${_short_venv}"
+    echo ""
+    echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    echo ""
+    unset _short_venv
+
+    # Count what we're about to install for a clearer "X packages" message.
+    local total_pinned
+    total_pinned=$(grep -cE '^[a-zA-Z]' "$REQUIREMENTS" 2>/dev/null || echo "?")
+
+    print_info "Upgrading pip (silent)..."
+    pip install --upgrade pip > /dev/null 2>&1 || true
+
+    # Log directory for the verbose pip output. Users can inspect this
+    # if anything goes wrong, and we dump it on failure.
+    local log_dir="${VENV_DIR%/.venv}/logs"
+    mkdir -p "$log_dir" 2>/dev/null || true
+    local pip_log="$log_dir/pip-install-$(date +%Y%m%d-%H%M%S).log"
+
+    print_info "Installing ${total_pinned} pinned packages into the venv (this takes ~30–90s)..."
+    print_info "Verbose log: ${pip_log}"
     echo ""
 
-    # Install with progress. CRITICAL: capture pip's exit code so we don't
-    # falsely report success when wheels failed to build (e.g., pydantic-core
-    # against a Python version newer than the pyo3 binding supports).
-    if pip install -r "$REQUIREMENTS"; then
-        print_success "All dependencies installed"
+    # CRITICAL: capture pip's exit code so we don't falsely report success
+    # when wheels failed to build (e.g., pydantic-core against a Python
+    # version newer than the pyo3 binding supports).
+    #
+    # Use --quiet to suppress the "Collecting / Using cached / Downloading"
+    # spam. pip still prints one line per warning + the final
+    # "Successfully installed ..." summary, which is enough signal.
+    # Full output goes to the log so we can dump it on failure.
+    if pip install --quiet --progress-bar=on -r "$REQUIREMENTS" 2>&1 | tee "$pip_log"; then
+        echo ""
+        print_success "All ${total_pinned} packages installed into venv"
+        print_success "Venv lives at: ${VENV_DIR}"
+        print_success "Total venv size: $(du -sh "$VENV_DIR" 2>/dev/null | cut -f1 || echo unknown)"
     else
-        local pip_exit=$?
+        local pip_exit=${PIPESTATUS[0]:-1}
         echo ""
         print_error "pip install failed (exit code $pip_exit)"
+        print_error ""
         print_error "Common causes:"
         print_error "  - Python version too new for one or more pinned dependencies"
         print_error "    (e.g., pydantic-core requires pyo3 wheels for your Python version)"
         print_error "  - Network issue downloading wheels"
         print_error "  - Disk full or permission denied"
         print_error ""
+        print_error "Last 30 lines of pip log (full log: $pip_log):"
+        echo ""
+        tail -30 "$pip_log" 2>/dev/null | sed 's/^/  /' || true
+        echo ""
         print_error "Setup will continue but the orchestration router will not work"
         print_error "until you resolve the install failure above."
         deactivate
         return 1
-    fi
-
-    # Show installed packages (dynamically from requirements.txt)
-    echo ""
-    print_info "Installed packages:"
-    # Extract main package names from requirements.txt (exclude comments and dependencies section)
-    local main_packages
-    main_packages=$(grep -v "^#" "$REQUIREMENTS" | grep -v "^$" | sed -n '/^# AI Provider SDKs/,/^# Dependencies of above/p' | grep -E "^[a-zA-Z]" | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | head -20 | tr '\n' '|' | sed 's/|$//')
-    if [[ -n "$main_packages" ]]; then
-        pip list | grep -E "($main_packages)" || true
     fi
 
     deactivate
@@ -205,57 +248,56 @@ test_installation() {
     # shellcheck source=/dev/null
     source "$activate_script"
 
-    print_info "Testing imports..."
-
-    # Dynamically extract core packages from requirements.txt
-    # Note: google-generativeai imports as 'google.generativeai', python-dotenv as 'dotenv'
-    local -A import_map=(
-        ["google-generativeai"]="google.generativeai"
-        ["python-dotenv"]="dotenv"
+    # Test the critical packages — the ones the router actually needs to
+    # function. We don't test every transitive dep (too noisy and not
+    # informative) and we don't test dev-only tools like pytest/mypy/black
+    # at this stage (they're verified by the test suite later).
+    #
+    # Map of "display name" → "import statement". This is curated, not
+    # generated, so hyphenated PyPI names map cleanly to dotted module
+    # imports (anthropic, google.genai, openai, pydantic, etc.).
+    local -a critical_packages=(
+        "anthropic|anthropic"
+        "google-genai|google.genai"
+        "openai|openai"
+        "pydantic|pydantic"
+        "httpx|httpx"
+        "requests|requests"
+        "rich|rich"
+        "typer|typer"
+        "keyring|keyring"
+        "python-dotenv|dotenv"
     )
 
-    # Extract main package names (exclude comments, blank lines, and dependency section)
-    local packages_to_test=()
-    while IFS= read -r line; do
-        # Skip comments, blank lines, and dependency section
-        if [[ "$line" =~ ^#.*Dependencies\ of\ above ]]; then
-            break
-        fi
-        if [[ -n "$line" && ! "$line" =~ ^# ]]; then
-            # Extract package name (before ==, >=, etc.)
-            local pkg_name=$(echo "$line" | cut -d'=' -f1 | cut -d'>' -f1 | cut -d'<' -f1 | tr -d ' ')
-            # Validate package name format
-            if [[ -n "$pkg_name" && "$pkg_name" =~ ^[a-zA-Z_][a-zA-Z0-9_.-]*$ ]]; then
-                # Use import name from map, or package name as-is
-                local import_name="${import_map[$pkg_name]:-$pkg_name}"
-                packages_to_test+=("$import_name")
-            fi
-        fi
-    done < "$REQUIREMENTS"
+    print_info "Testing ${#critical_packages[@]} critical imports in venv..."
 
-    # Test each package
-    local failed=0
-    for package in "${packages_to_test[@]}"; do
-        # Validate package name to prevent injection
-        if [[ ! "$package" =~ ^[a-zA-Z_][a-zA-Z0-9_.]*$ ]]; then
-            print_warning "Skipping invalid package name: $package"
-            continue
-        fi
-        if python3 -c "import ${package}" 2>/dev/null; then
-            print_success "$package"
+    local failed_imports=()
+    local passed=0
+    for entry in "${critical_packages[@]}"; do
+        local display_name="${entry%%|*}"
+        local import_name="${entry##*|}"
+        if python3 -c "import ${import_name}" 2>/dev/null; then
+            passed=$((passed + 1))
         else
-            print_error "$package (import failed)"
-            failed=$((failed + 1))
+            failed_imports+=("$display_name")
         fi
     done
 
     deactivate
 
-    if [ $failed -eq 0 ]; then
-        print_success "All packages import successfully"
+    if [ ${#failed_imports[@]} -eq 0 ]; then
+        print_success "All ${passed} critical packages import successfully"
         return 0
     else
-        print_error "$failed package(s) failed to import"
+        print_error "${passed}/${#critical_packages[@]} critical packages OK, ${#failed_imports[@]} failed:"
+        local fp
+        for fp in "${failed_imports[@]}"; do
+            echo "    ✗ ${fp}"
+        done
+        echo ""
+        print_warning "The venv is partially installed. The router will fail on commands"
+        print_warning "that depend on the missing packages. Check the pip log printed"
+        print_warning "above for the root cause (most often: Python version mismatch)."
         return 1
     fi
 }

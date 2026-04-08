@@ -1,13 +1,13 @@
 """BM25 lexical search implementation for code search"""
 
+import json
+import logging
 import math
 import re
-import logging
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import json
+from typing import Any, Dict, List, Optional
 
 from chunking.chunker import CodeChunk
 
@@ -15,16 +15,15 @@ logger = logging.getLogger(__name__)
 
 # Pre-compiled regex patterns for tokenization (avoid re-compiling on every call)
 _CODE_DELIMITER_RE = re.compile(
-    r'[\s\.\,\;\:\(\)\[\]\{\}\<\>\=\+\-\*\/\|\&\!\@\#\$\%\^\~\`\'\"\\\n\r\t]+'
+    r"[\s\.\,\;\:\(\)\[\]\{\}\<\>\=\+\-\*\/\|\&\!\@\#\$\%\^\~\`\'\"\\\n\r\t]+"
 )
-_CAMEL_CASE_RE = re.compile(
-    r'[A-Z]?[a-z]+|[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|\d+'
-)
+_CAMEL_CASE_RE = re.compile(r"[A-Z]?[a-z]+|[A-Z]+(?=[A-Z][a-z]|\d|\W|$)|\d+")
 
 
 @dataclass
 class BM25Result:
     """BM25 search result"""
+
     chunk: CodeChunk
     score: float
     rank: int
@@ -38,7 +37,7 @@ class CodeTokenizer:
         self,
         camel_case_split: bool = True,
         snake_case_split: bool = True,
-        lowercase: bool = False
+        lowercase: bool = False,
     ):
         self.camel_case_split = camel_case_split
         self.snake_case_split = snake_case_split
@@ -73,8 +72,8 @@ class CodeTokenizer:
                     tokens.extend(camel_parts)
 
             # Split snake_case (already split by underscore, but handle explicitly)
-            if self.snake_case_split and '_' in token:
-                snake_parts = [p for p in token.split('_') if p and len(p) >= 2]
+            if self.snake_case_split and "_" in token:
+                snake_parts = [p for p in token.split("_") if p and len(p) >= 2]
                 tokens.extend(snake_parts)
 
         # Lowercase if configured
@@ -106,7 +105,7 @@ class BM25Index:
         index_dir: str,
         k1: float = 1.2,
         b: float = 0.75,
-        tokenizer: Optional[CodeTokenizer] = None
+        tokenizer: Optional[CodeTokenizer] = None,
     ):
         """
         Initialize BM25 index.
@@ -174,7 +173,9 @@ class BM25Index:
                 self.df[term] += 1
 
         # Calculate average document length
-        self.avg_doc_length = total_length / self.total_docs if self.total_docs > 0 else 0
+        self.avg_doc_length = (
+            total_length / self.total_docs if self.total_docs > 0 else 0
+        )
 
         logger.info(
             f"Built BM25 index: {self.total_docs} docs, "
@@ -195,7 +196,9 @@ class BM25Index:
         # BM25 IDF formula
         return math.log((self.total_docs - df + 0.5) / (df + 0.5) + 1.0)
 
-    def _score_document(self, doc_idx: int, query_terms: List[str]) -> tuple[float, List[str]]:
+    def _score_document(
+        self, doc_idx: int, query_terms: List[str]
+    ) -> tuple[float, List[str]]:
         """
         Calculate BM25 score for a document given query terms.
 
@@ -223,7 +226,9 @@ class BM25Index:
             # BM25 scoring formula
             idf = self._idf(term_lower)
             numerator = term_tf * (self.k1 + 1)
-            denominator = term_tf + self.k1 * (1 - self.b + self.b * (doc_len / self.avg_doc_length))
+            denominator = term_tf + self.k1 * (
+                1 - self.b + self.b * (doc_len / self.avg_doc_length)
+            )
 
             score += idf * (numerator / denominator)
 
@@ -261,12 +266,14 @@ class BM25Index:
         # Build results
         results = []
         for rank, (doc_idx, score, matched) in enumerate(scores[:top_k]):
-            results.append(BM25Result(
-                chunk=self.chunks[doc_idx],
-                score=score,
-                rank=rank + 1,
-                matched_terms=matched
-            ))
+            results.append(
+                BM25Result(
+                    chunk=self.chunks[doc_idx],
+                    score=score,
+                    rank=rank + 1,
+                    matched_terms=matched,
+                )
+            )
 
         return results
 
@@ -279,16 +286,18 @@ class BM25Index:
         chunks_file = self.index_dir / "bm25_chunks.json"
         chunks_data = []
         for chunk in self.chunks:
-            chunks_data.append({
-                "file_path": chunk.file_path,
-                "content": chunk.content,
-                "start_line": chunk.start_line,
-                "end_line": chunk.end_line,
-                "chunk_type": chunk.chunk_type,
-                "language": chunk.language
-            })
+            chunks_data.append(
+                {
+                    "file_path": chunk.file_path,
+                    "content": chunk.content,
+                    "start_line": chunk.start_line,
+                    "end_line": chunk.end_line,
+                    "chunk_type": chunk.chunk_type,
+                    "language": chunk.language,
+                }
+            )
 
-        with open(chunks_file, 'w', encoding='utf-8') as f:
+        with open(chunks_file, "w", encoding="utf-8") as f:
             json.dump(chunks_data, f, indent=2)
 
         # Save index data
@@ -300,10 +309,10 @@ class BM25Index:
             "avg_doc_length": self.avg_doc_length,
             "df": dict(self.df),
             "doc_lengths": self.doc_lengths,
-            "doc_term_freqs": [dict(tf) for tf in self.doc_term_freqs]
+            "doc_term_freqs": [dict(tf) for tf in self.doc_term_freqs],
         }
 
-        with open(index_file, 'w', encoding='utf-8') as f:
+        with open(index_file, "w", encoding="utf-8") as f:
             json.dump(index_data, f, indent=2)
 
         logger.info(f"BM25 index saved to {self.index_dir}")
@@ -318,22 +327,24 @@ class BM25Index:
 
         try:
             # Load chunks
-            with open(chunks_file, 'r', encoding='utf-8') as f:
+            with open(chunks_file, "r", encoding="utf-8") as f:
                 chunks_data = json.load(f)
 
             self.chunks = []
             for cd in chunks_data:
-                self.chunks.append(CodeChunk(
-                    file_path=cd["file_path"],
-                    content=cd["content"],
-                    start_line=cd["start_line"],
-                    end_line=cd["end_line"],
-                    chunk_type=cd.get("chunk_type", "code"),
-                    language=cd.get("language", "")
-                ))
+                self.chunks.append(
+                    CodeChunk(
+                        file_path=cd["file_path"],
+                        content=cd["content"],
+                        start_line=cd["start_line"],
+                        end_line=cd["end_line"],
+                        chunk_type=cd.get("chunk_type", "code"),
+                        language=cd.get("language", ""),
+                    )
+                )
 
             # Load index data
-            with open(index_file, 'r', encoding='utf-8') as f:
+            with open(index_file, "r", encoding="utf-8") as f:
                 index_data = json.load(f)
 
             self.k1 = index_data.get("k1", 1.2)
@@ -342,7 +353,9 @@ class BM25Index:
             self.avg_doc_length = index_data.get("avg_doc_length", 0.0)
             self.df = Counter(index_data.get("df", {}))
             self.doc_lengths = index_data.get("doc_lengths", [])
-            self.doc_term_freqs = [Counter(tf) for tf in index_data.get("doc_term_freqs", [])]
+            self.doc_term_freqs = [
+                Counter(tf) for tf in index_data.get("doc_term_freqs", [])
+            ]
 
             logger.info(f"Loaded BM25 index: {self.total_docs} docs")
 
@@ -359,7 +372,7 @@ class BM25Index:
             "avg_doc_length": self.avg_doc_length,
             "k1": self.k1,
             "b": self.b,
-            "storage_path": str(self.index_dir)
+            "storage_path": str(self.index_dir),
         }
 
     def clear(self):

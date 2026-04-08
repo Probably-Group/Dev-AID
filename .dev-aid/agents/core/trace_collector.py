@@ -188,7 +188,9 @@ class TraceCollector:
             return []
 
         pattern = "**/*.jsonl" if not agent_name else "*.jsonl"
-        traces = sorted(search_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
+        traces = sorted(
+            search_dir.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
+        )
         return traces[:limit]
 
     @staticmethod

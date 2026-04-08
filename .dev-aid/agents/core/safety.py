@@ -57,7 +57,9 @@ class SafetyConfig:
 
     dry_run: bool = False
     allowed_tools: Optional[Set[str]] = None  # None = all tools allowed
-    blocked_commands: List[str] = field(default_factory=lambda: list(DEFAULT_BLOCKED_COMMANDS))
+    blocked_commands: List[str] = field(
+        default_factory=lambda: list(DEFAULT_BLOCKED_COMMANDS)
+    )
     max_bash_timeout_ms: int = 30000
     allowed_paths: Optional[List[Path]] = None  # None = no path restrictions
     max_file_size_bytes: int = 10 * 1024 * 1024  # 10 MB
@@ -76,7 +78,10 @@ class SafetyConfig:
         cmd_nospace = cmd_lower.replace(" ", "")
         for blocked in self.blocked_commands:
             blocked_lower = blocked.lower()
-            if blocked_lower in cmd_lower or blocked_lower.replace(" ", "") in cmd_nospace:
+            if (
+                blocked_lower in cmd_lower
+                or blocked_lower.replace(" ", "") in cmd_nospace
+            ):
                 logger.warning("Blocked command (exact match): %s", command[:100])
                 return False
 

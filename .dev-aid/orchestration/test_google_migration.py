@@ -42,7 +42,10 @@ def test_google_client():
         ]
 
         response = client.send_request(
-            messages=messages, model="gemini-2.0-flash-exp", max_tokens=50, temperature=0.0
+            messages=messages,
+            model="gemini-2.0-flash-exp",
+            max_tokens=50,
+            temperature=0.0,
         )
 
         print(f"✅ Response received: {response.content[:100]}")

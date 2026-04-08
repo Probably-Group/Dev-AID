@@ -4,12 +4,7 @@ import threading
 from typing import List
 
 import pytest
-from agents.core.shared_state import (
-    BudgetTracker,
-    FileLockSet,
-    MessageBus,
-    SharedTaskList,
-)
+from agents.core.shared_state import BudgetTracker, FileLockSet, MessageBus, SharedTaskList
 from agents.core.team_models import AgentMessage, TaskStatus, TeamTask
 
 

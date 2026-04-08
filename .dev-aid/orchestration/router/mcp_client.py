@@ -60,7 +60,16 @@ class MCPClient:
         try:
             # Start MCP server process
             # SECURITY: Only pass whitelisted environment variables to prevent secret leakage
-            env_whitelist = {"PATH", "HOME", "USER", "LANG", "LC_ALL", "TMPDIR", "TEMP", "TMP"}
+            env_whitelist = {
+                "PATH",
+                "HOME",
+                "USER",
+                "LANG",
+                "LC_ALL",
+                "TMPDIR",
+                "TEMP",
+                "TMP",
+            }
 
             # Build isolated environment with only whitelisted vars
             safe_env = {k: v for k, v in os.environ.items() if k in env_whitelist}
@@ -97,7 +106,12 @@ class MCPClient:
 
             # List available tools
             tools_response = await self._send_request(
-                {"jsonrpc": "2.0", "id": self._next_id(), "method": "tools/list", "params": {}}
+                {
+                    "jsonrpc": "2.0",
+                    "id": self._next_id(),
+                    "method": "tools/list",
+                    "params": {},
+                }
             )
 
             if "result" in tools_response and "tools" in tools_response["result"]:

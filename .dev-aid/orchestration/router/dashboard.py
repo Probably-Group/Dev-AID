@@ -215,7 +215,10 @@ def main() -> int:
         "--days", type=int, default=7, help="Number of days for history (default: 7)"
     )
     parser.add_argument(
-        "--budget", type=float, default=None, help="Daily budget override (default: from config)"
+        "--budget",
+        type=float,
+        default=None,
+        help="Daily budget override (default: from config)",
     )
     args = parser.parse_args()
 

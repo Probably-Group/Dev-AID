@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from .agent_runner import AgentRunner
+from .apo import get_apo_prompt_override
 from .lessons import LessonsLedger
 from .models import AgentDefinition, AgentResult
 from .provider_adapter import create_adapter
@@ -20,7 +21,6 @@ from .shared_state import BudgetTracker, FileLockSet, MessageBus, SharedTaskList
 from .skill_loader import SkillLoader
 from .team_models import AgentMessage, AgentSlot, TeamDefinition, TeamResult
 from .tool_registry import ToolRegistry
-from .apo import get_apo_prompt_override
 from .trace_collector import TraceCollector, TraceConfig
 
 logger = logging.getLogger(__name__)

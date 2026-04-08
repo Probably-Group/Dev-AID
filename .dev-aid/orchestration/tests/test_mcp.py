@@ -1276,7 +1276,8 @@ class TestMCPRegistry:
         mock_config = {"mcpServers": {"test-server": {"command": "test", "args": []}}}
 
         with patch(
-            "subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="claude", timeout=5)
+            "subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd="claude", timeout=5),
         ):
             with patch.object(registry, "_read_claude_config", return_value=mock_config):
                 servers = registry._discover_claude()

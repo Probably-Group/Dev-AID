@@ -77,7 +77,10 @@ class GitHubClient:
             import subprocess
 
             result = subprocess.run(
-                ["git", "remote", "get-url", "origin"], capture_output=True, text=True, timeout=5
+                ["git", "remote", "get-url", "origin"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
 
             if result.returncode == 0:
@@ -157,7 +160,10 @@ class GitHubClient:
                     f"Set GITHUB_TOKEN environment variable for higher limits."
                 )
             elif e.code == 404:
-                print(f"{Color.RED}❌ Repository not found: {self.repo}{Color.NC}", file=sys.stderr)
+                print(
+                    f"{Color.RED}❌ Repository not found: {self.repo}{Color.NC}",
+                    file=sys.stderr,
+                )
                 print("   Check DEV_AID_REPO environment variable", file=sys.stderr)
                 sys.exit(1)
             else:
@@ -243,7 +249,10 @@ class GitHubClient:
 
         if not asset:
             available = [a["name"] for a in release["assets"]]
-            print(f"{Color.RED}❌ Asset not found: {asset_name}{Color.NC}", file=sys.stderr)
+            print(
+                f"{Color.RED}❌ Asset not found: {asset_name}{Color.NC}",
+                file=sys.stderr,
+            )
             print(f"Available assets: {', '.join(available)}", file=sys.stderr)
             raise FileNotFoundError(f"Asset not found: {asset_name}")
 
@@ -315,7 +324,10 @@ class GitHubClient:
                 break
 
         if not checksum_asset:
-            print(f"{Color.YELLOW}⚠️  No checksum file found in release{Color.NC}", file=sys.stderr)
+            print(
+                f"{Color.YELLOW}⚠️  No checksum file found in release{Color.NC}",
+                file=sys.stderr,
+            )
             return {}
 
         # Download and parse checksums
@@ -325,7 +337,10 @@ class GitHubClient:
             with urlopen(url, timeout=10) as response:
                 content = response.read().decode("utf-8")
         except Exception as e:
-            print(f"{Color.YELLOW}⚠️  Could not fetch checksums: {e}{Color.NC}", file=sys.stderr)
+            print(
+                f"{Color.YELLOW}⚠️  Could not fetch checksums: {e}{Color.NC}",
+                file=sys.stderr,
+            )
             return {}
 
         # Parse checksums (format: "HASH  filename" or "HASH *filename")

@@ -293,7 +293,10 @@ class ConfigLoader:
         api_key = self.get_api_key(provider)
         if not api_key:
             env_var = provider_config.get("api_key_env", "UNKNOWN")
-            return False, f"API key not set for '{provider}' (expected {env_var} in .env)"
+            return (
+                False,
+                f"API key not set for '{provider}' (expected {env_var} in .env)",
+            )
 
         return True, ""
 

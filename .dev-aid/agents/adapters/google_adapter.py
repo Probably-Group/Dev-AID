@@ -146,9 +146,7 @@ class GoogleAdapter:
                             parts.append({"text": item["text"]})
                         elif item.get("type") == "tool_result":
                             # Convert Anthropic-style tool_result to text
-                            parts.append(
-                                {"text": str(item.get("content", ""))}
-                            )
+                            parts.append({"text": str(item.get("content", ""))})
 
             if parts:
                 contents.append({"role": role, "parts": parts})
@@ -156,7 +154,9 @@ class GoogleAdapter:
         return contents
 
     @staticmethod
-    def format_tool_result(call_id: str, output: str, is_error: bool = False) -> Dict[str, Any]:
+    def format_tool_result(
+        call_id: str, output: str, is_error: bool = False
+    ) -> Dict[str, Any]:
         """Format a single tool result for Gemini's function_response format."""
         return {
             "role": "user",

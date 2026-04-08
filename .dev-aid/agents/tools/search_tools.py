@@ -101,7 +101,9 @@ def grep_search(
             # Truncate large results
             lines = output.split("\n")
             if len(lines) > 200:
-                output = "\n".join(lines[:200]) + f"\n... ({len(lines) - 200} more matches)"
+                output = (
+                    "\n".join(lines[:200]) + f"\n... ({len(lines) - 200} more matches)"
+                )
             return output
         except FileNotFoundError:
             continue  # Try next search tool
@@ -121,7 +123,8 @@ def find_files(pattern: str, path: Optional[str] = None) -> str:
         dirs[:] = [
             d
             for d in dirs
-            if not d.startswith(".") and d not in ("node_modules", "__pycache__", "venv", ".git")
+            if not d.startswith(".")
+            and d not in ("node_modules", "__pycache__", "venv", ".git")
         ]
         for filename in files:
             if fnmatch.fnmatch(filename, pattern):

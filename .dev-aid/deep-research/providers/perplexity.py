@@ -100,7 +100,9 @@ class PerplexityProvider(ResearchProvider):
 
         # Select model based on depth
         model = self.MODELS.get(depth, "sonar")
-        timeout = self.DEEP_TIMEOUT if depth == ResearchDepth.DEEP else self.DEFAULT_TIMEOUT
+        timeout = (
+            self.DEEP_TIMEOUT if depth == ResearchDepth.DEEP else self.DEFAULT_TIMEOUT
+        )
 
         # Build messages
         messages: List[Dict[str, str]] = []

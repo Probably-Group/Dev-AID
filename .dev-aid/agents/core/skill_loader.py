@@ -182,7 +182,9 @@ def _parse_frontmatter(text: str) -> Dict[str, Any]:
             elif value.startswith("[") and value.endswith("]"):
                 # Inline list: [a, b, c]
                 items = value[1:-1].split(",")
-                result[key] = [item.strip().strip('"').strip("'") for item in items if item.strip()]
+                result[key] = [
+                    item.strip().strip('"').strip("'") for item in items if item.strip()
+                ]
             else:
                 result[key] = _parse_yaml_value(value)
 
@@ -214,15 +216,23 @@ def parse_skill_file(path: Path) -> LoadedSkill:
         risk_level=str(raw.get("risk_level", "LOW")).upper(),
         category=raw.get("category"),
         auto_load=bool(raw.get("auto_load", False)),
-        token_budget=raw.get("token_budget") if isinstance(raw.get("token_budget"), int) else None,
-        triggers=raw.get("triggers", []) if isinstance(raw.get("triggers"), list) else [],
+        token_budget=(
+            raw.get("token_budget")
+            if isinstance(raw.get("token_budget"), int)
+            else None
+        ),
+        triggers=(
+            raw.get("triggers", []) if isinstance(raw.get("triggers"), list) else []
+        ),
         tools=raw.get("tools", []) if isinstance(raw.get("tools"), list) else [],
         raw=raw,
     )
 
     sections = _parse_sections(body)
 
-    return LoadedSkill(metadata=metadata, body=body, source_path=path, sections=sections)
+    return LoadedSkill(
+        metadata=metadata, body=body, source_path=path, sections=sections
+    )
 
 
 class SkillLoader:

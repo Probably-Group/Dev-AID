@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+
 import pytest
 
 
@@ -40,7 +41,7 @@ class Calculator:
 def sample_javascript_file(temp_dir):
     """Create a sample JavaScript file"""
     file_path = temp_dir / "sample.js"
-    content = '''function greet(name) {
+    content = """function greet(name) {
     return `Hello, ${name}!`;
 }
 
@@ -53,7 +54,7 @@ class Person {
         console.log(`Hello, I'm ${this.name}`);
     }
 }
-'''
+"""
     file_path.write_text(content)
     return str(file_path)
 
@@ -63,12 +64,12 @@ def sample_codebase(temp_dir):
     """Create a sample codebase with multiple files"""
     # Create Python files
     (temp_dir / "main.py").write_text('print("Main file")')
-    (temp_dir / "utils.py").write_text('def utility(): pass')
+    (temp_dir / "utils.py").write_text("def utility(): pass")
 
     # Create subdirectory
     subdir = temp_dir / "module"
     subdir.mkdir()
-    (subdir / "helper.py").write_text('def helper(): pass')
+    (subdir / "helper.py").write_text("def helper(): pass")
 
     # Create JavaScript files
     (temp_dir / "app.js").write_text('console.log("App")')
@@ -76,6 +77,6 @@ def sample_codebase(temp_dir):
     # Create excluded directory
     node_modules = temp_dir / "node_modules"
     node_modules.mkdir()
-    (node_modules / "package.js").write_text('// Should be excluded')
+    (node_modules / "package.js").write_text("// Should be excluded")
 
     return str(temp_dir)

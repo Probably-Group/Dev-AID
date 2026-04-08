@@ -3,35 +3,37 @@
 Provides code search capabilities via MCP (Model Context Protocol)
 """
 
-import sys
 import json
-import os
 import logging
+import os
+import sys
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import ValidationError
 
 # Add parent directory to path for imports (only when run as script)
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from embeddings.embedder import CodeEmbedder
 from chunking.chunker import MultiLanguageChunker
-from search.index import CodeSearchIndex, SearchResult
-from utils.storage import StorageManager
-from utils.security import validate_directory_path
+from embeddings.embedder import CodeEmbedder
 from mcp_server.validation import (
-    SearchCodeRequest,
-    IndexDirectoryRequest,
+    ClearIndexRequest,
     GetIndexStatusRequest,
-    ClearIndexRequest
+    IndexDirectoryRequest,
+    SearchCodeRequest,
 )
+from search.index import CodeSearchIndex, SearchResult
+from utils.security import validate_directory_path
+from utils.storage import StorageManager
 
 logger = logging.getLogger(__name__)
 
 
 class AppError(Exception):
     """Base application error with safe messaging"""
+
     def __init__(self, message: str, internal: Optional[str] = None):
         self.message = message
         if internal:
@@ -70,11 +72,12 @@ class CodeSearchServer:
             if self.embedder is None:
                 raise AppError("Embedder not initialized")
             self.index = CodeSearchIndex(
-                index_dir=str(project_dir),
-                embedding_dim=self.embedder.embedding_dim
+                index_dir=str(project_dir), embedding_dim=self.embedder.embedding_dim
             )
 
-    def search_code(self, query: str, project_path: str, top_k: int = 10) -> List[Dict[str, Any]]:
+    def search_code(
+        self, query: str, project_path: str, top_k: int = 10
+    ) -> List[Dict[str, Any]]:
         """
         Search code with natural language query
 
@@ -111,17 +114,21 @@ class CodeSearchServer:
             # Format results
             formatted_results = []
             for result in results:
-                formatted_results.append({
-                    "content": result.chunk.content,
-                    "file_path": result.chunk.file_path,
-                    "start_line": result.chunk.start_line,
-                    "end_line": result.chunk.end_line,
-                    "language": result.chunk.language,
-                    "score": round(result.score, 4),
-                    "rank": result.rank
-                })
+                formatted_results.append(
+                    {
+                        "content": result.chunk.content,
+                        "file_path": result.chunk.file_path,
+                        "start_line": result.chunk.start_line,
+                        "end_line": result.chunk.end_line,
+                        "language": result.chunk.language,
+                        "score": round(result.score, 4),
+                        "rank": result.rank,
+                    }
+                )
 
-            logger.info(f"Search completed: {len(formatted_results)} results for '{query[:50]}...'")
+            logger.info(
+                f"Search completed: {len(formatted_results)} results for '{query[:50]}...'"
+            )
             return formatted_results
 
         except Exception as e:
@@ -207,7 +214,7 @@ class CodeSearchServer:
             return {
                 "indexed_projects": len(projects),
                 "projects": projects,
-                "current_project": self.current_project
+                "current_project": self.current_project,
             }
 
         except Exception as e:
@@ -227,7 +234,10 @@ class CodeSearchServer:
             projects = self.storage.list_projects()
             return {
                 "total_projects": len(projects),
-                "projects": [{"path": path, "hash": hash_val} for path, hash_val in projects.items()]
+                "projects": [
+                    {"path": path, "hash": hash_val}
+                    for path, hash_val in projects.items()
+                ],
             }
         except Exception as e:
             raise AppError("Failed to list projects", str(e))
@@ -266,10 +276,7 @@ class MCPRequestHandler:
         return {
             "protocolVersion": "2024-11-05",
             "capabilities": {"tools": {}},
-            "serverInfo": {
-                "name": "devaid-code-search",
-                "version": "1.0.0"
-            }
+            "serverInfo": {"name": "devaid-code-search", "version": "1.0.0"},
         }
 
     def handle_tools_list(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -282,12 +289,21 @@ class MCPRequestHandler:
                     "inputSchema": {
                         "type": "object",
                         "properties": {
-                            "query": {"type": "string", "description": "Natural language search query"},
-                            "project_path": {"type": "string", "description": "Path to project"},
-                            "top_k": {"type": "integer", "description": "Number of results (default: 10)"}
+                            "query": {
+                                "type": "string",
+                                "description": "Natural language search query",
+                            },
+                            "project_path": {
+                                "type": "string",
+                                "description": "Path to project",
+                            },
+                            "top_k": {
+                                "type": "integer",
+                                "description": "Number of results (default: 10)",
+                            },
                         },
-                        "required": ["query", "project_path"]
-                    }
+                        "required": ["query", "project_path"],
+                    },
                 },
                 {
                     "name": "index_directory",
@@ -295,10 +311,13 @@ class MCPRequestHandler:
                     "inputSchema": {
                         "type": "object",
                         "properties": {
-                            "directory": {"type": "string", "description": "Directory path to index"}
+                            "directory": {
+                                "type": "string",
+                                "description": "Directory path to index",
+                            }
                         },
-                        "required": ["directory"]
-                    }
+                        "required": ["directory"],
+                    },
                 },
                 {
                     "name": "get_index_status",
@@ -306,17 +325,17 @@ class MCPRequestHandler:
                     "inputSchema": {
                         "type": "object",
                         "properties": {
-                            "project_path": {"type": "string", "description": "Optional project path"}
-                        }
-                    }
+                            "project_path": {
+                                "type": "string",
+                                "description": "Optional project path",
+                            }
+                        },
+                    },
                 },
                 {
                     "name": "list_projects",
                     "description": "List all indexed projects",
-                    "inputSchema": {
-                        "type": "object",
-                        "properties": {}
-                    }
+                    "inputSchema": {"type": "object", "properties": {}},
                 },
                 {
                     "name": "clear_index",
@@ -324,11 +343,14 @@ class MCPRequestHandler:
                     "inputSchema": {
                         "type": "object",
                         "properties": {
-                            "project_path": {"type": "string", "description": "Project path"}
+                            "project_path": {
+                                "type": "string",
+                                "description": "Project path",
+                            }
                         },
-                        "required": ["project_path"]
-                    }
-                }
+                        "required": ["project_path"],
+                    },
+                },
             ]
         }
 
@@ -344,14 +366,16 @@ class MCPRequestHandler:
                 return self.server.search_code(
                     query=search_req.query,
                     project_path=search_req.project_path,
-                    top_k=search_req.top_k
+                    top_k=search_req.top_k,
                 )
             elif tool_name == "index_directory":
                 index_req = IndexDirectoryRequest(**arguments)
                 return self.server.index_directory(directory=index_req.directory)
             elif tool_name == "get_index_status":
                 status_req = GetIndexStatusRequest(**arguments)
-                return self.server.get_index_status(project_path=status_req.project_path)
+                return self.server.get_index_status(
+                    project_path=status_req.project_path
+                )
             elif tool_name == "list_projects":
                 return self.server.list_projects()
             elif tool_name == "clear_index":
@@ -370,7 +394,9 @@ class MCPRequestHandler:
             raise AppError(f"Tool execution failed", str(e))
 
 
-def handle_mcp_request(server: CodeSearchServer, request: Dict[str, Any]) -> Dict[str, Any]:
+def handle_mcp_request(
+    server: CodeSearchServer, request: Dict[str, Any]
+) -> Dict[str, Any]:
     """
     Handle MCP JSON-RPC request
 
@@ -398,21 +424,14 @@ def handle_mcp_request(server: CodeSearchServer, request: Dict[str, Any]) -> Dic
         else:
             raise ValueError(f"Unknown method: {method}")
 
-        return {
-            "jsonrpc": "2.0",
-            "id": request_id,
-            "result": result
-        }
+        return {"jsonrpc": "2.0", "id": request_id, "result": result}
 
     except AppError as e:
         # Application error with safe message
         return {
             "jsonrpc": "2.0",
             "id": request_id,
-            "error": {
-                "code": -32603,
-                "message": e.message  # Safe message only
-            }
+            "error": {"code": -32603, "message": e.message},  # Safe message only
         }
     except Exception as e:
         # Unexpected error
@@ -422,8 +441,8 @@ def handle_mcp_request(server: CodeSearchServer, request: Dict[str, Any]) -> Dic
             "id": request_id,
             "error": {
                 "code": -32603,
-                "message": "Internal server error"  # Don't leak details
-            }
+                "message": "Internal server error",  # Don't leak details
+            },
         }
 
 
@@ -433,21 +452,23 @@ def configure_logging(verbose: bool = False):
 
     logging.basicConfig(
         level=level,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
-            logging.StreamHandler(sys.stderr)  # Log to stderr, not stdout (JSON-RPC uses stdout)
-        ]
+            logging.StreamHandler(
+                sys.stderr
+            )  # Log to stderr, not stdout (JSON-RPC uses stdout)
+        ],
     )
 
     # Reduce noise from libraries
-    logging.getLogger('sentence_transformers').setLevel(logging.WARNING)
-    logging.getLogger('transformers').setLevel(logging.WARNING)
+    logging.getLogger("sentence_transformers").setLevel(logging.WARNING)
+    logging.getLogger("transformers").setLevel(logging.WARNING)
 
 
 def main():
     """Main entry point for stdio MCP server"""
     # Configure logging
-    configure_logging(verbose=os.getenv('DEBUG') == '1')
+    configure_logging(verbose=os.getenv("DEBUG") == "1")
 
     logger.info("Starting Dev-AID Code Search MCP Server")
 
@@ -463,20 +484,14 @@ def main():
             logger.error(f"Invalid JSON: {e}")
             error_response = {
                 "jsonrpc": "2.0",
-                "error": {
-                    "code": -32700,
-                    "message": "Parse error"
-                }
+                "error": {"code": -32700, "message": "Parse error"},
             }
             print(json.dumps(error_response), flush=True)
         except Exception as e:
             logger.exception("Unexpected error in main loop")
             error_response = {
                 "jsonrpc": "2.0",
-                "error": {
-                    "code": -32603,
-                    "message": "Internal error"
-                }
+                "error": {"code": -32603, "message": "Internal error"},
             }
             print(json.dumps(error_response), flush=True)
 

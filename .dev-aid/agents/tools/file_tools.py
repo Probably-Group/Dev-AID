@@ -33,7 +33,8 @@ READ_FILE_DEFINITION = ToolDefinition(
 WRITE_FILE_DEFINITION = ToolDefinition(
     name="write_file",
     description=(
-        "Write content to a file. Creates the file if it doesn't exist, " "overwrites if it does."
+        "Write content to a file. Creates the file if it doesn't exist, "
+        "overwrites if it does."
     ),
     parameters={
         "path": {"type": "string", "description": "Absolute path to the file to write"},
@@ -47,7 +48,10 @@ LIST_DIRECTORY_DEFINITION = ToolDefinition(
     name="list_directory",
     description="List the contents of a directory, showing files and subdirectories.",
     parameters={
-        "path": {"type": "string", "description": "Absolute path to the directory to list"},
+        "path": {
+            "type": "string",
+            "description": "Absolute path to the directory to list",
+        },
     },
     required_params=["path"],
     risk_level="safe",

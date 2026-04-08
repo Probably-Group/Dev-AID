@@ -110,7 +110,14 @@ class ArchitectureMapper:
                 # Skip common directories
                 if any(
                     part in file_path.parts
-                    for part in ["node_modules", "venv", ".venv", "__pycache__", "dist", "build"]
+                    for part in [
+                        "node_modules",
+                        "venv",
+                        ".venv",
+                        "__pycache__",
+                        "dist",
+                        "build",
+                    ]
                 ):
                     continue
 

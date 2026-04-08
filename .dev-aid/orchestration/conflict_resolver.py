@@ -224,8 +224,7 @@ class ConflictResolver:
         print("\n" + "=" * 70)
         print(Color.colorize("📚 Conflict Resolution Help", Color.BOLD))
         print("=" * 70)
-        print(
-            """
+        print("""
 KEEP YOURS (y):
   - Preserves your modifications
   - Ignores upstream changes
@@ -262,8 +261,7 @@ IMPORTANT NOTES:
   - You can rollback anytime with: ./.dev-aid/scripts/rollback.sh
   - Manual merge files use git-style conflict markers (<<<<<<, ======, >>>>>>)
   - After manual merge, replace the original file with your merged version
-        """
-        )
+        """)
         print("=" * 70)
 
     def resolve_conflict(self, file_path: str, choice: MergeChoice) -> None:

@@ -162,7 +162,10 @@ class TaskClassifier:
             TaskType.COMPLEX_REASONING: "claude-opus",
         }
 
-        return cast(str, task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet")))
+        return cast(
+            str,
+            task_routes.get(task_type, default_routes.get(task_type, "claude-sonnet")),
+        )
 
     def explain_classification(
         self, task_type: TaskType, matched_keywords: List[str], confidence: float

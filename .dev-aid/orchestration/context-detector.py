@@ -292,7 +292,10 @@ def main():
     elif command == "select":
         # Select skills from context keywords
         if len(sys.argv) < 3:
-            print('Usage: context-detector.py select "keywords" [max_skills]', file=sys.stderr)
+            print(
+                'Usage: context-detector.py select "keywords" [max_skills]',
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         context_str = sys.argv[2]

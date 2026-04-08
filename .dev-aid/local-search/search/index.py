@@ -1,14 +1,14 @@
 """FAISS-based code search index"""
 
-import os
 import json
 import logging
-import numpy as np
+import os
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-import faiss
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional
 
+import faiss
+import numpy as np
 from chunking.chunker import CodeChunk
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SearchResult:
     """Search result with relevance score"""
+
     chunk: CodeChunk
     score: float
     rank: int
@@ -42,7 +43,7 @@ class CodeSearchIndex:
         self.metadata: Dict[str, Any] = {
             "total_chunks": 0,
             "indexed_files": [],
-            "embedding_dim": embedding_dim
+            "embedding_dim": embedding_dim,
         }
 
         # Load existing index if available
@@ -63,7 +64,7 @@ class CodeSearchIndex:
         self.index = faiss.IndexFlatL2(self.embedding_dim)
 
         # Add embeddings to index
-        self.index.add(embeddings.astype('float32'))
+        self.index.add(embeddings.astype("float32"))
 
         # Store chunks
         self.chunks = chunks
@@ -72,9 +73,13 @@ class CodeSearchIndex:
         self.metadata["total_chunks"] = len(chunks)
         self.metadata["indexed_files"] = list(set(chunk.file_path for chunk in chunks))
 
-        logger.info(f"Built index with {len(chunks)} chunks from {len(self.metadata['indexed_files'])} files")
+        logger.info(
+            f"Built index with {len(chunks)} chunks from {len(self.metadata['indexed_files'])} files"
+        )
 
-    def search(self, query_embedding: np.ndarray, top_k: int = 10) -> List[SearchResult]:
+    def search(
+        self, query_embedding: np.ndarray, top_k: int = 10
+    ) -> List[SearchResult]:
         """
         Search for similar code chunks
 
@@ -89,7 +94,7 @@ class CodeSearchIndex:
             return []
 
         # Reshape query for FAISS
-        query = query_embedding.astype('float32').reshape(1, -1)
+        query = query_embedding.astype("float32").reshape(1, -1)
 
         # Search
         distances, indices = self.index.search(query, min(top_k, len(self.chunks)))
@@ -100,11 +105,9 @@ class CodeSearchIndex:
             if idx < len(self.chunks):
                 # Convert distance to similarity score (lower distance = higher similarity)
                 score = 1.0 / (1.0 + distance)
-                results.append(SearchResult(
-                    chunk=self.chunks[idx],
-                    score=score,
-                    rank=rank + 1
-                ))
+                results.append(
+                    SearchResult(chunk=self.chunks[idx], score=score, rank=rank + 1)
+                )
 
         return results
 
@@ -120,12 +123,12 @@ class CodeSearchIndex:
         # Save chunks as JSON (SECURITY: avoid pickle RCE vulnerability)
         chunks_file = self.index_dir / "chunks.json"
         chunks_data = [asdict(chunk) for chunk in self.chunks]
-        with open(chunks_file, 'w', encoding='utf-8') as f:
+        with open(chunks_file, "w", encoding="utf-8") as f:
             json.dump(chunks_data, f, indent=2)
 
         # Save metadata
         metadata_file = self.index_dir / "metadata.json"
-        with open(metadata_file, 'w', encoding='utf-8') as f:
+        with open(metadata_file, "w", encoding="utf-8") as f:
             json.dump(self.metadata, f, indent=2)
 
         logger.info(f"Index saved to {self.index_dir}")
@@ -147,7 +150,7 @@ class CodeSearchIndex:
             # Load chunks (prefer JSON, fallback to pickle for migration)
             if chunks_file_json.exists():
                 # Secure JSON format
-                with open(chunks_file_json, 'r', encoding='utf-8') as f:
+                with open(chunks_file_json, "r", encoding="utf-8") as f:
                     chunks_data = json.load(f)
 
                 # Validate and reconstruct CodeChunk objects
@@ -160,7 +163,9 @@ class CodeSearchIndex:
                         logger.warning(f"Skipping invalid chunk: {e}")
                         continue
 
-                logger.info(f"Loaded index with {len(self.chunks)} chunks (JSON format)")
+                logger.info(
+                    f"Loaded index with {len(self.chunks)} chunks (JSON format)"
+                )
 
             elif chunks_file_pkl.exists():
                 # SECURITY: Refuse to load pickle files (CWE-502 deserialization risk)
@@ -181,7 +186,7 @@ class CodeSearchIndex:
                 return
 
             # Load metadata
-            with open(metadata_file, 'r', encoding='utf-8') as f:
+            with open(metadata_file, "r", encoding="utf-8") as f:
                 self.metadata = json.load(f)
 
         except json.JSONDecodeError as e:
@@ -202,7 +207,7 @@ class CodeSearchIndex:
         return {
             **self.metadata,
             "index_loaded": self.index is not None,
-            "storage_path": str(self.index_dir)
+            "storage_path": str(self.index_dir),
         }
 
     def clear(self):
@@ -212,11 +217,11 @@ class CodeSearchIndex:
         self.metadata = {
             "total_chunks": 0,
             "indexed_files": [],
-            "embedding_dim": self.embedding_dim
+            "embedding_dim": self.embedding_dim,
         }
 
         # Delete files
-        for file in self.index_dir.glob('*'):
+        for file in self.index_dir.glob("*"):
             if file.is_file():
                 file.unlink()
 

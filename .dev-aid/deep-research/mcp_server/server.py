@@ -84,9 +84,7 @@ class DeepResearchServer:
 
         if providers_list:
             self.router = SmartRouter(providers_list)
-            logger.info(
-                f"Router initialized with {len(providers_list)} providers"
-            )
+            logger.info(f"Router initialized with {len(providers_list)} providers")
         else:
             logger.warning("No research providers available!")
 

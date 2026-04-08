@@ -43,8 +43,7 @@ class OpenAIAdapter:
                 self._client = openai.OpenAI(**kwargs)
             except ImportError:
                 raise ImportError(
-                    "openai package not installed. "
-                    "Install with: pip install openai"
+                    "openai package not installed. " "Install with: pip install openai"
                 )
         return self._client
 
@@ -121,7 +120,9 @@ class OpenAIAdapter:
         )
 
     @staticmethod
-    def format_tool_result(call_id: str, output: str, is_error: bool = False) -> Dict[str, Any]:
+    def format_tool_result(
+        call_id: str, output: str, is_error: bool = False
+    ) -> Dict[str, Any]:
         """Format a tool result for OpenAI's messages format."""
         return {
             "role": "tool",

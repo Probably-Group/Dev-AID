@@ -1,11 +1,11 @@
 """Storage utilities for Dev-AID Local Search"""
 
-import os
-import json
 import hashlib
+import json
 import logging
+import os
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -60,17 +60,21 @@ class StorageManager:
         if not mapping_file.exists():
             try:
                 # Safely get creation time
-                created_time = str(project_path_obj.stat().st_ctime) if project_path_obj.exists() else "unknown"
+                created_time = (
+                    str(project_path_obj.stat().st_ctime)
+                    if project_path_obj.exists()
+                    else "unknown"
+                )
             except OSError as e:
                 logger.warning(f"Cannot stat {project_path}: {e}")
                 created_time = "unknown"
 
-            with open(mapping_file, 'w', encoding='utf-8') as f:
-                json.dump({
-                    "path": project_path,
-                    "hash": path_hash,
-                    "created": created_time
-                }, f, indent=2)
+            with open(mapping_file, "w", encoding="utf-8") as f:
+                json.dump(
+                    {"path": project_path, "hash": path_hash, "created": created_time},
+                    f,
+                    indent=2,
+                )
 
         return project_dir
 
@@ -78,7 +82,7 @@ class StorageManager:
         """Load configuration"""
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r', encoding='utf-8') as f:
+                with open(self.config_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except (json.JSONDecodeError, OSError) as e:
                 logger.error(f"Failed to load config: {e}")
@@ -88,7 +92,7 @@ class StorageManager:
     def save_config(self, config: Dict[str, Any]):
         """Save configuration"""
         try:
-            with open(self.config_file, 'w', encoding='utf-8') as f:
+            with open(self.config_file, "w", encoding="utf-8") as f:
                 json.dump(config, f, indent=2)
         except (OSError, TypeError) as e:
             logger.error(f"Failed to save config: {e}")
@@ -107,10 +111,12 @@ class StorageManager:
                 mapping_file = project_dir / "project.json"
                 if mapping_file.exists():
                     try:
-                        with open(mapping_file, 'r', encoding='utf-8') as f:
+                        with open(mapping_file, "r", encoding="utf-8") as f:
                             info = json.load(f)
                             projects[info["path"]] = info["hash"]
                     except (json.JSONDecodeError, OSError, KeyError) as e:
-                        logger.warning(f"Cannot read project info from {mapping_file}: {e}")
+                        logger.warning(
+                            f"Cannot read project info from {mapping_file}: {e}"
+                        )
                         continue
         return projects

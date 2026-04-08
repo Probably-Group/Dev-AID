@@ -53,7 +53,8 @@ def track_api_call(func: F) -> F:
             # Log full error internally with provider context
             provider = getattr(self, "provider", "unknown")
             logger.error(
-                f"{provider.title()} API error: {type(e).__name__}: {str(e)}", exc_info=True
+                f"{provider.title()} API error: {type(e).__name__}: {str(e)}",
+                exc_info=True,
             )
             # Raise safe error to user (no sensitive details)
             raise APIClientError("Failed to communicate with AI provider. Please try again.")

@@ -37,7 +37,11 @@ class TestImplementationPlan:
                 {"path": "src/auth.py", "action": "new", "description": "Auth module"},
                 {"path": "src/main.py", "description": "Add auth middleware"},
             ],
-            implementation_steps=["Create auth module", "Add middleware", "Write tests"],
+            implementation_steps=[
+                "Create auth module",
+                "Add middleware",
+                "Write tests",
+            ],
             success_criteria=["Users can log in", "Tests pass", "90% coverage"],
             risks=[{"risk": "Breaking changes", "mitigation": "Feature flag"}],
             alternatives=["Use OAuth2 instead"],

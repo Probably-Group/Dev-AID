@@ -46,7 +46,10 @@ class TestGoogleClient:
         mock_types = MagicMock()
 
         with patch.dict("sys.modules", {"google": MagicMock(), "google.genai": mock_genai}):
-            with patch("router.api_clients.google_client.GoogleClient.__init__", return_value=None):
+            with patch(
+                "router.api_clients.google_client.GoogleClient.__init__",
+                return_value=None,
+            ):
                 # Test the logic directly
                 from router.api_clients.google_client import GoogleClient
 

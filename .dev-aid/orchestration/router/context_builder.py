@@ -26,8 +26,8 @@ from .constants import (
     CODEBASE_SIZE_MEDIUM_MAX_FILES,
     CODEBASE_SIZE_SMALL_MAX_CHUNKS,
     CODEBASE_SIZE_SMALL_MAX_FILES,
-    MEMORY_BANK_BUDGET_MULTIPLIERS,
     MCP_CACHE_TTL,
+    MEMORY_BANK_BUDGET_MULTIPLIERS,
 )
 from .security_utils import validate_safe_path
 from .token_estimation import estimate_tokens
@@ -1144,7 +1144,14 @@ class ContextBuilder:
         # GitHub-related
         if task_type == "github" or any(
             kw in prompt_lower
-            for kw in ["github", "issue", "pr", "pull request", "bug", "feature request"]
+            for kw in [
+                "github",
+                "issue",
+                "pr",
+                "pull request",
+                "bug",
+                "feature request",
+            ]
         ):
             for server_name in self.mcp_pool.clients.keys():
                 if "github" in server_name:

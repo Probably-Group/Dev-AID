@@ -2,13 +2,13 @@
 
 import json
 import pickle
-import pytest
-import numpy as np
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from search.index import CodeSearchIndex, SearchResult
+import numpy as np
+import pytest
 from chunking.chunker import CodeChunk
+from search.index import CodeSearchIndex, SearchResult
 
 
 class TestSearchResult:
@@ -22,7 +22,7 @@ class TestSearchResult:
             start_line=1,
             end_line=1,
             chunk_type="function",
-            language="python"
+            language="python",
         )
         result = SearchResult(chunk=chunk, score=0.95, rank=1)
 
@@ -49,7 +49,7 @@ class TestCodeSearchIndex:
                 start_line=1,
                 end_line=1,
                 chunk_type="function",
-                language="python"
+                language="python",
             ),
             CodeChunk(
                 content="def subtract(a, b): return a - b",
@@ -57,7 +57,7 @@ class TestCodeSearchIndex:
                 start_line=3,
                 end_line=3,
                 chunk_type="function",
-                language="python"
+                language="python",
             ),
             CodeChunk(
                 content="class Calculator: pass",
@@ -65,7 +65,7 @@ class TestCodeSearchIndex:
                 start_line=1,
                 end_line=1,
                 chunk_type="class",
-                language="python"
+                language="python",
             ),
         ]
 
@@ -74,7 +74,7 @@ class TestCodeSearchIndex:
         """Create sample embeddings"""
         # Create 3 embeddings of dimension 768
         np.random.seed(42)
-        return np.random.rand(3, 768).astype('float32')
+        return np.random.rand(3, 768).astype("float32")
 
     def test_init(self, index_dir):
         """Test index initialization"""
@@ -109,7 +109,7 @@ class TestCodeSearchIndex:
     def test_build_index_mismatch_error(self, index_dir, sample_chunks):
         """Test error when chunks and embeddings don't match"""
         index = CodeSearchIndex(index_dir)
-        wrong_embeddings = np.random.rand(2, 768).astype('float32')  # Only 2 embeddings
+        wrong_embeddings = np.random.rand(2, 768).astype("float32")  # Only 2 embeddings
 
         with pytest.raises(ValueError, match="must match"):
             index.build(sample_chunks, wrong_embeddings)
@@ -117,7 +117,7 @@ class TestCodeSearchIndex:
     def test_search_empty_index(self, index_dir):
         """Test searching an empty index"""
         index = CodeSearchIndex(index_dir)
-        query_embedding = np.random.rand(768).astype('float32')
+        query_embedding = np.random.rand(768).astype("float32")
 
         results = index.search(query_embedding, top_k=5)
 
@@ -141,7 +141,9 @@ class TestCodeSearchIndex:
         for i in range(len(results) - 1):
             assert results[i].rank < results[i + 1].rank
 
-    def test_search_top_k_larger_than_index(self, index_dir, sample_chunks, sample_embeddings):
+    def test_search_top_k_larger_than_index(
+        self, index_dir, sample_chunks, sample_embeddings
+    ):
         """Test search when top_k is larger than index size"""
         index = CodeSearchIndex(index_dir)
         index.build(sample_chunks, sample_embeddings)
@@ -204,15 +206,16 @@ class TestCodeSearchIndex:
         # Save FAISS index
         index_path = Path(index_dir)
         import faiss
+
         faiss.write_index(index.index, str(index_path / "index.faiss"))
 
         # Save chunks as pickle (legacy format) -- no JSON file
         chunks_pkl_file = index_path / "chunks.pkl"
-        with open(chunks_pkl_file, 'wb') as f:
+        with open(chunks_pkl_file, "wb") as f:
             pickle.dump(sample_chunks, f)
 
         # Save metadata
-        with open(index_path / "metadata.json", 'w') as f:
+        with open(index_path / "metadata.json", "w") as f:
             json.dump(index.metadata, f)
 
         # Remove any JSON chunks file so only pickle is available
@@ -245,7 +248,7 @@ class TestCodeSearchIndex:
         assert not (index_path / "chunks.pkl").exists()
 
         # Verify JSON is valid
-        with open(index_path / "chunks.json", 'r') as f:
+        with open(index_path / "chunks.json", "r") as f:
             data = json.load(f)
             assert isinstance(data, list)
             assert len(data) == 3
@@ -296,7 +299,9 @@ class TestCodeSearchIndex:
         assert index.index is None
         assert index.chunks == []
 
-    def test_search_score_calculation(self, index_dir, sample_chunks, sample_embeddings):
+    def test_search_score_calculation(
+        self, index_dir, sample_chunks, sample_embeddings
+    ):
         """Test that search scores are calculated correctly"""
         index = CodeSearchIndex(index_dir)
         index.build(sample_chunks, sample_embeddings)

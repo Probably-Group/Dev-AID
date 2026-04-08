@@ -116,7 +116,10 @@ class DocSync:
                     ]
                 ):
                     commands.append(
-                        {"command": line, "type": "install" if "install" in line else "run"}
+                        {
+                            "command": line,
+                            "type": "install" if "install" in line else "run",
+                        }
                     )
 
         return commands

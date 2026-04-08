@@ -4,7 +4,6 @@ import time
 from pathlib import Path
 
 import pytest
-
 from cache.research_cache import ResearchCache
 from providers.base import ResearchDepth, ResearchResult
 
@@ -23,7 +22,9 @@ class TestResearchCache:
         return ResearchResult(
             query="What is Python?",
             content="Python is a programming language.",
-            sources=[{"title": "Python.org", "url": "https://python.org", "snippet": ""}],
+            sources=[
+                {"title": "Python.org", "url": "https://python.org", "snippet": ""}
+            ],
             provider="tavily",
             depth=ResearchDepth.QUICK,
             citations=["https://python.org"],

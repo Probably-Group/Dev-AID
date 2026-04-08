@@ -3,12 +3,7 @@
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
-
-from providers.base import (
-    ProviderNotAvailableError,
-    ResearchDepth,
-    ResearchResult,
-)
+from providers.base import ProviderNotAvailableError, ResearchDepth, ResearchResult
 from providers.perplexity import PerplexityProvider
 from providers.tavily import TavilyProvider
 

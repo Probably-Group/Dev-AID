@@ -355,7 +355,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Architect Mode Router")
     parser.add_argument("--check", action="store_true", help="Check if architect mode is enabled")
     parser.add_argument(
-        "--should-activate", type=str, help="Check if task should trigger architect mode"
+        "--should-activate",
+        type=str,
+        help="Check if task should trigger architect mode",
     )
     parser.add_argument("--files", type=int, default=0, help="Estimated file changes")
 

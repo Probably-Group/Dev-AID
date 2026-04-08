@@ -113,11 +113,19 @@ class RouterExecutor:
 
         except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error("Execution failed in %s mode: %s", mode, e, exc_info=True)
-            error_result: Dict[str, Any] = {"success": False, "mode": mode, "error": str(e)}
+            error_result: Dict[str, Any] = {
+                "success": False,
+                "mode": mode,
+                "error": str(e),
+            }
             return error_result
 
     def execute(
-        self, request: str, mode: Optional[str] = None, context_size: int = 0, **kwargs: Any
+        self,
+        request: str,
+        mode: Optional[str] = None,
+        context_size: int = 0,
+        **kwargs: Any,
     ) -> Dict[str, Any]:
         """
         Execute a request with routing
@@ -234,7 +242,7 @@ class RouterExecutor:
             "today": {
                 "cost": today_cost,
                 "requests": today_requests,
-                "average_cost": today_cost / today_requests if today_requests > 0 else 0.0,
+                "average_cost": (today_cost / today_requests if today_requests > 0 else 0.0),
             },
             "models": model_stats,
             "recent_decisions": recent_decisions,

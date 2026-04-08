@@ -19,7 +19,6 @@ from router.config_loader import ConfigLoader
 from router.cost_tracker import CostTracker
 from router.executor import RouterExecutor
 
-
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 
@@ -411,7 +410,11 @@ class TestChallengerModeE2E:
                 content="SEVERITY: HIGH\nSQL injection vulnerability found", cost=0.005
             )
             refined_resp = make_api_response(content="Refined safe implementation", cost=0.02)
-            mock_client.send_request.side_effect = [primary_resp, review_resp, refined_resp]
+            mock_client.send_request.side_effect = [
+                primary_resp,
+                review_resp,
+                refined_resp,
+            ]
             mock_create.return_value = mock_client
 
             executor = _build_executor(root)

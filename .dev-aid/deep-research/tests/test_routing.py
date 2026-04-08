@@ -1,10 +1,9 @@
 """Tests for smart router."""
 
 import pytest
-
 from providers.base import ResearchDepth
-from providers.tavily import TavilyProvider
 from providers.perplexity import PerplexityProvider
+from providers.tavily import TavilyProvider
 from routing.smart_router import QueryComplexity, SmartRouter
 
 

@@ -68,7 +68,10 @@ def cmd_execute(args: Any) -> int:
     except Exception as e:
         # Log full error, show safe message
         logger.error(f"Unexpected error: {e}", exc_info=True)
-        print("❌ An unexpected error occurred. Please check logs for details.", file=sys.stderr)
+        print(
+            "❌ An unexpected error occurred. Please check logs for details.",
+            file=sys.stderr,
+        )
         return 1
 
 
@@ -277,7 +280,10 @@ def cmd_dashboard(args: Any) -> int:
 
         logs_dir = root / ".dev-aid" / "logs"
         if not logs_dir.exists():
-            print("No logs directory found. Run some router requests first.", file=sys.stderr)
+            print(
+                "No logs directory found. Run some router requests first.",
+                file=sys.stderr,
+            )
             return 1
 
         from .cost_tracker import CostTracker
@@ -450,7 +456,9 @@ Examples:
     )
 
     parser.add_argument(
-        "--root", help="Dev-AID root directory (auto-detected if not specified)", default=None
+        "--root",
+        help="Dev-AID root directory (auto-detected if not specified)",
+        default=None,
     )
 
     subparsers = parser.add_subparsers(dest="command", help="Command to execute")
@@ -468,7 +476,9 @@ Examples:
     )
     execute_parser.add_argument("--verbose", action="store_true", help="Show detailed output")
     execute_parser.add_argument(
-        "--no-mcp", action="store_true", help="Disable MCP context gathering (default: MCP enabled)"
+        "--no-mcp",
+        action="store_true",
+        help="Disable MCP context gathering (default: MCP enabled)",
     )
     execute_parser.set_defaults(func=cmd_execute)
 
@@ -491,7 +501,10 @@ Examples:
         "--days", type=int, default=7, help="Number of days for history (default: 7)"
     )
     dashboard_parser.add_argument(
-        "--budget", type=float, default=None, help="Daily budget override (default: from config)"
+        "--budget",
+        type=float,
+        default=None,
+        help="Daily budget override (default: from config)",
     )
     dashboard_parser.set_defaults(func=cmd_dashboard)
 

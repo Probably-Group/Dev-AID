@@ -27,7 +27,8 @@ GH_ISSUE_VIEW_DEFINITION = ToolDefinition(
 GH_PR_VIEW_DEFINITION = ToolDefinition(
     name="gh_pr_view",
     description=(
-        "View a pull request's details including title, body, " "diff stats, and review status."
+        "View a pull request's details including title, body, "
+        "diff stats, and review status."
     ),
     parameters={
         "number": {"type": "integer", "description": "PR number."},

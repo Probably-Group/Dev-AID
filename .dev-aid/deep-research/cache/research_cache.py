@@ -52,9 +52,7 @@ class ResearchCache:
         self._index: Dict[str, CacheEntry] = {}
         self._load_index()
 
-    def _compute_key(
-        self, query: str, provider: str, depth: ResearchDepth
-    ) -> str:
+    def _compute_key(self, query: str, provider: str, depth: ResearchDepth) -> str:
         """Compute cache key from query parameters.
 
         Args:
@@ -289,9 +287,7 @@ class ResearchCache:
             with open(self.index_file, "r") as f:
                 data = json.load(f)
 
-            self._index = {
-                k: CacheEntry(**v) for k, v in data.items()
-            }
+            self._index = {k: CacheEntry(**v) for k, v in data.items()}
 
             logger.debug(f"Loaded cache index with {len(self._index)} entries")
 

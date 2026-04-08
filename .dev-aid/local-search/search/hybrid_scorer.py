@@ -1,16 +1,15 @@
 """Hybrid search combining BM25 lexical search with vector semantic search"""
 
+import json
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
-import json
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-
 from chunking.chunker import CodeChunk
-from search.index import CodeSearchIndex, SearchResult
 from search.bm25 import BM25Index, BM25Result
+from search.index import CodeSearchIndex, SearchResult
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class HybridResult:
     """Hybrid search result combining BM25 and vector scores"""
+
     chunk: CodeChunk
     combined_score: float
     bm25_score: float
@@ -40,7 +40,7 @@ class HybridSearcher:
         alpha: float = 0.5,
         fusion_method: str = "reciprocal_rank",
         normalize_scores: bool = True,
-        embedding_dim: int = 384
+        embedding_dim: int = 384,
     ):
         """
         Initialize hybrid searcher.
@@ -70,21 +70,27 @@ class HybridSearcher:
         config_paths = [
             self.index_dir.parent.parent / "config" / "search.json",
             self.index_dir.parent / "config" / "search.json",
-            Path.cwd() / ".dev-aid" / "config" / "search.json"
+            Path.cwd() / ".dev-aid" / "config" / "search.json",
         ]
 
         for config_path in config_paths:
             if config_path.exists():
                 try:
-                    with open(config_path, 'r') as f:
+                    with open(config_path, "r") as f:
                         config = json.load(f)
 
                     hybrid_config = config.get("hybrid", {})
                     self.alpha = hybrid_config.get("alpha", self.alpha)
-                    self.fusion_method = hybrid_config.get("fusion_method", self.fusion_method)
-                    self.normalize_scores = hybrid_config.get("normalize_scores", self.normalize_scores)
+                    self.fusion_method = hybrid_config.get(
+                        "fusion_method", self.fusion_method
+                    )
+                    self.normalize_scores = hybrid_config.get(
+                        "normalize_scores", self.normalize_scores
+                    )
 
-                    logger.info(f"Loaded hybrid search config: alpha={self.alpha}, fusion={self.fusion_method}")
+                    logger.info(
+                        f"Loaded hybrid search config: alpha={self.alpha}, fusion={self.fusion_method}"
+                    )
                     return
                 except (json.JSONDecodeError, KeyError) as e:
                     logger.warning(f"Error loading search config: {e}")
@@ -110,7 +116,7 @@ class HybridSearcher:
         query: str,
         query_embedding: np.ndarray,
         top_k: int = 10,
-        alpha: Optional[float] = None
+        alpha: Optional[float] = None,
     ) -> List[HybridResult]:
         """
         Perform hybrid search combining BM25 and vector results.
@@ -137,13 +143,9 @@ class HybridSearcher:
 
         # Combine results
         if self.fusion_method == "reciprocal_rank":
-            combined = self._reciprocal_rank_fusion(
-                vector_results, bm25_results, alpha
-            )
+            combined = self._reciprocal_rank_fusion(vector_results, bm25_results, alpha)
         else:
-            combined = self._weighted_sum_fusion(
-                vector_results, bm25_results, alpha
-            )
+            combined = self._weighted_sum_fusion(vector_results, bm25_results, alpha)
 
         # Sort by combined score and take top_k
         combined.sort(key=lambda x: x.combined_score, reverse=True)
@@ -160,7 +162,7 @@ class HybridSearcher:
         vector_results: List[SearchResult],
         bm25_results: List[BM25Result],
         alpha: float,
-        k: int = 60  # RRF constant
+        k: int = 60,  # RRF constant
     ) -> List[HybridResult]:
         """
         Combine results using Reciprocal Rank Fusion.
@@ -191,7 +193,7 @@ class HybridSearcher:
                     "bm25_rrf": 0.0,
                     "vector_score": vec_result.score,
                     "bm25_score": 0.0,
-                    "matched_terms": []
+                    "matched_terms": [],
                 }
             chunk_scores[chunk_id]["vector_rrf"] = rrf_score
             chunk_scores[chunk_id]["vector_score"] = vec_result.score
@@ -208,7 +210,7 @@ class HybridSearcher:
                     "bm25_rrf": 0.0,
                     "vector_score": 0.0,
                     "bm25_score": bm25_result.score,
-                    "matched_terms": bm25_result.matched_terms
+                    "matched_terms": bm25_result.matched_terms,
                 }
             else:
                 chunk_scores[chunk_id]["bm25_rrf"] = rrf_score
@@ -221,14 +223,16 @@ class HybridSearcher:
             # Weighted combination of RRF scores
             combined = alpha * data["vector_rrf"] + (1 - alpha) * data["bm25_rrf"]
 
-            results.append(HybridResult(
-                chunk=data["chunk"],
-                combined_score=combined,
-                bm25_score=data["bm25_score"],
-                vector_score=data["vector_score"],
-                rank=0,  # Will be set after sorting
-                matched_terms=data["matched_terms"]
-            ))
+            results.append(
+                HybridResult(
+                    chunk=data["chunk"],
+                    combined_score=combined,
+                    bm25_score=data["bm25_score"],
+                    vector_score=data["vector_score"],
+                    rank=0,  # Will be set after sorting
+                    matched_terms=data["matched_terms"],
+                )
+            )
 
         return results
 
@@ -236,7 +240,7 @@ class HybridSearcher:
         self,
         vector_results: List[SearchResult],
         bm25_results: List[BM25Result],
-        alpha: float
+        alpha: float,
     ) -> List[HybridResult]:
         """
         Combine results using weighted sum of normalized scores.
@@ -273,7 +277,7 @@ class HybridSearcher:
                     "chunk": vec_result.chunk,
                     "vector_score": norm_score,
                     "bm25_score": 0.0,
-                    "matched_terms": []
+                    "matched_terms": [],
                 }
             else:
                 chunk_scores[chunk_id]["vector_score"] = norm_score
@@ -288,7 +292,7 @@ class HybridSearcher:
                     "chunk": bm25_result.chunk,
                     "vector_score": 0.0,
                     "bm25_score": norm_score,
-                    "matched_terms": bm25_result.matched_terms
+                    "matched_terms": bm25_result.matched_terms,
                 }
             else:
                 chunk_scores[chunk_id]["bm25_score"] = norm_score
@@ -299,14 +303,16 @@ class HybridSearcher:
         for chunk_id, data in chunk_scores.items():
             combined = alpha * data["vector_score"] + (1 - alpha) * data["bm25_score"]
 
-            results.append(HybridResult(
-                chunk=data["chunk"],
-                combined_score=combined,
-                bm25_score=data["bm25_score"],
-                vector_score=data["vector_score"],
-                rank=0,
-                matched_terms=data["matched_terms"]
-            ))
+            results.append(
+                HybridResult(
+                    chunk=data["chunk"],
+                    combined_score=combined,
+                    bm25_score=data["bm25_score"],
+                    vector_score=data["vector_score"],
+                    rank=0,
+                    matched_terms=data["matched_terms"],
+                )
+            )
 
         return results
 
@@ -315,18 +321,12 @@ class HybridSearcher:
         return f"{chunk.file_path}:{chunk.start_line}-{chunk.end_line}"
 
     def search_vector_only(
-        self,
-        query_embedding: np.ndarray,
-        top_k: int = 10
+        self, query_embedding: np.ndarray, top_k: int = 10
     ) -> List[SearchResult]:
         """Pure vector search."""
         return self.vector_index.search(query_embedding, top_k)
 
-    def search_bm25_only(
-        self,
-        query: str,
-        top_k: int = 10
-    ) -> List[BM25Result]:
+    def search_bm25_only(self, query: str, top_k: int = 10) -> List[BM25Result]:
         """Pure BM25 search."""
         return self.bm25_index.search(query, top_k)
 
@@ -347,7 +347,7 @@ class HybridSearcher:
             "fusion_method": self.fusion_method,
             "normalize_scores": self.normalize_scores,
             "vector_index": self.vector_index.get_stats(),
-            "bm25_index": self.bm25_index.get_stats()
+            "bm25_index": self.bm25_index.get_stats(),
         }
 
     def clear(self):
@@ -357,10 +357,7 @@ class HybridSearcher:
 
 
 def compare_search_methods(
-    searcher: HybridSearcher,
-    query: str,
-    query_embedding: np.ndarray,
-    top_k: int = 5
+    searcher: HybridSearcher, query: str, query_embedding: np.ndarray, top_k: int = 5
 ) -> Dict[str, Any]:
     """
     Compare results from different search methods.
@@ -383,7 +380,11 @@ def compare_search_methods(
     return {
         "query": query,
         "vector": [
-            {"file": r.chunk.file_path, "score": r.score, "lines": f"{r.chunk.start_line}-{r.chunk.end_line}"}
+            {
+                "file": r.chunk.file_path,
+                "score": r.score,
+                "lines": f"{r.chunk.start_line}-{r.chunk.end_line}",
+            }
             for r in vector_results
         ],
         "bm25": [
@@ -396,8 +397,8 @@ def compare_search_methods(
                 "combined": r.combined_score,
                 "vector": r.vector_score,
                 "bm25": r.bm25_score,
-                "terms": r.matched_terms[:3]
+                "terms": r.matched_terms[:3],
             }
             for r in hybrid_results
-        ]
+        ],
     }

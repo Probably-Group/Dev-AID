@@ -21,7 +21,9 @@ class ProviderResponse:
     content: Optional[str] = None  # Text content (None if only tool calls)
     tool_calls: List[ToolCall] = field(default_factory=list)
     stop_reason: str = "end_turn"  # "end_turn", "tool_use", "max_tokens"
-    tokens_used: Dict[str, int] = field(default_factory=lambda: {"input": 0, "output": 0})
+    tokens_used: Dict[str, int] = field(
+        default_factory=lambda: {"input": 0, "output": 0}
+    )
     cost: float = 0.0
 
 
@@ -81,5 +83,6 @@ def create_adapter(
 
     else:
         raise ValueError(
-            f"Unsupported provider: {provider}. " f"Supported: anthropic, openai, google, local"
+            f"Unsupported provider: {provider}. "
+            f"Supported: anthropic, openai, google, local"
         )

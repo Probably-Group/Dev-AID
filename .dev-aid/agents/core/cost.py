@@ -57,8 +57,7 @@ def estimate_cost(
         return 0.0
 
     return (
-        input_tokens * costs.get("input", 0)
-        + output_tokens * costs.get("output", 0)
+        input_tokens * costs.get("input", 0) + output_tokens * costs.get("output", 0)
     ) / 1_000_000
 
 

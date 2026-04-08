@@ -1,7 +1,6 @@
 """Tests for code chunker"""
 
 import pytest
-
 from chunking.chunker import CodeChunk, MultiLanguageChunker
 
 

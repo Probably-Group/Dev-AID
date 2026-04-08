@@ -53,7 +53,11 @@ class TestAnthropicAdapter:
 
         results = [
             ToolResult(
-                call_id="tc_1", name="read_file", output="", success=False, error="Not found"
+                call_id="tc_1",
+                name="read_file",
+                output="",
+                success=False,
+                error="Not found",
             ),
         ]
         messages = AnthropicAdapter.format_tool_results(results)
@@ -117,7 +121,11 @@ class TestOpenAIAdapter:
 
         results = [
             ToolResult(
-                call_id="call_1", name="read_file", output="", success=False, error="Not found"
+                call_id="call_1",
+                name="read_file",
+                output="",
+                success=False,
+                error="Not found",
             ),
         ]
         messages = OpenAIAdapter.format_tool_results(results)
@@ -185,7 +193,11 @@ class TestGoogleAdapter:
 
         results = [
             ToolResult(
-                call_id="tc_1", name="read_file", output="", success=False, error="Not found"
+                call_id="tc_1",
+                name="read_file",
+                output="",
+                success=False,
+                error="Not found",
             ),
         ]
         messages = GoogleAdapter.format_tool_results(results)

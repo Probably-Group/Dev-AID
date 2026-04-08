@@ -69,7 +69,12 @@ class MockAdapter:
             content.append({"type": "text", "text": text})
         for tc in tool_calls:
             content.append(
-                {"type": "tool_use", "id": tc.id, "name": tc.name, "input": tc.arguments}
+                {
+                    "type": "tool_use",
+                    "id": tc.id,
+                    "name": tc.name,
+                    "input": tc.arguments,
+                }
             )
         return {"role": "assistant", "content": content}
 

@@ -427,7 +427,10 @@ class CIGenerator:
         return workflow
 
     def run(
-        self, output_file: Optional[str] = None, optimize: bool = False, frequency: str = "balanced"
+        self,
+        output_file: Optional[str] = None,
+        optimize: bool = False,
+        frequency: str = "balanced",
     ):
         """Main execution
 
@@ -522,7 +525,10 @@ def main():
         epilog="Example: python ci-generator.py --optimize  # Generate optimized workflow",
     )
     parser.add_argument(
-        "project_dir", nargs="?", default=".", help="Project directory (default: current directory)"
+        "project_dir",
+        nargs="?",
+        default=".",
+        help="Project directory (default: current directory)",
     )
     parser.add_argument(
         "-o", "--output", help="Output file path (default: .github/workflows/ci.yml)"

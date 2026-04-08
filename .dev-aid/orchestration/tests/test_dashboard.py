@@ -15,7 +15,6 @@ from rich.text import Text
 from router.cost_tracker import CostTracker
 from router.dashboard import _budget_bar, render_dashboard
 
-
 # ── Budget bar unit tests ─────────────────────────────────────────────────
 
 

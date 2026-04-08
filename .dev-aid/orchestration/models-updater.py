@@ -311,7 +311,10 @@ def main():
     parser = argparse.ArgumentParser(description="Discover and update AI model versions")
     parser.add_argument("--dry-run", action="store_true", help="Show changes without saving")
     parser.add_argument(
-        "--config-dir", type=Path, default=Path(".dev-aid/config"), help="Path to config directory"
+        "--config-dir",
+        type=Path,
+        default=Path(".dev-aid/config"),
+        help="Path to config directory",
     )
 
     args = parser.parse_args()

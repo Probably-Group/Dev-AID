@@ -69,7 +69,12 @@ class TestHardwareProfile:
             cpu_cores=14,
             cpu_threads=14,
             ram_gb=96.0,
-            gpu=GPUInfo(vendor=GPUVendor.APPLE, name="M3 Max", vram_gb=72.0, metal_supported=True),
+            gpu=GPUInfo(
+                vendor=GPUVendor.APPLE,
+                name="M3 Max",
+                vram_gb=72.0,
+                metal_supported=True,
+            ),
             os_name="Darwin",
             os_version="23.5.0",
             architecture="arm64",
@@ -380,7 +385,10 @@ class TestHardwareDetectorGPU:
         with patch("router.hardware_detector.subprocess.run") as mock_run:
             mock_run.side_effect = [
                 Mock(returncode=0, stdout="535.86\n"),
-                Mock(returncode=0, stdout="nvcc: NVIDIA\nCuda compilation tools, release 12.2\n"),
+                Mock(
+                    returncode=0,
+                    stdout="nvcc: NVIDIA\nCuda compilation tools, release 12.2\n",
+                ),
             ]
             version = detector._detect_cuda_version()
             assert version is not None

@@ -1,15 +1,14 @@
 """CLI for Dev-AID Local Search"""
 
-import click
 import json
 import os
 from pathlib import Path
-from rich.console import Console
-from rich.table import Table
-from rich.progress import Progress
 
+import click
 from mcp_server.server import CodeSearchServer
-
+from rich.console import Console
+from rich.progress import Progress
+from rich.table import Table
 
 console = Console()
 
@@ -22,7 +21,7 @@ def cli():
 
 
 @cli.command()
-@click.argument('directory', type=click.Path(exists=True), default='.')
+@click.argument("directory", type=click.Path(exists=True), default=".")
 def index(directory):
     """Index a directory for code search"""
     directory = os.path.abspath(directory)
@@ -45,9 +44,15 @@ def index(directory):
 
 
 @cli.command()
-@click.argument('query')
-@click.option('--project', '-p', type=click.Path(exists=True), default='.', help='Project directory')
-@click.option('--top-k', '-k', default=5, help='Number of results')
+@click.argument("query")
+@click.option(
+    "--project",
+    "-p",
+    type=click.Path(exists=True),
+    default=".",
+    help="Project directory",
+)
+@click.option("--top-k", "-k", default=5, help="Number of results")
 def search(query, project, top_k):
     """Search code with natural language query"""
     project = os.path.abspath(project)
@@ -71,23 +76,33 @@ def search(query, project, top_k):
 
     # Display results
     for i, result in enumerate(results, 1):
-        console.print(f"[bold cyan]Result #{i}[/bold cyan] (score: {result['score']:.4f})")
-        console.print(f"[dim]{result['file_path']}:{result['start_line']}-{result['end_line']}[/dim]")
+        console.print(
+            f"[bold cyan]Result #{i}[/bold cyan] (score: {result['score']:.4f})"
+        )
+        console.print(
+            f"[dim]{result['file_path']}:{result['start_line']}-{result['end_line']}[/dim]"
+        )
         console.print()
 
         # Show code snippet (first 10 lines)
-        code_lines = result['content'].split('\n')[:10]
+        code_lines = result["content"].split("\n")[:10]
         for line in code_lines:
             console.print(f"  {line}")
 
-        if len(result['content'].split('\n')) > 10:
+        if len(result["content"].split("\n")) > 10:
             console.print("  [dim]...[/dim]")
 
         console.print()
 
 
 @cli.command()
-@click.option('--project', '-p', type=click.Path(exists=True), default=None, help='Project directory')
+@click.option(
+    "--project",
+    "-p",
+    type=click.Path(exists=True),
+    default=None,
+    help="Project directory",
+)
 def status(project):
     """Show index status"""
     if project:
@@ -102,7 +117,9 @@ def status(project):
 
     if "indexed_projects" in result:
         # Global status
-        console.print(f"[bold]Total indexed projects:[/bold] {result['indexed_projects']}")
+        console.print(
+            f"[bold]Total indexed projects:[/bold] {result['indexed_projects']}"
+        )
         console.print()
 
         if result.get("projects"):
@@ -119,7 +136,9 @@ def status(project):
         console.print(f"[bold]Index Status[/bold]")
         console.print(f"  • Total chunks: {result.get('total_chunks', 0)}")
         console.print(f"  • Indexed files: {len(result.get('indexed_files', []))}")
-        console.print(f"  • Embedding dimension: {result.get('embedding_dim', 'unknown')}")
+        console.print(
+            f"  • Embedding dimension: {result.get('embedding_dim', 'unknown')}"
+        )
         console.print(f"  • Storage: {result.get('storage_path', 'unknown')}")
 
 
@@ -141,8 +160,8 @@ def list_projects():
 
 
 @cli.command()
-@click.argument('project', type=click.Path(exists=True))
-@click.confirmation_option(prompt='Are you sure you want to clear the index?')
+@click.argument("project", type=click.Path(exists=True))
+@click.confirmation_option(prompt="Are you sure you want to clear the index?")
 def clear(project):
     """Clear index for a project"""
     project = os.path.abspath(project)

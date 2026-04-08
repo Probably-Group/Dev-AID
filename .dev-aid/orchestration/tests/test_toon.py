@@ -96,7 +96,10 @@ class TestToonRoundtrip:
     def test_roundtrip_nested_structure(self):
         """Test that encode/decode preserves nested structure"""
         data = {
-            "user": {"name": "Dave", "settings": {"theme": "dark", "notifications": True}},
+            "user": {
+                "name": "Dave",
+                "settings": {"theme": "dark", "notifications": True},
+            },
             "items": [1, 2, 3],
         }
         toon_str = encoder.encode(data)

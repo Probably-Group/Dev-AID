@@ -51,7 +51,11 @@ class ChallengerMode:
 
         # Execute full challenger workflow
         return self._execute_with_challenge(
-            request, primary_model_name, challenger_model_name, challenger_config, **kwargs
+            request,
+            primary_model_name,
+            challenger_model_name,
+            challenger_config,
+            **kwargs,
         )
 
     def _should_challenge(self, request: str, challenger_config: Dict[str, Any]) -> bool:
@@ -133,7 +137,12 @@ class ChallengerMode:
             }
 
         except Exception as e:
-            return {"success": False, "mode": "challenger", "challenged": False, "error": str(e)}
+            return {
+                "success": False,
+                "mode": "challenger",
+                "challenged": False,
+                "error": str(e),
+            }
 
     def _execute_with_challenge(
         self,
@@ -187,7 +196,11 @@ class ChallengerMode:
 
         if should_refine:
             refinement_result = self._execute_refinement(
-                request, primary_response, challenger_review, primary_model_name, **kwargs
+                request,
+                primary_response,
+                challenger_review,
+                primary_model_name,
+                **kwargs,
             )
 
             if refinement_result["success"]:
@@ -219,7 +232,7 @@ class ChallengerMode:
             "issues_found": has_issues,
             "refined": refined_response is not None,
             "refined_response": refined_response,
-            "final_response": refined_response if refined_response else primary_response,
+            "final_response": (refined_response if refined_response else primary_response),
             "tokens_used": total_tokens,
             "cost": total_cost,
             "latency_ms": (
@@ -238,7 +251,10 @@ class ChallengerMode:
         model_config = self.config.get_model_config(model_name)
 
         if not model_config:
-            return {"success": False, "error": f"Model configuration not found: {model_name}"}
+            return {
+                "success": False,
+                "error": f"Model configuration not found: {model_name}",
+            }
 
         provider = model_config["provider"]
 
@@ -293,7 +309,12 @@ class ChallengerMode:
             }
 
         except Exception as e:
-            return {"success": False, "role": role, "model": model_name, "error": str(e)}
+            return {
+                "success": False,
+                "role": role,
+                "model": model_name,
+                "error": str(e),
+            }
 
     def _build_review_prompt(self, original_request: str, primary_response: str) -> str:
         """Build prompt for challenger to review primary's response"""

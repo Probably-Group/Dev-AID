@@ -201,7 +201,9 @@ class SmartRouter:
         else:
             return self._route_standard(query, complexity)
 
-    def _default_depth_for_complexity(self, complexity: QueryComplexity) -> ResearchDepth:
+    def _default_depth_for_complexity(
+        self, complexity: QueryComplexity
+    ) -> ResearchDepth:
         """Get default depth for complexity level."""
         mapping = {
             QueryComplexity.SIMPLE: ResearchDepth.QUICK,
@@ -238,9 +240,7 @@ class SmartRouter:
 
         raise ValueError(f"No provider available for depth: {depth.value}")
 
-    def _route_quick(
-        self, query: str, complexity: QueryComplexity
-    ) -> RoutingDecision:
+    def _route_quick(self, query: str, complexity: QueryComplexity) -> RoutingDecision:
         """Route to quick search provider."""
         # Prefer Tavily for quick searches (1 credit, fast)
         if "tavily" in self.providers and self.providers["tavily"].is_available():
@@ -296,9 +296,7 @@ class SmartRouter:
 
         raise ValueError("No standard search provider available")
 
-    def _route_deep(
-        self, query: str, complexity: QueryComplexity
-    ) -> RoutingDecision:
+    def _route_deep(self, query: str, complexity: QueryComplexity) -> RoutingDecision:
         """Route to deep research provider."""
         # Prefer Gemini for comprehensive research
         if (

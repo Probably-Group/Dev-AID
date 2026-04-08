@@ -52,18 +52,12 @@ class PromptVersion:
 class APOConfig:
     """Configuration for Automatic Prompt Optimization."""
 
-    traces_dir: Path = field(
-        default_factory=lambda: Path(".dev-aid/agent-traces")
-    )
-    prompts_dir: Path = field(
-        default_factory=lambda: Path(".dev-aid/agent-prompts")
-    )
+    traces_dir: Path = field(default_factory=lambda: Path(".dev-aid/agent-traces"))
+    prompts_dir: Path = field(default_factory=lambda: Path(".dev-aid/agent-prompts"))
     golden_tests_path: Path = field(
         default_factory=lambda: Path(".dev-aid/config/golden-tests.json")
     )
-    memory_bank_path: Path = field(
-        default_factory=lambda: Path(".dev-aid/memory-bank")
-    )
+    memory_bank_path: Path = field(default_factory=lambda: Path(".dev-aid/memory-bank"))
     beam_width: int = 3
     max_iterations: int = 3
     min_traces_for_optimization: int = 5
@@ -119,9 +113,7 @@ class APOOptimizer:
 
         # 3. Generate critique
         trace_summaries = self._summarize_traces(traces)
-        critique = self._generate_critique(
-            agent_name, current_prompt, trace_summaries
-        )
+        critique = self._generate_critique(agent_name, current_prompt, trace_summaries)
         print(f"\n--- Critique ---\n{critique}\n")
 
         if dry_run:
@@ -142,9 +134,7 @@ class APOOptimizer:
 
         # 5. Score candidates against golden tests
         golden_tests = self._load_golden_tests(agent_name)
-        old_score = self._score_candidate(
-            agent_name, current_prompt, golden_tests
-        )
+        old_score = self._score_candidate(agent_name, current_prompt, golden_tests)
 
         best_candidate = current_prompt
         best_score = old_score
@@ -214,9 +204,7 @@ class APOOptimizer:
             return False
 
         if to_version is not None:
-            target = next(
-                (v for v in history if v.version == to_version), None
-            )
+            target = next((v for v in history if v.version == to_version), None)
             if target is None:
                 logger.error("Version %d not found.", to_version)
                 return False
@@ -231,9 +219,7 @@ class APOOptimizer:
                 None,
             )
             if target is None:
-                logger.error(
-                    "Parent version %d not found.", current.parent_version
-                )
+                logger.error("Parent version %d not found.", current.parent_version)
                 return False
 
         self._activate_version(agent_name, target.version)
@@ -284,16 +270,12 @@ class APOOptimizer:
             status_parts.append(f"  traces: {len(traces)}")
             if versions:
                 latest = versions[-1]
-                status_parts.append(
-                    f"  version: v{latest.version} ({latest.source})"
-                )
+                status_parts.append(f"  version: v{latest.version} ({latest.source})")
                 if latest.score is not None:
                     status_parts.append(f"  score: {latest.score:.2f}")
             else:
                 status_parts.append("  version: original (no APO)")
-            status_parts.append(
-                f"  override: {'active' if has_override else 'none'}"
-            )
+            status_parts.append(f"  override: {'active' if has_override else 'none'}")
 
             lines.append(f"\n{agent_name}:")
             lines.extend(status_parts)
@@ -326,12 +308,8 @@ class APOOptimizer:
         """Summarize traces into a text block for the LLM."""
         summaries: List[str] = []
         for i, events in enumerate(traces[:10]):  # Cap at 10 traces
-            start = next(
-                (e for e in events if e.get("event") == "run_start"), {}
-            )
-            end = next(
-                (e for e in events if e.get("event") == "run_end"), {}
-            )
+            start = next((e for e in events if e.get("event") == "run_start"), {})
+            end = next((e for e in events if e.get("event") == "run_end"), {})
             totals = end.get("totals", {})
             tool_events = [e for e in events if e.get("event") == "tool_result"]
             failed_tools = [e for e in tool_events if not e.get("success")]
@@ -495,9 +473,7 @@ Briefly describe (in 2-3 sentences) what the agent would likely do and focus on.
 
         return met_behaviors / total_behaviors if total_behaviors > 0 else 0.5
 
-    def _evaluate_behavior(
-        self, output: str, expected_behavior: str
-    ) -> bool:
+    def _evaluate_behavior(self, output: str, expected_behavior: str) -> bool:
         """Use LLM to judge whether output exhibits expected behavior."""
         eval_prompt = f"""Does the following agent response plan exhibit this behavior?
 
@@ -539,8 +515,10 @@ Answer only "yes" or "no"."""
 
         print(f"\n{'='*60}")
         print(f"  APO Proposal for: {agent_name}")
-        print(f"  Score: {old_score:.2f} → {new_score:.2f} "
-              f"(+{new_score - old_score:.2f})")
+        print(
+            f"  Score: {old_score:.2f} → {new_score:.2f} "
+            f"(+{new_score - old_score:.2f})"
+        )
         print(f"{'='*60}")
         print(diff_text)
         print(f"{'='*60}")
@@ -599,9 +577,7 @@ Answer only "yes" or "no"."""
         version_file = agent_dir / f"v{version_num:03d}.json"
 
         if not version_file.is_file():
-            raise FileNotFoundError(
-                f"Version file not found: {version_file}"
-            )
+            raise FileNotFoundError(f"Version file not found: {version_file}")
 
         data = json.loads(version_file.read_text(encoding="utf-8"))
         prompt_text = data["prompt_text"]
@@ -621,13 +597,9 @@ Answer only "yes" or "no"."""
         if version_num not in history.get("versions", []):
             history.setdefault("versions", []).append(version_num)
 
-        history_file.write_text(
-            json.dumps(history, indent=2), encoding="utf-8"
-        )
+        history_file.write_text(json.dumps(history, indent=2), encoding="utf-8")
 
-    def _load_golden_tests(
-        self, agent_name: str
-    ) -> List[GoldenTestCase]:
+    def _load_golden_tests(self, agent_name: str) -> List[GoldenTestCase]:
         """Load golden test cases for an agent."""
         if not self._config.golden_tests_path.is_file():
             return []
@@ -689,9 +661,7 @@ Answer only "yes" or "no"."""
             logger.warning("Failed to write to memory bank: %s", e)
 
 
-def get_apo_prompt_override(
-    prompts_dir: Path, agent_name: str
-) -> Optional[str]:
+def get_apo_prompt_override(prompts_dir: Path, agent_name: str) -> Optional[str]:
     """Load the APO prompt override for an agent, if one exists.
 
     Used by cli.py and team_runner.py to apply optimized prompts.

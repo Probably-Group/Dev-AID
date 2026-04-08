@@ -101,7 +101,9 @@ class AgentResult:
     output: str
     tool_calls_made: int = 0
     iterations: int = 0
-    total_tokens: Dict[str, int] = field(default_factory=lambda: {"input": 0, "output": 0})
+    total_tokens: Dict[str, int] = field(
+        default_factory=lambda: {"input": 0, "output": 0}
+    )
     total_cost: float = 0.0
     total_latency_ms: float = 0.0
 

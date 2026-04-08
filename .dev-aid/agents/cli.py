@@ -24,6 +24,7 @@ from .agents.research_agent import RESEARCH_AGENT
 from .agents.tech_debt_hunter import TECH_DEBT_HUNTER
 from .agents.test_generator import TEST_GENERATOR
 from .core.agent_runner import AgentRunner
+from .core.apo import APOConfig, APOOptimizer, get_apo_prompt_override
 from .core.lessons import LessonsConfig, LessonsLedger
 from .core.models import AgentDefinition, AgentResult, ToolCall
 from .core.provider_adapter import ProviderResponse, create_adapter
@@ -32,7 +33,6 @@ from .core.skill_loader import SkillLoader
 from .core.team_models import AgentMessage, TeamDefinition
 from .core.team_runner import TeamRunner
 from .core.tool_registry import ToolRegistry
-from .core.apo import APOConfig, APOOptimizer, get_apo_prompt_override
 from .core.trace_collector import TraceCollector, TraceConfig
 from .teams.builtin_teams import BUILTIN_TEAMS
 from .tools import bash_tool, file_tools, git_tools, github_tools, search_tools

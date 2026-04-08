@@ -242,7 +242,10 @@ class TestDetectLocalServer:
 
     def test_detect_delegates_to_backend(self):
         with patch("router.local_client.detect_available_backend") as mock_detect:
-            mock_detect.return_value = {"backend": "ollama", "base_url": "http://localhost:11434"}
+            mock_detect.return_value = {
+                "backend": "ollama",
+                "base_url": "http://localhost:11434",
+            }
             result = detect_local_server()
             assert result["backend"] == "ollama"
 

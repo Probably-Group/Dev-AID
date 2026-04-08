@@ -106,7 +106,9 @@ class AnthropicAdapter:
         )
 
     @staticmethod
-    def format_tool_result(call_id: str, output: str, is_error: bool = False) -> Dict[str, Any]:
+    def format_tool_result(
+        call_id: str, output: str, is_error: bool = False
+    ) -> Dict[str, Any]:
         """Format a tool result for the Anthropic messages format."""
         return {
             "role": "user",

@@ -175,7 +175,8 @@ class TestAPIKeyHandling:
         # errors should not expose it
         try:
             _ = AnthropicClient(
-                api_key="sk-ant-secret-key-do-not-leak", model_config={"provider": "anthropic"}
+                api_key="sk-ant-secret-key-do-not-leak",
+                model_config={"provider": "anthropic"},
             )
         except Exception as e:
             error_msg = str(e).lower()
@@ -228,7 +229,9 @@ class TestSecureDefaults:
         """Test that unexpected fields are rejected (prevent mass assignment)"""
         with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
             ExecuteRequest(
-                request="test", is_admin=True, bypass_security=True  # Should be rejected
+                request="test",
+                is_admin=True,
+                bypass_security=True,  # Should be rejected
             )
 
     def test_whitespace_normalized(self):

@@ -44,7 +44,9 @@ class ToolRegistry:
         """List all registered tool names."""
         return list(self._tools.keys())
 
-    def get_definitions(self, tool_names: Optional[List[str]] = None) -> List[ToolDefinition]:
+    def get_definitions(
+        self, tool_names: Optional[List[str]] = None
+    ) -> List[ToolDefinition]:
         """Get tool definitions, optionally filtered by name."""
         if tool_names is None:
             return list(self._tools.values())

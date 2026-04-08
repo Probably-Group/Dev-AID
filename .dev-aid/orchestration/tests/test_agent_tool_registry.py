@@ -93,7 +93,10 @@ class TestToolRegistry:
         reg = ToolRegistry(safety=safety)
         reg.register(
             ToolDefinition(
-                name="run_bash", description="Bash", parameters={}, risk_level="dangerous"
+                name="run_bash",
+                description="Bash",
+                parameters={},
+                risk_level="dangerous",
             ),
             lambda **kw: "output",
         )

@@ -174,7 +174,11 @@ class DataFactory:
                 field_value = [self.generate_from_type(items.get("type")) for _ in range(count)]
 
             generated.append(
-                {"field": field_name, "value": field_value, "required": field_name in required}
+                {
+                    "field": field_name,
+                    "value": field_value,
+                    "required": field_name in required,
+                }
             )
 
         return generated
@@ -356,10 +360,16 @@ def main():
 
     parser = argparse.ArgumentParser(description="Generate realistic test data from schemas")
     parser.add_argument(
-        "schema", type=Path, help="Schema file (JSON Schema, Pydantic model, TypeScript interface)"
+        "schema",
+        type=Path,
+        help="Schema file (JSON Schema, Pydantic model, TypeScript interface)",
     )
     parser.add_argument(
-        "-c", "--count", type=int, default=10, help="Number of records to generate (default: 10)"
+        "-c",
+        "--count",
+        type=int,
+        default=10,
+        help="Number of records to generate (default: 10)",
     )
     parser.add_argument(
         "-f",

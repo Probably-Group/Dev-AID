@@ -2,16 +2,20 @@
 
 from pathlib import Path
 from typing import Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
 class SearchCodeRequest(BaseModel):
     """Validated search code request"""
+
     query: str = Field(min_length=1, max_length=10000, description="Search query")
     project_path: str = Field(description="Absolute path to project directory")
-    top_k: int = Field(default=10, ge=1, le=100, description="Number of results to return")
+    top_k: int = Field(
+        default=10, ge=1, le=100, description="Number of results to return"
+    )
 
-    @field_validator('query')
+    @field_validator("query")
     @classmethod
     def validate_query(cls, v: str) -> str:
         """Validate query is not empty after stripping"""
@@ -19,7 +23,7 @@ class SearchCodeRequest(BaseModel):
             raise ValueError("Query cannot be empty")
         return v.strip()
 
-    @field_validator('project_path')
+    @field_validator("project_path")
     @classmethod
     def validate_project_path(cls, v: str) -> str:
         """Validate project path is absolute and exists"""
@@ -36,9 +40,10 @@ class SearchCodeRequest(BaseModel):
 
 class IndexDirectoryRequest(BaseModel):
     """Validated index directory request"""
+
     directory: str = Field(description="Directory path to index")
 
-    @field_validator('directory')
+    @field_validator("directory")
     @classmethod
     def validate_directory(cls, v: str) -> str:
         """Validate directory path"""
@@ -60,9 +65,12 @@ class IndexDirectoryRequest(BaseModel):
 
 class GetIndexStatusRequest(BaseModel):
     """Validated get index status request"""
-    project_path: Optional[str] = Field(default=None, description="Optional project path")
 
-    @field_validator('project_path')
+    project_path: Optional[str] = Field(
+        default=None, description="Optional project path"
+    )
+
+    @field_validator("project_path")
     @classmethod
     def validate_project_path(cls, v: Optional[str]) -> Optional[str]:
         """Validate project path if provided"""
@@ -79,9 +87,10 @@ class GetIndexStatusRequest(BaseModel):
 
 class ClearIndexRequest(BaseModel):
     """Validated clear index request"""
+
     project_path: str = Field(description="Project path")
 
-    @field_validator('project_path')
+    @field_validator("project_path")
     @classmethod
     def validate_project_path(cls, v: str) -> str:
         """Validate project path"""

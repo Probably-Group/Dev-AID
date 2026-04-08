@@ -59,7 +59,8 @@ GIT_LOG_DEFINITION = ToolDefinition(
 GIT_ADD_DEFINITION = ToolDefinition(
     name="git_add",
     description=(
-        "Stage files for commit. Specify individual files " "rather than using '.' for safety."
+        "Stage files for commit. Specify individual files "
+        "rather than using '.' for safety."
     ),
     parameters={
         "files": {

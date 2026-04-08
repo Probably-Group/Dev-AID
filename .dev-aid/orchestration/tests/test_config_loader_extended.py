@@ -26,9 +26,12 @@ class TestConfigLoaderInit:
             found = loader._find_dev_aid_root()
             # Should walk up and find root
             # Note: exact match depends on parent resolution
-            assert found.name in ["deep", "src", "project", subdir.name] or ".dev-aid" in [
-                p.name for p in found.iterdir()
-            ]
+            assert found.name in [
+                "deep",
+                "src",
+                "project",
+                subdir.name,
+            ] or ".dev-aid" in [p.name for p in found.iterdir()]
 
     def test_find_dev_aid_root_fallback(self, tmp_path):
         """Test _find_dev_aid_root falls back to cwd when no .dev-aid found"""

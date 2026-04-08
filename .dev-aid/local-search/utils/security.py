@@ -29,7 +29,7 @@ def safe_resolve_path(base_dir: Path, user_path: str, must_exist: bool = False) 
         - Ensures resolved path is within base_dir
     """
     # Reject obvious attacks
-    if '..' in user_path:
+    if ".." in user_path:
         raise ValueError(f"Path traversal detected: {user_path}")
 
     # Convert to Path object
@@ -51,9 +51,7 @@ def safe_resolve_path(base_dir: Path, user_path: str, must_exist: bool = False) 
 
             # Warn if symlink resolved to a different location
             if user_path_obj != resolved:
-                logger.debug(
-                    "Path resolved via symlink: %s -> %s", user_path, resolved
-                )
+                logger.debug("Path resolved via symlink: %s -> %s", user_path, resolved)
 
         except (OSError, RuntimeError) as e:
             raise ValueError(f"Cannot resolve path {user_path}: {e}")
@@ -73,9 +71,7 @@ def safe_resolve_path(base_dir: Path, user_path: str, must_exist: bool = False) 
 
             # Warn if symlink resolved to a different location
             if (base_dir / user_path) != resolved:
-                logger.debug(
-                    "Path resolved via symlink: %s -> %s", user_path, resolved
-                )
+                logger.debug("Path resolved via symlink: %s -> %s", user_path, resolved)
 
         except (OSError, RuntimeError) as e:
             raise ValueError(f"Cannot resolve path {user_path}: {e}")

@@ -1,17 +1,22 @@
 """Code embedding generation using SentenceTransformers"""
 
 import os
+from pathlib import Path
+from typing import List, Optional
+
+import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer
-from typing import List, Optional
-import numpy as np
-from pathlib import Path
 
 
 class CodeEmbedder:
     """Generates embeddings for code chunks"""
 
-    def __init__(self, model_name: str = "google/embeddinggemma-300m", cache_dir: Optional[str] = None):
+    def __init__(
+        self,
+        model_name: str = "google/embeddinggemma-300m",
+        cache_dir: Optional[str] = None,
+    ):
         """
         Initialize code embedder
 
@@ -27,16 +32,14 @@ class CodeEmbedder:
         # Device selection
         if torch.cuda.is_available():
             self.device = "cuda"
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
             self.device = "mps"  # Apple Silicon
         else:
             self.device = "cpu"
 
         print(f"Loading embedding model on {self.device}...")
         self.model = SentenceTransformer(
-            model_name,
-            cache_folder=cache_dir,
-            device=self.device
+            model_name, cache_folder=cache_dir, device=self.device
         )
         print("Model loaded successfully")
 
@@ -60,7 +63,7 @@ class CodeEmbedder:
             batch_size=batch_size,
             show_progress_bar=len(texts) > 100,
             convert_to_numpy=True,
-            normalize_embeddings=True  # Normalize for cosine similarity
+            normalize_embeddings=True,  # Normalize for cosine similarity
         )
 
         return embeddings
@@ -76,9 +79,7 @@ class CodeEmbedder:
             Embedding vector
         """
         embedding = self.model.encode(
-            [query],
-            convert_to_numpy=True,
-            normalize_embeddings=True
+            [query], convert_to_numpy=True, normalize_embeddings=True
         )
         return embedding[0]
 

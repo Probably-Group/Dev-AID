@@ -4,15 +4,21 @@
 
 set -euo pipefail
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# IMPORTANT: Use a unique local-ish variable so we don't clobber the parent
+# script's SCRIPT_DIR. setup-dev-aid.sh sets SCRIPT_DIR to .dev-aid/scripts/
+# and then later expects $SCRIPT_DIR/setup-git-hooks.sh — if we leak our
+# .dev-aid/scripts/lib/ value into SCRIPT_DIR, that lookup fails with
+# "setup-git-hooks.sh not found". Same root cause as the preset path bug
+# fixed in commit 4a6a411.
+_cmi_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source all library files
-source "$SCRIPT_DIR/claude-md-backup.sh"
-source "$SCRIPT_DIR/claude-md-validator.sh"
-source "$SCRIPT_DIR/claude-md-merger.sh"
-source "$SCRIPT_DIR/progressive-disclosure.sh"
-source "$SCRIPT_DIR/migration-report.sh"
+source "$_cmi_lib_dir/claude-md-backup.sh"
+source "$_cmi_lib_dir/claude-md-validator.sh"
+source "$_cmi_lib_dir/claude-md-merger.sh"
+source "$_cmi_lib_dir/progressive-disclosure.sh"
+source "$_cmi_lib_dir/migration-report.sh"
+unset _cmi_lib_dir
 
 # Configuration
 PROGRESSIVE_DISCLOSURE_THRESHOLD=500
@@ -49,7 +55,7 @@ detect_existing_progressive_disclosure() {
         # Match patterns like @path/to/file.md, @.claude/rules/*, @~/path, etc.
         # Claude Code supports: @file.md, @./relative/path.md, @~/home/path.md
         at_references=$(grep -oE '@[A-Za-z0-9_.~/-]+\.md|@\.claude/[A-Za-z0-9_/-]+' "$claude_md" 2>/dev/null || true)
-        at_reference_count=$(echo "$at_references" | grep -c '^@' || echo "0")
+        at_reference_count=$(echo "$at_references" | grep -c '^@' || true)
         if [ "$at_reference_count" -gt 0 ]; then
             has_at_references="true"
         fi
@@ -166,7 +172,7 @@ handle_existing_claude_md() {
     # Step 5: Merge
     echo "5️⃣  Merging with Dev-AID template..."
     local merged_content=$(create_merged_claude_md "$claude_md" "$project_root" "$validation_json")
-    local merged_lines=$(echo "$merged_content" | grep -c '^' || echo "0")
+    local merged_lines=$(echo "$merged_content" | grep -c '^' || true)
     echo "   ✓ Merged content: $merged_lines lines"
     echo ""
 
@@ -239,7 +245,7 @@ EOF
 
     local original_lines=$(wc -l < "$claude_md" | tr -d ' ')
     local template_lines=350  # Approximate
-    local custom_lines=$(extract_custom_content "$claude_md" | grep -c '^' || echo "0")
+    local custom_lines=$(extract_custom_content "$claude_md" | grep -c '^' || true)
 
     local stats_json=$(cat <<EOF
 {

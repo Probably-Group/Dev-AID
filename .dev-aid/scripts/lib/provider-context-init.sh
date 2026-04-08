@@ -4,22 +4,28 @@
 
 set -euo pipefail
 
-# Get script directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# IMPORTANT: Use a unique local-ish variable so we don't clobber the parent
+# script's SCRIPT_DIR. setup-dev-aid.sh sets SCRIPT_DIR to .dev-aid/scripts/
+# and then later expects $SCRIPT_DIR/setup-git-hooks.sh — if we leak our
+# .dev-aid/scripts/lib/ value into SCRIPT_DIR, that lookup fails with
+# "setup-git-hooks.sh not found". Same root cause as the preset path bug
+# fixed in commit 4a6a411.
+_pci_lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source all library files
-source "$SCRIPT_DIR/claude-md-backup.sh"
-source "$SCRIPT_DIR/claude-md-validator.sh"
-source "$SCRIPT_DIR/claude-md-merger.sh"
-source "$SCRIPT_DIR/progressive-disclosure.sh"
-source "$SCRIPT_DIR/migration-report.sh"
+source "$_pci_lib_dir/claude-md-backup.sh"
+source "$_pci_lib_dir/claude-md-validator.sh"
+source "$_pci_lib_dir/claude-md-merger.sh"
+source "$_pci_lib_dir/progressive-disclosure.sh"
+source "$_pci_lib_dir/migration-report.sh"
 
 # Configuration
 PROGRESSIVE_DISCLOSURE_THRESHOLD=500
 
 # Source claude-md-init.sh for progressive disclosure detection functions
 # (they work for any provider's rules directory pattern)
-source "$SCRIPT_DIR/claude-md-init.sh" 2>/dev/null || true
+source "$_pci_lib_dir/claude-md-init.sh" 2>/dev/null || true
+unset _pci_lib_dir
 
 # Detect existing progressive disclosure patterns (provider-agnostic)
 # Checks for .<provider>/rules/ directory and @ file references
@@ -48,7 +54,7 @@ detect_provider_progressive_disclosure() {
     # Check for @ file references in context file
     if [ -f "$context_file" ]; then
         local at_references=$(grep -oE '@[A-Za-z0-9_.~/-]+\.md|@\.[a-z]+/[A-Za-z0-9_/-]+' "$context_file" 2>/dev/null || true)
-        at_reference_count=$(echo "$at_references" | grep -c '^@' || echo "0")
+        at_reference_count=$(echo "$at_references" | grep -c '^@' || true)
         if [ "$at_reference_count" -gt 0 ]; then
             has_at_references="true"
         fi
@@ -185,7 +191,7 @@ handle_existing_context_file() {
     # Step 5: Merge
     echo "5️⃣  Merging with Dev-AID template..."
     local merged_content=$(create_merged_context "$context_file" "$project_root" "$provider" "$validation_json")
-    local merged_lines=$(echo "$merged_content" | grep -c '^' || echo "0")
+    local merged_lines=$(echo "$merged_content" | grep -c '^' || true)
     echo "   ✓ Merged content: $merged_lines lines"
     echo ""
 
@@ -258,7 +264,7 @@ EOF
 
     local original_lines=$(wc -l < "$context_file" | tr -d ' ')
     local template_lines=350  # Approximate
-    local custom_lines=$(extract_custom_content "$context_file" | grep -c '^' || echo "0")
+    local custom_lines=$(extract_custom_content "$context_file" | grep -c '^' || true)
 
     local stats_json=$(cat <<EOF
 {

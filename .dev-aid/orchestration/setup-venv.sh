@@ -156,10 +156,26 @@ install_dependencies() {
     print_info "Installing dependencies from requirements.txt..."
     echo ""
 
-    # Install with progress
-    pip install -r "$REQUIREMENTS"
-
-    print_success "All dependencies installed"
+    # Install with progress. CRITICAL: capture pip's exit code so we don't
+    # falsely report success when wheels failed to build (e.g., pydantic-core
+    # against a Python version newer than the pyo3 binding supports).
+    if pip install -r "$REQUIREMENTS"; then
+        print_success "All dependencies installed"
+    else
+        local pip_exit=$?
+        echo ""
+        print_error "pip install failed (exit code $pip_exit)"
+        print_error "Common causes:"
+        print_error "  - Python version too new for one or more pinned dependencies"
+        print_error "    (e.g., pydantic-core requires pyo3 wheels for your Python version)"
+        print_error "  - Network issue downloading wheels"
+        print_error "  - Disk full or permission denied"
+        print_error ""
+        print_error "Setup will continue but the orchestration router will not work"
+        print_error "until you resolve the install failure above."
+        deactivate
+        return 1
+    fi
 
     # Show installed packages (dynamically from requirements.txt)
     echo ""

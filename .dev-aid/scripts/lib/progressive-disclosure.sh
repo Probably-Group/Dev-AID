@@ -12,7 +12,7 @@ TARGET_MAIN_LINES=400  # Target size for main file
 # Args: $1: content
 needs_splitting() {
     local content="$1"
-    local line_count=$(echo "$content" | grep -c '^' || echo "0")
+    local line_count=$(echo "$content" | grep -c '^' || true)
 
     if [ "$line_count" -gt 500 ]; then
         echo "true"
@@ -79,7 +79,7 @@ create_section_summary() {
     local max_lines="${2:-10}"
 
     local summary=$(echo "$content" | head -n "$max_lines")
-    local total_lines=$(echo "$content" | grep -c '^' || echo "0")
+    local total_lines=$(echo "$content" | grep -c '^' || true)
 
     if [ "$total_lines" -gt "$max_lines" ]; then
         summary+="\n\n📖 *See extended documentation for complete details*\n"
@@ -125,7 +125,7 @@ build_main_file() {
         if [ -z "$header" ]; then continue; fi
 
         local section=$(extract_full_section "$content" "$header")
-        local section_lines=$(echo "$section" | grep -c '^' || echo "0")
+        local section_lines=$(echo "$section" | grep -c '^' || true)
 
         # Check if adding this section would exceed limit
         if [ $((current_lines + section_lines)) -gt "$max_lines" ]; then
@@ -169,8 +169,8 @@ build_extended_file() {
         local main_section=$(extract_full_section "$main_content" "$header")
 
         # If section is summarized or missing in main, add full version here
-        local full_lines=$(echo "$full_section" | grep -c '^' || echo "0")
-        local main_lines=$(echo "$main_section" | grep -c '^' || echo "0")
+        local full_lines=$(echo "$full_section" | grep -c '^' || true)
+        local main_lines=$(echo "$main_section" | grep -c '^' || true)
 
         if [ "$full_lines" -gt "$((main_lines + 5))" ]; then
             result+="$full_section\n\n---\n\n"
@@ -230,19 +230,19 @@ apply_progressive_disclosure() {
     local custom_content="$2"
     local output_dir="$3"
 
-    local total_lines=$(echo "$full_content" | grep -c '^' || echo "0")
+    local total_lines=$(echo "$full_content" | grep -c '^' || true)
 
     echo "Content size: $total_lines lines" >&2
     echo "Applying progressive disclosure..." >&2
 
     # Build main file (prioritized, ≤450 lines)
     local main_content=$(build_main_file "$full_content" "$MAX_MAIN_LINES")
-    local main_lines=$(echo "$main_content" | grep -c '^' || echo "0")
+    local main_lines=$(echo "$main_content" | grep -c '^' || true)
     echo "Main file: $main_lines lines" >&2
 
     # Build extended file (everything not in main)
     local extended_content=$(build_extended_file "$full_content" "$main_content")
-    local extended_lines=$(echo "$extended_content" | grep -c '^' || echo "0")
+    local extended_lines=$(echo "$extended_content" | grep -c '^' || true)
     echo "Extended file: $extended_lines lines" >&2
 
     # Determine what files to create

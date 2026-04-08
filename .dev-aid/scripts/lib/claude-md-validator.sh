@@ -421,10 +421,10 @@ validate_quality() {
     local quality_score=100
 
     # Count total lines (excluding empty lines)
-    local total_lines=$(echo "$content" | grep -c '[^[:space:]]' || echo "0")
+    local total_lines=$(echo "$content" | grep -c '[^[:space:]]' || true)
 
     # Count sections (## headers)
-    local section_count=$(echo "$content" | grep -cE '^#{1,3} ' || echo "0")
+    local section_count=$(echo "$content" | grep -cE '^#{1,3} ' || true)
 
     # Check minimum line count
     if [ "$total_lines" -lt "$QUALITY_MIN_LINES" ]; then
@@ -518,14 +518,14 @@ get_quality_assessment() {
     local claude_md_file="$1"
     local content=$(cat "$claude_md_file")
 
-    local total_lines=$(echo "$content" | grep -c '[^[:space:]]' || echo "0")
-    local section_count=$(echo "$content" | grep -cE '^#{1,3} ' || echo "0")
+    local total_lines=$(echo "$content" | grep -c '[^[:space:]]' || true)
+    local section_count=$(echo "$content" | grep -cE '^#{1,3} ' || true)
     local has_placeholders="false"
     local placeholder_count=0
 
     # Check for placeholders
     for pattern in "${PLACEHOLDER_PATTERNS[@]}"; do
-        local count=$(echo "$content" | grep -ciE "$pattern" || echo "0")
+        local count=$(echo "$content" | grep -ciE "$pattern" || true)
         placeholder_count=$((placeholder_count + count))
     done
     if [ "$placeholder_count" -gt 0 ]; then

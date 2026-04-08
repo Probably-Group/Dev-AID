@@ -19,7 +19,7 @@ extract_custom_content() {
     custom_content=$(echo "$custom_content" | sed '/^## Dev-AID Integration$/,/^## [^D]/d' || echo "$custom_content")
 
     # If after removal we have significant content (>10 lines), it's custom
-    local line_count=$(echo "$custom_content" | grep -c '^' || echo "0")
+    local line_count=$(echo "$custom_content" | grep -c '^' || true)
 
     if [ "$line_count" -gt 10 ]; then
         echo "$content"  # Return full content as custom
@@ -405,7 +405,7 @@ apply_auto_fixes() {
 # Args: $1: content (string)
 count_content_lines() {
     local content="$1"
-    echo "$content" | grep -c '^' || echo "0"
+    echo "$content" | grep -c '^' || true
 }
 
 # Remove duplicate sections

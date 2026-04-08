@@ -47,11 +47,11 @@ generate_migration_report() {
 
     if [ "$issues_json" != "[]" ] && [ -n "$issues_json" ]; then
         total_issues=$(echo "$issues_json" | grep -o '"type":' | wc -l || echo "0")
-        high_issues=$(echo "$issues_json" | grep -c '"severity": "high"' || echo "0")
-        medium_issues=$(echo "$issues_json" | grep -c '"severity": "medium"' || echo "0")
-        low_issues=$(echo "$issues_json" | grep -c '"severity": "low"' || echo "0")
-        auto_fixed=$(echo "$issues_json" | grep -c '"auto_fix": true' || echo "0")
-        flagged=$(echo "$issues_json" | grep -c '"auto_fix": false' || echo "0")
+        high_issues=$(echo "$issues_json" | grep -c '"severity": "high"' || true)
+        medium_issues=$(echo "$issues_json" | grep -c '"severity": "medium"' || true)
+        low_issues=$(echo "$issues_json" | grep -c '"severity": "low"' || true)
+        auto_fixed=$(echo "$issues_json" | grep -c '"auto_fix": true' || true)
+        flagged=$(echo "$issues_json" | grep -c '"auto_fix": false' || true)
     fi
 
     # Generate report

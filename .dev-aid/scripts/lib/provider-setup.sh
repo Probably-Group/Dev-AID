@@ -50,10 +50,62 @@ _setup_claude_dir() {
 
     mkdir -p "$target_dir"
 
-    # Symlink commands directory
-    if [ -d "$source_dir/commands" ] && [ ! -e "$target_dir/commands" ]; then
-        ln -sf "../.dev-aid/providers/claude/.claude/commands" "$target_dir/commands"
-        echo -e "  ${GREEN:-}Linked .claude/commands${NC:-}"
+    # Wire up Dev-AID's slash commands into .claude/commands/.
+    #
+    # Two possible states:
+    #
+    #   A) .claude/commands/ does not exist
+    #      → symlink the entire directory in one shot (cleanest)
+    #
+    #   B) .claude/commands/ already exists as a regular directory
+    #      (the user has their own custom slash commands in there from
+    #      before they installed Dev-AID)
+    #      → symlink each aid-*.md and dev-aid-*.md file individually
+    #        from .dev-aid/providers/claude/.claude/commands/<category>/
+    #        into .claude/commands/<basename>.md, without clobbering any
+    #        of the user's existing files.
+    #
+    # The previous logic only handled case A and silently SKIPPED
+    # case B, leaving the user with no /aid-* commands at all. Beta
+    # tester reported "Unknown skill: aid-help" because their git history
+    # contained .claude/commands/implement-*.md, blocking the symlink.
+    if [ -d "$source_dir/commands" ]; then
+        if [ ! -e "$target_dir/commands" ] && [ ! -L "$target_dir/commands" ]; then
+            # Case A: clean install — symlink the whole directory
+            ln -sf "../.dev-aid/providers/claude/.claude/commands" "$target_dir/commands"
+            echo -e "  ${GREEN:-}Linked .claude/commands${NC:-}"
+        elif [ -L "$target_dir/commands" ]; then
+            # Already a Dev-AID symlink (from a previous install) — leave alone
+            echo -e "  ${GREEN:-}.claude/commands already linked${NC:-}"
+        else
+            # Case B: pre-existing regular directory with user's own files.
+            # Symlink Dev-AID's aid-* / dev-aid-* commands as individual
+            # files at the top level so they're discoverable as /aid-*.
+            local linked=0
+            local cmd_src cmd_name cmd_target
+            for cmd_src in "$source_dir/commands"/*/aid-*.md \
+                           "$source_dir/commands"/*/dev-aid-*.md; do
+                [ -f "$cmd_src" ] || continue
+                cmd_name=$(basename "$cmd_src")
+                cmd_target="$target_dir/commands/$cmd_name"
+                if [ -e "$cmd_target" ] || [ -L "$cmd_target" ]; then
+                    continue
+                fi
+                # Compute path from .claude/commands/ back to the source.
+                # source path is .dev-aid/providers/claude/.claude/commands/<cat>/<file>.md
+                # target lives at .claude/commands/<file>.md
+                # so the relative link from target's dir is ../../<source>
+                local rel_src="../../${cmd_src#"$project_root/"}"
+                if ln -sf "$rel_src" "$cmd_target" 2>/dev/null; then
+                    linked=$((linked + 1))
+                fi
+            done
+            if [ "$linked" -gt 0 ]; then
+                echo -e "  ${GREEN:-}Merged $linked Dev-AID commands into existing .claude/commands/${NC:-}"
+            else
+                echo -e "  ${YELLOW:-}.claude/commands already has Dev-AID commands (skipped)${NC:-}"
+            fi
+        fi
     fi
 
     # Copy hooks.json (not symlink — user may customize)
@@ -89,10 +141,36 @@ _setup_gemini_dir() {
 
     mkdir -p "$target_dir"
 
-    # Symlink commands directory
-    if [ -d "$source_dir/commands" ] && [ ! -e "$target_dir/commands" ]; then
-        ln -sf "../.dev-aid/providers/gemini/.gemini/commands" "$target_dir/commands"
-        echo -e "  ${GREEN:-}Linked .gemini/commands${NC:-}"
+    # Same merge-vs-symlink logic as _setup_claude_dir. See the comment
+    # block above for the rationale.
+    if [ -d "$source_dir/commands" ]; then
+        if [ ! -e "$target_dir/commands" ] && [ ! -L "$target_dir/commands" ]; then
+            ln -sf "../.dev-aid/providers/gemini/.gemini/commands" "$target_dir/commands"
+            echo -e "  ${GREEN:-}Linked .gemini/commands${NC:-}"
+        elif [ -L "$target_dir/commands" ]; then
+            echo -e "  ${GREEN:-}.gemini/commands already linked${NC:-}"
+        else
+            local linked=0
+            local cmd_src cmd_name cmd_target rel_src
+            for cmd_src in "$source_dir/commands"/*/aid-*.toml \
+                           "$source_dir/commands"/*/dev-aid-*.toml; do
+                [ -f "$cmd_src" ] || continue
+                cmd_name=$(basename "$cmd_src")
+                cmd_target="$target_dir/commands/$cmd_name"
+                if [ -e "$cmd_target" ] || [ -L "$cmd_target" ]; then
+                    continue
+                fi
+                rel_src="../../${cmd_src#"$project_root/"}"
+                if ln -sf "$rel_src" "$cmd_target" 2>/dev/null; then
+                    linked=$((linked + 1))
+                fi
+            done
+            if [ "$linked" -gt 0 ]; then
+                echo -e "  ${GREEN:-}Merged $linked Dev-AID commands into existing .gemini/commands/${NC:-}"
+            else
+                echo -e "  ${YELLOW:-}.gemini/commands already has Dev-AID commands (skipped)${NC:-}"
+            fi
+        fi
     fi
 
     # Copy hooks.toml

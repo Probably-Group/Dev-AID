@@ -1,5 +1,5 @@
 {
-  "dev_aid_version": "2.0.0",
+  "dev_aid_version": "1.5.1",
   "project_name": "my-project",
 
   "auto_activation": "conservative",
@@ -9,7 +9,7 @@
 
   "enabled_providers": ["claude"],
 
-  "default_model": "claude-sonnet-4.5",
+  "default_model": "claude-sonnet-4-6",
 
   "memory_bank": {
     "auto_load": ["activeContext.md"],

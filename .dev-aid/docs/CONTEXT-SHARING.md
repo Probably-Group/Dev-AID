@@ -129,22 +129,22 @@ Router: Logs full interaction to context-sharing.log
 When **context_sharing.logging.enabled = true** in `settings.json`:
 
 ```
-2025-11-26 10:30:15 [INFO] User request: "Analyze repo and refactor auth"
-2025-11-26 10:30:15 [ROUTER] Mode: ensemble
-2025-11-26 10:30:15 [ROUTER] Task type: massive_context
-2025-11-26 10:30:15 [ROUTER] Context size: 200,000 tokens
-2025-11-26 10:30:15 [ROUTER] Selected model: gemini-2.0-flash
-2025-11-26 10:30:15 [ROUTER] Reason: Massive context (>100K tokens)
-2025-11-26 10:31:42 [GEMINI] Analysis complete (87 seconds)
-2025-11-26 10:31:42 [GEMINI] Files analyzed: 203
-2025-11-26 10:31:42 [GEMINI] Output: .dev-aid/temp/handoff_abc123.md
-2025-11-26 10:31:42 [ROUTER] Handing off to: claude-sonnet-4.5
-2025-11-26 10:31:42 [ROUTER] Handoff file: handoff_abc123.md (1,200 tokens)
-2025-11-26 10:33:15 [CLAUDE] Implementation complete (93 seconds)
-2025-11-26 10:33:15 [CLAUDE] Files modified: 12
-2025-11-26 10:33:15 [CLAUDE] Tests generated: 8
-2025-11-26 10:33:15 [ROUTER] Workflow complete (180 seconds total)
-2025-11-26 10:33:15 [COST] Gemini: $0.015 | Claude: $0.45 | Total: $0.465
+2026-04-01 10:30:15 [INFO] User request: "Analyze repo and refactor auth"
+2026-04-01 10:30:15 [ROUTER] Mode: ensemble
+2026-04-01 10:30:15 [ROUTER] Task type: massive_context
+2026-04-01 10:30:15 [ROUTER] Context size: 200,000 tokens
+2026-04-01 10:30:15 [ROUTER] Selected model: gemini-3.1-pro
+2026-04-01 10:30:15 [ROUTER] Reason: Massive context (>100K tokens)
+2026-04-01 10:31:42 [GEMINI] Analysis complete (87 seconds)
+2026-04-01 10:31:42 [GEMINI] Files analyzed: 203
+2026-04-01 10:31:42 [GEMINI] Output: .dev-aid/temp/handoff_abc123.md
+2026-04-01 10:31:42 [ROUTER] Handing off to: claude-sonnet-4-6
+2026-04-01 10:31:42 [ROUTER] Handoff file: handoff_abc123.md (1,200 tokens)
+2026-04-01 10:33:15 [CLAUDE] Implementation complete (93 seconds)
+2026-04-01 10:33:15 [CLAUDE] Files modified: 12
+2026-04-01 10:33:15 [CLAUDE] Tests generated: 8
+2026-04-01 10:33:15 [ROUTER] Workflow complete (180 seconds total)
+2026-04-01 10:33:15 [COST] Gemini: $0.015 | Claude: $0.45 | Total: $0.465
 ```
 
 ### Log Levels
@@ -339,9 +339,9 @@ Claude should:
     }
   },
   "task_model_mapping": {
-    "code_generation": "claude-sonnet-4.5",
-    "massive_context": "gemini-2.0-flash",
-    "documentation": "gpt-4o"
+    "code_generation": "claude-sonnet-4-6",
+    "massive_context": "gemini-3.1-pro",
+    "documentation": "gpt-5.4"
   }
 }
 ```
@@ -360,8 +360,8 @@ Claude should:
     }
   },
   "task_model_mapping": {
-    "default": "claude-sonnet-4.5",
-    "challenger": "gemini-2.0-pro"
+    "default": "claude-sonnet-4-6",
+    "challenger": "gemini-3.1-pro"
   }
 }
 ```

@@ -94,9 +94,9 @@ gcloud auth application-default login  # One-time setup for Gemini
 - Providers: Enable all three
 - Orchestration: Choose "Ensemble"
 - Model Assignment:
-  - Code generation: claude-sonnet-4.5
-  - Massive context: gemini-2.0-flash
-  - Documentation: gpt-4o
+  - Code generation: claude-sonnet-4.6
+  - Massive context: gemini-3.1-pro
+  - Documentation: gpt-5.4
 - Authentication: Claude/Gemini auto-detected, enter OPENAI_API_KEY if using GPT
 
 # Option B: With API keys
@@ -159,7 +159,7 @@ Run autonomous AI agents powered by Dev-AID's expert skills:
 
 **For CI/scripts**, use the CLI form: `dev-aid-agent pr-reviewer --pr 135 --json`
 
-See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 8 agents, 16 tools, and CLI options.
+See [Agent Framework Guide](.dev-aid/docs/Dev-AID-AGENTS.md) for all 9 agents, 16 tools, and CLI options.
 
 ## Next Steps
 

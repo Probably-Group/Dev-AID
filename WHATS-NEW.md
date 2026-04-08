@@ -105,7 +105,7 @@ Continuous improvement system for agent prompts with human oversight:
 
 - **Trace Collection**: Add `--trace` to any agent or team command to record JSONL execution traces
 - **APO Optimize**: LLM-driven critique + beam search generates improved prompt candidates
-- **Golden Tests**: Predefined test cases for all 8 agents score prompt quality
+- **Golden Tests**: Predefined test cases for all 9 agents score prompt quality
 - **Human Approval Gate**: No auto-deploy — all prompt changes require review
 - **Version History**: Full rollback support with `apo rollback <agent> [--version N]`
 - **Memory Integration**: APO results stored in `agent-optimization.md` memory bank file

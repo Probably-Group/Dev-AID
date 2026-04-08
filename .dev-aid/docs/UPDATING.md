@@ -74,7 +74,7 @@ cp -r .dev-aid .dev-aid-backup-$(date +%Y%m%d)
 
 # 2. Download/clone latest Dev-AID
 cd /tmp
-git clone https://github.com/your-org/dev-aid.git
+git clone https://github.com/Probably-Group/Dev-AID.git
 
 # 3. Copy updated files (excluding user data)
 cd your-project
@@ -108,7 +108,7 @@ For teams managing Dev-AID as a subtree:
 
 ```bash
 # Initial setup (one-time)
-git remote add dev-aid-upstream https://github.com/your-org/dev-aid.git
+git remote add dev-aid-upstream https://github.com/Probably-Group/Dev-AID.git
 git subtree add --prefix=.dev-aid dev-aid-upstream main --squash
 
 # Update later
@@ -367,7 +367,7 @@ chmod +x ~/update-all-dev-aid.sh
 
 ```bash
 # Manual check
-curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION
+curl -s https://raw.githubusercontent.com/Probably-Group/Dev-AID/main/.dev-aid/VERSION
 
 # Compare with your version
 cat .dev-aid/VERSION
@@ -382,7 +382,7 @@ cat .dev-aid/VERSION
 
 **RSS Feed**:
 ```
-https://github.com/your-org/dev-aid/releases.atom
+https://github.com/Probably-Group/Dev-AID/releases.atom
 ```
 
 ---
@@ -394,7 +394,7 @@ https://github.com/your-org/dev-aid/releases.atom
 ```bash
 # Download update script manually
 curl -o .dev-aid/scripts/update-dev-aid.sh \
-  https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/scripts/update-dev-aid.sh
+  https://raw.githubusercontent.com/Probably-Group/Dev-AID/main/.dev-aid/scripts/update-dev-aid.sh
 
 chmod +x .dev-aid/scripts/update-dev-aid.sh
 ```
@@ -465,7 +465,7 @@ jobs:
       - name: Check version
         run: |
           CURRENT=$(cat .dev-aid/VERSION)
-          LATEST=$(curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION)
+          LATEST=$(curl -s https://raw.githubusercontent.com/Probably-Group/Dev-AID/main/.dev-aid/VERSION)
 
           if [ "$CURRENT" != "$LATEST" ]; then
             echo "::warning::Dev-AID update available: $CURRENT → $LATEST"
@@ -488,11 +488,11 @@ jobs:
 **Update issues?**
 - Check [Troubleshooting](#-troubleshooting) above
 - Read [CHANGELOG.md](../CHANGELOG.md) for known issues
-- Open issue: [GitHub Issues](https://github.com/your-org/dev-aid/issues)
+- Open issue: [GitHub Issues](https://github.com/Probably-Group/Dev-AID/issues)
 
 **Breaking changes?**
 - Check `MIGRATION-vX.md` guides
-- Ask in [Discussions](https://github.com/your-org/dev-aid/discussions)
+- Ask in [Discussions](https://github.com/Probably-Group/Dev-AID/discussions)
 
 ---
 

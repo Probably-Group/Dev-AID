@@ -241,16 +241,16 @@ Dev-AID
 
 ### Version Files
 - File: `.dev-aid/VERSION` (technical path)
-- Content: `1.0.0` (semantic versioning)
-- Reference: "Dev-AID v1.0.0" (in documentation)
+- Content: `1.5.1` (semantic versioning, current)
+- Reference: "Dev-AID v1.5.1" (in documentation)
 
 ### Changelog Headers
 ```markdown
 # Dev-AID Changelog
 
-## [1.0.0] - 2025-12-04
+## [1.5.1] - 2026-04-08
 
-This is the first production-ready release of Dev-AID...
+Current release of Dev-AID...
 ```
 
 ---

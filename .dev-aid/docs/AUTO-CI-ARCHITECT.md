@@ -1,7 +1,7 @@
 # Auto-CI Architect Specification
 
 ## Overview
-The **Auto-CI Architect** is a specialized skill in Dev-AID v2.0 designed to autonomously generate, validate, and maintain CI/CD workflows for any project. It analyzes the project structure, detects languages/frameworks, and produces best-practice pipelines (GitHub Actions, GitLab CI) with built-in security gating.
+The **Auto-CI Architect** is a specialized skill in Dev-AID designed to autonomously generate, validate, and maintain CI/CD workflows for any project. It analyzes the project structure, detects languages/frameworks, and produces best-practice pipelines (GitHub Actions, GitLab CI) with built-in security gating.
 
 ## Goals
 1.  **Zero-Config CI**: Detect project type (e.g., Node.js + Postgres) and generate a working pipeline instantly.

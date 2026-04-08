@@ -586,7 +586,7 @@ tail -f .dev-aid/logs/routing.log | grep -i mcp
 - GitHub issues: ~1,000-5,000 tokens (3 issues)
 - Code search results: ~2,000-10,000 tokens (5 results)
 
-**Cost example (Claude Sonnet 4.5):**
+**Cost example (Claude Sonnet 4.6):**
 - Without MCP: 1,000 input tokens = $0.003
 - With MCP (5,000 extra tokens): 6,000 input tokens = $0.018
 

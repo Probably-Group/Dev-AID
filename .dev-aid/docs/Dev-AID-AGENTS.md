@@ -169,7 +169,7 @@ dev-aid-agent team <team-name> -m <message> [options]
 | Flag | Description |
 |------|-------------|
 | `--provider <name>` | Override provider: `anthropic`, `google`, `openai`, `local` |
-| `--model <name>` | Override model (e.g., `gemini-2.0-flash`, `gpt-4o`) |
+| `--model <name>` | Override model (e.g., `gemini-3.1-pro`, `gpt-5.4`, `claude-sonnet-4-6`) |
 | `--dry-run` | Show planned actions without making changes |
 | `--verbose` | Show individual tool call details |
 | `--json` | JSON output (for scripts and CI pipelines) |
@@ -615,7 +615,7 @@ File: `.dev-aid/config/agents.json`
 {
   "defaults": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20250929",
+    "model": "claude-sonnet-4-6",
     "max_tokens": 4096,
     "temperature": 0.3,
     "max_iterations": 25
@@ -623,7 +623,7 @@ File: `.dev-aid/config/agents.json`
   "agents": {
     "pr-reviewer": {
       "description": "Review PRs for security, quality, and best practices",
-      "model": "claude-sonnet-4-5-20250929",
+      "model": "claude-sonnet-4-6",
       "max_iterations": 15,
       "risk_level": "safe"
     }
@@ -641,7 +641,7 @@ Configures team defaults and per-team/per-agent overrides for provider, model, a
 {
   "defaults": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-5-20250929",
+    "model": "claude-sonnet-4-6",
     "max_budget_usd": 5.0,
     "timeout_seconds": 600
   },
@@ -693,7 +693,7 @@ Per-agent-slot overrides within `teams.json` are applied to provider and model s
 
 ### Using Local LLMs
 
-All 8 agents and 4 teams fully support local models via OpenAI-compatible endpoints. The `local` provider is an alias for `openai` with a custom `base_url` and no API key required.
+All 9 agents and 4 teams fully support local models via OpenAI-compatible endpoints. The `local` provider is an alias for `openai` with a custom `base_url` and no API key required.
 
 #### Supported Backends
 
@@ -754,7 +754,7 @@ export LOCAL_DEFAULT_MODEL=qwen2.5-coder:32b
 
 - **Tool calling required** — Agents rely on tool calling (function calling) to operate. Models without tool support cannot run agents. Most modern coding models support this (Qwen2.5-Coder, Codestral, Mistral).
 - **Context window** — Some agents (especially `research` with max_iterations=30) may exceed small context windows. The framework has automatic context trimming at 100K tokens, but smaller models may hit their limits sooner.
-- **Quality variance** — Agent output quality depends on model capability. Smaller quantized models (Q4_K_M) may produce lower-quality code reviews or test generation compared to Claude Sonnet or GPT-4o.
+- **Quality variance** — Agent output quality depends on model capability. Smaller quantized models (Q4_K_M) may produce lower-quality code reviews or test generation compared to Claude Sonnet 4.6 or GPT-5.4.
 - **Cost tracking** — Local models report $0.00 cost (unknown models default to zero). This is expected behavior, not a bug.
 - **No streaming** — Responses are buffered entirely; no token-by-token streaming for local models.
 

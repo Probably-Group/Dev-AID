@@ -132,7 +132,7 @@ cd your-project
 cat .dev-aid/VERSION
 
 # Latest version
-curl -s https://raw.githubusercontent.com/your-org/dev-aid/main/.dev-aid/VERSION
+curl -s https://raw.githubusercontent.com/Probably-Group/Dev-AID/main/.dev-aid/VERSION
 ```
 
 [Full details: UPDATING.md](./UPDATING.md)
@@ -330,7 +330,7 @@ OPENAI_API_KEY=your-key-here
 
 **Team-Shared (in Git):**
 - Configuration (routing.json, models.json)
-- Expert skills (all 85 skills - core, expert, process)
+- Expert skills (all 87 skills — 74 expert + 8 process + 5 core)
 - Memory bank (team knowledge, ADRs)
 - Scripts (setup, automation)
 

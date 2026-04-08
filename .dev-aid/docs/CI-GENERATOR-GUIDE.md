@@ -790,4 +790,4 @@ Upcoming features:
 
 ---
 
-**Generated with Dev-AID v2.0** | [Report Issues](https://github.com/Probably-Group/Dev-AID/issues)
+**Generated with Dev-AID v1.5.1** | [Report Issues](https://github.com/Probably-Group/Dev-AID/issues)

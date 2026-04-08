@@ -540,6 +540,6 @@ Want to add support for a new MCP capability? See the capability detection in `r
 
 ---
 
-**Last Updated**: 2025-12-04
-**Dev-AID Version**: 1.0.0
+**Last Updated**: 2026-04-08
+**Dev-AID Version**: 1.5.1
 **MCP Integration Version**: 1.0.0 (Phases 1-3 Complete - Fully Functional)

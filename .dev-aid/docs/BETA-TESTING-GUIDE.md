@@ -1,7 +1,7 @@
 # Beta Testing Guide — Dev-AID v1.5.1
 
 **Status**: Active Beta
-**Last Updated**: 2026-02-28
+**Last Updated**: 2026-04-08
 **Issue Template**: [Beta Feedback](../../.github/ISSUE_TEMPLATE/beta_feedback.yml)
 
 ---

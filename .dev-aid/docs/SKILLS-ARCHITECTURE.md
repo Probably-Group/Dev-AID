@@ -9,11 +9,14 @@ Dev-AID uses a **provider-agnostic shared skills architecture** that allows all 
 ```
 .dev-aid/
 ├── skills/                          # Shared skills (provider-agnostic)
-│   ├── core/                        # Core skills (always loaded)
-│   │   ├── code-reviewer/
+│   ├── core/                        # Core skills (5 total; configurable auto-load)
+│   │   ├── code-reviewer/           # enabled by default
 │   │   │   └── SKILL.md
-│   │   └── secret-scanner/
-│   │       └── SKILL.md
+│   │   ├── secret-scanner/          # enabled by default
+│   │   │   └── SKILL.md
+│   │   ├── linter/                  # off by default
+│   │   ├── test-runner/             # off by default
+│   │   └── type-checker/            # off by default
 │   ├── expert/                      # Expert skills (auto-loaded by context)
 │   │   ├── api-expert/
 │   │   │   ├── SKILL.md             # Main skill (<500 lines)
@@ -192,7 +195,7 @@ Skills were migrated from provider-specific locations to shared architecture:
 
 ### Before (Provider-Specific)
 ```
-Claude skills:  .dev-aid/providers/claude/.claude/skills/expert/ (66 skills)
+Claude skills:  .dev-aid/providers/claude/.claude/skills/expert/ (74 skills)
 Gemini skills:  ❌ None - Gemini can't use Claude's skills
 Result:         Gemini has no expert knowledge
 ```
@@ -209,11 +212,14 @@ Result:         All providers have same expertise
 
 ## Automatic Skill Loading
 
-### Core Skills (Always Loaded)
+### Core Skills (Configurable, 5 total)
 
-Located in `.dev-aid/skills/core/`:
-- `code-reviewer` - Reviews code quality and security
-- `secret-scanner` - Detects hardcoded secrets
+Located in `.dev-aid/skills/core/`. Configure auto-loading via `/aid-config`:
+- `code-reviewer` - Reviews code quality and security (enabled by default)
+- `secret-scanner` - Detects hardcoded secrets (enabled by default)
+- `linter` - Auto-lint code (disabled by default)
+- `test-runner` - Auto-run tests on save (disabled by default)
+- `type-checker` - Auto-check types (disabled by default)
 
 ### Expert Skills (Context-Based)
 
@@ -534,8 +540,8 @@ echo "Core skills: $(ls .dev-aid/skills/core/ | wc -l)"
 
 Expected output:
 ```
-Expert skills: 66
-Core skills: 2
+Expert skills: 74
+Core skills: 5
 ```
 
 ## Best Practices

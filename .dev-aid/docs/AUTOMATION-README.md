@@ -222,7 +222,7 @@ gh variable set DEV_AID_AUTO_RESOLVE_CONFLICTS --body "true"
 
 Set in GitHub repository settings:
 - `ANTHROPIC_API_KEY`: For Claude
-- `OPENAI_API_KEY`: For GPT-4
+- `OPENAI_API_KEY`: For GPT
 - `GOOGLE_API_KEY`: For Gemini
 
 ## Safety Features

@@ -175,16 +175,15 @@
 
 ## ⚠️ Known Limitations
 
-### 1. Model IDs — Verified 2026-02-28
+### 1. Model IDs — Verified 2026-04-08
 
 **Status**: ✅ All model IDs verified against live API docs
 
-Updated in v1.5.1:
-- Anthropic: `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5`
-- Google: `gemini-2.5-flash`, `gemini-2.5-pro`
-- OpenAI: `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `o4-mini`
-- Removed deprecated: `gpt-4-turbo-2024-04-09`, `gpt-3.5-turbo`
-- Pricing updated to current rates
+Current in v1.5.1 (canonical source: `.dev-aid/config/models.json`):
+- Anthropic: `claude-opus-4-6`, `claude-sonnet-4-6`, `claude-haiku-4-5`
+- Google: `gemini-3.1-pro`
+- OpenAI: `gpt-5.4`
+- Pricing matches current published rates
 
 ### 2. Token Count Estimation for Gemini
 

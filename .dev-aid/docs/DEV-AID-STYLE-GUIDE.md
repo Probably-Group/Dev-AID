@@ -1000,7 +1000,7 @@ When analyzing the codebase, focus on:
 
 ### OPENAI.md
 
-**Purpose:** Give GPT-4o context for documentation and general tasks
+**Purpose:** Give GPT-5.4 context for documentation and general tasks
 
 **Use OpenAI for:**
 - Writing documentation
@@ -1382,7 +1382,7 @@ jobs:
 - Budget constraints (stick to one provider)
 - Simple workflow
 
-**Recommended model:** Claude Sonnet 4.5
+**Recommended model:** Claude Sonnet 4.6
 
 #### Ensemble Mode
 **When to use:**
@@ -1392,10 +1392,10 @@ jobs:
 - Production projects
 
 **Recommended mapping:**
-- Code generation → Claude Sonnet 4.5
-- Massive context → Gemini 2.0 Flash
-- Documentation → GPT-4o
-- Security audits → Claude Sonnet 4.5
+- Code generation → Claude Sonnet 4.6
+- Massive context → Gemini 3.1 Pro
+- Documentation → GPT-5.4
+- Security audits → Claude Opus 4.6
 
 #### Challenger Mode
 **When to use:**
@@ -1405,8 +1405,8 @@ jobs:
 - High-stakes decisions
 
 **Recommended setup:**
-- Primary: Claude Sonnet 4.5
-- Challenger: Gemini 2.0 Pro
+- Primary: Claude Sonnet 4.6
+- Challenger: Gemini 3.1 Pro
 
 ---
 

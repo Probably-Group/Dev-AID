@@ -67,7 +67,7 @@ The market has bifurcated into two camps:
 
 **This creates subscription sprawl:**
 - GitHub Copilot Pro: $10/mo
-- Claude Code Max: $100-200/mo (for heavy Opus 4.5 usage)
+- Claude Code Max: $100-200/mo (for heavy Opus 4.6 usage)
 - Cursor Pro: $20/mo ($40-60/mo effective with overages)
 - **TOTAL: $130-270/month per developer**
 
@@ -135,7 +135,7 @@ With Dev-AID Smart Routing + Local RAG + TOON Format:
 **GitHub Copilot's Premium Request Economy:**
 ```
 Base Plan:        $10/mo (includes 300 "premium requests")
-Reality Check:    Using Claude Opus 4.5 has a 3× multiplier
+Reality Check:    Using Claude Opus 4.6 has a 3× multiplier
 Actual Capacity:  300 ÷ 3 = 100 interactions/month with best model
 Overage Cost:     $0.04/request after cap
 
@@ -167,7 +167,7 @@ Reality:    Heavy users hit fast limit quickly
 ```
 
 **How Dev-AID Solves This:**
-- **Smart Routing**: Use Opus 4.5 only when reasoning is critical (security audits, architecture decisions)
+- **Smart Routing**: Use Opus 4.6 only when reasoning is critical (security audits, architecture decisions)
 - **Context Optimization**: Local RAG reduces input tokens 90%, making expensive models affordable
 - **TOON Format**: 40-60% token reduction on structured outputs → fewer premium requests consumed
 - **Cost Tracking**: Real-time dashboard shows when you're approaching limits
@@ -476,7 +476,7 @@ Use Case:       General coding, API exploration
 
 #### Strategy 3: Smart Retrieval + Knowledge Graph (Claude Code)
 ```
-Context Window: 200k-500k tokens
+Context Window: 1M tokens (Opus/Sonnet 4.6)
 Approach:       Build dependency graph, follow imports intelligently
 Advantage:      Token-efficient, mimics human navigation
                 Understands "why" behind code
@@ -496,7 +496,7 @@ Approach:       Local RAG + Smart routing + TOON compression
 
 2. Smart Model Selection:
    - Simple queries → Gemini Flash (cheap, fast)
-   - Complex reasoning → Claude Opus 4.5 (expensive, smart)
+   - Complex reasoning → Claude Opus 4.6 (expensive, smart)
    - Massive context → Gemini Pro 1M (brute force when needed)
 
 3. TOON Compression:
@@ -557,24 +557,24 @@ Result: Relevant code, $0 cost, never leaves your machine
 
 | Model | SWE-bench Score | Strength | Dev-AID Enhancement |
 |-------|----------------|----------|-------------------|
-| **Claude Opus 4.5** | **80.9%** ⭐ | Complex refactoring, deep reasoning, edge cases | Smart routing uses for critical tasks only → affordable |
-| GPT-5.1 Codex | 77.9% | Solid middle ground, high integration | Smart routing saves 50% via Gemini for simple tasks |
-| Gemini 3 Pro | 76.2% | Rapid prototyping, "vibe coding", massive context | Free tier (1K requests/day) + TOON format = $0 cost |
+| **Claude Opus 4.6** | **80.9%** ⭐ | Complex refactoring, deep reasoning, edge cases | Smart routing uses for critical tasks only → affordable |
+| GPT-5.4 | 77.9% | Solid middle ground, high integration | Smart routing saves 50% via Gemini for simple tasks |
+| Gemini 3.1 Pro | 76.2% | Rapid prototyping, "vibe coding", massive context | Free tier (1K requests/day) + TOON format = $0 cost |
 
-**Key Insight**: Claude Opus 4.5 is the highest-scoring generally available model. Dev-AID makes it affordable through:
+**Key Insight**: Claude Opus 4.6 is the highest-scoring generally available model. Dev-AID makes it affordable through:
 - Local RAG: 90% token reduction → use Opus without burning budget
 - Smart routing: Reserve Opus for complex tasks, use Gemini Flash for simple queries
 - TOON format: 40-60% output token reduction → fewer premium requests consumed
 
 ### Real Cost Comparison (Senior Engineer, Heavy Usage)
 
-**Scenario**: Senior engineer doing complex refactoring (5 Opus 4.5 requests/day)
+**Scenario**: Senior engineer doing complex refactoring (5 Opus 4.6 requests/day)
 
 #### Without Dev-AID:
 ```
 GitHub Copilot Pro ($10/mo):
   - 300 premium requests/month allowance
-  - Opus 4.5 has 3× multiplier
+  - Opus 4.6 has 3× multiplier
   - Actual capacity: 100 Opus requests/month
   - Usage: 5/day × 22 days = 110 requests
   - Result: Hit cap in 20 days, forced to:
@@ -781,7 +781,7 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 | **🔧 Conflict Auto-Resolution** | **$156,000** | 10-30 min/conflict | • 4 conflicts/dev/month automated<br>• $1,560/dev/year productivity<br>• Prevents "redo" work | ⭐⭐⭐⭐⭐ |
 | **🔒 Automated Security** | **$520,000** | 2-4 hrs/breach prevented | • Prevents 1 breach/year ($500K avg cost)<br>• $20K pre-commit time saved<br>• Compliance audit readiness | ⭐⭐⭐⭐⭐ |
 | **💾 Persistent Memory** | **$208,000** | 15-30 min/onboard | • New dev onboarding: 2 weeks → 3 days<br>• $2,080/dev/year (context retention)<br>• Consistent patterns across team | ⭐⭐⭐⭐⭐ |
-| **🎓 73 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
+| **🎓 74 Expert Skills** | **$156,000** | 10-20 min/task | • Best practices auto-loaded<br>• $1,560/dev/year (no manual lookup)<br>• Quality consistency | ⭐⭐⭐⭐⭐ |
 | **⚡ 8 Process Skills** | **$416,000** | 20-40 min/day | • TDD: 40-90% defect reduction (Microsoft/IBM)<br>• Verification-gate: prevents false completions<br>• Systematic-debugging: 35-50% dev time on debugging → 30% saved<br>• $4,160/dev/year (reduced rework + faster debugging) | ⭐⭐⭐⭐⭐ |
 | **🔌 MCP Integration** | **$78,000** | 5-15 min/data query | • Database/API context auto-gathered<br>• $780/dev/year (no manual queries)<br>• Fewer context switches | ⭐⭐⭐⭐⭐ |
 | **⚡ CI/CD Generator + Frequency Profiles** | **$172,800+** | One-time: 4-8 hrs | • 40-70% faster CI (5 min → 1.5 min)<br>• **Up to $2,700/year GitHub Actions savings** (with frequency profiles)<br>• $1,728/dev/year waiting time<br>• 3 profiles: aggressive/balanced/minimal (85-98% cost reduction) | ⭐⭐⭐⭐ |
@@ -805,7 +805,7 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 | **🌳 Git Worktree Isolation** | **$156,000** | 10-15 min/switch | • Safe parallel feature development<br>• 5-8x productivity with multi-agent workflows<br>• Architecture locks prevent conflicts | ⭐⭐⭐⭐ |
 | **🔀 Hybrid Search (BM25+Vector)** | **$65,000** | Enhancement | • +7-17% accuracy over pure vector ([arXiv 2024](https://arxiv.org/html/2404.07220v1))<br>• Keyword + semantic = complementary results<br>• Better code discovery | ⭐⭐⭐ |
 | **🚦 TDD Enforcement Gate** | **$62,400** | Enhancement | • Enforces 40-90% defect reduction ([Microsoft/IBM](https://www.microsoft.com/en-us/research/wp-content/uploads/2009/10/Realizing-Quality-Improvement-Through-Test-Driven-Development-Results-and-Experiences-of-Four-Industrial-Teams-nagappan_tdd.pdf))<br>• Blocks code without tests (configurable)<br>• strict/warning/off modes | ⭐⭐⭐⭐ |
-| **🤖 Agent Framework** 🆕 | **$312,000** | 30-60 min/workflow | • 8 agents (PR review, test gen, tech debt, CI fix, conflict, research, onboard, doc audit)<br>• 16 tools with safety enforcement<br>• 3 providers + local via OpenAI-compatible API<br>• Skill-powered system prompts | ⭐⭐⭐⭐⭐ |
+| **🤖 Agent Framework** 🆕 | **$312,000** | 30-60 min/workflow | • 9 agents (PR review, test gen, tech debt, CI fix, conflict, research, onboard, doc audit, DoD gate)<br>• 16 tools with safety enforcement<br>• 3 providers + local via OpenAI-compatible API<br>• Skill-powered system prompts | ⭐⭐⭐⭐⭐ |
 | **🏠 Local LLM Support** 🆕 | **$540,000** | $45/mo/dev saved | • Offline, private, zero-cost AI inference<br>• 3 runtimes (Ollama, LM Studio, llama.cpp)<br>• Hardware auto-detection + model recommendations<br>• Router integration for smart task routing | ⭐⭐⭐⭐⭐ |
 | **🔬 Deep Research MCP** 🆕 | **$104,000** | 30-60 min/research | • Multi-provider (Gemini/Perplexity/Tavily)<br>• Semantic caching (70% similarity threshold)<br>• MCP server integration<br>• Auto-selects best provider per query | ⭐⭐⭐⭐ |
 
@@ -835,11 +835,11 @@ The dollar values represent **annual time savings for end users**, NOT the cost 
 - **TDD Enforcement Gate**: $62,400/year (enforces 40-90% defect reduction)
 - **v1.4.0-beta.1 Total**: $530,900/year ✅
 
-**v1.5.0-beta.3 Features (NEW):**
-- **Agent Framework**: $312,000/year (8 agents, 16 tools, 3 providers + local, skill-powered)
+**v1.5 Features (Shipped):**
+- **Agent Framework**: $312,000/year (9 agents, 16 tools, 3 providers + local, skill-powered)
 - **Local LLM Support**: $540,000/year (offline, private, zero-cost, 3 runtimes)
 - **Deep Research MCP**: $104,000/year (Gemini/Perplexity/Tavily, semantic caching)
-- **v1.5.0-beta.3 Total**: $956,000/year
+- **v1.5 Total**: $956,000/year
 
 **v1.3.0-beta.11 Features:**
 - **8 Process Skills**: $416,000/year (workflow enforcement, TDD, verification)
@@ -1313,7 +1313,7 @@ START: What type of task?
 
 ---
 
-### 🎓 65+ Expert Skills (Auto-Loading)
+### 🎓 74 Expert Skills (Auto-Loading)
 **AI automatically becomes expert in YOUR tech stack**
 
 **How it works:**
@@ -1331,7 +1331,7 @@ START: What type of task?
 - `async-expert` - Async/await patterns
 - `graphql-expert`, `rust`, `typescript-expert`, `cicd-expert`, `llm-integration`
 
-[Full list: 65 skills →](./.dev-aid/providers/claude/.claude/skills/expert/)
+[Full list: 74 skills →](./.dev-aid/providers/claude/.claude/skills/expert/)
 
 ---
 
@@ -1922,7 +1922,7 @@ Option A: Assistant Only (GitHub Copilot)
 
 Option B: Agent Only (Claude Code or Cursor)
   Claude Pro:          $20/mo (hits rate limits quickly)
-  Claude Max:          $100-200/mo (for heavy Opus 4.5 usage)
+  Claude Max:          $100-200/mo (for heavy Opus 4.6 usage)
   Cursor Pro:          $20/mo (effective $40-60/mo with overages)
   Problem:             No IDE autocomplete integration
   Effective Cost:      $20-200/mo
@@ -1971,7 +1971,7 @@ Option D: Dev-AID Enhancement Layer ⭐
 | **Context Window** | 128k-200k advertised | Same + local RAG (infinite effective) |
 | **Effective Context** | 8k-32k ("goldfish memory") | 90% token reduction = 10× more usable |
 | **Autonomy** | Low (supervised) | High (when paired with Claude Code) |
-| **Context** | Open tabs only | RAG + Memory Bank + 65 Skills |
+| **Context** | Open tabs only | RAG + Memory Bank + 74 Skills |
 | **Security** | Basic code scanning | 5 tools + pre-commit hooks + OWASP checks |
 
 **Winner:** Dev-AID works INSIDE Copilot. Keep the autocomplete, add intelligence + cost optimization + security.
@@ -1984,20 +1984,20 @@ Option D: Dev-AID Enhancement Layer ⭐
 |---------|-------------|--------|----------------------|
 | **Philosophy** | High autonomy (terminal) | High autonomy (IDE) | Works inside both |
 | **Multi-step Tasks** | ✅ Yes (ReAct loop) | ✅ Yes (Composer) | ✅ Yes (enhances both) |
-| **Best Model** | Opus 4.5 (80.9% SWE-bench) | Opus 4.5 + GPT | Same + smart routing |
+| **Best Model** | Opus 4.6 (80.9% SWE-bench) | Opus 4.6 + GPT | Same + smart routing |
 | **Multi-AI** | ❌ Claude only | ❌ Claude/GPT only | ✅ All 3 + cost optimization |
 | **Advertised Cost** | $20/mo (Pro) | $20/mo (Pro) | $0 (just API costs) |
 | **Real Cost (Heavy User)** | $100-200/mo (Max plan for Opus) | $40-60/mo (overages) | $10-20/mo (95% reduction) |
 | **Context Strategy** | Smart retrieval (knowledge graph) | RAG + Shadow Workspace | Local RAG (90% token reduction) |
-| **Context Limit** | 200k-500k tokens | 128k-200k tokens | No limit (local index) |
+| **Context Limit** | 1M tokens (Opus/Sonnet 4.6) | 128k-200k tokens | No limit (local index) |
 | **Local RAG** | ❌ No (cloud-based) | ❌ No (cloud-based) | ✅ $0 forever, 100% local |
-| **Expert Skills** | ❌ Generic prompts | ❌ Generic prompts | ✅ 65+ auto-loaded by project type |
+| **Expert Skills** | ❌ Generic prompts | ❌ Generic prompts | ✅ 74 auto-loaded by project type |
 | **Security Scanning** | ❌ No | ❌ No | ✅ 5 tools + pre-commit hooks |
 | **Cost Tracking** | ❌ No | ❌ No | ✅ Real-time dashboard + budget alerts |
 
 **Winner:** Dev-AID works INSIDE Claude Code / Cursor. Keep their autonomy, slash costs 90-95%, add local RAG + skills + security.
 
-**Real-world example**: Senior engineer using Opus 4.5 for complex refactoring (5 requests/day):
+**Real-world example**: Senior engineer using Opus 4.6 for complex refactoring (5 requests/day):
 - **Without Dev-AID**: Hits rate limits → needs Claude Max ($100-200/mo) or Cursor overages ($40-60/mo)
 - **With Dev-AID**: Local RAG reduces 100K → 10K tokens → stays in base tier ($10-20/mo) → **Saves $480-1,560/year**
 
@@ -2090,7 +2090,7 @@ Savings: 66% cheaper + 10× better
 # Generates skill template with references and activation rules
 ```
 
-**Issues & discussions:** [GitHub →](https://github.com/your-org/dev-aid)
+**Issues & discussions:** [GitHub →](https://github.com/Probably-Group/Dev-AID)
 
 ---
 

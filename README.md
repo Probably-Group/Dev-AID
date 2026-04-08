@@ -814,7 +814,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 ## 🆕 Latest Changes
 
 - **🎛️ Stack-Specific Presets** — 21 presets covering Python, JS/TS, Java, C#, Go, Rust, PHP, Ruby, Dart, mobile, and K8s/Talos — with SOTA security, performance, and quality rules
-- **🤖 Autonomous Agent Framework** — 12 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`, `/aid-dod`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
+- **🤖 Autonomous Agent Framework** — 9 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`, `/aid-dod`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring
 - **🏠 Local LLM Support** — Offline AI via Ollama/LM Studio/llama.cpp with hardware auto-detection and smart model recommendations
 - **🔍 Hybrid Search** — BM25 + Vector with Reciprocal Rank Fusion, two-agent Architect Mode, Git Worktree Isolation, Session Persistence
@@ -1054,7 +1054,7 @@ Claude: *automatically uses local RAG*
 ├── 📁 agents/                          # Autonomous agent framework
 │   ├── core/                           # AgentRunner, ToolRegistry, SkillLoader, Safety
 │   ├── adapters/                       # Anthropic, OpenAI, Google provider adapters
-│   ├── agents/                         # 8 built-in agent definitions
+│   ├── agents/                         # 9 built-in agent definitions
 │   └── tools/                          # 16 built-in tools (file, git, bash, search)
 │
 ├── 📁 config/

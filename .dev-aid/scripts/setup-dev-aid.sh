@@ -372,8 +372,18 @@ EOF
     fi
 
     # --- models.json (create if missing) ---
+    #
+    # NOTE: This fallback heredoc should NEVER fire in practice — the canonical
+    # .dev-aid/config/models.json ships with the install. If it does fire, the
+    # heredoc below uses an OLDER schema (`{models: {key: {provider, model, ...}}}`)
+    # that is INCOMPATIBLE with the current canonical schema
+    # (`{provider: {models: {key: {id, context_window, cost_per_1m_tokens}}}}`)
+    # used by the wizard at lib/wizard-functions.sh:_wizard_models_for_provider.
+    # Pricing/IDs in the heredoc are also frozen at v1.5.0-beta and not updated.
+    # TODO(v1.6): replace this heredoc with a hard error + recovery instructions,
+    # or copy from a packaged template, instead of writing stale wrong-schema data.
     if [ ! -f "$DEV_AID_DIR/config/models.json" ]; then
-        echo -e "${CYAN}Creating models.json...${NC}"
+        echo -e "${YELLOW}Warning: .dev-aid/config/models.json missing — writing legacy fallback (may need manual update)${NC}"
         cat > "$DEV_AID_DIR/config/models.json" << 'EOF'
 {
   "models": {
@@ -421,9 +431,10 @@ EOF
     # Only write if wizard was run (Phase 3)
     if [ -n "${ORCHESTRATION_MODE:-}" ]; then
         echo -e "${CYAN}Writing settings.json...${NC}"
+        _DEV_AID_VERSION="$(cat "$DEV_AID_DIR/VERSION" 2>/dev/null || echo "unknown")"
         cat > "$DEV_AID_DIR/config/settings.json" << EOF
 {
-  "dev_aid_version": "2.0.0",
+  "dev_aid_version": "${_DEV_AID_VERSION}",
   "project_name": "$(basename "$PROJECT_ROOT")",
   "installed_at": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
 

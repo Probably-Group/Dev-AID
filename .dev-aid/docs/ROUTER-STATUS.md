@@ -179,7 +179,7 @@
 
 **Status**: ✅ All model IDs verified against live API docs
 
-Updated in v1.6:
+Updated in v1.5.1:
 - Anthropic: `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5`
 - Google: `gemini-2.5-flash`, `gemini-2.5-pro`
 - OpenAI: `gpt-4o`, `gpt-4.1`, `gpt-4o-mini`, `o4-mini`

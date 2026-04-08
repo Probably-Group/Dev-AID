@@ -1,0 +1,55 @@
+name = "aid-skills"
+description = "List Dev-AID skills installed in this project"
+
+[prompt]
+content = """
+# Dev-AID Skills
+
+Show a categorized list of every Dev-AID skill installed in this project,
+with brief descriptions and pointers to the activation rules.
+
+## Instructions
+
+1. Read the skills registry index to determine the canonical skill list:
+
+   `.dev-aid/skills/registry/skills-index.json`
+
+   If the file does not exist, fall back to walking the directories below.
+
+2. List the contents of each category:
+
+   - Expert skills  — `.dev-aid/skills/expert/*/SKILL.md`
+   - Process skills — `.dev-aid/skills/process/*/SKILL.md`
+   - Core skills    — `.dev-aid/skills/core/*/SKILL.md`
+
+3. For each skill, extract `name` and `description` from the SKILL.md
+   frontmatter (the lines between the leading `---` blocks).
+
+4. Render output in this shape (use actual counts):
+
+   ```
+   📚 Dev-AID Skills (74 expert + 8 process + 5 core = 87 total)
+
+   ## Expert (74)
+   - <skill-name>: <one-line description>
+   ...
+
+   ## Process (8)
+   - <skill-name>: <one-line description>
+   ...
+
+   ## Core (5)
+   - <skill-name>: <one-line description>
+   ...
+
+   💡 Skills auto-load based on the files you're working with. The session-start
+      hook suggests up to 3 skills per session.
+
+   📖 Architecture: .dev-aid/docs/SKILLS-ARCHITECTURE.md
+   ```
+
+5. If a category filter argument is provided (`expert`, `process`, `core`),
+   only list that category.
+
+6. Keep the output concise — one line per skill, no walls of text.
+"""

@@ -1,7 +1,9 @@
-# Not Implemented Features
+# Implemented Features Log
 
-**Last Updated**: 2026-02-27 (Beta testing phase — see [BETA-TESTING-GUIDE.md](./BETA-TESTING-GUIDE.md))
-**Status**: Focused roadmap of pending features
+**Last Updated**: 2026-04-08 (Beta testing phase — see [BETA-TESTING-GUIDE.md](./BETA-TESTING-GUIDE.md))
+**Status**: Historical record of features that were once on the "not implemented" roadmap and have since shipped. Kept as a delivery audit trail.
+
+> **Naming note**: This file used to be called `NOT-IMPLEMENTED.md` because it tracked the gap list. Almost everything in it is now ✅ IMPLEMENTED, so the file was renamed to reflect what it actually documents. For *current* gaps and roadmap, see the issue tracker, not this file.
 
 ---
 

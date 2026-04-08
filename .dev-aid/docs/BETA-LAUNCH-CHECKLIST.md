@@ -12,7 +12,7 @@
 - [ ] Record 60-second demo video (see DEMO-SCRIPT.md)
 - [ ] Test setup wizard on clean macOS and Ubuntu installs
 - [ ] Verify all 3 orchestration modes work with live API keys
-- [ ] Create GitHub Release v1.6.0-beta with changelog
+- [ ] Create GitHub Release v1.5.1 with changelog
 
 ## Launch Day
 

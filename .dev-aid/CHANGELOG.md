@@ -9,13 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+(no unreleased changes — see [1.5.1] below for the most recent shipped work)
+
+---
+
+## [1.5.1] - 2026-04-08
+
 ### Added
+- **Tree-sitter AST Chunker**: Local search now does true AST-aware chunking for python, javascript, typescript, java, go, rust, c, and cpp. Walks the tree-sitter parse tree and emits one chunk per function/class/method, with line-based fallback for unsupported languages or parse failures. Class chunks intentionally overlap with their nested method chunks. Replaces a stub `_init_parsers()` that did nothing.
+- **`/aid-skills` command**: List the skills installed in `.dev-aid/skills/` and (when possible) which auto-loaded for the current session.
+- **`uninstall-dev-aid.sh`**: Clean uninstall script that removes generated provider directories, symlinks, and `.dev-aid/` after a confirmation prompt with optional memory-bank export.
+- **Modification log hook**: `post-tool-use-tracker.sh` now appends `timestamp | tool | files` to `.claude/modification-log.txt` (was an `exit 0` stub).
 - **Agent Trace Collection**: JSONL-based execution recording with `--trace` flag for all agents and teams
 - **Automatic Prompt Optimization (APO)**: LLM-driven critique + beam search to improve agent prompts with human approval gate
   - `apo optimize` — analyze traces, generate candidates, score against golden tests, present diff
   - `apo rollback` — restore previous prompt versions
   - `apo history` / `apo status` — version tracking and status overview
-- **Golden Test Cases**: Predefined test cases for all 8 agents at `.dev-aid/config/golden-tests.json`
+- **Golden Test Cases**: Predefined test cases for all 9 agents at `.dev-aid/config/golden-tests.json`
 - **Memory Bank Integration**: `agent-optimization.md` for storing APO results with on-demand keyword loading
 - **APO Slash Commands**: `aid-apo` alias for Claude and Gemini providers
 - New protected paths: agent-traces, agent-prompts, golden-tests.json in update-lib.sh
@@ -49,6 +59,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Solo, Ensemble, and Challenger modes pass `prompt=request` to `build_context()` for query-aware loading
 - `format_context_for_ai()` includes age annotations and write-back maintenance reminder when memory bank is non-empty
 - Updated documentation: README, QUICK-START, FAQ, DEV-AID-STYLE-GUIDE, ROUTER-STATUS, STORAGE-LOCATIONS, OpenAI README, MEMORY-BANK-GUIDE
+- `setup-venv.sh` uses plain `realpath` instead of `realpath -m` for macOS BSD compatibility (the `-m` flag is GNU-only and crashed Phase 7 of setup on macOS).
+- `search.json` `vector` block updated to document the runtime defaults (`google/embeddinggemma-300m`, dim 768) instead of the stale `all-MiniLM-L6-v2` placeholder. The block is still informational only — `hybrid_scorer._load_config()` does not currently read it.
+- README "native with X editors" claim corrected to match reality: full slash-command parity for Claude Code, Gemini CLI; AGENTS.md integration for Codex CLI; rules-only for Cursor; MCP for VS Code Copilot Chat, Zed, JetBrains AI Assistant.
+
+### Removed
+- Legacy bash mode scripts at `.dev-aid/orchestration/modes/{solo,ensemble,challenger,none}.sh` (~340 LOC). Zero references in the repo. The real implementations are at `.dev-aid/orchestration/router/modes/*.py` and have been since the Python router migration.
+
+### Fixed
+- `skill-activation-conservative.sh` hook renamed "Auto-loading: X" labels to "Suggested skill: X" so the messages match what the hook actually does (it prints suggestions to stdout that Claude Code sees as context — it does not load skills itself).
 
 ---
 

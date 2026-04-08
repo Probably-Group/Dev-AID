@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Version](https://img.shields.io/badge/version-1.5.0--beta.3-brightgreen.svg)](.dev-aid/VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.1-brightgreen.svg)](.dev-aid/VERSION)
 [![Sponsor](https://img.shields.io/badge/Sponsor-Dev--AID-ea4aaa?logo=github-sponsors)](https://github.com/sponsors/Probably-Group)
 
 *You're in flow, solving a real problem — then a merge conflict pulls you out. An hour later, you're writing tests instead of shipping.* **Dev-AID changes that.** It supercharges your AI coding tools with auto-loading expertise, dual-AI review, and security automation on every commit. One setup, nothing new to learn — it works inside the tools you already use.
@@ -35,7 +35,7 @@ Dev-AID enhances your existing AI tools (Claude Code, Gemini CLI, Cursor, Windsu
 - **⚙️ CI/CD Generator** — Auto-generate production-ready workflows for 9+ languages — [guide](.dev-aid/docs/CI-GENERATOR-GUIDE.md)
 - **🔄 Safe Updates** — Non-destructive library updates that preserve your customizations — [guide](.dev-aid/docs/UPDATE-SYSTEM-GUIDE.md)
 
-**No new CLI to learn.** Works inside the tools you already use — native with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + MCP with VS Code Copilot Chat, Zed, JetBrains AI Assistant.
+**No new CLI to learn.** Works inside the tools you already use — full `/aid-*` slash-command support in Claude Code and Gemini CLI; AGENTS.md integration for Codex CLI; rules-based integration for Cursor; MCP integration with VS Code Copilot Chat, Zed, and JetBrains AI Assistant.
 See the [complete feature reference table](#-all-capabilities--ranked-by-developer-impact) for all 40+ capabilities ranked by developer impact.
 
 ### How It Works
@@ -160,6 +160,8 @@ cd ~/my-project
 
 *Affiliate disclosure: Dev-AID's setup wizard includes [AI/ML API](https://aimlapi.com/?via=dev-aid) as an optional provider. If you sign up through this link, Dev-AID may receive a referral commission at no extra cost to you. This helps fund development.*
 
+*Network footnote on the "100% private" claims: local search, security scanning, and skill auto-loading all run entirely on your machine and never send code anywhere. The session-start hook does make ONE outbound request per 24 hours to GitHub's public release API to check whether a new Dev-AID version exists (throttled and cached at `~/.cache/dev-aid/`). If you don't want this, delete the `check-update-notify.sh` line from your provider's `hooks.json` after install.*
+
 ### TL;DR - One Command Examples
 
 ```bash
@@ -189,7 +191,7 @@ git commit -m "feat: add login"    # → Gitleaks, Trivy, Opengrep in ~10s
 |---------|-------------|--------------|--------|
 | **🤖 Agent Framework** 🆕 | Autonomous AI agents with tool use (9 agents, 16 tools, 3 providers + local) | • Provider-agnostic (Anthropic/OpenAI/Google + local via OpenAI-compatible API)<br>• Skill-powered system prompts<br>• Safety: blocklist + dry-run + risk levels<br>• CLI: `dev-aid-agent <agent> [options]` | ⭐⭐⭐⭐⭐ |
 | **🏠 Local LLM Support** 🆕 | Run AI locally via Ollama/LM Studio/llama.cpp | • **$0 forever** (no API costs)<br>• 100% private (code stays local)<br>• Works offline<br>• Auto hardware detection | ⭐⭐⭐⭐⭐ |
-| **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (9+ languages) | ⭐⭐⭐⭐⭐ |
+| **🔍 Hybrid Search** | BM25 lexical + Vector semantic search with RRF fusion | • Best of both: keywords + meaning<br>• Configurable alpha weighting<br>• $0 forever (no API costs)<br>• AST-aware (8 languages: python, js, ts, java, go, rust, c, cpp) | ⭐⭐⭐⭐⭐ |
 | **🔀 Multi-AI Router** | Route tasks to best LLM (Claude/Gemini/OpenAI) with challenger mode | • 97% cost savings (Gemini for big context)<br>• Dual-AI review catches bugs<br>• Automatic task classification | ⭐⭐⭐⭐⭐ |
 | **🛡️ 5 Core Skills** | Automated checking (test-runner, linter, type-checker, code-reviewer, secret-scanner) | • Real-time feedback on file save<br>• Actually runs tools automatically<br>• Configurable (2 enabled by default) | ⭐⭐⭐⭐⭐ |
 | **🎓 74 Expert Skills** | Auto-loading domain expertise (DevSecOps, TDD, API design, etc.) | • Zero config (auto-detects context)<br>• Scoring algorithm ranks relevance<br>• Custom skill generation | ⭐⭐⭐⭐⭐ |
@@ -361,7 +363,7 @@ ollama pull qwen2.5-coder:32b            # Or manually with Ollama
 - **$0 forever** - No API costs for embeddings
 - **EmbeddingGemma model** - Google's state-of-the-art embeddings
 - **Fast** - 0.15s queries with FAISS vector search
-- **Smart** - AST parsing for 9+ languages
+- **Smart** - AST parsing for 8 languages (python, js, ts, java, go, rust, c, cpp)
 - **MCP native** - Works with Claude Code, Gemini CLI, Codex CLI, Cursor, Windsurf, Cline + VS Code/Zed/JetBrains via MCP
 - **Based on** - claude-context-local by [FarhanAliRaza](https://github.com/FarhanAliRaza/claude-context-local) (embedded fork)
 
@@ -696,7 +698,7 @@ Your choice [y/u/m/d/s/?]:
 
 Dev-AID checks for updates automatically on session start (throttled to once per 24h, shared across all your projects):
 ```
-⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
+⬆️  Update available: 1.5.1 -> 1.6.0 (run: gh dev-aid update)
 ```
 
 **Update via CLI Extension:**

@@ -577,7 +577,8 @@ ask_api_keys() {
                     unset claude_key
                     print_color "$GREEN" "Claude API key saved"
                 else
-                    print_color "$YELLOW" "Skipped (you can add it later)"
+                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
                 fi
                 echo ""
                 ;;
@@ -591,7 +592,8 @@ ask_api_keys() {
                     unset gemini_key
                     print_color "$GREEN" "Gemini API key saved"
                 else
-                    print_color "$YELLOW" "Skipped (you can add it later)"
+                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
                 fi
                 echo ""
                 ;;
@@ -605,7 +607,8 @@ ask_api_keys() {
                     unset openai_key
                     print_color "$GREEN" "OpenAI API key saved"
                 else
-                    print_color "$YELLOW" "Skipped (you can add it later)"
+                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
                 fi
                 echo ""
                 ;;
@@ -619,7 +622,8 @@ ask_api_keys() {
                     unset openrouter_key
                     print_color "$GREEN" "OpenRouter API key saved"
                 else
-                    print_color "$YELLOW" "Skipped (you can add it later)"
+                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
                 fi
                 echo ""
                 ;;
@@ -633,7 +637,8 @@ ask_api_keys() {
                     unset aimlapi_key
                     print_color "$GREEN" "AI/ML API key saved"
                 else
-                    print_color "$YELLOW" "Skipped (you can add it later)"
+                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
                 fi
                 echo ""
                 ;;

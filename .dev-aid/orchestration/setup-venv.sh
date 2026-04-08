@@ -89,8 +89,10 @@ create_venv() {
             print_info "Removing existing venv..."
 
             # Validate path containment before rm -rf (CWE-22: Path Traversal)
+            # NOTE: Use plain `realpath` (no -m) for macOS BSD compatibility.
+            # The directory exists at this point (verified by the -d check above).
             local resolved_venv
-            resolved_venv="$(realpath -m "$VENV_DIR")"
+            resolved_venv="$(realpath "$VENV_DIR")"
             local resolved_script_dir
             resolved_script_dir="$(realpath "$SCRIPT_DIR")"
 

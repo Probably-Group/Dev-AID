@@ -33,8 +33,9 @@
   },
 
   "vector": {
-    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
-    "embedding_dim": 384,
+    "_note": "These fields document the runtime defaults used by embedder.py. To override the model, pass model_name to CodeEmbedder() — hybrid_scorer._load_config() does not currently read this block.",
+    "embedding_model": "google/embeddinggemma-300m",
+    "embedding_dim": 768,
     "index_type": "flat",
     "metric": "cosine"
   },

@@ -51,6 +51,13 @@ run_prd_wizard() {
     local project_name
     project_name="$(basename "$project_root")"
 
+    # Skip the interactive wizard entirely in non-interactive mode (--yes).
+    # The wizard contains 7 read-prompt steps that would hang in CI/headless.
+    if [ "${NON_INTERACTIVE:-false}" = true ]; then
+        print_color "${YELLOW:-\033[1;33m}" "  PRD wizard skipped in non-interactive mode (use --wizard-only to run interactively later)"
+        return 0
+    fi
+
     echo ""
     print_color "${CYAN:-\033[0;36m}" "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     print_color "${CYAN:-\033[0;36m}" "  PRD Builder — Create a Product Requirements Document"

@@ -296,7 +296,7 @@ client = anthropic.Anthropic(
 - **Design Document**: `.dev-aid/docs/SESSION-AUTH-DESIGN.md`
 - **Unit Tests**: `.dev-aid/orchestration/tests/test_auth_detector.py`
 - **User Guide**: `.dev-aid/orchestration/router/README.md`
-- **NOT-IMPLEMENTED.md**: Issue #4 (Session Auth) - now IMPLEMENTED ✅
+- **IMPLEMENTED-FEATURES-LOG.md**: Issue #4 (Session Auth) - now IMPLEMENTED ✅
 
 ---
 

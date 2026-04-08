@@ -9,14 +9,17 @@
 ## Current Sprint/Focus
 
 ### Active Work
-- [x] v1.6 improvements: test coverage, model accuracy, growth prep
+- [x] v1.5.1 improvements: test coverage, model accuracy, growth prep
 - [x] Token estimation upgraded to char-based heuristic
 - [x] Model IDs verified and updated to February 2026
+- [x] Tree-sitter AST chunker wired up (was a line-based stub)
+- [x] Legacy bash mode scripts removed (router/modes/*.py is canonical)
 - [ ] Beta launch preparation
 
 ### Recent Changes
-- **2026-02-28**: v1.6 shipped — model IDs updated, token estimation improved, memory bank populated
-- **2026-02-28**: v1.5.1 complete — 1301 tests at 89% coverage, RAG integration done
+- **2026-04-08**: Beta-readiness audit — version drift fixed, search.json reconciled, realpath portability fix, CHANGELOG moved to [1.5.1]
+- **2026-04-08**: Tree-sitter AST chunker shipped — 8 languages (python, js, ts, java, go, rust, c, cpp)
+- **2026-02-28**: v1.5.1 complete — model IDs updated, token estimation improved, RAG integration done
 
 ---
 

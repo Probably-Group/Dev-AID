@@ -6,7 +6,7 @@
 All phases of Token-Optimized Object Notation now delivered:
 - **Phase 2**: Measurement script (`measure-toon-savings.py`) quantifies 40-60% token savings across config files
 - **Phase 3**: TOON Format Guide documentation for skill developers
-- **Phase 4**: NOT-IMPLEMENTED.md fully updated, migration tooling complete
+- **Phase 4**: IMPLEMENTED-FEATURES-LOG.md fully updated, migration tooling complete
 
 ### TUI Dashboard for Cost Analytics (NEW!)
 Rich-based terminal dashboard for router cost monitoring:

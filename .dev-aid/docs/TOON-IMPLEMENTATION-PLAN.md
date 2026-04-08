@@ -804,7 +804,7 @@ Dev-AID Repository Structure:
 
 ### Internal Documents
 - **VALUE-PROPOSITION.md**: Business case for TOON integration
-- **NOT-IMPLEMENTED.md**: TOON feature in roadmap
+- **IMPLEMENTED-FEATURES-LOG.md**: TOON feature in roadmap (now shipped)
 - **ROUTER-INSTALL.md**: Router setup (will be updated for TOON)
 
 ---

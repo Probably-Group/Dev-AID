@@ -34,18 +34,23 @@
 
 ### Setup Steps
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/Probably-Group/Dev-AID.git
-cd Dev-AID
+The canonical install path is via the `gh dev-aid` extension. Use this on
+the project you actually want to test Dev-AID against — Dev-AID is installed
+*into* your project, not run from a clone of the Dev-AID repo.
 
-# 2. Initialize Dev-AID in the repo (interactive wizard)
-./.dev-aid/scripts/setup-dev-aid.sh
+```bash
+# 1. Install the gh extension (one-time)
+gh extension install Probably-Group/gh-dev-aid
+
+# 2. Initialize Dev-AID in your project (interactive wizard)
+cd ~/your-project
+gh dev-aid init
 
 # 2b. Or non-interactive for CI / automated testing
-./.dev-aid/scripts/setup-dev-aid.sh --yes
+gh dev-aid init --yes
 
 # 3. Configure API keys (optional — for router testing)
+#    These can also be added to .dev-aid/config/.env after setup.
 export ANTHROPIC_API_KEY="sk-ant-..."
 export GOOGLE_API_KEY="..."
 export OPENAI_API_KEY="sk-..."
@@ -54,6 +59,17 @@ export OPENAI_API_KEY="sk-..."
 cat .dev-aid/VERSION
 # Expected: 1.5.1
 ```
+
+<details>
+<summary><strong>Alternative: clone the Dev-AID repo directly</strong> (only useful if you want to hack on Dev-AID itself, not test it on your project)</summary>
+
+```bash
+git clone https://github.com/Probably-Group/Dev-AID.git
+cd Dev-AID
+./.dev-aid/scripts/setup-dev-aid.sh
+```
+
+</details>
 
 ### Verify Installation
 
@@ -450,7 +466,7 @@ When filing issues, add these labels:
 > **Steps**: Ran `/aid-challenger "Write a hello world in Rust"` in Claude Code
 > **Expected**: Two models should generate responses, best one selected
 > **Actual**: Error: `KeyError: 'anthropic'` in routing.log (line 145)
-> **Environment**: macOS 15.3, Python 3.12.1, Dev-AID 1.5.0-beta.3
+> **Environment**: macOS 15.3, Python 3.12.1, Dev-AID 1.5.1
 > **Logs**: [attached routing.log snippet]
 
 ---

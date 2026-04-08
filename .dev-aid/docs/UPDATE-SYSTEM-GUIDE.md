@@ -47,7 +47,7 @@ gh dev-aid update
 Dev-AID automatically checks for updates on every session start (Claude Code and Gemini CLI). The check is throttled to **once per 24 hours** and uses a **global cache** (`~/.cache/dev-aid/`) so multiple projects share a single API call:
 
 ```
-⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
+⬆️  Update available: 1.5.1 -> 1.6.0 (run: gh dev-aid update)
 ```
 
 ### Rollback to Previous Version
@@ -362,7 +362,7 @@ Dev-AID checks for updates automatically every time you start a session in Claud
 
 #### Output (when update available):
 ```
-⬆️  Update available: 1.5.0-beta.1 -> 1.6.0 (run: gh dev-aid update)
+⬆️  Update available: 1.5.1 -> 1.6.0 (run: gh dev-aid update)
 ```
 
 ### Manual Check

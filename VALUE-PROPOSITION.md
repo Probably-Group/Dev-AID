@@ -2078,7 +2078,7 @@ Savings: 66% cheaper + 10× better
 
 **API & Configuration:**
 - [CHANGELOG](.dev-aid/CHANGELOG.md) - Version history
-- [NOT-IMPLEMENTED](.dev-aid/docs/NOT-IMPLEMENTED.md) - Roadmap (E2E tests, TUI, Windows, Enterprise security)
+- [IMPLEMENTED-FEATURES-LOG](.dev-aid/docs/IMPLEMENTED-FEATURES-LOG.md) - Historical delivery log (E2E tests, TUI, Windows, Enterprise security — all shipped)
 
 ---
 

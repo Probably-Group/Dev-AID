@@ -112,8 +112,10 @@ ask_context_budget() {
         default_hint=" [current: ${EXISTING_CONTEXT_BUDGET}]"
     fi
 
+    # Default = B (balanced). Capital letter highlights the default per the
+    # standard [Y/n] convention; pressing Enter alone selects it.
     while true; do
-        read -p "Your choice [A/B/C]${default_hint}: " choice
+        read -p "Your choice [a/B/c] (Enter = B, balanced)${default_hint}: " choice
         case ${choice:-B} in
             [Aa])
                 STANDING_CONTEXT_BUDGET="minimal"
@@ -168,8 +170,9 @@ ask_auto_activation() {
     echo "   * Best for: Experienced users"
     echo ""
 
+    # Default = B (conservative). Capital letter = default.
     while true; do
-        read -p "Your choice [A/B/C]: " choice
+        read -p "Your choice [a/B/c] (Enter = B, conservative): " choice
         case ${choice:-B} in
             [Aa])
                 AUTO_ACTIVATION="suggest"
@@ -346,13 +349,33 @@ ask_orchestration_mode() {
     echo "   * Best for: High-security, critical code"
     echo ""
 
+    # Default depends on how many providers were enabled in Step 4:
+    #   - 1 provider  → B (Solo)        — Ensemble/Challenger need ≥2
+    #   - 2+ providers → C (Ensemble)    — matches the [RECOMMENDED] tag
+    local _orch_default="B"
+    if [ ${#ENABLED_PROVIDERS[@]} -ge 2 ]; then
+        _orch_default="C"
+    fi
+
     if [ ${#ENABLED_PROVIDERS[@]} -eq 1 ]; then
-        print_color "$YELLOW" "Note: You enabled only one provider. 'None' or 'Solo' recommended."
+        print_color "$YELLOW" "Note: You enabled only one provider. 'Solo' is the default."
+    else
+        print_color "$YELLOW" "Note: You enabled ${#ENABLED_PROVIDERS[@]} providers. 'Ensemble' is the default."
+    fi
+
+    # Show the default-letter capitalized in the prompt so the user knows
+    # what Enter does. The dynamic _orch_default determines which letter is
+    # capitalized AND which case the bash parameter expansion falls back to.
+    local _orch_prompt
+    if [ "$_orch_default" = "C" ]; then
+        _orch_prompt="[a/b/C/d] (Enter = C, ensemble)"
+    else
+        _orch_prompt="[a/B/c/d] (Enter = B, solo)"
     fi
 
     while true; do
-        read -p "Your choice [A/B/C/D]: " choice
-        case ${choice:-B} in
+        read -p "Your choice ${_orch_prompt}: " choice
+        case ${choice:-$_orch_default} in
             [Aa])
                 ORCHESTRATION_MODE="none"
                 break

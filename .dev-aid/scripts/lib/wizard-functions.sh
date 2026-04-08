@@ -600,32 +600,136 @@ ask_api_keys() {
     for provider in "${ENABLED_PROVIDERS[@]}"; do
         case $provider in
             claude)
-                print_color "$CYAN" "Claude (Anthropic) API Key"
-                echo "Get your key from: https://console.anthropic.com/"
-                read -sp "ANTHROPIC_API_KEY: " claude_key
-                echo ""
-                if [ -n "$claude_key" ]; then
-                    COLLECTED_API_KEYS+=("ANTHROPIC_API_KEY=$claude_key")
-                    unset claude_key
-                    print_color "$GREEN" "Claude API key saved"
+                print_color "$CYAN" "Claude (Anthropic) authentication"
+
+                # Detect Claude Code session auth so users with Claude Pro/Max
+                # subscriptions don't have to enter an additional API key.
+                # Three signals (any one is enough):
+                #   1. `claude` CLI is on PATH
+                #   2. ~/.claude/{config,settings}.json exists
+                #   3. ~/.config/claude/config.json exists
+                local _claude_session_detected=false
+                if command -v claude >/dev/null 2>&1; then
+                    _claude_session_detected=true
+                elif [ -f "$HOME/.claude/config.json" ] || [ -f "$HOME/.claude/settings.json" ] || [ -f "$HOME/.config/claude/config.json" ]; then
+                    _claude_session_detected=true
+                fi
+
+                if [ "$_claude_session_detected" = true ]; then
+                    echo ""
+                    print_color "$GREEN" "✓ Claude Code session detected on this machine."
+                    echo "  You can use Dev-AID with your existing Claude Code session"
+                    echo "  (no API key needed) — that's the recommended path for"
+                    echo "  Claude Pro / Max / Team / Enterprise subscribers."
+                    echo ""
+                    echo "  Options:"
+                    echo "    [s] Use Claude Code session auth (recommended)"
+                    echo "    [k] Enter an Anthropic API key instead"
+                    echo "    [Enter] Skip for now (you can add a key later)"
+                    echo ""
+                    read -p "Your choice [s/k/Enter]: " -r _claude_choice
+                    case "$_claude_choice" in
+                        s|S|"")
+                            print_color "$GREEN" "Using Claude Code session auth — no API key collected"
+                            ;;
+                        k|K)
+                            echo "Get your key from: https://console.anthropic.com/"
+                            read -sp "ANTHROPIC_API_KEY: " claude_key
+                            echo ""
+                            if [ -n "$claude_key" ]; then
+                                COLLECTED_API_KEYS+=("ANTHROPIC_API_KEY=$claude_key")
+                                unset claude_key
+                                print_color "$GREEN" "Claude API key saved"
+                            else
+                                print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                                print_color "$YELLOW" "  echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .dev-aid/config/.env"
+                            fi
+                            ;;
+                        *)
+                            print_color "$YELLOW" "Skipped — Dev-AID will fall back to your Claude Code session at runtime."
+                            ;;
+                    esac
+                    unset _claude_choice _claude_session_detected
                 else
-                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
-                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
+                    echo "No Claude Code session detected on this machine."
+                    echo "If you have Claude Code installed, log in once with: claude login"
+                    echo "Otherwise, get an API key from: https://console.anthropic.com/"
+                    echo ""
+                    read -sp "ANTHROPIC_API_KEY (Enter to skip): " claude_key
+                    echo ""
+                    if [ -n "$claude_key" ]; then
+                        COLLECTED_API_KEYS+=("ANTHROPIC_API_KEY=$claude_key")
+                        unset claude_key
+                        print_color "$GREEN" "Claude API key saved"
+                    else
+                        print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                        print_color "$YELLOW" "  echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .dev-aid/config/.env"
+                    fi
                 fi
                 echo ""
                 ;;
             gemini)
-                print_color "$CYAN" "Gemini (Google) API Key"
-                echo "Get your key from: https://aistudio.google.com/app/apikey"
-                read -sp "GOOGLE_API_KEY: " gemini_key
-                echo ""
-                if [ -n "$gemini_key" ]; then
-                    COLLECTED_API_KEYS+=("GOOGLE_API_KEY=$gemini_key")
-                    unset gemini_key
-                    print_color "$GREEN" "Gemini API key saved"
+                print_color "$CYAN" "Gemini (Google) authentication"
+
+                # Detect Google ADC (Application Default Credentials) so users
+                # who already ran `gcloud auth application-default login` don't
+                # have to also enter an API key.
+                local _gemini_adc_detected=false
+                if [ -f "$HOME/.config/gcloud/application_default_credentials.json" ]; then
+                    _gemini_adc_detected=true
+                elif command -v gemini >/dev/null 2>&1; then
+                    _gemini_adc_detected=true
+                fi
+
+                if [ "$_gemini_adc_detected" = true ]; then
+                    echo ""
+                    print_color "$GREEN" "✓ Google ADC / Gemini CLI session detected on this machine."
+                    echo "  You can use Dev-AID with your existing Google credentials"
+                    echo "  (no API key needed)."
+                    echo ""
+                    echo "  Options:"
+                    echo "    [s] Use existing Google session/ADC (recommended)"
+                    echo "    [k] Enter a Google API key instead"
+                    echo "    [Enter] Skip for now"
+                    echo ""
+                    read -p "Your choice [s/k/Enter]: " -r _gemini_choice
+                    case "$_gemini_choice" in
+                        s|S|"")
+                            print_color "$GREEN" "Using Google session/ADC — no API key collected"
+                            ;;
+                        k|K)
+                            echo "Get your key from: https://aistudio.google.com/app/apikey"
+                            read -sp "GOOGLE_API_KEY: " gemini_key
+                            echo ""
+                            if [ -n "$gemini_key" ]; then
+                                COLLECTED_API_KEYS+=("GOOGLE_API_KEY=$gemini_key")
+                                unset gemini_key
+                                print_color "$GREEN" "Gemini API key saved"
+                            else
+                                print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                                print_color "$YELLOW" "  echo 'GOOGLE_API_KEY=...' >> .dev-aid/config/.env"
+                            fi
+                            ;;
+                        *)
+                            print_color "$YELLOW" "Skipped — Dev-AID will fall back to your Google session at runtime."
+                            ;;
+                    esac
+                    unset _gemini_choice _gemini_adc_detected
                 else
-                    print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
-                    print_color "$YELLOW" "  echo 'KEY_NAME=your-key-value' >> .dev-aid/config/.env"
+                    echo "No Google ADC or Gemini CLI session detected."
+                    echo "Run 'gcloud auth application-default login' to set up ADC, OR"
+                    echo "get an API key from: https://aistudio.google.com/app/apikey"
+                    echo ""
+                    read -sp "GOOGLE_API_KEY (Enter to skip): " gemini_key
+                    echo ""
+                    if [ -n "$gemini_key" ]; then
+                        COLLECTED_API_KEYS+=("GOOGLE_API_KEY=$gemini_key")
+                        unset gemini_key
+                        print_color "$GREEN" "Gemini API key saved"
+                    else
+                        print_color "$YELLOW" "Skipped — to add later, edit .dev-aid/config/.env or run:"
+                        print_color "$YELLOW" "  echo 'GOOGLE_API_KEY=...' >> .dev-aid/config/.env"
+                    fi
                 fi
                 echo ""
                 ;;

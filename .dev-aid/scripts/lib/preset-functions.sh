@@ -106,8 +106,11 @@ detect_preset() {
     return 0
   fi
 
-  # Python/Data Science: Jupyter, pandas, scikit-learn, pytorch, tensorflow
-  if _py_has_dep "jupyter\|pandas\|scikit-learn\|torch\|tensorflow\|numpy" || \
+  # Python/Data Science / AI / ML: Jupyter, pandas, scikit-learn, pytorch,
+  # tensorflow, transformers, langchain, llama-index, openai, anthropic,
+  # ollama, llama-cpp-python, opencv, etc. — covers most modern AI agent
+  # and ML projects until we ship a dedicated python-ai-agent preset.
+  if _py_has_dep "jupyter\|pandas\|scikit-learn\|torch\|tensorflow\|numpy\|transformers\|langchain\|llama[_-]index\|llama[_-]cpp\|openai\|anthropic\|ollama\|opencv\|huggingface" || \
      find "$project_root" -maxdepth 2 -name "*.ipynb" 2>/dev/null | head -1 | grep -q .; then
     echo "python-data-science"
     return 0
@@ -226,9 +229,16 @@ detect_preset() {
   cs_count=$(find "$project_root" -maxdepth 3 -name "*.cs" 2>/dev/null | head -20 | wc -l | tr -d ' ')
   dart_count=$(find "$project_root" -maxdepth 3 -name "*.dart" 2>/dev/null | head -20 | wc -l | tr -d ' ')
 
-  # Pick the dominant language (threshold: >5 files)
+  # Pick the dominant language (threshold: >5 files).
+  #
+  # IMPORTANT: For Python and TypeScript we deliberately fall back to "generic"
+  # rather than guessing a specific framework. The earlier mapping
+  # (py_count:python-django, ts_count:typescript-node) caused every Python
+  # project without a Django dep to be falsely labeled "python-django",
+  # including AI agent / ML / scripting projects. Better to default to
+  # generic and let the user pick from the menu.
   local max_count=0 max_preset="generic"
-  for lang_count_preset in "$py_count:python-django" "$ts_count:typescript-node" "$go_count:go-service" \
+  for lang_count_preset in "$go_count:go-service" \
                            "$rs_count:rust-service" "$rb_count:ruby-rails" "$php_count:php-laravel" \
                            "$java_count:java-spring-boot" "$cs_count:dotnet-aspnet" "$dart_count:flutter-dart"; do
     local count="${lang_count_preset%%:*}"
@@ -242,6 +252,13 @@ detect_preset() {
   if [[ "$max_preset" != "generic" ]]; then
     echo "$max_preset"
     return 0
+  fi
+
+  # Python or TypeScript with no framework markers — fall through to generic
+  # so the user picks from the menu rather than getting a bad guess.
+  if [[ "$py_count" -gt 5 ]] || [[ "$ts_count" -gt 5 ]]; then
+    echo "generic"
+    return 1
   fi
 
   # Fallback

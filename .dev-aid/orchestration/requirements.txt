@@ -18,7 +18,7 @@ openai==1.54.5               # OpenAI API
 # Core utilities
 python-dotenv==1.0.1        # Load .env files for API keys
 keyring==25.7.0             # Access system keychain for session tokens (Claude Code, etc.)
-requests==2.32.4            # HTTP requests (fallback)
+requests==2.33.1            # HTTP requests (fallback) - bumped for CVE-2026-25645 (extract_zipped_paths temp file reuse)
 pydantic==2.10.6            # Data validation and settings
 email-validator==2.3.0      # Email validation for Pydantic
 psutil==6.1.1               # Cross-platform hardware detection (CPU, RAM, GPU)

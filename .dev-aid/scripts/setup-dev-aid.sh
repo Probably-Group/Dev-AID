@@ -676,11 +676,21 @@ if should_run_phase 7; then
             echo -e "${GREEN}Router venv already installed${NC}"
             INSTALLED_ROUTER=true
         else
-            local_prompt="Setup router with virtual environment?"
+            echo -e "${CYAN}─── Multi-AI Router (Python venv, ~400MB) ───${NC}"
+            echo "  WHAT: A Python service inside an isolated venv that lets Dev-AID's"
+            echo "        agents (/aid-pr, /aid-test, /aid-debt, /aid-research, etc.)"
+            echo "        and orchestration modes (solo / ensemble / challenger) actually"
+            echo "        call Claude / Gemini / OpenAI APIs."
+            echo "  WHY:  Without it, only the static slash commands and skills work."
+            echo "        Agents and multi-AI routing won't function."
+            echo "  WHERE: .dev-aid/orchestration/.venv (isolated — your system Python is untouched)"
+            echo "  SKIP IF: You only want Dev-AID's skills + security hooks, no agents."
+            echo ""
+            local_prompt="Install the Multi-AI Router?"
             if [ "$NON_INTERACTIVE" = true ]; then
                 local_do_it=true
             else
-                read -p "$local_prompt (Y/n) " -n 1 -r local_reply
+                read -p "$local_prompt [Y/n] " -n 1 -r local_reply
                 echo
                 local_do_it=false
                 if [[ $local_reply =~ ^[Yy]$ ]] || [[ -z $local_reply ]]; then
@@ -703,11 +713,22 @@ if should_run_phase 7; then
         echo -e "${GREEN}Local search already installed${NC}"
         INSTALLED_RAG=true
     else
-        local_prompt="Install Dev-AID Local Search (semantic code search)?"
+        echo -e "${CYAN}─── Local Code Search / RAG (Python venv + ML model, ~2GB first run) ───${NC}"
+        echo "  WHAT: A 100% local hybrid search engine (BM25 + vector embeddings via"
+        echo "        FAISS + Google's EmbeddingGemma 300M model) that indexes your"
+        echo "        codebase so AI tools can ask 'find me the auth function' and"
+        echo "        get instant answers without sending code to any API."
+        echo "  WHY:  Faster, cheaper, and more private than cloud-based semantic search."
+        echo "        Critical for large codebases where AI context windows fill up fast."
+        echo "  WHERE: .dev-aid/local-search/.venv + ~/.devaid-search/models (model cache)"
+        echo "  COST: \$0 forever — no API calls. First-run downloads ~1GB model."
+        echo "  SKIP IF: You're on a small project, slow disk, or limited bandwidth."
+        echo ""
+        local_prompt="Install Local Code Search?"
         if [ "$NON_INTERACTIVE" = true ]; then
             local_do_it=true
         else
-            read -p "$local_prompt (Y/n) " -n 1 -r local_reply
+            read -p "$local_prompt [Y/n] " -n 1 -r local_reply
             echo
             local_do_it=false
             if [[ $local_reply =~ ^[Yy]$ ]] || [[ -z $local_reply ]]; then
@@ -729,11 +750,23 @@ if should_run_phase 7; then
         echo -e "${GREEN}Security tools already installed${NC}"
         INSTALLED_SECURITY=true
     else
-        local_prompt="Install security scanning tools (Gitleaks, Trivy, Opengrep)?"
+        echo -e "${CYAN}─── Security Scanners (3 binaries, ~150MB total) ───${NC}"
+        echo "  WHAT: Three specialized scanners installed via brew/apt/curl:"
+        echo "        • ${BOLD:-}Gitleaks${NC:-} — catches hardcoded secrets (API keys, tokens, AWS creds)"
+        echo "        • ${BOLD:-}Trivy${NC:-}    — CVE / vulnerability / misconfig / license scanning"
+        echo "        • ${BOLD:-}Opengrep${NC:-} — SAST (static application security testing) for code patterns"
+        echo "  WHY:  These run automatically on every git commit (~10s total) so you"
+        echo "        never accidentally commit a secret or known-vulnerable dep."
+        echo "  WHERE: System install (brew on macOS, apt on Linux) — these are CLI tools,"
+        echo "         not Python packages, so they need to live on PATH."
+        echo "  SKIP IF: You already use other security scanning, or are evaluating"
+        echo "           Dev-AID without committing real code."
+        echo ""
+        local_prompt="Install security scanning tools?"
         if [ "$NON_INTERACTIVE" = true ]; then
             local_do_it=true
         else
-            read -p "$local_prompt (Y/n) " -n 1 -r local_reply
+            read -p "$local_prompt [Y/n] " -n 1 -r local_reply
             echo
             local_do_it=false
             if [[ $local_reply =~ ^[Yy]$ ]] || [[ -z $local_reply ]]; then
@@ -755,11 +788,22 @@ if should_run_phase 7; then
         echo -e "${GREEN}Git hooks already installed${NC}"
         INSTALLED_HOOKS=true
     else
-        local_prompt="Setup git hooks (pre-commit, pre-push)?"
+        echo -e "${CYAN}─── Git Hooks (pre-commit + pre-push, no install size) ───${NC}"
+        echo "  WHAT: Two scripts wired into .git/hooks/ that run automatically:"
+        echo "        • ${BOLD:-}pre-commit${NC:-} — runs Gitleaks/Trivy/Opengrep on staged files (~10s)"
+        echo "        • ${BOLD:-}pre-push${NC:-}   — runs deeper checks before code leaves your machine"
+        echo "  WHY:  Catches secrets and vulnerabilities BEFORE they hit GitHub or your"
+        echo "        team. Failed scans block the commit so nothing leaks accidentally."
+        echo "  WHERE: .git/hooks/pre-commit, .git/hooks/pre-push (only this repo)"
+        echo "  BYPASS: git commit --no-verify (per-commit override; emergencies only)"
+        echo "  SKIP IF: You use a different pre-commit framework, or this is a"
+        echo "           public/throwaway repo."
+        echo ""
+        local_prompt="Install git hooks?"
         if [ "$NON_INTERACTIVE" = true ]; then
             local_do_it=true
         else
-            read -p "$local_prompt (Y/n) " -n 1 -r local_reply
+            read -p "$local_prompt [Y/n] " -n 1 -r local_reply
             echo
             local_do_it=false
             if [[ $local_reply =~ ^[Yy]$ ]] || [[ -z $local_reply ]]; then

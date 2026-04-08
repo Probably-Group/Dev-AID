@@ -22,7 +22,7 @@ apply_wizard_defaults() {
     SELECTED_PRESET="generic"
     SELECTED_PRESET_PATH=""
     declare -gA TASK_MODEL_MAPPING
-    TASK_MODEL_MAPPING["default"]="claude-sonnet-4.5"
+    TASK_MODEL_MAPPING["default"]="claude-sonnet-4-6"
 }
 
 # ============================================================================
@@ -383,6 +383,52 @@ ask_orchestration_mode() {
 # Step 5: Model Assignment
 # ============================================================================
 
+# Resolve the path to models.json relative to this script. Compute purely from
+# BASH_SOURCE so we don't accidentally inherit a stale parent SCRIPT_DIR.
+# This lib lives at .dev-aid/scripts/lib/wizard-functions.sh, so models.json
+# is at ../../config/models.json.
+_wizard_models_json_path() {
+    local lib_dir
+    lib_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+    echo "$lib_dir/config/models.json"
+}
+
+# Format a context window value for display: 1000000 → "1M", 128000 → "128K".
+_wizard_format_context() {
+    local ctx="${1:-0}"
+    if [ "$ctx" -ge 1000000 ]; then
+        echo "$((ctx / 1000000))M"
+    elif [ "$ctx" -ge 1000 ]; then
+        echo "$((ctx / 1000))K"
+    else
+        echo "$ctx"
+    fi
+}
+
+# Print one line per model for the given provider, formatted as
+#   "<model_id>|<input_cost>|<output_cost>|<context_window>"
+# Reads dynamically from models.json so the wizard never goes stale relative
+# to the source-of-truth model registry. Prints nothing if jq is missing or
+# the provider has no entries.
+_wizard_models_for_provider() {
+    local provider="$1"
+    local models_json
+    models_json="$(_wizard_models_json_path)"
+
+    if [ ! -f "$models_json" ]; then
+        return 1
+    fi
+    if ! command -v jq &>/dev/null; then
+        return 1
+    fi
+
+    jq -r --arg p "$provider" '
+        .[$p].models // {}
+        | to_entries[]
+        | "\(.value.id)|\(.value.cost_per_1m_tokens.input // 0)|\(.value.cost_per_1m_tokens.output // 0)|\(.value.context_window // 0)"
+    ' "$models_json"
+}
+
 select_model_for_task() {
     local task_type="$1"
     local default_model="$2"
@@ -392,38 +438,23 @@ select_model_for_task() {
 
     local i=1
     local available_models=()
+    local model_id input_cost output_cost ctx ctx_human
 
     for provider in "${ENABLED_PROVIDERS[@]}"; do
-        case $provider in
-            claude)
-                available_models+=("claude-sonnet-4.5")
-                echo "  $i) claude-sonnet-4.5 (Balanced, \$3/1M)"
-                i=$((i + 1))
-                available_models+=("claude-opus-4.5")
-                echo "  $i) claude-opus-4.5 (Most capable, \$15/1M)"
-                i=$((i + 1))
-                available_models+=("claude-haiku-4.5")
-                echo "  $i) claude-haiku-4.5 (Fastest, \$0.25/1M)"
-                i=$((i + 1))
-                ;;
-            gemini)
-                available_models+=("gemini-2.0-flash")
-                echo "  $i) gemini-2.0-flash (1M context, \$0.075/1M)"
-                i=$((i + 1))
-                available_models+=("gemini-2.0-pro")
-                echo "  $i) gemini-2.0-pro (2M context, \$1.25/1M)"
-                i=$((i + 1))
-                ;;
-            openai)
-                available_models+=("gpt-4o")
-                echo "  $i) gpt-4o (Versatile, \$5/1M)"
-                i=$((i + 1))
-                available_models+=("gpt-4-turbo")
-                echo "  $i) gpt-4-turbo (Capable, \$10/1M)"
-                i=$((i + 1))
-                ;;
-        esac
+        while IFS='|' read -r model_id input_cost output_cost ctx; do
+            [ -z "$model_id" ] && continue
+            available_models+=("$model_id")
+            ctx_human="$(_wizard_format_context "$ctx")"
+            echo "  $i) $model_id (\$${input_cost}/\$${output_cost} per 1M, ${ctx_human} ctx)"
+            i=$((i + 1))
+        done < <(_wizard_models_for_provider "$provider")
     done
+
+    if [ ${#available_models[@]} -eq 0 ]; then
+        print_color "$YELLOW" "   -> No models found in models.json for enabled providers; using default: $default_model"
+        TASK_MODEL_MAPPING[$task_type]="$default_model"
+        return 0
+    fi
 
     local default_idx=1
     for idx in "${!available_models[@]}"; do
@@ -453,26 +484,27 @@ select_model_for_task() {
 select_default_model() {
     local i=1
     local available_models=()
+    local model_id input_cost output_cost ctx ctx_human
 
     for provider in "${ENABLED_PROVIDERS[@]}"; do
-        case $provider in
-            claude)
-                available_models+=("claude-sonnet-4.5")
-                echo "  $i) claude-sonnet-4.5 (Recommended)"
-                i=$((i + 1))
-                ;;
-            gemini)
-                available_models+=("gemini-2.0-flash")
-                echo "  $i) gemini-2.0-flash"
-                i=$((i + 1))
-                ;;
-            openai)
-                available_models+=("gpt-4o")
-                echo "  $i) gpt-4o"
-                i=$((i + 1))
-                ;;
-        esac
+        while IFS='|' read -r model_id input_cost output_cost ctx; do
+            [ -z "$model_id" ] && continue
+            available_models+=("$model_id")
+            ctx_human="$(_wizard_format_context "$ctx")"
+            if [ $i -eq 1 ]; then
+                echo "  $i) $model_id (Recommended — \$${input_cost}/\$${output_cost} per 1M, ${ctx_human} ctx)"
+            else
+                echo "  $i) $model_id (\$${input_cost}/\$${output_cost} per 1M, ${ctx_human} ctx)"
+            fi
+            i=$((i + 1))
+        done < <(_wizard_models_for_provider "$provider")
     done
+
+    if [ ${#available_models[@]} -eq 0 ]; then
+        print_color "$YELLOW" "No models found in models.json for enabled providers."
+        TASK_MODEL_MAPPING["default"]="claude-sonnet-4-6"
+        return 0
+    fi
 
     read -p "Select default model [1-$((i-1))]: " selection
 
@@ -512,14 +544,14 @@ ask_model_assignment() {
     echo "---"
     print_color "$CYAN" "1. Code Generation & Refactoring"
     echo "   (Writing code, refactoring, implementing features)"
-    select_model_for_task "code_generation" "claude-sonnet-4.5"
+    select_model_for_task "code_generation" "claude-sonnet-4-6"
 
     if [[ " ${ENABLED_PROVIDERS[*]} " =~ " gemini " ]]; then
         echo ""
         echo "---"
         print_color "$CYAN" "2. Massive Context Analysis"
         echo "   (Reading 100+ files, repository-wide analysis)"
-        select_model_for_task "massive_context" "gemini-2.0-flash"
+        select_model_for_task "massive_context" "gemini-3.1-pro"
     fi
 
     echo ""
@@ -527,23 +559,23 @@ ask_model_assignment() {
     print_color "$CYAN" "3. Documentation & Explanations"
     echo "   (Writing READMEs, docs, code comments)"
     if [[ " ${ENABLED_PROVIDERS[*]} " =~ " openai " ]]; then
-        select_model_for_task "documentation" "gpt-4o"
+        select_model_for_task "documentation" "gpt-5.4"
     else
-        select_model_for_task "documentation" "claude-sonnet-4.5"
+        select_model_for_task "documentation" "claude-sonnet-4-6"
     fi
 
     echo ""
     echo "---"
     print_color "$CYAN" "4. Security Analysis & Audits"
     echo "   (Security reviews, vulnerability detection)"
-    select_model_for_task "security" "claude-sonnet-4.5"
+    select_model_for_task "security" "claude-opus-4-6"
 
     if [ "$ORCHESTRATION_MODE" == "challenger" ]; then
         echo ""
         echo "---"
         print_color "$CYAN" "5. Challenger Model"
         echo "   (Reviews and challenges primary model's output)"
-        select_model_for_task "challenger" "gemini-2.0-pro"
+        select_model_for_task "challenger" "gemini-3.1-pro"
     fi
 
     echo ""

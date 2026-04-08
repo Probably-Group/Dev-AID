@@ -6,8 +6,8 @@
     "models": {
       "sonnet-4.6": {
         "id": "claude-sonnet-4-6",
-        "context_window": 200000,
-        "capabilities": ["code", "analysis", "security", "reasoning"],
+        "context_window": 1000000,
+        "capabilities": ["code", "analysis", "security", "reasoning", "massive_context"],
         "cost_per_1m_tokens": {
           "input": 3.00,
           "output": 15.00
@@ -15,11 +15,11 @@
       },
       "opus-4.6": {
         "id": "claude-opus-4-6",
-        "context_window": 200000,
-        "capabilities": ["complex_reasoning", "deep_analysis", "architecture"],
+        "context_window": 1000000,
+        "capabilities": ["complex_reasoning", "deep_analysis", "architecture", "massive_context"],
         "cost_per_1m_tokens": {
-          "input": 15.00,
-          "output": 75.00
+          "input": 5.00,
+          "output": 25.00
         }
       },
       "haiku-4.5": {
@@ -41,6 +41,24 @@
     "provider": "google",
     "api_key_env": "GOOGLE_API_KEY",
     "models": {
+      "pro-3.1": {
+        "id": "gemini-3.1-pro",
+        "context_window": 1000000,
+        "capabilities": ["massive_context", "deep_reasoning", "multimodal", "complex_reasoning"],
+        "cost_per_1m_tokens": {
+          "input": 2.00,
+          "output": 12.00
+        }
+      },
+      "flash-3.1-lite": {
+        "id": "gemini-3.1-flash-lite-preview",
+        "context_window": 1048576,
+        "capabilities": ["fast_analysis", "low_cost", "multimodal", "massive_context"],
+        "cost_per_1m_tokens": {
+          "input": 0.25,
+          "output": 1.50
+        }
+      },
       "flash-2.5": {
         "id": "gemini-2.5-flash",
         "context_window": 1000000,
@@ -60,7 +78,7 @@
         }
       }
     },
-    "default": "flash-2.5",
+    "default": "pro-3.1",
     "primary_capabilities": ["massive_context", "analysis"]
   },
 
@@ -69,6 +87,24 @@
     "provider": "openai",
     "api_key_env": "OPENAI_API_KEY",
     "models": {
+      "gpt-5.4": {
+        "id": "gpt-5.4",
+        "context_window": 1100000,
+        "capabilities": ["general", "coding", "complex_reasoning", "massive_context", "multimodal"],
+        "cost_per_1m_tokens": {
+          "input": 2.50,
+          "output": 15.00
+        }
+      },
+      "gpt-5.4-mini": {
+        "id": "gpt-5.4-mini",
+        "context_window": 400000,
+        "capabilities": ["general", "coding", "speed", "low_cost"],
+        "cost_per_1m_tokens": {
+          "input": 0.50,
+          "output": 4.00
+        }
+      },
       "gpt-4o": {
         "id": "gpt-4o",
         "context_window": 128000,
@@ -106,8 +142,8 @@
         }
       }
     },
-    "default": "gpt-4o",
-    "primary_capabilities": ["general", "docs"]
+    "default": "gpt-5.4",
+    "primary_capabilities": ["general", "docs", "complex_reasoning"]
   },
 
   "aimlapi": {

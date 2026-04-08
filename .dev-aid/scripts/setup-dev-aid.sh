@@ -830,13 +830,20 @@ if should_run_phase 8; then
     echo -e "${BLUE}$(printf '%.0s─' {1..50})${NC}"
     echo ""
 
-    # Run compliance scan (non-blocking)
-    if [ -f "$SCRIPT_DIR/run-validators.py" ]; then
-        echo -e "${CYAN}Running compliance scan...${NC}"
-        python3 "$SCRIPT_DIR/run-validators.py" \
-            --filter-context --target-dir "$PROJECT_ROOT" 2>/dev/null || true
-        echo ""
-    fi
+    # NOTE: We deliberately do NOT run the bundled compliance scan
+    # (run-validators.py) here. Beta testers reported that walking
+    # ~437 files and dumping ~5000 lint findings during install was
+    # overwhelming and looked catastrophic — especially because most
+    # findings were against Dev-AID's OWN bundled skill scripts (which
+    # the user can't fix) and the rest were against the user's source
+    # code (which they didn't ask Dev-AID to audit during install).
+    #
+    # The scanner is still available as an explicit user command:
+    #   /aid-lint                                  (slash command in Claude/Gemini)
+    #   python3 .dev-aid/scripts/run-validators.py (CLI)
+    #
+    # That's the right place for code-quality reports — opt-in, not
+    # part of installation.
 
     # Summary
     echo -e "${GREEN}╔════════════════════════════════════════════╗${NC}"

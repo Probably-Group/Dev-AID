@@ -296,7 +296,6 @@ ask_providers() {
     print_color "$CYAN" "5. AI/ML API (200+ models, single key)"
     echo "   * Strengths: Access to 200+ AI models from all major providers"
     echo "   * Single API key for Claude, GPT, Gemini, Llama, and more"
-    echo "   * Affiliate: Dev-AID may receive a referral commission at no extra cost to you"
     read -p "   Enable AI/ML API? [y/N]: " enable_aimlapi
     if [[ $enable_aimlapi =~ ^[Yy]$ ]]; then
         ENABLED_PROVIDERS+=("aimlapi")
@@ -623,13 +622,13 @@ ask_api_keys() {
                     echo "  Claude Pro / Max / Team / Enterprise subscribers."
                     echo ""
                     echo "  Options:"
-                    echo "    [s] Use Claude Code session auth (recommended)"
+                    echo "    [S] Use Claude Code session auth — default, just press Enter"
                     echo "    [k] Enter an Anthropic API key instead"
-                    echo "    [Enter] Skip for now (you can add a key later)"
+                    echo "    [n] Skip for now (no key, no session — add later)"
                     echo ""
-                    read -p "Your choice [s/k/Enter]: " -r _claude_choice
-                    case "$_claude_choice" in
-                        s|S|"")
+                    read -p "Your choice [S/k/n]: " -r _claude_choice
+                    case "${_claude_choice:-s}" in
+                        s|S)
                             print_color "$GREEN" "Using Claude Code session auth — no API key collected"
                             ;;
                         k|K)
@@ -645,8 +644,12 @@ ask_api_keys() {
                                 print_color "$YELLOW" "  echo 'ANTHROPIC_API_KEY=sk-ant-...' >> .dev-aid/config/.env"
                             fi
                             ;;
+                        n|N)
+                            print_color "$YELLOW" "Skipped — neither session nor API key configured."
+                            print_color "$YELLOW" "  Dev-AID will try to detect Claude session at runtime."
+                            ;;
                         *)
-                            print_color "$YELLOW" "Skipped — Dev-AID will fall back to your Claude Code session at runtime."
+                            print_color "$YELLOW" "Unrecognized choice '$_claude_choice' — defaulting to session auth."
                             ;;
                     esac
                     unset _claude_choice _claude_session_detected
@@ -688,13 +691,13 @@ ask_api_keys() {
                     echo "  (no API key needed)."
                     echo ""
                     echo "  Options:"
-                    echo "    [s] Use existing Google session/ADC (recommended)"
+                    echo "    [S] Use existing Google session/ADC — default, just press Enter"
                     echo "    [k] Enter a Google API key instead"
-                    echo "    [Enter] Skip for now"
+                    echo "    [n] Skip for now (no key, no session — add later)"
                     echo ""
-                    read -p "Your choice [s/k/Enter]: " -r _gemini_choice
-                    case "$_gemini_choice" in
-                        s|S|"")
+                    read -p "Your choice [S/k/n]: " -r _gemini_choice
+                    case "${_gemini_choice:-s}" in
+                        s|S)
                             print_color "$GREEN" "Using Google session/ADC — no API key collected"
                             ;;
                         k|K)
@@ -710,8 +713,12 @@ ask_api_keys() {
                                 print_color "$YELLOW" "  echo 'GOOGLE_API_KEY=...' >> .dev-aid/config/.env"
                             fi
                             ;;
+                        n|N)
+                            print_color "$YELLOW" "Skipped — neither session nor API key configured."
+                            print_color "$YELLOW" "  Dev-AID will try to detect Google session at runtime."
+                            ;;
                         *)
-                            print_color "$YELLOW" "Skipped — Dev-AID will fall back to your Google session at runtime."
+                            print_color "$YELLOW" "Unrecognized choice '$_gemini_choice' — defaulting to session/ADC."
                             ;;
                     esac
                     unset _gemini_choice _gemini_adc_detected
@@ -765,7 +772,7 @@ ask_api_keys() {
                 ;;
             aimlapi)
                 print_color "$CYAN" "AI/ML API Key"
-                echo "Get your key from: https://aimlapi.com/?via=dev-aid"
+                echo "Get your key from: https://aimlapi.com/"
                 read -sp "AIMLAPI_API_KEY: " aimlapi_key
                 echo ""
                 if [ -n "$aimlapi_key" ]; then

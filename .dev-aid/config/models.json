@@ -159,8 +159,7 @@
       }
     },
     "default": "auto",
-    "primary_capabilities": ["routing", "multi_provider"],
-    "affiliate_url": "https://aimlapi.com/?via=dev-aid"
+    "primary_capabilities": ["routing", "multi_provider"]
   },
 
   "openrouter": {

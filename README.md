@@ -158,8 +158,6 @@ cd ~/my-project
 ./.dev-aid/automation/tools/install-security-tools.sh
 ```
 
-*Affiliate disclosure: Dev-AID's setup wizard includes [AI/ML API](https://aimlapi.com/?via=dev-aid) as an optional provider. If you sign up through this link, Dev-AID may receive a referral commission at no extra cost to you. This helps fund development.*
-
 *Network footnote on the "100% private" claims: local search, security scanning, and skill auto-loading all run entirely on your machine and never send code anywhere. The session-start hook does make ONE outbound request per 24 hours to GitHub's public release API to check whether a new Dev-AID version exists (throttled and cached at `~/.cache/dev-aid/`). If you don't want this, delete the `check-update-notify.sh` line from your provider's `hooks.json` after install.*
 
 ### TL;DR - One Command Examples

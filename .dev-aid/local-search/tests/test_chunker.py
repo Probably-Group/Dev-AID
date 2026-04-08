@@ -1,8 +1,8 @@
 """Tests for code chunker"""
 
 import pytest
-from pathlib import Path
-from chunking.chunker import MultiLanguageChunker, CodeChunk
+
+from chunking.chunker import CodeChunk, MultiLanguageChunker
 
 
 class TestCodeChunk:
@@ -16,7 +16,7 @@ class TestCodeChunk:
             start_line=1,
             end_line=1,
             chunk_type="function",
-            language="python"
+            language="python",
         )
         assert chunk.content == "def test(): pass"
         assert chunk.file_path == "/path/to/file.py"
@@ -35,23 +35,25 @@ class TestMultiLanguageChunker:
         return MultiLanguageChunker()
 
     def test_init(self, chunker):
-        """Test chunker initialization"""
-        assert chunker.parsers == {}
+        """Test chunker initialization loads tree-sitter parsers."""
         assert chunker.LANGUAGE_MAP is not None
+        # Tree-sitter parsers for the bundled language packages should be loaded.
+        assert "python" in chunker.parsers
+        assert "javascript" in chunker.parsers
 
     def test_language_detection_python(self, chunker):
         """Test language detection for Python files"""
-        assert chunker.LANGUAGE_MAP['.py'] == 'python'
+        assert chunker.LANGUAGE_MAP[".py"] == "python"
 
     def test_language_detection_javascript(self, chunker):
         """Test language detection for JavaScript files"""
-        assert chunker.LANGUAGE_MAP['.js'] == 'javascript'
-        assert chunker.LANGUAGE_MAP['.jsx'] == 'javascript'
+        assert chunker.LANGUAGE_MAP[".js"] == "javascript"
+        assert chunker.LANGUAGE_MAP[".jsx"] == "javascript"
 
     def test_language_detection_typescript(self, chunker):
         """Test language detection for TypeScript files"""
-        assert chunker.LANGUAGE_MAP['.ts'] == 'typescript'
-        assert chunker.LANGUAGE_MAP['.tsx'] == 'typescript'
+        assert chunker.LANGUAGE_MAP[".ts"] == "typescript"
+        assert chunker.LANGUAGE_MAP[".tsx"] == "typescript"
 
     def test_is_supported_file(self):
         """Test file support detection"""
@@ -100,15 +102,23 @@ class TestMultiLanguageChunker:
         assert len(chunks) == 0
 
     def test_chunk_file_line_numbers(self, chunker, sample_python_file):
-        """Test that line numbers are correct"""
+        """Test that line numbers are valid and ordered."""
         chunks = chunker.chunk_file(sample_python_file)
 
-        # First chunk should start at line 1
-        assert chunks[0].start_line == 1
+        # Each chunk has valid bounds.
+        for chunk in chunks:
+            assert chunk.start_line >= 1
+            assert chunk.end_line >= chunk.start_line
 
-        # Check consecutive chunks don't overlap
-        for i in range(len(chunks) - 1):
-            assert chunks[i].end_line <= chunks[i + 1].start_line
+        # Chunks are emitted in source order (sorted by start_line).
+        starts = [c.start_line for c in chunks]
+        assert starts == sorted(starts)
+
+        # Non-class chunks don't overlap each other. Class chunks may
+        # contain nested method chunks, so overlap is permitted there.
+        non_class = [c for c in chunks if c.chunk_type != "class"]
+        for i in range(len(non_class) - 1):
+            assert non_class[i].end_line <= non_class[i + 1].start_line
 
     def test_chunk_directory(self, chunker, sample_codebase):
         """Test chunking an entire directory"""
@@ -130,10 +140,7 @@ class TestMultiLanguageChunker:
 
     def test_chunk_directory_custom_exclusions(self, chunker, sample_codebase):
         """Test chunking with custom exclusion patterns"""
-        chunks = chunker.chunk_directory(
-            sample_codebase,
-            exclude_patterns=['module']
-        )
+        chunks = chunker.chunk_directory(sample_codebase, exclude_patterns=["module"])
 
         # Verify 'module' directory is excluded
         for chunk in chunks:

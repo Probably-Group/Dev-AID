@@ -1,18 +1,32 @@
 #!/usr/bin/env bash
-set -euo pipefail
 # Post Tool Use Hook - Track File Modifications
 # Runs after Edit, MultiEdit, Write operations
-# Zero tokens - just tracking
+# Appends a single line to .claude/modification-log.txt per invocation.
 
-# Track modified files (could log to a file if needed)
-# For now, just silent tracking
-# In production, this could:
-# - Log to modification history
-# - Trigger skill suggestions based on file type
-# - Update active context automatically
+set -euo pipefail
 
-# Example: Log to tracking file (commented out for now)
-# echo "$(date): $CLAUDE_TOOL_NAME - $CLAUDE_MODIFIED_FILES" >> "$CLAUDE_PROJECT_DIR/.claude/modification-log.txt"
+# CLAUDE_PROJECT_DIR is required to know where to write the log.
+if [[ -z "${CLAUDE_PROJECT_DIR:-}" ]]; then
+    exit 0
+fi
 
-# Exit silently
+# Validate CLAUDE_PROJECT_DIR is a real directory before writing into it.
+if [[ ! -d "$CLAUDE_PROJECT_DIR" ]]; then
+    exit 0
+fi
+
+LOG_DIR="$CLAUDE_PROJECT_DIR/.claude"
+LOG_FILE="$LOG_DIR/modification-log.txt"
+
+# Ensure .claude/ exists (it should, but be defensive).
+mkdir -p "$LOG_DIR"
+
+# Use ISO-8601 UTC for stable, sortable timestamps.
+timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+tool_name="${CLAUDE_TOOL_NAME:-unknown}"
+modified_files="${CLAUDE_MODIFIED_FILES:-}"
+
+# One line per invocation: timestamp | tool | files
+printf '%s | %s | %s\n' "$timestamp" "$tool_name" "$modified_files" >> "$LOG_FILE"
+
 exit 0

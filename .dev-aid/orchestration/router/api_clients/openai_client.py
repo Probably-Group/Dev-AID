@@ -53,10 +53,14 @@ class OpenAIClient(BaseAIClient):
             **kwargs,
         )
 
-        # Extract response data
-        content = response.choices[0].message.content
-        input_tokens = response.usage.prompt_tokens
-        output_tokens = response.usage.completion_tokens
+        # Extract response data. The OpenAI SDK types `message.content` and
+        # `response.usage` as Optional — content is None when the model
+        # emits only tool_calls, and usage can be None on streaming chunks.
+        # Coerce both to safe defaults so the APIResponse contract holds.
+        content = response.choices[0].message.content or ""
+        usage = response.usage
+        input_tokens = usage.prompt_tokens if usage else 0
+        output_tokens = usage.completion_tokens if usage else 0
 
         # Calculate cost
         cost = self.calculate_cost(input_tokens, output_tokens)

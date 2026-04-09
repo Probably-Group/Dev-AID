@@ -77,8 +77,11 @@ class GoogleClient(BaseAIClient):
                 model=model, contents=prompt, config=config
             )
 
-            # Extract response
-            content = response.text
+            # Extract response. ``response.text`` is Optional[str] in the
+            # google-genai SDK — it's None when the model returns no text
+            # parts (e.g. safety filter triggered). Coerce to "" so the
+            # APIResponse content type holds.
+            content = response.text or ""
 
             # Try to get token counts from response
             input_tokens = getattr(
@@ -120,7 +123,8 @@ class GoogleClient(BaseAIClient):
                 model=model, contents=conversation_parts, config=config
             )
 
-            content = response.text
+            # See note in the single-turn branch about Optional response.text.
+            content = response.text or ""
 
             # Try to get token counts
             input_tokens = getattr(

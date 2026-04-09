@@ -89,6 +89,14 @@ module = [
     "anthropic.*",
     "google.generativeai.*",
     "openai.*",
+    # psutil and requests ship without type stubs at the versions we pin —
+    # listing them here lets mypy ignore the missing stubs centrally instead
+    # of needing per-line `# type: ignore[import-untyped]` comments, which
+    # collide with `warn_unused_ignores = true` whenever CI/pre-commit pass
+    # `--ignore-missing-imports` (the per-line ignores then become "unused"
+    # and mypy errors).
+    "psutil",
+    "requests",
 ]
 ignore_missing_imports = true
 

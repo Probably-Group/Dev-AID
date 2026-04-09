@@ -12,7 +12,7 @@ All backends use OpenAI-compatible API format.
 import logging
 from typing import Any, Dict, List, Optional
 
-import requests  # type: ignore[import-untyped]
+import requests
 
 from .api_clients import APIResponse, BaseAIClient, Message, track_api_call
 from .auth_detector import AuthCredentials

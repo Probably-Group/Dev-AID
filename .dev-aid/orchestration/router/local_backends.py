@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-import requests  # type: ignore[import-untyped]
+import requests
 
 logger = logging.getLogger(__name__)
 

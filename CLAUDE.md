@@ -1,5 +1,5 @@
 - always commit changes, Im not doing it from local working directory
-- do NOT create PRs — just commit directly to feature branches. This is a git repo, commits are sufficient
+- use PRs for changes: push the feature branch to origin and open a PR against main via `gh pr create`
 - always use websearch when you want to know which app, library, or env versions are latest stable. never use your internal knowledge which is one year old
 
 ## Pre-commit hooks & code quality

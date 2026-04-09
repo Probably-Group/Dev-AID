@@ -33,7 +33,12 @@ def track_api_call(func: F) -> F:
 
     @wraps(func)
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
-        start_time = time.time()
+        # perf_counter (not time.time): time.time() is wall clock and can
+        # jump backwards on NTP adjustments, producing negative latencies.
+        # perf_counter is monotonic and has sub-microsecond resolution on
+        # every supported platform — including Windows, where time.monotonic
+        # only has ~15 ms granularity. See StopWatch in agents/core/models.py.
+        start_time = time.perf_counter()
 
         try:
             # Call the actual send_request implementation
@@ -41,7 +46,7 @@ def track_api_call(func: F) -> F:
 
             # Calculate and attach latency if not already set
             if response.latency_ms is None:
-                response.latency_ms = (time.time() - start_time) * 1000
+                response.latency_ms = (time.perf_counter() - start_time) * 1000
 
             return response
 

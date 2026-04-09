@@ -77,7 +77,10 @@ class TeamRunner:
         Returns:
             TeamResult with aggregated output and metrics.
         """
-        start_time = time.monotonic()
+        # perf_counter (not monotonic): see StopWatch docstring in models.py.
+        # Windows time.monotonic has 15.6 ms granularity which makes short
+        # team runs report 0.0 ms latency.
+        start_time = time.perf_counter()
         keys = api_keys or {}
 
         # Initialize shared state
@@ -130,7 +133,7 @@ class TeamRunner:
             raise ValueError(f"Unknown workflow: {team_def.workflow}")
 
         # Aggregate results
-        elapsed_ms = (time.monotonic() - start_time) * 1000.0
+        elapsed_ms = (time.perf_counter() - start_time) * 1000.0
         return self._aggregate_results(
             team_def,
             agent_results,

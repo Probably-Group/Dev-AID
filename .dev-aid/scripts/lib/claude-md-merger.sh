@@ -126,9 +126,18 @@ Update the appropriate file when you learn something significant:
 \`- **YYYY-MM-DD**: [what was learned]\`
 Do NOT delete existing content unless explicitly asked.
 
----
+\`\`\`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⬆ DEV-AID SCAFFOLD INSTRUCTIONS ABOVE
+⬇ HOST-PROJECT INSTRUCTIONS BELOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\`\`\`
 
-*This file is managed by Dev-AID. Memory-bank provides shared team knowledge.*
+> **Scope reminder for AI assistants:** Everything above this divider is
+> Dev-AID scaffold guidance (managed by the addon — see
+> \`.dev-aid/HOST_PROJECT.md\`). Default to editing host-project files, not
+> \`.dev-aid/\` files, unless the user explicitly asks to contribute to
+> Dev-AID itself.
 EOF
 }
 
@@ -202,9 +211,18 @@ Update the appropriate file when you learn something significant:
 \`- **YYYY-MM-DD**: [what was learned]\`
 Do NOT delete existing content unless explicitly asked.
 
----
+\`\`\`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⬆ DEV-AID SCAFFOLD INSTRUCTIONS ABOVE
+⬇ HOST-PROJECT INSTRUCTIONS BELOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\`\`\`
 
-*This file is managed by Dev-AID. Memory-bank provides shared team knowledge.*
+> **Scope reminder for AI assistants:** Everything above this divider is
+> Dev-AID scaffold guidance (managed by the addon — see
+> \`.dev-aid/HOST_PROJECT.md\`). Default to editing host-project files, not
+> \`.dev-aid/\` files, unless the user explicitly asks to contribute to
+> Dev-AID itself.
 EOF
 }
 
@@ -277,9 +295,18 @@ Update the appropriate file when you learn something significant:
 \`- **YYYY-MM-DD**: [what was learned]\`
 Do NOT delete existing content unless explicitly asked.
 
----
+\`\`\`
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⬆ DEV-AID SCAFFOLD INSTRUCTIONS ABOVE
+⬇ HOST-PROJECT INSTRUCTIONS BELOW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+\`\`\`
 
-*This file is managed by Dev-AID. Memory-bank provides shared team knowledge.*
+> **Scope reminder for AI assistants:** Everything above this divider is
+> Dev-AID scaffold guidance (managed by the addon — see
+> \`.dev-aid/HOST_PROJECT.md\`). Default to editing host-project files, not
+> \`.dev-aid/\` files, unless the user explicitly asks to contribute to
+> Dev-AID itself.
 EOF
 }
 

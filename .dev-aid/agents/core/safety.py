@@ -50,6 +50,19 @@ BLOCKED_COMMAND_PATTERNS: List[str] = [
 
 _COMPILED_BLOCKED_PATTERNS = [re.compile(p) for p in BLOCKED_COMMAND_PATTERNS]
 
+# Tools that mutate files. Used by the Dev-AID scope guard (issue #147) to
+# block writes to `.dev-aid/` for host-project tasks. Read tools (read_file,
+# list_directory, glob_files) are intentionally NOT in this set — agents
+# routinely need to read scaffold files (skill defs, agent prompts, etc.)
+# even when the task itself is host-project work.
+WRITE_TOOL_NAMES: Set[str] = {"write_file", "edit_file"}
+
+# Path segment that identifies the Dev-AID scaffold inside a host project.
+# Comparing on a resolved Path with this segment lets the guard work both
+# when the scaffold lives at <project>/.dev-aid and when the project root is
+# a symlink — see is_dev_aid_path() for the resolution logic.
+_DEV_AID_DIR_NAME = ".dev-aid"
+
 
 @dataclass
 class SafetyConfig:
@@ -63,6 +76,12 @@ class SafetyConfig:
     max_bash_timeout_ms: int = 30000
     allowed_paths: Optional[List[Path]] = None  # None = no path restrictions
     max_file_size_bytes: int = 10 * 1024 * 1024  # 10 MB
+    # Issue #147: by default, agents invoked for host-project tasks must NOT
+    # be able to silently mutate .dev-aid/ scaffold files. The user has to
+    # opt in explicitly (e.g. via `--scope dev-aid` on the CLI) when their
+    # actual intent is to contribute upstream to Dev-AID itself. Read access
+    # is unaffected — only write_file / edit_file are gated.
+    allow_dev_aid_writes: bool = False
 
     def is_tool_allowed(self, tool_name: str) -> bool:
         """Check if a tool is allowed by the safety config."""
@@ -110,6 +129,27 @@ class SafetyConfig:
         logger.warning("Path outside allowed boundaries: %s", path)
         return False
 
+    @staticmethod
+    def is_dev_aid_path(path: Path) -> bool:
+        """
+        Return True if ``path`` resolves to something inside a ``.dev-aid``
+        directory.
+
+        Used by the issue #147 scope guard. We resolve the path so that
+        symlinks (e.g. a host project where ``CLAUDE.md`` is a symlink into
+        ``.dev-aid/providers/...``) get matched correctly. The check looks
+        for ``.dev-aid`` as a path component anywhere in the resolved path,
+        not just at the root, so it works regardless of where the host
+        project lives on disk.
+        """
+        try:
+            resolved = path.resolve()
+        except (OSError, RuntimeError):
+            # Path doesn't exist yet (e.g. about-to-be-created file) or
+            # symlink loop. Fall back to lexical check on the raw path.
+            resolved = path
+        return _DEV_AID_DIR_NAME in resolved.parts
+
     def check_tool_execution(
         self,
         tool_name: str,
@@ -147,6 +187,29 @@ class SafetyConfig:
                     return SafetyCheckResult(
                         allowed=False,
                         reason=f"Path '{path}' is outside allowed boundaries",
+                    )
+
+                # Issue #147: refuse writes into .dev-aid/ unless the user
+                # opted in. Read tools are NOT in WRITE_TOOL_NAMES so they
+                # pass through. The check happens AFTER is_path_allowed so
+                # that the message order matches what the user would expect
+                # ("outside allowed boundaries" beats "scaffold scope" if
+                # both apply).
+                if (
+                    tool_name in WRITE_TOOL_NAMES
+                    and not self.allow_dev_aid_writes
+                    and self.is_dev_aid_path(path)
+                ):
+                    return SafetyCheckResult(
+                        allowed=False,
+                        reason=(
+                            f"Refusing to {tool_name} '{path}': path is inside the "
+                            ".dev-aid/ scaffold and the agent was not invoked with "
+                            "scope=dev-aid. If you intended to contribute upstream "
+                            "to Dev-AID, re-run with `--scope dev-aid`. Otherwise "
+                            "edit a host-project file instead. (See "
+                            ".dev-aid/HOST_PROJECT.md for the scope rules.)"
+                        ),
                     )
 
         return SafetyCheckResult(allowed=True)

@@ -42,11 +42,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          # Pass github context via env (CWE-94: run-shell-injection)
+          ISSUE_NUM: ${{ github.event.issue.number || inputs.issue_number }}
         run: |
-          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
-
           # Fetch issue details
-          ISSUE_DATA=$(gh issue view $ISSUE_NUM --json title,body,labels)
+          ISSUE_DATA=$(gh issue view "$ISSUE_NUM" --json title,body,labels)
           TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
           BODY=$(echo "$ISSUE_DATA" | jq -r '.body // ""')
           CURRENT_LABELS=$(echo "$ISSUE_DATA" | jq -r '.labels[].name' | tr '\n' ',' | sed 's/,$//')
@@ -148,9 +148,12 @@ jobs:
 
       - name: Check if auto-fixable
         id: auto_fixable
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Pass github context via env (CWE-94: run-shell-injection)
+          ISSUE_NUM: ${{ github.event.issue.number || inputs.issue_number }}
         run: |
-          ISSUE_NUM=${{ github.event.issue.number || inputs.issue_number }}
-          LABELS=$(gh issue view $ISSUE_NUM --json labels -q '.labels[].name' | tr '\n' ' ')
+          LABELS=$(gh issue view "$ISSUE_NUM" --json labels -q '.labels[].name' | tr '\n' ' ')
 
           # Check if issue has auto-fixable labels
           AUTO_FIXABLE=false
@@ -161,9 +164,7 @@ jobs:
             fi
           fi
 
-          echo "auto_fixable=$AUTO_FIXABLE" >> $GITHUB_OUTPUT
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "auto_fixable=$AUTO_FIXABLE" >> "$GITHUB_OUTPUT"
 
       - name: Suggest auto-fix
         if: steps.auto_fixable.outputs.auto_fixable == 'true'

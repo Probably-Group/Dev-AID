@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from router.api_clients import Message
 from router.auth_detector import AuthCredentials
 from router.hardware_detector import (
     GPUInfo,
@@ -443,3 +444,184 @@ class TestLocalLLMIntegration:
             client = create_client("local", auth, config)
 
             assert isinstance(client, LocalLLMClient)
+
+
+# ============================================================================
+# Tool Calling Tests (issue #140)
+# ============================================================================
+
+
+class TestLocalLLMToolCalling:
+    """Tests for native tool-calling support on LocalLLMClient.
+
+    These tests cover the issue #140 contract: when a tool-capable local
+    model emits ``message.tool_calls``, ``LocalLLMClient.send_request``
+    must surface them on ``APIResponse.tool_calls`` (instead of dropping
+    them on the floor as the pre-#140 implementation did). The parser
+    handles both the OpenAI SDK pydantic shape and the bare-dict shape
+    that some Ollama-compat servers return.
+    """
+
+    @pytest.fixture
+    def mock_local_auth(self) -> AuthCredentials:
+        return AuthCredentials(
+            provider="local",
+            auth_type="local",
+            credentials={
+                "backend": "ollama",
+                "base_url": "http://localhost:11434/v1",
+            },
+            source="test fixture",
+        )
+
+    @pytest.fixture
+    def mock_local_config(self) -> Dict[str, Any]:
+        return {
+            "provider": "local",
+            "model_id": "llama3.1",
+            "cost_per_1m_tokens": {"input": 0.0, "output": 0.0},
+        }
+
+    @staticmethod
+    def _make_openai_style_response(tool_calls=None, content=""):
+        """Build a MagicMock that mimics openai SDK ChatCompletion shape."""
+        usage = MagicMock()
+        usage.prompt_tokens = 10
+        usage.completion_tokens = 5
+
+        message = MagicMock()
+        message.content = content
+        message.tool_calls = tool_calls
+
+        choice = MagicMock()
+        choice.message = message
+        choice.finish_reason = "tool_calls" if tool_calls else "stop"
+
+        response = MagicMock()
+        response.choices = [choice]
+        response.usage = usage
+        response.id = "resp_test"
+        return response
+
+    def test_tool_calls_parsed_from_pydantic_shape(self, mock_local_auth, mock_local_config):
+        """OpenAI SDK returns pydantic-style objects — parser pulls attributes."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+
+            # Build a pydantic-like tool call (attributes, not dict keys)
+            fn = MagicMock()
+            fn.name = "get_weather"
+            fn.arguments = '{"city": "Prague"}'
+            tc = MagicMock()
+            tc.id = "call_abc123"
+            tc.type = "function"
+            tc.function = fn
+
+            mock_client.chat.completions.create.return_value = self._make_openai_style_response(
+                tool_calls=[tc]
+            )
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            response = client.send_request(
+                messages=[Message(role="user", content="weather in Prague?")],
+                model="llama3.1",
+                tools=[{"type": "function", "function": {"name": "get_weather"}}],
+            )
+
+            assert response.tool_calls is not None
+            assert len(response.tool_calls) == 1
+            call = response.tool_calls[0]
+            assert call["id"] == "call_abc123"
+            assert call["type"] == "function"
+            assert call["function"]["name"] == "get_weather"
+            assert call["function"]["arguments"] == '{"city": "Prague"}'
+            # finish_reason should propagate through metadata
+            assert response.metadata["finish_reason"] == "tool_calls"
+
+    def test_tool_calls_parsed_from_dict_shape(self, mock_local_auth, mock_local_config):
+        """Some Ollama compat servers return tool_calls as plain dicts."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+
+            tool_call_dict = {
+                "id": "call_xyz",
+                "type": "function",
+                "function": {
+                    "name": "list_files",
+                    "arguments": '{"path": "/tmp"}',
+                },
+            }
+
+            mock_client.chat.completions.create.return_value = self._make_openai_style_response(
+                tool_calls=[tool_call_dict]
+            )
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            response = client.send_request(
+                messages=[Message(role="user", content="list /tmp")],
+                model="llama3.1",
+                tools=[{"type": "function", "function": {"name": "list_files"}}],
+            )
+
+            assert response.tool_calls is not None
+            assert response.tool_calls[0]["id"] == "call_xyz"
+            assert response.tool_calls[0]["function"]["name"] == "list_files"
+
+    def test_no_tool_calls_yields_none(self, mock_local_auth, mock_local_config):
+        """When the model doesn't call any tool, tool_calls should be None."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+
+            mock_client.chat.completions.create.return_value = self._make_openai_style_response(
+                tool_calls=None, content="Hello!"
+            )
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            response = client.send_request(
+                messages=[Message(role="user", content="hi")],
+                model="llama3.1",
+            )
+
+            assert response.content == "Hello!"
+            assert response.tool_calls is None
+
+    def test_chat_completion_with_tools_forwards_tools(self, mock_local_auth, mock_local_config):
+        """The convenience wrapper must pass `tools` through to the API call."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+
+            mock_client.chat.completions.create.return_value = self._make_openai_style_response(
+                tool_calls=None, content="ok"
+            )
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            tools = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "ping",
+                        "description": "ping a host",
+                        "parameters": {"type": "object", "properties": {}},
+                    },
+                }
+            ]
+
+            client.chat_completion_with_tools(
+                messages=[Message(role="user", content="ping")],
+                model="llama3.1",
+                tools=tools,
+            )
+
+            # Inspect the actual call to chat.completions.create
+            _, call_kwargs = mock_client.chat.completions.create.call_args
+            assert call_kwargs["tools"] == tools
+            assert call_kwargs["model"] == "llama3.1"
+
+    def test_parse_tool_calls_helper_handles_empty(self):
+        """Static helper returns None for None and empty list."""
+        assert LocalLLMClient._parse_tool_calls(None) is None
+        assert LocalLLMClient._parse_tool_calls([]) is None

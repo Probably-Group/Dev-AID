@@ -147,7 +147,11 @@ class LocalLLMClient(BaseAIClient):
             model: Model ID to use
             max_tokens: Maximum tokens to generate
             temperature: Sampling temperature (0.0 - 1.0)
-            **kwargs: Additional parameters
+            **kwargs: Additional parameters. Notably ``tools=[...]`` is
+                forwarded to the OpenAI-compatible chat completions endpoint;
+                Ollama / LM Studio / llama.cpp servers that support native
+                tool calling will return parsed tool calls in the response,
+                which we surface on ``APIResponse.tool_calls``.
 
         Returns:
             APIResponse object
@@ -165,7 +169,18 @@ class LocalLLMClient(BaseAIClient):
         )
 
         # Extract response data
-        content = response.choices[0].message.content or ""
+        choice = response.choices[0]
+        content = choice.message.content or ""
+
+        # Parse tool_calls if the model emitted any. Ollama (and the
+        # OpenAI-compat endpoint generally) returns these as
+        # response.choices[0].message.tool_calls, a list of
+        # ChatCompletionMessageToolCall objects with .id, .type, and
+        # .function.{name,arguments}. Before issue #140 we dropped this
+        # entirely on the floor, which made native tool calling on local
+        # models invisible to the router and forced agents into brittle
+        # free-text parsing fallbacks.
+        tool_calls = self._parse_tool_calls(getattr(choice.message, "tool_calls", None))
 
         # Get token counts (may not be available on all backends)
         input_tokens = getattr(response.usage, "prompt_tokens", 0) if response.usage else 0
@@ -189,9 +204,88 @@ class LocalLLMClient(BaseAIClient):
             latency_ms=None,  # Set by decorator
             metadata={
                 "backend": self.backend,
-                "finish_reason": response.choices[0].finish_reason,
+                "finish_reason": choice.finish_reason,
                 "response_id": response.id,
             },
+            tool_calls=tool_calls,
+        )
+
+    @staticmethod
+    def _parse_tool_calls(
+        raw_tool_calls: Optional[List[Any]],
+    ) -> Optional[List[Dict[str, Any]]]:
+        """
+        Normalize OpenAI/Ollama tool_calls into a JSON-friendly list of dicts.
+
+        The OpenAI Python client returns ChatCompletionMessageToolCall pydantic
+        objects (or, when an Ollama-compat server returns dicts, plain dicts).
+        Both shapes need to round-trip the same way through ``APIResponse``.
+        Empty / None inputs return None so callers can keep the simple
+        ``if response.tool_calls:`` check.
+        """
+        if not raw_tool_calls:
+            return None
+
+        normalized: List[Dict[str, Any]] = []
+        for tc in raw_tool_calls:
+            if isinstance(tc, dict):
+                # Already a dict (Ollama bare-/api/chat or LM Studio shape).
+                fn = tc.get("function", {}) or {}
+                normalized.append(
+                    {
+                        "id": tc.get("id"),
+                        "type": tc.get("type", "function"),
+                        "function": {
+                            "name": fn.get("name"),
+                            "arguments": fn.get("arguments"),
+                        },
+                    }
+                )
+                continue
+
+            # OpenAI SDK pydantic object — pull attributes individually so we
+            # don't depend on a model_dump() that may differ across SDK versions.
+            fn_obj = getattr(tc, "function", None)
+            normalized.append(
+                {
+                    "id": getattr(tc, "id", None),
+                    "type": getattr(tc, "type", "function"),
+                    "function": {
+                        "name": getattr(fn_obj, "name", None) if fn_obj else None,
+                        "arguments": getattr(fn_obj, "arguments", None) if fn_obj else None,
+                    },
+                }
+            )
+        return normalized
+
+    def chat_completion_with_tools(
+        self,
+        messages: List[Message],
+        model: str,
+        tools: List[Dict[str, Any]],
+        max_tokens: int = 4096,
+        temperature: float = 0.7,
+        **kwargs: Any,
+    ) -> APIResponse:
+        """
+        Convenience wrapper that forwards an explicit ``tools`` schema list
+        to ``send_request`` and returns an APIResponse whose ``tool_calls``
+        field is populated when the model decides to call a tool.
+
+        ``tools`` is the standard OpenAI-style schema:
+            [{"type": "function", "function": {"name": ..., "description": ...,
+              "parameters": {<JSON Schema>}}}]
+
+        This is the canonical entry point for agents that need structured
+        tool dispatch on a local model — see issue #140.
+        """
+        return self.send_request(
+            messages=messages,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            tools=tools,
+            **kwargs,
         )
 
     def calculate_cost(self, input_tokens: int, output_tokens: int) -> float:

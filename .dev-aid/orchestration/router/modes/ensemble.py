@@ -54,6 +54,20 @@ class EnsembleMode:
             recommended_model = self.config.get_default_model()
             model_config = self.config.get_model_config(recommended_model)
 
+        # If even the default model has no config, the install is broken
+        # in a way the ensemble path can't recover from. Surface a clear
+        # error rather than crash on the next dict access.
+        if model_config is None:
+            return {
+                "success": False,
+                "mode": "ensemble",
+                "task_type": task_type,
+                "error": (
+                    f"No model configuration found for '{recommended_model}' or the "
+                    f"default model. Check .dev-aid/config/models.json."
+                ),
+            }
+
         provider = model_config["provider"]
 
         # Check if provider is enabled
@@ -165,9 +179,16 @@ class EnsembleMode:
                 if is_valid:
                     return model_name, model_config, provider
 
-        # Last resort: default model
+        # Last resort: default model. If even this is missing, raise — the
+        # caller's contract is to return a usable triple, not to silently
+        # propagate None and crash on the next dict access.
         model_name = self.config.get_default_model()
         model_config = self.config.get_model_config(model_name)
+        if model_config is None:
+            raise RuntimeError(
+                f"No model configuration found for default model '{model_name}'. "
+                f"Check .dev-aid/config/models.json."
+            )
         provider = model_config["provider"]
 
         return model_name, model_config, provider

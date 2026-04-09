@@ -535,8 +535,11 @@ if __name__ == "__main__":
     print(f"RAM: {profile.ram_gb} GB")
     print(f"OS: {profile.os_name} {profile.os_version} ({profile.architecture})")
 
-    if profile.has_gpu:
-        gpu = profile.gpu
+    # Narrow profile.gpu directly so mypy can prove it's non-None for the
+    # field accesses below — the .has_gpu property check doesn't propagate
+    # type narrowing to the field reads.
+    gpu = profile.gpu
+    if gpu is not None and gpu.vendor != GPUVendor.NONE:
         print(f"\nGPU: {gpu.name}")
         print(f"Vendor: {gpu.vendor.value}")
         print(f"VRAM: {gpu.vram_gb} GB")

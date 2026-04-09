@@ -78,8 +78,18 @@ class ChallengerMode:
         # Get model config
         model_config = self.config.get_model_config(primary_model_name)
         if not model_config:
-            model_config = self.config.get_model_config(self.config.get_default_model())
             primary_model_name = self.config.get_default_model()
+            model_config = self.config.get_model_config(primary_model_name)
+
+        # If even the default model has no config, the install is broken in
+        # a way challenger mode can't recover from. Raise instead of crashing
+        # on the next dict access — the run() caller catches RuntimeError and
+        # returns a structured error.
+        if model_config is None:
+            raise RuntimeError(
+                f"No model configuration found for '{primary_model_name}' or the "
+                f"default model. Check .dev-aid/config/models.json."
+            )
 
         provider = model_config["provider"]
 

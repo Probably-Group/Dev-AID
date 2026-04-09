@@ -85,6 +85,14 @@ class APIResponse:
     cost: Optional[float] = None
     latency_ms: Optional[float] = None
     metadata: Optional[Dict[str, Any]] = None
+    # Parsed tool_calls when the model emits structured function calls.
+    # Each entry is shaped like the OpenAI tool-calls spec:
+    #   {"id": str, "type": "function",
+    #    "function": {"name": str, "arguments": str}}
+    # where `arguments` is a JSON-encoded string (consumers parse it). Cloud
+    # clients that don't yet populate this leave it as None — see issue #140
+    # for the local-client implementation that surfaces it from Ollama.
+    tool_calls: Optional[List[Dict[str, Any]]] = None
 
 
 class BaseAIClient(ABC):

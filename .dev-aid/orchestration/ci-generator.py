@@ -392,7 +392,7 @@ class CIGenerator:
         if not template_file.exists():
             raise ValueError(f"No template found for {context['language']}")
 
-        template = template_file.read_text()
+        template = template_file.read_text(encoding="utf-8")
 
         # Simple template substitution
         replacements = {
@@ -422,7 +422,7 @@ class CIGenerator:
         # Write to file if output path provided
         if output_path:
             output_path.parent.mkdir(parents=True, exist_ok=True)
-            output_path.write_text(workflow)
+            output_path.write_text(workflow, encoding="utf-8")
 
         return workflow
 

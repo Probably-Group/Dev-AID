@@ -135,7 +135,7 @@ class TestRenderDashboard:
             "Tokens: 100→50 | Latency: 1234ms | "
             'Request: "test request..."\n'
         )
-        (tmp_path / "logs" / "routing.log").write_text(log_line)
+        (tmp_path / "logs" / "routing.log").write_text(log_line, encoding="utf-8")
 
         # Re-load tracker to pick up routing log
         tracker = CostTracker(tmp_path / "logs")

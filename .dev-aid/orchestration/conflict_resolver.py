@@ -104,8 +104,8 @@ class ConflictResolver:
         upstream = self.update_dir / ".dev-aid" / file_path
 
         try:
-            current_lines = current.read_text().splitlines(keepends=True)
-            upstream_lines = upstream.read_text().splitlines(keepends=True)
+            current_lines = current.read_text(encoding="utf-8").splitlines(keepends=True)
+            upstream_lines = upstream.read_text(encoding="utf-8").splitlines(keepends=True)
         except Exception as e:
             print(f"{Color.RED}❌ Error reading files: {e}{Color.NC}")
             return
@@ -425,7 +425,7 @@ IMPORTANT NOTES:
 
         try:
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-            Path(output_path).write_text(json.dumps(log_data, indent=2))
+            Path(output_path).write_text(json.dumps(log_data, indent=2), encoding="utf-8")
             print(f"{Color.BLUE}Resolution log saved: {output_path}{Color.NC}")
         except Exception as e:
             print(f"{Color.YELLOW}⚠️  Could not save resolution log: {e}{Color.NC}")
@@ -486,7 +486,7 @@ def main():
     try:
         count_file = Path(".dev-aid/.last-conflict-count")
         count_file.parent.mkdir(parents=True, exist_ok=True)
-        count_file.write_text(str(len(conflicts)))
+        count_file.write_text(str(len(conflicts)), encoding="utf-8")
     except OSError as e:
         print(f"{Color.YELLOW}Warning: Could not write conflict count: {e}{Color.NC}")
 

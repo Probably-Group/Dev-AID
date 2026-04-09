@@ -633,7 +633,7 @@ class TestCostPersistenceE2E:
             executor.execute("Request A")
             executor.execute("Request B")
 
-        log_text = (root / ".dev-aid" / "logs" / "routing.log").read_text()
+        log_text = (root / ".dev-aid" / "logs" / "routing.log").read_text(encoding="utf-8")
         lines = [line for line in log_text.strip().split("\n") if line.strip()]
         assert len(lines) == 2
 

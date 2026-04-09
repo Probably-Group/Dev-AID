@@ -33,7 +33,7 @@ class TestCostTracker:
 
         # Check log file
         assert tracker.routing_log_file.exists()
-        content = tracker.routing_log_file.read_text()
+        content = tracker.routing_log_file.read_text(encoding="utf-8")
         assert "Test request" in content
         assert "claude-sonnet" in content
 

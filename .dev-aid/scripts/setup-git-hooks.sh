@@ -57,7 +57,21 @@ if [ -n "$ORCH_FILES" ]; then
         exit 1
     }
 
-    # 4. Run tests with coverage
+    # 4. Encoding guard — catches Windows cp1252 landmines (write_text/read_text
+    #    without encoding="utf-8" inside functions that use non-ASCII string
+    #    literals). See check_text_io_encoding.py for the heuristic.
+    echo "  → Encoding guard (Windows cp1252)..."
+    ORCH_REL_FILES=$(git diff --cached --name-only --diff-filter=ACM \
+        | grep "^\.dev-aid/orchestration/.*\.py$" \
+        | sed 's|^\.dev-aid/orchestration/||' || true)
+    if [ -n "$ORCH_REL_FILES" ]; then
+        python check_text_io_encoding.py $ORCH_REL_FILES || {
+            echo "❌ Encoding guard failed! Add encoding=\"utf-8\" to flagged calls."
+            exit 1
+        }
+    fi
+
+    # 5. Run tests with coverage
     echo "  → Pytest (tests + coverage)..."
     pytest tests/ -v --tb=short || {
         echo "❌ Tests failed!"
@@ -83,6 +97,38 @@ if [ -n "$BASH_FILES" ]; then
     echo "✅ Shellcheck passed!"
 fi
 
+# Check GitHub workflow files
+WORKFLOW_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep "^\.github/workflows/.*\.ya\?ml$" || true)
+
+if [ -n "$WORKFLOW_FILES" ]; then
+    echo "📝 GitHub workflow files changed, validating..."
+
+    VENV_PY="$REPO_ROOT/.dev-aid/orchestration/venv/bin/python"
+    if [ ! -x "$VENV_PY" ]; then
+        VENV_PY="$REPO_ROOT/.dev-aid/orchestration/.venv/bin/python"
+    fi
+
+    if [ -x "$VENV_PY" ]; then
+        for wf in $WORKFLOW_FILES; do
+            "$VENV_PY" -c "import yaml; yaml.safe_load(open('$REPO_ROOT/$wf'))" || {
+                echo "❌ YAML syntax error in $wf"
+                exit 1
+            }
+        done
+        echo "✅ Workflow YAML syntax OK"
+    fi
+
+    if command -v actionlint >/dev/null 2>&1; then
+        for wf in $WORKFLOW_FILES; do
+            actionlint "$REPO_ROOT/$wf" || {
+                echo "❌ actionlint failed for $wf"
+                exit 1
+            }
+        done
+        echo "✅ actionlint passed"
+    fi
+fi
+
 echo "✅ Pre-commit hook completed successfully!"
 HOOK_EOF
 
@@ -95,8 +141,10 @@ echo "The hook will automatically run:"
 echo "  • Black formatting check"
 echo "  • Flake8 linting"
 echo "  • MyPy type checking"
+echo "  • Encoding guard (Windows cp1252 landmines)"
 echo "  • Pytest with coverage"
 echo "  • Shellcheck (for .sh files)"
+echo "  • GitHub workflow YAML syntax (+ actionlint if installed)"
 echo ""
 echo "To bypass the hook (not recommended): git commit --no-verify"
 echo ""

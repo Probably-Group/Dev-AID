@@ -162,7 +162,7 @@ class TestCostTrackerAdditionalMethods:
             "Tokens: 10→20 | Latency: 100ms | "
             'Request: "test..."\n'
         )
-        tracker.routing_log_file.write_text(log_line)
+        tracker.routing_log_file.write_text(log_line, encoding="utf-8")
         decisions = tracker.get_recent_decisions()
         assert len(decisions) == 1
         assert decisions[0]["cost"] == 0.0

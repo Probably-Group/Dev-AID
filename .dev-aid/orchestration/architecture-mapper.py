@@ -264,7 +264,7 @@ class ArchitectureMapper:
             output_file = self.output_dir / "generated-diagram.md"
 
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(report)
+        output_file.write_text(report, encoding="utf-8")
 
         print(f"✅ Generated: {output_file}")
         print(f"   Size: {len(report)} chars")

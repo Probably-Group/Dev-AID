@@ -150,6 +150,96 @@ class TestSafetyConfig:
         assert "outside allowed boundaries" in result.reason
 
 
+class TestDevAidScopeGuard:
+    """Tests for the .dev-aid/ scope guard (issue #147)."""
+
+    def _make_host_layout(self, tmp_path: Path) -> tuple[Path, Path]:
+        """Create a fake host project with a .dev-aid/ scaffold inside it."""
+        host = tmp_path / "host_project"
+        host.mkdir()
+        (host / "src").mkdir()
+        (host / "src" / "main.py").write_text("# host source\n")
+        scaffold = host / ".dev-aid"
+        scaffold.mkdir()
+        (scaffold / "config").mkdir()
+        (scaffold / "config" / "models.json").write_text("{}")
+        return host, scaffold
+
+    def test_is_dev_aid_path_detects_scaffold(self, tmp_path: Path) -> None:
+        host, scaffold = self._make_host_layout(tmp_path)
+        assert SafetyConfig.is_dev_aid_path(scaffold / "config" / "models.json")
+        assert SafetyConfig.is_dev_aid_path(scaffold / "skills" / "expert" / "x.md")
+
+    def test_is_dev_aid_path_ignores_host_files(self, tmp_path: Path) -> None:
+        host, _ = self._make_host_layout(tmp_path)
+        assert not SafetyConfig.is_dev_aid_path(host / "src" / "main.py")
+        assert not SafetyConfig.is_dev_aid_path(host / "README.md")
+
+    def test_is_dev_aid_path_handles_nonexistent_path(self, tmp_path: Path) -> None:
+        # About-to-be-created files should still match lexically.
+        host, _ = self._make_host_layout(tmp_path)
+        assert SafetyConfig.is_dev_aid_path(host / ".dev-aid" / "new" / "file.md")
+        assert not SafetyConfig.is_dev_aid_path(host / "src" / "new.py")
+
+    def test_write_to_scaffold_blocked_by_default(self, tmp_path: Path) -> None:
+        host, scaffold = self._make_host_layout(tmp_path)
+        config = SafetyConfig(allowed_paths=[host])
+        result = config.check_tool_execution(
+            "write_file",
+            {"path": str(scaffold / "config" / "models.json"), "content": "{}"},
+            risk_level="moderate",
+        )
+        assert not result.allowed
+        assert "scaffold" in result.reason
+        assert "scope=dev-aid" in result.reason
+
+    def test_edit_scaffold_blocked_by_default(self, tmp_path: Path) -> None:
+        host, scaffold = self._make_host_layout(tmp_path)
+        config = SafetyConfig(allowed_paths=[host])
+        result = config.check_tool_execution(
+            "edit_file",
+            {
+                "path": str(scaffold / "config" / "models.json"),
+                "old_string": "{}",
+                "new_string": '{"x": 1}',
+            },
+            risk_level="moderate",
+        )
+        assert not result.allowed
+        assert ".dev-aid" in result.reason
+
+    def test_write_to_scaffold_allowed_with_opt_in(self, tmp_path: Path) -> None:
+        host, scaffold = self._make_host_layout(tmp_path)
+        config = SafetyConfig(allowed_paths=[host], allow_dev_aid_writes=True)
+        result = config.check_tool_execution(
+            "write_file",
+            {"path": str(scaffold / "config" / "models.json"), "content": "{}"},
+            risk_level="moderate",
+        )
+        assert result.allowed
+
+    def test_write_to_host_path_always_allowed(self, tmp_path: Path) -> None:
+        """The guard must NOT trigger on host-project files."""
+        host, _ = self._make_host_layout(tmp_path)
+        config = SafetyConfig(allowed_paths=[host])
+        result = config.check_tool_execution(
+            "write_file",
+            {"path": str(host / "src" / "main.py"), "content": "# new"},
+            risk_level="moderate",
+        )
+        assert result.allowed
+
+    def test_read_from_scaffold_always_allowed(self, tmp_path: Path) -> None:
+        """Read tools are not in WRITE_TOOL_NAMES — agents need them."""
+        host, scaffold = self._make_host_layout(tmp_path)
+        config = SafetyConfig(allowed_paths=[host])  # default scope
+        result = config.check_tool_execution(
+            "read_file",
+            {"path": str(scaffold / "config" / "models.json")},
+        )
+        assert result.allowed
+
+
 class TestSafetyCheckResult:
     """Tests for SafetyCheckResult."""
 

@@ -8,6 +8,7 @@ Includes retry with exponential backoff and context management.
 
 import logging
 import time
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from .lessons import LessonsLedger
@@ -60,6 +61,16 @@ class AgentRunner:
         """Build the system prompt from skills and agent config."""
         parts: List[str] = []
 
+        # Issue #147: prompt-level scope reminder. Belt-and-suspenders with
+        # the SafetyConfig.allow_dev_aid_writes guard — the prompt rule lets
+        # the model refuse gracefully and explain the reason to the user,
+        # while the safety config provides the hard backstop. Without this,
+        # an agent invoked for a host-project task could pattern-match on
+        # .dev-aid/ files and silently start editing the scaffold.
+        scope_reminder = self._build_scope_reminder()
+        if scope_reminder:
+            parts.append(scope_reminder)
+
         # Load skill prompts (budget-aware: 25% of context for skills)
         if self._skill_loader and agent_def.skills:
             skill_budget = self._max_context_tokens // 4
@@ -90,6 +101,62 @@ class AgentRunner:
             )
 
         return "\n\n---\n\n".join(parts) if parts else ""
+
+    def _build_scope_reminder(self) -> str:
+        """
+        Issue #147: build a one-block scope reminder for the system prompt
+        when the agent is running inside a host-project Dev-AID install.
+
+        We detect "host-project install" the same way the SessionStart hook
+        does (issue #144): by checking whether the project root has a
+        ``CLAUDE.md`` symlink. In the Dev-AID source repo itself the
+        top-level CLAUDE.md is a regular file, so this returns "" and the
+        reminder is not injected — which is correct, since "edit host-
+        project files, not .dev-aid/" is meaningless when the host project
+        IS Dev-AID.
+
+        The reminder is short on purpose (~10 lines) so it doesn't eat
+        meaningfully into the agent's context budget.
+        """
+        # Look for a .dev-aid directory in cwd or any parent — that's the
+        # signal that we're running inside a Dev-AID install. We use Path.cwd
+        # rather than something configured because the agent runner is
+        # invoked from the project root in practice (cli.py resolves it).
+        cwd = Path.cwd()
+        dev_aid_dir: Optional[Path] = None
+        for candidate in (cwd, *cwd.parents):
+            if (candidate / ".dev-aid").is_dir():
+                dev_aid_dir = candidate / ".dev-aid"
+                break
+
+        if dev_aid_dir is None:
+            return ""
+
+        project_root = dev_aid_dir.parent
+        top_claude_md = project_root / "CLAUDE.md"
+        # Only inject when CLAUDE.md is a symlink — that's what
+        # claude-md-init.sh creates in host-project installs and is the
+        # robust signal that distinguishes "Dev-AID is installed in this
+        # host project" from "this IS the Dev-AID source repo".
+        if not top_claude_md.is_symlink():
+            return ""
+
+        return (
+            "## Scope: host-project mode\n\n"
+            f"This Dev-AID install lives at `{dev_aid_dir}`. The host project "
+            f"is at `{project_root}`. **Default scope: edit host-project files.**\n\n"
+            "Before editing any file:\n"
+            "1. Check whether the file path is inside `.dev-aid/`.\n"
+            "2. If yes, STOP and confirm with the user that they intended to "
+            "modify the Dev-AID scaffold (not the host project's source).\n"
+            "3. If the user did not explicitly say they want to contribute "
+            "upstream to Dev-AID, edit a host-project file instead.\n\n"
+            "Read access to `.dev-aid/` is fine — you'll often need to read "
+            "skill definitions, agent prompts, etc. The hard rule is on "
+            "writes only. The `write_file` and `edit_file` tools will refuse "
+            "scaffold paths at runtime as a backstop, but you should refuse "
+            "gracefully in your response first. See `.dev-aid/HOST_PROJECT.md`."
+        )
 
     def _get_tool_definitions(
         self,

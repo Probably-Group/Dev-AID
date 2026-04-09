@@ -198,6 +198,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Run DoD gate after agent completes to verify output quality",
     )
+    parser.add_argument(
+        "--scope",
+        choices=["host", "dev-aid"],
+        default="host",
+        help=(
+            "Edit scope. 'host' (default) blocks writes to .dev-aid/ scaffold "
+            "files — use this for normal host-project tasks. 'dev-aid' opts in "
+            "to scaffold edits — use this when contributing upstream to "
+            "Dev-AID itself. See .dev-aid/HOST_PROJECT.md (issue #147)."
+        ),
+    )
 
     subparsers = parser.add_subparsers(dest="agent", help="Agent to run")
 
@@ -449,11 +460,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     provider = args.provider or defaults.get("provider", "anthropic")
     model = args.model or defaults.get("model", "claude-sonnet-4-5-20250929")
 
-    # Safety config with project-scoped path restrictions
+    # Safety config with project-scoped path restrictions. The scope flag
+    # (issue #147) controls whether write_file / edit_file may target
+    # .dev-aid/ scaffold paths — default 'host' refuses, 'dev-aid' opts in.
     safety = SafetyConfig(
         dry_run=args.dry_run,
         allowed_tools=set(agent_def.tools) if agent_def.tools else None,
         allowed_paths=[root],  # Restrict to project root
+        allow_dev_aid_writes=(getattr(args, "scope", "host") == "dev-aid"),
     )
 
     # Build components

@@ -61,7 +61,8 @@ class TraceCollector:
     ) -> str:
         """Begin a new trace. Returns the trace ID."""
         self._trace_id = uuid.uuid4().hex[:12]
-        self._start_time = time.monotonic()
+        # perf_counter (not monotonic): see StopWatch docstring in models.py
+        self._start_time = time.perf_counter()
 
         # Build output path: {trace_dir}/{agent_name}/{YYYYMMDD-HHMMSS}-{id}.jsonl
         now = datetime.now()
@@ -136,7 +137,7 @@ class TraceCollector:
 
     def end_trace(self, result: AgentResult) -> None:
         """Finalize the trace with the agent result."""
-        elapsed_ms = (time.monotonic() - self._start_time) * 1000.0
+        elapsed_ms = (time.perf_counter() - self._start_time) * 1000.0
 
         preview = ""
         if self._config.include_output_preview and result.output:

@@ -109,11 +109,21 @@ class AgentResult:
 
 
 class StopWatch:
-    """Simple timing utility for measuring agent execution."""
+    """Simple timing utility for measuring agent execution.
+
+    Uses ``time.perf_counter`` (not ``time.monotonic``) because the latter has
+    ~15.6 ms granularity on Windows (it wraps GetTickCount64), which makes
+    short agent runs measure as 0.0 ms — see issue surfaced by
+    ``test_team_runner.py::TestTeamRunnerMetrics::test_cost_tracked`` failing
+    on Windows CI with ``assert 0.0 > 0``. ``perf_counter`` wraps
+    QueryPerformanceCounter on Windows and has sub-microsecond resolution
+    on every supported platform, so the same code path produces meaningful
+    latency telemetry everywhere.
+    """
 
     def __init__(self) -> None:
-        self._start: float = time.monotonic()
+        self._start: float = time.perf_counter()
 
     def elapsed_ms(self) -> float:
         """Return elapsed time in milliseconds."""
-        return (time.monotonic() - self._start) * 1000.0
+        return (time.perf_counter() - self._start) * 1000.0

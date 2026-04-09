@@ -44,6 +44,30 @@ done
 readonly MEMORY_BANK_DIR="$CLAUDE_PROJECT_DIR/memory-bank"
 readonly ACTIVE_CONTEXT="$MEMORY_BANK_DIR/CLAUDE-activeContext.md"
 
+# ----------------------------------------------------------------------------
+# Host-project scope announcement
+#
+# When Dev-AID is installed into a host project (e.g. a JARVIS-style product
+# repo), the top-level CLAUDE.md is a symlink to
+# .dev-aid/providers/claude/CLAUDE.md (created by claude-md-init.sh's
+# create_symlink). When the user is working inside the Dev-AID source repo
+# itself, CLAUDE.md is a regular file. We use that distinction to decide
+# whether to print the host-project scope reminder — the reminder only makes
+# sense in installs, not in upstream Dev-AID development.
+#
+# This is the SessionStart half of issue #144. The matching pieces are
+# .dev-aid/HOST_PROJECT.md and the visual divider in the CLAUDE.md template
+# generators (.dev-aid/scripts/lib/claude-md-merger.sh).
+# ----------------------------------------------------------------------------
+readonly TOP_CLAUDE_MD="$CLAUDE_PROJECT_DIR/CLAUDE.md"
+if [[ -L "$TOP_CLAUDE_MD" ]]; then
+    echo "🛡️  Dev-AID scaffold loaded — host project root: $CLAUDE_PROJECT_DIR"
+    echo "    Default scope: edit host-project files. Treat .dev-aid/ as managed"
+    echo "    scaffold (see .dev-aid/HOST_PROJECT.md). Ask before editing scaffold"
+    echo "    files unless the user explicitly asked to contribute to Dev-AID."
+    echo ""
+fi
+
 # Validate memory bank path containment
 resolved_memory_bank="$(realpath -m "$MEMORY_BANK_DIR" 2>/dev/null)" || {
     echo "ℹ️  Memory Bank directory not found. Initialize with /update-memory-bank"

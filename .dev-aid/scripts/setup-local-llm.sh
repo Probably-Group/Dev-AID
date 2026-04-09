@@ -368,6 +368,39 @@ EOF
         print_success "Updated $ENV_FILE"
     fi
 
+    # Flip local.enabled in models.json so the router actually uses the local
+    # provider. Before issue #143 the user had to do this by hand, which was a
+    # latent footgun: they'd run this whole wizard, get a working backend +
+    # downloaded model, and then silently fall through to cloud providers
+    # because the flag stayed false. Use python stdlib (no jq dep).
+    MODELS_JSON="$CONFIG_DIR/models.json"
+    if [[ -f "$MODELS_JSON" ]]; then
+        if python3 - "$MODELS_JSON" <<'PYEOF'
+import json, os, sys
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+local = data.get("local")
+if not isinstance(local, dict):
+    print("warning: 'local' key missing from models.json — leaving alone", file=sys.stderr)
+    sys.exit(2)
+if local.get("enabled") is True:
+    sys.exit(1)  # already enabled — caller prints "no change"
+local["enabled"] = True
+tmp = path + ".tmp"
+with open(tmp, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+os.replace(tmp, path)
+sys.exit(0)
+PYEOF
+        then
+            print_success "Enabled local provider in models.json"
+        elif [[ $? -eq 1 ]]; then
+            print_info "Local provider already enabled in models.json"
+        fi
+    fi
+
     print_info "Configuration complete!"
 }
 
@@ -469,10 +502,8 @@ main() {
     print_header "Setup Complete!"
 
     echo "Next steps:"
-    echo "  1. Enable local provider in .dev-aid/config/models.json"
-    echo "     Set \"enabled\": true under \"local\""
-    echo ""
-    echo "  2. Use Dev-AID with local models!"
+    echo "  1. Use Dev-AID with local models — the router will pick up the"
+    echo "     local provider automatically (enabled in models.json above)."
     echo ""
     echo "Documentation: .dev-aid/docs/LOCAL-LLM-GUIDE.md"
 }

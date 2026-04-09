@@ -427,6 +427,59 @@ EOF
         echo -e "${GREEN}models.json already exists${NC}"
     fi
 
+    # --- Auto-enable local provider if Ollama is running (issue #143) ---
+    #
+    # The shipped models.json has `local.enabled: false` so a fresh install
+    # doesn't dial out to a non-existent local server. But if the user already
+    # has Ollama running on the default port, we want Dev-AID to dogfood its
+    # own local-LLM router instead of silently routing every cheap task to a
+    # cloud provider. So: probe Ollama at install time, and flip the flag if
+    # it answers. Otherwise leave it disabled and print a hint that points at
+    # the dedicated local-LLM wizard.
+    auto_enable_local_provider() {
+        local models_json="$DEV_AID_DIR/config/models.json"
+        if [ ! -f "$models_json" ]; then
+            return 0
+        fi
+
+        # Probe Ollama default port (11434). Short timeout — install flow
+        # shouldn't stall just because the user doesn't have a local LLM.
+        if curl --silent --fail --max-time 2 \
+                "http://localhost:11434/api/tags" >/dev/null 2>&1; then
+            echo -e "${CYAN}Detected Ollama on localhost:11434 — enabling local provider in models.json${NC}"
+
+            # Use stdlib json (no jq dependency) to flip local.enabled to true.
+            # We update in place via a tmp file to avoid partial writes.
+            python3 - "$models_json" <<'PYEOF'
+import json, sys
+path = sys.argv[1]
+with open(path) as f:
+    data = json.load(f)
+local = data.get("local")
+if not isinstance(local, dict):
+    print("warning: 'local' key missing from models.json — leaving alone", file=sys.stderr)
+    sys.exit(0)
+if local.get("enabled") is True:
+    print("local provider already enabled — no change")
+    sys.exit(0)
+local["enabled"] = True
+tmp = path + ".tmp"
+with open(tmp, "w") as f:
+    json.dump(data, f, indent=2)
+    f.write("\n")
+import os
+os.replace(tmp, path)
+print("local provider enabled")
+PYEOF
+        else
+            echo -e "${YELLOW}No local LLM server detected on localhost:11434${NC}"
+            echo -e "${YELLOW}  Local provider stays disabled in models.json.${NC}"
+            echo -e "${YELLOW}  To enable later, install Ollama and run:${NC}"
+            echo -e "${YELLOW}    .dev-aid/scripts/setup-local-llm.sh${NC}"
+        fi
+    }
+    auto_enable_local_provider
+
     # --- settings.json (always overwrite with wizard output) ---
     # Only write if wizard was run (Phase 3)
     if [ -n "${ORCHESTRATION_MODE:-}" ]; then

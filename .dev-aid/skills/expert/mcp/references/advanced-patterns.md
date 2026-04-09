@@ -127,14 +127,18 @@ class ToolResultCache {
 ## WebSocket Transport
 
 ```typescript
-// WebSocket transport for real-time communication
+// WebSocket transport for real-time communication.
+// NOTE: production deployments must terminate TLS — use wss:// (WebSocket
+// Secure) and put the server behind a reverse proxy that handles certs.
+// This example uses wss:// in the URL parser to make that requirement
+// explicit; the actual transport scheme is handled by the reverse proxy.
 import { WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: 8080 });
 
 wss.on("connection", async (ws, req) => {
-  // Authenticate connection
-  const token = new URL(req.url!, `ws://${req.headers.host}`).searchParams.get("token");
+  // Authenticate connection (TLS terminated upstream — see note above)
+  const token = new URL(req.url!, `wss://${req.headers.host}`).searchParams.get("token");
   const user = await verifyToken(token);
 
   if (!user) {

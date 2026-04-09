@@ -304,6 +304,118 @@ class TestModelRecommender:
         assert "Hardware Tier:" in formatted
         assert "RECOMMENDED MODELS:" in formatted
 
+    # ------------------------------------------------------------------
+    # supports_tool_calling filter (issue #142)
+    # ------------------------------------------------------------------
+
+    @pytest.fixture
+    def mock_models_config_mixed_tools(self) -> Dict[str, Any]:
+        """Models config where only some entries declare tool-calling support."""
+        return {
+            "local": {
+                "enabled": True,
+                "provider": "local",
+                "models": {
+                    "no-tools": {
+                        "id": "no-tools:7b",
+                        "context_window": 8192,
+                        "vram_min_gb": 4,
+                        "score": 50,
+                        "tier": "entry",
+                        "capabilities": ["code"],
+                        # supports_tool_calling intentionally omitted →
+                        # treated as False
+                    },
+                    "tools-mid": {
+                        "id": "tools-mid:14b",
+                        "context_window": 16384,
+                        "vram_min_gb": 10,
+                        "score": 70,
+                        "tier": "mid",
+                        "capabilities": ["code", "reasoning"],
+                        "supports_tool_calling": True,
+                    },
+                    "tools-high": {
+                        "id": "tools-high:32b",
+                        "context_window": 32768,
+                        "vram_min_gb": 20,
+                        "score": 80,
+                        "tier": "high",
+                        "capabilities": ["code", "reasoning", "complex_tasks"],
+                        "supports_tool_calling": True,
+                    },
+                },
+            }
+        }
+
+    def test_default_includes_models_without_tool_calling(self, mock_models_config_mixed_tools):
+        """Without requires_tool_calling, all hardware-fitting models are returned."""
+        recommender = ModelRecommender(mock_models_config_mixed_tools)
+        profile = create_manual_profile(vram_gb=24.0, ram_gb=32.0)
+
+        result = recommender.recommend(profile)
+        names = {r.model_name for r in result.recommendations}
+        assert "no-tools" in names
+        assert "tools-mid" in names
+        assert "tools-high" in names
+
+    def test_requires_tool_calling_excludes_unflagged_models(self, mock_models_config_mixed_tools):
+        """With requires_tool_calling=True, models without the flag are filtered out."""
+        recommender = ModelRecommender(mock_models_config_mixed_tools)
+        profile = create_manual_profile(vram_gb=24.0, ram_gb=32.0)
+
+        result = recommender.recommend(profile, requires_tool_calling=True)
+        names = {r.model_name for r in result.recommendations}
+        assert "no-tools" not in names
+        assert "tools-mid" in names
+        assert "tools-high" in names
+        # Notes should explain what we filtered on
+        assert any("Tool-calling required" in n for n in result.notes)
+        # All returned recommendations carry the flag
+        assert all(r.supports_tool_calling for r in result.recommendations)
+
+    def test_requires_tool_calling_yields_empty_when_no_match(self, mock_models_config_mixed_tools):
+        """If no model in the candidate set has the flag, returns an empty result."""
+        config_no_tools = {
+            "local": {
+                "enabled": True,
+                "provider": "local",
+                "models": {
+                    "no-tools": mock_models_config_mixed_tools["local"]["models"]["no-tools"],
+                },
+            }
+        }
+        recommender = ModelRecommender(config_no_tools)
+        profile = create_manual_profile(vram_gb=24.0, ram_gb=32.0)
+
+        result = recommender.recommend(profile, requires_tool_calling=True)
+        assert result.recommendations == []
+
+    def test_get_best_model_forwards_tool_calling_filter(self, mock_models_config_mixed_tools):
+        """get_best_model honors the filter and never returns an unflagged model."""
+        recommender = ModelRecommender(mock_models_config_mixed_tools)
+        profile = create_manual_profile(vram_gb=24.0, ram_gb=32.0)
+
+        best = recommender.get_best_model(profile, requires_tool_calling=True)
+        assert best is not None
+        assert best.supports_tool_calling
+        assert best.model_name in ("tools-mid", "tools-high")
+
+    def test_get_model_by_tier_forwards_tool_calling_filter(self, mock_models_config_mixed_tools):
+        """get_model_by_tier honors the filter when picking a tier-specific model."""
+        recommender = ModelRecommender(mock_models_config_mixed_tools)
+        profile = create_manual_profile(vram_gb=24.0, ram_gb=32.0)
+
+        # Tier "entry" only has the no-tools model, so the filtered call
+        # returns None — proving the filter is applied before the tier match.
+        no_match = recommender.get_model_by_tier(profile, "entry", requires_tool_calling=True)
+        assert no_match is None
+
+        # Tier "mid" has tools-mid which is flagged.
+        match = recommender.get_model_by_tier(profile, "mid", requires_tool_calling=True)
+        assert match is not None
+        assert match.model_name == "tools-mid"
+
 
 # ============================================================================
 # Local Client Tests

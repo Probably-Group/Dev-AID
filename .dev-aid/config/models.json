@@ -8,6 +8,7 @@
         "id": "claude-sonnet-4-6",
         "context_window": 1000000,
         "capabilities": ["code", "analysis", "security", "reasoning", "massive_context"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 3.00,
           "output": 15.00
@@ -17,6 +18,7 @@
         "id": "claude-opus-4-6",
         "context_window": 1000000,
         "capabilities": ["complex_reasoning", "deep_analysis", "architecture", "massive_context"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 5.00,
           "output": 25.00
@@ -26,6 +28,7 @@
         "id": "claude-haiku-4-5",
         "context_window": 200000,
         "capabilities": ["speed", "simple_tasks", "quick_responses"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 1.00,
           "output": 5.00
@@ -45,6 +48,7 @@
         "id": "gemini-3.1-pro",
         "context_window": 1000000,
         "capabilities": ["massive_context", "deep_reasoning", "multimodal", "complex_reasoning"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 2.00,
           "output": 12.00
@@ -54,6 +58,7 @@
         "id": "gemini-3.1-flash-lite-preview",
         "context_window": 1048576,
         "capabilities": ["fast_analysis", "low_cost", "multimodal", "massive_context"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.25,
           "output": 1.50
@@ -63,6 +68,7 @@
         "id": "gemini-2.5-flash",
         "context_window": 1000000,
         "capabilities": ["massive_context", "fast_analysis", "multimodal"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.30,
           "output": 2.50
@@ -72,6 +78,7 @@
         "id": "gemini-2.5-pro",
         "context_window": 1000000,
         "capabilities": ["massive_context", "deep_reasoning", "multimodal"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 1.25,
           "output": 10.00
@@ -91,6 +98,7 @@
         "id": "gpt-5.4",
         "context_window": 1100000,
         "capabilities": ["general", "coding", "complex_reasoning", "massive_context", "multimodal"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 2.50,
           "output": 15.00
@@ -100,6 +108,7 @@
         "id": "gpt-5.4-mini",
         "context_window": 400000,
         "capabilities": ["general", "coding", "speed", "low_cost"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.50,
           "output": 4.00
@@ -109,6 +118,7 @@
         "id": "gpt-4o",
         "context_window": 128000,
         "capabilities": ["general", "multimodal", "speed"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 2.50,
           "output": 10.00
@@ -118,6 +128,7 @@
         "id": "gpt-4.1",
         "context_window": 1000000,
         "capabilities": ["general", "coding", "instruction_following", "massive_context"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 2.00,
           "output": 8.00
@@ -127,6 +138,7 @@
         "id": "gpt-4o-mini",
         "context_window": 128000,
         "capabilities": ["simple_tasks", "speed", "low_cost", "multimodal"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.15,
           "output": 0.60
@@ -136,6 +148,7 @@
         "id": "o4-mini",
         "context_window": 200000,
         "capabilities": ["reasoning", "math", "coding", "analysis"],
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 1.10,
           "output": 4.40
@@ -155,7 +168,8 @@
       "auto": {
         "id": "auto",
         "description": "Routes to the best available model across 200+ options",
-        "capabilities": ["routing", "multi_provider", "fallback"]
+        "capabilities": ["routing", "multi_provider", "fallback"],
+        "supports_tool_calling": true
       }
     },
     "default": "auto",
@@ -171,7 +185,8 @@
       "auto": {
         "id": "openrouter/auto",
         "description": "Automatically routes to best available model",
-        "capabilities": ["routing", "fallback"]
+        "capabilities": ["routing", "fallback"],
+        "supports_tool_calling": true
       }
     },
     "default": "auto",
@@ -191,6 +206,7 @@
         "vram_min_gb": 3,
         "score": 58,
         "tier": "entry",
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.0,
           "output": 0.0
@@ -203,6 +219,7 @@
         "vram_min_gb": 14,
         "score": 72,
         "tier": "mid",
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.0,
           "output": 0.0
@@ -215,6 +232,7 @@
         "vram_min_gb": 20,
         "score": 68,
         "tier": "high",
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.0,
           "output": 0.0
@@ -227,6 +245,7 @@
         "vram_min_gb": 48,
         "score": 74,
         "tier": "pro",
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.0,
           "output": 0.0
@@ -239,6 +258,7 @@
         "vram_min_gb": 80,
         "score": 83,
         "tier": "enterprise",
+        "supports_tool_calling": true,
         "cost_per_1m_tokens": {
           "input": 0.0,
           "output": 0.0

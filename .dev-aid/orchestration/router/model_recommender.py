@@ -29,6 +29,10 @@ class ModelRecommendation:
     explanation: str
     capabilities: List[str]
     context_window: int
+    # True if the model is trained for native function/tool calling. Surfaced
+    # so callers (e.g. agent loops) can filter the recommendation set when
+    # the task requires structured tool dispatch — see issue #142.
+    supports_tool_calling: bool = False
 
 
 @dataclass
@@ -79,12 +83,21 @@ class ModelRecommender:
         logger.error("Could not find models.json configuration")
         return {}
 
-    def recommend(self, hardware: HardwareProfile) -> RecommendationResult:
+    def recommend(
+        self,
+        hardware: HardwareProfile,
+        requires_tool_calling: bool = False,
+    ) -> RecommendationResult:
         """
         Get model recommendations based on hardware profile
 
         Args:
             hardware: HardwareProfile from hardware detection
+            requires_tool_calling: If True, filter the candidate set to only
+                models with ``supports_tool_calling: true`` in models.json.
+                Used by callers (e.g. agent loops) that need structured tool
+                dispatch and would silently fail on a model that can't emit
+                native function calls. See issue #142.
 
         Returns:
             RecommendationResult with ranked recommendations
@@ -120,8 +133,22 @@ class ModelRecommender:
                 "Consider smaller models for better performance."
             )
 
+        if requires_tool_calling:
+            notes.append(
+                "Tool-calling required: only models with native function "
+                "calling support are considered."
+            )
+
         # Evaluate each model
         for model_name, model_config in self.local_models.items():
+            # Filter out non-tool-calling models when the caller requires it.
+            # This runs BEFORE the VRAM check so the result set's "no models
+            # found" warning correctly attributes the empty set to the filter
+            # rather than to hardware constraints.
+            supports_tools = bool(model_config.get("supports_tool_calling", False))
+            if requires_tool_calling and not supports_tools:
+                continue
+
             vram_required = model_config.get("vram_min_gb", 0)
             tier = model_config.get("tier", "unknown")
             score = model_config.get("score", 0)
@@ -165,6 +192,7 @@ class ModelRecommender:
                 explanation=explanation,
                 capabilities=model_config.get("capabilities", []),
                 context_window=model_config.get("context_window", 0),
+                supports_tool_calling=supports_tools,
             )
             recommendations.append(recommendation)
 
@@ -192,23 +220,31 @@ class ModelRecommender:
             notes=notes,
         )
 
-    def get_best_model(self, hardware: HardwareProfile) -> Optional[ModelRecommendation]:
+    def get_best_model(
+        self,
+        hardware: HardwareProfile,
+        requires_tool_calling: bool = False,
+    ) -> Optional[ModelRecommendation]:
         """
         Get the single best recommended model
 
         Args:
             hardware: HardwareProfile from hardware detection
+            requires_tool_calling: Forwarded to ``recommend()`` — see #142.
 
         Returns:
             Best ModelRecommendation or None if no models available
         """
-        result = self.recommend(hardware)
+        result = self.recommend(hardware, requires_tool_calling=requires_tool_calling)
         if result.recommendations:
             return result.recommendations[0]
         return None
 
     def get_model_by_tier(
-        self, hardware: HardwareProfile, target_tier: str
+        self,
+        hardware: HardwareProfile,
+        target_tier: str,
+        requires_tool_calling: bool = False,
     ) -> Optional[ModelRecommendation]:
         """
         Get best model for a specific tier
@@ -216,11 +252,12 @@ class ModelRecommender:
         Args:
             hardware: HardwareProfile from hardware detection
             target_tier: Tier to filter by ("entry", "mid", "high", "pro", "enterprise")
+            requires_tool_calling: Forwarded to ``recommend()`` — see #142.
 
         Returns:
             Best matching ModelRecommendation or None
         """
-        result = self.recommend(hardware)
+        result = self.recommend(hardware, requires_tool_calling=requires_tool_calling)
         for rec in result.recommendations:
             if rec.tier == target_tier and rec.compatibility in ("optimal", "good"):
                 return rec

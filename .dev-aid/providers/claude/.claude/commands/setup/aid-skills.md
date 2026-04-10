@@ -1,61 +1,104 @@
 ---
 name: aid-skills
-description: "List Dev-AID skills installed in this project"
+description: "List Dev-AID skills and host-project skills installed in this project"
 category: setup
 author: Dev-AID Team (https://probably.group)
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Dev-AID Skills
 
-Show a categorized list of every Dev-AID skill installed in this project, with brief descriptions and pointers to the activation rules.
+Show a categorized list of every skill available in this project — both Dev-AID scaffold skills and host-project skills (if any) — with brief descriptions, collision warnings, and the precedence rule.
 
 ## Instructions for Claude
 
-1. Read the skills registry index to determine the canonical skill list:
+### Step 1: Detect host-project skills
 
-   ```
-   .dev-aid/skills/registry/skills-index.json
-   ```
+Before listing Dev-AID skills, check whether the host project has its own `skills/` directory. Look in these locations (in order):
 
-   If the file does not exist, fall back to walking the directories below.
+- `skills/` at the repo root
+- `.claude/skills/`
+- `docs/skills/`
 
-2. List the contents of each category:
+A host-project skill is any directory containing a `SKILL.md` file within one of these paths. If none of these directories exist, skip the host-project section entirely.
 
-   - **Expert skills** — `.dev-aid/skills/expert/*/SKILL.md`
-   - **Process skills** — `.dev-aid/skills/process/*/SKILL.md`
-   - **Core skills** — `.dev-aid/skills/core/*/SKILL.md`
+### Step 2: Collect Dev-AID skills
 
-3. For each skill, extract the `name` and `description` from the SKILL.md frontmatter (the lines between the leading `---` blocks).
+Read the skills registry index if it exists:
 
-4. Render output in this shape (use the actual counts you find):
+```
+.dev-aid/skills/registry/skills-index.json
+```
 
-   ```
-   📚 Dev-AID Skills (74 expert + 8 process + 5 core = 87 total)
+If it does not exist, walk the directories:
 
-   ## Expert (74)
-   - <skill-name>: <one-line description>
-   ...
+- **Expert skills** — `.dev-aid/skills/expert/*/SKILL.md`
+- **Process skills** — `.dev-aid/skills/process/*/SKILL.md`
+- **Core skills** — `.dev-aid/skills/core/*/SKILL.md`
 
-   ## Process (8)
-   - <skill-name>: <one-line description>
-   ...
+For each skill, extract the `name` and `description` from the SKILL.md frontmatter (between `---` blocks).
 
-   ## Core (5)
-   - <skill-name>: <one-line description>
-   ...
+### Step 3: Detect name collisions
 
-   💡 Skills auto-load based on the files you're working with. The session-start
-      hook (`skill-activation-conservative.sh`) suggests up to 3 skills per
-      session based on file patterns and keywords. To see what's currently
-      active, look at the skill suggestions printed at session start.
+Compare the directory names of host-project skills against Dev-AID skill directory names. A collision exists when both the host project and Dev-AID have a skill with the same directory name (e.g. the host has `skills/fastapi/SKILL.md` and Dev-AID has `.dev-aid/skills/expert/fastapi/SKILL.md`).
 
-   📖 Architecture: .dev-aid/docs/SKILLS-ARCHITECTURE.md
-   ```
+### Step 4: Render output
 
-5. If `$ARGUMENTS` is non-empty, treat it as a category filter (`expert`, `process`, or `core`) and only list that category.
+Use this format (adjust counts to actual values):
 
-6. Keep the output concise — one line per skill, no walls of text. If there are more than 30 skills in a category, group them by sub-category if `skills-index.json` provides one, otherwise show the first 30 alphabetically with a "(+ N more)" footer.
+```
+📚 Skills Overview
+
+## Host Project Skills (N)
+(Only shown when the host project has a skills/ directory)
+- <skill-name>: <one-line description>
+- <skill-name>: <description> ⚠️ name collision with .dev-aid/skills/expert/<same-name>
+...
+
+Precedence: host-project skills take priority over Dev-AID skills with the
+same name. When both exist, agents should read the host-project copy. The
+Dev-AID copy is the upstream default and may be overridden intentionally.
+
+---
+
+## Dev-AID Expert (N)
+- <skill-name>: <one-line description>
+...
+
+## Dev-AID Process (N)
+- <skill-name>: <one-line description>
+...
+
+## Dev-AID Core (N)
+- <skill-name>: <one-line description>
+...
+
+💡 Skills auto-load based on the files you're working with. The session-start
+   hook (`skill-activation-conservative.sh`) suggests up to 3 skills per
+   session based on file patterns and keywords. To see what's currently
+   active, look at the skill suggestions printed at session start.
+
+📖 Architecture: .dev-aid/docs/SKILLS-ARCHITECTURE.md
+```
+
+### Step 5: Handle filters
+
+If `$ARGUMENTS` is non-empty, treat it as a filter:
+- `host` — only show host-project skills
+- `expert`, `process`, or `core` — only show that Dev-AID category
+- `collisions` — only show skills with name collisions
+
+### Step 6: Keep it concise
+
+One line per skill, no walls of text. If there are more than 30 skills in a category, group them by sub-category if `skills-index.json` provides one, otherwise show the first 30 alphabetically with a "(+ N more)" footer.
+
+## Precedence rule
+
+When a host-project skill and a Dev-AID skill share the same name:
+
+1. **Agents should use the host-project copy.** The host project's `skills/<name>/SKILL.md` is treated as the authoritative version.
+2. **Dev-AID's copy is the upstream default.** It may have been intentionally overridden by the host project — respect that override.
+3. **The collision warning exists so users know** both copies exist and can reconcile them (e.g. rename the Dev-AID skill, merge content, or delete the override).
 
 ## Common follow-up questions
 

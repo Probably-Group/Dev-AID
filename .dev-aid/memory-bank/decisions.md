@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Architecture Decision Records (ADRs)
 
 **Purpose**: Document architectural decisions so AI assistants understand WHY things are built this way
@@ -156,3 +160,5 @@ Single repo with all components under `.dev-aid/` directory. The dot-prefix keep
 - Check this file for relevant decisions before suggesting architectural changes
 - If a suggestion conflicts with an ADR, explain the conflict
 - Propose new ADRs for significant changes rather than just making them
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

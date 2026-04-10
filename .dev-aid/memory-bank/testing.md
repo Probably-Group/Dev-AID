@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Testing Guidelines
 
 **Purpose**: Testing standards for AI assistants to follow when writing tests
@@ -201,3 +205,5 @@ describe('POST /api/users', () => {
 - Test edge cases and error conditions, not just happy paths
 - Don't mock everything - some integration is valuable
 - Keep tests fast and independent
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

@@ -288,6 +288,72 @@ class LocalLLMClient(BaseAIClient):
             **kwargs,
         )
 
+    def chat_completion_structured(
+        self,
+        messages: List[Message],
+        model: str,
+        schema: Dict[str, Any],
+        max_tokens: int = 4096,
+        temperature: float = 0.0,
+        **kwargs: Any,
+    ) -> APIResponse:
+        """
+        Request structured (JSON-schema-constrained) output from a local LLM.
+
+        Uses Ollama's native ``format`` parameter, which applies FSM-based
+        constrained decoding (via xgrammar / GBNF internally). The model is
+        mathematically guaranteed to emit valid JSON matching ``schema``,
+        eliminating the retry-on-ValidationError loop that the pre-2024
+        pattern required (see SKILL.md section 3.3 before this PR).
+
+        ``schema`` is a standard JSON Schema object::
+
+            {"type": "object",
+             "properties": {"city": {"type": "string"}},
+             "required": ["city"]}
+
+        or a Pydantic-generated schema (``MyModel.model_json_schema()``).
+
+        The response's ``content`` field will contain the raw JSON string.
+        Callers can then ``json.loads(response.content)`` or
+        ``MyModel.model_validate_json(response.content)`` on it — the parse
+        is guaranteed not to fail for schema-valid output, so no retry loop
+        is needed.
+
+        Implementation note: We pass the schema via ``extra_body={"format":
+        schema}`` instead of the OpenAI SDK's ``response_format`` parameter.
+        This bypasses the OpenAI-compatibility layer (which has known
+        property-ordering issues in Ollama — see ollama/ollama#10001) and
+        talks directly to Ollama's native format engine.
+
+        For LM Studio and llama.cpp backends the equivalent mechanism is
+        GBNF grammar injection; this method doesn't automatically translate
+        the JSON schema to GBNF. LM Studio's recent versions accept JSON
+        schema via the ``response_format`` parameter directly, so callers
+        targeting LM Studio should use ``send_request(response_format=...)``
+        instead.
+
+        Args:
+            messages: Conversation messages
+            model: Model ID
+            schema: JSON Schema dict (or Pydantic ``model_json_schema()``)
+            max_tokens: Maximum tokens (default 4096)
+            temperature: Sampling temperature (default 0.0 for deterministic
+                structured output)
+            **kwargs: Forwarded to ``send_request``
+
+        Returns:
+            APIResponse whose ``content`` is a JSON string matching ``schema``
+        """
+        return self.send_request(
+            messages=messages,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            extra_body={"format": schema},
+            **kwargs,
+        )
+
     def calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
         """
         Calculate cost - always zero for local models

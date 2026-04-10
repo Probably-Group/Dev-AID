@@ -250,3 +250,51 @@ def select_quantization(model_params_b: int, ram_gb: int) -> str:
     else:
         raise ValueError(f"Insufficient RAM for {model_params_b}B model")
 ```
+
+## Constrained Structured Output (FSM Decoding)
+
+Modern local backends support FSM-constrained structured output that
+*mathematically guarantees* the model emits valid JSON matching a given schema.
+This eliminates the generate-parse-retry loop that the pre-2024 pattern
+required.
+
+### Backend support
+
+| Backend    | Parameter / Mechanism           | Notes |
+|------------|--------------------------------|-------|
+| **Ollama** | `format` (JSON Schema object)   | Native FSM via xgrammar. Pass to `LocalLLMClient.chat_completion_structured()` — see issue #141. |
+| **vLLM**   | `guided_json` (JSON Schema)     | xgrammar engine, same guarantee. |
+| **llama.cpp** | GBNF grammar                | Requires schema-to-GBNF translation (e.g. `json-schema-to-grammar`). |
+| **LM Studio** | `response_format` (JSON Schema) | Supported in recent versions; uses the OpenAI API format. |
+
+### Quick example (Ollama via Dev-AID router)
+
+```python
+from pydantic import BaseModel
+from router.local_client import LocalLLMClient, create_local_auth
+from router.api_clients import Message
+
+class City(BaseModel):
+    name: str
+    country: str
+    population: int
+
+auth = create_local_auth("ollama")
+client = LocalLLMClient(auth, {"provider": "local"})
+
+resp = client.chat_completion_structured(
+    messages=[Message(role="user", content="Tell me about Prague")],
+    model="llama3.1",
+    schema=City.model_json_schema(),
+)
+city = City.model_validate_json(resp.content)
+# city.name == "Prague", city.country == "Czech Republic", etc.
+```
+
+### When to use the fallback retry pattern
+
+- Backend doesn't support constrained decoding (rare in 2026)
+- Schema is too complex for the FSM engine (nested recursive types)
+- Cloud provider that only supports free-form JSON mode
+
+See SKILL.md section 3.3 for the fallback code.

@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Performance Guidelines
 
 **Purpose**: Performance best practices for AI assistants when generating code
@@ -215,3 +219,5 @@ stream.pipe(responseStream);
 - Don't over-optimize prematurely
 - If suggesting an optimization, explain the trade-off
 - Flag potential performance issues when you see them
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Code Patterns & Conventions
 
 **Purpose**: Coding standards for AI assistants to follow when generating code
@@ -226,3 +230,5 @@ async function getUser(id: string): Promise<User | null> {
 
 **AI Instructions**: When generating code for this project, follow these patterns.
 If unsure about a convention, ask rather than guess.
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

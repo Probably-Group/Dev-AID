@@ -64,14 +64,21 @@ generate_claude_specific_template() {
 
 **IMPORTANT**: Before starting work, read the memory-bank files for project conventions:
 
-@.dev-aid/memory-bank/patterns.md - Coding conventions (MUST follow)
-@.dev-aid/memory-bank/security.md - Security rules (MUST follow)
-@.dev-aid/memory-bank/decisions.md - Architecture decisions (respect these)
+@.dev-aid/memory-bank/patterns.md - Coding conventions
+@.dev-aid/memory-bank/security.md - Security rules
+@.dev-aid/memory-bank/decisions.md - Architecture decisions
 
 Optional context (read when relevant):
 - \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
 - \`.dev-aid/memory-bank/testing.md\` - Testing standards
 - \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+
+> **Note on default content:** Memory-bank files ship with generic Dev-AID
+> defaults. Files that still contain the HTML comment
+> \`<!-- DEV-AID-DEFAULT-UNCHANGED -->\` at the bottom have NOT been
+> customized for this project — treat them as soft guidance, not binding
+> conventions. Once the user removes that marker (or edits the file), treat
+> the content as authoritative project rules.
 
 ## Tech Stack
 
@@ -153,15 +160,20 @@ generate_gemini_specific_template() {
 
 Before starting work, read these memory-bank files for project conventions:
 
-**MUST READ**:
+**Read first**:
 - \`.dev-aid/memory-bank/patterns.md\` - Coding conventions and style guide
-- \`.dev-aid/memory-bank/security.md\` - Security rules (non-negotiable)
+- \`.dev-aid/memory-bank/security.md\` - Security rules
 - \`.dev-aid/memory-bank/decisions.md\` - Architecture decisions (ADRs)
 
 **Read when relevant**:
 - \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
 - \`.dev-aid/memory-bank/testing.md\` - Testing standards
 - \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+
+> **Note on default content:** Memory-bank files ship with generic Dev-AID
+> defaults. Files containing \`<!-- DEV-AID-DEFAULT-UNCHANGED -->\` at the
+> bottom have NOT been customized — treat as soft guidance, not binding rules.
+> Once the marker is removed, treat as authoritative project conventions.
 
 ## Tech Stack
 
@@ -238,15 +250,20 @@ generate_openai_specific_template() {
 
 Before starting work, read these memory-bank files for project conventions:
 
-**MUST READ**:
+**Read first**:
 - \`.dev-aid/memory-bank/patterns.md\` - Coding conventions and style guide
-- \`.dev-aid/memory-bank/security.md\` - Security rules (non-negotiable)
+- \`.dev-aid/memory-bank/security.md\` - Security rules
 - \`.dev-aid/memory-bank/decisions.md\` - Architecture decisions (ADRs)
 
 **Read when relevant**:
 - \`.dev-aid/memory-bank/activeContext.md\` - Current sprint/focus
 - \`.dev-aid/memory-bank/testing.md\` - Testing standards
 - \`.dev-aid/memory-bank/performance.md\` - Performance guidelines
+
+> **Note on default content:** Memory-bank files ship with generic Dev-AID
+> defaults. Files containing \`<!-- DEV-AID-DEFAULT-UNCHANGED -->\` at the
+> bottom have NOT been customized — treat as soft guidance, not binding rules.
+> Once the marker is removed, treat as authoritative project conventions.
 
 ## Tech Stack
 
@@ -259,8 +276,8 @@ ${tech_stack}
 - Write self-documenting code
 - Keep functions small and focused
 
-### Security (Non-negotiable)
-- Follow ALL rules in \`security.md\`
+### Security
+- Follow rules in \`security.md\`
 - Never hardcode secrets
 - Always validate input
 - Use parameterized queries

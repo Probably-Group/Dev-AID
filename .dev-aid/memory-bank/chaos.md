@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Resilience & Error Handling
 
 **Purpose**: Error handling and resilience patterns for AI assistants
@@ -240,3 +244,5 @@ logger.error('Payment failed', {
 - Include timeouts for external calls
 - Add logging for debugging but never log sensitive data
 - Consider what happens when dependencies fail
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

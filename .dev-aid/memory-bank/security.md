@@ -1,3 +1,7 @@
+> **DEV-AID DEFAULT CONTENT** — replace with project-specific rules.
+> Until edited, AI assistants should treat this as generic guidance,
+> not a binding host-project convention.
+
 # Security Guidelines
 
 **Purpose**: Security requirements for AI assistants to follow when generating code
@@ -192,3 +196,5 @@ Tool reference: `./.dev-aid/docs/SECURITY-TOOLS-REFERENCE.md`
 - If you're unsure about security implications, flag it
 - Never suggest disabling security features "for simplicity"
 - Always validate untrusted input, even in internal functions
+
+<!-- DEV-AID-DEFAULT-UNCHANGED -->

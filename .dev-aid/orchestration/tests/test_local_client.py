@@ -737,3 +737,124 @@ class TestLocalLLMToolCalling:
         """Static helper returns None for None and empty list."""
         assert LocalLLMClient._parse_tool_calls(None) is None
         assert LocalLLMClient._parse_tool_calls([]) is None
+
+
+# ============================================================================
+# Structured Output Tests (issue #141)
+# ============================================================================
+
+
+class TestLocalLLMStructuredOutput:
+    """Tests for chat_completion_structured — FSM-constrained JSON schema output."""
+
+    @pytest.fixture
+    def mock_local_auth(self) -> AuthCredentials:
+        return AuthCredentials(
+            provider="local",
+            auth_type="local",
+            credentials={"backend": "ollama", "base_url": "http://localhost:11434/v1"},
+            source="test fixture",
+        )
+
+    @pytest.fixture
+    def mock_local_config(self) -> Dict[str, Any]:
+        return {"provider": "local", "cost_per_1m_tokens": {"input": 0.0, "output": 0.0}}
+
+    @staticmethod
+    def _make_json_response(content: str = '{"name":"Prague","country":"CZ"}'):
+        """Build a mock response that returns valid JSON content."""
+        usage = MagicMock()
+        usage.prompt_tokens = 20
+        usage.completion_tokens = 10
+        message = MagicMock()
+        message.content = content
+        message.tool_calls = None
+        choice = MagicMock()
+        choice.message = message
+        choice.finish_reason = "stop"
+        response = MagicMock()
+        response.choices = [choice]
+        response.usage = usage
+        response.id = "resp_struct"
+        return response
+
+    def test_schema_forwarded_via_extra_body(self, mock_local_auth, mock_local_config):
+        """The JSON schema must be passed via extra_body={'format': schema}."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            mock_client.chat.completions.create.return_value = self._make_json_response()
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            schema = {
+                "type": "object",
+                "properties": {"name": {"type": "string"}},
+                "required": ["name"],
+            }
+
+            client.chat_completion_structured(
+                messages=[Message(role="user", content="Tell me about Prague")],
+                model="llama3.1",
+                schema=schema,
+            )
+
+            _, call_kwargs = mock_client.chat.completions.create.call_args
+            assert call_kwargs["extra_body"] == {"format": schema}
+            assert call_kwargs["temperature"] == 0.0  # default for structured
+
+    def test_response_content_is_raw_json(self, mock_local_auth, mock_local_config):
+        """The APIResponse.content should be the raw JSON string from the model."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            mock_client.chat.completions.create.return_value = self._make_json_response(
+                '{"city": "Prague", "population": 1300000}'
+            )
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            resp = client.chat_completion_structured(
+                messages=[Message(role="user", content="Prague info")],
+                model="llama3.1",
+                schema={"type": "object", "properties": {"city": {"type": "string"}}},
+            )
+
+            import json
+
+            parsed = json.loads(resp.content)
+            assert parsed["city"] == "Prague"
+            assert parsed["population"] == 1300000
+
+    def test_default_temperature_is_zero(self, mock_local_auth, mock_local_config):
+        """Structured output defaults to temperature=0.0 for determinism."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            mock_client.chat.completions.create.return_value = self._make_json_response()
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            client.chat_completion_structured(
+                messages=[Message(role="user", content="x")],
+                model="llama3.1",
+                schema={"type": "object"},
+            )
+
+            _, call_kwargs = mock_client.chat.completions.create.call_args
+            assert call_kwargs["temperature"] == 0.0
+
+    def test_temperature_override(self, mock_local_auth, mock_local_config):
+        """Callers can override the temperature."""
+        with patch("openai.OpenAI") as mock_openai:
+            mock_client = MagicMock()
+            mock_openai.return_value = mock_client
+            mock_client.chat.completions.create.return_value = self._make_json_response()
+
+            client = LocalLLMClient(mock_local_auth, mock_local_config)
+            client.chat_completion_structured(
+                messages=[Message(role="user", content="x")],
+                model="llama3.1",
+                schema={"type": "object"},
+                temperature=0.5,
+            )
+
+            _, call_kwargs = mock_client.chat.completions.create.call_args
+            assert call_kwargs["temperature"] == 0.5

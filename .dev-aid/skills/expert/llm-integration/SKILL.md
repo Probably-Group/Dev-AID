@@ -370,17 +370,67 @@ class LlamaCppClient:
 
 ### 3.3 WHEN building structured output extraction
 
+**Primary pattern — constrained decoding (recommended)**
+
+Ollama (and vLLM / llama.cpp) supports FSM-constrained structured output
+via the `format` parameter: pass a JSON Schema and the model is
+*mathematically guaranteed* to emit valid JSON matching it. No retry loop.
+Dev-AID's `LocalLLMClient.chat_completion_structured()` wraps this — see
+issue #141 for the implementation.
+
 ```python
 from pydantic import BaseModel, Field
-from typing import TypeVar, Type
+from router.local_client import LocalLLMClient, create_local_auth
+from router.api_clients import Message
+
+class ExtractedInfo(BaseModel):
+    """Pydantic schema for structured extraction."""
+    name: str = Field(description="Entity name")
+    category: str = Field(description="Entity category")
+    confidence: float = Field(ge=0.0, le=1.0)
+
+# Create client (see section 2.1 for auth setup)
+auth = create_local_auth("ollama")
+client = LocalLLMClient(auth, {"provider": "local"})
+
+# Structured extraction — the model MUST emit valid JSON matching the schema.
+# No retry loop needed. Temperature=0.0 by default for deterministic output.
+response = client.chat_completion_structured(
+    messages=[Message(role="user", content="Extract: 'Acme Corp is a technology company'")],
+    model="llama3.1",
+    schema=ExtractedInfo.model_json_schema(),
+)
+
+# Parse is guaranteed to succeed for schema-valid output.
+result = ExtractedInfo.model_validate_json(response.content)
+print(f"{result.name} ({result.category}): {result.confidence}")
+```
+
+**Backend support matrix:**
+| Backend    | Mechanism                      | Status        |
+|------------|--------------------------------|---------------|
+| Ollama     | `format` (native FSM/xgrammar)| Fully supported |
+| vLLM       | `guided_json` (xgrammar)       | Fully supported |
+| llama.cpp  | GBNF grammar                   | Supported (needs schema-to-GBNF translation) |
+| LM Studio  | `response_format` (JSON schema)| Supported in recent versions |
+
+**Fallback pattern — post-hoc validation with retries**
+
+For backends that don't support constrained decoding, or when the schema
+is too complex for the FSM engine (very rare), fall back to the
+generate-parse-retry loop:
+
+```python
 import json
+from typing import TypeVar, Type
+from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
 
 class StructuredExtractor:
-    """Extract structured data from text using LLM with validation."""
+    """Fallback: extract structured data with post-hoc validation and retries."""
 
-    def __init__(self, llm_client: OllamaClient):
+    def __init__(self, llm_client):
         self.llm = llm_client
 
     async def extract(
@@ -392,7 +442,6 @@ class StructuredExtractor:
     ) -> T | None:
         """Extract structured data with schema validation."""
 
-        # Build schema description
         schema_json = schema.model_json_schema()
 
         prompt = f"""Extract information from the text below and return valid JSON matching this schema:
@@ -412,18 +461,13 @@ Return ONLY valid JSON, no other text:"""
         for attempt in range(max_retries + 1):
             try:
                 response = await self.llm.generate(model, prompt, max_tokens=1000)
-
-                # Parse JSON from response
                 json_str = self._extract_json(response)
                 data = json.loads(json_str)
-
-                # Validate with Pydantic
                 return schema.model_validate(data)
 
             except (json.JSONDecodeError, ValueError) as e:
                 if attempt == max_retries:
                     return None
-                # Retry with explicit error feedback
                 prompt += f"\n\nPrevious attempt failed: {e}. Please return valid JSON."
 
         return None

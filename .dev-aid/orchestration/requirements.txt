@@ -34,7 +34,7 @@ toon-format==0.9.0b1        # TOON encoder/decoder - 30-60% token reduction vs J
 httpx==0.28.1                # Modern HTTP client (used by Anthropic, Google, OpenAI SDKs)
 
 # Testing dependencies
-pytest==8.3.5               # Testing framework
+pytest==9.0.3               # Testing framework
 pytest-asyncio==0.24.0      # Async test support
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support

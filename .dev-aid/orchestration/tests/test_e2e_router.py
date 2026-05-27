@@ -568,7 +568,7 @@ class TestFallbackChainE2E:
             result = executor.execute("Anything")
 
         assert result["success"] is False
-        assert "Network down" in result.get("error", "")
+        assert "failed" in result.get("error", "").lower()
 
 
 # ── Cost Tracking Persistence E2E ────────────────────────────────────────────

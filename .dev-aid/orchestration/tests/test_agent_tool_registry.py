@@ -86,7 +86,7 @@ class TestToolRegistry:
         tc = ToolCall(id="tc_1", name="bad", arguments={})
         result = reg.execute(tc)
         assert not result.success
-        assert "Tool exploded" in (result.error or "")
+        assert "Tool execution failed" in (result.error or "")
 
     def test_execute_safety_blocked(self) -> None:
         safety = SafetyConfig(allowed_tools={"read_file"})

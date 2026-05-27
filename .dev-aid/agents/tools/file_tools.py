@@ -5,6 +5,7 @@ Provides read_file, write_file, list_directory, and glob_files
 with safety-aware path handling.
 """
 
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -104,6 +105,25 @@ ALL_DEFINITIONS: List[ToolDefinition] = [
 ]
 
 
+SENSITIVE_PATH_PREFIXES = [
+    os.path.expanduser("~/.ssh"),
+    os.path.expanduser("~/.aws"),
+    os.path.expanduser("~/.gnupg"),
+    os.path.expanduser("~/.config/gcloud"),
+    "/etc/shadow",
+    "/etc/sudoers",
+]
+
+
+def _validate_path(path: str) -> Path:
+    p = Path(path).resolve()
+    p_str = str(p)
+    for prefix in SENSITIVE_PATH_PREFIXES:
+        if p_str.startswith(prefix):
+            raise PermissionError(f"Access denied: path is in a sensitive directory")
+    return p
+
+
 # ── Tool Implementations ─────────────────────────────────────────────
 
 
@@ -113,6 +133,7 @@ def read_file(
     limit: Optional[int] = None,
 ) -> str:
     """Read a file's contents with optional offset and limit."""
+    _validate_path(path)
     file_path = Path(path)
     if not file_path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
@@ -129,6 +150,7 @@ def read_file(
 
 def write_file(path: str, content: str) -> str:
     """Write content to a file, creating parent directories as needed."""
+    _validate_path(path)
     file_path = Path(path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
     file_path.write_text(content, encoding="utf-8")
@@ -137,6 +159,7 @@ def write_file(path: str, content: str) -> str:
 
 def list_directory(path: str) -> str:
     """List directory contents with type indicators."""
+    _validate_path(path)
     dir_path = Path(path)
     if not dir_path.is_dir():
         raise NotADirectoryError(f"Not a directory: {path}")
@@ -155,6 +178,8 @@ def list_directory(path: str) -> str:
 
 def glob_files(pattern: str, path: Optional[str] = None) -> str:
     """Find files matching a glob pattern."""
+    if path:
+        _validate_path(path)
     base = Path(path) if path else Path.cwd()
     if not base.is_dir():
         raise NotADirectoryError(f"Not a directory: {base}")
@@ -171,6 +196,7 @@ def glob_files(pattern: str, path: Optional[str] = None) -> str:
 
 def edit_file(path: str, old_string: str, new_string: str) -> str:
     """Edit a file by replacing an exact string match."""
+    _validate_path(path)
     file_path = Path(path)
     if not file_path.is_file():
         raise FileNotFoundError(f"File not found: {path}")

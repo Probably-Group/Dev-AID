@@ -435,7 +435,7 @@ class TestEnsembleExecute:
 
             result = mode.execute("test")
             assert result["success"] is False
-            assert "API down" in result["error"]
+            assert "failed" in result["error"].lower()
 
     def test_execute_with_mcp_context(self, mock_config, mock_context_builder):
         mode = EnsembleMode(mock_config, mock_context_builder)

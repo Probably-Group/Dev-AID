@@ -42,6 +42,13 @@ class LocalLLMClient(BaseAIClient):
         self.backend = auth.credentials.get("backend", "ollama")
         self.base_url = auth.credentials.get("base_url", self._get_default_url())
 
+        from urllib.parse import urlparse
+
+        parsed = urlparse(self.base_url)
+        hostname = (parsed.hostname or "").lower()
+        if hostname not in ("localhost", "127.0.0.1", "::1", "0.0.0.0"):
+            raise ValueError(f"Local LLM base_url must point to localhost, got: {hostname}")
+
         # Ensure URL ends with /v1 for OpenAI compatibility
         if not self.base_url.endswith("/v1"):
             self.base_url = self.base_url.rstrip("/") + "/v1"

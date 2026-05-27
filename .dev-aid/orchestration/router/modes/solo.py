@@ -2,11 +2,14 @@
 Solo Mode - Single model handles all tasks
 """
 
+import logging
 from typing import Any, Dict
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 from ._protocol import ModeConfigProtocol
+
+logger = logging.getLogger(__name__)
 
 
 class SoloMode:
@@ -101,12 +104,13 @@ class SoloMode:
             }
 
         except Exception as e:
+            logger.error("Solo mode failed: %s", e, exc_info=True)
             return {
                 "success": False,
                 "mode": "solo",
                 "model": model_name,
                 "provider": provider,
-                "error": str(e),
+                "error": "Request failed. Check logs for details.",
             }
 
     def get_info(self) -> Dict[str, Any]:

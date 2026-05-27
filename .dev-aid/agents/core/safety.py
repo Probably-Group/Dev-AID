@@ -46,6 +46,20 @@ BLOCKED_COMMAND_PATTERNS: List[str] = [
     r":()\{.*\|.*&\}\s*;",  # fork bomb
     r"chmod\s+(-\w+\s+)*777\s+/",  # chmod 777 on root paths
     r"chown\s+(-\w+\s+)*-R\s+.*\s+/(?!tmp)",  # chown -R on root paths
+    # Interpreter-based bypass attempts (CWE-78)
+    r"python[23]?\s+(-c\s+|.*-c\s+)",
+    r"perl\s+-e\s+",
+    r"ruby\s+-e\s+",
+    r"node\s+-e\s+",
+    r"php\s+-r\s+",
+    r"base64\s+(-d|--decode)\s*\|",
+    r"\beval\s+",
+    r"\bexec\s+\d*[<>]",
+    r"\bsource\s+/dev/",
+    r"/dev/tcp/",
+    r"xargs\s+.*sh\b",
+    r"\bnc\s+(-e|-c)\s+",
+    r"\bchmod\s+[+]?[ugo]*s",
 ]
 
 _COMPILED_BLOCKED_PATTERNS = [re.compile(p) for p in BLOCKED_COMMAND_PATTERNS]
@@ -177,6 +191,13 @@ class SafetyConfig:
                 return SafetyCheckResult(
                     allowed=False,
                     reason=f"Command blocked by safety rules: {command[:100]}",
+                )
+
+            cwd = arguments.get("cwd")
+            if cwd and not self.is_path_allowed(Path(cwd)):
+                return SafetyCheckResult(
+                    allowed=False,
+                    reason=f"Working directory '{cwd}' is outside allowed boundaries",
                 )
 
         # Check file paths

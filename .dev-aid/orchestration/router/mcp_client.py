@@ -76,7 +76,12 @@ class MCPClient:
 
             # Add server-specific environment variables (if provided)
             if self.config.env:
-                safe_env.update(self.config.env)
+                env_override_blocklist = {"PATH", "HOME", "USER", "LD_PRELOAD", "LD_LIBRARY_PATH"}
+                for key, value in self.config.env.items():
+                    if key in env_override_blocklist:
+                        logger.warning("MCP config tried to override %s — blocked", key)
+                        continue
+                    safe_env[key] = value
 
             self.process = await asyncio.create_subprocess_exec(
                 self.config.command,

@@ -134,7 +134,7 @@ class TestRouterExecutor:
 
         assert result["success"] is False
         assert "error" in result
-        assert "API error" in result["error"]
+        assert "failed" in result["error"].lower()
 
     def test_execute_challenger_mode(self, executor_no_mcp):
         """Test executing in challenger mode"""

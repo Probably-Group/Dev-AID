@@ -122,6 +122,44 @@ check_python_venv() {
     fi
 }
 
+# Verify SHA256 checksum of a downloaded script before execution
+verify_script_checksum() {
+    local script_path="$1"
+    local expected_sha256="$2"
+    local tool_name="$3"
+
+    local actual_sha256
+    if command -v sha256sum &> /dev/null; then
+        actual_sha256=$(sha256sum "$script_path" | awk '{print $1}')
+    elif command -v shasum &> /dev/null; then
+        actual_sha256=$(shasum -a 256 "$script_path" | awk '{print $1}')
+    else
+        echo -e "  ${YELLOW}⚠ sha256sum/shasum not available — cannot verify ${tool_name} install script${NC}"
+        echo -e "  ${YELLOW}  Proceeding without checksum verification${NC}"
+        return 0
+    fi
+
+    if [[ "$actual_sha256" != "$expected_sha256" ]]; then
+        echo -e "  ${RED}✗ Checksum verification FAILED for ${tool_name} install script${NC}"
+        echo -e "  ${RED}  Expected: ${expected_sha256}${NC}"
+        echo -e "  ${RED}  Got:      ${actual_sha256}${NC}"
+        echo -e "  ${RED}  The script has NOT been executed. This could indicate tampering.${NC}"
+        rm -f "$script_path"
+        return 1
+    fi
+
+    echo -e "  ${GREEN}✓ Checksum verified for ${tool_name} install script${NC}"
+    return 0
+}
+
+# Known checksums for pinned install scripts
+# Update these when bumping pinned versions
+# To regenerate: curl -fsSL <url> | sha256sum
+OPENGREP_INSTALL_URL="https://raw.githubusercontent.com/opengrep/opengrep/v1.22.0/install.sh"
+OPENGREP_INSTALL_SHA256="d00ea682170261f09d483496d7cc9864ce58f8e527f1e134a71351b23cd1f9ed"
+TRIVY_INSTALL_URL="https://raw.githubusercontent.com/aquasecurity/trivy/v0.70.0/contrib/install.sh"
+TRIVY_INSTALL_SHA256="e00df553be558995b994758bc8995956554a16937f456dc6615b0cc411bfec7a"
+
 # Detect package manager
 detect_pkg_manager() {
     if command -v brew &> /dev/null; then
@@ -154,11 +192,14 @@ install_tool() {
                 gitleaks)    brew install gitleaks ;;
                 trivy)       brew install trivy ;;
                 opengrep)
-                    echo "Installing Opengrep via official script..."
+                    echo "Installing Opengrep via official script (pinned to v1.22.0)..."
+                    # SECURITY: Downloads and executes remote code — pinned to tagged version with checksum verification
                     local tmp_script
                     tmp_script=$(mktemp)
-                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
-                    # WARNING: Executing unverified remote script
+                    curl -fsSL "$OPENGREP_INSTALL_URL" -o "$tmp_script"
+                    if ! verify_script_checksum "$tmp_script" "$OPENGREP_INSTALL_SHA256" "Opengrep"; then
+                        return 1
+                    fi
                     bash "$tmp_script"
                     rm -f "$tmp_script"
                     ;;
@@ -183,19 +224,27 @@ install_tool() {
                     rm -f "$tmp_tarball"
                     ;;
                 trivy)
-                    echo "Installing Trivy via official script..."
+                    echo "Installing Trivy via official script (pinned to v0.70.0)..."
+                    # SECURITY: Downloads and executes remote code with sudo — pinned to tagged version with checksum verification
                     local tmp_script
                     tmp_script=$(mktemp)
-                    curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh -o "$tmp_script"
+                    curl -sfL "$TRIVY_INSTALL_URL" -o "$tmp_script"
+                    if ! verify_script_checksum "$tmp_script" "$TRIVY_INSTALL_SHA256" "Trivy"; then
+                        return 1
+                    fi
+                    echo -e "  ${YELLOW}⚠ This will execute the verified install script with sudo privileges${NC}"
                     sudo sh "$tmp_script" -b /usr/local/bin
                     rm -f "$tmp_script"
                     ;;
                 opengrep)
-                    echo "Installing Opengrep via official script..."
+                    echo "Installing Opengrep via official script (pinned to v1.22.0)..."
+                    # SECURITY: Downloads and executes remote code — pinned to tagged version with checksum verification
                     local tmp_script
                     tmp_script=$(mktemp)
-                    curl -fsSL https://raw.githubusercontent.com/opengrep/opengrep/main/install.sh -o "$tmp_script"
-                    # WARNING: Executing unverified remote script
+                    curl -fsSL "$OPENGREP_INSTALL_URL" -o "$tmp_script"
+                    if ! verify_script_checksum "$tmp_script" "$OPENGREP_INSTALL_SHA256" "Opengrep"; then
+                        return 1
+                    fi
                     bash "$tmp_script"
                     rm -f "$tmp_script"
                     ;;

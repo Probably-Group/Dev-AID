@@ -78,12 +78,12 @@ def grep_search(
                 args.append("-i")
             if glob:
                 args.extend(["--glob", glob])
-            args.extend([pattern, search_path])
+            args.extend(["--", pattern, search_path])
         else:
             args.extend(["-rn"])
             if case_insensitive:
                 args.append("-i")
-            args.extend([pattern, search_path])
+            args.extend(["--", pattern, search_path])
             if glob:
                 args.extend(["--include", glob])
 

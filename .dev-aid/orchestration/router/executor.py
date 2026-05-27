@@ -116,7 +116,7 @@ class RouterExecutor:
             error_result: Dict[str, Any] = {
                 "success": False,
                 "mode": mode,
-                "error": str(e),
+                "error": "Execution failed. Check logs for details.",
             }
             return error_result
 

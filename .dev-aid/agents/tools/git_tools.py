@@ -131,7 +131,7 @@ def git_diff(
     if staged:
         args.append("--cached")
     if target:
-        args.append(target)
+        args.extend(["--", target])
     output = _run_git(args, cwd=cwd)
     # Truncate large diffs
     if len(output) > 50000:
@@ -155,7 +155,7 @@ def git_add(files: List[str], cwd: Optional[str] = None) -> str:
     """Stage files for commit."""
     if not files:
         return "No files specified to stage."
-    return _run_git(["add"] + files, cwd=cwd)
+    return _run_git(["add", "--"] + files, cwd=cwd)
 
 
 def git_commit(message: str, cwd: Optional[str] = None) -> str:

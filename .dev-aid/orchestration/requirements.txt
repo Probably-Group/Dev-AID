@@ -16,7 +16,7 @@ google-genai==1.53.0         # Google Gemini API (Unified SDK)
 openai==1.54.5               # OpenAI API
 
 # Core utilities
-python-dotenv==1.0.1        # Load .env files for API keys
+python-dotenv==1.2.2        # Load .env files for API keys - bumped for CVE-2026-28684 (symlink following in set_key)
 keyring==25.7.0             # Access system keychain for session tokens (Claude Code, etc.)
 requests==2.33.1            # HTTP requests (fallback) - bumped for CVE-2026-25645 (extract_zipped_paths temp file reuse)
 pydantic==2.12.5            # Data validation and settings - 2.12+ required for Python 3.14 wheels (pydantic-core 2.45+)
@@ -34,8 +34,8 @@ toon-format==0.9.0b1        # TOON encoder/decoder - 30-60% token reduction vs J
 httpx==0.28.1                # Modern HTTP client (used by Anthropic, Google, OpenAI SDKs)
 
 # Testing dependencies
-pytest==8.3.5               # Testing framework
-pytest-asyncio==0.24.0      # Async test support
+pytest==9.0.3               # Testing framework - bumped for vulnerable tmpdir handling
+pytest-asyncio==1.4.0       # Async test support - bumped for pytest 9 compatibility
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
 pytest-xdist==3.5.0         # Parallel testing support

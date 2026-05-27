@@ -44,7 +44,7 @@ Preview:
 
 | | | | | |
 |:---:|:---:|:---:|:---:|:---:|
-| [<img src="https://github.com/martinholovsky.png" width="60"><br><sub>@martinholovsky</sub>](https://github.com/martinholovsky) | | | | |
+| [<img src="https://github.com/martinholovsky.png" width="60"><br><sub>@martinholovsky</sub>](https://github.com/martinholovsky) | [<img src="https://github.com/septrcode.png" width="60"><br><sub>@septrcode</sub>](https://github.com/septrcode) | | | |
 
 > **Join the wall:** Open a PR adding your GitHub username to the table above, or just start using the badge on your profile.
 

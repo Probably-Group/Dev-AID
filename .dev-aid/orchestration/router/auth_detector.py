@@ -33,6 +33,15 @@ class AuthCredentials:
     credentials: Dict[str, Any]  # Provider-specific auth data
     source: str  # Where auth was found (e.g., "~/.config/claude/config.json")
 
+    def __repr__(self) -> str:
+        # SECURITY: mask credentials to prevent accidental exposure (CWE-312)
+        return (
+            f"AuthCredentials(provider={self.provider!r}, "
+            f"auth_type={self.auth_type!r}, "
+            f"source={self.source!r}, "
+            f"credentials=<masked>)"
+        )
+
 
 class AuthDetector:
     """Detect and manage authentication across multiple providers"""
@@ -175,7 +184,9 @@ class AuthDetector:
 
         # Try API key as fallback
         api_key = os.getenv("ANTHROPIC_API_KEY")
-        if api_key:
+        if api_key and len(api_key.strip()) < 10:
+            logger.warning("ANTHROPIC_API_KEY appears too short — skipping")
+        elif api_key:
             logger.info("Using Claude API key from environment")
             return AuthCredentials(
                 provider="claude",
@@ -229,7 +240,9 @@ class AuthDetector:
 
         # Try API key as fallback
         api_key = os.getenv("GOOGLE_API_KEY")
-        if api_key:
+        if api_key and len(api_key.strip()) < 10:
+            logger.warning("GOOGLE_API_KEY appears too short — skipping")
+        elif api_key:
             logger.info("Using Google API key from environment")
             return AuthCredentials(
                 provider="gemini",
@@ -252,6 +265,9 @@ class AuthDetector:
             AuthCredentials if API key found, None otherwise
         """
         api_key = os.getenv("OPENAI_API_KEY")
+        if api_key and len(api_key.strip()) < 10:
+            logger.warning("OPENAI_API_KEY appears too short — skipping")
+            return None
         if api_key:
             logger.info("Using OpenAI API key from environment")
             return AuthCredentials(

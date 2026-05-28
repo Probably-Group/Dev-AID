@@ -9,7 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(no unreleased changes — see [1.6.0] below for the most recent shipped work)
+(no unreleased changes — see [1.6.1] below for the most recent shipped work)
+
+---
+
+## [1.6.1] - 2026-05-28
+
+### Security
+
+Ships two LOW-severity OWASP fixes that were claimed by PR #166's commit message but accidentally omitted from the actual diff (auth_detector.py was not staged before commit):
+
+- **AUTH-6 (CWE-312)**: `AuthCredentials.__repr__` now masks the `credentials` field as `<masked>` to prevent accidental exposure of API keys / session tokens in debug output, error tracebacks, or logs.
+- **AUTH-7 (CWE-287)**: API keys shorter than 10 characters (after strip) are now rejected at detection time with a warning, catching misconfigured env vars like `ANTHROPIC_API_KEY=true` before they fail confusingly at API-call time. Applies to ANTHROPIC_API_KEY, GOOGLE_API_KEY, OPENAI_API_KEY.
+
+### Fixed
+
+- Updated one test fixture (`"api-key"` → `"sk-ant-api-key"`) that was under the new 10-char threshold.
 
 ---
 

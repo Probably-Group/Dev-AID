@@ -696,7 +696,7 @@ Your choice [y/u/m/d/s/?]:
 
 Dev-AID checks for updates automatically on session start (throttled to once per 24h, shared across all your projects):
 ```
-⬆️  Update available: 1.5.1 -> 1.6.0 (run: gh dev-aid update)
+⬆️  Update available: 1.6.0 -> 1.6.1 (run: gh dev-aid update)
 ```
 
 **Update via CLI Extension:**
@@ -721,20 +721,20 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 |------------|---------|--------|----------------|-------|----------|
 | **Type** | Enhancement layer | Full IDE | IDE extension | CLI tool | Full IDE |
 | **Works with existing tools** | ✅ 6 native + 3 MCP | ❌ Replaces IDE | ⚠️ Limited IDEs | ✅ Any terminal | ❌ Replaces IDE |
-| **Multi-AI routing** | ✅ 4 modes (solo/challenger/ensemble/architect) | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ⚠️ Model selection |
+| **Multi-AI routing** | ✅ 4 modes (solo/challenger/ensemble/architect) | ⚠️ Model selection | ⚠️ Model selection | ✅ Any model | ✅ Adaptive router |
 | **Dual-AI review (Challenger)** | ✅ Claude → Gemini reviews | ❌ | ❌ | ❌ | ❌ |
 | **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ⚠️ Via API override | ❌ | ✅ Native Ollama | ⚠️ Enterprise only |
 | **Local RAG ($0 forever)** | ✅ EmbeddingGemma + FAISS | ⚠️ Cloud-based | ⚠️ Cloud-based | ❌ | ⚠️ Cloud-based |
 | **Expert skills** | ✅ 74 auto-loading | ❌ | ❌ | ❌ | ❌ |
 | **Process skills** | ✅ 8 behavioral protocols | ❌ | ❌ | ❌ | ❌ |
-| **Agent framework** | ✅ 9 agents, 16 tools, 3 providers + local | ✅ Background agents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade agent |
-| **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ❌ | ✅ CodeQL Autofix | ❌ | ⚠️ Platform-level |
-| **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ |
-| **MCP integration** | ✅ Dual-layer (native + router) | ❌ | ❌ | ❌ | ❌ |
-| **Session persistence** | ✅ Auto-save/restore | ❌ | ❌ | ❌ | ❌ |
-| **Architect mode** | ✅ Plan → approve → implement | ❌ | ❌ | ❌ | ❌ |
-| **Git worktree isolation** | ✅ Scope + conflict detection | ❌ | ❌ | ❌ | ❌ |
-| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ❌ | ❌ | ❌ | ❌ |
+| **Agent framework** | ✅ 9 agents, 16 tools, 3 providers + local | ✅ Cursor 3 agents + parallel subagents | ✅ Coding agent | ⚠️ Scripting mode | ✅ Cascade + multi-agent |
+| **Security scanning** | ✅ CVE + SAST + Secrets + Misconfig | ✅ Security Reviewer + Vuln Scanner (2026) | ✅ CodeQL Autofix | ❌ | ⚠️ Platform-level |
+| **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ✅ Cloud agent research sessions | ❌ | ❌ |
+| **MCP integration** | ✅ Dual-layer (native + router) | ✅ One-click install + marketplace | ✅ Agent Mode + CLI | ⚠️ via mcpm-aider proxy | ✅ Native Cascade MCP |
+| **Session persistence** | ✅ Auto-save/restore | ❌ | ✅ Copilot Memory + /memory CLI | ❌ | ✅ Workspace context bundle |
+| **Architect mode** | ✅ Plan → approve → implement | ❌ | ⚠️ Plan mode + Autopilot subagents | ✅ /architect (reasoner+editor) | ❌ |
+| **Git worktree isolation** | ✅ Scope + conflict detection | ❌ | ❌ | ❌ | ✅ Multi-agent worktrees (Wave 13) |
+| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ⚠️ Community frameworks only | ❌ | ❌ | ❌ |
 | **CI/CD generator** | ✅ Auto-detect + frequency profiles | ⚠️ Agent can generate | ⚠️ Agent can generate | ❌ | ❌ |
 | **Cost tracking** | ✅ Built-in with budget limits | ✅ Spend limits | ✅ Premium budgets | ✅ Token reporting | ⚠️ Credit dashboard |
 | **Pre-commit review** | ✅ AI-driven staged review | ✅ Agent hooks | ✅ Copilot Code Review | ⚠️ Hook-based | ⚠️ Linting hooks |
@@ -753,23 +753,22 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 | Capability | Dev-AID | [everything-claude-code](https://github.com/affaan-m/everything-claude-code) | [agents](https://github.com/wshobson/agents) | [Superpowers](https://github.com/obra/superpowers) | [claude-context](https://github.com/zilliztech/claude-context) | [my-claude-code-setup](https://github.com/centminmod/my-claude-code-setup) |
 |------------|---------|----------------------|--------|-------------|----------------|---------------------|
-| **GitHub Stars** | ~100 | **42.7K** ⭐ | **28.2K** ⭐ | **48.2K** ⭐ | 5.3K | 1.8K |
-| **Type** | Multi-provider framework | Claude config collection | Agent orchestration | Skills framework | Semantic search MCP | Starter template |
-| **Multi-provider support** | ✅ 6 native + 3 MCP | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only | ❌ Claude only |
-| **Expert skills/agents** | 74 + 9 agents + 8 process | 108 agents + 129 skills | 112 agents + 73 plugins | ~15 skills | ❌ | ❌ |
-| **Multi-AI router** | ✅ 4 modes (challenger/ensemble/architect/solo) | ⚠️ Model tier strategy | ❌ | ❌ | ❌ | ❌ |
-| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ❌ | ❌ | ❌ | ⚠️ Cloud embeddings | ❌ |
+| **Type** | Multi-provider framework | Cross-harness agent system | Agent/plugin marketplace | Skills framework | Hybrid search MCP | Starter template |
+| **Multi-provider support** | ✅ 6 native + 3 MCP | ✅ Cross-harness (Codex, Cursor, Gemini, Zed, Copilot) | ✅ Multi-harness (Codex, Cursor, OpenCode, Gemini CLI) | ❌ Claude only | ❌ Claude only | ✅ devcontainer (Claude+Codex+Gemini) |
+| **Expert skills/agents** | 74 + 9 agents + 8 process | 108 agents + 129 skills | 191 agents + 83 plugins + 155 skills | ~15 skills | ❌ | ❌ |
+| **Multi-AI router** | ✅ 4 modes (challenger/ensemble/architect/solo) | ✅ NanoClaw v2 model routing | ❌ | ❌ | ❌ | ❌ |
+| **Local LLM support** | ✅ Ollama/LM Studio/llama.cpp | ❌ | ⚠️ Agent definitions only | ❌ | ⚠️ Cloud embeddings | ❌ |
 | **Local RAG** | ✅ FAISS + BM25 hybrid ($0, private) | ❌ | ❌ | ❌ | ⚠️ Zilliz Cloud | ❌ |
-| **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Trufflehog + npm audit | ✅ SAST + dependency scan | ❌ | ❌ | ❌ |
-| **Agent framework** | ✅ 9 agents, 16 tools, 3 providers + local | ✅ 15+ agents, PM2 orchestration | ✅ 16 orchestrators | ✅ Parallel subagents | ❌ | ⚠️ Subagents |
+| **Security automation** | ✅ CVE + SAST + Secrets + Misconfig | ⚠️ Trufflehog + npm audit | ✅ SAST + dependency scan | ⚠️ MCP trust flows | ❌ | ❌ |
+| **Agent framework** | ✅ 9 agents, 16 tools, 3 providers + local | ✅ 15+ agents, PM2 orchestration | ✅ 16 orchestrators | ✅ Parallel subagents | ❌ | ✅ Subagents + memory-bank-sync |
 | **Process skills (TDD)** | ✅ 8 behavioral protocols | ✅ /tdd, /plan commands | ⚠️ Basic | ✅ Core strength | ❌ | ❌ |
-| **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ❌ | ❌ | ❌ |
-| **Architect mode** | ✅ Two-agent pattern | ❌ | ❌ | ❌ | ❌ | ❌ |
-| **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ Zilliz-based | ❌ |
+| **Session persistence** | ✅ Auto-save/restore | ⚠️ Basic | ❌ | ✅ episodic-memory plugin | ❌ | ❌ |
+| **Architect mode** | ✅ Two-agent pattern | ✅ architect.md specialist | ✅ docs-architect + architecture plugins | ❌ | ❌ | ❌ |
+| **Hybrid search (BM25+Vector)** | ✅ RRF fusion | ❌ | ❌ | ❌ | ✅ BM25 + dense + Merkle | ❌ |
 | **Git worktree isolation** | ✅ With safeguards | ❌ | ❌ | ✅ Basic | ❌ | ❌ |
-| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ⚠️ Basic | ❌ | ⚠️ Memory notes | ❌ | ✅ Synced |
-| **MCP integration** | ✅ Dual-layer (native + router) | ⚠️ Limited | ❌ | ❌ | ✅ Vector search | ✅ Multiple servers |
-| **Deep research** | ✅ Gemini/Perplexity/Tavily | ❌ | ❌ | ❌ | ❌ | ❌ |
+| **Memory bank** | ✅ Git-synced, query-aware, token-budgeted | ⚠️ Basic | ⚠️ Pensyve external memory | ⚠️ Memory notes | ❌ | ✅ Synced |
+| **MCP integration** | ✅ Dual-layer (native + router) | ⚠️ Limited | ❌ | ✅ superpowers-chrome + Superpower MCP | ✅ Vector search | ✅ Multiple servers |
+| **Deep research** | ✅ Gemini/Perplexity/Tavily | ✅ deep-research skill | ❌ | ❌ | ❌ | ❌ |
 | **CI/CD generator** | ✅ Auto-detect + frequency profiles | ❌ | ✅ cicd-automation plugin | ❌ | ❌ | ❌ |
 | **Cost tracking** | ✅ Built-in with budget limits | ❌ | ⚠️ Model selection guide | ❌ | ⚠️ Token reduction | ✅ USD cost display |
 | **Pre-commit review** | ✅ AI-driven staged review | ✅ Code reviewer agent | ✅ code-review-ai plugin | ✅ Code review skills | ❌ | ❌ |
@@ -784,7 +783,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 **Legend:** ✅ = Full support | ⚠️ = Partial/Limited | ❌ = Not available
 
-> 💡 **Bottom line:** Other frameworks lock you into Claude. Dev-AID lets you use the best of everything.
+> 💡 **Bottom line:** The Claude Code framework space has matured — most now offer multi-harness support, agent orchestration, and architect patterns. Dev-AID's edge is the combination: **local LLM + local hybrid RAG + multi-AI routing + dual-AI challenger reviews + deep research + SBOM/security automation**, all in one open-source package with no per-seat cost.
 
 </details>
 
@@ -813,6 +812,7 @@ gh dev-aid update   # Apply update (with backup + protected paths)
 
 ## 🆕 Latest Changes
 
+- **🔒 v1.6.x Security Hardening** — OWASP audit shipped 25 findings (1 CRITICAL, 3 HIGH, 13 MEDIUM, 8 LOW): bash-tool blocklist hardening, file-tool sensitive-path denylist, GitHub-asset checksum verification, SSRF guard for local LLM, MCP response validation, GitHub Actions SHA-pinned per OpenSSF Scorecard, `AuthCredentials.__repr__` masking — see [CHANGELOG](.dev-aid/CHANGELOG.md)
 - **🎛️ Stack-Specific Presets** — 21 presets covering Python, JS/TS, Java, C#, Go, Rust, PHP, Ruby, Dart, mobile, and K8s/Talos — with SOTA security, performance, and quality rules
 - **🤖 Autonomous Agent Framework** — 9 agents, 16 tools, 3 providers + local with slash commands (`/aid-pr`, `/aid-test`, `/aid-team`, `/aid-dod`) — [Guide](.dev-aid/docs/Dev-AID-AGENTS.md)
 - **🧠 Agent APO** — Automatic Prompt Optimization with trace collection (`--trace`), beam search, and golden test scoring

@@ -12,7 +12,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-from ..providers.base import ResearchDepth, ResearchResult
+from providers.base import ResearchDepth, ResearchResult
 
 logger = logging.getLogger(__name__)
 

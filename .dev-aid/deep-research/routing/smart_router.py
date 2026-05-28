@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
-from ..providers.base import ResearchDepth, ResearchProvider
+from providers.base import ResearchDepth, ResearchProvider
 
 logger = logging.getLogger(__name__)
 

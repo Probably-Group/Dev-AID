@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Beta Testing Guide
-    url: https://github.com/Probably-Group/Dev-AID/blob/main/.dev-aid/docs/BETA-TESTING-GUIDE.md
-    about: Read the beta testing guide before reporting issues
   - name: Documentation
     url: https://github.com/Probably-Group/Dev-AID#-documentation
     about: Check the docs before opening an issue
   - name: Discussions
     url: https://github.com/Probably-Group/Dev-AID/discussions
     about: Ask questions and share ideas
+  - name: Security Policy
+    url: https://github.com/Probably-Group/Dev-AID/blob/main/SECURITY.md
+    about: For security vulnerabilities, please follow the responsible disclosure process

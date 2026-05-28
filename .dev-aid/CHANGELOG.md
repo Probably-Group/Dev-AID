@@ -9,7 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(no unreleased changes — see [1.5.1] below for the most recent shipped work)
+(no unreleased changes — see [1.6.0] below for the most recent shipped work)
+
+---
+
+## [1.6.0] - 2026-05-28
+
+### Security (OWASP audit fixes — PRs #164, #165, #166, #167)
+
+**CRITICAL / HIGH:**
+- **Bash tool hardening** (CWE-78): 13 new blocked patterns for interpreter-based bypass attempts (python -c, perl -e, base64 decode pipes, /dev/tcp, netcat reverse shells, setuid chmod, xargs+sh). Added cwd validation against allowed_paths.
+- **File tool path traversal** (CWE-22): Added sensitive directory denylist (~/.ssh, ~/.aws, ~/.gnupg, ~/.config/gcloud, /etc/shadow, /etc/sudoers) enforced in all 5 file tools.
+- **Download integrity** (CWE-494): github_client.py now auto-verifies SHA256 checksums after downloading release assets. Tampered files are deleted and the download fails.
+- **Install script pinning** (CWE-494): check-prerequisites.sh pins Opengrep and Trivy install scripts to specific tagged versions with sha256sum verification before execution.
+
+**MEDIUM:**
+- **Argument injection prevention** (CWE-88): Added `--` separator in git_diff, git_add, and grep_search tools to prevent flag injection from LLM-controlled parameters.
+- **SSRF prevention** (CWE-918): local_client.py validates base_url is loopback-only (localhost, 127.0.0.1, ::1, 0.0.0.0).
+- **Error message sanitization** (CWE-209): Routing modes (solo/challenger/ensemble) and executor no longer leak internal exception details to callers; full errors logged internally.
+- **Tool execution errors**: tool_registry.py exposes only error type name, not full exception message.
+- **Sensitive data logging** (CWE-532): agent_runner.py logs tool argument keys only, not values. auth_detector.py downgraded config path logging to DEBUG.
+- **MCP env override blocklist** (CWE-284): mcp_client.py prevents config from overriding PATH, HOME, LD_PRELOAD, LD_LIBRARY_PATH.
+- **MCP response validation** (CWE-20): MCP client validates JSON-RPC response shape before trusting it.
+- **Audit logging** (CWE-778): WARNING-level logging for tool safety denials and budget exhaustion events.
+- **GitHub Actions SHA pinning** (CWE-829): All 15 action references in .github/workflows/ pinned to commit SHAs instead of mutable tags per OpenSSF Scorecard best practices.
+- **Dependency pinning**: deep-research/pyproject.toml pins all 5 deps to exact versions. local-search/pyproject.toml pins numpy==1.26.4.
+
+**LOW:**
+- **AuthCredentials masking**: Override __repr__ to mask credentials field in debug output.
+- **API key format validation**: Reject keys < 10 chars to catch misconfigured env vars early.
+- **Auth file ownership check** (CWE-345): Skip session token configs not owned by current user.
+- **GitHub repo parameter validation**: gh_issue_view / gh_pr_view validate repo format matches `owner/repo`.
+- **Logger over print**: cost_tracker.py uses logger.warning instead of print for errors.
+
+### Fixed
+- **Deep-research test imports**: Converted broken relative imports (`from ..providers.base`) to absolute imports. 20 of 32 previously dead tests now run.
+- **Deep-research packaging**: Fixed pyproject.toml entry point reference to non-existent parent package; removed missing README.md reference that blocked `pip install -e .`.
+- **Deep-research cache invalidation**: `invalidate(query="x")` with only a query argument now actually evicts matching entries (was silently a no-op).
+- **Deep-research rate-limit exception swallowing**: ProviderRateLimitError no longer caught and re-wrapped as generic ProviderError.
+- **Deep-research timeout dropped**: `deep_research(timeout_seconds=N)` now actually enforces the timeout via `asyncio.wait_for`.
+- **Deep-research blocking stdin**: MCP server uses `asyncio.StreamReader` instead of synchronous `for line in sys.stdin` inside async function.
+- **Agents CLI --scope collision**: doc-auditor's `--scope` argument renamed to `--audit-scope` to stop shadowing the global `--scope` (host/dev-aid) safety flag.
+- **MessageBus unbounded growth**: Added 10000-message ring buffer. Callbacks now invoked outside the lock to prevent deadlock if a callback re-enters send().
+- **Skill registry phantom references**: skill-rules.json no longer references 9 non-existent skills.
+- **Stale model IDs**: orchestration.json, agents.json, config_models.py updated to current model IDs (claude-sonnet-4-6, gpt-5.4, gemini-3.1-pro).
+- **Local-search coverage config**: pytest --cov no longer measures venv/.
+- **Local-search NumPy compat**: Pinned numpy<2.0.0 to avoid runtime crashes with torch 2.2.x.
+- **Architect mode**: Removed from valid orchestration_mode values (was accepted by config validation but never wired into executor — caused runtime crash).
+- **CI action versions**: Aligned all workflows to use consistent action major versions.
+
+### Removed
+- Orphaned `test_google_*.py` migration scripts from `.dev-aid/orchestration/`.
+- Dead `TOKEN_ESTIMATION_FACTOR` constant.
+- Unused `ProvidersStatusRequest` model and `List` import in deep-research validation.
+- Unused `mcp==1.23.1` declared dependency in local-search.
 
 ---
 

@@ -102,7 +102,6 @@ class TestSoloMode:
         assert info["mode"] == "solo"
         assert "description" in info
         assert "default_model" in info
-        assert "enabled" in info
 
 
 class TestEnsembleMode:

@@ -69,6 +69,6 @@ def run_bash(
         return output
 
     except subprocess.TimeoutExpired:
-        return f"[error] Command timed out after {timeout_s:.0f}s: {command[:100]}"
-    except Exception as e:
-        return f"[error] Command failed: {e}"
+        return f"[error] Command timed out after {timeout_s:.0f}s"
+    except Exception as e:  # noqa: F841
+        return "[error] Command execution failed"

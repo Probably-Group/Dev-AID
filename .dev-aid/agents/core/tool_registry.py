@@ -75,6 +75,9 @@ class ToolRegistry:
             risk_level=definition.risk_level,
         )
         if not check.allowed:
+            logger.warning(
+                "SECURITY: Tool '%s' blocked by safety check: %s", name, check.reason
+            )
             return ToolResult(
                 call_id=tool_call.id,
                 name=name,
@@ -94,13 +97,14 @@ class ToolRegistry:
                 success=True,
             )
         except Exception as e:
-            logger.error("Tool '%s' execution failed: %s", name, e)
+            logger.error("Tool '%s' execution failed: %s", name, e, exc_info=True)
+            safe_error = type(e).__name__
             return ToolResult(
                 call_id=tool_call.id,
                 name=name,
                 output="",
                 success=False,
-                error=str(e),
+                error=f"Tool execution failed ({safe_error})",
             )
 
     # ── Provider-specific format exports ──────────────────────────────

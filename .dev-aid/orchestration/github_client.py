@@ -22,6 +22,7 @@ Environment Variables:
     DEV_AID_REPO - Override default repository (default: auto-detect from git remote)
 """
 
+import hashlib
 import json
 import os
 import sys
@@ -44,6 +45,12 @@ class Color:
 
 class GitHubRateLimitError(Exception):
     """Raised when GitHub API rate limit is exceeded"""
+
+    pass
+
+
+class ChecksumVerificationError(Exception):
+    """Raised when a downloaded file fails SHA256 checksum verification"""
 
     pass
 
@@ -301,6 +308,59 @@ class GitHubClient:
 
             print(f"{Color.RED}❌ Download failed: {e}{Color.NC}", file=sys.stderr)
             raise
+
+        # Verify checksum after successful download
+        self._verify_checksum(asset_name, output_path)
+
+    def _verify_checksum(self, asset_name: str, file_path: Path) -> None:
+        """
+        Verify SHA256 checksum of a downloaded file against release checksums.
+
+        Args:
+            asset_name: Name of the downloaded asset (used to look up expected hash)
+            file_path: Path to the downloaded file
+
+        Raises:
+            ChecksumVerificationError: If checksum does not match expected value
+        """
+        checksums = self.get_checksums()
+
+        if not checksums:
+            # No checksums file in release — warn but don't fail (graceful degradation)
+            print(
+                f"{Color.YELLOW}⚠️  No checksums available for this release. "
+                f"Skipping integrity verification.{Color.NC}",
+                file=sys.stderr,
+            )
+            return
+
+        expected_hash = checksums.get(asset_name)
+        if not expected_hash:
+            print(
+                f"{Color.YELLOW}⚠️  No checksum entry for '{asset_name}'. "
+                f"Skipping integrity verification.{Color.NC}",
+                file=sys.stderr,
+            )
+            return
+
+        # Compute SHA256 of the downloaded file
+        sha256 = hashlib.sha256()
+        with open(file_path, "rb") as f:
+            for chunk in iter(lambda: f.read(8192), b""):
+                sha256.update(chunk)
+
+        actual_hash = sha256.hexdigest()
+
+        if actual_hash != expected_hash:
+            # Delete the corrupted/tampered file
+            file_path.unlink()
+            raise ChecksumVerificationError(
+                f"Checksum verification failed for '{asset_name}'. "
+                f"Expected: {expected_hash}, Got: {actual_hash}. "
+                f"The downloaded file has been deleted."
+            )
+
+        print(f"{Color.GREEN}✅ Checksum verified (SHA256: {actual_hash[:16]}...){Color.NC}")
 
     def get_checksums(self) -> Dict[str, str]:
         """

@@ -11,6 +11,8 @@
 - [ ] Enhancement to existing feature
 - [ ] Documentation
 - [ ] Refactoring (no functional change)
+- [ ] Security fix
+- [ ] Dependency update
 
 ## Testing
 
@@ -22,6 +24,14 @@
 
 ## Checklist
 
-- [ ] Code follows project conventions
+- [ ] Code follows project conventions (Black, Flake8, MyPy strict for router/)
+- [ ] Pre-commit hooks pass locally
 - [ ] No secrets or credentials in code
+- [ ] No coverage artifacts (`.coverage`, `htmlcov/`) committed
+- [ ] Updated CHANGELOG if user-visible
 - [ ] Self-reviewed the diff before submitting
+
+## Related Issues
+
+<!-- e.g., Closes #123, Refs #456 -->
+

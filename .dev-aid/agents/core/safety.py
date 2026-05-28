@@ -199,6 +199,13 @@ class SafetyConfig:
                     reason=f"Working directory '{cwd}' is outside allowed boundaries",
                 )
 
+            cwd = arguments.get("cwd")
+            if cwd and not self.is_path_allowed(Path(cwd)):
+                return SafetyCheckResult(
+                    allowed=False,
+                    reason=f"Working directory '{cwd}' is outside allowed boundaries",
+                )
+
         # Check file paths
         for key in ("path", "file_path"):
             if key in arguments:

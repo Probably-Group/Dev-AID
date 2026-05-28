@@ -149,6 +149,7 @@ class RouterExecutor:
         # Check budget before executing
         daily_limit = self.config.get_cost_limit()
         if self.cost_tracker.is_over_budget(daily_limit):
+            logger.warning("SECURITY: Daily budget limit exceeded ($%.2f)", daily_limit)
             return {
                 "success": False,
                 "error": f"Daily budget limit exceeded (${daily_limit:.2f})",

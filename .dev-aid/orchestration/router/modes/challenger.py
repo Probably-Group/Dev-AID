@@ -2,11 +2,14 @@
 Challenger Mode - Primary generates, challenger reviews
 """
 
+import logging
 from typing import Any, Dict
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 from ._protocol import ModeConfigProtocol
+
+logger = logging.getLogger(__name__)
 
 
 class ChallengerMode:
@@ -147,11 +150,12 @@ class ChallengerMode:
             }
 
         except Exception as e:
+            logger.error("Challenger primary-only failed: %s", e, exc_info=True)
             return {
                 "success": False,
                 "mode": "challenger",
                 "challenged": False,
-                "error": str(e),
+                "error": "Request failed. Check logs for details.",
             }
 
     def _execute_with_challenge(
@@ -319,11 +323,14 @@ class ChallengerMode:
             }
 
         except Exception as e:
+            logger.error(
+                "Challenger model '%s' (%s) failed: %s", model_name, role, e, exc_info=True
+            )
             return {
                 "success": False,
                 "role": role,
                 "model": model_name,
-                "error": str(e),
+                "error": "Request failed. Check logs for details.",
             }
 
     def _build_review_prompt(self, original_request: str, primary_response: str) -> str:

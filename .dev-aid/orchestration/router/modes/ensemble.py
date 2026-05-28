@@ -2,12 +2,15 @@
 Ensemble Mode - Route to best model based on task type
 """
 
+import logging
 from typing import Any, Dict, Tuple
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
 from ..task_classifier import TaskClassifier, TaskType
 from ._protocol import ModeConfigProtocol
+
+logger = logging.getLogger(__name__)
 
 
 class EnsembleMode:
@@ -151,13 +154,14 @@ class EnsembleMode:
             }
 
         except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
+            logger.error("Ensemble mode failed: %s", e, exc_info=True)
             return {
                 "success": False,
                 "mode": "ensemble",
                 "task_type": task_type,
                 "selected_model": selected_model,
                 "provider": provider,
-                "error": str(e),
+                "error": "Request failed. Check logs for details.",
             }
 
     def _get_fallback_model(self) -> Tuple[str, Dict[str, Any], str]:

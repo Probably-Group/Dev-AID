@@ -39,12 +39,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -89,7 +89,7 @@ jobs:
 
       - name: Add safety check comment
         if: steps.safety.outputs.safe == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const reason = '${{ steps.safety.outputs.reason }}';
@@ -143,7 +143,7 @@ jobs:
 
       - name: Add solution comment
         if: steps.solution.outputs.generated == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const fs = require('fs');
@@ -185,7 +185,7 @@ jobs:
 
       - name: Add analysis label
         if: steps.solution.outputs.generated == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const issueNumber = context.issue.number || ${{ inputs.issue_number || 0 }};
@@ -198,7 +198,7 @@ jobs:
 
       - name: Handle failure
         if: steps.solution.outputs.generated == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const issueNumber = context.issue.number || ${{ inputs.issue_number || 0 }};

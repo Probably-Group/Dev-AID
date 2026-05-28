@@ -194,6 +194,14 @@ class MCPClient:
         response_line = await asyncio.wait_for(self.process.stdout.readline(), timeout=timeout)
         response: Dict[str, Any] = json.loads(response_line.decode())
 
+        # SECURITY: Validate JSON-RPC response shape (CWE-20)
+        if not isinstance(response, dict):
+            raise RuntimeError("MCP response is not an object")
+        if response.get("jsonrpc") != "2.0":
+            raise RuntimeError("MCP response missing or invalid jsonrpc version")
+        if "result" not in response and "error" not in response:
+            raise RuntimeError("MCP response missing both 'result' and 'error'")
+
         return response
 
     def _next_id(self) -> int:

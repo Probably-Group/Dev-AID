@@ -111,6 +111,8 @@ class MessageBus:
     Subscribers receive callbacks when messages arrive.
     """
 
+    MAX_MESSAGES = 10000  # Prevent unbounded memory growth
+
     def __init__(self) -> None:
         self._messages: List[AgentMessage] = []
         self._subscribers: Dict[str, List[Callable[[AgentMessage], None]]] = {}
@@ -118,32 +120,35 @@ class MessageBus:
 
     def send(self, message: AgentMessage) -> None:
         """Send a message. Notifies subscribers."""
+        # Collect callbacks under lock, then release before invoking
+        # to prevent deadlock if callbacks re-enter send()
+        callbacks_to_invoke: List[Callable[[AgentMessage], None]] = []
         with self._lock:
             self._messages.append(message)
-            # Notify targeted subscribers
+            # Ring-buffer: drop oldest if over limit
+            if len(self._messages) > self.MAX_MESSAGES:
+                dropped = len(self._messages) - self.MAX_MESSAGES
+                self._messages = self._messages[dropped:]
+                logger.warning(
+                    "MessageBus dropped %d oldest messages (cap=%d)",
+                    dropped,
+                    self.MAX_MESSAGES,
+                )
             if message.to_agent == "*":
                 for callbacks in self._subscribers.values():
-                    for cb in callbacks:
-                        try:
-                            cb(message)
-                        except Exception:
-                            logger.warning(
-                                "Subscriber callback failed for broadcast "
-                                "message %s",
-                                message.id,
-                                exc_info=True,
-                            )
+                    callbacks_to_invoke.extend(callbacks)
             else:
-                for cb in self._subscribers.get(message.to_agent, []):
-                    try:
-                        cb(message)
-                    except Exception:
-                        logger.warning(
-                            "Subscriber callback failed for message %s " "to %s",
-                            message.id,
-                            message.to_agent,
-                            exc_info=True,
-                        )
+                callbacks_to_invoke.extend(self._subscribers.get(message.to_agent, []))
+
+        for cb in callbacks_to_invoke:
+            try:
+                cb(message)
+            except Exception:
+                logger.warning(
+                    "Subscriber callback failed for message %s",
+                    message.id,
+                    exc_info=True,
+                )
 
     def subscribe(
         self,

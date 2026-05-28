@@ -26,13 +26,13 @@ jobs:
 
     steps:
       - name: Checkout PR
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           ref: ${{ github.event.pull_request.head.ref || format('refs/pull/{0}/head', inputs.pr_number) }}
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -82,7 +82,7 @@ jobs:
 
       - name: Add conflict detection comment
         if: steps.conflicts.outputs.has_conflicts == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         # Pass all github / step context data via env so it never gets
         # interpolated into the JS source — this prevents github-script
         # injection (CWE-94). The script reads from process.env instead.
@@ -134,7 +134,7 @@ jobs:
 
       - name: Label PR with conflicts
         if: steps.conflicts.outputs.has_conflicts == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const issueNumber = context.issue.number || ${{ inputs.pr_number || 0 }};
@@ -147,7 +147,7 @@ jobs:
 
       - name: Remove conflict label if resolved
         if: steps.conflicts.outputs.has_conflicts == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         continue-on-error: true
         with:
           script: |
@@ -209,7 +209,7 @@ jobs:
 
       - name: Add resolution status comment
         if: steps.conflicts.outputs.has_conflicts == 'true' && vars.DEV_AID_AUTO_RESOLVE_CONFLICTS == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b  # v7.1.0
         with:
           script: |
             const success = process.env.RESOLUTION_SUCCESS === 'true';

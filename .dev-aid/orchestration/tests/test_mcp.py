@@ -397,8 +397,8 @@ class TestMCPClient:
         assert result == {"data": "ok"}
 
     @pytest.mark.asyncio
-    async def test_call_tool_empty_result(self, mcp_client):
-        """Test call_tool returns empty dict when response has no 'result' key"""
+    async def test_call_tool_rejects_malformed_response(self, mcp_client):
+        """Test call_tool raises when response has neither 'result' nor 'error' (CWE-20)"""
         mcp_client.available_tools["test_tool"] = MCPTool(
             name="test_tool",
             description="Test",
@@ -412,7 +412,7 @@ class TestMCPClient:
         mock_process.stdin.write = Mock()
         mock_process.stdin.drain = AsyncMock()
 
-        # Response with neither "result" nor "error"
+        # Response with neither "result" nor "error" — malformed per JSON-RPC 2.0
         response = {"jsonrpc": "2.0", "id": 1}
         mock_process.stdout.readline = AsyncMock(
             return_value=(json.dumps(response) + "\n").encode()
@@ -420,8 +420,8 @@ class TestMCPClient:
 
         mcp_client.process = mock_process
 
-        result = await mcp_client.call_tool("test_tool", {})
-        assert result == {}
+        with pytest.raises(RuntimeError, match="missing both 'result' and 'error'"):
+            await mcp_client.call_tool("test_tool", {})
 
     @pytest.mark.asyncio
     async def test_call_tool_not_available(self, mcp_client):

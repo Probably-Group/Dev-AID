@@ -23,20 +23,20 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0  # Full history for Gitleaks
 
       - name: Run Gitleaks (Full History)
         # Gitleaks doesn't support 'release' event, skip for releases
         if: github.event_name != 'release'
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7  # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_VERSION: "latest"
 
       - name: Run Trivy (Filesystem - JSON)
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
         with:
           version: latest
           scan-type: 'fs'
@@ -48,7 +48,7 @@ jobs:
 
       # SARIF upload disabled for private repo compatibility
       # - name: Upload Trivy results
-      #   uses: github/codeql-action/upload-sarif@v3
+      #   uses: github/codeql-action/upload-sarif@03e4368ac7daa2bd82b3e85262f3bf87ee112f57  # v3.36.0
       #   if: always()
       #   with:
       #     sarif_file: 'trivy-release-fs.sarif'
@@ -143,10 +143,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -175,10 +175,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Generate SBOM with Trivy
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
         with:
           version: latest
           scan-type: 'fs'
@@ -187,7 +187,7 @@ jobs:
           output: 'sbom-cyclonedx.json'
 
       - name: Generate SBOM with Trivy (SPDX format)
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1  # v0.35.0
         with:
           version: latest
           scan-type: 'fs'
@@ -196,7 +196,7 @@ jobs:
           output: 'sbom-spdx.json'
 
       - name: Archive SBOM artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
         with:
           name: sbom-artifacts
           path: |
@@ -243,10 +243,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
       - name: Run Lychee (Link Checker)
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@8646ba30535128ac92d33dfc9133794bfdd9b411  # v2.8.0
         with:
           args: |
             --verbose

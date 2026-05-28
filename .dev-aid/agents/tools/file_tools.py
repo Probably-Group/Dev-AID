@@ -11,6 +11,25 @@ from typing import List, Optional
 
 from ..core.models import ToolDefinition
 
+SENSITIVE_PATH_PREFIXES = [
+    os.path.expanduser("~/.ssh"),
+    os.path.expanduser("~/.aws"),
+    os.path.expanduser("~/.gnupg"),
+    os.path.expanduser("~/.config/gcloud"),
+    "/etc/shadow",
+    "/etc/sudoers",
+]
+
+
+def _validate_path(path: str) -> Path:
+    """Validate a file path against traversal and sensitive directory access."""
+    p = Path(path).resolve()
+    p_str = str(p)
+    for prefix in SENSITIVE_PATH_PREFIXES:
+        if p_str.startswith(prefix):
+            raise PermissionError(f"Access denied: path is in a sensitive directory")
+    return p
+
 # ── Tool Definitions ──────────────────────────────────────────────────
 
 READ_FILE_DEFINITION = ToolDefinition(

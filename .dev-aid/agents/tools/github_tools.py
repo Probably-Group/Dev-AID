@@ -5,10 +5,13 @@ Provides gh_issue_view, gh_pr_view, and gh_pr_create
 using the gh CLI tool.
 """
 
+import re
 import subprocess
 from typing import List, Optional
 
 from ..core.models import ToolDefinition
+
+_REPO_PATTERN = re.compile(r"^[a-zA-Z0-9._-]+/[a-zA-Z0-9._-]+$")
 
 GH_ISSUE_VIEW_DEFINITION = ToolDefinition(
     name="gh_issue_view",
@@ -90,6 +93,8 @@ def _run_gh(args: List[str]) -> str:
 
 def gh_issue_view(number: int, repo: Optional[str] = None) -> str:
     """View a GitHub issue."""
+    if repo and not _REPO_PATTERN.match(repo):
+        return "[error] Invalid repo format. Expected 'owner/repo'."
     args = ["issue", "view", str(number)]
     if repo:
         args.extend(["--repo", repo])
@@ -98,6 +103,8 @@ def gh_issue_view(number: int, repo: Optional[str] = None) -> str:
 
 def gh_pr_view(number: int, repo: Optional[str] = None) -> str:
     """View a pull request."""
+    if repo and not _REPO_PATTERN.match(repo):
+        return "[error] Invalid repo format. Expected 'owner/repo'."
     args = ["pr", "view", str(number)]
     if repo:
         args.extend(["--repo", repo])

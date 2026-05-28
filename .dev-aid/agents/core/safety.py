@@ -47,19 +47,19 @@ BLOCKED_COMMAND_PATTERNS: List[str] = [
     r"chmod\s+(-\w+\s+)*777\s+/",  # chmod 777 on root paths
     r"chown\s+(-\w+\s+)*-R\s+.*\s+/(?!tmp)",  # chown -R on root paths
     # Interpreter-based bypass attempts (CWE-78)
-    r"python[23]?\s+(-c\s+|.*-c\s+)",
-    r"perl\s+-e\s+",
-    r"ruby\s+-e\s+",
-    r"node\s+-e\s+",
-    r"php\s+-r\s+",
-    r"base64\s+(-d|--decode)\s*\|",
-    r"\beval\s+",
-    r"\bexec\s+\d*[<>]",
-    r"\bsource\s+/dev/",
-    r"/dev/tcp/",
-    r"xargs\s+.*sh\b",
-    r"\bnc\s+(-e|-c)\s+",
-    r"\bchmod\s+[+]?[ugo]*s",
+    r"python[23]?\s+(-c\s+|.*-c\s+)",  # python -c "code"
+    r"perl\s+-e\s+",  # perl -e "code"
+    r"ruby\s+-e\s+",  # ruby -e "code"
+    r"node\s+-e\s+",  # node -e "code"
+    r"php\s+-r\s+",  # php -r "code"
+    r"base64\s+(-d|--decode)\s*\|",  # base64 -d | sh
+    r"\beval\s+",  # eval command
+    r"\bexec\s+\d*[<>]",  # exec with redirections
+    r"\bsource\s+/dev/",  # source /dev/tcp etc.
+    r"/dev/tcp/",  # bash /dev/tcp connections
+    r"xargs\s+.*sh\b",  # xargs piping to shell
+    r"\bnc\s+(-e|-c)\s+",  # netcat reverse shell
+    r"\bchmod\s+[+]?[ugo]*s",  # setuid/setgid bits
 ]
 
 _COMPILED_BLOCKED_PATTERNS = [re.compile(p) for p in BLOCKED_COMMAND_PATTERNS]
@@ -191,6 +191,12 @@ class SafetyConfig:
                 return SafetyCheckResult(
                     allowed=False,
                     reason=f"Command blocked by safety rules: {command[:100]}",
+                )
+            cwd = arguments.get("cwd")
+            if cwd and not self.is_path_allowed(Path(cwd)):
+                return SafetyCheckResult(
+                    allowed=False,
+                    reason=f"Working directory '{cwd}' is outside allowed boundaries",
                 )
 
             cwd = arguments.get("cwd")

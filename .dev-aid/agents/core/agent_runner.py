@@ -471,7 +471,9 @@ class AgentRunner:
                     self._on_tool_call(tool_call)
 
                 logger.info(
-                    "Executing tool: %s(%s)", tool_call.name, ", ".join(tool_call.arguments.keys())
+                    "Executing tool: %s(%s)",
+                    tool_call.name,
+                    ", ".join(tool_call.arguments.keys()),
                 )
                 tool_timer = StopWatch()
                 result = self._registry.execute(tool_call)

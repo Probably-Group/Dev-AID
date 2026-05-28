@@ -568,7 +568,7 @@ class TestFallbackChainE2E:
             result = executor.execute("Anything")
 
         assert result["success"] is False
-        assert "failed" in result.get("error", "").lower()
+        assert "Request failed" in result.get("error", "")
 
 
 # ── Cost Tracking Persistence E2E ────────────────────────────────────────────

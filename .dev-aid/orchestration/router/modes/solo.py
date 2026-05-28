@@ -32,7 +32,7 @@ class SoloMode:
 
         Args:
             request: User request
-            **kwargs: Additional parameters
+            **kwargs: Additional parameters for API call
 
         Returns:
             Result dictionary
@@ -41,8 +41,11 @@ class SoloMode:
         model_name = self.config.get_default_model()
         model_config = self.config.get_model_config(model_name)
 
-        if not model_config:
-            raise ValueError(f"Model configuration not found for: {model_name}")
+        if model_config is None:
+            raise RuntimeError(
+                f"No model configuration found for '{model_name}'. "
+                f"Check .dev-aid/config/models.json."
+            )
 
         provider = model_config["provider"]
 
@@ -84,10 +87,9 @@ class SoloMode:
             Message(role="user", content=request),
         ]
 
-        # Get model ID
+        # Execute
         model_id = model_config.get("id", model_name)
 
-        # Execute request
         try:
             response = client.send_request(messages=messages, model=model_id, **kwargs)
 
@@ -119,7 +121,6 @@ class SoloMode:
 
         return {
             "mode": "solo",
-            "description": "Single model handles all tasks",
+            "description": "Single default model handles everything",
             "default_model": model_name,
-            "enabled": True,
         }

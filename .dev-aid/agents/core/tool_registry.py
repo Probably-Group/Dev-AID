@@ -75,7 +75,9 @@ class ToolRegistry:
             risk_level=definition.risk_level,
         )
         if not check.allowed:
-            logger.warning("SECURITY: Tool '%s' blocked by safety check: %s", name, check.reason)
+            logger.warning(
+                "SECURITY: Tool '%s' blocked by safety check: %s", name, check.reason
+            )
             return ToolResult(
                 call_id=tool_call.id,
                 name=name,

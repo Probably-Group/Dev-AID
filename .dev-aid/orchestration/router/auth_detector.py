@@ -122,6 +122,20 @@ class AuthDetector:
 
         for config_path in config_paths:
             if config_path.exists():
+                # SECURITY: Verify file is owned by current user (CWE-345)
+                # Skip the check on Windows where st_uid is meaningless
+                try:
+                    stat_info = config_path.stat()
+                    if hasattr(stat_info, "st_uid") and os.name != "nt":
+                        if stat_info.st_uid != os.getuid():
+                            logger.warning(
+                                "Skipping %s: file not owned by current user",
+                                config_path,
+                            )
+                            continue
+                except OSError:
+                    continue
+
                 try:
                     with open(config_path) as f:
                         config = json.load(f)

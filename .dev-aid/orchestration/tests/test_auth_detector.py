@@ -372,7 +372,7 @@ class TestKeyringSupport:
     def test_keyring_not_available(self, tmp_path):
         """Test behavior when keyring library is not installed"""
         with patch.object(Path, "home", return_value=tmp_path):
-            with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "api-key"}):
+            with patch.dict(os.environ, {"ANTHROPIC_API_KEY": "sk-ant-api-key"}):
                 detector = AuthDetector()
                 auth = detector.detect_claude_auth()
 

@@ -38,8 +38,8 @@ gpu = [
     "faiss-gpu==1.8.0",
 ]
 dev = [
-    "pytest==8.3.5",
-    "pytest-asyncio==0.24.0",
+    "pytest==9.0.3",  # bumped for CVE-2025-71176 (vulnerable tmpdir handling)
+    "pytest-asyncio==1.4.0",  # bumped for pytest 9 compatibility
     "pytest-cov==5.0.0",
     "pytest-mock==3.14.0",
 ]

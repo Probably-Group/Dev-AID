@@ -768,6 +768,15 @@ def _handle_team_command(args: argparse.Namespace) -> int:
     team_lessons_config = LessonsConfig(ledger_path=ledger_path)
     team_lessons_ledger = LessonsLedger(team_lessons_config)
 
+    # Project-scoped safety baseline for all team agents — matches the policy
+    # solo runs use (audit M2). Per-agent tool scoping is applied inside
+    # TeamRunner from each agent's declared tool set.
+    team_safety = SafetyConfig(
+        dry_run=getattr(args, "dry_run", False),
+        allowed_paths=[root],
+        allow_dev_aid_writes=(getattr(args, "scope", "host") == "dev-aid"),
+    )
+
     # Create TeamRunner
     runner = TeamRunner(
         registry_factory=_build_registry,
@@ -778,6 +787,7 @@ def _handle_team_command(args: argparse.Namespace) -> int:
         on_message=on_message if args.verbose else None,
         trace_config=team_trace_config,
         lessons_ledger=team_lessons_ledger,
+        base_safety=team_safety,
     )
 
     # Print header

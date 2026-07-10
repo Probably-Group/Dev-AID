@@ -6,6 +6,7 @@ in parallel, sequential, or DAG workflows with shared state.
 """
 
 import asyncio
+import dataclasses
 import logging
 import time
 from pathlib import Path
@@ -49,6 +50,7 @@ class TeamRunner:
         on_message: Optional[Callable[[AgentMessage], None]] = None,
         trace_config: Optional[TraceConfig] = None,
         lessons_ledger: Optional[LessonsLedger] = None,
+        base_safety: Optional[SafetyConfig] = None,
     ) -> None:
         self._registry_factory = registry_factory
         self._skill_loader = skill_loader
@@ -58,6 +60,12 @@ class TeamRunner:
         self._on_message = on_message
         self._trace_config = trace_config
         self._lessons_ledger = lessons_ledger
+        # Baseline safety policy for every team agent. Previously each agent
+        # got a bare SafetyConfig() with no path/tool restrictions, so team
+        # mode was materially less restricted than solo mode (audit M2). The
+        # caller (CLI) now passes the same project-scoped policy it uses for
+        # solo runs; per-agent tool scoping is layered on in _run_single_agent.
+        self._base_safety = base_safety
 
     async def run(
         self,
@@ -375,7 +383,16 @@ class TeamRunner:
         # Create per-agent components
         api_key = api_keys.get(provider)
         adapter = create_adapter(provider=provider, api_key=api_key)
-        safety = SafetyConfig()
+        # Start from the team-wide baseline (project-scoped paths, dry-run,
+        # scope guard) and additionally restrict this agent to its own
+        # declared tool set — mirroring solo mode (audit M2).
+        base = self._base_safety or SafetyConfig()
+        safety = dataclasses.replace(
+            base,
+            allowed_tools=(
+                set(agent_def.tools) if agent_def.tools else base.allowed_tools
+            ),
+        )
         registry = self._registry_factory(safety)
 
         # Create per-agent trace collector if tracing is enabled

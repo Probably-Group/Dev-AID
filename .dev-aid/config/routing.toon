@@ -2,12 +2,12 @@ default_mode: solo
 modes:
   solo:
     description: Single model handles everything
-    primary_model: claude-sonnet
+    primary_model: sonnet-4.6
   challenger:
     description: "Primary generates, challenger reviews"
     enabled: true
-    primary_model: claude-sonnet
-    challenger_model: gemini-flash
+    primary_model: sonnet-4.6
+    challenger_model: opus-4.6
     auto_refine_on[2]: HIGH,CRITICAL
     review_triggers[12]: auth,authentication,password,crypto,encryption,token,session,oauth,jwt,security,credential,api_key
   ensemble:
@@ -15,13 +15,13 @@ modes:
     enabled: true
     routing_strategy: semantic
     task_routes:
-      massive_context: gemini-flash
-      code_generation: claude-sonnet
-      security_audit: claude-sonnet
+      massive_context: flash-2.5
+      code_generation: sonnet-4.6
+      security_audit: opus-4.6
       documentation: gpt-4o
-      debugging: claude-sonnet
-      complex_reasoning: claude-opus
-fallback_chain[3]: claude-sonnet,gpt-4o,gemini-flash
+      debugging: sonnet-4.6
+      complex_reasoning: opus-4.6
+fallback_chain[3]: sonnet-4.6,gpt-4o,flash-2.5
 cost_limit_per_day: 100.0
 logging:
   enabled: true

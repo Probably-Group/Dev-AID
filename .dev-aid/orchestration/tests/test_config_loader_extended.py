@@ -150,7 +150,9 @@ class TestConfigLoaderMethods:
         (config_dir / "orchestration.json").write_text("{}")
 
         config = ConfigLoader(root)
-        assert config.get_default_model() == "claude-sonnet-4.5"
+        # Audit H1: the hardcoded fallback must be a name that resolves against
+        # the shipped models.json (the old "claude-sonnet-4.5" did not).
+        assert config.get_default_model() == "claude-sonnet-4-6"
 
     def test_is_provider_enabled(self, mock_dev_aid_root):
         """Test is_provider_enabled"""

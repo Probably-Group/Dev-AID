@@ -3,85 +3,139 @@ claude:
   provider: anthropic
   api_key_env: ANTHROPIC_API_KEY
   models:
-    "sonnet-4.5":
-      id: claude-sonnet-4-5
-      context_window: 200000
-      capabilities[4]: code,analysis,security,reasoning
+    "sonnet-4.6":
+      id: claude-sonnet-4-6
+      context_window: 1000000
+      capabilities[5]: code,analysis,security,reasoning,massive_context
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 3.0
         output: 15.0
-    "opus-4.5":
-      id: claude-opus-4-5
-      context_window: 200000
-      capabilities[3]: complex_reasoning,deep_analysis,architecture
+    "opus-4.6":
+      id: claude-opus-4-6
+      context_window: 1000000
+      capabilities[4]: complex_reasoning,deep_analysis,architecture,massive_context
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 15.0
-        output: 75.0
+        input: 5.0
+        output: 25.0
     "haiku-4.5":
       id: claude-haiku-4-5
       context_window: 200000
       capabilities[3]: speed,simple_tasks,quick_responses
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 0.25
-        output: 1.25
-  default: sonnet-4.5
+        input: 1.0
+        output: 5.0
+  default: sonnet-4.6
   primary_capabilities[3]: code,analysis,security
 gemini:
   enabled: false
   provider: google
   api_key_env: GOOGLE_API_KEY
   models:
-    "flash-2.0":
-      id: gemini-2.0-flash
+    "pro-3.1":
+      id: gemini-3.1-pro
+      context_window: 1000000
+      capabilities[4]: massive_context,deep_reasoning,multimodal,complex_reasoning
+      supports_tool_calling: true
+      cost_per_1m_tokens:
+        input: 2.0
+        output: 12.0
+    "flash-3.1-lite":
+      id: gemini-3.1-flash-lite-preview
+      context_window: 1048576
+      capabilities[4]: fast_analysis,low_cost,multimodal,massive_context
+      supports_tool_calling: true
+      cost_per_1m_tokens:
+        input: 0.25
+        output: 1.5
+    "flash-2.5":
+      id: gemini-2.5-flash
       context_window: 1000000
       capabilities[3]: massive_context,fast_analysis,multimodal
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 0.075
-        output: 0.3
-    "pro-2.0":
-      id: gemini-2.0-pro
-      context_window: 2000000
+        input: 0.3
+        output: 2.5
+    "pro-2.5":
+      id: gemini-2.5-pro
+      context_window: 1000000
       capabilities[3]: massive_context,deep_reasoning,multimodal
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 1.25
-        output: 5.0
-  default: flash-2.0
+        output: 10.0
+  default: pro-3.1
   primary_capabilities[2]: massive_context,analysis
 openai:
   enabled: false
   provider: openai
   api_key_env: OPENAI_API_KEY
   models:
-    "gpt-4-turbo":
-      id: gpt-4-turbo-2024-04-09
-      context_window: 128000
-      capabilities[3]: general,docs,conversation
+    "gpt-5.4":
+      id: gpt-5.4
+      context_window: 1100000
+      capabilities[5]: general,coding,complex_reasoning,massive_context,multimodal
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 10.0
-        output: 30.0
+        input: 2.5
+        output: 15.0
+    "gpt-5.4-mini":
+      id: gpt-5.4-mini
+      context_window: 400000
+      capabilities[4]: general,coding,speed,low_cost
+      supports_tool_calling: true
+      cost_per_1m_tokens:
+        input: 0.5
+        output: 4.0
     "gpt-4o":
       id: gpt-4o
       context_window: 128000
       capabilities[3]: general,multimodal,speed
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 5.0
-        output: 15.0
+        input: 2.5
+        output: 10.0
     "gpt-4.1":
       id: gpt-4.1
       context_window: 1000000
       capabilities[4]: general,coding,instruction_following,massive_context
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 5.0
-        output: 15.0
-    "gpt-3.5-turbo":
-      id: gpt-3.5-turbo
-      context_window: 16385
-      capabilities[3]: simple_tasks,speed,low_cost
+        input: 2.0
+        output: 8.0
+    "gpt-4o-mini":
+      id: gpt-4o-mini
+      context_window: 128000
+      capabilities[4]: simple_tasks,speed,low_cost,multimodal
+      supports_tool_calling: true
       cost_per_1m_tokens:
-        input: 0.5
-        output: 1.5
-  default: gpt-4o
-  primary_capabilities[2]: general,docs
+        input: 0.15
+        output: 0.6
+    "o4-mini":
+      id: o4-mini
+      context_window: 200000
+      capabilities[4]: reasoning,math,coding,analysis
+      supports_tool_calling: true
+      cost_per_1m_tokens:
+        input: 1.1
+        output: 4.4
+  default: gpt-5.4
+  primary_capabilities[3]: general,docs,complex_reasoning
+aimlapi:
+  enabled: false
+  provider: aimlapi
+  api_key_env: AIMLAPI_API_KEY
+  base_url: "https://api.aimlapi.com/v1"
+  models:
+    auto:
+      id: auto
+      description: Routes to the best available model across 200+ options
+      capabilities[3]: routing,multi_provider,fallback
+      supports_tool_calling: true
+  default: auto
+  primary_capabilities[2]: routing,multi_provider
 openrouter:
   enabled: false
   provider: openrouter
@@ -92,6 +146,7 @@ openrouter:
       id: openrouter/auto
       description: Automatically routes to best available model
       capabilities[2]: routing,fallback
+      supports_tool_calling: true
   default: auto
   primary_capabilities[2]: routing,fallback
 local:
@@ -107,6 +162,7 @@ local:
       vram_min_gb: 3
       score: 58
       tier: entry
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 0.0
         output: 0.0
@@ -117,6 +173,7 @@ local:
       vram_min_gb: 14
       score: 72
       tier: mid
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 0.0
         output: 0.0
@@ -127,6 +184,7 @@ local:
       vram_min_gb: 20
       score: 68
       tier: high
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 0.0
         output: 0.0
@@ -137,6 +195,7 @@ local:
       vram_min_gb: 48
       score: 74
       tier: pro
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 0.0
         output: 0.0
@@ -147,6 +206,7 @@ local:
       vram_min_gb: 80
       score: 83
       tier: enterprise
+      supports_tool_calling: true
       cost_per_1m_tokens:
         input: 0.0
         output: 0.0

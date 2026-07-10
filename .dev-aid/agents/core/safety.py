@@ -60,6 +60,12 @@ BLOCKED_COMMAND_PATTERNS: List[str] = [
     r"xargs\s+.*sh\b",  # xargs piping to shell
     r"\bnc\s+(-e|-c)\s+",  # netcat reverse shell
     r"\bchmod\s+[+]?[ugo]*s",  # setuid/setgid bits
+    # Pipe-to-shell installers, e.g. `curl -fsSL https://x | sh`,
+    # `wget -qO- url | sudo bash`. The literal DEFAULT_BLOCKED_COMMANDS
+    # entries ("curl|sh", …) only matched the exact contiguous string and
+    # missed every realistic spaced form — this regex is the real control
+    # for CWE-78 fetch-and-execute (audit finding H2).
+    r"\b(?:curl|wget|fetch)\b[^|]*\|\s*(?:sudo\s+)?(?:ba|z|k|c)?sh\b",
 ]
 
 _COMPILED_BLOCKED_PATTERNS = [re.compile(p) for p in BLOCKED_COMMAND_PATTERNS]

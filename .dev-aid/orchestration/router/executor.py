@@ -295,15 +295,25 @@ class RouterExecutor:
         elif mode == "challenger" and result.get("challenged"):
             primary = result.get("primary_model", "unknown")
             challenger = result.get("challenger_model", "unknown")
-            issues_found = result.get("issues_found", False)
 
             lines.append("⚔️  Challenger Mode Workflow:")
             lines.append(f"   Primary Model: {primary}")
-            lines.append(f"   Challenger Model: {challenger}")
-            lines.append(f"   Issues Found: {'Yes' if issues_found else 'No'}")
 
-            if result.get("refined"):
-                lines.append("   ✨ Solution Refined")
+            if result.get("challenger_failed"):
+                # The review never ran (e.g. challenger model unresolvable or
+                # provider unavailable). Never render this as "Issues Found: No"
+                # — that falsely implies a clean security review (audit H1).
+                err = result.get("challenger_error", "unknown error")
+                lines.append(f"   Challenger Model: {challenger}")
+                lines.append(f"   ⚠️  Review DID NOT run: {err}")
+                lines.append("   ⚠️  Treat this response as UNREVIEWED.")
+            else:
+                issues_found = result.get("issues_found", False)
+                lines.append(f"   Challenger Model: {challenger}")
+                lines.append(f"   Issues Found: {'Yes' if issues_found else 'No'}")
+
+                if result.get("refined"):
+                    lines.append("   ✨ Solution Refined")
 
             lines.append("")
 

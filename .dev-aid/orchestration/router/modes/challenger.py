@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
-from ._protocol import ModeConfigProtocol
+from ._protocol import ModeConfigProtocol, provider_kwargs
 
 logger = logging.getLogger(__name__)
 
@@ -42,8 +42,8 @@ class ChallengerMode:
         routing_config = self.config.get_routing_config()
         challenger_config = routing_config.get("modes", {}).get("challenger", {})
 
-        primary_model_name = challenger_config.get("primary_model", "claude-sonnet")
-        challenger_model_name = challenger_config.get("challenger_model", "gemini-flash")
+        primary_model_name = challenger_config.get("primary_model", "sonnet-4.6")
+        challenger_model_name = challenger_config.get("challenger_model", "opus-4.6")
 
         # Check if challenge is needed
         should_challenge = force_challenge or self._should_challenge(request, challenger_config)
@@ -135,7 +135,9 @@ class ChallengerMode:
         model_id = model_config.get("id", primary_model_name)
 
         try:
-            response = client.send_request(messages=messages, model=model_id, **kwargs)
+            response = client.send_request(
+                messages=messages, model=model_id, **provider_kwargs(kwargs)
+            )
 
             return {
                 "success": True,
@@ -186,10 +188,15 @@ class ChallengerMode:
         )
 
         if not challenger_result["success"]:
-            # Return primary response even if challenger fails
+            # Return primary response even if challenger fails, but carry the
+            # keys format_output needs to render an explicit "review did not
+            # run" warning instead of a misleading "Issues Found: No" (H1).
             return {
                 **primary_result,
+                "mode": "challenger",
                 "challenged": True,
+                "primary_model": primary_model_name,
+                "challenger_model": challenger_model_name,
                 "challenger_failed": True,
                 "challenger_error": challenger_result.get("error"),
             }
@@ -309,7 +316,9 @@ class ChallengerMode:
         model_id = model_config.get("id", model_name)
 
         try:
-            response = client.send_request(messages=messages, model=model_id, **kwargs)
+            response = client.send_request(
+                messages=messages, model=model_id, **provider_kwargs(kwargs)
+            )
 
             return {
                 "success": True,
@@ -324,7 +333,11 @@ class ChallengerMode:
 
         except Exception as e:
             logger.error(
-                "Challenger model '%s' (%s) failed: %s", model_name, role, e, exc_info=True
+                "Challenger model '%s' (%s) failed: %s",
+                model_name,
+                role,
+                e,
+                exc_info=True,
             )
             return {
                 "success": False,
@@ -382,17 +395,13 @@ If no issues found, respond with:
             if indicator in review_upper:
                 return False
 
-        # Check for severity levels (indicates issues)
-        if any(
-            severity in review_upper
-            for severity in [
-                "SEVERITY: LOW",
-                "SEVERITY: MEDIUM",
-                "SEVERITY: HIGH",
-                "SEVERITY: CRITICAL",
-            ]
-        ):
-            return True
+        # Check for severity levels (indicates issues). Match both the plain
+        # "SEVERITY: HIGH" form and the Markdown "**SEVERITY**: HIGH" form the
+        # review prompt actually asks for — the latter was previously missed,
+        # so any review >100 chars was treated as "issues found" (audit M14).
+        for level in ("LOW", "MEDIUM", "HIGH", "CRITICAL"):
+            if f"SEVERITY: {level}" in review_upper or f"SEVERITY**: {level}" in review_upper:
+                return True
 
         # Default: assume issues if review is substantial
         return len(review) > 100
@@ -434,8 +443,8 @@ Please provide an improved solution that addresses the identified issues.
             "mode": "challenger",
             "description": "Primary generates, challenger reviews",
             "enabled": challenger_config.get("enabled", True),
-            "primary_model": challenger_config.get("primary_model", "claude-sonnet"),
-            "challenger_model": challenger_config.get("challenger_model", "gemini-flash"),
+            "primary_model": challenger_config.get("primary_model", "sonnet-4.6"),
+            "challenger_model": challenger_config.get("challenger_model", "opus-4.6"),
             "auto_refine_on": challenger_config.get("auto_refine_on", ["HIGH", "CRITICAL"]),
             "review_triggers": challenger_config.get("review_triggers", []),
         }

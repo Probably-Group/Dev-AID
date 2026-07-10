@@ -11,9 +11,18 @@ class TestEstimateCost:
         # 1000 * 3.0 / 1M + 500 * 15.0 / 1M = 0.003 + 0.0075 = 0.0105
         assert abs(cost - 0.0105) < 0.0001
 
-    def test_unknown_model_returns_zero(self) -> None:
+    def test_unknown_model_uses_conservative_fallback(self) -> None:
+        # Audit H7: unknown models must not silently cost $0.00 (which would
+        # bypass budget limits). They fall back to a conservative rate.
         cost = estimate_cost("unknown-model-xyz", 1000, 500)
-        assert cost == 0.0
+        # 1000 * 5.0 / 1M + 500 * 25.0 / 1M = 0.005 + 0.0125 = 0.0175
+        assert abs(cost - 0.0175) < 0.0001
+        assert cost > 0.0
+
+    def test_opus_4_6_pricing_is_current(self) -> None:
+        # Audit H7: Opus 4.6 is $5/$25 per 1M tokens, not the old $15/$75.
+        cost = estimate_cost("claude-opus-4-6", 1_000_000, 1_000_000)
+        assert abs(cost - 30.0) < 0.0001
 
     def test_zero_tokens(self) -> None:
         cost = estimate_cost("claude-sonnet-4-5-20250929", 0, 0)

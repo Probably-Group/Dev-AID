@@ -5,6 +5,22 @@ from typing import Any, Dict, List, Optional, Protocol, Tuple, runtime_checkable
 
 from ..auth_detector import AuthCredentials
 
+# Keys the executor threads through **kwargs for orchestration bookkeeping but
+# that are NOT valid provider API parameters. They must be stripped before a
+# request reaches client.send_request()/messages.create(), whose SDK signatures
+# reject unknown keyword arguments with TypeError (audit finding H3).
+ORCHESTRATION_ONLY_KWARGS = frozenset({"mcp_context", "context_size"})
+
+
+def provider_kwargs(kwargs: Dict[str, Any]) -> Dict[str, Any]:
+    """Return kwargs safe to forward to a provider API call.
+
+    Drops orchestration-only keys (see ORCHESTRATION_ONLY_KWARGS) so they do
+    not leak into the provider SDK, while preserving genuine API params
+    (e.g. max_tokens, temperature).
+    """
+    return {k: v for k, v in kwargs.items() if k not in ORCHESTRATION_ONLY_KWARGS}
+
 
 @runtime_checkable
 class ModeConfigProtocol(Protocol):

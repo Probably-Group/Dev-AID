@@ -2,17 +2,27 @@
 Cost estimation for LLM API calls.
 
 Provides approximate per-token pricing for common models.
-Prices are approximate and should be updated as providers change pricing.
+
+NOTE: The router subsystem keeps the canonical model registry (including
+per-model pricing) in ``.dev-aid/config/models.json``. This table is the
+agents-subsystem mirror; when provider pricing changes, update both. Prices
+verified against provider pricing pages (2026-07).
 """
 
-from typing import Any, Dict
+import logging
+from typing import Any, Dict, Set
 
-# Costs per million tokens (USD) — approximate as of early 2026
+logger = logging.getLogger(__name__)
+
+# Costs per million tokens (USD). Verified 2026-07 against Anthropic pricing.
 MODEL_COSTS: Dict[str, Dict[str, float]] = {
-    # Anthropic
+    # Anthropic — current generation (match models.json ids)
+    "claude-sonnet-4-6": {"input": 3.0, "output": 15.0},
+    "claude-opus-4-6": {"input": 5.0, "output": 25.0},
+    "claude-haiku-4-5": {"input": 1.0, "output": 5.0},
+    # Anthropic — dated ids still used as agents-subsystem defaults
     "claude-sonnet-4-5-20250929": {"input": 3.0, "output": 15.0},
-    "claude-opus-4-6": {"input": 15.0, "output": 75.0},
-    "claude-haiku-4-5-20251001": {"input": 0.8, "output": 4.0},
+    "claude-haiku-4-5-20251001": {"input": 1.0, "output": 5.0},
     # OpenAI
     "gpt-4o": {"input": 2.5, "output": 10.0},
     "gpt-4o-mini": {"input": 0.15, "output": 0.6},
@@ -23,6 +33,14 @@ MODEL_COSTS: Dict[str, Dict[str, float]] = {
     "gemini-2.5-pro": {"input": 1.25, "output": 10.0},
     "gemini-2.5-flash": {"input": 0.15, "output": 0.6},
 }
+
+# Conservative fallback for unknown models: the most expensive current entry,
+# so budget enforcement over-counts rather than silently under-counting an
+# unpriced model to $0.00 (audit finding H7).
+_UNKNOWN_MODEL_COST: Dict[str, float] = {"input": 5.0, "output": 25.0}
+
+# Track models we've already warned about, to avoid per-call log spam.
+_warned_unknown_models: Set[str] = set()
 
 
 def estimate_cost(
@@ -41,7 +59,9 @@ def estimate_cost(
         custom_costs: Optional override pricing table
 
     Returns:
-        Estimated cost in USD, or 0.0 if model pricing unknown
+        Estimated cost in USD. Unknown models fall back to a conservative
+        (most-expensive-known) rate and log a warning, so budget limits are
+        never bypassed by an unpriced model.
     """
     lookup: Dict[str, Dict[str, float]] = {**MODEL_COSTS, **custom_costs}
     costs = lookup.get(model)
@@ -54,7 +74,17 @@ def estimate_cost(
                 break
 
     if not costs:
-        return 0.0
+        if model not in _warned_unknown_models:
+            _warned_unknown_models.add(model)
+            logger.warning(
+                "No pricing for model '%s'; using conservative fallback "
+                "($%.2f/$%.2f per 1M tokens) so budget limits still apply. "
+                "Add it to MODEL_COSTS / models.json.",
+                model,
+                _UNKNOWN_MODEL_COST["input"],
+                _UNKNOWN_MODEL_COST["output"],
+            )
+        costs = _UNKNOWN_MODEL_COST
 
     return (
         input_tokens * costs.get("input", 0) + output_tokens * costs.get("output", 0)

@@ -9,7 +9,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-(no unreleased changes — see [1.6.1] below for the most recent shipped work)
+### Security & Correctness (SOTA audit — Sprint 1 remediation)
+
+Fixes for the five highest-priority findings from the full repository audit
+(commit `2535fd78`). See the audit report for the complete finding set.
+
+- **H1 — routing/config drift fixed.** `routing.json`/`routing.toon` referenced
+  model names (`claude-sonnet`, `gemini-flash`, `claude-opus`) that did not
+  resolve against the model registry, and the loaded `models.toon` was stale
+  (Sonnet 4.5 vs the configured 4.6 default). Effect: the challenger
+  "security review" model never resolved, so on auth/crypto requests the
+  review silently no-oped while the output still reported **"Issues Found:
+  No"**, and `default_model` did not resolve so solo mode would raise. Fixed:
+  routing names aligned to resolvable + enabled models (challenger now reviews
+  with `opus-4.6`); regenerated the stale `models.toon`/`routing.toon` from
+  their JSON sources; added a `ConfigLoader` startup validator that warns on
+  unresolvable routed names and errors on an unresolvable default; a failed
+  challenger review now renders an explicit "review did not run / treat as
+  UNREVIEWED" warning instead of "Issues Found: No"; and the challenger
+  severity parser now matches the `**SEVERITY**:` format the prompt asks for.
+- **H2 — agent command-execution boundary hardened.** Added a working
+  denylist pattern for `curl|wget … | sh/bash` fetch-to-shell (the previous
+  literal `curl|sh` entries never matched a realistic spaced command), and
+  propagated the project-scoped `SafetyConfig` (path restriction, scope guard,
+  per-agent tool allowlist) into team mode, which previously ran every agent
+  with a bare unrestricted `SafetyConfig()`.
+- **H3 — provider-SDK kwargs leak fixed.** Orchestration-only kwargs
+  (`context_size`, `mcp_context`) were forwarded into the provider SDK call,
+  whose `messages.create()` rejects unknown keyword arguments — likely
+  breaking every solo-mode request routed through `RouterExecutor`. Modes now
+  strip orchestration-only keys before calling the client.
+- **H5 — CI templates SHA-pinned.** The shipped CI templates pinned
+  `dtolnay/rust-toolchain@master`, `lukka/get-cmake@latest`, and
+  `aquasecurity/trivy-action@master` — mutable refs that inherit tag-mutation
+  RCE risk in every downstream repo. All three are now pinned to release
+  commit SHAs with version comments.
+- **H7 — cost accounting corrected.** Opus 4.6 was priced at the old
+  `$15/$75` (actual `$5/$25`) and Haiku 4.5 at `$0.8/$4` (actual `$1/$5`);
+  unknown models silently cost `$0.00`, bypassing budget limits. Prices were
+  verified against current provider pricing and corrected, current-generation
+  ids added, and unknown models now fall back to a conservative rate with a
+  warning so budget enforcement always applies.
 
 ---
 

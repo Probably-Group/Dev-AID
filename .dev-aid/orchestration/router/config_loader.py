@@ -58,6 +58,13 @@ class ConfigLoader:
         validate_settings(self.settings)
         validate_routing(self.routing)
 
+        # Validate that every model name referenced by routing.json actually
+        # resolves against models.json. A silent mismatch here disables
+        # ensemble routing and makes the challenger security review no-op
+        # while still reporting "no issues" (audit finding H1). Logs loudly;
+        # does not raise, so a partially-configured install still starts.
+        self._validate_routing_models()
+
         # Initialize auth detector (lazy-loaded on first use)
         self.auth_detector = AuthDetector()
         self._detected_auth: Optional[Dict[str, Optional[AuthCredentials]]] = None
@@ -166,13 +173,57 @@ class ConfigLoader:
         except (ValueError, OSError, UnicodeDecodeError) as e:
             raise ValueError(f"Failed to parse TOON configuration: {e}")
 
+    def _validate_routing_models(self) -> None:
+        """Warn when routing references model names that do not resolve.
+
+        Checks every mode's primary/challenger model, every ensemble task
+        route, the fallback chain, and the configured default model against
+        get_model_config(). Unresolvable names are logged at WARNING (or
+        ERROR for the default model, which is fatal to solo mode) so config
+        drift between routing.json and models.json is caught at load time.
+        """
+        referenced: Dict[str, str] = {}
+
+        for mode_name, mode_cfg in self.routing.get("modes", {}).items():
+            if not isinstance(mode_cfg, dict):
+                continue
+            for key in ("primary_model", "challenger_model"):
+                name = mode_cfg.get(key)
+                if name:
+                    referenced[name] = f"modes.{mode_name}.{key}"
+            for task, name in (mode_cfg.get("task_routes") or {}).items():
+                if name:
+                    referenced[name] = f"modes.{mode_name}.task_routes.{task}"
+
+        for name in self.get_fallback_chain():
+            referenced.setdefault(name, "fallback_chain")
+
+        for name, where in sorted(referenced.items()):
+            if self.get_model_config(name) is None:
+                logger.warning(
+                    "Routing references model '%s' (%s) that is not defined in "
+                    "models.json; this route will fall back or fail silently. "
+                    "Align the name with a models.json short name/id.",
+                    name,
+                    where,
+                )
+
+        default_model = self.get_default_model()
+        if self.get_model_config(default_model) is None:
+            logger.error(
+                "Default model '%s' does not resolve against models.json — solo "
+                "mode will fail on every request. Fix default_model in "
+                "settings.json or add the model to models.json.",
+                default_model,
+            )
+
     def get_orchestration_mode(self) -> str:
         """Get current orchestration mode (solo, ensemble, challenger)"""
         return cast(str, self.settings.get("orchestration_mode", "solo"))
 
     def get_default_model(self) -> str:
         """Get default model name"""
-        return cast(str, self.settings.get("default_model", "claude-sonnet-4.5"))
+        return cast(str, self.settings.get("default_model", "claude-sonnet-4-6"))
 
     def get_enabled_providers(self) -> List[str]:
         """Get list of enabled providers"""
@@ -312,7 +363,7 @@ class ConfigLoader:
         """Get fallback model chain"""
         return cast(
             List[str],
-            self.routing.get("fallback_chain", ["claude-sonnet", "gpt-4o", "gemini-flash"]),
+            self.routing.get("fallback_chain", ["sonnet-4.6", "gpt-4o", "flash-2.5"]),
         )
 
     def get_cost_limit(self) -> float:

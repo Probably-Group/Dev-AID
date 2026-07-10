@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 from ..api_clients import Message, create_client
 from ..context_builder import ContextBuilder, build_system_prompt
-from ._protocol import ModeConfigProtocol
+from ._protocol import ModeConfigProtocol, provider_kwargs
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,9 @@ class SoloMode:
         model_id = model_config.get("id", model_name)
 
         try:
-            response = client.send_request(messages=messages, model=model_id, **kwargs)
+            response = client.send_request(
+                messages=messages, model=model_id, **provider_kwargs(kwargs)
+            )
 
             return {
                 "success": True,

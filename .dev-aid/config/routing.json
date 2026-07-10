@@ -3,13 +3,13 @@
   "modes": {
     "solo": {
       "description": "Single model handles everything",
-      "primary_model": "claude-sonnet"
+      "primary_model": "sonnet-4.6"
     },
     "challenger": {
       "description": "Primary generates, challenger reviews",
       "enabled": true,
-      "primary_model": "claude-sonnet",
-      "challenger_model": "gemini-flash",
+      "primary_model": "sonnet-4.6",
+      "challenger_model": "opus-4.6",
       "auto_refine_on": ["HIGH", "CRITICAL"],
       "review_triggers": [
         "auth",
@@ -31,19 +31,19 @@
       "enabled": true,
       "routing_strategy": "semantic",
       "task_routes": {
-        "massive_context": "gemini-flash",
-        "code_generation": "claude-sonnet",
-        "security_audit": "claude-sonnet",
+        "massive_context": "flash-2.5",
+        "code_generation": "sonnet-4.6",
+        "security_audit": "opus-4.6",
         "documentation": "gpt-4o",
-        "debugging": "claude-sonnet",
-        "complex_reasoning": "claude-opus"
+        "debugging": "sonnet-4.6",
+        "complex_reasoning": "opus-4.6"
       }
     }
   },
   "fallback_chain": [
-    "claude-sonnet",
+    "sonnet-4.6",
     "gpt-4o",
-    "gemini-flash"
+    "flash-2.5"
   ],
   "cost_limit_per_day": 100.0,
   "logging": {

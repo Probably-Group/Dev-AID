@@ -83,15 +83,22 @@ class OpenAIAdapter:
         tool_calls: List[ToolCall] = []
         if message.tool_calls:
             for tc in message.tool_calls:
+                parse_error = None
                 try:
                     arguments = json.loads(tc.function.arguments)
-                except (json.JSONDecodeError, AttributeError):
+                except (json.JSONDecodeError, AttributeError, TypeError) as e:
+                    # Do not fabricate {} — that would run the tool with
+                    # arguments the model never sent (audit M17). Flag it so
+                    # the registry returns an error the model can recover from.
                     arguments = {}
+                    raw = getattr(tc.function, "arguments", "")
+                    parse_error = f"{type(e).__name__}: {str(raw)[:120]}"
                 tool_calls.append(
                     ToolCall(
                         id=tc.id,
                         name=tc.function.name,
                         arguments=arguments,
+                        parse_error=parse_error,
                     )
                 )
 

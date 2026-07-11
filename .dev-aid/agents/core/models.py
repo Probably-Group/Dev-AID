@@ -36,6 +36,10 @@ class ToolCall:
     id: str
     name: str
     arguments: Dict[str, Any] = field(default_factory=dict)
+    # Set when the provider's tool-call arguments could not be parsed as JSON.
+    # The registry turns this into an error result instead of executing the
+    # tool with fabricated empty arguments (audit M17).
+    parse_error: Optional[str] = None
 
     @staticmethod
     def generate_id() -> str:

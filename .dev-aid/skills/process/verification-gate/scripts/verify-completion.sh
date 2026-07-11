@@ -182,6 +182,18 @@ run_optional_check() {
 # ---------------------------------------------------------------------------
 run_checks() {
     local dir="$PROJECT_DIR"
+
+    # SECURITY: dir is interpolated into eval'd command strings and python3 -c
+    # snippets below, so a path containing shell/quote metacharacters could
+    # inject commands (CWE-78/CWE-94 / audit F1). A legitimate project path
+    # never needs these characters — reject them outright.
+    case "$dir" in
+        *[\;\|\&\$\`\(\)\<\>\"\'\\]*)
+            printf 'ERROR: refusing unsafe project path (shell metacharacters): %s\n' "$dir" >&2
+            exit 2
+            ;;
+    esac
+
     local project_type
     project_type=$(detect_project_type "$dir")
 
@@ -201,7 +213,7 @@ run_checks() {
             log_step "Running Node.js verification..."
             if [ -f "${dir}/package.json" ]; then
                 local has_test
-                has_test=$(python3 -c "import json; d=json.load(open('${dir}/package.json')); print('yes' if 'test' in d.get('scripts',{}) else 'no')" 2>/dev/null || echo "no")
+                has_test=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("yes" if "test" in d.get("scripts",{}) else "no")' "${dir}/package.json" 2>/dev/null || echo "no")
                 if [ "$has_test" = "yes" ]; then
                     run_check "Tests (npm test)" "cd \"${dir}\" && npm test"
                 else
@@ -209,7 +221,7 @@ run_checks() {
                 fi
 
                 local has_lint
-                has_lint=$(python3 -c "import json; d=json.load(open('${dir}/package.json')); print('yes' if 'lint' in d.get('scripts',{}) else 'no')" 2>/dev/null || echo "no")
+                has_lint=$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("yes" if "lint" in d.get("scripts",{}) else "no")' "${dir}/package.json" 2>/dev/null || echo "no")
                 if [ "$has_lint" = "yes" ]; then
                     run_check "Lint (npm run lint)" "cd \"${dir}\" && npm run lint"
                 else

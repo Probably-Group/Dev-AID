@@ -1,8 +1,11 @@
 # Dev-AID Router - Python Dependencies
 # Install with: pip install -r requirements.txt
 #
-# SECURITY: All dependencies are pinned to exact versions for reproducibility.
-# This prevents supply chain attacks and ensures deterministic builds.
+# SECURITY: All DIRECT dependencies are pinned to exact versions, which limits
+# the supply-chain surface. NOTE: transitive dependencies are still resolved by
+# pip at install time and are NOT hash-locked, so builds are not fully
+# deterministic yet. A hash-pinned lockfile (pip-compile --generate-hashes +
+# `pip install --require-hashes`) is tracked as a CI-side follow-up (audit M6).
 #
 # To update dependencies:
 #   1. Test new versions in isolated environment
@@ -39,7 +42,7 @@ pytest-asyncio==1.4.0       # Async test support - bumped for pytest 9 compatibi
 pytest-cov==5.0.0           # Coverage reporting
 pytest-mock==3.14.0         # Mocking support
 pytest-xdist==3.5.0         # Parallel testing support
-vcrpy==8.1.1                # Record/replay HTTP interactions for testing - 8.1+ required for Python 3.14 (fixes iscoroutinefunction deprecation)
+vcrpy==8.2.1                # Record/replay HTTP for testing; >=8.2.1 fixes GHSA-rpj2-4hq8-938g (unsafe YAML cassette load), 8.1+ needed for Python 3.14
 hypothesis==6.113.0          # Property-based testing
 
 # Security & Quality

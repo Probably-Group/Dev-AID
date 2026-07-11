@@ -7,6 +7,7 @@ Includes retry with exponential backoff and context management.
 """
 
 import logging
+import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -26,6 +27,68 @@ DEFAULT_MAX_CONTEXT_TOKENS = 100_000
 # Retry configuration
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_RETRY_BASE_DELAY = 1.0  # seconds
+DEFAULT_RETRY_MAX_DELAY = 30.0  # seconds — cap on backoff
+
+# HTTP statuses / provider-exception name fragments that indicate a transient
+# error worth retrying vs. a permanent one that never will (audit H4). Retrying
+# a 401/400 just wastes attempts and latency and misreports a config error.
+_RETRYABLE_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504, 529})
+_FATAL_STATUS = frozenset({400, 401, 403, 404, 405, 422})
+_RETRYABLE_NAME_HINTS = (
+    "ratelimit",
+    "timeout",
+    "connection",
+    "internalserver",
+    "overloaded",
+    "serviceunavailable",
+    "apiconnection",
+)
+_FATAL_NAME_HINTS = (
+    "authentication",
+    "permissiondenied",
+    "badrequest",
+    "notfound",
+    "invalidrequest",
+    "unprocessable",
+)
+
+
+def _is_retryable_error(exc: BaseException) -> bool:
+    """Classify a provider exception as transient (retry) vs permanent.
+
+    Unknown errors default to retryable (conservative for reliability); only
+    clearly-permanent errors (bad key, malformed request, 404) short-circuit.
+    """
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int):
+        if status in _FATAL_STATUS:
+            return False
+        if status in _RETRYABLE_STATUS:
+            return True
+    name = type(exc).__name__.lower()
+    if any(h in name for h in _FATAL_NAME_HINTS):
+        return False
+    if any(h in name for h in _RETRYABLE_NAME_HINTS):
+        return True
+    return True
+
+
+def _retry_after_seconds(exc: BaseException) -> Optional[float]:
+    """Extract a Retry-After hint (seconds) from a provider exception, if any."""
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", None)
+    if not headers:
+        return None
+    try:
+        value = headers.get("retry-after")
+    except AttributeError:
+        return None
+    if value is None:
+        return None
+    try:
+        return max(0.0, float(value))
+    except (TypeError, ValueError):
+        return None
 
 
 class AgentRunner:
@@ -198,16 +261,32 @@ class AgentRunner:
                 )
             except Exception as e:
                 last_error = e
+                # Don't burn retries on permanent errors (bad key, 400, 404).
+                if not _is_retryable_error(e):
+                    logger.error(
+                        "Non-retryable provider error (attempt %d/%d): %s — giving up",
+                        attempt,
+                        self._max_retries,
+                        e,
+                    )
+                    raise
                 if attempt < self._max_retries:
+                    # Honor Retry-After when present; otherwise exponential
+                    # backoff with full jitter to avoid synchronized retries.
+                    retry_after = _retry_after_seconds(e)
+                    if retry_after is not None:
+                        sleep_for = retry_after
+                    else:
+                        sleep_for = random.uniform(0, delay)
                     logger.warning(
                         "Provider error (attempt %d/%d): %s — retrying in %.1fs",
                         attempt,
                         self._max_retries,
                         e,
-                        delay,
+                        sleep_for,
                     )
-                    time.sleep(delay)
-                    delay *= 2  # exponential backoff
+                    time.sleep(sleep_for)
+                    delay = min(delay * 2, DEFAULT_RETRY_MAX_DELAY)
                 else:
                     logger.error(
                         "Provider error (attempt %d/%d): %s — giving up",
@@ -329,6 +408,8 @@ class AgentRunner:
         model: str = "",
         max_tokens: int = 4096,
         extra_context: str = "",
+        deadline_seconds: Optional[float] = None,
+        max_cost_usd: Optional[float] = None,
     ) -> AgentResult:
         """
         Execute the agent loop.
@@ -339,6 +420,11 @@ class AgentRunner:
             model: Model to use (overrides default)
             max_tokens: Max tokens per response
             extra_context: Additional context to inject into system prompt
+            deadline_seconds: Wall-clock budget; the loop stops before the next
+                provider call once exceeded (cooperative — an in-flight call is
+                not interrupted). Enforces a team's timeout_seconds (audit H8).
+            max_cost_usd: Cost budget; the loop stops once accumulated cost
+                exceeds it (audit H8).
 
         Returns:
             AgentResult with output, metrics, and cost
@@ -364,6 +450,22 @@ class AgentRunner:
         tool_calls_made: int = 0
         final_output: str = ""
 
+        def _stopped(reason: str, iteration: int) -> AgentResult:
+            """Build a stopped-early result (deadline/budget) and end the trace."""
+            result = AgentResult(
+                agent_name=agent_def.name,
+                success=False,
+                output=final_output or f"[stopped] {reason}",
+                tool_calls_made=tool_calls_made,
+                iterations=iteration,
+                total_tokens=total_tokens,
+                total_cost=total_cost,
+                total_latency_ms=timer.elapsed_ms(),
+            )
+            if self._trace_collector:
+                self._trace_collector.end_trace(result)
+            return result
+
         for iteration in range(1, agent_def.max_iterations + 1):
             logger.info(
                 "Agent '%s' iteration %d/%d",
@@ -371,6 +473,21 @@ class AgentRunner:
                 iteration,
                 agent_def.max_iterations,
             )
+
+            # Enforce the wall-clock deadline before starting another provider
+            # call (audit H8). Cooperative: an already-running call completes.
+            if (
+                deadline_seconds is not None
+                and timer.elapsed_ms() / 1000.0 > deadline_seconds
+            ):
+                logger.warning(
+                    "Agent '%s' exceeded deadline of %.0fs — stopping",
+                    agent_def.name,
+                    deadline_seconds,
+                )
+                return _stopped(
+                    f"Time budget of {deadline_seconds:.0f}s exceeded.", iteration
+                )
 
             # Trim context if getting too large
             self._trim_context(messages)
@@ -418,6 +535,18 @@ class AgentRunner:
             total_tokens["output"] += response.tokens_used.get("output", 0)
             total_cost += response.cost
 
+            # Enforce the cost budget (audit H8).
+            if max_cost_usd is not None and total_cost > max_cost_usd:
+                logger.warning(
+                    "Agent '%s' exceeded cost budget of $%.4f (spent $%.4f) — stopping",
+                    agent_def.name,
+                    max_cost_usd,
+                    total_cost,
+                )
+                return _stopped(
+                    f"Cost budget of ${max_cost_usd:.4f} exceeded.", iteration
+                )
+
             # Record iteration trace
             if self._trace_collector:
                 stop_reason = "tool_use" if response.tool_calls else "end_turn"
@@ -440,9 +569,18 @@ class AgentRunner:
             # If no tool calls, we have the final response
             if not response.tool_calls:
                 final_output = response.content or ""
+                # A max_tokens stop with no tool calls means the model was cut
+                # off mid-answer — don't report it as a clean completion
+                # (audit H8). Flag it so callers don't treat it as done.
+                truncated = getattr(response, "stop_reason", None) == "max_tokens"
+                if truncated:
+                    final_output += (
+                        "\n\n[warning] Response hit the max_tokens limit and may be "
+                        "incomplete."
+                    )
                 success_result = AgentResult(
                     agent_name=agent_def.name,
-                    success=True,
+                    success=not truncated,
                     output=final_output,
                     tool_calls_made=tool_calls_made,
                     iterations=iteration,

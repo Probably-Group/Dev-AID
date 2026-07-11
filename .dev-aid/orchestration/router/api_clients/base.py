@@ -61,14 +61,65 @@ def track_api_call(func: F) -> F:
                 f"{provider.title()} API error: {type(e).__name__}: {str(e)}",
                 exc_info=True,
             )
-            # Raise safe error to user (no sensitive details)
-            raise APIClientError("Failed to communicate with AI provider. Please try again.")
+            # Raise a safe error (no sensitive details) but preserve enough
+            # classification for callers to act correctly: an auth/bad-request
+            # failure must not be reported as "please try again" (audit H4/M16).
+            status = getattr(e, "status_code", None)
+            status = status if isinstance(status, int) else None
+            if _is_auth_error(e, status):
+                message = "Authentication failed for the AI provider. Check the API key."
+                retryable = False
+            elif status in _FATAL_STATUS:
+                message = "The AI provider rejected the request."
+                retryable = False
+            elif _is_transient_error(e, status):
+                message = "The AI provider is temporarily unavailable. Please retry."
+                retryable = True
+            else:
+                message = "Failed to communicate with AI provider. Please try again."
+                retryable = True
+            raise APIClientError(message, retryable=retryable, status_code=status) from e
 
     return cast(F, wrapper)
 
 
+# HTTP statuses that are never worth retrying (permanent).
+_FATAL_STATUS = frozenset({400, 401, 403, 404, 405, 422})
+_TRANSIENT_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504, 529})
+
+
+def _is_auth_error(exc: BaseException, status: Optional[int]) -> bool:
+    if status in (401, 403):
+        return True
+    name = type(exc).__name__.lower()
+    return "authentication" in name or "permissiondenied" in name
+
+
+def _is_transient_error(exc: BaseException, status: Optional[int]) -> bool:
+    if status in _TRANSIENT_STATUS:
+        return True
+    name = type(exc).__name__.lower()
+    return any(h in name for h in ("ratelimit", "timeout", "connection", "overloaded"))
+
+
 class APIClientError(Exception):
-    """Safe API client error that doesn't leak details"""
+    """Safe API client error that doesn't leak details.
+
+    Carries a coarse ``retryable`` flag and ``status_code`` so callers can
+    distinguish a transient outage from a permanent config error without
+    seeing provider internals.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        retryable: bool = False,
+        status_code: Optional[int] = None,
+    ) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+        self.status_code = status_code
 
 
 @dataclass

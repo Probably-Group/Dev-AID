@@ -25,7 +25,7 @@ from mcp_server.validation import (
     SearchCodeRequest,
 )
 from search.index import CodeSearchIndex, SearchResult
-from utils.security import validate_directory_path
+from utils.security import safe_resolve_path, validate_directory_path
 from utils.storage import StorageManager
 
 logger = logging.getLogger(__name__)
@@ -148,8 +148,22 @@ class CodeSearchServer:
             AppError: If indexing fails
         """
         try:
-            # SECURITY: Validate directory path
-            validated_dir = validate_directory_path(directory, must_exist=True)
+            # SECURITY: Validate directory path. When an allowed root is
+            # configured (DEVAID_SEARCH_ALLOWED_ROOT), confine indexing to that
+            # tree so a prompt-injected caller can't index an arbitrary path
+            # (e.g. a private source tree or ~/.ssh) and read its contents back
+            # out via search_code (audit M1). Unset = unconfined, with a warning.
+            allowed_root = os.environ.get("DEVAID_SEARCH_ALLOWED_ROOT")
+            if allowed_root:
+                validated_dir = safe_resolve_path(
+                    Path(allowed_root), directory, must_exist=True
+                )
+            else:
+                validated_dir = validate_directory_path(directory, must_exist=True)
+                logger.warning(
+                    "index_directory is unconfined; set DEVAID_SEARCH_ALLOWED_ROOT "
+                    "to restrict which paths may be indexed"
+                )
             directory = str(validated_dir)
 
             logger.info(f"Indexing directory: {directory}")

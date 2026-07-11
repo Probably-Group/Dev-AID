@@ -119,6 +119,16 @@ class RouterExecutor:
                 "error": "Execution failed. Check logs for details.",
             }
             return error_result
+        finally:
+            # Tear down MCP servers spawned during this run. execute() wraps
+            # each call in its own asyncio.run() loop, so a client left in the
+            # pool would be bound to a now-closed loop and break the next call
+            # (audit M13); leaving the child running also orphans it (M12).
+            if self.mcp_pool:
+                try:
+                    await self.mcp_pool.disconnect_all()
+                except Exception as cleanup_err:  # noqa: BLE001
+                    logger.warning("MCP disconnect_all failed: %s", cleanup_err)
 
     def execute(
         self,

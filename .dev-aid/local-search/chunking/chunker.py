@@ -385,6 +385,24 @@ class MultiLanguageChunker:
                 ".coverage",
                 ".tox",
                 "htmlcov",
+                # Secret-bearing files/dirs — never embed these into the
+                # searchable index (audit M1). Substring-matched on the path.
+                ".env",
+                ".ssh",
+                ".aws",
+                ".gnupg",
+                ".git-credentials",
+                ".netrc",
+                ".npmrc",
+                ".pypirc",
+                ".pgpass",
+                "id_rsa",
+                "id_dsa",
+                "id_ecdsa",
+                "id_ed25519",
+                ".pem",
+                ".p12",
+                ".pfx",
             ]
 
         all_chunks: List[CodeChunk] = []

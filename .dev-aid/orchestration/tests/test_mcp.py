@@ -315,8 +315,9 @@ class TestMCPClient:
 
     @pytest.mark.asyncio
     async def test_disconnect(self, mcp_client):
-        """Test disconnecting from server"""
+        """Test disconnecting from a running server"""
         mock_process = AsyncMock()
+        mock_process.returncode = None  # still running
         mock_process.terminate = Mock()
         mock_process.wait = AsyncMock()
 

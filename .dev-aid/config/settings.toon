@@ -1,4 +1,4 @@
-dev_aid_version: 1.5.1
+dev_aid_version: 1.6.1
 project_name: my-project
 auto_activation: conservative
 auto_load_max_skills: 3

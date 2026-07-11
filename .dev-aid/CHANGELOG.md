@@ -9,6 +9,141 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- `CLAUDE.md`: documented contributor gotchas surfaced during the audit — the
+  orchestration Black line-length (100 vs the repo default 88) and how mixing
+  paths breaks it, that the pre-commit hook only gates `.dev-aid/orchestration/`,
+  and that `.toon` configs are loaded before `.json` (regenerate on json edits).
+- `orchestration/requirements.txt`: corrected the reproducibility comment —
+  only *direct* deps are pinned; transitives are not hash-locked (see M6).
+
+### Security & Correctness (SOTA audit — Sprint 2 remediation)
+
+Injection hardening & shell fixes (batch G):
+
+- **Untrusted MCP content is fenced and sanitized** (M3): GitHub-issue, web-
+  research, code-search and DB-schema content rendered into the system prompt
+  is now wrapped in trust-labelled `<untrusted-data>` blocks with a security
+  preamble, and stripped of zero-width/bidi/control characters used to smuggle
+  hidden instructions. The memory-bank reminder now warns against persisting
+  externally-sourced content.
+- **verify-completion.sh command injection closed** (shell F1): the script
+  rejects project paths containing shell metacharacters (they flow into
+  `eval`), and the two `python3 -c` probes take the path as `argv` instead of
+  interpolating it (CWE-78/CWE-94).
+- **Conflict-resolver path-traversal guard** (F2): `resolve_conflict` rejects
+  file paths that escape the `.dev-aid` tree before writing (CWE-22).
+- **`.shellcheckrc` no longer globally disables SC2034** (unused-variable /
+  dead-code detection is restored; silence real exceptions per-site).
+
+CI supply-chain (batch F):
+
+- **Untrusted-PR-code isolation** (H9): `auto-resolve-conflicts` installs
+  Python dependencies from the **base** branch's manifest, not the checked-out
+  PR head, so a fork PR can't swap in a dependency that runs code at install
+  time with the job's write token. (The auto-resolution step still runs the
+  repo's tooling on the PR tree, so it stays gated behind the admin-only
+  `DEV_AID_AUTO_RESOLVE_CONFLICTS` variable — documented inline.)
+- **Required dependency-review gate** (M7): `pr-check` now fails a PR that
+  introduces a high-severity vulnerable dependency or a strong-copyleft
+  (GPL/AGPL/LGPL) license.
+- **Deferred: full hash-pinned lockfile** (M6). Generating cross-platform,
+  `--require-hashes` lockfiles that install correctly across the Linux/macOS,
+  multi-Python CI matrix must be done in the CI environment; shipping one
+  generated elsewhere risks breaking every `pip install`. Tracked as a
+  CI-side task (`pip-compile --generate-hashes` → switch installs to
+  `--require-hashes`).
+
+Local-search & deep-research (batch E):
+
+- **Index scope confinement** (M1): `index_directory` honors
+  `DEVAID_SEARCH_ALLOWED_ROOT` — when set, indexable paths are confined to
+  that tree via `safe_resolve_path`, so a prompt-injected caller can't index
+  an arbitrary directory and read its contents back through `search_code`.
+  Unset stays backwards-compatible but logs a warning.
+- **Secret files excluded from the index** (M1): the chunker's default
+  exclusions now skip `.env`, SSH/AWS/GnuPG dirs, `id_rsa`/`id_ed25519`,
+  `.pem`/`.p12`/`.pfx`, `.netrc`/`.npmrc`/`.pypirc`/`.pgpass`, etc.
+- **Fixed the coverage gate that never gated** (M-cov): `--cov` is scoped to
+  the source packages instead of `.` (which swept the venv and reported a
+  bogus ~19% failing a green run); threshold set to a real, enforced floor.
+- **Both suites now run in CI** (H11): added required `local-search-test` and
+  `deep-research-test` jobs to `pr-check.yml` — previously neither ran in CI.
+- Added tests for the previously-0%-covered MCP request validators.
+- **Honest degraded deep-research** (M15): when the Interactions API is
+  unavailable, the single-call fallback now reports `confidence_score=0.4`,
+  `metadata.degraded=true`, and its real model — instead of masquerading as a
+  0.9-confidence deep-research result — and no longer targets the retired
+  `gemini-2.0-flash-exp` alias.
+
+Agent budgets, timeouts & tool-call integrity (batch D):
+
+- **Team `timeout_seconds` is now enforced** (H8): the agent loop takes a
+  wall-clock deadline and stops before the next provider call once exceeded.
+  Previously the timeout was advertised on every team but never applied.
+- **Per-run cost budget** (H8): the loop stops once accumulated cost exceeds a
+  cap; team agents inherit the team's `max_budget_usd`, which also bounds how
+  far a parallel batch can overshoot the shared budget.
+- **Truncated answers aren't reported as complete** (H8): a `max_tokens` stop
+  with no tool call now yields `success=False` with a warning instead of a
+  silently cut-off "successful" result.
+- **Malformed tool-call arguments are rejected** (M17): the OpenAI adapter no
+  longer fabricates `{}` when a tool call's JSON arguments don't parse — the
+  registry returns an error the model can recover from.
+- **File locks always released** (B-6): team agents release their locks in a
+  `finally` so a failure can't leave a stuck lock for later agents.
+
+Reliability: retries & response handling (batch C):
+
+- **Retry only transient errors, with jitter and Retry-After** (H4): the agent
+  retry loop no longer burns attempts on permanent failures (bad key, 400,
+  404) — those raise immediately. Transient errors back off with full jitter,
+  capped, and honor a `Retry-After` header when present.
+- **Typed, actionable provider errors** (H4/M16): `APIClientError` now carries
+  `retryable` and `status_code`, and the message reflects the cause (an auth
+  failure says "check the API key", not "please try again") without leaking
+  provider internals.
+- **Defensive Anthropic response parsing** (M16): extracting the reply no
+  longer indexes `content[0].text` blindly — a refusal or safety stop (empty
+  or non-text content) yields a clear placeholder instead of crashing, and a
+  `max_tokens` cut-off is flagged `truncated` so callers don't treat a partial
+  answer as complete.
+
+MCP client robustness (batch B):
+
+- **Request/response id correlation** (B-1): `_send_request` now returns the
+  reply whose JSON-RPC id matches the request, discarding stale lines (bounded).
+  A late reply from a timed-out request no longer gets handed to the wrong
+  caller — the desync self-heals instead of persisting.
+- **Bounded shutdown with SIGKILL escalation** (M12): `disconnect` waits up to
+  5s after SIGTERM then sends SIGKILL, so a server that ignores SIGTERM can't
+  hang shutdown; guarded against terminating an already-exited process.
+- **MCP servers are torn down after each run** (M12/M13): `RouterExecutor`
+  calls `disconnect_all()` in a `finally`, so clients aren't left bound to a
+  closed `asyncio.run` loop (which broke the next call) and children aren't
+  orphaned.
+- **Hardened env-override blocklist** (M11): MCP configs can no longer set
+  code-injection env vars — now blocks `LD_*`, `DYLD_*`, `NODE_OPTIONS`,
+  `PYTHONPATH/STARTUP/HOME`, `BASH_ENV`, `PERL5OPT`, `RUBYOPT` (was only
+  `LD_PRELOAD`/`LD_LIBRARY_PATH`).
+
+Supply-chain and CI hygiene (batch A):
+
+- **Pinned the shipped CI templates' `trivy-action@0.33.1`** — an *invalid* tag
+  (only `v0.33.1` exists) that would fail the scan step — to the `v0.33.1`
+  commit SHA across all `templates/ci` and `automation/ci-cd` files.
+- **Added `.github/dependabot.yml`** (audit M8) covering pip (×3 manifests),
+  npm, and github-actions, with a 7-day cooldown to blunt supply-chain
+  attacks via freshly-published versions.
+- **Added least-privilege `permissions: contents: read`** to `pr-check.yml`
+  and `windows-compat.yml` (audit M9).
+- **Bumped `vcrpy` to 8.2.1** (GHSA-rpj2-4hq8-938g, unsafe YAML cassette load).
+- **Fixed a `find` precedence bug** in the `pre-push` hook where `-name '*.js'
+  -o -name '*.jsx'` without parentheses let the exclusions be ignored.
+- **Regenerated drifted `search.toon`/`settings.toon`** from JSON (the loader
+  reads `.toon` first; these had silently diverged from their `.json` source).
+
 ### Security & Correctness (SOTA audit — Sprint 1 remediation)
 
 Fixes for the five highest-priority findings from the full repository audit

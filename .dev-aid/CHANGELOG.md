@@ -11,6 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+Reliability: retries & response handling (batch C):
+
+- **Retry only transient errors, with jitter and Retry-After** (H4): the agent
+  retry loop no longer burns attempts on permanent failures (bad key, 400,
+  404) — those raise immediately. Transient errors back off with full jitter,
+  capped, and honor a `Retry-After` header when present.
+- **Typed, actionable provider errors** (H4/M16): `APIClientError` now carries
+  `retryable` and `status_code`, and the message reflects the cause (an auth
+  failure says "check the API key", not "please try again") without leaking
+  provider internals.
+- **Defensive Anthropic response parsing** (M16): extracting the reply no
+  longer indexes `content[0].text` blindly — a refusal or safety stop (empty
+  or non-text content) yields a clear placeholder instead of crashing, and a
+  `max_tokens` cut-off is flagged `truncated` so callers don't treat a partial
+  answer as complete.
+
 MCP client robustness (batch B):
 
 - **Request/response id correlation** (B-1): `_send_request` now returns the

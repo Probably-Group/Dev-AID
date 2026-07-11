@@ -82,8 +82,19 @@ class AnthropicClient(BaseAIClient):
         # Make API call (timing and error handling via decorator)
         response = self.client.messages.create(**request_params)  # type: ignore
 
-        # Extract response data
-        content = response.content[0].text
+        # Extract response text defensively: on a refusal or a safety stop the
+        # content list can be empty or hold non-text blocks, so indexing
+        # content[0].text would raise IndexError/AttributeError (audit M16).
+        stop_reason = response.stop_reason
+        text_parts = [
+            block.text
+            for block in (response.content or [])
+            if isinstance(getattr(block, "text", None), str) and block.text
+        ]
+        content = "".join(text_parts)
+        if not content and stop_reason == "refusal":
+            content = "[model declined to respond]"
+
         input_tokens = response.usage.input_tokens
         output_tokens = response.usage.output_tokens
 
@@ -97,5 +108,11 @@ class AnthropicClient(BaseAIClient):
             tokens_used={"input": input_tokens, "output": output_tokens},
             cost=cost,
             latency_ms=None,  # Set by decorator
-            metadata={"stop_reason": response.stop_reason, "response_id": response.id},
+            metadata={
+                "stop_reason": stop_reason,
+                "response_id": response.id,
+                # Flag truncation so callers don't treat a cut-off answer as
+                # complete (audit M16).
+                "truncated": stop_reason == "max_tokens",
+            },
         )

@@ -7,6 +7,7 @@ Includes retry with exponential backoff and context management.
 """
 
 import logging
+import random
 import time
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -26,6 +27,68 @@ DEFAULT_MAX_CONTEXT_TOKENS = 100_000
 # Retry configuration
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_RETRY_BASE_DELAY = 1.0  # seconds
+DEFAULT_RETRY_MAX_DELAY = 30.0  # seconds — cap on backoff
+
+# HTTP statuses / provider-exception name fragments that indicate a transient
+# error worth retrying vs. a permanent one that never will (audit H4). Retrying
+# a 401/400 just wastes attempts and latency and misreports a config error.
+_RETRYABLE_STATUS = frozenset({408, 409, 425, 429, 500, 502, 503, 504, 529})
+_FATAL_STATUS = frozenset({400, 401, 403, 404, 405, 422})
+_RETRYABLE_NAME_HINTS = (
+    "ratelimit",
+    "timeout",
+    "connection",
+    "internalserver",
+    "overloaded",
+    "serviceunavailable",
+    "apiconnection",
+)
+_FATAL_NAME_HINTS = (
+    "authentication",
+    "permissiondenied",
+    "badrequest",
+    "notfound",
+    "invalidrequest",
+    "unprocessable",
+)
+
+
+def _is_retryable_error(exc: BaseException) -> bool:
+    """Classify a provider exception as transient (retry) vs permanent.
+
+    Unknown errors default to retryable (conservative for reliability); only
+    clearly-permanent errors (bad key, malformed request, 404) short-circuit.
+    """
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int):
+        if status in _FATAL_STATUS:
+            return False
+        if status in _RETRYABLE_STATUS:
+            return True
+    name = type(exc).__name__.lower()
+    if any(h in name for h in _FATAL_NAME_HINTS):
+        return False
+    if any(h in name for h in _RETRYABLE_NAME_HINTS):
+        return True
+    return True
+
+
+def _retry_after_seconds(exc: BaseException) -> Optional[float]:
+    """Extract a Retry-After hint (seconds) from a provider exception, if any."""
+    response = getattr(exc, "response", None)
+    headers = getattr(response, "headers", None)
+    if not headers:
+        return None
+    try:
+        value = headers.get("retry-after")
+    except AttributeError:
+        return None
+    if value is None:
+        return None
+    try:
+        return max(0.0, float(value))
+    except (TypeError, ValueError):
+        return None
 
 
 class AgentRunner:
@@ -198,16 +261,32 @@ class AgentRunner:
                 )
             except Exception as e:
                 last_error = e
+                # Don't burn retries on permanent errors (bad key, 400, 404).
+                if not _is_retryable_error(e):
+                    logger.error(
+                        "Non-retryable provider error (attempt %d/%d): %s — giving up",
+                        attempt,
+                        self._max_retries,
+                        e,
+                    )
+                    raise
                 if attempt < self._max_retries:
+                    # Honor Retry-After when present; otherwise exponential
+                    # backoff with full jitter to avoid synchronized retries.
+                    retry_after = _retry_after_seconds(e)
+                    if retry_after is not None:
+                        sleep_for = retry_after
+                    else:
+                        sleep_for = random.uniform(0, delay)
                     logger.warning(
                         "Provider error (attempt %d/%d): %s — retrying in %.1fs",
                         attempt,
                         self._max_retries,
                         e,
-                        delay,
+                        sleep_for,
                     )
-                    time.sleep(delay)
-                    delay *= 2  # exponential backoff
+                    time.sleep(sleep_for)
+                    delay = min(delay * 2, DEFAULT_RETRY_MAX_DELAY)
                 else:
                     logger.error(
                         "Provider error (attempt %d/%d): %s — giving up",

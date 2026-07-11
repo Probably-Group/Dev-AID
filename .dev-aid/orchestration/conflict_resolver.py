@@ -17,6 +17,7 @@ Example:
 """
 
 import difflib
+import os
 import sys
 from enum import Enum
 from pathlib import Path
@@ -264,6 +265,19 @@ IMPORTANT NOTES:
         """)
         print("=" * 70)
 
+    @staticmethod
+    def _reject_traversal(base: Path, file_path: str) -> None:
+        """Raise ValueError if base/file_path escapes base (CWE-22)."""
+        base_resolved = base.resolve()
+        target = (base / file_path).resolve()
+        try:
+            common = os.path.commonpath([str(target), str(base_resolved)])
+        except ValueError:
+            # Different drives (Windows) — definitely outside base.
+            raise ValueError(f"Refusing path outside {base}: {file_path}")
+        if common != str(base_resolved):
+            raise ValueError(f"Refusing path outside {base}: {file_path}")
+
     def resolve_conflict(self, file_path: str, choice: MergeChoice) -> None:
         """
         Execute the user's merge choice
@@ -272,6 +286,15 @@ IMPORTANT NOTES:
             file_path: Relative path to conflicting file
             choice: User's resolution choice
         """
+        # Reject path traversal: file_path must stay within the .dev-aid tree.
+        # Otherwise "take upstream" for a crafted path (absolute, or with ../)
+        # would be an arbitrary file write with attacker-controlled content
+        # (CWE-22 / audit F2). The shipped caller passes `find -printf %P`
+        # output which is safe, but a tampered update tree or an alternate
+        # caller must not be able to escape.
+        self._reject_traversal(Path(".dev-aid"), file_path)
+        self._reject_traversal(self.update_dir / ".dev-aid", file_path)
+
         current = Path(".dev-aid") / file_path
         upstream = self.update_dir / ".dev-aid" / file_path
 

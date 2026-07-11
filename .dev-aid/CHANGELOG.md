@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+Injection hardening & shell fixes (batch G):
+
+- **Untrusted MCP content is fenced and sanitized** (M3): GitHub-issue, web-
+  research, code-search and DB-schema content rendered into the system prompt
+  is now wrapped in trust-labelled `<untrusted-data>` blocks with a security
+  preamble, and stripped of zero-width/bidi/control characters used to smuggle
+  hidden instructions. The memory-bank reminder now warns against persisting
+  externally-sourced content.
+- **verify-completion.sh command injection closed** (shell F1): the script
+  rejects project paths containing shell metacharacters (they flow into
+  `eval`), and the two `python3 -c` probes take the path as `argv` instead of
+  interpolating it (CWE-78/CWE-94).
+- **Conflict-resolver path-traversal guard** (F2): `resolve_conflict` rejects
+  file paths that escape the `.dev-aid` tree before writing (CWE-22).
+- **`.shellcheckrc` no longer globally disables SC2034** (unused-variable /
+  dead-code detection is restored; silence real exceptions per-site).
+
 CI supply-chain (batch F):
 
 - **Untrusted-PR-code isolation** (H9): `auto-resolve-conflicts` installs

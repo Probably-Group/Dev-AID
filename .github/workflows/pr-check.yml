@@ -253,10 +253,26 @@ jobs:
           pip install -e ".[dev]"
           python -m pytest tests/
 
+  # Fail the PR if it introduces a high-severity vulnerable dependency or a
+  # strong-copyleft license (audit M7). Requires the repo's Dependency Graph
+  # (default-on for public repos). Runs only on pull_request events.
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Dependency Review
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294  # v5.0.0
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-2.0, GPL-3.0, AGPL-3.0, LGPL-2.1, LGPL-3.0
+
   pr-check-summary:
     name: PR Check Summary
     runs-on: ubuntu-22.04
-    needs: [python-lint, python-test, type-check, e2e-test, bash-lint, local-search-test, deep-research-test]
+    needs: [python-lint, python-test, type-check, e2e-test, bash-lint, local-search-test, deep-research-test, dependency-review]
     if: always()
 
     steps:
@@ -272,6 +288,7 @@ jobs:
           BASH="${{ needs.bash-lint.result }}"
           LOCAL_SEARCH="${{ needs.local-search-test.result }}"
           DEEP_RESEARCH="${{ needs.deep-research-test.result }}"
+          DEP_REVIEW="${{ needs.dependency-review.result }}"
 
           echo "Python Lint: $LINT"
           echo "Python Test: $TEST"
@@ -280,10 +297,12 @@ jobs:
           echo "Bash Lint: $BASH"
           echo "Local Search Test: $LOCAL_SEARCH"
           echo "Deep Research Test: $DEEP_RESEARCH"
+          echo "Dependency Review: $DEP_REVIEW"
 
           # Only fail on actual failures, not skipped/cancelled
           if [[ "$LINT" == "failure" || "$TEST" == "failure" || "$E2E" == "failure" \
-                || "$LOCAL_SEARCH" == "failure" || "$DEEP_RESEARCH" == "failure" ]]; then
+                || "$LOCAL_SEARCH" == "failure" || "$DEEP_RESEARCH" == "failure" \
+                || "$DEP_REVIEW" == "failure" ]]; then
             echo "::error::PR checks failed!"
             exit 1
           fi

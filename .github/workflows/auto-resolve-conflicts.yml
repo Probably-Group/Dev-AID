@@ -37,9 +37,21 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      - name: Install Dev-AID dependencies
+      - name: Install Dev-AID dependencies (from base, not the PR)
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || 'main' }}
         run: |
-          pip install -r .dev-aid/orchestration/requirements.txt
+          # Install from the BASE branch's manifest, never the checked-out PR
+          # head. A fork PR must not be able to swap in a malicious dependency
+          # that would run arbitrary code at install time with this job's
+          # write-scoped token (audit H9 / OWASP CICD-SEC-4). NOTE: the
+          # auto-resolution step still runs the repo's own tooling on the PR
+          # tree, which is why it stays gated behind the admin-only
+          # DEV_AID_AUTO_RESOLVE_CONFLICTS variable — enable it only for
+          # trusted (same-repo) PRs.
+          git fetch origin "$BASE_REF"
+          git show "origin/$BASE_REF:.dev-aid/orchestration/requirements.txt" > /tmp/base-requirements.txt
+          pip install -r /tmp/base-requirements.txt
 
       - name: Configure Git
         run: |

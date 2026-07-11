@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+CI supply-chain (batch F):
+
+- **Untrusted-PR-code isolation** (H9): `auto-resolve-conflicts` installs
+  Python dependencies from the **base** branch's manifest, not the checked-out
+  PR head, so a fork PR can't swap in a dependency that runs code at install
+  time with the job's write token. (The auto-resolution step still runs the
+  repo's tooling on the PR tree, so it stays gated behind the admin-only
+  `DEV_AID_AUTO_RESOLVE_CONFLICTS` variable — documented inline.)
+- **Required dependency-review gate** (M7): `pr-check` now fails a PR that
+  introduces a high-severity vulnerable dependency or a strong-copyleft
+  (GPL/AGPL/LGPL) license.
+- **Deferred: full hash-pinned lockfile** (M6). Generating cross-platform,
+  `--require-hashes` lockfiles that install correctly across the Linux/macOS,
+  multi-Python CI matrix must be done in the CI environment; shipping one
+  generated elsewhere risks breaking every `pip install`. Tracked as a
+  CI-side task (`pip-compile --generate-hashes` → switch installs to
+  `--require-hashes`).
+
 Local-search & deep-research (batch E):
 
 - **Index scope confinement** (M1): `index_directory` honors

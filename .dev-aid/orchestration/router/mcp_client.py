@@ -14,6 +14,33 @@ from typing import Any, Dict, List, Optional, cast
 
 logger = logging.getLogger(__name__)
 
+# Environment variables an MCP server config may NOT override, because setting
+# them lets a config author inject code into the spawned process (audit M11).
+# Exact names plus any dynamic-linker / interpreter-startup prefix.
+_ENV_OVERRIDE_BLOCKED_EXACT = {
+    "PATH",
+    "HOME",
+    "USER",
+    "NODE_OPTIONS",
+    "PYTHONPATH",
+    "PYTHONSTARTUP",
+    "PYTHONHOME",
+    "BASH_ENV",
+    "PERL5OPT",
+    "RUBYOPT",
+}
+_ENV_OVERRIDE_BLOCKED_PREFIXES = ("LD_", "DYLD_")
+
+# Bound on how many stale/mismatched JSON-RPC lines to skip while waiting for
+# the response that matches the request id (audit B-1). Prevents an unbounded
+# loop against a chatty or misbehaving server.
+_MAX_STALE_RESPONSES = 16
+
+
+def _is_env_override_blocked(key: str) -> bool:
+    """True if an MCP config must not be allowed to set this env var."""
+    return key in _ENV_OVERRIDE_BLOCKED_EXACT or key.startswith(_ENV_OVERRIDE_BLOCKED_PREFIXES)
+
 
 @dataclass
 class MCPTool:
@@ -76,9 +103,8 @@ class MCPClient:
 
             # Add server-specific environment variables (if provided)
             if self.config.env:
-                env_override_blocklist = {"PATH", "HOME", "USER", "LD_PRELOAD", "LD_LIBRARY_PATH"}
                 for key, value in self.config.env.items():
-                    if key in env_override_blocklist:
+                    if _is_env_override_blocked(key):
                         logger.warning("MCP config tried to override %s — blocked", key)
                         continue
                     safe_env[key] = value
@@ -135,11 +161,28 @@ class MCPClient:
             return False
 
     async def disconnect(self) -> None:
-        """Disconnect from MCP server"""
-        if self.process:
-            self.process.terminate()
-            await self.process.wait()
-            self.process = None
+        """Disconnect from MCP server.
+
+        Escalates SIGTERM -> SIGKILL with a bounded wait so a server that
+        ignores SIGTERM cannot hang shutdown forever (audit M12).
+        """
+        if not self.process:
+            return
+        proc = self.process
+        self.process = None
+        try:
+            if proc.returncode is None:
+                proc.terminate()
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=5.0)
+            except asyncio.TimeoutError:
+                logger.warning("MCP server %s ignored SIGTERM; sending SIGKILL", self.config.name)
+                if proc.returncode is None:
+                    proc.kill()
+                await proc.wait()
+        except ProcessLookupError:
+            # Already exited between the returncode check and the signal.
+            pass
 
     async def call_tool(
         self,
@@ -195,19 +238,40 @@ class MCPClient:
         self.process.stdin.write(request_json.encode())
         await self.process.stdin.drain()
 
-        # Read response with timeout protection
-        response_line = await asyncio.wait_for(self.process.stdout.readline(), timeout=timeout)
-        response: Dict[str, Any] = json.loads(response_line.decode())
+        # Read the response whose id matches this request. Correlating on id
+        # (rather than trusting the next line) means a late reply from a
+        # previously timed-out request — which carries the OLD id — is
+        # discarded instead of being returned to the wrong caller (audit B-1).
+        req_id = request.get("id")
+        stale = 0
+        while True:
+            response_line = await asyncio.wait_for(self.process.stdout.readline(), timeout=timeout)
+            if not response_line:
+                raise RuntimeError("MCP server closed the connection")
 
-        # SECURITY: Validate JSON-RPC response shape (CWE-20)
-        if not isinstance(response, dict):
-            raise RuntimeError("MCP response is not an object")
-        if response.get("jsonrpc") != "2.0":
-            raise RuntimeError("MCP response missing or invalid jsonrpc version")
-        if "result" not in response and "error" not in response:
-            raise RuntimeError("MCP response missing both 'result' and 'error'")
+            response: Dict[str, Any] = json.loads(response_line.decode())
 
-        return response
+            # SECURITY: Validate JSON-RPC response shape (CWE-20)
+            if not isinstance(response, dict):
+                raise RuntimeError("MCP response is not an object")
+
+            resp_id = response.get("id")
+            if req_id is not None and resp_id is not None and resp_id != req_id:
+                stale += 1
+                if stale > _MAX_STALE_RESPONSES:
+                    raise RuntimeError(
+                        "MCP stream desynchronized: no response matching request id "
+                        f"{req_id!r} after {stale} stale lines"
+                    )
+                logger.debug("Discarding stale MCP response id=%r (want %r)", resp_id, req_id)
+                continue
+
+            if response.get("jsonrpc") != "2.0":
+                raise RuntimeError("MCP response missing or invalid jsonrpc version")
+            if "result" not in response and "error" not in response:
+                raise RuntimeError("MCP response missing both 'result' and 'error'")
+
+            return response
 
     def _next_id(self) -> int:
         """Get next message ID"""

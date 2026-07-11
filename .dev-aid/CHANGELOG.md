@@ -11,6 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+MCP client robustness (batch B):
+
+- **Request/response id correlation** (B-1): `_send_request` now returns the
+  reply whose JSON-RPC id matches the request, discarding stale lines (bounded).
+  A late reply from a timed-out request no longer gets handed to the wrong
+  caller — the desync self-heals instead of persisting.
+- **Bounded shutdown with SIGKILL escalation** (M12): `disconnect` waits up to
+  5s after SIGTERM then sends SIGKILL, so a server that ignores SIGTERM can't
+  hang shutdown; guarded against terminating an already-exited process.
+- **MCP servers are torn down after each run** (M12/M13): `RouterExecutor`
+  calls `disconnect_all()` in a `finally`, so clients aren't left bound to a
+  closed `asyncio.run` loop (which broke the next call) and children aren't
+  orphaned.
+- **Hardened env-override blocklist** (M11): MCP configs can no longer set
+  code-injection env vars — now blocks `LD_*`, `DYLD_*`, `NODE_OPTIONS`,
+  `PYTHONPATH/STARTUP/HOME`, `BASH_ENV`, `PERL5OPT`, `RUBYOPT` (was only
+  `LD_PRELOAD`/`LD_LIBRARY_PATH`).
+
 Supply-chain and CI hygiene (batch A):
 
 - **Pinned the shipped CI templates' `trivy-action@0.33.1`** — an *invalid* tag

@@ -11,6 +11,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+Agent budgets, timeouts & tool-call integrity (batch D):
+
+- **Team `timeout_seconds` is now enforced** (H8): the agent loop takes a
+  wall-clock deadline and stops before the next provider call once exceeded.
+  Previously the timeout was advertised on every team but never applied.
+- **Per-run cost budget** (H8): the loop stops once accumulated cost exceeds a
+  cap; team agents inherit the team's `max_budget_usd`, which also bounds how
+  far a parallel batch can overshoot the shared budget.
+- **Truncated answers aren't reported as complete** (H8): a `max_tokens` stop
+  with no tool call now yields `success=False` with a warning instead of a
+  silently cut-off "successful" result.
+- **Malformed tool-call arguments are rejected** (M17): the OpenAI adapter no
+  longer fabricates `{}` when a tool call's JSON arguments don't parse — the
+  registry returns an error the model can recover from.
+- **File locks always released** (B-6): team agents release their locks in a
+  `finally` so a failure can't leave a stuck lock for later agents.
+
 Reliability: retries & response handling (batch C):
 
 - **Retry only transient errors, with jitter and Retry-After** (H4): the agent

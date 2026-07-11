@@ -408,6 +408,8 @@ class AgentRunner:
         model: str = "",
         max_tokens: int = 4096,
         extra_context: str = "",
+        deadline_seconds: Optional[float] = None,
+        max_cost_usd: Optional[float] = None,
     ) -> AgentResult:
         """
         Execute the agent loop.
@@ -418,6 +420,11 @@ class AgentRunner:
             model: Model to use (overrides default)
             max_tokens: Max tokens per response
             extra_context: Additional context to inject into system prompt
+            deadline_seconds: Wall-clock budget; the loop stops before the next
+                provider call once exceeded (cooperative — an in-flight call is
+                not interrupted). Enforces a team's timeout_seconds (audit H8).
+            max_cost_usd: Cost budget; the loop stops once accumulated cost
+                exceeds it (audit H8).
 
         Returns:
             AgentResult with output, metrics, and cost
@@ -443,6 +450,22 @@ class AgentRunner:
         tool_calls_made: int = 0
         final_output: str = ""
 
+        def _stopped(reason: str, iteration: int) -> AgentResult:
+            """Build a stopped-early result (deadline/budget) and end the trace."""
+            result = AgentResult(
+                agent_name=agent_def.name,
+                success=False,
+                output=final_output or f"[stopped] {reason}",
+                tool_calls_made=tool_calls_made,
+                iterations=iteration,
+                total_tokens=total_tokens,
+                total_cost=total_cost,
+                total_latency_ms=timer.elapsed_ms(),
+            )
+            if self._trace_collector:
+                self._trace_collector.end_trace(result)
+            return result
+
         for iteration in range(1, agent_def.max_iterations + 1):
             logger.info(
                 "Agent '%s' iteration %d/%d",
@@ -450,6 +473,21 @@ class AgentRunner:
                 iteration,
                 agent_def.max_iterations,
             )
+
+            # Enforce the wall-clock deadline before starting another provider
+            # call (audit H8). Cooperative: an already-running call completes.
+            if (
+                deadline_seconds is not None
+                and timer.elapsed_ms() / 1000.0 > deadline_seconds
+            ):
+                logger.warning(
+                    "Agent '%s' exceeded deadline of %.0fs — stopping",
+                    agent_def.name,
+                    deadline_seconds,
+                )
+                return _stopped(
+                    f"Time budget of {deadline_seconds:.0f}s exceeded.", iteration
+                )
 
             # Trim context if getting too large
             self._trim_context(messages)
@@ -497,6 +535,18 @@ class AgentRunner:
             total_tokens["output"] += response.tokens_used.get("output", 0)
             total_cost += response.cost
 
+            # Enforce the cost budget (audit H8).
+            if max_cost_usd is not None and total_cost > max_cost_usd:
+                logger.warning(
+                    "Agent '%s' exceeded cost budget of $%.4f (spent $%.4f) — stopping",
+                    agent_def.name,
+                    max_cost_usd,
+                    total_cost,
+                )
+                return _stopped(
+                    f"Cost budget of ${max_cost_usd:.4f} exceeded.", iteration
+                )
+
             # Record iteration trace
             if self._trace_collector:
                 stop_reason = "tool_use" if response.tool_calls else "end_turn"
@@ -519,9 +569,18 @@ class AgentRunner:
             # If no tool calls, we have the final response
             if not response.tool_calls:
                 final_output = response.content or ""
+                # A max_tokens stop with no tool calls means the model was cut
+                # off mid-answer — don't report it as a clean completion
+                # (audit H8). Flag it so callers don't treat it as done.
+                truncated = getattr(response, "stop_reason", None) == "max_tokens"
+                if truncated:
+                    final_output += (
+                        "\n\n[warning] Response hit the max_tokens limit and may be "
+                        "incomplete."
+                    )
                 success_result = AgentResult(
                     agent_name=agent_def.name,
-                    success=True,
+                    success=not truncated,
                     output=final_output,
                     tool_calls_made=tool_calls_made,
                     iterations=iteration,

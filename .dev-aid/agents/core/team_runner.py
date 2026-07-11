@@ -412,20 +412,28 @@ class TeamRunner:
             lessons_ledger=self._lessons_ledger,
         )
 
-        # Run in thread (AgentRunner.run is synchronous)
-        result = await asyncio.to_thread(
-            runner.run,
-            agent_def=agent_def,
-            user_message=user_message,
-            model=model,
-            extra_context=team_context,
-        )
+        # Run in thread (AgentRunner.run is synchronous). Pass the team's
+        # timeout and budget so a single agent can't run unbounded in wall
+        # clock or cost — these were previously advertised but never enforced
+        # (audit H8). The per-agent cost cap also bounds how far a parallel
+        # batch can overshoot the shared budget.
+        try:
+            result = await asyncio.to_thread(
+                runner.run,
+                agent_def=agent_def,
+                user_message=user_message,
+                model=model,
+                extra_context=team_context,
+                deadline_seconds=team_def.timeout_seconds,
+                max_cost_usd=team_def.max_budget_usd,
+            )
+        finally:
+            # Always release this agent's file locks, even on failure
+            # (audit B-6) — a stuck lock would deadlock later agents.
+            file_locks.release_all(slot.name)
 
         # Record cost
         budget.record_cost(slot.name, result.total_cost)
-
-        # Release file locks
-        file_locks.release_all(slot.name)
 
         # Auto-record team agent failure as a lesson
         if (

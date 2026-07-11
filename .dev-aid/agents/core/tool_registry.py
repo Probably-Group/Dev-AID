@@ -56,6 +56,18 @@ class ToolRegistry:
         """Execute a tool call with safety checks."""
         name = tool_call.name
 
+        # Refuse a tool call whose arguments failed to parse, rather than
+        # running the tool with fabricated empty arguments (audit M17). The
+        # error is returned to the model so it can re-emit a valid call.
+        if tool_call.parse_error:
+            return ToolResult(
+                call_id=tool_call.id,
+                name=name,
+                output="",
+                success=False,
+                error=f"Invalid tool arguments: {tool_call.parse_error}",
+            )
+
         # Check if tool exists
         if name not in self._tools:
             return ToolResult(

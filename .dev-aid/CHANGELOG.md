@@ -11,6 +11,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
+Local-search & deep-research (batch E):
+
+- **Index scope confinement** (M1): `index_directory` honors
+  `DEVAID_SEARCH_ALLOWED_ROOT` — when set, indexable paths are confined to
+  that tree via `safe_resolve_path`, so a prompt-injected caller can't index
+  an arbitrary directory and read its contents back through `search_code`.
+  Unset stays backwards-compatible but logs a warning.
+- **Secret files excluded from the index** (M1): the chunker's default
+  exclusions now skip `.env`, SSH/AWS/GnuPG dirs, `id_rsa`/`id_ed25519`,
+  `.pem`/`.p12`/`.pfx`, `.netrc`/`.npmrc`/`.pypirc`/`.pgpass`, etc.
+- **Fixed the coverage gate that never gated** (M-cov): `--cov` is scoped to
+  the source packages instead of `.` (which swept the venv and reported a
+  bogus ~19% failing a green run); threshold set to a real, enforced floor.
+- **Both suites now run in CI** (H11): added required `local-search-test` and
+  `deep-research-test` jobs to `pr-check.yml` — previously neither ran in CI.
+- Added tests for the previously-0%-covered MCP request validators.
+- **Honest degraded deep-research** (M15): when the Interactions API is
+  unavailable, the single-call fallback now reports `confidence_score=0.4`,
+  `metadata.degraded=true`, and its real model — instead of masquerading as a
+  0.9-confidence deep-research result — and no longer targets the retired
+  `gemini-2.0-flash-exp` alias.
+
 Agent budgets, timeouts & tool-call integrity (batch D):
 
 - **Team `timeout_seconds` is now enforced** (H8): the agent loop takes a

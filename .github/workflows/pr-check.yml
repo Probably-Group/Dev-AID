@@ -214,10 +214,49 @@ jobs:
           severity: warning
           ignore_paths: '.dev-aid/orchestration/venv .dev-aid/orchestration/.venv'
 
+  # Local-search and deep-research were previously not tested in CI at all
+  # (audit H11) — their suites only ran locally. Wire them in as required jobs.
+  local-search-test:
+    name: Local Search Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install and test
+        run: |
+          cd .dev-aid/local-search
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install pytest pytest-cov pytest-asyncio pytest-mock
+          python -m pytest tests/
+
+  deep-research-test:
+    name: Deep Research Tests
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6.2.0
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      - name: Install and test
+        run: |
+          cd .dev-aid/deep-research
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          python -m pytest tests/
+
   pr-check-summary:
     name: PR Check Summary
     runs-on: ubuntu-22.04
-    needs: [python-lint, python-test, type-check, e2e-test, bash-lint]
+    needs: [python-lint, python-test, type-check, e2e-test, bash-lint, local-search-test, deep-research-test]
     if: always()
 
     steps:
@@ -231,15 +270,20 @@ jobs:
           E2E="${{ needs.e2e-test.result }}"
           TYPE="${{ needs.type-check.result }}"
           BASH="${{ needs.bash-lint.result }}"
+          LOCAL_SEARCH="${{ needs.local-search-test.result }}"
+          DEEP_RESEARCH="${{ needs.deep-research-test.result }}"
 
           echo "Python Lint: $LINT"
           echo "Python Test: $TEST"
           echo "E2E Test: $E2E"
           echo "Type Check: $TYPE"
           echo "Bash Lint: $BASH"
+          echo "Local Search Test: $LOCAL_SEARCH"
+          echo "Deep Research Test: $DEEP_RESEARCH"
 
           # Only fail on actual failures, not skipped/cancelled
-          if [[ "$LINT" == "failure" || "$TEST" == "failure" || "$E2E" == "failure" ]]; then
+          if [[ "$LINT" == "failure" || "$TEST" == "failure" || "$E2E" == "failure" \
+                || "$LOCAL_SEARCH" == "failure" || "$DEEP_RESEARCH" == "failure" ]]; then
             echo "::error::PR checks failed!"
             exit 1
           fi

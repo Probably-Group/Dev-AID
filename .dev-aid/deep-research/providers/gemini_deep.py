@@ -33,6 +33,10 @@ class GeminiDeepResearchProvider(ResearchProvider):
     """
 
     AGENT = "deep-research-pro-preview-12-2025"
+    # Model used when the deep-research Interactions API is unavailable and we
+    # fall back to a single generate_content call. A current, stable model —
+    # not the retired "-exp" alias (audit M15). Keep in sync with models.json.
+    FALLBACK_MODEL = "gemini-2.5-flash"
     DEFAULT_TIMEOUT = 300  # 5 minutes
     POLL_INTERVAL = 5  # seconds
 
@@ -119,6 +123,8 @@ class GeminiDeepResearchProvider(ResearchProvider):
             # Create background interaction for deep research
             logger.info(f"Starting Gemini deep research: {query[:100]}...")
 
+            degraded = False
+
             # Use the Interactions API for deep research
             try:
                 interaction = await asyncio.to_thread(
@@ -133,11 +139,19 @@ class GeminiDeepResearchProvider(ResearchProvider):
                     client, interaction.id, timeout, start_time
                 )
             except AttributeError:
-                # Fallback to regular generate_content if interactions not available
-                logger.warning("Interactions API not available, using generate_content")
+                # Fallback: a single generate_content call is NOT deep research.
+                # Record the degradation honestly instead of reporting it as a
+                # high-confidence deep-research result (audit M15).
+                logger.warning(
+                    "Interactions API unavailable — falling back to a single "
+                    "%s call; result is NOT deep research and confidence is "
+                    "reported as degraded",
+                    self.FALLBACK_MODEL,
+                )
+                degraded = True
                 response = await asyncio.to_thread(
                     client.models.generate_content,
-                    model="gemini-2.0-flash-exp",
+                    model=self.FALLBACK_MODEL,
                     contents=f"Research the following topic comprehensively: {query}",
                 )
                 result = {
@@ -166,10 +180,13 @@ class GeminiDeepResearchProvider(ResearchProvider):
             provider=self.name,
             depth=depth,
             citations=result.get("citations", []),
-            confidence_score=0.9,  # Gemini deep research is high quality
+            # Full deep-research is high quality; the degraded single-call
+            # fallback is not — report that honestly (audit M15).
+            confidence_score=0.4 if degraded else 0.9,
             processing_time_ms=processing_time,
             metadata={
-                "agent": self.AGENT,
+                "agent": (self.FALLBACK_MODEL if degraded else self.AGENT),
+                "degraded": degraded,
                 "timeout_used": timeout,
             },
         )

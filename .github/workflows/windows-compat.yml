@@ -19,6 +19,10 @@ on:
       - '.github/workflows/windows-compat.yml'
       - '.dev-aid/orchestration/**'
 
+# Least-privilege default token for all jobs (audit M9).
+permissions:
+  contents: read
+
 # Cancel outdated workflow runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

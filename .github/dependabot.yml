@@ -1,0 +1,53 @@
+# Dependabot configuration (audit M8).
+# Keeps dependencies and SHA-pinned GitHub Actions current. A cooldown gives
+# new releases time to be vetted before a PR is opened, reducing the risk of
+# pulling a freshly-compromised version.
+version: 2
+updates:
+  # Python — orchestration (requirements.txt is the runtime manifest)
+  - package-ecosystem: "pip"
+    directory: "/.dev-aid/orchestration"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+    groups:
+      python-orchestration:
+        patterns: ["*"]
+
+  # Python — local-search
+  - package-ecosystem: "pip"
+    directory: "/.dev-aid/local-search"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+
+  # Python — deep-research
+  - package-ecosystem: "pip"
+    directory: "/.dev-aid/deep-research"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+
+  # Node — TOON SDK used by the orchestration module
+  - package-ecosystem: "npm"
+    directory: "/.dev-aid/orchestration"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
+
+  # GitHub Actions — keep the SHA pins in .github/workflows fresh
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7

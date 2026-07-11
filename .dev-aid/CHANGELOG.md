@@ -9,6 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security & Correctness (SOTA audit — Sprint 2 remediation)
+
+Supply-chain and CI hygiene (batch A):
+
+- **Pinned the shipped CI templates' `trivy-action@0.33.1`** — an *invalid* tag
+  (only `v0.33.1` exists) that would fail the scan step — to the `v0.33.1`
+  commit SHA across all `templates/ci` and `automation/ci-cd` files.
+- **Added `.github/dependabot.yml`** (audit M8) covering pip (×3 manifests),
+  npm, and github-actions, with a 7-day cooldown to blunt supply-chain
+  attacks via freshly-published versions.
+- **Added least-privilege `permissions: contents: read`** to `pr-check.yml`
+  and `windows-compat.yml` (audit M9).
+- **Bumped `vcrpy` to 8.2.1** (GHSA-rpj2-4hq8-938g, unsafe YAML cassette load).
+- **Fixed a `find` precedence bug** in the `pre-push` hook where `-name '*.js'
+  -o -name '*.jsx'` without parentheses let the exclusions be ignored.
+- **Regenerated drifted `search.toon`/`settings.toon`** from JSON (the loader
+  reads `.toon` first; these had silently diverged from their `.json` source).
+
 ### Security & Correctness (SOTA audit — Sprint 1 remediation)
 
 Fixes for the five highest-priority findings from the full repository audit

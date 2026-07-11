@@ -23,6 +23,10 @@ on:
       - '.github/workflows/**'
       - '.dev-aid/**'
 
+# Least-privilege default token for all jobs (audit M9).
+permissions:
+  contents: read
+
 # Cancel outdated workflow runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

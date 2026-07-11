@@ -38,7 +38,7 @@
           GITLEAKS_VERSION: "latest"
 
       - name: Run Trivy (CVE + Misconfig + Secrets)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # v0.33.1
         continue-on-error: true  # We check results manually below
         with:
           version: latest
@@ -56,7 +56,7 @@
 
       - name: Run Trivy (Container Scanning)
         if: hashFiles('Dockerfile') != ''
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8  # v0.33.1
         continue-on-error: true
         with:
           version: latest

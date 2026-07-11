@@ -101,11 +101,11 @@ if command -v $OPENGREP_CMD &> /dev/null; then
         OPENGREP_CONFIGS+=("--config" "p/python")
         DETECTED_LANGS="${DETECTED_LANGS} Python"
     fi
-    if find . -name '*.js' -o -name '*.jsx' -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
+    if find . \( -name '*.js' -o -name '*.jsx' \) -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
         OPENGREP_CONFIGS+=("--config" "p/javascript")
         DETECTED_LANGS="${DETECTED_LANGS} JS"
     fi
-    if find . -name '*.ts' -o -name '*.tsx' -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
+    if find . \( -name '*.ts' -o -name '*.tsx' \) -not -path '*/node_modules/*' -not -path '*/.git/*' 2>/dev/null | head -1 | grep -q .; then
         OPENGREP_CONFIGS+=("--config" "p/typescript")
         DETECTED_LANGS="${DETECTED_LANGS} TS"
     fi

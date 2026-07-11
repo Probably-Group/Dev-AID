@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- `CLAUDE.md`: documented contributor gotchas surfaced during the audit — the
+  orchestration Black line-length (100 vs the repo default 88) and how mixing
+  paths breaks it, that the pre-commit hook only gates `.dev-aid/orchestration/`,
+  and that `.toon` configs are loaded before `.json` (regenerate on json edits).
+- `orchestration/requirements.txt`: corrected the reproducibility comment —
+  only *direct* deps are pinned; transitives are not hash-locked (see M6).
+
 ### Security & Correctness (SOTA audit — Sprint 2 remediation)
 
 Injection hardening & shell fixes (batch G):

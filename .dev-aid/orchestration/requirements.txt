@@ -1,8 +1,11 @@
 # Dev-AID Router - Python Dependencies
 # Install with: pip install -r requirements.txt
 #
-# SECURITY: All dependencies are pinned to exact versions for reproducibility.
-# This prevents supply chain attacks and ensures deterministic builds.
+# SECURITY: All DIRECT dependencies are pinned to exact versions, which limits
+# the supply-chain surface. NOTE: transitive dependencies are still resolved by
+# pip at install time and are NOT hash-locked, so builds are not fully
+# deterministic yet. A hash-pinned lockfile (pip-compile --generate-hashes +
+# `pip install --require-hashes`) is tracked as a CI-side follow-up (audit M6).
 #
 # To update dependencies:
 #   1. Test new versions in isolated environment
